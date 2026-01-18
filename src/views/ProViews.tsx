@@ -324,9 +324,9 @@ const ProAgenda: React.FC = () => (
     </div>
 );
 
-export const ProViews: React.FC<ProProps> = ({ view, setView }) => {
+export const ProViews: React.FC<ProProps> = ({ user, view, setView }) => {
     switch (view) {
-        case ViewState.PRO_HOME: return <ProDashboard onViewAgenda={() => setView(ViewState.PRO_AGENDA)} onViewRecords={() => setView(ViewState.PRO_RECORDS)} onViewOpportunities={() => setView(ViewState.PRO_OPPORTUNITIES)} />;
+        case ViewState.PRO_HOME: return <ProDashboard user={user} onViewAgenda={() => setView(ViewState.PRO_AGENDA)} onViewRecords={() => setView(ViewState.PRO_RECORDS)} onViewOpportunities={() => setView(ViewState.PRO_OPPORTUNITIES)} />;
         case ViewState.PRO_FINANCE: return <ProFinancial />;
         case ViewState.PRO_AGENDA: return <ProAgenda />;
         case ViewState.PRO_RECORDS: return <ProRecords />;
