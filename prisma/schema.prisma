@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Professional {
+  id              String   @id @default(cuid())
+  name            String
+  role            String
+  avatarUrl       String
+  rating          Float
+  price           Float
+  specialties     String   // Simplified: comma separated or JSON string for SQLite
+  clinicId        String?
+  clinicName      String?
+  location        String?
+  verified        Boolean  @default(false)
+  badges          String?  // Comma separated
+  nextSession     String?
+  bio             String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Clinic {
+  id          String   @id @default(cuid())
+  name        String
+  address     String
+  rating      Float
+  image       String
+  specialties String   // Simplified
+  verified    Boolean  @default(false)
+  description String?
+  amenities   String?  // Comma separated
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
