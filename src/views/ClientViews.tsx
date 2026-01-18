@@ -428,16 +428,37 @@ const ClientCart: React.FC<ClientProps> = ({ cart, removeFromCart, setView }) =>
 };
 
 // 2. CHECKOUT VIEW
-const ClientCheckout: React.FC<ClientProps> = ({ cart, clearCart, setView }) => {
+const ClientCheckout: React.FC<ClientProps> = ({ user, cart, clearCart, setView }) => {
     const [method, setMethod] = useState<'pix' | 'card'>('pix');
     const [processing, setProcessing] = useState(false);
 
-    const handlePay = () => {
+    const handlePay = async () => {
         setProcessing(true);
-        setTimeout(() => {
+        try {
+            // Process each item in cart
+            for (const item of cart) {
+                if (item.type === 'service') {
+                    await fetch('/api/appointments', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            clientId: user.id,
+                            professionalId: item.professionalId || 'pro1', // Fallback or extracted from item
+                            serviceId: item.id,
+                            serviceName: item.name,
+                            date: item.date,
+                            price: item.price
+                        })
+                    });
+                }
+            }
+
             clearCart();
             setView(ViewState.CLIENT_SUCCESS);
-        }, 2000);
+        } catch (err) {
+            console.error("Payment failed", err);
+            setProcessing(false);
+        }
     };
 
     if (processing) {

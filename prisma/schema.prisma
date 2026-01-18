@@ -42,3 +42,62 @@ model Clinic {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  password      String   // In a real app, this would be hashed
+  role          String   @default("CLIENT") // CLIENT, PROFESSIONAL, SPACE
+  avatar        String?
+  streak        Int      @default(0)
+  points        Int      @default(0)
+  level         Int      @default(1)
+  mood          Int?
+  lastLogin     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  appointments  Appointment[]
+  notifications Notification[]
+  transactions  Transaction[]
+}
+
+model Appointment {
+  id              String   @id @default(cuid())
+  clientId        String
+  professionalId  String
+  serviceId       String
+  serviceName     String
+  date            DateTime
+  status          String   @default("confirmed") // confirmed, completed, cancelled
+  price           Float
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client          User     @relation(fields: [clientId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Float
+  type        String   // income, expense
+  description String
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   // appointment, message, system, gift
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+}
