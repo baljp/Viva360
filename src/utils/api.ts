@@ -5,7 +5,7 @@
 
 export async function apiFetch<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const url = endpoint.startsWith('/') ? endpoint : `/api/${endpoint}`;
-  
+
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -25,5 +25,7 @@ export async function apiFetch<T>(endpoint: string, options?: RequestInit): Prom
 export const endpoints = {
   professionals: 'professionals',
   clinics: 'clinics',
-  // Add more as needed
+  auth: 'auth',
+  appointments: 'appointments',
+  notifications: 'notifications',
 };

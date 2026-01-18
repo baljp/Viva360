@@ -9,6 +9,7 @@ const SpaceViews = lazy(() => import('./views/SpaceViews'));
 const SettingsViews = lazy(() => import('./views/SettingsViews'));
 import { ZenToast, OfflineState, NotificationCenter, NotificationItem } from './components/Common';
 import { useApi } from './hooks/useApi';
+import { endpoints } from './utils/api';
 import AppointmentsManager from './views/AppointmentsManager';
 import ProProfileEdit from './views/ProProfileEdit';
 
@@ -24,6 +25,18 @@ const App: React.FC = () => {
         { id: 'n1', title: 'Bem-vindo ao Viva360', message: 'Sua jornada de autoconhecimento começa aqui.', time: 'Hoje', read: false, type: 'system' },
         { id: 'n2', title: 'Mensagem de Sofia', message: 'Como você está se sentindo hoje?', time: '2h atrás', read: false, type: 'message' },
     ]);
+
+    const authApi = useApi<User>();
+    const notificationsApi = useApi<NotificationItem[]>();
+
+    // Notification Polling
+    useEffect(() => {
+        if (currentUser) {
+            notificationsApi.request(`${endpoints.notifications}?userId=${currentUser.id}`)
+                .then(data => setNotifications(data))
+                .catch(err => console.error("Failed to fetch notifications"));
+        }
+    }, [currentUser, isNotificationsOpen, notificationsApi]);
 
     // API Hooks
     const { data: professionals, request: fetchPros } = useApi<Professional[]>();
@@ -72,19 +85,38 @@ const App: React.FC = () => {
     };
 
     // Fake auth handler
-    const handleLogin = (role: UserRole) => {
-        let user = MOCK_USERS['client1'];
-        if (role === UserRole.PROFESSIONAL) {
-            user = { ...MOCK_PROS[0], role: UserRole.PROFESSIONAL };
-        } else if (role === UserRole.SPACE) {
-            user = { ...user, id: 'space1', name: 'Espaço Zen', role: UserRole.SPACE };
+    const handleLogin = async (loginForm: any) => { // Assuming loginForm is passed from Auth component
+        try {
+            const user = await authApi.request(endpoints.auth, {
+                method: 'POST',
+                body: JSON.stringify({ action: 'login', email: loginForm.email, password: loginForm.password })
+            });
+            setCurrentUser(user);
+            setCurrentView(user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : (user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME));
+            setToast({ title: 'Bem-vindo!', message: `Olá, ${user.name}`, type: 'success' });
+        } catch (err) {
+            setToast({ title: 'Erro', message: 'Credenciais inválidas', type: 'error' });
         }
+    };
 
-        setCurrentUser(user);
-
-        if (role === UserRole.CLIENT) setCurrentView(ViewState.CLIENT_HOME);
-        else if (role === UserRole.PROFESSIONAL) setCurrentView(ViewState.PRO_HOME);
-        else setCurrentView(ViewState.SPACE_HOME);
+    const handleRegister = async (registerForm: any) => { // Assuming registerForm is passed from Auth component
+        try {
+            const user = await authApi.request(endpoints.auth, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'register',
+                    name: registerForm.name,
+                    email: registerForm.email,
+                    password: registerForm.password,
+                    role: registerForm.role
+                })
+            });
+            setCurrentUser(user);
+            setCurrentView(ViewState.ONBOARDING_INTENT); // Assuming this is the next step after registration
+            setToast({ title: 'Sucesso!', message: 'Conta criada com sucesso', type: 'success' });
+        } catch (err) {
+            setToast({ title: 'Erro', message: 'Falha ao criar conta. Usuário já existe?', type: 'error' });
+        }
     };
 
     const handleLogout = () => {
@@ -126,7 +158,7 @@ const App: React.FC = () => {
     const renderView = () => {
         if (isOffline) return <OfflineState onRetry={() => setIsOffline(false)} />;
 
-        if (!currentUser) return <Auth onLogin={handleLogin} />;
+        if (!currentUser) return <Auth onLogin={handleLogin} onRegister={handleRegister} />;
 
         // Handle Shared Views
         if ([
@@ -193,7 +225,7 @@ const App: React.FC = () => {
                     />
                 );
             }
-            return <ProViews view={currentView} setView={setCurrentView} />;
+            return <ProViews user={currentUser} view={currentView} setView={setCurrentView} />;
         }
 
         if (currentUser.role === UserRole.SPACE) {
