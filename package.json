@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "prisma generate && vite build",
     "preview": "vite preview",
     "test:endpoints": "node scripts/test-endpoints.mjs",
     "test:stress": "node scripts/stress-test.mjs"
