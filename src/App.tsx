@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { User, UserRole, ViewState, Professional, Service, CartItem, ToastMessage } from './types';
 import { MOCK_USERS, MOCK_PROS } from './constants';
 import Layout from './components/Layout';
 import Auth from './views/Auth';
-import { ClientViews } from './views/ClientViews';
-import { ProViews } from './views/ProViews';
-import { SpaceViews } from './views/SpaceViews';
-import { SettingsViews } from './views/SettingsViews';
-import { ZenToast, OfflineState } from './components/Common';
-import { useApi } from './src/hooks/useApi';
+const ClientViews = lazy(() => import('./views/ClientViews').then(m => ({ default: m.ClientViews })));
+const ProViews = lazy(() => import('./views/ProViews'));
+const SpaceViews = lazy(() => import('./views/SpaceViews'));
+const SettingsViews = lazy(() => import('./views/SettingsViews'));
+import { ZenToast, OfflineState, NotificationCenter, NotificationItem } from './components/Common';
+import { useApi } from './hooks/useApi';
 import AppointmentsManager from './views/AppointmentsManager';
 import ProProfileEdit from './views/ProProfileEdit';
 
@@ -19,6 +19,11 @@ const App: React.FC = () => {
     // Global System State
     const [toast, setToast] = useState<ToastMessage | null>(null);
     const [isOffline, setIsOffline] = useState(false);
+    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+    const [notifications, setNotifications] = useState<NotificationItem[]>([
+        { id: 'n1', title: 'Bem-vindo ao Viva360', message: 'Sua jornada de autoconhecimento começa aqui.', time: 'Hoje', read: false, type: 'system' },
+        { id: 'n2', title: 'Mensagem de Sofia', message: 'Como você está se sentindo hoje?', time: '2h atrás', read: false, type: 'message' },
+    ]);
 
     // API Hooks
     const { data: professionals, request: fetchPros } = useApi<Professional[]>();
@@ -204,8 +209,18 @@ const App: React.FC = () => {
             currentView={currentView}
             setView={setCurrentView}
             onLogout={handleLogout}
+            onToggleNotifications={() => setIsNotificationsOpen(true)}
+            hasUnreadNotifications={notifications.some(n => !n.read)}
         >
-            {renderView()}
+            <Suspense fallback={<div className="flex items-center justify-center p-20 text-primary-500">Carregando...</div>}>
+                {renderView()}
+            </Suspense>
+            <NotificationCenter
+                isOpen={isNotificationsOpen}
+                onClose={() => setIsNotificationsOpen(false)}
+                notifications={notifications}
+                onMarkRead={(id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))}
+            />
             <ZenToast toast={toast} onClose={() => setToast(null)} />
         </Layout>
     );
