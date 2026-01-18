@@ -118,7 +118,8 @@ const App: React.FC = () => {
           ViewState.SUPPORT,
           ViewState.SETTINGS_PRIVACY_HEALTH,
           ViewState.SETTINGS_PRO_SERVICES,
-          ViewState.SETTINGS_PROFILE_EDIT
+          ViewState.SETTINGS_PROFILE_EDIT,
+          ViewState.SETTINGS_COMMISSION
         ].includes(currentView)) {
           return <SettingsViews user={currentUser} view={currentView} setView={setCurrentView} />;
       }

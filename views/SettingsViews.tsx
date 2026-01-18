@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { ViewState, UserRole, User, HealthAccessGrant, AnamnesisData, Service } from '../types';
-import { ChevronRight, Shield, Bell, Moon, CreditCard, Clock, FileCheck, Users, Coffee, Gift, Copy, Check, Camera, Leaf, ShieldCheck, ChevronLeft, UserCircle, MapPin, Mail, Key, MessageCircle, HelpCircle, Activity, Heart, Eye, AlertTriangle, Zap, Sliders, Briefcase, Plus, Edit2, Trash2 } from 'lucide-react';
-import { FileUpload, SuccessModal, Accordion, Toggle, RangeSlider, BottomSheet, EmptyState } from '../components/Common';
-import { MOCK_PROS } from '../constants';
+import { ViewState, UserRole, User, HealthAccessGrant, AnamnesisData, Service, DataSharingRequest, CommissionRule } from '../types';
+import { ChevronRight, Shield, Bell, Moon, CreditCard, Clock, FileCheck, Users, Coffee, Gift, Copy, Check, Camera, Leaf, ShieldCheck, ChevronLeft, UserCircle, MapPin, Mail, Key, MessageCircle, HelpCircle, Activity, Heart, Eye, AlertTriangle, Zap, Sliders, Briefcase, Plus, Edit2, Trash2, Lock, EyeOff, FilePlus, AlertCircle, Percent, DollarSign, Download, PieChart, Sparkles } from 'lucide-react';
+import { FileUpload, SuccessModal, Accordion, Toggle, RangeSlider, BottomSheet, EmptyState, VerifiedBadge } from '../components/Common';
+import { MOCK_PROS, MOCK_GRANTS, MOCK_SHARING_REQUESTS } from '../constants';
 
 interface SettingsProps {
     user: User;
@@ -12,6 +12,13 @@ interface SettingsProps {
 
 // --- SUB-VIEW: CLIENT HEALTH & PRIVACY (GDPR) ---
 const ClientHealthSettings: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const [activeTab, setActiveTab] = useState<'access' | 'anamnesis'>('access');
+    const [grants, setGrants] = useState<HealthAccessGrant[]>(MOCK_GRANTS);
+    const [requests, setRequests] = useState<DataSharingRequest[]>(MOCK_SHARING_REQUESTS);
+    const [token, setToken] = useState<string | null>(null);
+    const [showRevokeModal, setShowRevokeModal] = useState<string | null>(null); // Stores Pro ID to revoke
+
+    // Anamnesis State
     const [anamnesis, setAnamnesis] = useState<AnamnesisData>({
         stressLevel: 40,
         sleepQuality: 70,
@@ -20,105 +27,397 @@ const ClientHealthSettings: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         lastUpdate: new Date().toISOString()
     });
 
-    const [grants, setGrants] = useState<HealthAccessGrant[]>([
-        { professionalId: 'pro1', professionalName: 'Sofia Luz', avatar: MOCK_PROS[0].avatar || '', grantedAt: '2023-09-10' }
-    ]);
-
-    const [token, setToken] = useState<string | null>(null);
-
     const handleGenerateToken = () => {
         setToken(`${Math.random().toString(36).substring(2, 8).toUpperCase()}`);
     };
 
-    const handleRevoke = (id: string) => {
-        if (confirm('Tem certeza que deseja revogar o acesso? O profissional não poderá mais ver seu histórico.')) {
-            setGrants(grants.filter(g => g.professionalId !== id));
+    const handleTogglePermission = (proId: string, perm: keyof HealthAccessGrant['permissions']) => {
+        setGrants(prev => prev.map(g => {
+            if (g.professionalId === proId) {
+                // Logic: If 'insertOnly' is true, 'readHistory' must be false, etc.
+                const newPerms = { ...g.permissions, [perm]: !g.permissions[perm] };
+                if (perm === 'insertOnly' && newPerms.insertOnly) newPerms.readHistory = false;
+                if (perm === 'readHistory' && newPerms.readHistory) newPerms.insertOnly = false;
+                return { ...g, permissions: newPerms };
+            }
+            return g;
+        }));
+    };
+
+    const confirmRevoke = () => {
+        if (showRevokeModal) {
+            setGrants(prev => prev.filter(g => g.professionalId !== showRevokeModal));
+            setShowRevokeModal(null);
         }
+    };
+
+    const handleApproveRequest = (req: DataSharingRequest) => {
+        // Add new grant based on request
+        const newGrant: HealthAccessGrant = {
+            professionalId: req.toProId,
+            professionalName: req.toProName,
+            avatar: req.toProAvatar,
+            role: 'Terapeuta Parceiro',
+            grantedAt: new Date().toISOString(),
+            permissions: { readHistory: true, insertOnly: false, emergency: false }
+        };
+        setGrants(prev => [newGrant, ...prev]);
+        setRequests(prev => prev.filter(r => r.id !== req.id));
     };
 
     return (
         <div className="h-full flex flex-col pb-24 animate-in slide-in-from-right">
             <div className="flex items-center gap-2 mb-6 px-2">
                 <button onClick={onBack}><ChevronLeft size={24} className="text-nature-500" /></button>
-                <h2 className="text-2xl font-light text-nature-800">Saúde & <span className="font-semibold">Privacidade</span></h2>
+                <div>
+                    <h2 className="text-2xl font-light text-nature-800">Meu Círculo de <span className="font-semibold">Cuidado</span></h2>
+                    <p className="text-xs text-nature-500">Seus dados são seus. Você decide quem vê.</p>
+                </div>
+            </div>
+
+            {/* TABS */}
+            <div className="flex bg-nature-100 p-1 rounded-2xl mx-1 mb-6">
+                <button onClick={() => setActiveTab('access')} className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${activeTab === 'access' ? 'bg-white shadow-sm text-primary-700' : 'text-nature-500'}`}>
+                    Acessos & LGPD
+                </button>
+                <button onClick={() => setActiveTab('anamnesis')} className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all ${activeTab === 'anamnesis' ? 'bg-white shadow-sm text-primary-700' : 'text-nature-500'}`}>
+                    Minha Anamnese
+                </button>
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-6 px-1">
                 
-                {/* 1. Anamnese Holística */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="bg-primary-50 p-3 rounded-full text-primary-600"><Activity size={20} /></div>
-                        <div>
-                            <h3 className="font-semibold text-nature-800">Anamnese Holística</h3>
-                            <p className="text-xs text-nature-500">Atualizado: Hoje</p>
-                        </div>
-                    </div>
-                    
-                    <div className="space-y-4">
-                        <RangeSlider label="Nível de Estresse" value={anamnesis.stressLevel} onChange={(v) => setAnamnesis({...anamnesis, stressLevel: v})} minLabel="Zen" maxLabel="Crítico" />
-                        <RangeSlider label="Qualidade do Sono" value={anamnesis.sleepQuality} onChange={(v) => setAnamnesis({...anamnesis, sleepQuality: v})} minLabel="Insônia" maxLabel="Reparador" />
-                        <RangeSlider label="Digestão" value={anamnesis.digestion} onChange={(v) => setAnamnesis({...anamnesis, digestion: v})} minLabel="Lenta" maxLabel="Leve" />
-                        <RangeSlider label="Energia Vital" value={anamnesis.energy} onChange={(v) => setAnamnesis({...anamnesis, energy: v})} minLabel="Baixa" maxLabel="Radiante" />
-                    </div>
-                </div>
+                {activeTab === 'access' && (
+                    <>
+                        {/* 1. INTEROPERABILITY REQUESTS */}
+                        {requests.length > 0 && (
+                            <div className="bg-amber-50 border border-amber-100 rounded-[2rem] p-5 animate-in slide-in-from-top-4">
+                                <h3 className="text-sm font-bold text-amber-800 mb-3 flex items-center gap-2"><Bell size={14} className="animate-pulse" /> Solicitações Pendentes</h3>
+                                {requests.map(req => (
+                                    <div key={req.id} className="bg-white/60 p-4 rounded-2xl border border-amber-200/50 mb-2">
+                                        <div className="flex items-start gap-3 mb-3">
+                                            <div className="relative">
+                                                <img src={req.toProAvatar} className="w-10 h-10 rounded-full object-cover" alt="" />
+                                                <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5"><VerifiedBadge size={10} /></div>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-nature-800 leading-tight">
+                                                    <span className="font-bold">{req.fromProName}</span> indicou <span className="font-bold">{req.toProName}</span> para acessar seu prontuário.
+                                                </p>
+                                                <p className="text-[10px] text-nature-500 mt-1 italic">"{req.reason}"</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => handleApproveRequest(req)} className="flex-1 bg-amber-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-amber-700">Autorizar</button>
+                                            <button onClick={() => setRequests(prev => prev.filter(r => r.id !== req.id))} className="flex-1 bg-white text-nature-500 border border-nature-200 text-xs font-bold py-2 rounded-lg">Recusar</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
 
-                {/* 2. Access Management (GDPR) */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="bg-blue-50 p-3 rounded-full text-blue-600"><ShieldCheck size={20} /></div>
-                        <div>
-                            <h3 className="font-semibold text-nature-800">Quem tem acesso?</h3>
-                            <p className="text-xs text-nature-500">Gestão de consentimento (LGPD).</p>
-                        </div>
-                    </div>
+                        {/* 2. ACTIVE ACCESS GRANTS */}
+                        <div className="space-y-4">
+                            <h3 className="font-bold text-nature-400 text-xs uppercase tracking-widest px-2">Quem tem acesso?</h3>
+                            
+                            {grants.length > 0 ? grants.map(grant => (
+                                <div key={grant.professionalId} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm transition-all hover:border-primary-100">
+                                    {/* Header */}
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <img src={grant.avatar} className="w-12 h-12 rounded-2xl object-cover bg-nature-50" alt="" />
+                                            <div>
+                                                <div className="flex items-center gap-1">
+                                                    <h4 className="font-bold text-nature-800 text-sm">{grant.professionalName}</h4>
+                                                    <VerifiedBadge size={12} />
+                                                </div>
+                                                <p className="text-[10px] text-nature-500">{grant.role}</p>
+                                                <p className="text-[10px] text-primary-600 font-medium">Desde {new Date(grant.grantedAt).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-green-50 text-green-700 px-2 py-1 rounded-md text-[10px] font-bold border border-green-100 flex items-center gap-1">
+                                            <ShieldCheck size={10} /> Ativo
+                                        </div>
+                                    </div>
 
-                    <div className="space-y-4">
-                        {grants.length > 0 ? grants.map(grant => (
-                            <div key={grant.professionalId} className="flex items-center justify-between p-3 bg-nature-50 rounded-2xl border border-nature-100">
-                                <div className="flex items-center gap-3">
-                                    <img src={grant.avatar} className="w-10 h-10 rounded-full object-cover" alt="" />
-                                    <div>
-                                        <p className="text-sm font-bold text-nature-800">{grant.professionalName}</p>
-                                        <p className="text-[10px] text-nature-500">Desde: {new Date(grant.grantedAt).toLocaleDateString()}</p>
+                                    {/* Permissions Toggles */}
+                                    <div className="bg-nature-50/50 rounded-2xl p-4 space-y-3 mb-4">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`p-1.5 rounded-lg ${grant.permissions.readHistory ? 'bg-blue-100 text-blue-600' : 'bg-nature-200 text-nature-400'}`}><Eye size={14} /></div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-nature-700">Leitura Total</p>
+                                                    <p className="text-[10px] text-nature-400">Ver histórico passado</p>
+                                                </div>
+                                            </div>
+                                            <Toggle checked={grant.permissions.readHistory} onChange={() => handleTogglePermission(grant.professionalId, 'readHistory')} />
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`p-1.5 rounded-lg ${grant.permissions.insertOnly ? 'bg-amber-100 text-amber-600' : 'bg-nature-200 text-nature-400'}`}><FilePlus size={14} /></div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-nature-700">Apenas Inserção</p>
+                                                    <p className="text-[10px] text-nature-400">Só adiciona, não lê</p>
+                                                </div>
+                                            </div>
+                                            <Toggle checked={grant.permissions.insertOnly} onChange={() => handleTogglePermission(grant.professionalId, 'insertOnly')} />
+                                        </div>
+
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`p-1.5 rounded-lg ${grant.permissions.emergency ? 'bg-red-100 text-red-600' : 'bg-nature-200 text-nature-400'}`}><AlertTriangle size={14} /></div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-nature-700">Emergência 24h</p>
+                                                    <p className="text-[10px] text-nature-400">Acesso total temporário</p>
+                                                </div>
+                                            </div>
+                                            <Toggle checked={grant.permissions.emergency} onChange={() => handleTogglePermission(grant.professionalId, 'emergency')} />
+                                        </div>
+                                    </div>
+
+                                    {/* Panic Button */}
+                                    <button 
+                                        onClick={() => setShowRevokeModal(grant.professionalId)}
+                                        className="w-full py-2.5 rounded-xl border border-red-100 text-red-600 text-xs font-bold hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <Lock size={12} /> Revogar Acesso
+                                    </button>
+                                </div>
+                            )) : (
+                                <EmptyState title="Círculo Vazio" description="Nenhum profissional tem acesso aos seus dados no momento." icon={<Shield size={32} />} />
+                            )}
+                        </div>
+
+                        {/* NEW ACCESS TOKEN */}
+                        <div className="mt-8 pt-6 border-t border-nature-100">
+                            <h4 className="font-bold text-nature-800 text-sm mb-3">Novo Acesso Temporário</h4>
+                            {token ? (
+                                <div className="bg-nature-800 text-white p-6 rounded-[2rem] text-center relative overflow-hidden">
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+                                    <p className="text-xs text-nature-300 uppercase tracking-widest mb-2">Token de Acesso</p>
+                                    <p className="text-4xl font-mono tracking-widest font-bold mb-4 text-primary-200">{token}</p>
+                                    <div className="bg-white/10 rounded-xl p-3 text-[10px] text-nature-200 flex items-start gap-2 text-left">
+                                        <Clock size={12} className="shrink-0 mt-0.5" />
+                                        Válido por 15 minutos. Mostre este código apenas ao seu terapeuta de confiança no início da consulta.
                                     </div>
                                 </div>
-                                <button onClick={() => handleRevoke(grant.professionalId)} className="text-xs text-red-500 font-bold px-3 py-1.5 bg-white rounded-lg border border-red-100 hover:bg-red-50 transition-colors">
-                                    Revogar
+                            ) : (
+                                <button onClick={handleGenerateToken} className="w-full py-4 bg-white text-nature-700 font-bold rounded-[2rem] border border-nature-200 hover:border-primary-400 hover:text-primary-700 transition-all flex items-center justify-center gap-2 shadow-sm group">
+                                    <Key size={18} className="text-nature-400 group-hover:text-primary-500" /> Gerar Token de Acesso
+                                </button>
+                            )}
+                        </div>
+
+                        {/* DATA DOWNLOAD */}
+                        <div className="mt-8">
+                            <button className="flex items-center gap-2 text-xs text-nature-400 hover:text-primary-600 transition-colors mx-auto">
+                                <Download size={12} /> Baixar cópia dos meus dados (JSON)
+                            </button>
+                        </div>
+                    </>
+                )}
+
+                {activeTab === 'anamnesis' && (
+                    <div className="space-y-6 animate-in fade-in">
+                        <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="bg-primary-50 p-3 rounded-full text-primary-600"><Activity size={20} /></div>
+                                    <div>
+                                        <h3 className="font-semibold text-nature-800">Check-up Holístico</h3>
+                                        <p className="text-xs text-nature-500">Autoavaliação dinâmica.</p>
+                                    </div>
+                                </div>
+                                <div className="text-xs text-nature-400 italic">Salvo auto.</div>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                <RangeSlider label="Nível de Estresse" value={anamnesis.stressLevel} onChange={(v) => setAnamnesis({...anamnesis, stressLevel: v})} minLabel="Zen" maxLabel="Crítico" />
+                                <RangeSlider label="Qualidade do Sono" value={anamnesis.sleepQuality} onChange={(v) => setAnamnesis({...anamnesis, sleepQuality: v})} minLabel="Insônia" maxLabel="Reparador" />
+                                <RangeSlider label="Digestão" value={anamnesis.digestion} onChange={(v) => setAnamnesis({...anamnesis, digestion: v})} minLabel="Lenta" maxLabel="Leve" />
+                                <RangeSlider label="Energia Vital" value={anamnesis.energy} onChange={(v) => setAnamnesis({...anamnesis, energy: v})} minLabel="Baixa" maxLabel="Radiante" />
+                            </div>
+                        </div>
+
+                        <Accordion title="Corpo Físico" icon={<Heart size={18} />} subtitle="Dores, cirurgias e restrições.">
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {['Sem Alergias', 'Cirurgia Joelho (2019)', 'Vegetariana', 'Pressão Baixa'].map(tag => (
+                                    <span key={tag} className="px-3 py-1.5 bg-nature-50 rounded-lg text-xs text-nature-600 border border-nature-200 flex items-center gap-2">
+                                        {tag} <button className="hover:text-red-500"><Trash2 size={10} /></button>
+                                    </span>
+                                ))}
+                                <button className="px-3 py-1.5 bg-white rounded-lg text-xs text-primary-600 border border-dashed border-primary-300 flex items-center gap-1 hover:bg-primary-50">
+                                    <Plus size={12} /> Adicionar
                                 </button>
                             </div>
-                        )) : (
-                            <p className="text-center text-sm text-nature-400 py-4">Nenhum profissional acessa seus dados.</p>
-                        )}
+                            <textarea placeholder="Descreva dores crônicas ou observações..." className="w-full bg-nature-50 p-3 rounded-xl text-xs text-nature-700 outline-none border-0 h-20 resize-none" />
+                        </Accordion>
+
+                        <Accordion title="Mente & Emoção" icon={<Activity size={18} />} subtitle="Histórico e momento atual.">
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="text-xs font-bold text-nature-400 uppercase">Já fez terapia?</label>
+                                    <div className="flex gap-2 mt-1">
+                                        <button className="flex-1 py-2 bg-primary-100 text-primary-700 rounded-lg text-xs font-bold">Sim</button>
+                                        <button className="flex-1 py-2 bg-white border border-nature-200 text-nature-500 rounded-lg text-xs">Não</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-bold text-nature-400 uppercase">Medicamentos</label>
+                                    <input type="text" placeholder="Ex: Fitoterápicos..." className="w-full bg-nature-50 p-3 rounded-xl text-xs mt-1 outline-none" />
+                                </div>
+                            </div>
+                        </Accordion>
+
+                        <Accordion title="Espiritualidade" icon={<Sparkles size={18} />} subtitle="Crenças e práticas (Opcional).">
+                            <p className="text-xs text-nature-500 mb-3">Isso ajuda o terapeuta a respeitar sua visão de mundo.</p>
+                            <div className="flex flex-wrap gap-2">
+                                {['Meditação', 'Reiki', 'Cristais', 'Astrologia'].map(tag => (
+                                    <button key={tag} className="px-3 py-1.5 bg-white border border-nature-200 rounded-lg text-xs text-nature-500 hover:border-primary-400 hover:text-primary-600">
+                                        {tag}
+                                    </button>
+                                ))}
+                            </div>
+                        </Accordion>
+
+                        <div className="bg-blue-50 p-4 rounded-2xl flex items-center justify-between border border-blue-100">
+                            <div className="flex items-center gap-3">
+                                <EyeOff size={18} className="text-blue-500" />
+                                <div>
+                                    <p className="text-sm font-bold text-blue-800">Privacidade</p>
+                                    <p className="text-xs text-blue-600">Visível apenas para meus terapeutas</p>
+                                </div>
+                            </div>
+                            <Toggle checked={true} onChange={() => {}} />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* REVOKE CONFIRMATION SHEET */}
+            <BottomSheet isOpen={!!showRevokeModal} onClose={() => setShowRevokeModal(null)} title="Revogar Acesso">
+                <div className="space-y-4 pb-4">
+                    <div className="flex flex-col items-center text-center mb-4">
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center text-red-500 mb-4">
+                            <EyeOff size={32} />
+                        </div>
+                        <p className="text-nature-600 text-sm leading-relaxed">
+                            Tem certeza? O profissional <span className="font-bold">perderá acesso imediato</span> ao seu histórico e não poderá mais registrar evoluções.
+                        </p>
+                    </div>
+                    <button onClick={confirmRevoke} className="w-full bg-red-500 text-white font-bold py-4 rounded-xl hover:bg-red-600 shadow-lg shadow-red-200">
+                        Sim, Revogar Acesso
+                    </button>
+                    <button onClick={() => setShowRevokeModal(null)} className="w-full bg-white text-nature-600 border border-nature-200 font-bold py-4 rounded-xl">
+                        Cancelar
+                    </button>
+                </div>
+            </BottomSheet>
+        </div>
+    );
+};
+
+// --- SUB-VIEW: SPACE COMMISSION ENGINE ---
+const SpaceCommissionSettings: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const [rules, setRules] = useState<CommissionRule[]>([
+        { id: '1', targetName: 'Massoterapeutas', targetType: 'role', splitPercentage: 70, isActive: true },
+        { id: '2', targetName: 'Dr. Andre', targetType: 'individual', splitPercentage: 80, fixedFee: 50, isActive: true }
+    ]);
+    const [simulatorValue, setSimulatorValue] = useState(200);
+
+    const handleToggleRule = (id: string) => {
+        setRules(prev => prev.map(r => r.id === id ? { ...r, isActive: !r.isActive } : r));
+    };
+
+    const handleUpdateSplit = (id: string, val: number) => {
+        setRules(prev => prev.map(r => r.id === id ? { ...r, splitPercentage: val } : r));
+    };
+
+    return (
+        <div className="h-full flex flex-col pb-24 animate-in slide-in-from-right">
+            <div className="flex items-center gap-2 mb-6 px-2">
+                <button onClick={onBack}><ChevronLeft size={24} className="text-nature-500" /></button>
+                <div>
+                    <h2 className="text-2xl font-light text-nature-800">Motor de <span className="font-semibold">Split</span></h2>
+                    <p className="text-xs text-nature-500">Regras automáticas de comissão.</p>
+                </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-6 px-1">
+                {/* 1. SIMULATOR */}
+                <div className="bg-nature-800 text-white p-6 rounded-[2.5rem] shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
+                    <h3 className="text-sm font-bold text-nature-300 uppercase tracking-widest mb-4 flex items-center gap-2"><PieChart size={16} /> Simulador Visual</h3>
+                    
+                    <div className="flex items-end gap-2 mb-6">
+                        <div className="flex-1">
+                            <label className="text-xs text-nature-400 block mb-1">Valor da Sessão</label>
+                            <div className="flex items-center bg-white/10 rounded-xl px-3 py-2">
+                                <span className="text-nature-400 mr-1">R$</span>
+                                <input 
+                                    type="number" 
+                                    value={simulatorValue} 
+                                    onChange={(e) => setSimulatorValue(Number(e.target.value))} 
+                                    className="bg-transparent border-0 outline-none text-white font-bold w-full" 
+                                />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="mt-6 pt-6 border-t border-nature-50">
-                        <h4 className="font-medium text-nature-800 text-sm mb-3">Novo Acesso Temporário</h4>
-                        {token ? (
-                            <div className="bg-nature-800 text-white p-4 rounded-2xl text-center">
-                                <p className="text-xs text-nature-300 uppercase tracking-widest mb-1">Seu Token</p>
-                                <p className="text-3xl font-mono tracking-widest font-bold mb-2">{token}</p>
-                                <p className="text-[10px] opacity-70">Válido por 15 minutos. Mostre ao seu terapeuta.</p>
-                            </div>
-                        ) : (
-                            <button onClick={handleGenerateToken} className="w-full py-3 bg-primary-50 text-primary-700 font-bold rounded-xl border border-primary-100 hover:bg-primary-100 transition-colors flex items-center justify-center gap-2">
-                                <Key size={16} /> Gerar Token de Acesso
-                            </button>
-                        )}
+                    {/* Simulation Bar */}
+                    <div className="h-4 bg-white/20 rounded-full overflow-hidden flex mb-2">
+                        <div style={{ width: '70%' }} className="bg-primary-400 h-full"></div>
+                        <div style={{ width: '30%' }} className="bg-amber-400 h-full"></div>
+                    </div>
+                    <div className="flex justify-between text-xs font-medium">
+                        <span className="text-primary-300">70% Terapeuta (R$ {(simulatorValue * 0.7).toFixed(0)})</span>
+                        <span className="text-amber-300">30% Espaço (R$ {(simulatorValue * 0.3).toFixed(0)})</span>
                     </div>
                 </div>
 
-                {/* 3. Sensitive Data Tags */}
-                <Accordion title="Dados Sensíveis de Saúde" icon={<Heart size={18} />} subtitle="Alergias, cirurgias e restrições.">
-                    <div className="flex flex-wrap gap-2">
-                        {['Sem Alergias', 'Cirurgia Joelho (2019)', 'Vegetariana', 'Pressão Baixa'].map(tag => (
-                            <span key={tag} className="px-3 py-1.5 bg-nature-50 rounded-lg text-xs text-nature-600 border border-nature-200">{tag}</span>
-                        ))}
-                        <button className="px-3 py-1.5 bg-white rounded-lg text-xs text-primary-600 border border-dashed border-primary-300 flex items-center gap-1 hover:bg-primary-50">
-                            <Plus size={12} /> Adicionar
-                        </button>
+                {/* 2. RULES LIST */}
+                <div className="space-y-4">
+                    <div className="flex justify-between items-center px-2">
+                        <h3 className="font-bold text-nature-800">Regras Ativas</h3>
+                        <button className="text-primary-600 text-xs font-bold uppercase flex items-center gap-1"><Plus size={12} /> Nova Regra</button>
                     </div>
-                </Accordion>
+
+                    {rules.map(rule => (
+                        <div key={rule.id} className={`bg-white p-5 rounded-[2rem] border transition-all ${rule.isActive ? 'border-nature-100 shadow-sm' : 'border-nature-100 opacity-60'}`}>
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2.5 rounded-xl ${rule.targetType === 'role' ? 'bg-blue-50 text-blue-600' : 'bg-purple-50 text-purple-600'}`}>
+                                        {rule.targetType === 'role' ? <Users size={18} /> : <UserCircle size={18} />}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-nature-800 text-sm">{rule.targetName}</h4>
+                                        <span className="text-[10px] text-nature-400 uppercase tracking-wide">{rule.targetType === 'role' ? 'Cargo / Grupo' : 'Individual'}</span>
+                                    </div>
+                                </div>
+                                <Toggle checked={rule.isActive} onChange={() => handleToggleRule(rule.id)} />
+                            </div>
+
+                            {rule.isActive && (
+                                <div className="space-y-3 bg-nature-50/50 p-3 rounded-2xl">
+                                    <RangeSlider 
+                                        label="Comissão do Profissional" 
+                                        value={rule.splitPercentage} 
+                                        onChange={(v) => handleUpdateSplit(rule.id, v)} 
+                                        minLabel="0%" 
+                                        maxLabel="100%" 
+                                    />
+                                    {rule.fixedFee && (
+                                        <div className="flex justify-between items-center pt-2 border-t border-nature-200/50">
+                                            <span className="text-xs font-medium text-nature-600 flex items-center gap-1"><DollarSign size={12} /> Taxa Fixa (Sala)</span>
+                                            <span className="text-xs font-bold text-nature-800">R$ {rule.fixedFee}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -281,7 +580,7 @@ const SettingsHub: React.FC<SettingsProps> = ({ user, setView }) => {
                     onClick={() => setView(ViewState.SETTINGS_PROFILE_EDIT)}
                 />
                 
-                {user.role === UserRole.CLIENT ? (
+                {user.role === UserRole.CLIENT && (
                     <HubCard 
                         title="Saúde" 
                         desc="Prontuário & LGPD" 
@@ -289,7 +588,9 @@ const SettingsHub: React.FC<SettingsProps> = ({ user, setView }) => {
                         colorClass="bg-red-50/50" 
                         onClick={() => setView(ViewState.SETTINGS_PRIVACY_HEALTH)}
                     />
-                ) : (
+                )}
+
+                {user.role === UserRole.PROFESSIONAL && (
                     <HubCard 
                         title="Operacional" 
                         desc="Serviços & Agenda" 
@@ -299,19 +600,29 @@ const SettingsHub: React.FC<SettingsProps> = ({ user, setView }) => {
                     />
                 )}
 
+                {user.role === UserRole.SPACE && (
+                    <HubCard 
+                        title="Comissões" 
+                        desc="Split & Regras" 
+                        icon={<Percent size={24} className="text-amber-600" />} 
+                        colorClass="bg-amber-50/50" 
+                        onClick={() => setView(ViewState.SETTINGS_COMMISSION)}
+                    />
+                )}
+
                 <HubCard 
                     title="Financeiro" 
-                    desc={user.role === UserRole.CLIENT ? "Cartões & Recibos" : "Split & Contas"} 
-                    icon={<CreditCard size={24} className="text-amber-600" />} 
-                    colorClass="bg-amber-50/50" 
-                    onClick={() => {}} // Placeholder for future expansion
+                    desc={user.role === UserRole.CLIENT ? "Cartões & Recibos" : "Relatórios"} 
+                    icon={<CreditCard size={24} className="text-primary-600" />} 
+                    colorClass="bg-emerald-50/50" 
+                    onClick={() => {}} // Placeholder
                 />
 
                 <HubCard 
                     title="Segurança" 
                     desc="Senha & Verificação" 
-                    icon={<ShieldCheck size={24} className="text-emerald-600" />} 
-                    colorClass="bg-emerald-50/50" 
+                    icon={<ShieldCheck size={24} className="text-nature-600" />} 
+                    colorClass="bg-nature-100" 
                     onClick={() => setView(ViewState.VERIFICATION)}
                 />
             </div>
@@ -389,6 +700,7 @@ export const SettingsViews: React.FC<SettingsProps> = (props) => {
         case ViewState.SETTINGS_PRIVACY_HEALTH: return <ClientHealthSettings onBack={() => props.setView(ViewState.SETTINGS)} />;
         case ViewState.SETTINGS_PRO_SERVICES: return <ProServiceSettings onBack={() => props.setView(ViewState.SETTINGS)} />;
         case ViewState.SETTINGS_PROFILE_EDIT: return <ProfileEditView onBack={() => props.setView(ViewState.SETTINGS)} user={props.user} />;
+        case ViewState.SETTINGS_COMMISSION: return <SpaceCommissionSettings onBack={() => props.setView(ViewState.SETTINGS)} />;
         
         // General Views
         case ViewState.VERIFICATION: return <VerificationView onBack={() => props.setView(ViewState.SETTINGS)} />;
