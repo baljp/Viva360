@@ -217,8 +217,26 @@ export interface HealthAccessGrant {
     professionalId: string;
     professionalName: string;
     avatar: string;
+    role: string;
     grantedAt: string;
     expiresAt?: string;
+    permissions: {
+        readHistory: boolean;
+        insertOnly: boolean;
+        emergency: boolean;
+    };
+}
+
+export interface DataSharingRequest {
+    id: string;
+    fromProId: string;
+    fromProName: string;
+    toProId: string;
+    toProName: string;
+    toProAvatar: string;
+    reason: string;
+    status: 'pending' | 'approved' | 'rejected';
+    requestedAt: string;
 }
 
 export interface AnamnesisData {
@@ -262,6 +280,16 @@ export interface SpaceMetrics {
   healingIndex: number; // 0-100 NPS equivalent
   occupancyRate: number; // %
   activePros: number;
+}
+
+// --- COMMISSION & SPLIT TYPES ---
+export interface CommissionRule {
+    id: string;
+    targetName: string; // e.g. "Massoterapeutas" or "Dr. Andre"
+    targetType: 'role' | 'individual';
+    splitPercentage: number; // 0-100 (Percentage to Professional)
+    fixedFee?: number; // Optional fixed fee per session
+    isActive: boolean;
 }
 
 export enum ViewState {
@@ -323,7 +351,9 @@ export enum ViewState {
   
   // Detailed Settings Sub-Views
   SETTINGS_PROFILE_EDIT = 'SETTINGS_PROFILE_EDIT', // Identity
-  SETTINGS_PRIVACY_HEALTH = 'SETTINGS_PRIVACY_HEALTH', // Client Health/GDPR
+  SETTINGS_PRIVACY_HEALTH = 'SETTINGS_PRIVACY_HEALTH', // Client Anamnesis & LGPD
   SETTINGS_PRO_SERVICES = 'SETTINGS_PRO_SERVICES', // Pro Service Editor
-  SETTINGS_PRO_AGENDA = 'SETTINGS_PRO_AGENDA' // Pro Agenda Config
+  SETTINGS_PRO_AGENDA = 'SETTINGS_PRO_AGENDA', // Pro Agenda Config
+  SETTINGS_COMMISSION = 'SETTINGS_COMMISSION', // Space Split Engine
+  SETTINGS_ROOMS = 'SETTINGS_ROOMS' // Space Room Manager
 }

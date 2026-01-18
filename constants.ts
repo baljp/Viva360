@@ -1,4 +1,4 @@
-import { User, UserRole, Professional, Service, Product, Appointment, Transaction, ContentItem, DailyTask, MoodHistoryItem, ChatMessage, Notification, ServicePackage, Vacancy, TherapyType, MoodOption, GardenPhase } from './types';
+import { User, UserRole, Professional, Service, Product, Appointment, Transaction, ContentItem, DailyTask, MoodHistoryItem, ChatMessage, Notification, ServicePackage, Vacancy, TherapyType, MoodOption, GardenPhase, DataSharingRequest, HealthAccessGrant } from './types';
 import { Cloud, Wind, Sun, Zap, Droplets } from 'lucide-react';
 
 // --- MICROCOPY LIBRARY ---
@@ -281,3 +281,45 @@ export const MOOD_HISTORY: MoodHistoryItem[] = [
 ];
 
 export const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+// --- PRIVACY MOCKS ---
+export const MOCK_GRANTS: HealthAccessGrant[] = [
+    { 
+        professionalId: 'pro1', 
+        professionalName: 'Sofia Luz', 
+        avatar: MOCK_PROS[0].avatar || '', 
+        role: 'Terapeuta Holística',
+        grantedAt: '2023-09-10',
+        permissions: {
+            readHistory: true,
+            insertOnly: false,
+            emergency: false
+        }
+    },
+    { 
+        professionalId: 'pro2', 
+        professionalName: 'Pedro Alquimista', 
+        avatar: MOCK_PROS[1].avatar || '', 
+        role: 'Aromaterapeuta',
+        grantedAt: '2023-10-01',
+        permissions: {
+            readHistory: false,
+            insertOnly: true,
+            emergency: false
+        }
+    }
+];
+
+export const MOCK_SHARING_REQUESTS: DataSharingRequest[] = [
+    {
+        id: 'req1',
+        fromProId: 'pro1',
+        fromProName: 'Sofia Luz',
+        toProId: 'pro3',
+        toProName: 'Clara Mente',
+        toProAvatar: MOCK_PROS[2].avatar || '',
+        reason: 'Encaminhamento para Mindfulness complementar.',
+        status: 'pending',
+        requestedAt: '2023-10-26T10:00:00Z'
+    }
+];

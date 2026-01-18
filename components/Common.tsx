@@ -146,20 +146,42 @@ export const GrowthGarden: React.FC<{ streak: number; lastActive?: string }> = (
                 );
             case GardenPhase.FLOWER:
                 return (
-                    <div className="flex flex-col items-center justify-end h-32 relative animate-in zoom-in duration-[2000ms]">
-                        <div className="absolute top-0 right-0 animate-spin-slow text-amber-200 opacity-50"><Sun size={40} /></div>
-                        <svg viewBox="0 0 100 100" className="w-24 h-24 text-primary-600 drop-shadow-sm">
-                            <path d="M50 100 L50 40" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                            <path d="M50 70 Q70 60 80 50" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                            <path d="M50 60 Q30 50 20 40" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                            {/* Flower Head */}
-                            <circle cx="50" cy="30" r="10" className="fill-amber-300 stroke-none animate-pulse" />
-                            <circle cx="50" cy="15" r="8" className="fill-pink-200 stroke-none opacity-80" />
-                            <circle cx="65" cy="30" r="8" className="fill-pink-200 stroke-none opacity-80" />
-                            <circle cx="35" cy="30" r="8" className="fill-pink-200 stroke-none opacity-80" />
-                            <circle cx="50" cy="45" r="8" className="fill-pink-200 stroke-none opacity-80" />
+                    <div className="flex flex-col items-center justify-end h-44 relative animate-in zoom-in duration-[2000ms]">
+                        {/* Sun/Glow with slow spin */}
+                        <div className="absolute -top-2 -right-2 animate-[spin_12s_linear_infinite] text-amber-200 opacity-60"><Sun size={64} /></div>
+                        
+                        {/* ACHIEVEMENT BADGE - Only visible in Flower State */}
+                        <div className="absolute -top-4 bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-900 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg border border-amber-200 whitespace-nowrap animate-[bounce_3s_infinite] z-20 flex items-center gap-1.5">
+                            <Sparkles size={10} className="text-amber-600 fill-amber-600" /> 
+                            <span>7 dias de paz interior</span>
+                        </div>
+
+                        <svg viewBox="0 0 100 100" className="w-32 h-32 text-primary-600 drop-shadow-sm z-10 overflow-visible">
+                            <path d="M50 100 L50 50" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                            
+                            {/* Big Leaves */}
+                            <path d="M50 80 Q80 70 90 60" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="animate-in slide-in-from-bottom-4 duration-1000" />
+                            <path d="M50 70 Q20 60 10 50" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" className="animate-in slide-in-from-bottom-4 duration-1000 delay-100" />
+                            
+                            {/* Blooming Flower Head */}
+                            <g className="origin-[50px_40px] animate-[pulse_3s_infinite]">
+                                {/* Petals Layer 1 */}
+                                <circle cx="50" cy="25" r="10" className="fill-pink-200 stroke-none opacity-90" />
+                                <circle cx="65" cy="35" r="10" className="fill-pink-200 stroke-none opacity-90" />
+                                <circle cx="60" cy="50" r="10" className="fill-pink-200 stroke-none opacity-90" />
+                                <circle cx="40" cy="50" r="10" className="fill-pink-200 stroke-none opacity-90" />
+                                <circle cx="35" cy="35" r="10" className="fill-pink-200 stroke-none opacity-90" />
+                                
+                                {/* Inner Petals / Detail */}
+                                <circle cx="50" cy="30" r="6" className="fill-pink-300 stroke-none opacity-80" />
+                                <circle cx="60" cy="40" r="6" className="fill-pink-300 stroke-none opacity-80" />
+                                <circle cx="40" cy="40" r="6" className="fill-pink-300 stroke-none opacity-80" />
+
+                                {/* Core */}
+                                <circle cx="50" cy="40" r="7" className="fill-amber-300 stroke-none" />
+                            </g>
                         </svg>
-                        <p className="text-[10px] text-primary-700 mt-2 font-bold tracking-wide uppercase">Florescendo</p>
+                        <p className="text-[10px] text-primary-700 mt-1 font-bold tracking-wide uppercase">Jardim Completo</p>
                     </div>
                 );
             case GardenPhase.PLANT:
@@ -188,7 +210,7 @@ export const GrowthGarden: React.FC<{ streak: number; lastActive?: string }> = (
     };
 
     return (
-        <div className="w-full flex justify-center py-4 bg-gradient-to-t from-primary-50/50 to-transparent rounded-[3rem]">
+        <div className="w-full flex justify-center py-4 bg-gradient-to-t from-primary-50/50 to-transparent rounded-[3rem] transition-all duration-1000">
             {renderPlant()}
         </div>
     );
@@ -197,7 +219,7 @@ export const GrowthGarden: React.FC<{ streak: number; lastActive?: string }> = (
 // --- FILE UPLOAD PLACEHOLDER ---
 export const FileUpload: React.FC<{ label: string, sub?: string }> = ({ label, sub }) => (
     <div className="border-2 border-dashed border-nature-200 rounded-[2rem] p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:border-primary-400 hover:bg-primary-50 transition-all group">
-        <div className="w-12 h-12 bg-nature-50 rounded-full flex items-center justify-center text-nature-400 mb-3 group-hover:bg-white group-hover:text-primary-500 transition-colors">
+        <div className="w-12 h-12 bg-nature-50 rounded-full flex items-center justify-center text-nature-400 mb-3 group-hover:bg-white group-hover:text-primary-50 transition-colors">
             <UploadCloud size={24} />
         </div>
         <p className="font-medium text-nature-800 text-sm">{label}</p>
