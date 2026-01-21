@@ -8,6 +8,8 @@ import {
 import { DynamicAvatar, Card, ZenToast, PortalCard } from '../components/Common';
 import { api } from '../services/api';
 import { SimpleActionModal } from '../components/Modals';
+import InteractiveCalendar from '../components/InteractiveCalendar';
+import PatientGarden from '../components/PatientGarden';
 
 const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode }> = ({ title, subtitle, onBack, children }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300">
@@ -107,33 +109,14 @@ export const ProViews: React.FC<{
 
   // --- SUB-TELA: AGENDA ---
   if (view === ViewState.PRO_AGENDA) return (
-    <PortalView title="Minha Agenda" subtitle="TEMPO E SINCRONIA" onBack={() => setView(ViewState.PRO_HOME)}>
-        <div className="space-y-6">
-            <Card className="p-8 bg-nature-900 text-white flex justify-between items-center">
-                <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-primary-400 uppercase tracking-widest">Sessões hoje</p>
-                    <h3 className="text-3xl font-serif italic">{appointments.filter(a => a.status === 'confirmed').length} Atendimentos</h3>
-                </div>
-                <CalendarIcon size={32} className="text-primary-200 opacity-50" />
-            </Card>
-
-            <div className="space-y-4">
-                <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Fluxo de Hoje</h4>
-                {appointments.map(apt => (
-                    <div key={apt.id} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center font-bold text-xs">{apt.time}</div>
-                            <div><h4 className="font-bold text-nature-900 text-sm">{apt.clientName}</h4><p className="text-[9px] text-nature-400 font-bold uppercase">{apt.serviceName}</p></div>
-                        </div>
-                        <div className="flex gap-2">
-                            <button className="p-3 bg-nature-50 text-nature-400 rounded-xl hover:bg-nature-900 hover:text-white transition-all"><Video size={16}/></button>
-                            <button onClick={() => { setSelectedPatient({id: apt.clientId, name: apt.clientName, avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${apt.clientId}`}); setView(ViewState.PRO_PATIENT_DETAILS); }} className="p-3 bg-nature-50 text-nature-400 rounded-xl hover:bg-nature-900 hover:text-white transition-all"><FileText size={16}/></button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    </PortalView>
+      <InteractiveCalendar 
+          appointments={appointments} 
+          onClose={() => setView(ViewState.PRO_HOME)} 
+          onAddAppointment={() => {}} 
+          onReschedule={() => {}} 
+          onCancel={() => {}} 
+          onConfirm={() => {}} 
+      />
   );
 
   // --- SUB-TELA: REDE (ALQUIMIA) ---
@@ -192,19 +175,23 @@ export const ProViews: React.FC<{
 
   // --- SUB-TELA: PACIENTES ---
   if (view === ViewState.PRO_PATIENTS) return (
-      <PortalView title="Meu Jardim" subtitle="PACIENTES ATIVOS" onBack={() => setView(ViewState.PRO_HOME)}>
-          <div className="space-y-4">
-              {appointments.slice(0, 5).map(p => (
-                  <button key={p.id} onClick={() => { setSelectedPatient({id: p.clientId, name: p.clientName}); setView(ViewState.PRO_PATIENT_DETAILS); }} className="w-full bg-white p-6 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm active:scale-[0.98] transition-all">
-                      <div className="flex items-center gap-4">
-                        <DynamicAvatar user={{name: p.clientName}} size="md" />
-                        <div className="text-left"><h4 className="font-bold text-nature-900 text-sm">{p.clientName}</h4><p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">{p.serviceName}</p></div>
-                      </div>
-                      <ChevronRight size={18} className="text-nature-200" />
-                  </button>
-              ))}
-          </div>
-      </PortalView>
+      <PatientGarden 
+          patients={appointments.map(a => ({
+              id: a.clientId,
+              name: a.clientName,
+              avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${a.clientId}`,
+              lastSession: '2024-01-20',
+              totalSessions: 5,
+              status: 'active',
+              tags: ['Terapia'],
+              progress: 50
+          }))} 
+          onClose={() => setView(ViewState.PRO_HOME)} 
+          onViewPatient={(id) => { setSelectedPatient({id, name: 'Paciente'}); setView(ViewState.PRO_PATIENT_DETAILS); }}
+          onSendMessage={() => {}}
+          onSchedule={() => {}}
+          onViewRecords={() => {}}
+      />
   );
 
   // --- SUB-TELA: FINANÇAS ---

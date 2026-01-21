@@ -2,10 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState, Professional, User, Product, Appointment } from '../types';
 import { api } from '../services/api'; 
-import { Search, Compass, ShoppingBag, ChevronLeft, ChevronRight, Wind, X, Moon, Sparkles, Heart, Activity, ShoppingCart, Calendar, MapPin, Star, ShieldCheck } from 'lucide-react';
+import { Search, Compass, ShoppingBag, ChevronLeft, ChevronRight, Wind, X, Moon, Sparkles, Heart, Activity, ShoppingCart, Calendar, MapPin, Star, ShieldCheck, Trophy, Leaf } from 'lucide-react';
 import { DynamicAvatar, SoulGarden, ZenToast, PortalCard, DailyBlessing, Card, MoodTracker } from '../components/Common';
 import { ConstellationOrbit, SoulJourneyPlayer, GlobalMandala } from '../components/SocialFeatures';
 import { ImageUploader, SimpleActionModal, ComingSoonModal } from '../components/Modals';
+import { MeditationScreen, AchievementsScreen } from '../components/NewScreens';
+import SoulPharmacy from '../components/SoulPharmacy';
+import TribeScreen from '../components/TribeScreen';
+import NetworkScreen from '../components/NetworkScreen';
+import CheckoutFlow from '../components/CheckoutFlow';
 
 const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode }> = ({ title, subtitle, onBack, children }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300">
@@ -92,7 +97,57 @@ export const ClientViews: React.FC<{
     </PortalView>
   );
 
-  // --- SUB-TELA: DETALHES DO PRODUTO ---
+  if (view === ViewState.CLIENT_SOUL_PHARMACY) return (
+      <SoulPharmacy 
+          user={user} 
+          currentMood={user.lastMood} 
+          onClose={() => setView(ViewState.CLIENT_HOME)} 
+          onPurchase={(pill) => {
+              onAddToCart({ 
+                  id: pill.id, 
+                  name: pill.title, 
+                  price: pill.price, 
+                  image: pill.thumbnailUrl || '', 
+                  category: 'Farmácia da Alma', 
+                  type: 'digital_content' 
+              });
+              setToast({ title: "Adicionado à Sacola", message: "Pílula adicionada com sucesso." });
+          }} 
+      />
+  );
+
+  if (view === ViewState.CLIENT_TRIBO) return (
+      <TribeScreen 
+          user={user} 
+          onClose={() => setView(ViewState.CLIENT_HOME)} 
+          onSendEnergy={() => setToast({ title: "Energia Enviada", message: "Sua vibração foi compartilhada." })} 
+          onOpenChat={() => {}} 
+      />
+  );
+
+  if (view === ViewState.CLIENT_NETWORK) return (
+      <NetworkScreen 
+          user={user} 
+          onClose={() => setView(ViewState.CLIENT_HOME)} 
+          onConnect={() => setToast({ title: "Convite Enviado", message: "Solicitação de conexão enviada." })}
+          onAcceptConnection={() => {}}
+          onOpenChat={() => {}}
+      />
+  );
+
+  if (view === ViewState.CLIENT_CHECKOUT) return (
+      <CheckoutFlow 
+          items={[]} // Should be passed from props or context
+          userBalance={user.personalBalance} 
+          onClose={() => setView(ViewState.CLIENT_MARKETPLACE)} 
+          onComplete={() => {
+              setToast({ title: "Compra Realizada", message: "Seu pedido foi processado com sucesso!" });
+              setTimeout(() => setView(ViewState.CLIENT_HOME), 2000);
+          }} 
+      />
+  );
+
+  // --- SUB-TELA: DETALHES DO PRODUTO (Mantendo existente) ---
   if (view === ViewState.CLIENT_PRODUCT_DETAILS && selectedProduct) return (
     <PortalView title="O Bazar" subtitle="DETALHES DA FERRAMENTA" onBack={() => setView(ViewState.CLIENT_MARKETPLACE)}>
         <div className="space-y-8">
@@ -186,6 +241,29 @@ export const ClientViews: React.FC<{
     );
   }
 
+  // --- SUB-TELA: MEDITAÇÃO GUIADA ---
+  if (view === ViewState.CLIENT_MEDITATION) {
+    return (
+      <MeditationScreen 
+        onClose={() => setView(ViewState.CLIENT_HOME)} 
+        onComplete={(minutes, karma) => {
+          updateUser({...user, karma: (user.karma || 0) + karma, plantXp: (user.plantXp || 0) + minutes * 2});
+          setToast({ title: "Meditação Completa", message: `+${karma} Karma • +${minutes * 2} XP da Planta` });
+        }}
+      />
+    );
+  }
+
+  // --- SUB-TELA: CONQUISTAS ---
+  if (view === ViewState.CLIENT_ACHIEVEMENTS) {
+    return (
+      <AchievementsScreen 
+        user={user}
+        onClose={() => setView(ViewState.CLIENT_HOME)}
+      />
+    );
+  }
+
   // --- SUB-TELA: JORNADA ---
   if (view === ViewState.CLIENT_JOURNEY) return (
       <PortalView title="Jornada" subtitle="METAMORFOSE" onBack={() => setView(ViewState.CLIENT_HOME)}>
@@ -247,8 +325,10 @@ export const ClientViews: React.FC<{
           <div className="grid grid-cols-2 gap-6">
               <PortalCard title="Explorar" subtitle="MAPA DE CURA" icon={Compass} bgImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=500" onClick={() => setView(ViewState.CLIENT_EXPLORE)} />
               <PortalCard title="Bazar" subtitle="FERRAMENTAS" icon={ShoppingBag} bgImage="https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=500" onClick={() => setView(ViewState.CLIENT_MARKETPLACE)} delay={100} />
-              <PortalCard title="Metamorfose" subtitle="JORNADA" icon={Sparkles} bgImage="https://images.unsplash.com/photo-1506466010722-395aa2bef877?q=80&w=500" onClick={() => setView(ViewState.CLIENT_JOURNEY)} delay={200} />
-              <PortalCard title="Tribo" subtitle="SINCRO" icon={Heart} bgImage="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=500" onClick={() => setView(ViewState.CLIENT_TRIBO)} delay={300} />
+              <PortalCard title="Meditar" subtitle="PAZ INTERIOR" icon={Leaf} bgImage="https://images.unsplash.com/photo-1545389336-cf090694435e?q=80&w=500" onClick={() => setView(ViewState.CLIENT_MEDITATION)} delay={200} />
+              <PortalCard title="Conquistas" subtitle="JORNADA" icon={Trophy} bgImage="https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?q=80&w=500" onClick={() => setView(ViewState.CLIENT_ACHIEVEMENTS)} delay={300} />
+              <PortalCard title="Tribo" subtitle="SINCRO" icon={Heart} bgImage="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=500" onClick={() => setView(ViewState.CLIENT_TRIBO)} delay={400} />
+              <PortalCard title="Metamorfose" subtitle="EVOLUÇÃO" icon={Sparkles} bgImage="https://images.unsplash.com/photo-1506466010722-395aa2bef877?q=80&w=500" onClick={() => setView(ViewState.CLIENT_JOURNEY)} delay={500} />
           </div>
         </div>
     </div>

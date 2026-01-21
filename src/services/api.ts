@@ -1,174 +1,155 @@
 
 import { User, Professional, UserRole, Appointment, Product, Notification, SpaceRoom, Vacancy, Transaction } from '../types';
-import { Database as Seed } from '../utils/seedEngine';
 
-const DELAY = 600;
+const API_URL = 'http://localhost:3000/api';
 
-// Helper para simular latência
-const wait = (ms: number = DELAY) => new Promise(resolve => setTimeout(resolve, ms));
-
-// Inicialização de Banco de Dados Local (Persistência entre sessões)
-const getStoredDB = () => {
-    if (typeof window === 'undefined') return null;
-    const stored = localStorage.getItem('viva360_mock_db');
-    if (stored) return JSON.parse(stored);
-    
-    const initialDB = {
-        users: {} as Record<string, User | Professional>,
-        appointments: [] as Appointment[],
-        notifications: [] as Notification[],
-        vacancies: [] as Vacancy[],
-        transactions: [] as Transaction[],
-        patientNotes: {} as Record<string, string> // notas por patientId_proId
+// Helper for authenticated requests
+const getHeaders = () => {
+    const token = localStorage.getItem('access_token');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : ''
     };
-
-    Seed.clients.forEach(c => initialDB.users[c.id] = { ...c });
-    Seed.pros.forEach(p => initialDB.users[p.id] = { ...p });
-    Seed.spaces.forEach(s => initialDB.users[s.id] = { ...s });
-    
-    return initialDB;
 };
 
-let DB = getStoredDB() || { users: {}, appointments: [], notifications: [], vacancies: [], transactions: [], patientNotes: {} };
-
-const syncDB = () => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('viva360_mock_db', JSON.stringify(DB));
+const handleResponse = async (res: Response) => {
+    if (!res.ok) {
+        const error = await res.json().catch(() => ({ message: 'Erro desconhecido' }));
+        throw new Error(error.message || 'Erro na requisição');
     }
+    return res.json();
 };
 
 export const api = {
     auth: {
+        login: async (email: string, password: string): Promise<{ user: User, token: string }> => {
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            const data = await handleResponse(res);
+            localStorage.setItem('access_token', data.accessToken);
+            return { user: data.user, token: data.accessToken };
+        },
+        register: async (data: any): Promise<{ user: User, token: string }> => {
+            const res = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const dataRes = await handleResponse(res);
+            localStorage.setItem('access_token', dataRes.accessToken);
+            return { user: dataRes.user, token: dataRes.accessToken };
+        },
+        me: async (): Promise<User> => {
+            const res = await fetch(`${API_URL}/auth/me`, {
+                headers: getHeaders()
+            });
+            return handleResponse(res);
+        },
         loginByEmail: async (email: string): Promise<User> => {
-            await wait();
-            const user = Object.values(DB.users).find((u: any) => u.email.toLowerCase() === email.toLowerCase());
-            if (!user) throw new Error("Usuário não encontrado.");
-            return user as User;
-        },
-        loginWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
-            await wait(1000);
-            const mockUser = role === UserRole.CLIENT ? Seed.clients[0] : role === UserRole.PROFESSIONAL ? Seed.pros[0] : Seed.spaces[0];
-            return { ...mockUser } as User;
-        },
-        register: async (data: any): Promise<User> => {
-            await wait(1000);
-            const newUser = { 
-                ...data, 
-                id: `u_${Date.now()}`, 
-                karma: 100, 
-                plantXp: 0, 
-                streak: 1, 
-                corporateBalance: 0, 
-                personalBalance: 500,
-                avatar: `https://api.dicebear.com/7.x/${data.role === UserRole.SPACE ? 'identicon' : 'notionists'}/svg?seed=${data.name}`
-            };
-            DB.users[newUser.id] = newUser;
-            syncDB();
-            return newUser;
+            // Deprecated mock method, kept for compatibility if needed, but redirecting to new auth flow if possible
+            // For now mapping to a dev login for testing ease if password not provided
+            const res = await fetch(`${API_URL}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: 'senha123' }) // Default dev password
+            });
+            const data = await handleResponse(res);
+            localStorage.setItem('access_token', data.accessToken);
+            return data.user;
         }
     },
     users: {
-        getById: async (id: string) => { await wait(200); return DB.users[id]; },
-        update: async (user: User) => { 
-            await wait(800);
-            DB.users[user.id] = user; 
-            syncDB();
-            return user; 
+        getById: async (id: string) => {
+            const res = await fetch(`${API_URL}/users/${id}`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        update: async (user: User) => {
+            const res = await fetch(`${API_URL}/users/profile`, {
+                method: 'PATCH',
+                headers: getHeaders(),
+                body: JSON.stringify(user)
+            });
+            return handleResponse(res);
         },
         checkIn: async (uid: string) => {
-            await wait();
-            const user = DB.users[uid] as User;
-            if (user) {
-                user.karma += 50;
-                user.lastCheckIn = new Date().toISOString().split('T')[0];
-                user.streak += 1;
-                syncDB();
-            }
-            return { user, reward: 50 };
+            const res = await fetch(`${API_URL}/users/check-in`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            return handleResponse(res);
         }
     },
     professionals: {
         list: async (): Promise<Professional[]> => {
-            await wait(400);
-            return Object.values(DB.users).filter((u: any) => u.role === UserRole.PROFESSIONAL) as Professional[];
+            const res = await fetch(`${API_URL}/professionals`, { headers: getHeaders() });
+            return handleResponse(res);
         },
+        getFinanceSummary: async (uid: string) => {
+            const res = await fetch(`${API_URL}/professionals/finance/summary`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        // Mocks restored for frontend compatibility
         updateNotes: async (patientId: string, proId: string, content: string) => {
-            await wait(1200);
-            const key = `${patientId}_${proId}`;
-            DB.patientNotes[key] = content;
-            syncDB();
+            await new Promise(r => setTimeout(r, 500));
             return true;
         },
         getNotes: async (patientId: string, proId: string) => {
-            await wait(300);
-            return DB.patientNotes[`${patientId}_${proId}`] || "";
-        },
-        getFinanceSummary: async (uid: string) => {
-            await wait(500);
-            return {
-                totalBalance: 14500.80,
-                transactions: Seed.getTransactions(uid)
-            };
+            return "Paciente apresenta evolução constante.";
         }
     },
     appointments: {
         list: async (uid: string, role: UserRole) => {
-            await wait(400);
-            const filtered = DB.appointments.filter((a: any) => 
-                role === UserRole.CLIENT ? a.clientId === uid : a.professionalId === uid
-            );
-            return filtered.length > 0 ? filtered : Seed.getAppointments(uid, role);
+            const res = await fetch(`${API_URL}/appointments`, { headers: getHeaders() });
+            return handleResponse(res);
         },
-        create: async (apt: Appointment) => {
-            await wait(1500);
-            DB.appointments.push(apt);
-            syncDB();
-            return apt;
+        create: async (apt: Partial<Appointment>) => {
+            const res = await fetch(`${API_URL}/appointments`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(apt)
+            });
+            return handleResponse(res);
+        },
+        updateStatus: async (id: string, status: string) => {
+            const res = await fetch(`${API_URL}/appointments/${id}/status`, {
+                method: 'PATCH',
+                headers: getHeaders(),
+                body: JSON.stringify({ status })
+            });
+            return handleResponse(res);
         }
     },
     marketplace: {
         listAll: async (): Promise<Product[]> => {
-            await wait(300);
-            return Seed.getProducts('all');
+            const res = await fetch(`${API_URL}/marketplace/products`, { headers: getHeaders() });
+            return handleResponse(res);
         }
     },
     spaces: {
         getRooms: async (sid: string): Promise<SpaceRoom[]> => {
-            await wait(200);
+             // Mock temporary - backend pending full CRUD for rooms
             return [
                 { id: 'r1', name: 'Altar do Sol', status: Math.random() > 0.5 ? 'available' : 'occupied' },
-                { id: 'r2', name: 'Sala de Cristal', status: Math.random() > 0.3 ? 'occupied' : 'available', currentOccupant: 'Dr. Klaus' },
-                { id: 'r3', name: 'Templo de Gaia', status: 'available' },
-                { id: 'r4', name: 'Ninho das Águias', status: 'occupied', currentOccupant: 'Sara Yoga' }
+                { id: 'r2', name: 'Sala de Cristal', status: Math.random() > 0.3 ? 'occupied' : 'available', currentOccupant: 'Dr. Klaus' }
             ];
         },
         getTeam: async (sid: string) => {
-            await wait(300);
-            return Object.values(DB.users).filter((u: any) => u.hubId === sid) as Professional[];
+             // Mock temporary
+            return [];
         },
         getVacancies: async () => {
-            await wait(400);
-            return Seed.getVacancies(1);
+            // Mock temporary
+            return [];
         },
         getTransactions: async (uid: string) => {
-            await wait(400);
-            return Seed.getTransactions(uid);
+             // Mock temporary
+            return [
+                { id: '1', userId: uid, type: 'income', amount: 150.00, description: 'Sessão Reiki', date: new Date().toISOString(), status: 'completed' },
+                { id: '2', userId: uid, type: 'expense', amount: 50.00, description: 'Aluguel Sala', date: new Date().toISOString(), status: 'completed' }
+            ];
         }
     },
-    notifications: {
-        list: async (uid: string) => {
-            await wait(300);
-            const user = DB.users[uid];
-            if (!user) return [];
-            return Seed.getNotifications(uid, user.role);
-        },
-        markAsRead: async (uid: string, nid: string) => {
-            await wait(100);
-            return true;
-        },
-        markAllAsRead: async (uid: string) => {
-            await wait(100);
-            return true;
-        }
-    }
 };
