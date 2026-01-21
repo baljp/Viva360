@@ -25,7 +25,7 @@ export const markAsRead = asyncHandler(async (req: AuthRequest, res: Response) =
   const { id } = req.params;
   const userId = req.user?.userId;
 
-  const notification = await prisma.notification.findUnique({ where: { id } });
+  const notification = await prisma.notification.findUnique({ where: { id: String(id) } });
 
   if (!notification) {
     throw new AppError('Notificação não encontrada', 404);
@@ -36,7 +36,7 @@ export const markAsRead = asyncHandler(async (req: AuthRequest, res: Response) =
   }
 
   const updated = await prisma.notification.update({
-    where: { id },
+    where: { id: String(id) },
     data: { read: true },
   });
 

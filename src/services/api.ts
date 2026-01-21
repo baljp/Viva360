@@ -22,15 +22,30 @@ const handleResponse = async (res: Response) => {
 
 export const api = {
     auth: {
-        login: async (email: string, password: string): Promise<{ user: User, token: string }> => {
-            const res = await fetch(`${API_URL}/auth/login`, {
-                method: 'POST',
+        loginWithGoogle: async (role?: UserRole): Promise<{ user: User, token: string }> => {
+            // Mocking Google Login for now, usually involves redirection or popup
+            // Sending role to backend if registering
+            const res = await fetch(`${API_URL}/auth/google/callback?role=${role || ''}`, {
+                method: 'POST', // mocked
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await handleResponse(res);
+            }).catch(() => ({
+                 // Fallback mock if backend endpoint missing
+                 json: async () => ({
+                    accessToken: 'mock_google_token',
+                    user: { 
+                        id: 'google_user_1', 
+                        name: 'Google User', 
+                        email: 'google@viva360.com', 
+                        role: role || UserRole.CLIENT,
+                        avatar: 'https://lh3.googleusercontent.com/a/default-user'
+                    }
+                 })
+            }));
+             // @ts-ignore
+            const data = typeof res.json === 'function' ? await res.json() : await handleResponse(res);
+            
             localStorage.setItem('access_token', data.accessToken);
-            return { user: data.user, token: data.accessToken };
+            return { user: data.user as User, token: data.accessToken };
         },
         register: async (data: any): Promise<{ user: User, token: string }> => {
             const res = await fetch(`${API_URL}/auth/register`, {
@@ -156,4 +171,31 @@ export const api = {
             return handleResponse(res);
         }
     },
+    notifications: {
+        list: async (userId: string): Promise<Notification[]> => {
+            const res = await fetch(`${API_URL}/notifications`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        markAsRead: async (userId: string, id: string) => {
+            const res = await fetch(`${API_URL}/notifications/${id}/read`, {
+                method: 'PATCH',
+                headers: getHeaders()
+            });
+            return handleResponse(res);
+        },
+        markAllAsRead: async (userId: string) => {
+             const res = await fetch(`${API_URL}/notifications/read-all`, {
+                method: 'PATCH',
+                headers: getHeaders()
+            });
+            return handleResponse(res);
+        }
+    },
+    soulPharmacy: {
+        listPills: async (mood?: string) => {
+             const query = mood ? `?mood=${mood}` : '';
+             const res = await fetch(`${API_URL}/soul-pharmacy/pills${query}`, { headers: getHeaders() });
+             return handleResponse(res);
+        }
+    }
 };

@@ -193,8 +193,8 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
         setIsLoadingGoogle(true);
         try {
             // Login rápido padrão (Client)
-            const user = await api.auth.loginWithGoogle();
-            onLogin(user);
+            const { user: loggedInUser } = await api.auth.loginWithGoogle();
+            onLogin(loggedInUser);
         } catch (e) {
             console.error(e);
         } finally {
