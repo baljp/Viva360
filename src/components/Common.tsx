@@ -120,8 +120,9 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: () => void }> 
 }
 
 export const SoulGarden: React.FC<{ user: UserType, onWater: () => void }> = ({ user, onWater }) => {
-  const stageIcons = { seed: Sprout, sprout: Leaf, bud: Flower, flower: Sparkles, tree: Trees, withered: Wind };
-  const Icon = stageIcons[user.plantStage || 'seed'];
+  const stageIcons: Record<string, any> = { seed: Sprout, sprout: Leaf, bud: Flower, flower: Sparkles, tree: Trees, withered: Wind };
+  const stageKey = (user.plantStage || 'seed').toLowerCase();
+  const Icon = stageIcons[stageKey] || Sprout;
   const stageLabels = { seed: 'Semente', sprout: 'Brotar', bud: 'Botão', flower: 'Florescer', tree: 'Árvore', withered: 'Renascimento' };
 
   return (

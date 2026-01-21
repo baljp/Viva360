@@ -130,26 +130,30 @@ export const api = {
     },
     spaces: {
         getRooms: async (sid: string): Promise<SpaceRoom[]> => {
-             // Mock temporary - backend pending full CRUD for rooms
-            return [
-                { id: 'r1', name: 'Altar do Sol', status: Math.random() > 0.5 ? 'available' : 'occupied' },
-                { id: 'r2', name: 'Sala de Cristal', status: Math.random() > 0.3 ? 'occupied' : 'available', currentOccupant: 'Dr. Klaus' }
-            ];
+            const res = await fetch(`${API_URL}/spaces/rooms`, { headers: getHeaders() });
+            return handleResponse(res);
         },
         getTeam: async (sid: string) => {
-             // Mock temporary
-            return [];
+            const res = await fetch(`${API_URL}/spaces/team`, { headers: getHeaders() });
+            return handleResponse(res);
         },
         getVacancies: async () => {
-            // Mock temporary
-            return [];
+            const res = await fetch(`${API_URL}/spaces/vacancies`, { headers: getHeaders() });
+            return handleResponse(res);
         },
         getTransactions: async (uid: string) => {
-             // Mock temporary
-            return [
-                { id: '1', userId: uid, type: 'income', amount: 150.00, description: 'Sessão Reiki', date: new Date().toISOString(), status: 'completed' },
-                { id: '2', userId: uid, type: 'expense', amount: 50.00, description: 'Aluguel Sala', date: new Date().toISOString(), status: 'completed' }
-            ];
+            const res = await fetch(`${API_URL}/professionals/finance/transactions`, { headers: getHeaders() });
+            return handleResponse(res);
+        }
+    },
+    payments: {
+        createPaymentIntent: async (amount: number, currency: string = 'brl') => {
+            const res = await fetch(`${API_URL}/payments/create-payment-intent`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ amount, currency })
+            });
+            return handleResponse(res);
         }
     },
 };

@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { AppError, asyncHandler } from '../middleware/error';
 import prisma from '../config/database';
+import { pushService } from '../services/push.service';
 
 // Create Appointment
 export const createAppointment = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -69,6 +70,19 @@ export const createAppointment = asyncHandler(async (req: AuthRequest, res: Resp
     },
   });
 
+  // Try to push notification (assuming user might have a subscription stored in a real implementation)
+  // For now, we simulate the intent
+  /*
+  const subscription = await prisma.pushSubscription.findUnique({ where: { userId: professionalId } });
+  if (subscription) {
+    pushService.sendNotification(subscription.data, JSON.stringify({
+      title: 'Novo Agendamento',
+      body: `${client.name} agendou ${serviceName}`,
+      url: `/appointments/${appointment.id}`
+    }));
+  }
+  */
+
   res.status(201).json(appointment);
 });
 
@@ -113,7 +127,7 @@ export const getUserAppointments = asyncHandler(async (req: AuthRequest, res: Re
 
 // Get Appointment by ID
 export const getAppointmentById = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const { id } = req.params as { id: string };
   const userId = req.user?.userId;
 
   const appointment = await prisma.appointment.findUnique({
@@ -154,7 +168,7 @@ export const getAppointmentById = asyncHandler(async (req: AuthRequest, res: Res
 
 // Update Appointment Status
 export const updateAppointmentStatus = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const { id } = req.params as { id: string };
   const { status, notes } = req.body;
   const userId = req.user?.userId;
 
@@ -210,7 +224,7 @@ export const updateAppointmentStatus = asyncHandler(async (req: AuthRequest, res
 
 // Cancel Appointment
 export const cancelAppointment = asyncHandler(async (req: AuthRequest, res: Response) => {
-  const { id } = req.params;
+  const { id } = req.params as { id: string };
   const userId = req.user?.userId;
 
   const appointment = await prisma.appointment.findUnique({ where: { id } });

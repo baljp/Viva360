@@ -40,7 +40,7 @@ export const ProViews: React.FC<{
 
   useEffect(() => {
       api.appointments.list(user.id, user.role).then(setAppointments);
-      api.spaces.getTransactions(user.id).then(setTransactions);
+      api.spaces.getTransactions(user.id).then((txs: any[]) => setTransactions(txs as Transaction[]));
       api.professionals.list().then(data => setNetwork(data.filter(p => p.id !== user.id)));
       api.spaces.getVacancies().then(setVacancies);
   }, [user.id, user.role]);

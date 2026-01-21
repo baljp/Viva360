@@ -178,6 +178,7 @@ export interface Appointment {
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   serviceName: string;
   price: number;
+  duration?: number;
 }
 
 export interface Notification {

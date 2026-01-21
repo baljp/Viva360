@@ -2,18 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Clock, User, Phone, Calendar, MoreHorizontal, X, Check, AlertCircle, RefreshCw } from 'lucide-react';
 import { Card, DynamicAvatar } from './Common';
 
-interface Appointment {
-  id: string;
-  clientName: string;
-  clientAvatar?: string;
-  service: string;
-  date: string;
-  time: string;
-  duration: number;
-  status: 'confirmed' | 'pending' | 'completed' | 'cancelled';
-  price: number;
-  notes?: string;
-}
+import { Appointment } from '../types';
 
 interface InteractiveCalendarProps {
   appointments: Appointment[];
@@ -83,19 +72,18 @@ export const InteractiveCalendar: React.FC<InteractiveCalendarProps> = ({
     }
   };
 
-  // Mock appointments for week view
   const mockAppointments: Record<string, Appointment[]> = {
     '09:00': [
-      { id: '1', clientName: 'Ana Clara', service: 'Yoga Individual', date: weekDays[1].toDateString(), time: '09:00', duration: 60, status: 'confirmed', price: 150 },
+      { id: '1', clientName: 'Ana Clara', serviceName: 'Yoga Individual', date: weekDays[1].toDateString(), time: '09:00', duration: 60, status: 'confirmed', price: 150, clientId: 'c1', professionalId: 'p1', professionalName: 'Prof' },
     ],
     '10:00': [
-      { id: '2', clientName: 'João Paulo', service: 'Meditação Guiada', date: weekDays[2].toDateString(), time: '10:00', duration: 45, status: 'pending', price: 100 },
+      { id: '2', clientName: 'João Paulo', serviceName: 'Meditação Guiada', date: weekDays[2].toDateString(), time: '10:00', duration: 45, status: 'pending', price: 100, clientId: 'c2', professionalId: 'p1', professionalName: 'Prof' },
     ],
     '14:00': [
-      { id: '3', clientName: 'Maria Flor', service: 'Terapia Holística', date: weekDays[3].toDateString(), time: '14:00', duration: 90, status: 'confirmed', price: 200 },
+      { id: '3', clientName: 'Maria Flor', serviceName: 'Terapia Holística', date: weekDays[3].toDateString(), time: '14:00', duration: 90, status: 'confirmed', price: 200, clientId: 'c3', professionalId: 'p1', professionalName: 'Prof' },
     ],
     '16:00': [
-      { id: '4', clientName: 'Carlos Luz', service: 'Reiki', date: weekDays[4].toDateString(), time: '16:00', duration: 60, status: 'confirmed', price: 180 },
+      { id: '4', clientName: 'Carlos Luz', serviceName: 'Reiki', date: weekDays[4].toDateString(), time: '16:00', duration: 60, status: 'confirmed', price: 180, clientId: 'c4', professionalId: 'p1', professionalName: 'Prof' },
     ],
   };
 
@@ -196,7 +184,7 @@ export const InteractiveCalendar: React.FC<InteractiveCalendarProps> = ({
                           className={`w-full h-full ${getStatusColor(apt.status)} text-white text-xs p-2 rounded-lg text-left overflow-hidden active:scale-[0.98] transition-all`}
                         >
                           <p className="font-bold truncate">{apt.clientName}</p>
-                          <p className="truncate opacity-80">{apt.service}</p>
+                          <p className="truncate opacity-80">{apt.serviceName}</p>
                         </button>
                       )}
                     </div>
@@ -239,7 +227,7 @@ export const InteractiveCalendar: React.FC<InteractiveCalendarProps> = ({
               <DynamicAvatar user={{ name: selectedAppointment.clientName }} size="lg" />
               <div className="flex-1">
                 <h3 className="text-xl font-bold text-nature-900">{selectedAppointment.clientName}</h3>
-                <p className="text-nature-500">{selectedAppointment.service}</p>
+                <p className="text-nature-500">{selectedAppointment.serviceName}</p>
                 <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold mt-2 ${
                   selectedAppointment.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' :
                   selectedAppointment.status === 'pending' ? 'bg-amber-100 text-amber-700' :

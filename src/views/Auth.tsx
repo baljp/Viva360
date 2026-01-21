@@ -12,19 +12,19 @@ interface AuthProps {
 const OnboardingCarousel: React.FC = () => {
     const slides = [
         {
-            image: 'https://images.unsplash.com/photo-1540331580430-3980b24445a5?q=80&w=1200&auto=format&fit=crop',
+            image: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?q=80&w=1920&auto=format&fit=crop', // Nature meditation
             subtitle: 'Sincronia',
             title: 'Uma jornada de dentro para fora.',
             text: 'Conecte-se com sua essência e encontre o equilíbrio entre corpo, mente e energia.'
         },
         {
-            image: 'https://images.unsplash.com/photo-1600618528240-fb9fc964b853?q=80&w=1200&auto=format&fit=crop', 
+            image: 'https://images.unsplash.com/photo-1528756514091-e85694a8d0e5?q=80&w=1920&auto=format&fit=crop', // Temple/Space
             subtitle: 'Santuários',
             title: 'Espaços que curam e acolhem.',
             text: 'Descubra refúgios seguros e guardiões preparados para guiar sua evolução.'
         },
         {
-            image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop', 
+            image: 'https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?q=80&w=1920&auto=format&fit=crop', // Community
             subtitle: 'Ecos',
             title: 'A cura acontece em comunidade.',
             text: 'Troque experiências, envie boas vibrações e cresça junto com o ecossistema.'

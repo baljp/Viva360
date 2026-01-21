@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, CreditCard, QrCode, Wallet, Check, ShoppingBag, Tag, Clock, MapPin, Shield, ChevronRight, X, Truck } from 'lucide-react';
 import { Card } from './Common';
+import { api } from '../services/api';
 
 interface CartItem {
   id: string;
@@ -58,18 +59,32 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
 
   const processPayment = async () => {
     setIsProcessing(true);
-    // Simulate payment processing
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsProcessing(false);
-    setOrderComplete(true);
-    setStep('confirmation');
-    onComplete({
-      items,
-      paymentMethod,
-      total,
-      discount,
-      coupon: appliedCoupon?.code,
-    });
+    try {
+      // Create payment intent with Stripe backend
+      if (paymentMethod === 'CREDIT_CARD' || paymentMethod === 'PIX') {
+        const paymentIntent = await api.payments.createPaymentIntent(total);
+        console.log('Payment Intent created:', paymentIntent.id);
+      }
+      // For balance payments, just deduct from user balance (handled in checkout completion)
+      
+      // Simulate final payment confirmation delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setIsProcessing(false);
+      setOrderComplete(true);
+      setStep('confirmation');
+      onComplete({
+        items,
+        paymentMethod,
+        total,
+        discount,
+        coupon: appliedCoupon?.code,
+      });
+    } catch (error) {
+      console.error('Payment error:', error);
+      setIsProcessing(false);
+      // In production, show error toast to user
+    }
   };
 
   // Step: Order Review

@@ -1,0 +1,50 @@
+# Page snapshot
+
+```yaml
+- main [ref=e5]:
+  - generic [ref=e7]:
+    - generic:
+      - generic [ref=e9]:
+        - generic [ref=e10]: V
+        - generic [ref=e11]: Viva360
+      - generic:
+        - generic:
+          - generic:
+            - img "Onboarding"
+          - generic [ref=e12]:
+            - generic [ref=e13]: Sincronia
+            - heading "Uma jornada de dentro para fora." [level=2] [ref=e14]
+            - paragraph [ref=e15]: Conecte-se com sua essência e encontre o equilíbrio entre corpo, mente e energia.
+        - generic:
+          - generic:
+            - img "Onboarding"
+          - generic [ref=e16]:
+            - generic [ref=e17]: Santuários
+            - heading "Espaços que curam e acolhem." [level=2] [ref=e18]
+            - paragraph [ref=e19]: Descubra refúgios seguros e guardiões preparados para guiar sua evolução.
+        - generic:
+          - generic:
+            - img "Onboarding"
+          - generic [ref=e20]:
+            - generic [ref=e21]: Ecos
+            - heading "A cura acontece em comunidade." [level=2] [ref=e22]
+            - paragraph [ref=e23]: Troque experiências, envie boas vibrações e cresça junto com o ecossistema.
+      - button "Entrar no Viva360" [ref=e31] [cursor=pointer]:
+        - generic [ref=e32]: Entrar no Viva360
+        - img [ref=e34]
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]:
+          - img [ref=e44]
+          - generic [ref=e50]: Boas-vindas
+        - button [ref=e51] [cursor=pointer]:
+          - img [ref=e52]
+      - generic [ref=e55]:
+        - generic [ref=e56]:
+          - img [ref=e58]
+          - generic [ref=e61]:
+            - heading "Cure suas dores" [level=3] [ref=e62]
+            - paragraph [ref=e63]: Use o Mapa do Corpo para encontrar terapias específicas para onde você sente tensão hoje.
+        - button [ref=e69] [cursor=pointer]:
+          - img [ref=e70]
+```
