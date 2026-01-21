@@ -36,16 +36,26 @@ const App: React.FC = () => {
   useEffect(() => {
     const init = async () => {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      const stored = localStorage.getItem('viva360_user');
-      if (stored) {
-        const u = JSON.parse(stored);
-        setCurrentUser(u);
-        const homeView = u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME;
-        setCurrentView(homeView);
-      } else {
+      try {
+        const stored = localStorage.getItem('viva360_user');
+        if (stored) {
+            const u = JSON.parse(stored);
+            if (!u || !u.role || !u.id) throw new Error("Invalid user data");
+            
+            setCurrentUser(u);
+            const homeView = u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME;
+            setCurrentView(homeView);
+        } else {
+            setCurrentView(ViewState.LOGIN);
+        }
+      } catch (e) {
+        console.error("Failed to load user session:", e);
+        localStorage.removeItem('viva360_user');
+        setCurrentUser(null);
         setCurrentView(ViewState.LOGIN);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     init();
   }, []);
