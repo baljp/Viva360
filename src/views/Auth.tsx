@@ -279,6 +279,17 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
                             <Sparkles size={16} className="text-primary-500" />
                             Criar Nova Conta
                         </button>
+
+                        {/* Legal Links */}
+                        <div className="flex justify-center gap-4 pt-4 border-t border-nature-200 mt-2">
+                            <button onClick={() => setView(ViewState.PRIVACY)} className="text-nature-400 text-[10px] font-medium hover:text-nature-600 hover:underline transition-colors">
+                                Política de Privacidade
+                            </button>
+                            <span className="text-nature-300">•</span>
+                            <button onClick={() => setView(ViewState.TERMS)} className="text-nature-400 text-[10px] font-medium hover:text-nature-600 hover:underline transition-colors">
+                                Termos de Uso
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

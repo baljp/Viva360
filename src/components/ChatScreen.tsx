@@ -4,8 +4,8 @@ import { ChevronLeft, Send, MoreVertical, Phone, Video, Search, Circle, X } from
 import { User } from '../types';
 import { DynamicAvatar, Card } from './Common';
 
-// Fix: Use a fallback string if ImportMeta is not available or just hardcode for this prototype phase
-const API_URL = 'http://localhost:3000'; 
+// Use environment variable for API URL, fallback to relative path for same-origin requests
+const API_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || ''; 
 
 interface ChatMessage {
   id: string;

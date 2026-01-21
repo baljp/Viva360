@@ -96,7 +96,8 @@ export const AdvancedSearchScreen: React.FC<AdvancedSearchProps> = ({
         : `/api/search/products?${params}`;
       
       const token = localStorage.getItem('access_token');
-      const response = await fetch(`http://localhost:3000${endpoint}`, {
+      const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || '';
+      const response = await fetch(`${baseUrl}${endpoint}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },

@@ -50,6 +50,7 @@ export default defineConfig({
   ],
   build: {
     outDir: 'dist',
+    assetsDir: 'assets',
     sourcemap: true, // Habilitar sourcemaps para debug em produção
     minify: 'terser',
     rollupOptions: {

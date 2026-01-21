@@ -4,6 +4,7 @@ import './index.css';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import * as Sentry from '@sentry/react';
 
 // Get environment safely
 const getIsProd = () => {
@@ -15,8 +16,25 @@ const getIsProd = () => {
   }
 };
 
+const isProd = getIsProd();
+
+// Sentry Error Monitoring (production only)
+// Configure VITE_SENTRY_DSN in your .env file
+if (isProd && (import.meta as any).env?.VITE_SENTRY_DSN) {
+  Sentry.init({
+    dsn: (import.meta as any).env.VITE_SENTRY_DSN,
+    environment: 'production',
+    integrations: [
+      Sentry.browserTracingIntegration(),
+    ],
+    tracesSampleRate: 0.1, // 10% of transactions for performance
+    replaysSessionSampleRate: 0.0, // Disable session replays
+    replaysOnErrorSampleRate: 0.1, // 10% of errors get replays
+  });
+}
+
 // Registro do Service Worker para PWA (apenas em produção real processada por Vite)
-if ('serviceWorker' in navigator && getIsProd()) {
+if ('serviceWorker' in navigator && isProd) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { type: 'module' })
       .then(reg => console.log('SW Registered', reg))
