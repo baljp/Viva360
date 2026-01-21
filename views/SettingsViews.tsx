@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit } from '../components/Common';
 import { api } from '../services/api';
+import { SimpleActionModal, ComingSoonModal } from '../components/Modals';
 
 interface SettingsProps { 
     user: User; 
@@ -41,6 +42,16 @@ export const SettingsViews: React.FC<SettingsProps> = ({ user, view, setView, up
       bio: user.bio || '',
       intention: user.intention || ''
     });
+    
+    const [actionModal, setActionModal] = useState<{title: string, desc: string, label: string, action: () => Promise<void>} | null>(null);
+    const [showComingSoon, setShowComingSoon] = useState<string | null>(null);
+
+    const triggerAction = (title: string, desc: string, label: string) => {
+        setActionModal({ 
+            title, desc, label, 
+            action: async () => new Promise(resolve => setTimeout(resolve, 1500)) 
+        });
+    };
 
     const handleSaveProfile = async () => {
       const updated = { ...user, ...editingUser };
@@ -125,7 +136,7 @@ export const SettingsViews: React.FC<SettingsProps> = ({ user, view, setView, up
                      <h3 className="text-5xl font-serif italic">{user.karma}</h3>
                      <Sparkles size={24} className="text-amber-400 mb-2" />
                    </div>
-                   <button className="mt-8 w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">Trocar por Vouchers</button>
+                   <button onClick={() => setShowComingSoon("Loja de Karma")} className="mt-8 w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">Trocar por Vouchers</button>
                 </div>
 
                 <div className="space-y-6">
@@ -175,7 +186,7 @@ export const SettingsViews: React.FC<SettingsProps> = ({ user, view, setView, up
                             <input type={showPass ? "text" : "password"} value="senha_protegida_viva" readOnly className="w-full bg-nature-50 border border-nature-100 p-4 rounded-xl text-sm font-mono" />
                             <button onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-nature-300">{showPass ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
                         </div>
-                        <button className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">Transmutar Senha</button>
+                        <button onClick={() => triggerAction("Transmutação Segura", "Enviaremos um pergaminho para seu e-mail para redefinir sua chave de acesso.", "Enviar Link")} className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">Transmutar Senha</button>
                     </Card>
 
                     <div className="space-y-4">
@@ -260,6 +271,20 @@ export const SettingsViews: React.FC<SettingsProps> = ({ user, view, setView, up
                     <LogOut size={18} /> Encerrar Sincronia
                 </button>
             </div>
+            
+            <SimpleActionModal 
+                isOpen={!!actionModal} 
+                onClose={() => setActionModal(null)} 
+                title={actionModal?.title || ''} 
+                description={actionModal?.desc || ''} 
+                actionLabel={actionModal?.label || ''} 
+                onAction={actionModal?.action || (async ()=>{})} 
+            />
+            <ComingSoonModal 
+                isOpen={!!showComingSoon} 
+                onClose={() => setShowComingSoon(null)} 
+                feature={showComingSoon || ''} 
+            />
         </div>
     );
 };

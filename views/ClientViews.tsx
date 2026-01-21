@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { Search, Compass, ShoppingBag, ChevronLeft, ChevronRight, Wind, X, Moon, Sparkles, Heart, Activity, ShoppingCart, Calendar, MapPin, Star, ShieldCheck } from 'lucide-react';
 import { DynamicAvatar, SoulGarden, ZenToast, PortalCard, DailyBlessing, Card, MoodTracker } from '../components/Common';
 import { ConstellationOrbit, SoulJourneyPlayer, GlobalMandala } from '../components/SocialFeatures';
+import { ImageUploader, SimpleActionModal, ComingSoonModal } from '../components/Modals';
 
 const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode }> = ({ title, subtitle, onBack, children }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300">
@@ -26,6 +27,14 @@ export const ClientViews: React.FC<{
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<{title: string, message: string} | null>(null);
   const [journeyPeriod, setJourneyPeriod] = useState<'week' | 'month'>('week');
+  const [showUpload, setShowUpload] = useState(false);
+
+  const handleAvatarUpdate = async (url: string) => {
+      const updated = { ...user, avatar: url };
+      await api.users.update(updated as User);
+      updateUser(updated as User);
+      setToast({ title: "Renovação Visual", message: "Sua nova face foi revelada ao mundo." });
+  };
 
   useEffect(() => { 
     api.professionals.list().then(setPros);
@@ -204,6 +213,7 @@ export const ClientViews: React.FC<{
   return (
     <div className="flex flex-col animate-in fade-in pb-24">
         {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+        <ImageUploader isOpen={showUpload} onClose={() => setShowUpload(false)} onSelect={handleAvatarUpdate} />
         <DailyBlessing user={user} onCheckIn={() => { updateUser({...user, lastCheckIn: new Date().toISOString().split('T')[0]}); setToast({title: "Sincronizado", message: "+50 Karma recebido."}); }} />
         
         <header className="flex justify-between items-center mb-10 mt-8">
@@ -211,7 +221,8 @@ export const ClientViews: React.FC<{
                 <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.4em]">BUSCADOR • NÍVEL {Math.floor(user.karma / 1000) + 1}</p>
                 <h1 className="text-4xl font-serif italic text-nature-900 leading-tight">Salve, {user.name.split(' ')[0]}</h1>
             </div>
-            <button onClick={() => setView(ViewState.SETTINGS)} className="w-16 h-16 rounded-[1.8rem] border-[3px] border-white shadow-xl overflow-hidden active:scale-95 transition-all">
+            <button onClick={() => setShowUpload(true)} className="w-16 h-16 rounded-[1.8rem] border-[3px] border-white shadow-xl overflow-hidden active:scale-95 transition-all relative group">
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[8px] font-bold uppercase tracking-widest">Editar</div>
                 <img src={user.avatar} className="w-full h-full object-cover" />
             </button>
         </header>

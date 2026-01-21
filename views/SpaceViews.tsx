@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { DynamicAvatar, PortalCard, Card } from '../components/Common';
+import { SimpleActionModal } from '../components/Modals';
 
 const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode }> = ({ title, subtitle, onBack, children }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300">
@@ -27,6 +28,11 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
   const [selectedPro, setSelectedPro] = useState<Professional | null>(null);
   const [selectedVacancy, setSelectedVacancy] = useState<Vacancy | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [modalAction, setModalAction] = useState<{title: string, desc: string, label: string, action: () => Promise<void>} | null>(null);
+
+  const startAction = (title: string, desc: string, label: string, action: () => Promise<void>) => {
+      setModalAction({ title, desc, label, action });
+  };
 
   useEffect(() => {
       api.spaces.getRooms(user.id).then(setRooms);
@@ -204,9 +210,12 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                       <div className="p-3 bg-nature-50 rounded-xl"><ChevronRight size={18} /></div>
                   </button>
               ))}
-              <button className="w-full py-6 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-300 flex items-center justify-center gap-3 hover:bg-white hover:border-primary-200 transition-all">
-                  <Plus size={24} /> Convidar Mestre
-              </button>
+              <button 
+    onClick={() => startAction("Expandir Círculo", "Enviar convite para novo guardião via e-mail?", "Enviar Convite", async () => new Promise(r => setTimeout(r, 1500)))}
+    className="w-full py-6 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-300 flex items-center justify-center gap-3 hover:bg-white hover:border-primary-200 transition-all"
+>
+    <Plus size={24} /> Convidar Mestre
+</button>
           </div>
       </PortalView>
   );
@@ -286,6 +295,14 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
             <PortalCard title="Vagas" subtitle="RECRUTAR" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600" onClick={() => setView(ViewState.SPACE_RECRUITMENT)} delay={200} />
             <PortalCard title="Gestão" subtitle="DADOS" icon={BarChart3} bgImage="https://images.unsplash.com/photo-1551288049-bbdac8a28a1e?q=80&w=600" onClick={() => setView(ViewState.SPACE_DASHBOARD)} delay={300} />
         </div>
+        <SimpleActionModal 
+            isOpen={!!modalAction} 
+            onClose={() => setModalAction(null)} 
+            title={modalAction?.title || ''} 
+            description={modalAction?.desc || ''} 
+            actionLabel={modalAction?.label || ''} 
+            onAction={modalAction?.action || (async ()=>{})} 
+        />
     </div>
   );
 };
