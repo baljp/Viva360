@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState, Professional, User, Product, Appointment } from '../types';
 import { api } from '../services/api'; 
-import { Search, Compass, ShoppingBag, ChevronLeft, ChevronRight, Wind, X, Moon, Sparkles, Heart, Activity, ShoppingCart, Calendar, MapPin, Star, ShieldCheck, Trophy, Leaf } from 'lucide-react';
+import { Search, Compass, ShoppingBag, ChevronLeft, ChevronRight, Wind, X, Moon, Sparkles, Heart, Activity, ShoppingCart, Calendar, MapPin, Star, ShieldCheck, Trophy, Leaf, MessageSquare } from 'lucide-react';
 import { DynamicAvatar, SoulGarden, ZenToast, PortalCard, DailyBlessing, Card, MoodTracker } from '../components/Common';
 import { ConstellationOrbit, SoulJourneyPlayer, GlobalMandala } from '../components/SocialFeatures';
 import { ImageUploader, SimpleActionModal, ComingSoonModal } from '../components/Modals';
@@ -11,6 +11,8 @@ import SoulPharmacy from '../components/SoulPharmacy';
 import TribeScreen from '../components/TribeScreen';
 import NetworkScreen from '../components/NetworkScreen';
 import CheckoutFlow from '../components/CheckoutFlow';
+import ChatScreen from '../components/ChatScreen';
+import AdvancedSearchScreen from '../components/AdvancedSearch';
 
 const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode }> = ({ title, subtitle, onBack, children }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300">
@@ -33,6 +35,10 @@ export const ClientViews: React.FC<{
   const [toast, setToast] = useState<{title: string, message: string} | null>(null);
   const [journeyPeriod, setJourneyPeriod] = useState<'week' | 'month'>('week');
   const [showUpload, setShowUpload] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatPartner, setChatPartner] = useState<any>(null);
+  const [searchType, setSearchType] = useState<'professionals' | 'products'>('professionals');
 
   const handleAvatarUpdate = async (url: string) => {
       const updated = { ...user, avatar: url };
@@ -54,9 +60,34 @@ export const ClientViews: React.FC<{
       setToast({ title: "Sincronia Energética", message: `Frequência ${mood} ancorada com sucesso.` });
   };
 
+  if (showAdvancedSearch) return (
+      <AdvancedSearchScreen 
+          searchType={searchType}
+          onClose={() => setShowAdvancedSearch(false)}
+          onSelectProfessional={(pro) => {
+              setSelectedPro(pro);
+              setView(ViewState.CLIENT_PRO_DETAILS);
+              setShowAdvancedSearch(false);
+          }}
+      />
+  );
+
   // --- SUB-TELA: DETALHES DO PROFISSIONAL ---
   if (view === ViewState.CLIENT_PRO_DETAILS && selectedPro) return (
-    <PortalView title={selectedPro.name} subtitle="GUARDIÃO VERIFICADO" onBack={() => setView(ViewState.CLIENT_EXPLORE)}>
+    <>
+      {showChat && (
+        <ChatScreen 
+          currentUser={user}
+          partner={selectedPro ? { 
+            id: selectedPro.userId, // Use userId for chat
+            name: selectedPro.name, 
+            avatar: selectedPro.avatar 
+          } : undefined}
+          onClose={() => setShowChat(false)}
+        />
+      )}
+      
+      <PortalView title={selectedPro.name} subtitle="GUARDIÃO VERIFICADO" onBack={() => setView(ViewState.CLIENT_EXPLORE)}>
         <div className="space-y-8 pb-12">
             <div className="flex flex-col items-center gap-4">
                 <DynamicAvatar user={selectedPro} size="xl" className="border-4 border-white shadow-2xl" />
@@ -69,6 +100,14 @@ export const ClientViews: React.FC<{
                         <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">{selectedPro.specialty[0]}</span>
                     </div>
                 </div>
+                
+                <button 
+                  onClick={() => setShowChat(true)}
+                  className="px-6 py-2 bg-nature-100 text-nature-700 rounded-full text-xs font-bold uppercase tracking-widest flex items-center gap-2 hover:bg-nature-200 transition-colors"
+                >
+                  <MessageSquare size={14} />
+                  Enviar Mensagem
+                </button>
             </div>
 
             <Card className="p-6 space-y-4">
@@ -95,6 +134,7 @@ export const ClientViews: React.FC<{
             </div>
         </div>
     </PortalView>
+    </>
   );
 
   if (view === ViewState.CLIENT_SOUL_PHARMACY) return (

@@ -21,6 +21,8 @@ import soulPharmacyRoutes from './routes/soulPharmacy.routes';
 import gamificationRoutes from './routes/gamification.routes';
 import paymentsRoutes from './routes/payments.routes';
 import ordersRoutes from './routes/orders.routes';
+import reviewsRoutes from './routes/reviews.routes';
+
 
 // Middleware
 import { errorHandler } from './middleware/error';
@@ -106,6 +108,8 @@ app.use('/api/soul-pharmacy', soulPharmacyRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/orders', ordersRoutes);
+app.use('/api/reviews', reviewsRoutes);
+
 
 // Error Handler (must be last)
 app.use(errorHandler);

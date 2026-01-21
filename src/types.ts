@@ -150,6 +150,7 @@ export interface Professional extends User {
   licenseNumber?: string;
   isAvailableForSwap?: boolean;
   needs?: string[];
+  userId?: string;
 }
 
 export interface Product { 
