@@ -49,17 +49,11 @@ const initSentry = async () => {
   }
 };
 
-// Start Sentry (background)
-// initSentry(); // Temporarily disabled for binary testing
+// Start Sentry (production error monitoring)
+initSentry();
 
-// Registro do Service Worker para PWA (apenas em produção real processada por Vite)
-if ('serviceWorker' in navigator && isProd) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { type: 'module' })
-      .then(reg => console.log('SW Registered', reg))
-      .catch(err => console.error('SW Registration Failed', err));
-  });
-}
+// NOTE: Service Worker registration is handled automatically by vite-plugin-pwa
+// Do NOT register manually here - it causes version conflicts
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
