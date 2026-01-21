@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   // Use './' se for publicar em uma subpasta, ou '/' para o domínio principal
-  base: '/', 
+  base: './', 
   plugins: [
     react(),
     VitePWA({
