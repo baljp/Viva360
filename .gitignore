@@ -30,3 +30,5 @@ yarn-error.log*
 backup_01_20_2026/
 *.zip
 start_log.txt
+
+/src/generated/prisma
