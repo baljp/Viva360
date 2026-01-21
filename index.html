@@ -92,6 +92,49 @@
   </head>
   <body>
     <div id="root" class="w-full h-full bg-primary-50 overflow-hidden"></div>
+    
+    <!-- Force SW Cleanup Script - Runs BEFORE React -->
+    <script>
+      (function() {
+        // Version key for cache busting - change this on each deploy if needed
+        var CACHE_VERSION = 'v1.1.1';
+        var CLEANUP_KEY = 'viva360_sw_cleaned_' + CACHE_VERSION;
+        
+        // Only run cleanup once per version
+        if (!localStorage.getItem(CLEANUP_KEY)) {
+          console.log('[Viva360] Cleaning stale caches...');
+          
+          // Unregister all Service Workers
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+              registrations.forEach(function(registration) {
+                registration.unregister();
+                console.log('[Viva360] SW unregistered:', registration.scope);
+              });
+            });
+          }
+          
+          // Clear all caches
+          if ('caches' in window) {
+            caches.keys().then(function(cacheNames) {
+              cacheNames.forEach(function(cacheName) {
+                caches.delete(cacheName);
+                console.log('[Viva360] Cache deleted:', cacheName);
+              });
+            });
+          }
+          
+          // Mark as cleaned for this version
+          localStorage.setItem(CLEANUP_KEY, Date.now().toString());
+          
+          // Force reload to get fresh content
+          setTimeout(function() {
+            window.location.reload(true);
+          }, 500);
+        }
+      })();
+    </script>
+    
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
