@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  // Use './' se for publicar em uma subpasta, ou '/' para o domínio principal
-  base: './', 
+  // Use '/' for root domain deployment (Vercel/Hostinger root)
+  base: '/', 
   plugins: [
     react(),
     VitePWA({
@@ -14,7 +14,7 @@ export default defineConfig({
       // PWA Gold Standard Configuration
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        navigateFallback: 'index.html', // Relative to ensure it works with base: './'
+        navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
