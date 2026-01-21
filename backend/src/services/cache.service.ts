@@ -1,33 +1,81 @@
 
 import NodeCache from 'node-cache';
+import Redis from 'ioredis';
 
 class CacheService {
-  private cache: NodeCache;
+  private localCache: NodeCache;
+  private redisClient: Redis | null = null;
+  private useRedis: boolean = false;
 
   constructor(ttlSeconds = 60) {
-    this.cache = new NodeCache({ 
+    this.localCache = new NodeCache({ 
       stdTTL: ttlSeconds, 
       checkperiod: ttlSeconds * 0.2,
-      useClones: false // Performance optimization
+      useClones: false 
     });
+
+    if (process.env.REDIS_URL) {
+      this.redisClient = new Redis(process.env.REDIS_URL, {
+        maxRetriesPerRequest: 1,
+        retryStrategy: (times) => {
+          if (times > 3) {
+            console.warn('Redis connection failed, falling back to local cache.');
+            this.useRedis = false;
+            return null;
+          }
+          return Math.min(times * 50, 2000);
+        }
+      });
+
+      this.redisClient.on('connect', () => {
+        console.log('⚡ Redis Connected');
+        this.useRedis = true;
+      });
+
+      this.redisClient.on('error', (err) => {
+        // Silent error to avoid log spam, fallback logic handles it
+        this.useRedis = false;
+      });
+    }
   }
 
-  get<T>(key: string): T | undefined {
-    return this.cache.get<T>(key);
+  async get<T>(key: string): Promise<T | undefined> {
+    if (this.useRedis && this.redisClient) {
+      try {
+        const data = await this.redisClient.get(key);
+        if (data) return JSON.parse(data);
+      } catch (e) {
+        // Fallback to local
+      }
+    }
+    return this.localCache.get<T>(key);
   }
 
-  set(key: string, value: any, ttl?: number): boolean {
-    return this.cache.set(key, value, ttl || 60);
+  async set(key: string, value: any, ttl?: number): Promise<boolean> {
+    if (this.useRedis && this.redisClient) {
+      try {
+        await this.redisClient.set(key, JSON.stringify(value), 'EX', ttl || 60);
+        return true;
+      } catch (e) {
+        // Fallback
+      }
+    }
+    return this.localCache.set(key, value, ttl || 60);
   }
 
   del(key: string): number {
-    return this.cache.del(key);
+    if (this.useRedis && this.redisClient) {
+        this.redisClient.del(key).catch(() => {});
+    }
+    return this.localCache.del(key);
   }
 
   flush(): void {
-    this.cache.flushAll();
+    if (this.useRedis && this.redisClient) {
+        this.redisClient.flushall().catch(() => {});
+    }
+    this.localCache.flushAll();
   }
 }
 
-// Export singleton with 60s default TTL
 export const cacheService = new CacheService(60);

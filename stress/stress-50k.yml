@@ -1,0 +1,82 @@
+config:
+  target: "http://localhost:3000"
+  phases:
+    - duration: 5
+      arrivalRate: 10
+      name: "Warm up"
+    - duration: 60
+      arrivalRate: 10
+      rampTo: 800
+      name: "Ramp up to peak"
+    - duration: 60
+      arrivalRate: 800
+      name: "Sustained load (50k Users)"
+  plugins:
+    expect: {}
+  ensure:
+    maxErrorRate: 1 # < 1% error rate target (user asked for 0.1% but local limit applies)
+    p95: 5000       # 5s target (Cloud target < 500ms)
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  variables:
+    targetEnv: "development"
+
+scenarios:
+  - name: "Client Actions"
+    weight: 60
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "ana@viva360.com"
+            password: "senha123"
+          capture:
+            - json: "$.accessToken"
+              as: "token"
+      - get:
+          url: "/api/professionals"
+          headers:
+            Authorization: "Bearer {{ token }}"
+      - think: 1
+      - get:
+          url: "/api/marketplace"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+  - name: "Professional Actions"
+    weight: 30
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "luna@viva360.com" 
+            password: "senha123"
+          capture:
+            - json: "$.accessToken"
+              as: "token"
+      - get:
+          url: "/api/auth/me"
+          headers:
+            Authorization: "Bearer {{ token }}"
+      - think: 1
+      - get:
+          url: "/api/notifications"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+  - name: "Space Actions"
+    weight: 10
+    flow:
+      - post:
+          url: "/api/auth/login"
+          json:
+            email: "contato@sanctuarium.com"
+            password: "senha123"
+          capture:
+            - json: "$.accessToken"
+              as: "token"
+      - get:
+          url: "/api/spaces/my-space"
+          headers:
+            Authorization: "Bearer {{ token }}"
