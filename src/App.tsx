@@ -33,12 +33,29 @@ const Splash: React.FC = () => (
   </div>
 );
 
+// Helper: Get home view for a given role
+const getHomeForRole = (role: UserRole): ViewState => {
+  switch (role) {
+    case UserRole.CLIENT: return ViewState.CLIENT_HOME;
+    case UserRole.PROFESSIONAL: return ViewState.PRO_HOME;
+    case UserRole.SPACE: return ViewState.SPACE_HOME;
+    default: return ViewState.LOGIN;
+  }
+};
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.SPLASH);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Unified logout handler
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('viva360_user');
+    setCurrentView(ViewState.LOGIN);
+  };
 
   useEffect(() => {
     const init = async () => {
@@ -66,8 +83,7 @@ const App: React.FC = () => {
              setCurrentUser(null);
              setCurrentView(ViewState.LOGIN);
         } else if (sessionUser) {
-             const homeView = sessionUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : sessionUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME;
-             setCurrentView(homeView);
+             setCurrentView(getHomeForRole(sessionUser.role));
         } else {
              setCurrentView('LANDING' as ViewState);
         }
@@ -129,8 +145,6 @@ const App: React.FC = () => {
   };
 
 
-// ... (in App component)
-
   if (isLoading) return <Splash />;
 
 
@@ -144,15 +158,15 @@ const App: React.FC = () => {
             if(u) {
                 setCurrentUser(u);
                 localStorage.setItem('viva360_user', JSON.stringify(u));
-                setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
+                setCurrentView(getHomeForRole(u.role));
             }
         }} setView={setCurrentView} />;
 
       case ViewState.PRIVACY:
-        return <PrivacyPolicy onBack={() => setCurrentView(currentUser ? (currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME) : ViewState.LOGIN)} />;
+        return <PrivacyPolicy onBack={() => setCurrentView(currentUser ? getHomeForRole(currentUser.role) : ViewState.LOGIN)} />;
 
       case ViewState.TERMS:
-        return <TermsOfUse onBack={() => setCurrentView(currentUser ? (currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME) : ViewState.LOGIN)} />;
+        return <TermsOfUse onBack={() => setCurrentView(currentUser ? getHomeForRole(currentUser.role) : ViewState.LOGIN)} />;
 
       case ViewState.REGISTER:
       case ViewState.REGISTER_CLIENT:
@@ -162,7 +176,7 @@ const App: React.FC = () => {
             const { user } = await api.auth.register(u); 
             setCurrentUser(user); 
             localStorage.setItem('viva360_user', JSON.stringify(user));
-            setCurrentView(user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : user.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN); 
+            setCurrentView(getHomeForRole(user.role)); 
         }} />;
 
       case ViewState.CLIENT_CHECKOUT:
@@ -180,7 +194,7 @@ const App: React.FC = () => {
       default:
         // Handle SETTINGS and specific Role Views via pattern matching or fallback
         if (currentView.startsWith('SETTINGS')) {
-             return <SettingsViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onLogout={() => {setCurrentUser(null); localStorage.removeItem('viva360_user'); setCurrentView(ViewState.LOGIN);}} />;
+             return <SettingsViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onLogout={handleLogout} />;
         }
 
         if (currentUser) {
@@ -199,7 +213,7 @@ const App: React.FC = () => {
             if(u) {
                 setCurrentUser(u);
                 localStorage.setItem('viva360_user', JSON.stringify(u));
-                setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
+                setCurrentView(getHomeForRole(u.role));
             }
         }} setView={setCurrentView} />;
     }
@@ -223,7 +237,7 @@ const App: React.FC = () => {
   ].includes(currentView) || currentView.startsWith('REGISTER') || currentView.startsWith('SETTINGS_');
 
   return (
-    <NanoLayout user={currentUser} currentView={currentView} setView={setCurrentView} onLogout={() => {setCurrentUser(null); localStorage.removeItem('viva360_user'); setCurrentView(ViewState.LOGIN)}} shouldHideNav={shouldHideNav}>
+    <NanoLayout user={currentUser} currentView={currentView} setView={setCurrentView} onLogout={handleLogout} shouldHideNav={shouldHideNav}>
         {content}
         <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={(id)=>setCart(c=>c.filter(x=>x.id!==id))} onProceed={() => {setIsCartOpen(false); setCurrentView(ViewState.CLIENT_CHECKOUT)}} />
         <OnboardingTutorial />
