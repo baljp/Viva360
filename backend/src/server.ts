@@ -47,6 +47,19 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+// Serve static files with CDN Cache Headers (Cloud Prep)
+import path from 'path';
+app.use(express.static(path.join(__dirname, '../../dist'), {
+  maxAge: '1d', // Cache for 1 day
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache'); // HTML always fresh
+    } else {
+      res.setHeader('Cache-Control', 'public, max-age=86400'); // Assets cached for CDN
+    }
+  }
+}));
+
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   credentials: true,
