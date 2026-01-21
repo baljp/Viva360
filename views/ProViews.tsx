@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { DynamicAvatar, Card, ZenToast, PortalCard } from '../components/Common';
 import { api } from '../services/api';
+import { SimpleActionModal } from '../components/Modals';
 
 const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode }> = ({ title, subtitle, onBack, children }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300">
@@ -29,6 +30,11 @@ export const ProViews: React.FC<{
   const [notes, setNotes] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [modalAction, setModalAction] = useState<{title: string, desc: string, label: string, action: () => Promise<void>} | null>(null);
+
+  const startAction = (title: string, desc: string, label: string, action: () => Promise<void>) => {
+      setModalAction({ title, desc, label, action });
+  };
 
   useEffect(() => {
       api.appointments.list(user.id, user.role).then(setAppointments);
@@ -87,7 +93,12 @@ export const ProViews: React.FC<{
                     <div className="flex flex-wrap gap-2">
                         {v.specialties.map(s => <span key={s} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-[8px] font-bold uppercase">{s}</span>)}
                     </div>
-                    <button className="w-full py-4 bg-nature-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">Enviar Minha Energia</button>
+                    <button 
+    onClick={() => startAction("Candidatura", `Deseja enviar sua energia para a vaga ${v.title}?`, "Confirmar Envio", async () => new Promise(r => setTimeout(r, 1000)))}
+    className="w-full py-4 bg-nature-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+>
+    Enviar Minha Energia
+</button>
                 </Card>
             ))}
         </div>
@@ -236,6 +247,14 @@ export const ProViews: React.FC<{
              <PortalCard title="Oportunidades" subtitle="VAGAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=600" onClick={() => setView(ViewState.PRO_OPPORTUNITIES)} delay={300} />
              <PortalCard title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?q=80&w=600" onClick={() => setView(ViewState.PRO_FINANCE)} delay={400} />
         </div>
+        <SimpleActionModal 
+            isOpen={!!modalAction} 
+            onClose={() => setModalAction(null)} 
+            title={modalAction?.title || ''} 
+            description={modalAction?.desc || ''} 
+            actionLabel={modalAction?.label || ''} 
+            onAction={modalAction?.action || (async ()=>{})} 
+        />
     </div>
   );
 };
