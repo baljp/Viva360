@@ -198,3 +198,113 @@ export const logout = asyncHandler(async (req: AuthRequest, res: Response) => {
   // In a more complex setup, add token to blacklist here
   res.json({ message: 'Logout realizado com sucesso' });
 });
+
+// Forgot Password - Request reset token
+export const forgotPassword = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { email } = req.body;
+
+  if (!email) {
+    throw new AppError('Email é obrigatório', 400);
+  }
+
+  // Find user
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    // Don't reveal if user exists for security
+    res.json({ message: 'Se o email existir, você receberá um link de recuperação.' });
+    return;
+  }
+
+  // Generate reset token (6 digit code)
+  const resetToken = Math.random().toString().slice(2, 8);
+  const resetTokenExpiry = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+
+  // Store token in user record (using bio temporarily, ideally add resetToken field to schema)
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { 
+      bio: `RESET:${resetToken}:${resetTokenExpiry.toISOString()}` 
+    },
+  });
+
+  // Send reset email
+  const resetHtml = `
+    <div style="font-family: Arial, sans-serif; color: #333; max-width: 500px; margin: 0 auto;">
+      <h1 style="color: #2d5a27;">Recuperação de Senha 🔐</h1>
+      <p>Você solicitou a recuperação de senha da sua conta Viva360.</p>
+      <p>Use o código abaixo para redefinir sua senha:</p>
+      <div style="background: #f0f5ef; padding: 20px; border-radius: 12px; text-align: center; margin: 20px 0;">
+        <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #2d5a27;">${resetToken}</span>
+      </div>
+      <p style="color: #666;">Este código expira em 30 minutos.</p>
+      <p style="color: #999; font-size: 12px;">Se você não solicitou esta recuperação, ignore este email.</p>
+      <br/>
+      <p>Com carinho,</p>
+      <p>Equipe Viva360</p>
+    </div>
+  `;
+
+  await emailService.sendEmail(email, 'Recuperação de Senha - Viva360', resetHtml);
+
+  res.json({ message: 'Se o email existir, você receberá um link de recuperação.' });
+});
+
+// Reset Password - Verify token and set new password
+export const resetPassword = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const { email, token, newPassword } = req.body;
+
+  if (!email || !token || !newPassword) {
+    throw new AppError('Email, código e nova senha são obrigatórios', 400);
+  }
+
+  if (newPassword.length < 6) {
+    throw new AppError('A senha deve ter no mínimo 6 caracteres', 400);
+  }
+
+  // Find user
+  const user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user || !user.bio?.startsWith('RESET:')) {
+    throw new AppError('Token inválido ou expirado', 400);
+  }
+
+  // Parse stored token
+  const [, storedToken, expiryStr] = user.bio.split(':');
+  const expiry = new Date(expiryStr);
+
+  if (storedToken !== token) {
+    throw new AppError('Token inválido', 400);
+  }
+
+  if (new Date() > expiry) {
+    throw new AppError('Token expirado', 400);
+  }
+
+  // Hash new password
+  const hashedPassword = await hashPassword(newPassword);
+
+  // Update user
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { 
+      password: hashedPassword,
+      bio: null, // Clear reset token
+    },
+  });
+
+  // Send confirmation email
+  const confirmHtml = `
+    <div style="font-family: Arial, sans-serif; color: #333;">
+      <h1>Senha Alterada com Sucesso ✅</h1>
+      <p>Sua senha foi redefinida com sucesso.</p>
+      <p>Se você não fez esta alteração, entre em contato conosco imediatamente.</p>
+      <br/>
+      <p>Equipe Viva360</p>
+    </div>
+  `;
+
+  emailService.sendEmail(email, 'Senha Alterada - Viva360', confirmHtml).catch(console.error);
+
+  res.json({ message: 'Senha alterada com sucesso!' });
+});

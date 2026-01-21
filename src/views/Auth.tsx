@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState, User } from '../types';
 import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check } from 'lucide-react';
 import { api } from '../services/api';
+import ForgotPassword from '../components/ForgotPassword';
 
 interface AuthProps {
     onLogin: (user?: User) => void;
@@ -85,6 +86,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -109,6 +111,9 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
     };
 
     return (
+        showForgotPassword ? (
+            <ForgotPassword onBack={() => setShowForgotPassword(false)} />
+        ) : (
         <div className="bg-[#f4f7f5] rounded-t-[3rem] p-8 w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col gap-6 pb-12 h-[85vh] overflow-y-auto no-scrollbar">
             <div className="w-12 h-1.5 bg-nature-200 rounded-full mx-auto opacity-50 flex-none"></div>
             
@@ -159,6 +164,13 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                 </button>
             </form>
 
+            <button 
+                onClick={() => setShowForgotPassword(true)} 
+                className="text-primary-600 text-xs font-medium text-center hover:underline"
+            >
+                Esqueceu sua senha?
+            </button>
+
             <div className="mt-4 pt-6 border-t border-nature-200">
                 <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest text-center mb-4">Atalhos de Desenvolvedor</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -168,6 +180,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                 </div>
             </div>
         </div>
+        )
     );
 };
 
