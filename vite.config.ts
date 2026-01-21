@@ -43,14 +43,8 @@ export default defineConfig({
   ],
   build: {
     outDir: 'dist',
-    sourcemap: false,
+    sourcemap: true, // Habilitar sourcemaps para debug em produção
     minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
     rollupOptions: {
       output: {
         manualChunks: {
