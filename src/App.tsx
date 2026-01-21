@@ -45,15 +45,31 @@ const App: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 800)); // Faster nano load
       try {
         const stored = localStorage.getItem('viva360_user');
+        let sessionUser = null;
+        
         if (stored) {
             const u = JSON.parse(stored);
-            if (!u || !u.role || !u.id) throw new Error("Invalid user data");
-            
-            setCurrentUser(u);
-            const homeView = u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME;
-            setCurrentView(homeView);
+            if (u && u.role && u.id) {
+                setCurrentUser(u);
+                sessionUser = u;
+            }
+        }
+
+        const path = window.location.pathname.replace(/\/$/, ''); // Remove trailing slash
+        
+        if (path === '/privacy') {
+            setCurrentView(ViewState.PRIVACY);
+        } else if (path === '/terms') {
+            setCurrentView(ViewState.TERMS);
+        } else if (path === '/login') {
+             localStorage.removeItem('viva360_user');
+             setCurrentUser(null);
+             setCurrentView(ViewState.LOGIN);
+        } else if (sessionUser) {
+             const homeView = sessionUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : sessionUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME;
+             setCurrentView(homeView);
         } else {
-            setCurrentView('LANDING' as ViewState);
+             setCurrentView('LANDING' as ViewState);
         }
       } catch (e) {
         console.error("Failed to load user session:", e);
