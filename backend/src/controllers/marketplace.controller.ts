@@ -2,10 +2,16 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { AppError, asyncHandler } from '../middleware/error';
 import prisma from '../config/database';
+import { cacheService } from '../services/cache.service';
 
 // Get All Products
 export const getAllProducts = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { category, type, search } = req.query;
+  
+  // Cache key
+  const cacheKey = `products_list_${JSON.stringify(req.query)}`;
+  const cachedData = cacheService.get(cacheKey);
+  if (cachedData) return res.json(cachedData);
 
   const where: any = { isActive: true };
 
@@ -25,6 +31,8 @@ export const getAllProducts = asyncHandler(async (req: AuthRequest, res: Respons
     where,
     orderBy: { createdAt: 'desc' },
   });
+
+  cacheService.set(cacheKey, products);
 
   res.json(products);
 });

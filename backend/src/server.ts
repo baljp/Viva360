@@ -55,13 +55,13 @@ app.use(cors({
 // Rate limiting - more lenient for development
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDev ? 500 : 100, // Higher limit for dev/testing
+  max: isDev ? 100000 : 100, // Very high limit for dev/stress testing
   message: 'Muitas requisições deste IP, tente novamente mais tarde.',
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDev ? 100 : 10, // Higher limit for dev/testing
+  max: isDev ? 50000 : 10, // Higher limit for dev/testing
   message: 'Muitas tentativas de login, tente novamente em 15 minutos.',
 });
 
@@ -77,7 +77,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(sanitizeBody);
 
 // Logging
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.STRESS_TEST === 'true') {
+  // Disable logs for stress testing
+} else if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
@@ -115,22 +117,42 @@ app.use('/api/reviews', reviewsRoutes);
 app.use(errorHandler);
 
 // Start Server (using httpServer for WebSocket)
-httpServer.listen(PORT, () => {
-  console.log(`\n✨ Servidor Viva360 Backend rodando!`);
-  console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🚀 API disponível em: http://localhost:${PORT}/api`);
-  console.log(`💬 WebSocket habilitado`);
-  console.log(`💚 Health check: http://localhost:${PORT}/api/health\n`);
-});
+import cluster from 'cluster';
+import os from 'os';
+
+if (cluster.isPrimary && (process.env.NODE_ENV === 'production' || process.env.ENABLE_CLUSTER === 'true')) {
+  const numCPUs = os.cpus().length;
+  console.log(`Primary ${process.pid} is running`);
+  console.log(`Forking server for ${numCPUs} CPUs...`);
+
+  for (let i = 0; i < numCPUs; i++) {
+    cluster.fork();
+  }
+
+  cluster.on('exit', (worker, code, signal) => {
+    console.log(`Worker ${worker.process.pid} died. Restarting...`);
+    cluster.fork();
+  });
+} else {
+  httpServer.listen(PORT, () => {
+    console.log(`\n✨ Servidor Viva360 Backend rodando! (Worker ${process.pid})`);
+    console.log(`🌍 Ambiente: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`🚀 API disponível em: http://localhost:${PORT}/api`);
+    console.log(`💬 WebSocket habilitado`);
+    console.log(`💚 Health check: http://localhost:${PORT}/api/health\n`);
+  });
+}
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM recebido. Encerrando servidor graciosamente...');
-  httpServer.close(() => {
-    console.log('Servidor encerrado.');
-    process.exit(0);
+if (!cluster.isPrimary) {
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM recebido. Encerrando servidor graciosamente...');
+    httpServer.close(() => {
+      console.log('Servidor encerrado.');
+      process.exit(0);
+    });
   });
-});
+}
 
 export { io };
 export default app;
