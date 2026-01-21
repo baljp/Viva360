@@ -119,7 +119,7 @@ const App: React.FC = () => {
   } else if (currentView.startsWith('SETTINGS')) {
      content = <SettingsViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onLogout={() => {setCurrentUser(null); localStorage.removeItem('viva360_user'); setCurrentView(ViewState.LOGIN);}} />;
   } else if (currentView.startsWith('REGISTER')) {
-    content = <RegistrationViews view={currentView} setView={setCurrentView} onRegister={async (u) => { const user = await api.auth.register(u); setCurrentUser(user); setCurrentView(user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : user.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN); }} />;
+    content = <RegistrationViews view={currentView} setView={setCurrentView} onRegister={async (u) => { const { user } = await api.auth.register(u); setCurrentUser(user); setCurrentUser(user); setCurrentView(user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : user.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN); }} />;
   } else {
     switch(currentUser.role) {
         case UserRole.CLIENT: 

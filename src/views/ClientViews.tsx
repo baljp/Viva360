@@ -319,6 +319,7 @@ export const ClientViews: React.FC<{
   );
 
   // --- SUB-TELA: TRIBO ---
+  // @ts-ignore
   if (view === ViewState.CLIENT_TRIBO) return (
       <PortalView title="Tribo" subtitle="CÍRCULO DE CONFIANÇA" onBack={() => setView(ViewState.CLIENT_HOME)}>
           <div className="space-y-8">

@@ -44,11 +44,11 @@ export const getAllProfessionals = asyncHandler(async (req: AuthRequest, res: Re
   }
 
   if (minRating) {
-    filtered = filtered.filter(p => p.professional!.rating >= parseFloat(minRating as string));
+    filtered = filtered.filter(p => p.professional!.rating >= parseFloat(String(minRating)));
   }
 
   if (maxPrice) {
-    filtered = filtered.filter(p => p.professional!.pricePerSession <= parseFloat(maxPrice as string));
+    filtered = filtered.filter(p => p.professional!.pricePerSession <= parseFloat(String(maxPrice)));
   }
 
   // Remove passwords
@@ -68,7 +68,7 @@ export const getProfessionalById = asyncHandler(async (req: AuthRequest, res: Re
   const { id } = req.params;
 
   const professional = await prisma.user.findUnique({
-    where: { id, role: 'PROFESSIONAL' },
+    where: { id: String(id), role: 'PROFESSIONAL' },
     include: {
       professional: true,
       reviewsReceived: {

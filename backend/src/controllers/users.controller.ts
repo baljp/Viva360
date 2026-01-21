@@ -8,7 +8,7 @@ export const getUserProfile = asyncHandler(async (req: AuthRequest, res: Respons
   const { id } = req.params;
 
   const user = await prisma.user.findUnique({
-    where: { id },
+    where: { id: String(id) },
     include: {
       professional: true,
       space: true,

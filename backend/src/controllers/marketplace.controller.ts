@@ -10,21 +10,21 @@ export const getAllProducts = asyncHandler(async (req: AuthRequest, res: Respons
   
   // Cache key
   const cacheKey = `products_list_${JSON.stringify(req.query)}`;
-  const cachedData = cacheService.get(cacheKey);
+  const cachedData = cacheService.get<any[]>(cacheKey); // Explicit generic type
   if (cachedData) return res.json(cachedData);
 
   const where: any = { isActive: true };
 
   if (category) {
-    where.category = category;
+    where.category = String(category);
   }
 
   if (type) {
-    where.type = type;
+    where.type = String(type);
   }
 
   if (search) {
-    where.name = { contains: search as string, mode: 'insensitive' };
+    where.name = { contains: String(search), mode: 'insensitive' };
   }
 
   const products = await prisma.product.findMany({
@@ -42,7 +42,7 @@ export const getProductById = asyncHandler(async (req: AuthRequest, res: Respons
   const { id } = req.params;
 
   const product = await prisma.product.findUnique({
-    where: { id },
+    where: { id: String(id) },
   });
 
   if (!product) {
@@ -67,10 +67,10 @@ export const createProduct = asyncHandler(async (req: AuthRequest, res: Response
       description,
       price,
       image,
-      category,
-      type,
+      category: String(category) as any,
+      type: String(type) as any,
       stock: stock || 0,
-      professionalId: type === 'SERVICE' ? userId : undefined,
+      sellerId: type === 'SERVICE' && userId ? userId : null,
     },
   });
 
