@@ -1,28 +1,34 @@
+
 {
-  "name": "viva360",
+  "name": "viva360-app",
+  "version": "1.1.0",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "prisma generate && vite build",
+    "build": "tsc && vite build",
     "preview": "vite preview",
-    "test:endpoints": "node scripts/test-endpoints.mjs",
-    "test:stress": "node scripts/stress-test.mjs"
+    "lint": "eslint ."
   },
   "dependencies": {
-    "react": "^19.2.3",
-    "react-dom": "^19.2.3",
-    "lucide-react": "^0.562.0",
-    "recharts": "^3.6.0",
-    "@prisma/client": "^5.10.2"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "lucide-react": "^0.460.0",
+    "framer-motion": "^11.11.17",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4",
+    "@supabase/supabase-js": "^2.46.1"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0",
-    "prisma": "^5.10.2",
-    "@vercel/node": "^3.0.24"
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.1",
+    "vite-plugin-pwa": "^0.21.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15",
+    "terser": "^5.36.0"
   }
 }
