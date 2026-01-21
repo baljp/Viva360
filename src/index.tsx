@@ -4,7 +4,7 @@ import './index.css';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import * as Sentry from '@sentry/react';
+
 
 // Get environment safely
 const getIsProd = () => {
@@ -18,20 +18,39 @@ const getIsProd = () => {
 
 const isProd = getIsProd();
 
-// Sentry Error Monitoring (production only)
-// Configure VITE_SENTRY_DSN in your .env file
-if (isProd && (import.meta as any).env?.VITE_SENTRY_DSN) {
-  Sentry.init({
-    dsn: (import.meta as any).env.VITE_SENTRY_DSN,
-    environment: 'production',
-    integrations: [
-      Sentry.browserTracingIntegration(),
-    ],
-    tracesSampleRate: 0.1, // 10% of transactions for performance
-    replaysSessionSampleRate: 0.0, // Disable session replays
-    replaysOnErrorSampleRate: 0.1, // 10% of errors get replays
-  });
-}
+// Initialize Sentry Asynchronously (Fire & Forget)
+// This prevents bootstrap crashes if Sentry fails to load or init
+const initSentry = async () => {
+  if (!isProd) return;
+
+  const dsn = (import.meta as any).env?.VITE_SENTRY_DSN;
+  // Robust check for DSN to prevent internal Sentry errors
+  if (!dsn || typeof dsn !== 'string' || !dsn.startsWith('http')) {
+    return;
+  }
+
+  try {
+    const Sentry = await import('@sentry/react');
+    
+    Sentry.init({
+      dsn,
+      environment: 'production',
+      integrations: [
+        Sentry.browserTracingIntegration(),
+      ],
+      tracesSampleRate: 0.1,
+      replaysSessionSampleRate: 0.0,
+      replaysOnErrorSampleRate: 0.1,
+    });
+  } catch (e) {
+    // Sentry failed to load - do not crash the app
+    // In production we might want to silence this, or just log error safely
+    console.error('Sentry initialization failed (non-fatal)');
+  }
+};
+
+// Start Sentry (background)
+initSentry();
 
 // Registro do Service Worker para PWA (apenas em produção real processada por Vite)
 if ('serviceWorker' in navigator && isProd) {
