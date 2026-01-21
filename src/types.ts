@@ -10,6 +10,7 @@ export type PlantStage = 'seed' | 'sprout' | 'bud' | 'flower' | 'tree' | 'wither
 
 export enum ViewState {
   SPLASH = 'SPLASH',
+  LANDING = 'LANDING',
   LOGIN = 'LOGIN',
   REGISTER = 'REGISTER',
   REGISTER_CLIENT = 'REGISTER_CLIENT',

@@ -30,6 +30,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@fontsource/outfit": "^5.2.8",
     "@prisma/client": "^6.19.2",
     "@supabase/supabase-js": "^2.46.1",
     "@types/compression": "^1.8.1",

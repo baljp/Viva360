@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, ViewState, Professional, CartItem, Product, Appointment } from './types';
-import Layout from './components/Layout';
+import { NanoLayout } from './components/layout/NanoLayout';
 import Auth from './views/Auth';
 import { ClientViews } from './views/ClientViews';
 import { ProViews } from './views/ProViews';
@@ -9,19 +9,25 @@ import { SpaceViews } from './views/SpaceViews';
 import { SettingsViews } from './views/SettingsViews';
 import { RegistrationViews } from './views/Registration';
 import { OnboardingTutorial } from './components/Onboarding';
-import { CartDrawer, CheckoutScreen, SuccessScreen } from './components/Checkout';
+import { CartDrawer, SuccessScreen } from './components/Checkout';
+import { FastCheckout } from './components/Checkout/FastCheckout';
 import { VideoSessionView, OrdersListView } from './views/ServiceViews';
 import { api } from './services/api';
 
 const Splash: React.FC = () => (
-  <div className="h-screen w-full bg-nature-900 flex flex-col items-center justify-center text-white animate-in fade-in duration-1000">
+  <div className="h-screen w-full bg-nano-950 flex flex-col items-center justify-center text-white animate-in fade-in duration-700">
     <div className="relative mb-8">
-      <div className="absolute inset-0 bg-primary-500/20 blur-[60px] rounded-full animate-pulse"></div>
-      <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center text-nature-900 font-serif italic text-4xl shadow-2xl relative z-10 animate-float">V</div>
+      <div className="absolute inset-0 bg-banana-400/20 blur-[80px] rounded-full animate-pulse"></div>
+      <div className="w-24 h-24 bg-banana-400 rounded-3xl flex items-center justify-center text-nano-900 font-bold text-4xl shadow-[0_0_40px_rgba(250,204,21,0.4)] relative z-10 animate-bounce">V</div>
     </div>
-    <div className="space-y-2 text-center">
-      <h1 className="text-2xl font-serif italic tracking-widest opacity-90">Viva360</h1>
-      <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary-400 animate-pulse">Sintonizando Frequência</p>
+    <div className="space-y-4 text-center">
+      <h1 className="text-3xl font-bold tracking-tight text-white">Viva360</h1>
+      <div className="flex flex-col items-center gap-2">
+        <div className="h-1 w-32 bg-nano-800 rounded-full overflow-hidden">
+            <div className="h-full w-1/3 bg-banana-400 animate-[loading_1s_ease-in-out_infinite]"></div>
+        </div>
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-nano-400">Loading System</p>
+      </div>
     </div>
   </div>
 );
@@ -35,7 +41,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const init = async () => {
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 800)); // Faster nano load
       try {
         const stored = localStorage.getItem('viva360_user');
         if (stored) {
@@ -46,13 +52,13 @@ const App: React.FC = () => {
             const homeView = u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME;
             setCurrentView(homeView);
         } else {
-            setCurrentView(ViewState.LOGIN);
+            setCurrentView('LANDING' as ViewState);
         }
       } catch (e) {
         console.error("Failed to load user session:", e);
         localStorage.removeItem('viva360_user');
         setCurrentUser(null);
-        setCurrentView(ViewState.LOGIN);
+        setCurrentView('LANDING' as ViewState);
       } finally {
         setIsLoading(false);
       }
@@ -82,7 +88,7 @@ const App: React.FC = () => {
                 clientId: currentUser.id,
                 clientName: currentUser.name,
                 professionalId: proId,
-                professionalName: pro?.name || "Guardião",
+                professionalName: pro?.name || "Professional",
                 serviceName: item.name.replace('Ritual: ', ''),
                 price: item.price,
                 date: new Date().toISOString(),
@@ -103,23 +109,45 @@ const App: React.FC = () => {
     setCurrentUser(updatedUser);
     localStorage.setItem('viva360_user', JSON.stringify(updatedUser));
     setCart([]);
-    setCurrentView(ViewState.CLIENT_CHECKOUT_SUCCESS);
   };
+
+
+// ... (in App component)
 
   if (isLoading) return <Splash />;
 
   let content = null;
 
-  if (!currentUser) {
-    content = <Auth onLogin={(u) => { 
+  if (currentView === ViewState.SPLASH) {
+      // Should have been handled by useEffect, but just in case
+      content = <Auth onLogin={(u) => { 
         if(u) {
             setCurrentUser(u);
             localStorage.setItem('viva360_user', JSON.stringify(u));
             setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
         }
     }} setView={setCurrentView} />;
+  } else if (!currentUser) {
+     if (currentView === ViewState.LOGIN) {
+        content = <Auth onLogin={(u) => { 
+            if(u) {
+                setCurrentUser(u);
+                localStorage.setItem('viva360_user', JSON.stringify(u));
+                setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
+            }
+        }} setView={setCurrentView} />;
+     } else {
+        // Landing page state
+        content = <Auth onLogin={(u) => { 
+        if(u) {
+            setCurrentUser(u);
+            localStorage.setItem('viva360_user', JSON.stringify(u));
+            setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
+        }
+    }} setView={setCurrentView} />;
+     }
   } else if (currentView === ViewState.CLIENT_CHECKOUT) {
-    content = <CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} onSuccess={processCheckout} onCancel={() => setCurrentView(ViewState.CLIENT_HOME)} />;
+    content = <FastCheckout total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} onSuccess={processCheckout} onCancel={() => setCurrentView(ViewState.CLIENT_HOME)} />;
   } else if (currentView === ViewState.CLIENT_CHECKOUT_SUCCESS) {
     content = <SuccessScreen onHome={() => setCurrentView(ViewState.CLIENT_HOME)} />;
   } else if (currentView === ViewState.CLIENT_ORDERS) {
@@ -142,7 +170,7 @@ const App: React.FC = () => {
             content = <SpaceViews user={currentUser} view={currentView} setView={setCurrentView} />; 
             break;
         default: 
-            content = <div className="p-12 text-center italic text-nature-400">Sincronia de perfil não identificada.</div>;
+            content = <div className="p-12 text-center italic text-nano-400">Profile sync error.</div>;
     }
   }
 
@@ -162,11 +190,11 @@ const App: React.FC = () => {
   ].includes(currentView) || currentView.startsWith('REGISTER') || currentView.startsWith('SETTINGS_');
 
   return (
-    <Layout user={currentUser} currentView={currentView} setView={setCurrentView} onLogout={() => {setCurrentUser(null); localStorage.removeItem('viva360_user'); setCurrentView(ViewState.LOGIN)}} shouldHideNav={shouldHideNav}>
+    <NanoLayout user={currentUser} currentView={currentView} setView={setCurrentView} onLogout={() => {setCurrentUser(null); localStorage.removeItem('viva360_user'); setCurrentView(ViewState.LOGIN)}} shouldHideNav={shouldHideNav}>
         {content}
         <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={(id)=>setCart(c=>c.filter(x=>x.id!==id))} onProceed={() => {setIsCartOpen(false); setCurrentView(ViewState.CLIENT_CHECKOUT)}} />
         <OnboardingTutorial />
-    </Layout>
+    </NanoLayout>
   );
 };
 
