@@ -12,6 +12,7 @@ import { OnboardingTutorial } from './components/Onboarding';
 import { CartDrawer, SuccessScreen } from './components/Checkout';
 import { FastCheckout } from './components/Checkout/FastCheckout';
 import { VideoSessionView, OrdersListView } from './views/ServiceViews';
+import { PrivacyPolicy, TermsOfUse } from './views/LegalPages';
 import { api } from './services/api';
 
 const Splash: React.FC = () => (
@@ -156,6 +157,10 @@ const App: React.FC = () => {
      content = <VideoSessionView appointment={{} as Appointment} onEnd={() => setCurrentView(currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_ORDERS : ViewState.PRO_HOME)} />;
   } else if (currentView.startsWith('SETTINGS')) {
      content = <SettingsViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onLogout={() => {setCurrentUser(null); localStorage.removeItem('viva360_user'); setCurrentView(ViewState.LOGIN);}} />;
+  } else if (currentView === ViewState.PRIVACY) {
+     content = <PrivacyPolicy onBack={() => setCurrentView(currentUser ? (currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME) : ViewState.LOGIN)} />;
+  } else if (currentView === ViewState.TERMS) {
+     content = <TermsOfUse onBack={() => setCurrentView(currentUser ? (currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME) : ViewState.LOGIN)} />;
   } else if (currentView.startsWith('REGISTER')) {
     content = <RegistrationViews view={currentView} setView={setCurrentView} onRegister={async (u) => { const { user } = await api.auth.register(u); setCurrentUser(user); setCurrentUser(user); setCurrentView(user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : user.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN); }} />;
   } else {
