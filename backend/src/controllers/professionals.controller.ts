@@ -2,10 +2,16 @@ import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { AppError, asyncHandler } from '../middleware/error';
 import prisma from '../config/database';
+import { cacheService } from '../services/cache.service';
 
 // Get All Professionals
 export const getAllProfessionals = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { specialty, minRating, maxPrice } = req.query;
+
+  // Cache key
+  const cacheKey = `pros_list_${JSON.stringify(req.query)}`;
+  const cachedData = cacheService.get(cacheKey);
+  if (cachedData) return res.json(cachedData);
 
   const where: any = {
     role: 'PROFESSIONAL',
@@ -27,9 +33,14 @@ export const getAllProfessionals = asyncHandler(async (req: AuthRequest, res: Re
   let filtered = professionals.filter(p => p.professional);
 
   if (specialty) {
-    filtered = filtered.filter(p => 
-      p.professional?.specialty.some(s => s.toLowerCase().includes((specialty as string).toLowerCase()))
-    );
+    filtered = filtered.filter(p => {
+      try {
+        const specialties = JSON.parse(p.professional?.specialty || '[]');
+        return Array.isArray(specialties) && specialties.some((s: string) => 
+          s.toLowerCase().includes((specialty as string).toLowerCase())
+        );
+      } catch { return false; }
+    });
   }
 
   if (minRating) {
@@ -45,6 +56,9 @@ export const getAllProfessionals = asyncHandler(async (req: AuthRequest, res: Re
     const { password, ...rest } = user;
     return rest;
   });
+
+  // Set cache
+  cacheService.set(cacheKey, sanitized);
 
   res.json(sanitized);
 });

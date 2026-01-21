@@ -220,9 +220,9 @@ export const ClientViews: React.FC<{
   if (view === ViewState.CLIENT_EXPLORE) return (
       <PortalView title="Explorar" subtitle="MAPA DE CURA" onBack={() => setView(ViewState.CLIENT_HOME)}>
           <div className="space-y-6">
-              <div className="relative group">
+              <div className="relative group" onClick={() => setShowAdvancedSearch(true)}>
                   <Search size={20} className="absolute left-6 top-1/2 -translate-y-1/2 text-nature-300 group-focus-within:text-primary-500" />
-                  <input placeholder="Busque por mestre, técnica ou alívio..." className="w-full bg-white border border-nature-100 py-6 pl-14 pr-6 rounded-[2.5rem] outline-none shadow-sm focus:ring-2 focus:ring-primary-100 transition-all" />
+                  <input readOnly placeholder="Busque por mestre, técnica ou alívio..." className="w-full bg-white border border-nature-100 py-6 pl-14 pr-6 rounded-[2.5rem] outline-none shadow-sm focus:ring-2 focus:ring-primary-100 transition-all cursor-pointer" />
               </div>
               <div className="space-y-4">
                   <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Guardiões Disponíveis</h4>
