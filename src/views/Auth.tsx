@@ -11,6 +11,7 @@ interface AuthProps {
 }
 
 const OnboardingCarousel: React.FC = () => {
+    // URLs Sanitized for Production
     const slides = [
         {
             image: 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?q=80&w=1920&auto=format&fit=crop', // Nature meditation
