@@ -1,20 +1,29 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Viva360 - Ecossistema Holístico
 
-# Run and deploy your AI Studio app
+Plataforma de bem-estar construída com React e Vite.
 
-This contains everything you need to run your app locally.
+## Configuração Inicial
 
-View your app in AI Studio: https://ai.studio/apps/drive/1ekTIyBlt1XiW8vmIbk5hlLLfJLmL4KFR
+1. **Instale as dependências:**
+   ```bash
+   npm install
+   # ou
+   yarn install
+   ```
 
-## Run Locally
+2. **Remova arquivos do Next.js (se existirem):**
+   Delete a pasta `pages/` e o arquivo `next.config.js` da raiz.
 
-**Prerequisites:**  Node.js
+3. **Rodar localmente:**
+   ```bash
+   npm run dev
+   ```
+   Acesse a URL mostrada no terminal (geralmente http://localhost:5173)
 
+## Estrutura
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+- `index.html`: Ponto de entrada da aplicação.
+- `/components`: Componentes de UI reutilizáveis.
+- `/views`: Lógica das telas principais (Cliente, Profissional, Espaço).
+- `/services`: Simulação de Backend (Mock API).
+- `/utils`: Gerador de dados fictícios.
