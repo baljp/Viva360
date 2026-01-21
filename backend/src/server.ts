@@ -3,6 +3,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import { createServer } from 'http';
 
@@ -30,9 +31,13 @@ import { initializeWebSocket } from './websocket';
 const app: Application = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 3000;
+const isDev = process.env.NODE_ENV !== 'production';
 
 // Initialize WebSocket
 const io = initializeWebSocket(httpServer);
+
+// Compression - gzip responses for better performance
+app.use(compression());
 
 // Security & Performance Middleware
 app.use(helmet({
@@ -44,16 +49,16 @@ app.use(cors({
   credentials: true,
 }));
 
-// Rate limiting - different limits per endpoint
+// Rate limiting - more lenient for development
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: isDev ? 500 : 100, // Higher limit for dev/testing
   message: 'Muitas requisições deste IP, tente novamente mais tarde.',
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10, // Stricter for auth endpoints
+  max: isDev ? 100 : 10, // Higher limit for dev/testing
   message: 'Muitas tentativas de login, tente novamente em 15 minutos.',
 });
 

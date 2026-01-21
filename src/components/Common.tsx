@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { 
   Sun, X, Droplets, Heart, Sparkles, Activity, CheckCircle2, ShieldCheck, 
   ChevronRight, Sprout, Leaf, Flower, Trees, Wind, Music, Calendar, Bell, 
@@ -17,15 +17,15 @@ export const AuroraBackground: React.FC = () => (
   </div>
 );
 
-// --- DYNAMIC AVATAR ---
-export const DynamicAvatar: React.FC<{ user: Partial<UserType>, size?: 'sm' | 'md' | 'lg' | 'xl', className?: string }> = ({ user, size = 'md', className = "" }) => {
+// --- DYNAMIC AVATAR (Memoized) ---
+export const DynamicAvatar = memo<{ user: Partial<UserType>, size?: 'sm' | 'md' | 'lg' | 'xl', className?: string }>(({ user, size = 'md', className = "" }) => {
   const sizeClasses = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-20 h-20', xl: 'w-32 h-32' };
   return (
     <div className={`${sizeClasses[size]} ${className} rounded-full overflow-hidden border-2 border-white shadow-sm bg-nature-100 flex-none relative`}>
-      <img src={user.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.name || 'user'}`} className="w-full h-full object-cover" alt={user.name} />
+      <img src={user.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.name || 'user'}`} className="w-full h-full object-cover" alt={user.name} loading="lazy" />
     </div>
   );
-};
+});
 
 // --- MOOD TRACKER (NOVO) ---
 export const MoodTracker: React.FC<{ currentMood?: MoodType, onSelect: (m: MoodType) => void }> = ({ currentMood, onSelect }) => {
@@ -258,13 +258,15 @@ export const CalendarWidget: React.FC = () => (
   </div>
 );
 
-export const Card: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => (
+// Memoized Card component
+export const Card = memo<{ children: React.ReactNode, className?: string }>(({ children, className = "" }) => (
   <div className={`bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm ${className}`}>{children}</div>
-);
+));
 
-export const OrganicSkeleton: React.FC<{ className?: string }> = ({ className = "" }) => (
+// Memoized Skeleton component
+export const OrganicSkeleton = memo<{ className?: string }>(({ className = "" }) => (
   <div className={`bg-nature-100 animate-pulse rounded-[2rem] ${className}`}></div>
-);
+));
 
 export const WalletSplit: React.FC<{ personal: number, corporate: number }> = ({ personal, corporate }) => (
   <div className="grid grid-cols-2 gap-4">
