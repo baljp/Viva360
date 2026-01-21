@@ -32,17 +32,17 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/3209/3209931.png',
+            src: '/icons/viva360-icon.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/3209/3209931.png',
+            src: '/icons/viva360-icon.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: 'https://cdn-icons-png.flaticon.com/512/3209/3209931.png',
+            src: '/icons/viva360-icon.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
