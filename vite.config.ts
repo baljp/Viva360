@@ -13,11 +13,13 @@ export default defineConfig({
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       // PWA Gold Standard Configuration
       workbox: {
-        navigateFallback: '/index.html',
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
+        navigateFallback: 'index.html', // Relative to ensure it works with base: './'
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
-        skipWaiting: true
+        skipWaiting: true,
+        maximumFileSizeToCacheInBytes: 5000000 // Increase limit to prevent chunks being skipped
       },
       manifest: {
         name: 'Viva360 - Ecossistema Holístico',
