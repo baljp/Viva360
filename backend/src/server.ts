@@ -20,6 +20,7 @@ import healthRecordsRoutes from './routes/healthRecords.routes';
 import soulPharmacyRoutes from './routes/soulPharmacy.routes';
 import gamificationRoutes from './routes/gamification.routes';
 import paymentsRoutes from './routes/payments.routes';
+import ordersRoutes from './routes/orders.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error';
@@ -104,6 +105,7 @@ app.use('/api/health-records', healthRecordsRoutes);
 app.use('/api/soul-pharmacy', soulPharmacyRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/orders', ordersRoutes);
 
 // Error Handler (must be last)
 app.use(errorHandler);
