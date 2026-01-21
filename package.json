@@ -1,4 +1,3 @@
-
 {
   "name": "viva360-app",
   "version": "1.1.0",
@@ -7,28 +6,32 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "start": "node server.js",
     "preview": "vite preview",
     "lint": "eslint ."
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.46.1",
+    "clsx": "^2.1.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "framer-motion": "^11.11.17",
+    "lucide-react": "^0.460.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "lucide-react": "^0.460.0",
-    "framer-motion": "^11.11.17",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.5.4",
-    "@supabase/supabase-js": "^2.46.1"
+    "tailwind-merge": "^2.5.4"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
-    "typescript": "^5.6.3",
-    "vite": "^6.0.1",
-    "vite-plugin-pwa": "^0.21.1",
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
-    "terser": "^5.36.0"
+    "terser": "^5.36.0",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.1",
+    "vite-plugin-pwa": "^0.21.1"
   }
 }
