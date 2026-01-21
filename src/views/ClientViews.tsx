@@ -13,6 +13,7 @@ import NetworkScreen from '../components/NetworkScreen';
 import CheckoutFlow from '../components/CheckoutFlow';
 import ChatScreen from '../components/ChatScreen';
 import AdvancedSearchScreen from '../components/AdvancedSearch';
+import { NanoDashboard } from './NanoDashboard';
 
 const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode }> = ({ title, subtitle, onBack, children }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300">
@@ -330,48 +331,10 @@ export const ClientViews: React.FC<{
   );
 
   return (
-    <div className="flex flex-col animate-in fade-in pb-24">
-        {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-        <ImageUploader isOpen={showUpload} onClose={() => setShowUpload(false)} onSelect={handleAvatarUpdate} />
-        <DailyBlessing user={user} onCheckIn={() => { updateUser({...user, lastCheckIn: new Date().toISOString().split('T')[0]}); setToast({title: "Sincronizado", message: "+50 Karma recebido."}); }} />
-        
-        <header className="flex justify-between items-center mb-10 mt-8">
-            <div className="space-y-1.5">
-                <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.4em]">BUSCADOR • NÍVEL {Math.floor(user.karma / 1000) + 1}</p>
-                <h1 className="text-4xl font-serif italic text-nature-900 leading-tight">Salve, {user.name.split(' ')[0]}</h1>
-            </div>
-            <button onClick={() => setShowUpload(true)} className="w-16 h-16 rounded-[1.8rem] border-[3px] border-white shadow-xl overflow-hidden active:scale-95 transition-all relative group">
-                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-[8px] font-bold uppercase tracking-widest">Editar</div>
-                <img src={user.avatar} className="w-full h-full object-cover" />
-            </button>
-        </header>
-
-        <div className="space-y-8">
-          <MoodTracker currentMood={user.lastMood} onSelect={handleMoodSelect} />
-          
-          <SoulGarden user={user} onWater={() => updateUser({ ...user, plantXp: (user.plantXp || 0) + 10 })} />
-          
-          <Card className="flex items-center justify-between p-10 bg-nature-900 text-white border-0 shadow-2xl relative overflow-hidden group">
-              <div className="absolute inset-0 bg-primary-500/10 blur-[60px] translate-x-1/2 translate-y-1/2 group-hover:scale-125 transition-transform duration-1000"></div>
-              <div className="relative z-10 space-y-4">
-                <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary-400 mb-2">Momento Presente</p>
-                    <h4 className="text-3xl font-serif italic">Ritual de<br/>Alinhamento</h4>
-                </div>
-                <button onClick={() => setView(ViewState.CLIENT_RITUAL)} className="px-8 py-4 bg-white text-nature-900 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">Iniciar Agora</button>
-              </div>
-              <Moon size={64} className="text-primary-200/40 animate-float" />
-          </Card>
-
-          <div className="grid grid-cols-2 gap-6">
-              <PortalCard title="Explorar" subtitle="MAPA DE CURA" icon={Compass} bgImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=500" onClick={() => setView(ViewState.CLIENT_EXPLORE)} />
-              <PortalCard title="Bazar" subtitle="FERRAMENTAS" icon={ShoppingBag} bgImage="https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=500" onClick={() => setView(ViewState.CLIENT_MARKETPLACE)} delay={100} />
-              <PortalCard title="Meditar" subtitle="PAZ INTERIOR" icon={Leaf} bgImage="https://images.unsplash.com/photo-1545389336-cf090694435e?q=80&w=500" onClick={() => setView(ViewState.CLIENT_MEDITATION)} delay={200} />
-              <PortalCard title="Conquistas" subtitle="JORNADA" icon={Trophy} bgImage="https://images.unsplash.com/photo-1533227268428-f9ed0900fb3b?q=80&w=500" onClick={() => setView(ViewState.CLIENT_ACHIEVEMENTS)} delay={300} />
-              <PortalCard title="Tribo" subtitle="SINCRO" icon={Heart} bgImage="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=500" onClick={() => setView(ViewState.CLIENT_TRIBO)} delay={400} />
-              <PortalCard title="Metamorfose" subtitle="EVOLUÇÃO" icon={Sparkles} bgImage="https://images.unsplash.com/photo-1506466010722-395aa2bef877?q=80&w=500" onClick={() => setView(ViewState.CLIENT_JOURNEY)} delay={500} />
-          </div>
-        </div>
-    </div>
+    <>
+      {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+      <ImageUploader isOpen={showUpload} onClose={() => setShowUpload(false)} onSelect={handleAvatarUpdate} />
+      <NanoDashboard user={user} setView={setView} onAddToCart={onAddToCart} />
+    </>
   );
 };
