@@ -50,7 +50,7 @@ const initSentry = async () => {
 };
 
 // Start Sentry (background)
-initSentry();
+// initSentry(); // Temporarily disabled for binary testing
 
 // Registro do Service Worker para PWA (apenas em produção real processada por Vite)
 if ('serviceWorker' in navigator && isProd) {
