@@ -8,34 +8,19 @@ O backend foi **completamente implementado e testado**. API rodando em http://lo
 
 ## 📋 Passo a Passo para Deploy no Hostinger
 
-### 1. Preparar o Banco de Dados de Produção
+### 1. Preparar Infraestrutura Cloud (PostgreSQL/Redis)
 
-**Opção Recomendada: Supabase** (PostgreSQL grátis)
-
-```bash
-# 1. Criar conta em https://supabase.com
-# 2. Criar novo projeto
-# 3. Ir em Settings > Database
-# 4. Copiar "Connection String - nodejs"
-
-# Exemplo:
-postgresql://postgres:[PASSWORD]@db.[PROJECT].supabase.co:5432/postgres
-```
+Consulte o guia detalhado em **[CLOUD_MIGRATION.md](./CLOUD_MIGRATION.md)** para provisionar o banco de dados e cache na nuvem (Neon/Upstash).
 
 ### 2. Atualizar Schema para PostgreSQL
 
+Utilize o script de automação:
+
 ```bash
-# Editar prisma/schema.prisma
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
+# Alternar prisma para PostgreSQL
+npm run db:switch:postgres
 
-# Reverter campos array para String[] (PostgreSQL suporta)
-# Exemplo em Professional model:
-specialty   String[]  // Pode usar array novamente
-
-# Depois rodar:
+# Gerar cliente
 npm run db:generate
 ```
 
