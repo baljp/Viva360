@@ -117,67 +117,79 @@ const App: React.FC = () => {
 
   if (isLoading) return <Splash />;
 
-  let content = null;
 
-  if (currentView === ViewState.SPLASH) {
-      // Should have been handled by useEffect, but just in case
-      content = <Auth onLogin={(u) => { 
-        if(u) {
-            setCurrentUser(u);
-            localStorage.setItem('viva360_user', JSON.stringify(u));
-            setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
-        }
-    }} setView={setCurrentView} />;
-  } else if (!currentUser) {
-     if (currentView === ViewState.LOGIN) {
-        content = <Auth onLogin={(u) => { 
+
+  const renderContent = () => {
+    switch (currentView) {
+      case ViewState.SPLASH:
+      case ViewState.LOGIN:
+      case ViewState.LANDING:
+        return <Auth onLogin={(u) => { 
             if(u) {
                 setCurrentUser(u);
                 localStorage.setItem('viva360_user', JSON.stringify(u));
                 setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
             }
         }} setView={setCurrentView} />;
-     } else {
-        // Landing page state
-        content = <Auth onLogin={(u) => { 
-        if(u) {
-            setCurrentUser(u);
-            localStorage.setItem('viva360_user', JSON.stringify(u));
-            setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
+
+      case ViewState.PRIVACY:
+        return <PrivacyPolicy onBack={() => setCurrentView(currentUser ? (currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME) : ViewState.LOGIN)} />;
+
+      case ViewState.TERMS:
+        return <TermsOfUse onBack={() => setCurrentView(currentUser ? (currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME) : ViewState.LOGIN)} />;
+
+      case ViewState.REGISTER:
+      case ViewState.REGISTER_CLIENT:
+      case ViewState.REGISTER_PRO:
+      case ViewState.REGISTER_SPACE:
+        return <RegistrationViews view={currentView} setView={setCurrentView} onRegister={async (u) => { 
+            const { user } = await api.auth.register(u); 
+            setCurrentUser(user); 
+            localStorage.setItem('viva360_user', JSON.stringify(user));
+            setCurrentView(user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : user.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN); 
+        }} />;
+
+      case ViewState.CLIENT_CHECKOUT:
+        return <FastCheckout total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} onSuccess={processCheckout} onCancel={() => setCurrentView(ViewState.CLIENT_HOME)} />;
+
+      case ViewState.CLIENT_CHECKOUT_SUCCESS:
+        return <SuccessScreen onHome={() => setCurrentView(ViewState.CLIENT_HOME)} />;
+
+      case ViewState.CLIENT_ORDERS:
+        return currentUser ? <OrdersListView user={currentUser} onBack={() => setCurrentView(ViewState.CLIENT_HOME)} setView={setCurrentView} /> : <Auth onLogin={()=>{}} setView={setCurrentView} />;
+
+      case ViewState.CLIENT_VIDEO_SESSION:
+        return <VideoSessionView appointment={{} as Appointment} onEnd={() => setCurrentView(ViewState.CLIENT_ORDERS)} />;
+
+      default:
+        // Handle SETTINGS and specific Role Views via pattern matching or fallback
+        if (currentView.startsWith('SETTINGS')) {
+             return <SettingsViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onLogout={() => {setCurrentUser(null); localStorage.removeItem('viva360_user'); setCurrentView(ViewState.LOGIN);}} />;
         }
-    }} setView={setCurrentView} />;
-     }
-  } else if (currentView === ViewState.CLIENT_CHECKOUT) {
-    content = <FastCheckout total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} onSuccess={processCheckout} onCancel={() => setCurrentView(ViewState.CLIENT_HOME)} />;
-  } else if (currentView === ViewState.CLIENT_CHECKOUT_SUCCESS) {
-    content = <SuccessScreen onHome={() => setCurrentView(ViewState.CLIENT_HOME)} />;
-  } else if (currentView === ViewState.CLIENT_ORDERS) {
-    content = <OrdersListView user={currentUser} onBack={() => setCurrentView(currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME)} setView={setCurrentView} />;
-  } else if (currentView === ViewState.CLIENT_VIDEO_SESSION) {
-     content = <VideoSessionView appointment={{} as Appointment} onEnd={() => setCurrentView(currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_ORDERS : ViewState.PRO_HOME)} />;
-  } else if (currentView.startsWith('SETTINGS')) {
-     content = <SettingsViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onLogout={() => {setCurrentUser(null); localStorage.removeItem('viva360_user'); setCurrentView(ViewState.LOGIN);}} />;
-  } else if (currentView === ViewState.PRIVACY) {
-     content = <PrivacyPolicy onBack={() => setCurrentView(currentUser ? (currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME) : ViewState.LOGIN)} />;
-  } else if (currentView === ViewState.TERMS) {
-     content = <TermsOfUse onBack={() => setCurrentView(currentUser ? (currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME) : ViewState.LOGIN)} />;
-  } else if (currentView.startsWith('REGISTER')) {
-    content = <RegistrationViews view={currentView} setView={setCurrentView} onRegister={async (u) => { const { user } = await api.auth.register(u); setCurrentUser(user); setCurrentUser(user); setCurrentView(user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : user.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN); }} />;
-  } else {
-    switch(currentUser.role) {
-        case UserRole.CLIENT: 
-            content = <ClientViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onAddToCart={addToCart} />; 
-            break;
-        case UserRole.PROFESSIONAL: 
-            content = <ProViews user={currentUser as Professional} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} />; 
-            break;
-        case UserRole.SPACE: 
-            content = <SpaceViews user={currentUser} view={currentView} setView={setCurrentView} />; 
-            break;
-        default: 
-            content = <div className="p-12 text-center italic text-nano-400">Profile sync error.</div>;
+
+        if (currentUser) {
+            switch(currentUser.role) {
+                case UserRole.CLIENT: 
+                    return <ClientViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onAddToCart={addToCart} />; 
+                case UserRole.PROFESSIONAL: 
+                    return <ProViews user={currentUser as Professional} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} />; 
+                case UserRole.SPACE: 
+                    return <SpaceViews user={currentUser} view={currentView} setView={setCurrentView} />; 
+            }
+        }
+        
+        console.error("Unhandled ViewState:", currentView);
+        return <Auth onLogin={(u) => { 
+            if(u) {
+                setCurrentUser(u);
+                localStorage.setItem('viva360_user', JSON.stringify(u));
+                setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
+            }
+        }} setView={setCurrentView} />;
     }
-  }
+  };
+
+  const content = renderContent();
 
   const shouldHideNav = isCartOpen || !currentUser || [
     ViewState.SPLASH, 
