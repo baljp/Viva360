@@ -82,7 +82,7 @@ define(['./workbox-5a5d9309'], (function (workbox) { 'use strict';
     "revision": "1872c500de691dce40960bb85481de07"
   }, {
     "url": "index.html",
-    "revision": "02f6ea8d647ebbabbaa31b16a5cd1239"
+    "revision": "a6f555ef8821e7493d2bd2c34b0840fc"
   }, {
     "url": "assets/vendor-ChliwoGC.js",
     "revision": null
@@ -90,7 +90,7 @@ define(['./workbox-5a5d9309'], (function (workbox) { 'use strict';
     "url": "assets/index-DcAw8cEN.css",
     "revision": null
   }, {
-    "url": "assets/index-CNoiGKWm.js",
+    "url": "assets/index-CfsJQnb2.js",
     "revision": null
   }, {
     "url": "manifest.webmanifest",

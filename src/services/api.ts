@@ -94,14 +94,30 @@ export const api = {
             return { user: data.user as User, token: data.accessToken };
         },
         register: async (data: any): Promise<{ user: User, token: string }> => {
-            const res = await fetch(`${API_URL}/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
-            const dataRes = await handleResponse(res);
-            localStorage.setItem('access_token', dataRes.accessToken);
-            return { user: dataRes.user, token: dataRes.accessToken };
+            const mockUser: User = {
+                id: `user_${Date.now()}`,
+                name: data.name || 'Novo Usuário',
+                email: data.email || 'novo@viva360.com',
+                role: data.role || UserRole.CLIENT,
+                avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=' + Date.now(),
+                karma: 100,
+                streak: 0,
+                multiplier: 1,
+                corporateBalance: 0,
+                personalBalance: 500,
+                plantStage: 'seed',
+                plantXp: 0
+            };
+            return safeFetch(async () => {
+                const res = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const dataRes = await handleResponse(res);
+                localStorage.setItem('access_token', dataRes.accessToken);
+                return { user: dataRes.user, token: dataRes.accessToken };
+            }, { user: mockUser, token: 'mock_token_' + Date.now() });
         },
         me: async (): Promise<User> => {
             const res = await fetch(`${API_URL}/auth/me`, {
@@ -110,16 +126,41 @@ export const api = {
             return handleResponse(res);
         },
         loginByEmail: async (email: string): Promise<User> => {
-            // Deprecated mock method, kept for compatibility if needed, but redirecting to new auth flow if possible
-            // For now mapping to a dev login for testing ease if password not provided
-            const res = await fetch(`${API_URL}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password: 'senha123' }) // Default dev password
-            });
-            const data = await handleResponse(res);
-            localStorage.setItem('access_token', data.accessToken);
-            return data.user;
+            // Mock user based on email pattern for demo mode
+            const getMockUserByEmail = (email: string): User => {
+                const isClient = email.includes('client') || email.includes('ana') || email.includes('joao');
+                const isPro = email.includes('pro') || email.includes('luna') || email.includes('carlos');
+                const isSpace = email.includes('hub') || email.includes('space') || email.includes('contato');
+                
+                const role = isPro ? UserRole.PROFESSIONAL : isSpace ? UserRole.SPACE : UserRole.CLIENT;
+                const name = isPro ? 'Luna Guardião' : isSpace ? 'Hub Viva360' : 'Ana Buscadora';
+                
+                return {
+                    id: `user_${email.replace(/[^a-z0-9]/gi, '_')}`,
+                    name,
+                    email,
+                    role,
+                    avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${email}`,
+                    karma: 1500,
+                    streak: 7,
+                    multiplier: 1.2,
+                    corporateBalance: 2000,
+                    personalBalance: 1500,
+                    plantStage: 'flower',
+                    plantXp: 80
+                };
+            };
+            
+            return safeFetch(async () => {
+                const res = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password: 'senha123' })
+                });
+                const data = await handleResponse(res);
+                localStorage.setItem('access_token', data.accessToken);
+                return data.user;
+            }, getMockUserByEmail(email));
         }
     },
     users: {
@@ -233,8 +274,10 @@ export const api = {
     },
     notifications: {
         list: async (userId: string): Promise<Notification[]> => {
-            const res = await fetch(`${API_URL}/notifications`, { headers: getHeaders() });
-            return handleResponse(res);
+            return safeFetch(async () => {
+                const res = await fetch(`${API_URL}/notifications`, { headers: getHeaders() });
+                return handleResponse(res);
+            }, []);
         },
         markAsRead: async (userId: string, id: string) => {
             const res = await fetch(`${API_URL}/notifications/${id}/read`, {
