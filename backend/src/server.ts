@@ -18,6 +18,7 @@ import searchRoutes from './routes/search.routes';
 import healthRecordsRoutes from './routes/healthRecords.routes';
 import soulPharmacyRoutes from './routes/soulPharmacy.routes';
 import gamificationRoutes from './routes/gamification.routes';
+import paymentsRoutes from './routes/payments.routes';
 
 // Middleware
 import { errorHandler } from './middleware/error';
@@ -97,6 +98,7 @@ app.use('/api/search', searchRoutes);
 app.use('/api/health-records', healthRecordsRoutes);
 app.use('/api/soul-pharmacy', soulPharmacyRoutes);
 app.use('/api/gamification', gamificationRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // Error Handler (must be last)
 app.use(errorHandler);

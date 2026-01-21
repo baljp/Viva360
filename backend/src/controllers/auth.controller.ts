@@ -4,6 +4,7 @@ import { AppError, asyncHandler } from '../middleware/error';
 import prisma from '../config/database';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '../utils/jwt';
+import { emailService } from '../services/email.service';
 
 // Register
 export const register = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -67,6 +68,21 @@ export const register = asyncHandler(async (req: AuthRequest, res: Response) => 
 
   // Remove password from response
   const { password: _, ...userWithoutPassword } = user;
+
+  // Send Welcome Email
+  const welcomeHtml = `
+    <div style="font-family: Arial, sans-serif; color: #333;">
+      <h1>Bem-vindo ao Viva360, ${name}! 🌿</h1>
+      <p>Estamos muito felizes em tê-lo em nossa comunidade.</p>
+      <p>Explore jornadas, conecte-se com guardiões e cultive seu bem-estar.</p>
+      <br/>
+      <p>Com carinho,</p>
+      <p>Equipe Viva360</p>
+    </div>
+  `;
+  
+  // Fire and forget email
+  emailService.sendEmail(email, 'Bem-vindo ao Viva360!', welcomeHtml).catch(console.error);
 
   res.status(201).json({
     user: userWithoutPassword,
