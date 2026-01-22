@@ -204,7 +204,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
     };
 
     return (
-        <div className="h-full flex flex-col bg-[#1a211d] relative overflow-hidden">
+        <div className="min-h-screen h-screen flex flex-col bg-[#1a211d] relative overflow-hidden">
             {/* Header Fixo */}
             <header className="absolute top-0 left-0 w-full p-8 z-30 flex justify-between items-center">
                  <div className="flex items-center gap-3">
