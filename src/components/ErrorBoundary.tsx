@@ -1,60 +1,62 @@
-import React, { ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { Shield, RefreshCw } from 'lucide-react';
 
-interface ErrorBoundaryProps {
+interface Props {
   children?: ReactNode;
 }
 
-interface ErrorBoundaryState {
+interface State {
   hasError: boolean;
-  error: any;
+  error?: Error;
 }
 
-export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  declare props: ErrorBoundaryProps;
-
-  public state: ErrorBoundaryState = {
-    hasError: false,
-    error: null
+export class ErrorBoundary extends Component<Props, State> {
+  public state: State = {
+    hasError: false
   };
 
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-  }
-
-  static getDerivedStateFromError(error: any): ErrorBoundaryState {
+  public static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: any, errorInfo: any) {
-    console.error("Viva360 Fatal Error:", error, errorInfo);
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('Uncaught error:', error, errorInfo);
+    // Report to Sentry in production
+    import('@sentry/react').then(Sentry => {
+      Sentry.captureException(error, { extra: { componentStack: errorInfo.componentStack } });
+    }).catch(() => { /* Sentry not available */ });
   }
 
-  render() {
+  public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#f2f7f5] flex flex-col items-center justify-center p-8 text-center text-nature-800 font-sans">
-          <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mb-6 text-rose-400">
-             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>
-          </div>
-          <h1 className="text-2xl font-serif font-semibold mb-2">Momento de Calma</h1>
-          <p className="text-nature-50 mb-8 max-w-xs leading-relaxed">
-            Algo inesperado aconteceu no fluxo. Não se preocupe, seus rituais estão seguros.
-          </p>
-          <div className="bg-white p-4 rounded-xl border border-nature-200 w-full max-w-sm overflow-auto max-h-32 text-xs text-left font-mono text-nature-400 mb-6">
-            {this.state.error?.toString()}
-          </div>
-          <button 
-            onClick={() => {
-              localStorage.removeItem('viva360_user');
-              window.location.reload();
-            }} 
-            className="bg-nature-900 text-white px-8 py-3.5 rounded-2xl font-bold shadow-lg hover:scale-105 transition-transform"
-          >
-            Reiniciar Jornada
-          </button>
+        <div className="min-h-screen bg-nature-50 flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                <Shield size={48} className="text-red-500" />
+            </div>
+            
+            <h1 className="text-3xl font-serif text-nature-900 mb-4">Ops! Algo deu errado.</h1>
+            <p className="text-nature-600 max-w-md mb-8">
+                Não se preocupe, nossas raízes são fortes. Tente recarregar a página para restaurar o equilíbrio.
+            </p>
+
+            {this.state.error && import.meta.env.DEV && (
+                <pre className="text-xs text-left bg-red-50 p-4 rounded-lg text-red-800 mb-8 overflow-auto max-w-lg w-full">
+                    {this.state.error.toString()}
+                </pre>
+            )}
+
+            <button
+                onClick={() => window.location.href = '/'}
+                className="flex items-center gap-2 px-8 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest hover:bg-nature-800 transition-colors"
+            >
+                <RefreshCw size={18} />
+                Recarregar Viva360
+            </button>
         </div>
       );
     }
+
     return this.props.children;
   }
 }

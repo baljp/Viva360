@@ -22,11 +22,18 @@ import gamificationRoutes from './routes/gamification.routes';
 import paymentsRoutes from './routes/payments.routes';
 import ordersRoutes from './routes/orders.routes';
 import reviewsRoutes from './routes/reviews.routes';
+import swapsRoutes from './routes/swaps.routes';
+import ritualsRoutes from './routes/rituals.routes';
+import financeRoutes from './routes/finance.routes';
+import roomsRoutes from './routes/rooms.routes';
+import checkoutRoutes from './routes/checkout.routes';
+import healthRoutes from './routes/health.routes';
 
 
 // Middleware
 import { errorHandler } from './middleware/error';
 import { sanitizeBody } from './middleware/validation';
+import { correlationIdMiddleware } from './middleware/correlation';
 
 // WebSocket
 import { initializeWebSocket } from './websocket';
@@ -37,7 +44,18 @@ const PORT = process.env.PORT || 3000;
 const isDev = process.env.NODE_ENV !== 'production';
 
 // Initialize WebSocket
-const io = initializeWebSocket(httpServer);
+let io: any;
+initializeWebSocket(httpServer).then(instance => {
+  io = instance;
+});
+
+// Initialize Workers (Email, Notifications)
+import { initWorkers } from './workers';
+initWorkers();
+
+// 1. Connectivity & Identity Middleware (Must be first)
+app.use(correlationIdMiddleware);
+app.disable('x-powered-by');
 
 // Compression - gzip responses for better performance
 app.use(compression());
@@ -49,6 +67,11 @@ app.use(helmet({
 
 // Serve static files with CDN Cache Headers (Cloud Prep)
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(express.static(path.join(__dirname, '../../dist'), {
   maxAge: '1d', // Cache for 1 day
   setHeaders: (res, path) => {
@@ -75,17 +98,33 @@ app.use(cors({
   credentials: true,
 }));
 
-// Rate limiting - more lenient for development
+// Rate limiting with Redis store for cluster-safe operation
+import RedisStore from 'rate-limit-redis';
+import { redis as redisClient } from './config/redis';
+
+// Create Redis store for rate limiter (with fallback to memory)
+const createRateLimitStore = () => {
+  if (process.env.REDIS_URL) {
+    return new RedisStore({
+      // @ts-expect-error - ioredis is compatible
+      sendCommand: (...args: string[]) => redisClient.call(...args),
+    });
+  }
+  return undefined; // Falls back to memory store
+};
+
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDev ? 100000 : 100, // Very high limit for dev/stress testing
+  max: isDev ? 100000 : 100,
   message: 'Muitas requisições deste IP, tente novamente mais tarde.',
+  store: createRateLimitStore(),
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: isDev ? 50000 : 10, // Higher limit for dev/testing
+  max: isDev ? 50000 : 10,
   message: 'Muitas tentativas de login, tente novamente em 15 minutos.',
+  store: createRateLimitStore(),
 });
 
 app.use('/api/', generalLimiter);
@@ -99,14 +138,48 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // XSS Sanitization
 app.use(sanitizeBody);
 
-// Logging
-if (process.env.STRESS_TEST === 'true') {
-  // Disable logs for stress testing
-} else if (process.env.NODE_ENV !== 'production') {
-  app.use(morgan('dev'));
-} else {
-  app.use(morgan('combined'));
-}
+// Correlation ID Middleware
+app.use((req, res, next) => {
+  const correlationId = req.headers['x-correlation-id'] || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  (req as any).id = correlationId;
+  res.setHeader('X-Correlation-ID', correlationId as string);
+  next();
+});
+
+// Structured Logging (JSON)
+import { logger } from './config/logger';
+
+// Metrics Middleware (Prometheus)
+import { metricsMiddleware } from './middleware/metrics';
+app.use(metricsMiddleware);
+
+app.use((req, res, next) => {
+  if (process.env.STRESS_TEST === 'true') return next(); // Skip logs in stress test
+
+  const start = Date.now();
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const message = `${req.method} ${req.path} ${res.statusCode} ${duration}ms`;
+    
+    const logInfo = {
+        timestamp: new Date().toISOString(),
+        correlationId: (req as any).id,
+        method: req.method,
+        path: req.path,
+        statusCode: res.statusCode,
+        duration: `${duration}ms`,
+        ip: req.ip,
+        userAgent: req.get('user-agent')
+    };
+
+    if (res.statusCode >= 400) {
+        logger.error(message, logInfo);
+    } else {
+        logger.info(message, logInfo);
+    }
+  });
+  next();
+});
 
 // Health Check
 app.get('/api/health', (req, res) => {
@@ -134,6 +207,12 @@ app.use('/api/gamification', gamificationRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/orders', ordersRoutes);
 app.use('/api/reviews', reviewsRoutes);
+app.use('/api/swaps', swapsRoutes);
+app.use('/api/rituals', ritualsRoutes);
+app.use('/api/finance', financeRoutes);
+app.use('/api/rooms', roomsRoutes);
+app.use('/api/checkout', checkoutRoutes);  // Batch checkout (10x performance)
+app.use('/api/health', healthRoutes);       // Enhanced health + metrics
 
 
 // Error Handler (must be last)

@@ -2,6 +2,8 @@ import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import jwt from 'jsonwebtoken';
 import prisma from './config/database';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { pubClient, subClient, isRedisAvailable } from './config/redis';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -28,10 +30,10 @@ interface OnlineUser {
   socketId: string;
 }
 
-// Store online users
+// Store online users (fallback for non-Redis mode)
 const onlineUsers = new Map<string, OnlineUser>();
 
-export const initializeWebSocket = (httpServer: HttpServer) => {
+export const initializeWebSocket = async (httpServer: HttpServer) => {
   const io = new Server(httpServer, {
     cors: {
       origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
@@ -41,6 +43,15 @@ export const initializeWebSocket = (httpServer: HttpServer) => {
     pingTimeout: 60000,
     pingInterval: 25000,
   });
+
+  // Set up Redis adapter for cluster-safe WebSocket
+  const redisAvailable = await isRedisAvailable();
+  if (redisAvailable) {
+    io.adapter(createAdapter(pubClient, subClient));
+    console.log('💬 WebSocket using Redis adapter (cluster-safe)');
+  } else {
+    console.log('💬 WebSocket using in-memory adapter (single instance)');
+  }
 
   // Authentication middleware
   io.use(async (socket: AuthenticatedSocket, next) => {

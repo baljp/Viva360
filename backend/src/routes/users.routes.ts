@@ -7,9 +7,13 @@ const router = Router();
 // All routes are protected
 router.use(authenticateToken);
 
-router.get('/:id', usersController.getUserProfile);
-router.put('/profile', usersController.updateUserProfile);
-router.post('/checkin', usersController.checkIn);
-router.put('/balance', usersController.updateBalance);
+// Current user routes
+router.get('/profile', usersController.getMe);          // GET own profile
+router.patch('/profile', usersController.updateUserProfile);  // UPDATE own profile
+
+// User interaction routes
+router.get('/:id', usersController.getUserProfile);     // GET any user by ID
+router.post('/check-in', usersController.checkIn);      // Daily check-in
+router.put('/balance', usersController.updateBalance);  // Update balance
 
 export default router;

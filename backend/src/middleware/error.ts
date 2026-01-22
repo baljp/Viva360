@@ -26,12 +26,27 @@ export const errorHandler = (
     });
   }
 
-  // Unhandled errors
-  console.error('ERROR 💥', err);
+  // Structured JSON Log for Observability
+  const correlationId = (req as any).id || 'unknown';
   
-  return res.status(500).json({
+  const errorLog = {
+    timestamp: new Date().toISOString(),
+    level: 'error',
+    correlationId,
+    path: req.path,
+    method: req.method,
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
+    statusCode: (err as AppError).statusCode || 500
+  };
+
+  // Safe JSON stringify to avoid circular reference crashes
+  console.error(JSON.stringify(errorLog));
+  
+  return res.status((err as AppError).statusCode || 500).json({
     status: 'error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Erro interno do servidor',
+    correlationId, // Return ID to client for support referencing
     ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
   });
 };

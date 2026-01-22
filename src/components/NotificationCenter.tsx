@@ -1,16 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, X, Check, CheckCheck, Trash2, Settings, ChevronRight, Sparkles, Calendar, MessageCircle, Heart, ShoppingBag, AlertCircle, Flame } from 'lucide-react';
+import { Bell, X, Check, CheckCheck, Trash2, Settings, ChevronRight, Sparkles, Calendar, MessageCircle, Heart, ShoppingBag, AlertCircle, Flame, Briefcase, RefreshCw } from 'lucide-react';
 import { Card } from './Common';
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  type: string;
-  read: boolean;
-  actionUrl?: string;
-  createdAt: string;
-}
+import { Notification, NotificationType } from '../types';
 
 interface NotificationCenterProps {
   isOpen: boolean;
@@ -23,26 +15,28 @@ interface NotificationCenterProps {
   onNavigate: (url: string) => void;
 }
 
-const getNotificationIcon = (type: string) => {
+const getNotificationIcon = (type: NotificationType | string) => {
   switch (type) {
-    case 'APPOINTMENT': return Calendar;
-    case 'MESSAGE': return MessageCircle;
-    case 'GAMIFICATION': return Flame;
-    case 'RITUAL': return Sparkles;
-    case 'TRIBE': return Heart;
-    case 'MARKETPLACE': return ShoppingBag;
+    case 'BOOKING': return Calendar;
+    case 'SOCIAL': return Heart;
+    case 'REMINDER': return Sparkles;
+    case 'SYSTEM': return Bell;
+    case 'VACANCY': return Briefcase; // V2: Recruitment
+    case 'SWAP': return RefreshCw; // V2: Swap
+    case 'EVENT': return Calendar; // V2: Event
     default: return Bell;
   }
 };
 
-const getNotificationColor = (type: string) => {
+const getNotificationColor = (type: NotificationType | string) => {
   switch (type) {
-    case 'APPOINTMENT': return 'bg-blue-100 text-blue-600';
-    case 'MESSAGE': return 'bg-purple-100 text-purple-600';
-    case 'GAMIFICATION': return 'bg-amber-100 text-amber-600';
-    case 'RITUAL': return 'bg-emerald-100 text-emerald-600';
-    case 'TRIBE': return 'bg-rose-100 text-rose-600';
-    case 'MARKETPLACE': return 'bg-indigo-100 text-indigo-600';
+    case 'BOOKING': return 'bg-blue-100 text-blue-600';
+    case 'SOCIAL': return 'bg-rose-100 text-rose-600';
+    case 'REMINDER': return 'bg-emerald-100 text-emerald-600';
+    case 'SYSTEM': return 'bg-nature-100 text-nature-600';
+    case 'VACANCY': return 'bg-slate-100 text-slate-600';
+    case 'SWAP': return 'bg-purple-100 text-purple-600';
+    case 'EVENT': return 'bg-orange-100 text-orange-600';
     default: return 'bg-nature-100 text-nature-600';
   }
 };
@@ -140,7 +134,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
                           {notif.title}
                         </h4>
                         <span className="text-[10px] text-nature-400 flex-shrink-0">
-                          {formatTime(notif.createdAt)}
+                          {formatTime(notif.timestamp)}
                         </span>
                       </div>
                       <p className="text-xs text-nature-500 mt-1 line-clamp-2">{notif.message}</p>

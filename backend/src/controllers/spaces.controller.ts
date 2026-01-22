@@ -107,7 +107,7 @@ export const getSpaceVacancies = asyncHandler(async (req: AuthRequest, res: Resp
 // Create Vacancy
 export const createVacancy = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
-  const { title, description, specialties } = req.body;
+  const { title, description, specialties, modality, type, split, schedule, isInviteOnly } = req.body;
 
   if (!userId || !title || !description) {
     throw new AppError('Dados incompletos', 400);
@@ -124,6 +124,11 @@ export const createVacancy = asyncHandler(async (req: AuthRequest, res: Response
       title,
       description,
       specialties: specialties || [],
+      modality: modality || 'PRESENTIAL',
+      type: type || 'FIXED',
+      split: Number(split) || 50,
+      schedule,
+      isInviteOnly: Boolean(isInviteOnly),
       spaceId: space.id,
     },
   });

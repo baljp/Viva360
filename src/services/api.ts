@@ -1,13 +1,13 @@
 
-import { User, Professional, UserRole, Appointment, Product, Notification, SpaceRoom, Vacancy, Transaction } from '../types';
+import { User, Professional, UserRole, Appointment, Product, Notification, SpaceRoom, Vacancy, Transaction, SwapOffer } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 // ============= MOCK DATA FOR OFFLINE/DEMO MODE =============
 const MOCK_PROFESSIONALS: Professional[] = [
-    { id: 'pro_1', userId: 'user_pro_1', name: 'Ana Clara Silva', email: 'ana@viva360.com', role: UserRole.PROFESSIONAL, specialty: ['Yoga', 'Meditação'], rating: 4.9, pricePerSession: 180, avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=ana', bio: 'Especialista em yoga terapêutico com 10 anos de experiência.', swapCredits: 100, isAvailableForSwap: true, needs: [], offers: [], totalHealingHours: 500, karma: 2500, streak: 30, multiplier: 1.5, plantXp: 100, plantStage: 'flower', corporateBalance: 5000, personalBalance: 3200 },
-    { id: 'pro_2', userId: 'user_pro_2', name: 'Carlos Mendes', email: 'carlos@viva360.com', role: UserRole.PROFESSIONAL, specialty: ['Reiki', 'Barras de Access'], rating: 4.8, pricePerSession: 150, avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=carlos', bio: 'Mestre Reiki nível 3 e facilitador de Barras de Access.', swapCredits: 80, isAvailableForSwap: true, needs: [], offers: [], totalHealingHours: 320, karma: 1800, streak: 15, multiplier: 1.2, plantXp: 80, plantStage: 'bud', corporateBalance: 3500, personalBalance: 2800 },
-    { id: 'pro_3', userId: 'user_pro_3', name: 'Fernanda Lima', email: 'fernanda@viva360.com', role: UserRole.PROFESSIONAL, specialty: ['Massagem', 'Aromaterapia'], rating: 4.7, pricePerSession: 200, avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=fernanda', bio: 'Terapeuta corporal especializada em técnicas orientais.', swapCredits: 120, isAvailableForSwap: false, needs: [], offers: [], totalHealingHours: 450, karma: 2200, streak: 22, multiplier: 1.3, plantXp: 90, plantStage: 'flower', corporateBalance: 4200, personalBalance: 3000 },
+    { id: 'pro_1', userId: 'user_pro_1', name: 'Ana Clara Silva', email: 'ana@viva360.com', role: UserRole.PROFESSIONAL, specialty: ['Yoga', 'Meditação'], rating: 4.9, pricePerSession: 180, avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=ana', bio: 'Especialista em yoga terapêutico com 10 anos de experiência.', swapCredits: 100, isAvailableForSwap: true, needs: [], offers: [], totalHealingHours: 500, karma: 2500, streak: 30, multiplier: 1.5, plantXp: 100, plantStage: 'BLOOM', corporateBalance: 5000, personalBalance: 3200 },
+    { id: 'pro_2', userId: 'user_pro_2', name: 'Carlos Mendes', email: 'carlos@viva360.com', role: UserRole.PROFESSIONAL, specialty: ['Reiki', 'Barras de Access'], rating: 4.8, pricePerSession: 150, avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=carlos', bio: 'Mestre Reiki nível 3 e facilitador de Barras de Access.', swapCredits: 80, isAvailableForSwap: true, needs: [], offers: [], totalHealingHours: 320, karma: 1800, streak: 15, multiplier: 1.2, plantXp: 80, plantStage: 'SAPLING', corporateBalance: 3500, personalBalance: 2800 },
+    { id: 'pro_3', userId: 'user_pro_3', name: 'Fernanda Lima', email: 'fernanda@viva360.com', role: UserRole.PROFESSIONAL, specialty: ['Massagem', 'Aromaterapia'], rating: 4.7, pricePerSession: 200, avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=fernanda', bio: 'Terapeuta corporal especializada em técnicas orientais.', swapCredits: 120, isAvailableForSwap: false, needs: [], offers: [], totalHealingHours: 450, karma: 2200, streak: 22, multiplier: 1.3, plantXp: 90, plantStage: 'BLOOM', corporateBalance: 4200, personalBalance: 3000 },
 ];
 
 const MOCK_PRODUCTS: Product[] = [
@@ -18,14 +18,14 @@ const MOCK_PRODUCTS: Product[] = [
 ];
 
 const MOCK_ROOMS: SpaceRoom[] = [
-    { id: 'room_1', name: 'Sala Luz', status: 'available', currentOccupant: undefined },
-    { id: 'room_2', name: 'Sala Harmonia', status: 'occupied', currentOccupant: 'Ana Clara' },
-    { id: 'room_3', name: 'Sala Serenidade', status: 'available', currentOccupant: undefined },
+    { id: 'room_1', name: 'Sala Luz', status: 'available', currentOccupant: undefined, capacity: 4, resources: ['Maca', 'Som'] },
+    { id: 'room_2', name: 'Sala Harmonia', status: 'occupied', currentOccupant: 'Ana Clara', capacity: 2, resources: ['Tatame', 'Projetor'] },
+    { id: 'room_3', name: 'Sala Serenidade', status: 'available', currentOccupant: undefined, capacity: 10, resources: ['Cadeiras', 'Quadro'] },
 ];
 
 const MOCK_VACANCIES: Vacancy[] = [
-    { id: 'vac_1', title: 'Terapeuta de Reiki', description: 'Buscamos mestre Reiki para atendimentos às sextas.', specialties: ['Reiki', 'Terapias Energéticas'], applicantsCount: 5, hubId: 'hub_1', createdAt: new Date().toISOString(), status: 'open' },
-    { id: 'vac_2', title: 'Instrutor de Yoga', description: 'Vaga para instrutor de Hatha Yoga no período da manhã.', specialties: ['Yoga', 'Meditação'], applicantsCount: 8, hubId: 'hub_1', createdAt: new Date().toISOString(), status: 'open' },
+    { id: 'vac_1', title: 'Terapeuta de Reiki', description: 'Buscamos mestre Reiki para atendimentos às sextas.', specialties: ['Reiki', 'Terapias Energéticas'], applicantsCount: 5, hubId: 'hub_1', createdAt: new Date().toISOString(), status: 'open', type: 'fixed', schedule: 'Sex: 08-18h', modality: 'presencial', split: '70/30' },
+    { id: 'vac_2', title: 'Instrutor de Yoga', description: 'Vaga para instrutor de Hatha Yoga no período da manhã.', specialties: ['Yoga', 'Meditação'], applicantsCount: 8, hubId: 'hub_1', createdAt: new Date().toISOString(), status: 'open', type: 'fixed', schedule: 'Seg/Qua: 08-12h', modality: 'presencial', split: '60/40' },
 ];
 
 const MOCK_TRANSACTIONS: Transaction[] = [
@@ -35,16 +35,23 @@ const MOCK_TRANSACTIONS: Transaction[] = [
 ];
 
 const MOCK_APPOINTMENTS: Appointment[] = [
-    { id: 'apt_1', clientId: 'client_1', clientName: 'João Silva', professionalId: 'pro_1', professionalName: 'Ana Clara', serviceName: 'Yoga Terapêutico', price: 180, date: new Date().toISOString(), time: '14:00', status: 'confirmed' },
-    { id: 'apt_2', clientId: 'client_2', clientName: 'Maria Santos', professionalId: 'pro_2', professionalName: 'Carlos Mendes', serviceName: 'Reiki', price: 150, date: new Date(Date.now() + 86400000).toISOString(), time: '10:00', status: 'pending' },
+    { id: 'apt_1', clientId: 'client_1', clientName: 'João Silva', professionalId: 'pro_1', professionalName: 'Ana Clara', serviceName: 'Yoga Terapêutico', price: 180, date: new Date().toISOString(), time: '14:00', status: 'confirmed', type: 'paid' },
+    { id: 'apt_2', clientId: 'client_2', clientName: 'Maria Santos', professionalId: 'pro_2', professionalName: 'Carlos Mendes', serviceName: 'Reiki', price: 150, date: new Date(Date.now() + 86400000).toISOString(), time: '10:00', status: 'pending', type: 'paid' },
 ];
 
 // ============= SAFE FETCH WRAPPER =============
+// CRITICAL: In production, throw errors instead of returning mock data
 const safeFetch = async <T>(request: () => Promise<T>, fallback: T): Promise<T> => {
     try {
         return await request();
     } catch (error) {
-        console.warn('[Viva360] API indisponível, usando dados de demonstração:', error);
+        // In production, FAIL LOUD - don't show fake data
+        if (import.meta.env.PROD) {
+            console.error('[Viva360] API Error:', error);
+            throw error;
+        }
+        // Only use fallback in development
+        console.warn('[Viva360] DEV MODE - API indisponível, usando dados de demonstração:', error);
         return fallback;
     }
 };
@@ -105,7 +112,7 @@ export const api = {
                 multiplier: 1,
                 corporateBalance: 0,
                 personalBalance: 500,
-                plantStage: 'seed',
+                plantStage: 'SEED',
                 plantXp: 0
             };
             return safeFetch(async () => {
@@ -146,7 +153,7 @@ export const api = {
                     multiplier: 1.2,
                     corporateBalance: 2000,
                     personalBalance: 1500,
-                    plantStage: 'flower',
+                    plantStage: 'BLOOM',
                     plantXp: 80
                 };
             };
@@ -255,6 +262,14 @@ export const api = {
                 return handleResponse(res);
             }, MOCK_VACANCIES);
         },
+        createVacancy: async (data: Partial<Vacancy>) => {
+            const res = await fetch(`${API_URL}/spaces/vacancies`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return handleResponse(res);
+        },
         getTransactions: async (uid: string) => {
             return safeFetch(async () => {
                 const res = await fetch(`${API_URL}/professionals/finance/transactions`, { headers: getHeaders() });
@@ -268,6 +283,44 @@ export const api = {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ amount, currency })
+            });
+            return handleResponse(res);
+        }
+    },
+    /**
+     * Batch Checkout API - 10x performance improvement
+     * Processes entire cart in single atomic transaction
+     */
+    checkout: {
+        /**
+         * Process entire cart at once (recommended)
+         * 1 API call instead of N sequential calls
+         */
+        processBatch: async (items: Array<{
+            productId?: string;
+            professionalId?: string;
+            serviceName: string;
+            price: number;
+            quantity: number;
+            type: 'product' | 'service';
+            date?: string;
+            time?: string;
+        }>, paymentMethod: string = 'BALANCE') => {
+            const res = await fetch(`${API_URL}/checkout/batch`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ items, paymentMethod })
+            });
+            return handleResponse(res);
+        },
+        /**
+         * Validate cart before processing (for UI feedback)
+         */
+        validate: async (items: any[]) => {
+            const res = await fetch(`${API_URL}/checkout/validate`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ items })
             });
             return handleResponse(res);
         }
@@ -299,6 +352,144 @@ export const api = {
              const query = mood ? `?mood=${mood}` : '';
              const res = await fetch(`${API_URL}/soul-pharmacy/pills${query}`, { headers: getHeaders() });
              return handleResponse(res);
+        }
+    },
+    swaps: {
+        listOffers: async (): Promise<SwapOffer[]> => {
+            return safeFetch(async () => {
+                const res = await fetch(`${API_URL}/swaps/offers`, { headers: getHeaders() });
+                return handleResponse(res);
+            }, []);
+        },
+        createOffer: async (offer: any) => {
+            const res = await fetch(`${API_URL}/swaps/offers`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(offer)
+            });
+            return handleResponse(res);
+        },
+        proposeMatch: async (targetId: string, data: any) => {
+            const res = await fetch(`${API_URL}/swaps/${targetId}/match`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return handleResponse(res);
+        }
+    },
+    rituals: {
+        checkIn: async (mood?: string, intention?: string, photoUrl?: string) => {
+            const res = await fetch(`${API_URL}/rituals/check-in`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ mood, intention, photoUrl })
+            });
+            return handleResponse(res);
+        },
+        getStatus: async () => {
+            const res = await fetch(`${API_URL}/rituals/status`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        getQuests: async () => {
+            return safeFetch(async () => {
+                const res = await fetch(`${API_URL}/rituals/quests`, { headers: getHeaders() });
+                return handleResponse(res);
+            }, { quests: [] });
+        },
+        waterPlant: async (targetUserId?: string, message?: string) => {
+            const res = await fetch(`${API_URL}/rituals/water`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ targetUserId, message })
+            });
+            return handleResponse(res);
+        },
+        breathe: async (duration: number, technique?: string) => {
+            const res = await fetch(`${API_URL}/rituals/breathe`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ duration, technique })
+            });
+            return handleResponse(res);
+        },
+        gratitude: async (content: string, photoUrl?: string) => {
+            const res = await fetch(`${API_URL}/rituals/gratitude`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ content, photoUrl })
+            });
+            return handleResponse(res);
+        }
+    },
+    finance: {
+        getSummary: async (period: number = 30) => {
+            const res = await fetch(`${API_URL}/finance/summary?period=${period}`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        getTransactions: async (page: number = 1, type?: 'INCOME' | 'EXPENSE') => {
+            const params = new URLSearchParams({ page: page.toString(), limit: '20' });
+            if (type) params.append('type', type);
+            const res = await fetch(`${API_URL}/finance/transactions?${params}`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        getTeamPerformance: async (period: number = 30) => {
+            const res = await fetch(`${API_URL}/finance/team-performance?period=${period}`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        updateCommission: async (memberId: string, commissionRate: number) => {
+            const res = await fetch(`${API_URL}/finance/commission/${memberId}`, {
+                method: 'PATCH',
+                headers: getHeaders(),
+                body: JSON.stringify({ commissionRate })
+            });
+            return handleResponse(res);
+        },
+        withdraw: async (amount: number, pixKey: string) => {
+            const res = await fetch(`${API_URL}/finance/withdraw`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ amount, pixKey })
+            });
+            return handleResponse(res);
+        }
+    },
+    rooms: {
+        getRealTime: async () => {
+            const res = await fetch(`${API_URL}/rooms/real-time`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        updateStatus: async (roomId: string, status: string, currentOccupant?: string) => {
+            const res = await fetch(`${API_URL}/rooms/${roomId}/status`, {
+                method: 'PATCH',
+                headers: getHeaders(),
+                body: JSON.stringify({ status, currentOccupant })
+            });
+            return handleResponse(res);
+        },
+        createBooking: async (roomId: string, date: string, startTime: string, endTime: string, price?: number) => {
+            const res = await fetch(`${API_URL}/rooms/bookings`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ roomId, date, startTime, endTime, price })
+            });
+            return handleResponse(res);
+        },
+        cancelBooking: async (bookingId: string) => {
+            const res = await fetch(`${API_URL}/rooms/bookings/${bookingId}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return handleResponse(res);
+        },
+        getSchedule: async (roomId: string, date?: string) => {
+            const params = date ? `?date=${date}` : '';
+            const res = await fetch(`${API_URL}/rooms/${roomId}/schedule${params}`, { headers: getHeaders() });
+            return handleResponse(res);
+        },
+        getAnalytics: async (period: number = 7) => {
+            const res = await fetch(`${API_URL}/rooms/analytics?period=${period}`, { headers: getHeaders() });
+            return handleResponse(res);
         }
     }
 };

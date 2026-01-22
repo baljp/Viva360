@@ -2,19 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, CreditCard, QrCode, Wallet, Check, ShoppingBag, Tag, Clock, MapPin, Shield, ChevronRight, X, Truck } from 'lucide-react';
 import { Card } from './Common';
 import { api } from '../services/api';
-
-interface CartItem {
-  id: string;
-  name: string;
-  type: 'PRODUCT' | 'SERVICE' | 'SOUL_PILL';
-  price: number;
-  quantity: number;
-  image?: string;
-  // For services
-  date?: string;
-  time?: string;
-  professional?: string;
-}
+import { CartItem } from '../types';
 
 interface CheckoutFlowProps {
   items: CartItem[];
@@ -42,11 +30,11 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
   // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discount = appliedCoupon?.discount || 0;
-  const shipping = items.some(i => i.type === 'PRODUCT') ? 15.90 : 0;
+  const shipping = items.some(i => i.type === 'physical') ? 15.90 : 0;
   const total = subtotal - discount + shipping;
 
-  const hasServices = items.some(i => i.type === 'SERVICE');
-  const hasProducts = items.some(i => i.type === 'PRODUCT');
+  const hasServices = items.some(i => i.type === 'service');
+  const hasProducts = items.some(i => i.type === 'physical');
 
   const applyCoupon = () => {
     // Mock coupon validation
@@ -60,15 +48,21 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
   const processPayment = async () => {
     setIsProcessing(true);
     try {
-      // Create payment intent with Stripe backend
-      if (paymentMethod === 'CREDIT_CARD' || paymentMethod === 'PIX') {
-        const paymentIntent = await api.payments.createPaymentIntent(total);
-        console.log('Payment Intent created:', paymentIntent.id);
+      // Enterprise Performance: Parallel Execution (Promise.all)
+      // Validate cart AND create payment intent simultaneously
+      const [paymentIntent, validation] = await Promise.all([
+        (paymentMethod === 'CREDIT_CARD' || paymentMethod === 'PIX') 
+            ? api.payments.createPaymentIntent(total)
+            : Promise.resolve(null),
+        api.checkout.validate(items)
+      ]);
+
+      if (paymentIntent) {
+         console.log('Payment Intent created:', paymentIntent.id);
       }
-      // For balance payments, just deduct from user balance (handled in checkout completion)
       
       // Simulate final payment confirmation delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       setIsProcessing(false);
       setOrderComplete(true);
@@ -107,13 +101,13 @@ export const CheckoutFlow: React.FC<CheckoutFlowProps> = ({
               <div className="flex-1">
                 <h4 className="font-bold text-nature-900">{item.name}</h4>
                 <p className="text-[10px] text-nature-400 uppercase tracking-widest">
-                  {item.type === 'SERVICE' ? 'Serviço' : item.type === 'SOUL_PILL' ? 'Farmácia da Alma' : 'Produto'}
+                  {item.type === 'service' ? 'Serviço' : item.type === 'digital' ? 'Digital' : item.type === 'event' ? 'Evento' : 'Produto'}
                 </p>
                 
-                {item.type === 'SERVICE' && item.date && (
+                {item.type === 'service' && item.appointmentDetails && (
                   <div className="flex items-center gap-2 mt-2 text-xs text-nature-500">
                     <Clock size={12} />
-                    <span>{item.date} às {item.time}</span>
+                    <span>{item.appointmentDetails.date ? new Date(item.appointmentDetails.date).toLocaleDateString() : 'Data a definir'} às {item.appointmentDetails.time}</span>
                   </div>
                 )}
                 

@@ -1,12 +1,13 @@
 import { Router } from 'express';
 import * as professionalsController from '../controllers/professionals.controller';
 import { authenticateToken, authorizeRoles } from '../middleware/auth';
+import { cacheControl } from '../middleware/cache';
 
 const router = Router();
 
 // Public routes
-router.get('/', professionalsController.getAllProfessionals);
-router.get('/:id', professionalsController.getProfessionalById);
+router.get('/', cacheControl(300), professionalsController.getAllProfessionals); // 5 min cache
+router.get('/:id', cacheControl(300), professionalsController.getProfessionalById); // 5 min cache
 
 // Protected routes
 router.put(

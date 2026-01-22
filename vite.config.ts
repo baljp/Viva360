@@ -18,7 +18,9 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
-        skipWaiting: true,
+        // skipWaiting: false allows user to control when update happens, preventing 
+        // HTML/JS mismatch that causes white screen after deploys
+        skipWaiting: false,
         maximumFileSizeToCacheInBytes: 5000000 // Increase limit to prevent chunks being skipped
       },
       manifest: {

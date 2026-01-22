@@ -167,15 +167,15 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, partner, on
   // If no partner selected, show conversation list
   if (!partner) {
     return (
-      <div className="fixed inset-0 z-[200] bg-nature-50 flex flex-col animate-in slide-in-from-right">
-        <header className="flex items-center gap-4 px-6 pt-[calc(2rem+env(safe-area-inset-top))] pb-6 bg-white border-b border-nature-100 shadow-sm">
-          <button onClick={onClose} className="p-3 bg-nature-50 rounded-2xl text-nature-600 active:scale-90 transition-all">
+      <div className="fixed inset-0 z-[200] bg-nature-50/50 backdrop-blur-xl flex flex-col animate-in slide-in-from-right selection:bg-primary-500 selection:text-white">
+        <header className="flex items-center gap-4 px-6 pt-[calc(2rem+env(safe-area-inset-top))] pb-6 bg-white/80 backdrop-blur-md border-b border-white/40 shadow-sm z-10">
+          <button onClick={onClose} className="p-3 bg-nature-50 rounded-full text-nature-600 active:scale-95 transition-all hover:bg-nature-100">
             <ChevronLeft size={22} />
           </button>
           <div className="flex-1">
-            <h2 className="text-xl font-serif italic text-nature-900">Mensagens</h2>
-            <p className="text-[10px] text-nature-400 uppercase tracking-[0.3em] font-bold">
-              {isConnected ? '🟢 CONECTADO' : '🔴 OFFLINE'}
+            <h2 className="text-xl font-serif font-medium text-nature-900">Mensagens</h2>
+            <p className="text-[10px] text-nature-400 uppercase tracking-[0.3em] font-bold flex items-center gap-2">
+              {isConnected ? <><span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> CONECTADO</> : <><span className="w-1.5 h-1.5 rounded-full bg-rose-500"></span> OFFLINE</>}
             </p>
           </div>
         </header>
@@ -183,11 +183,11 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, partner, on
         <div className="flex-1 overflow-y-auto p-6">
           {conversations.length === 0 ? (
             <div className="text-center py-20">
-              <div className="w-20 h-20 bg-nature-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-20 h-20 bg-nature-100/50 rounded-full flex items-center justify-center mx-auto mb-4 border border-nature-100">
                 <Send size={32} className="text-nature-400" />
               </div>
-              <h3 className="text-lg font-serif italic text-nature-900">Nenhuma conversa</h3>
-              <p className="text-sm text-nature-400 mt-2">Inicie uma conversa com um guardião ou buscador!</p>
+              <h3 className="text-lg font-serif italic text-nature-900">Silêncio...</h3>
+              <p className="text-sm text-nature-400 mt-2 font-light">Inicie uma conversa para trocar energias.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -195,20 +195,20 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, partner, on
                 <button
                   key={conv.id}
                   onClick={() => onSelectPartner?.(conv)}
-                  className="w-full bg-white p-4 rounded-[2rem] border border-nature-100 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-all"
+                  className="w-full bg-white/60 p-4 rounded-[2rem] border border-white hover:border-nature-200 flex items-center gap-4 shadow-sm active:scale-[0.98] transition-all hover:shadow-md hover:bg-white/80"
                 >
                   <div className="relative">
-                    <DynamicAvatar user={{ name: conv.name, avatar: conv.avatar }} size="lg" />
+                    <DynamicAvatar user={{ name: conv.name, avatar: conv.avatar }} size="lg" className="ring-2 ring-white shadow-md" />
                     {onlineUsers.includes(conv.id) && (
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-white" />
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white" />
                     )}
                   </div>
                   <div className="flex-1 text-left">
                     <h4 className="font-bold text-nature-900">{conv.name}</h4>
-                    <p className="text-xs text-nature-400 truncate">{conv.lastMessage || 'Iniciar conversa'}</p>
+                    <p className="text-xs text-nature-400 truncate mt-0.5 font-medium">{conv.lastMessage || 'Iniciar conversa'}</p>
                   </div>
                   {conv.unreadCount && conv.unreadCount > 0 && (
-                    <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center">
+                    <div className="w-6 h-6 bg-primary-500 rounded-full flex items-center justify-center shadow-lg shadow-primary-500/30">
                       <span className="text-[10px] font-bold text-white">{conv.unreadCount}</span>
                     </div>
                   )}
@@ -223,29 +223,29 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, partner, on
 
   // Chat view with selected partner
   return (
-    <div className="fixed inset-0 z-[200] bg-nature-50 flex flex-col animate-in slide-in-from-right">
+    <div className="fixed inset-0 z-[200] bg-nature-50/50 backdrop-blur-xl flex flex-col animate-in slide-in-from-right selection:bg-primary-500 selection:text-white">
       {/* Header */}
-      <header className="flex items-center gap-4 px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 bg-white border-b border-nature-100 shadow-sm">
-        <button onClick={onClose} className="p-2 bg-nature-50 rounded-xl text-nature-600 active:scale-90 transition-all">
+      <header className="flex items-center gap-4 px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 bg-white/80 backdrop-blur-md border-b border-white/40 shadow-sm z-10">
+        <button onClick={onClose} className="p-2 bg-nature-50 rounded-full text-nature-600 active:scale-90 transition-all hover:bg-nature-100">
           <ChevronLeft size={20} />
         </button>
         <div className="relative">
-          <DynamicAvatar user={{ name: partner.name, avatar: partner.avatar }} size="md" />
+          <DynamicAvatar user={{ name: partner.name, avatar: partner.avatar }} size="md" className="ring-2 ring-white shadow-md" />
           {onlineUsers.includes(partner.id) && (
             <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white" />
           )}
         </div>
         <div className="flex-1">
-          <h3 className="font-bold text-nature-900">{partner.name}</h3>
-          <p className="text-[10px] text-nature-400 uppercase tracking-widest">
-            {partnerTyping ? '✍️ Digitando...' : onlineUsers.includes(partner.id) ? 'Online' : 'Offline'}
+          <h3 className="font-bold text-nature-900 text-sm">{partner.name}</h3>
+          <p className="text-[9px] text-nature-400 uppercase tracking-widest font-bold">
+            {partnerTyping ? <span className="text-primary-500 animate-pulse">Digitando...</span> : onlineUsers.includes(partner.id) ? 'Online' : 'Offline'}
           </p>
         </div>
         <div className="flex gap-2">
-          <button className="p-2 bg-nature-50 rounded-xl text-nature-400">
+          <button className="p-2 bg-nature-50 rounded-full text-nature-400 hover:text-primary-500 hover:bg-primary-50 transition-colors">
             <Phone size={18} />
           </button>
-          <button className="p-2 bg-nature-50 rounded-xl text-nature-400">
+          <button className="p-2 bg-nature-50 rounded-full text-nature-400 hover:text-primary-500 hover:bg-primary-50 transition-colors">
             <Video size={18} />
           </button>
         </div>
@@ -258,14 +258,14 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, partner, on
           return (
             <div key={msg.id || i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[75%] ${isMe ? 'order-2' : ''}`}>
-                <div className={`px-4 py-3 rounded-[1.5rem] ${
+                <div className={`px-5 py-3 shadow-sm ${
                   isMe 
-                    ? 'bg-nature-900 text-white rounded-br-lg' 
-                    : 'bg-white text-nature-900 rounded-bl-lg border border-nature-100'
+                    ? 'bg-nature-900 text-white rounded-[1.5rem] rounded-tr-sm' 
+                    : 'bg-white text-nature-900 rounded-[1.5rem] rounded-tl-sm border border-white'
                 }`}>
                   <p className="text-sm leading-relaxed">{msg.content}</p>
                 </div>
-                <p className={`text-[9px] text-nature-400 mt-1 ${isMe ? 'text-right' : 'text-left'}`}>
+                <p className={`text-[9px] text-nature-400 mt-1 font-bold tracking-wide ${isMe ? 'text-right mr-1' : 'text-left ml-1'}`}>
                   {formatTime(msg.timestamp)}
                 </p>
               </div>
@@ -276,7 +276,7 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, partner, on
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-white border-t border-nature-100 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+      <div className="p-4 bg-white/80 backdrop-blur-md border-t border-white/40 pb-[calc(1rem+env(safe-area-inset-bottom))]">
         <div className="flex items-center gap-3">
           <input
             type="text"
@@ -287,12 +287,12 @@ export const ChatScreen: React.FC<ChatScreenProps> = ({ currentUser, partner, on
             }}
             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
             placeholder="Digite sua mensagem..."
-            className="flex-1 bg-nature-50 px-5 py-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-primary-100"
+            className="flex-1 bg-nature-50/80 px-5 py-4 rounded-full text-sm outline-none focus:ring-2 focus:ring-primary-100 placeholder:text-nature-400 border border-transparent focus:bg-white transition-all"
           />
           <button
             onClick={sendMessage}
             disabled={!newMessage.trim()}
-            className="w-12 h-12 bg-nature-900 text-white rounded-xl flex items-center justify-center active:scale-90 transition-all disabled:opacity-50"
+            className="w-12 h-12 bg-nature-900 text-white rounded-full flex items-center justify-center active:scale-90 transition-all disabled:opacity-50 shadow-lg shadow-nature-900/20 hover:bg-nature-800"
           >
             <Send size={18} />
           </button>

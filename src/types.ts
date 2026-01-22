@@ -6,7 +6,18 @@ export enum UserRole {
 }
 
 export type MoodType = 'SERENO' | 'VIBRANTE' | 'MELANCÓLICO' | 'ANSIOSO' | 'FOCADO' | 'EXAUSTO' | 'GRATO';
-export type PlantStage = 'seed' | 'sprout' | 'bud' | 'flower' | 'tree' | 'withered';
+
+// REFACTORED: Plant definitions (Uppercase as per Phase 1)
+export type PlantStage = 'SEED' | 'SPROUT' | 'SAPLING' | 'TREE' | 'BLOOM';
+export type PlantState = 'THIRSTY' | 'HEALTHY' | 'WITHERING';
+
+// NEW: User Progress
+export interface UserProgress {
+  xp: number;
+  level: number; // Symbolic level
+  streak: number;
+  multiplier: number;
+}
 
 export enum ViewState {
   SPLASH = 'SPLASH',
@@ -36,6 +47,8 @@ export enum ViewState {
   CLIENT_VIDEO_SESSION = 'CLIENT_VIDEO_SESSION',
   CLIENT_ORDERS = 'CLIENT_ORDERS',
 
+  NOT_FOUND = 'NOT_FOUND',
+
   PRO_HOME = 'PRO_HOME',
   PRO_AGENDA = 'PRO_AGENDA',
   PRO_PATIENTS = 'PRO_PATIENTS',
@@ -52,6 +65,7 @@ export enum ViewState {
   SPACE_DASHBOARD = 'SPACE_DASHBOARD',
   SPACE_FINANCE = 'SPACE_FINANCE',
   SPACE_ROOMS = 'SPACE_ROOMS',
+  SPACE_CALENDAR = 'SPACE_CALENDAR',
 
   PRIVACY = 'PRIVACY',
   TERMS = 'TERMS',
@@ -63,7 +77,6 @@ export enum ViewState {
   SETTINGS_WALLET = 'SETTINGS_WALLET',
 }
 
-// Add Badge interface
 export interface Badge {
   id: string;
   label: string;
@@ -72,7 +85,6 @@ export interface Badge {
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
-// Add DailyQuest interface
 export interface DailyQuest {
   id: string;
   label: string;
@@ -81,22 +93,26 @@ export interface DailyQuest {
   type: 'ritual' | 'water' | 'breathe' | 'other';
 }
 
-// Add DailyRitualSnap interface
 export interface DailyRitualSnap {
   id: string;
   imageUrl: string;
   date: string;
 }
 
-// Add ConstellationMember interface
-export interface ConstellationMember {
-  id: string;
+// REFACTORED: Tribe / Constellation definitions
+export interface TribeConnection {
+  id: string; // Connection ID
+  userId: string; // The other user's ID
   name: string;
   avatar: string;
-  needsWatering?: boolean;
+  lastInteraction?: string; // Date ISO string
+  needsWatering?: boolean; // If true, their plant is thirsty
 }
 
-// Add ConstellationPact interface
+// Alias ConstellationMember to TribeConnection for backward compatibility if needed, 
+// or replace it. For now, let's keep TribeConnection as the main one.
+export type ConstellationMember = TribeConnection;
+
 export interface ConstellationPact {
   id: string;
   partnerId: string;
@@ -117,21 +133,28 @@ export interface User {
   email: string;
   role: UserRole;
   avatar: string;
-  karma: number; 
-  streak: number; 
-  multiplier: number;
+  
+  // Progress & Gamification (Refactored)
+  progress?: UserProgress; // New explicit structure
+  karma: number; // Redundant with progress, but keeping for legacy
+  streak: number; // Redundant with progress, but keeping for legacy
+  multiplier: number; // Redundant with progress, but keeping for legacy
+  
+  // Plant
+  plantStage?: PlantStage;
+  plantState?: PlantState; // New field
+  plantXp?: number; 
+  
   lastCheckIn?: string;
   bio?: string;
   intention?: string;
-  plantStage?: PlantStage;
-  plantXp?: number; 
   corporateBalance: number;
   personalBalance: number;
   lastMood?: MoodType;
   badges?: Badge[];
   radianceScore?: number;
   activePact?: ConstellationPact;
-  constellation?: ConstellationMember[];
+  constellation?: TribeConnection[]; // Updated type
   isVerified?: boolean;
   inventory?: { incense: number; crystals: number };
   dailyQuests?: DailyQuest[];
@@ -157,19 +180,29 @@ export interface Professional extends User {
   userId?: string;
 }
 
+// REFACTORED: Product definitions for V2 (4 Pillars)
 export interface Product { 
   id: string; 
   name: string; 
   price: number; 
   image: string; 
   category: string; 
-  type: 'physical' | 'service' | 'digital_content';
+  type: 'physical' | 'digital' | 'service' | 'event'; // V2 Update
   description?: string;
+  // V2: Specific fields
+  eventDate?: string;
+  duration?: number;
+  downloadUrl?: string;
 }
 
-// Add CartItem interface
 export interface CartItem extends Product {
   quantity: number;
+  appointmentDetails?: {
+    date: string;
+    time: string;
+    professionalId: string;
+    professionalName: string;
+  };
 }
 
 export interface Appointment {
@@ -184,26 +217,32 @@ export interface Appointment {
   serviceName: string;
   price: number;
   duration?: number;
+  type: 'paid' | 'swap' | 'voucher'; // V2 Update
 }
+
+// REFACTORED: Notification categories V2
+export type NotificationType = 'SYSTEM' | 'SOCIAL' | 'REMINDER' | 'BOOKING' | 'VACANCY' | 'SWAP' | 'EVENT';
 
 export interface Notification {
   id: string;
   userId: string;
-  type: 'alert' | 'message' | 'ritual' | 'finance';
+  type: NotificationType;
   title: string;
   message: string;
   timestamp: string;
   read: boolean;
+  actionUrl?: string;
 }
 
 export interface SpaceRoom {
   id: string;
   name: string;
-  status: 'available' | 'occupied';
+  status: 'available' | 'occupied' | 'maintenance';
   currentOccupant?: string;
+  capacity: number;
+  resources: string[];
 }
 
-// Add Transaction interface
 export interface Transaction {
   id: string;
   userId: string;
@@ -214,7 +253,6 @@ export interface Transaction {
   status: 'completed' | 'pending';
 }
 
-// Add Review interface
 export interface Review {
   id: string;
   authorName: string;
@@ -225,7 +263,7 @@ export interface Review {
   tags: string[];
 }
 
-// Add Vacancy interface
+// V2: Vacancy System
 export interface Vacancy {
   id: string;
   hubId: string;
@@ -235,4 +273,76 @@ export interface Vacancy {
   applicantsCount: number;
   createdAt: string;
   status: 'open' | 'closed';
+  // V2 additions
+  type: 'fixed' | 'temporary' | 'event';
+  schedule: string; // e.g., "Mon-Wed 09-12"
+  modality: 'presencial' | 'online';
+  split: string; // e.g., "70/30" or "R$ 50/h"
+  isInviteOnly?: boolean;
 }
+
+// V2: Swap System
+export interface SwapOffer {
+  id: string;
+  professionalId: string;
+  offer: string; // "1 Sessão de Reiki"
+  seek: string; // "1 Sessão de Yoga"
+  status: 'active' | 'matched' | 'completed';
+  createdAt: string;
+}
+
+// --- MOCK DATA (Initial Phase 1) ---
+export const MOCK_INITIAL_PLANT: { stage: PlantStage, state: PlantState, xp: number } = {
+  stage: 'SPROUT',
+  state: 'THIRSTY',
+  xp: 15
+};
+
+export const MOCK_NOTIFICATIONS: Notification[] = [
+  {
+    id: 'n-001',
+    userId: 'user-1',
+    type: 'SYSTEM',
+    title: 'Bem-vindo ao Viva360',
+    message: 'Seu jardim da alma está pronto para ser cultivado.',
+    timestamp: new Date().toISOString(),
+    read: false
+  },
+  {
+    id: 'n-002',
+    userId: 'user-1',
+    type: 'SOCIAL',
+    title: 'Nova Conexão',
+    message: 'Lucas Paz enviou luz para o seu jardim.',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
+    read: true
+  },
+  {
+    id: 'n-003',
+    userId: 'user-1',
+    type: 'REMINDER',
+    title: 'Hora do Ritual',
+    message: 'A lua está propícia para a sua meditação.',
+    timestamp: new Date(Date.now() - 7200000).toISOString(),
+    read: false
+  },
+  {
+    id: 'n-004',
+    userId: 'user-1',
+    type: 'BOOKING',
+    title: 'Sessão Confirmada',
+    message: 'Sua sessão com Dra. Ana começa amanhã às 14h.',
+    timestamp: new Date(Date.now() - 86400000).toISOString(),
+    read: true,
+    actionUrl: '/agenda'
+  },
+  {
+    id: 'n-005',
+    userId: 'user-1',
+    type: 'SYSTEM',
+    title: 'Nível Alcançado!',
+    message: 'Você atingiu o nível Semente de Luz.',
+    timestamp: new Date(Date.now() - 172800000).toISOString(),
+    read: true
+  }
+];
