@@ -115,50 +115,50 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         showForgotPassword ? (
             <ForgotPassword onBack={() => setShowForgotPassword(false)} />
         ) : (
-        <div className="bg-[#f4f7f5] rounded-t-[3rem] p-8 w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col gap-6 pb-12 h-[85vh] overflow-y-auto no-scrollbar">
+        <div className="bg-nature-50 rounded-t-[3rem] p-8 w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col gap-6 pb-12 h-[85vh] overflow-y-auto no-scrollbar selection:bg-primary-500 selection:text-white">
             <div className="w-12 h-1.5 bg-nature-200 rounded-full mx-auto opacity-50 flex-none"></div>
             
             <header className="flex justify-between items-center">
-                <h3 className="text-2xl font-serif italic text-nature-900">Login</h3>
-                <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200"><X size={20}/></button>
+                <h3 className="text-2xl font-serif italic font-medium text-nature-900">Acessar Portal</h3>
+                <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 transition-colors"><X size={20}/></button>
             </header>
 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-nature-500 uppercase tracking-wider ml-2">E-mail</label>
-                    <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all">
+                    <div className="bg-white/80 backdrop-blur-sm p-4 rounded-[1.5rem] border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all shadow-sm">
                         <Mail size={18} className="text-nature-400"/>
                         <input 
                             type="email" 
                             required
                             value={email}
                             onChange={e => setEmail(e.target.value)}
-                            className="w-full bg-transparent outline-none text-nature-900 font-medium" 
+                            className="w-full bg-transparent outline-none text-nature-900 font-medium placeholder:text-nature-300" 
                             placeholder="seu@email.com"
                         />
                     </div>
                 </div>
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-nature-500 uppercase tracking-wider ml-2">Senha</label>
-                    <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all">
+                    <div className="bg-white/80 backdrop-blur-sm p-4 rounded-[1.5rem] border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all shadow-sm">
                         <Lock size={18} className="text-nature-400"/>
                         <input 
                             type="password" 
                             required
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            className="w-full bg-transparent outline-none text-nature-900 font-medium" 
+                            className="w-full bg-transparent outline-none text-nature-900 font-medium placeholder:text-nature-300" 
                             placeholder="••••••••"
                         />
                     </div>
                 </div>
 
-                {error && <p className="text-rose-500 text-xs font-medium text-center bg-rose-50 p-3 rounded-xl">{error}</p>}
+                {error && <p className="text-rose-500 text-xs font-medium text-center bg-rose-50 border border-rose-100 p-3 rounded-2xl flex items-center justify-center gap-2"><X size={14}/> {error}</p>}
 
                 <button 
                     type="submit" 
                     disabled={loading}
-                    className="w-full bg-nature-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 hover:bg-black mt-4 disabled:opacity-70"
+                    className="w-full bg-nature-900 text-white py-5 rounded-[2rem] font-bold uppercase tracking-widest text-xs shadow-xl shadow-nature-900/20 active:scale-95 transition-all flex items-center justify-center gap-3 hover:bg-nature-800 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                     {loading ? <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full"></span> : <LogIn size={16} />}
                     Entrar no Fluxo
@@ -167,7 +167,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
 
             <button 
                 onClick={() => setShowForgotPassword(true)} 
-                className="text-primary-600 text-xs font-medium text-center hover:underline"
+                className="text-primary-600 text-xs font-medium text-center hover:underline hover:text-primary-700 transition-colors"
             >
                 Esqueceu sua senha?
             </button>
@@ -175,9 +175,9 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
             <div className="mt-4 pt-6 border-t border-nature-200">
                 <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest text-center mb-4">Atalhos de Desenvolvedor</p>
                 <div className="grid grid-cols-3 gap-2">
-                    <button onClick={() => fillMock('client')} className="p-2 bg-white border border-nature-200 rounded-xl text-[10px] font-bold text-nature-600 hover:bg-primary-50 hover:border-primary-200 transition-colors">Buscador</button>
-                    <button onClick={() => fillMock('pro')} className="p-2 bg-white border border-nature-200 rounded-xl text-[10px] font-bold text-nature-600 hover:bg-amber-50 hover:border-amber-200 transition-colors">Guardião</button>
-                    <button onClick={() => fillMock('space')} className="p-2 bg-white border border-nature-200 rounded-xl text-[10px] font-bold text-nature-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors">Santuário</button>
+                    <button onClick={() => fillMock('client')} className="p-3 bg-white border border-nature-200 rounded-2xl text-[10px] font-bold text-nature-600 hover:bg-primary-50 hover:border-primary-200 transition-colors shadow-sm">Buscador</button>
+                    <button onClick={() => fillMock('pro')} className="p-3 bg-white border border-nature-200 rounded-2xl text-[10px] font-bold text-nature-600 hover:bg-amber-50 hover:border-amber-200 transition-colors shadow-sm">Guardião</button>
+                    <button onClick={() => fillMock('space')} className="p-3 bg-white border border-nature-200 rounded-2xl text-[10px] font-bold text-nature-600 hover:bg-indigo-50 hover:border-indigo-200 transition-colors shadow-sm">Santuário</button>
                 </div>
             </div>
         </div>
@@ -219,11 +219,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
             <div className={`absolute bottom-0 left-0 w-full z-20 p-6 pb-12 transition-transform duration-500 ${showOptions ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}>
                  <button 
                     onClick={() => setShowOptions(true)} 
-                    className="w-full bg-[#f4f7f5] text-[#1a211d] py-5 rounded-[2rem] font-bold uppercase tracking-widest text-xs shadow-[0_20px_50px_rgba(0,0,0,0.5)] active:scale-95 transition-all flex items-center justify-between px-8 group hover:bg-white border border-white/10"
+                    className="w-full bg-nature-50/90 backdrop-blur-md text-nature-900 py-6 rounded-[2.5rem] font-bold uppercase tracking-widest text-xs shadow-[0_20px_50px_rgba(0,0,0,0.5)] active:scale-95 transition-all flex items-center justify-between px-8 group hover:bg-white border border-white/10"
                 >
                     <span>Entrar no Viva360</span>
-                    <div className="w-10 h-10 rounded-full bg-[#1a211d] text-white flex items-center justify-center group-hover:translate-x-1 transition-transform">
-                        <ArrowRight size={16} />
+                    <div className="w-12 h-12 rounded-full bg-nature-900 text-white flex items-center justify-center group-hover:translate-x-1 transition-transform">
+                        <ArrowRight size={18} />
                     </div>
                 </button>
             </div>
@@ -231,23 +231,23 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
             {/* --- STATE 2: OPTIONS OVERLAY --- */}
             {showOptions && !showLoginForm && (
                 <div className="absolute inset-0 z-40 flex flex-col justify-end">
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowOptions(false)}></div>
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowOptions(false)}></div>
                     
-                    <div className="bg-[#f4f7f5] rounded-t-[3rem] p-8 w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col gap-4 pb-12 max-h-[85vh] overflow-y-auto no-scrollbar">
+                    <div className="bg-nature-50 rounded-t-[3rem] p-8 w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col gap-4 pb-12 max-h-[85vh] overflow-y-auto no-scrollbar selection:bg-primary-500 selection:text-white">
                         
                         <div className="w-12 h-1.5 bg-nature-200 rounded-full mx-auto mb-4 opacity-50 flex-none"></div>
                         
                         <div className="flex justify-between items-center mb-2 flex-none">
-                            <h3 className="text-2xl font-serif italic text-nature-900">Acesse sua conta</h3>
-                            <button onClick={() => setShowOptions(false)} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200"><X size={20}/></button>
+                            <h3 className="text-2xl font-serif italic font-medium text-nature-900">Acesse sua conta</h3>
+                            <button onClick={() => setShowOptions(false)} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 transition-colors"><X size={20}/></button>
                         </div>
-                        <p className="text-xs text-nature-500 mb-4 flex-none">Escolha como deseja se conectar ao ecossistema.</p>
+                        <p className="text-xs text-nature-500 mb-4 flex-none font-medium">Escolha como deseja se conectar ao ecossistema.</p>
 
                         {/* 1. Google (Buscador Rápido) */}
                         <button 
                             onClick={handleGoogleLogin} 
                             disabled={isLoadingGoogle}
-                            className="w-full bg-white text-nature-900 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-md border border-nature-100 active:scale-95 transition-all flex items-center justify-center gap-3 hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
+                            className="w-full bg-white text-nature-900 py-5 rounded-[2rem] font-bold uppercase tracking-widest text-xs shadow-sm border border-nature-100 active:scale-95 transition-all flex items-center justify-center gap-3 hover:bg-gray-50 disabled:opacity-70 disabled:cursor-not-allowed shrink-0"
                         >
                             {isLoadingGoogle ? (
                                 <span className="w-4 h-4 border-2 border-nature-900 border-t-transparent rounded-full animate-spin"></span>
@@ -260,7 +260,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
                         {/* 2. Login Clássico (Abre formulário) */}
                         <button 
                             onClick={() => setShowLoginForm(true)} 
-                            className="w-full bg-nature-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 hover:bg-black shrink-0"
+                            className="w-full bg-nature-900 text-white py-5 rounded-[2rem] font-bold uppercase tracking-widest text-xs shadow-lg shadow-nature-900/10 active:scale-95 transition-all flex items-center justify-center gap-3 hover:bg-nature-800 shrink-0"
                         >
                             <Mail size={16} />
                             Entrar com E-mail

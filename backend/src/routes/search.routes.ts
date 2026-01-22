@@ -4,16 +4,14 @@ import { searchProfessionals, searchProducts, getSearchFilters } from '../contro
 
 const router = Router();
 
-// All search routes require authentication
-router.use(authenticateToken);
-
+// Public search routes (for SEO and better UX)
 // GET /api/search/professionals - Search professionals with filters
 router.get('/professionals', searchProfessionals);
 
 // GET /api/search/products - Search products with filters
 router.get('/products', searchProducts);
 
-// GET /api/search/filters - Get available filter options
-router.get('/filters', getSearchFilters);
+// Protected route - Get available filter options (requires auth)
+router.get('/filters', authenticateToken, getSearchFilters);
 
 export default router;

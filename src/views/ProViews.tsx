@@ -10,6 +10,9 @@ import { api } from '../services/api';
 import { SimpleActionModal } from '../components/Modals';
 import InteractiveCalendar from '../components/InteractiveCalendar';
 import PatientGarden from '../components/PatientGarden';
+import { AgendaWidget } from '../components/AgendaWidget';
+import { PatientRecord } from '../components/PatientRecord';
+import { SwapCircle } from '../components/SwapCircle';
 
 const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode }> = ({ title, subtitle, onBack, children }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300">
@@ -39,10 +42,24 @@ export const ProViews: React.FC<{
   };
 
   useEffect(() => {
-      api.appointments.list(user.id, user.role).then(setAppointments);
-      api.spaces.getTransactions(user.id).then((txs: any[]) => setTransactions(txs as Transaction[]));
-      api.professionals.list().then(data => setNetwork(data.filter(p => p.id !== user.id)));
-      api.spaces.getVacancies().then(setVacancies);
+      api.appointments.list(user.id, user.role).then(setAppointments).catch(e => console.error("Appointments error", e));
+      api.spaces.getTransactions(user.id).then((txs: any[]) => {
+          if (Array.isArray(txs)) setTransactions(txs as Transaction[]);
+      }).catch(e => console.error("Transactions error", e));
+      
+      api.professionals.list().then(data => {
+          console.log("Pro Network Data:", data);
+          if (Array.isArray(data)) {
+              setNetwork(data.filter(p => p.id !== user.id));
+          } else {
+              console.error("Pro Network Data is not an array!", data);
+              setNetwork([]);
+          }
+      }).catch(e => console.error("Pro Network error", e));
+
+      api.spaces.getVacancies().then(data => {
+           if(Array.isArray(data)) setVacancies(data);
+      }).catch(e => console.error("Vacancies error", e));
   }, [user.id, user.role]);
 
   useEffect(() => {
@@ -75,29 +92,29 @@ export const ProViews: React.FC<{
   if (view === ViewState.PRO_OPPORTUNITIES) return (
     <PortalView title="Oportunidades" subtitle="VAGAS EM SANTUÁRIOS" onBack={() => setView(ViewState.PRO_HOME)}>
         <div className="space-y-6">
-            <div className="bg-amber-50 p-6 rounded-[2.5rem] border border-amber-100 flex items-center gap-4">
-                <div className="p-3 bg-amber-200 text-amber-700 rounded-2xl"><Sparkles size={20}/></div>
+            <div className="bg-amber-50/50 backdrop-blur-md p-6 rounded-[2rem] border border-amber-100/50 flex items-center gap-4 shadow-sm">
+                <div className="p-3 bg-amber-100 text-amber-700 rounded-full"><Sparkles size={20}/></div>
                 <p className="text-xs text-amber-900 font-medium italic">Santuários próximos buscam seu dom. Candidate-se para expandir seu jardim.</p>
             </div>
             {vacancies.map(v => (
-                <Card key={v.id} className="p-6 space-y-4">
+                <Card key={v.id} className="p-8 space-y-4 bg-white/80 backdrop-blur-sm border-white/50">
                     <div className="flex justify-between items-start">
                         <div>
-                            <h4 className="font-bold text-nature-900">{v.title}</h4>
+                            <h4 className="font-bold text-nature-900 text-lg">{v.title}</h4>
                             <div className="flex items-center gap-2 mt-1">
-                                <MapPin size={12} className="text-nature-300" />
-                                <span className="text-[10px] font-bold text-nature-400 uppercase">Santuário Tambaú</span>
+                                <MapPin size={12} className="text-nature-400" />
+                                <span className="text-[10px] font-bold text-nature-500 uppercase tracking-wide">Santuário Tambaú</span>
                             </div>
                         </div>
-                        <span className="px-3 py-1 bg-nature-100 rounded-full text-[8px] font-bold uppercase tracking-widest">Aberto</span>
+                        <span className="px-3 py-1 bg-green-50 text-green-600 rounded-full text-[8px] font-bold uppercase tracking-widest border border-green-100">Aberto</span>
                     </div>
-                    <p className="text-xs text-nature-500 italic leading-relaxed">{v.description}</p>
+                    <p className="text-sm text-nature-600 italic leading-relaxed bg-nature-50/50 p-4 rounded-2xl border border-nature-100/50">{v.description}</p>
                     <div className="flex flex-wrap gap-2">
-                        {v.specialties.map(s => <span key={s} className="px-2 py-1 bg-primary-50 text-primary-600 rounded-lg text-[8px] font-bold uppercase">{s}</span>)}
+                        {v.specialties.map(s => <span key={s} className="px-3 py-1 bg-white text-nature-600 rounded-full text-[9px] font-bold uppercase border border-nature-100 shadow-sm">{s}</span>)}
                     </div>
                     <button 
     onClick={() => startAction("Candidatura", `Deseja enviar sua energia para a vaga ${v.title}?`, "Confirmar Envio", async () => new Promise(r => setTimeout(r, 1000)))}
-    className="w-full py-4 bg-nature-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+    className="w-full py-4 bg-nature-900 text-white rounded-full text-[10px] font-bold uppercase tracking-widest shadow-xl shadow-nature-900/10 active:scale-95 transition-all hover:bg-nature-800"
 >
     Enviar Minha Energia
 </button>
@@ -121,55 +138,36 @@ export const ProViews: React.FC<{
 
   // --- SUB-TELA: REDE (ALQUIMIA) ---
   if (view === ViewState.PRO_NETWORK) return (
-      <PortalView title="Rede de Alquimia" subtitle="CONEXÕES ENTRE MESTRES" onBack={() => setView(ViewState.PRO_HOME)}>
-          <div className="space-y-6">
-              <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex items-center gap-4 shadow-sm">
-                  <Search size={18} className="text-nature-300" />
-                  <input placeholder="Buscar guardiões para trocas..." className="flex-1 bg-transparent text-sm outline-none" />
-              </div>
-              <div className="space-y-4">
-                  {network.map(p => (
-                      <div key={p.id} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm">
-                          <div className="flex items-center gap-4">
-                            <DynamicAvatar user={p} size="md" />
-                            <div><h4 className="font-bold text-nature-900 text-sm">{p.name}</h4><p className="text-[9px] text-nature-400 font-bold uppercase">{p.specialty[0]}</p></div>
-                          </div>
-                          <button className="p-3 bg-primary-50 text-primary-600 rounded-xl active:scale-95 transition-all"><MessageSquare size={16}/></button>
-                      </div>
-                  ))}
-              </div>
-          </div>
-      </PortalView>
+      <SwapCircle 
+          currentUser={user}
+          offers={[
+              { id: '1', professionalId: 'p2', offer: 'Sessão de Constelação', seek: 'Apoio em Roda de Conversa', status: 'active', createdAt: new Date().toISOString() },
+              { id: '2', professionalId: 'p3', offer: 'Massagem Ayurvédica', seek: 'Leitura de Mapa Astral', status: 'active', createdAt: new Date().toISOString() }
+          ]} // Mock data
+          onClose={() => setView(ViewState.PRO_HOME)}
+          onCreateOffer={(offer, seek) => {
+              // Add to API
+              console.log("Creating swap:", offer, seek);
+          }}
+          onMatch={(id) => {
+              startAction("Confirmar Escambo", "Deseja iniciar esta troca sagrada? Ela será registrada em sua jornada.", "Aceitar", async () => {
+                  await new Promise(r => setTimeout(r, 1000));
+                  // Logic to create appointment of type 'swap'
+              });
+          }}
+      />
   );
 
   // --- SUB-TELA: PRONTUÁRIO ---
   if (view === ViewState.PRO_PATIENT_DETAILS && selectedPatient) return (
       <PortalView title="Prontuário" subtitle="DETALHES DO BUSCADOR" onBack={() => setView(ViewState.PRO_PATIENTS)}>
-          <div className="space-y-8">
-              <div className="flex flex-col items-center gap-4">
-                  <DynamicAvatar user={selectedPatient} size="xl" className="border-4 border-white shadow-2xl" />
-                  <div className="text-center">
-                    <h3 className="text-2xl font-serif italic text-nature-900">{selectedPatient.name}</h3>
-                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">Metamorfose: Ativa</p>
-                  </div>
-              </div>
-              
-              <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm space-y-6">
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-nature-900 text-xs uppercase flex items-center gap-2"><FileText size={14}/> Notas do Ritual</h4>
-                    <div className="flex items-center gap-2">
-                        {isSaving ? <RefreshCw size={12} className="animate-spin text-primary-500" /> : <Cloud size={12} className="text-emerald-500" />}
-                        <span className="text-[8px] font-bold text-nature-400 uppercase">{isSaving ? 'Sincronizando...' : lastSaved ? `Salvo às ${lastSaved.toLocaleTimeString()}` : 'Pronto para escrever'}</span>
-                    </div>
-                  </div>
-                  <textarea 
-                    value={notes} 
-                    onChange={e => setNotes(e.target.value)}
-                    placeholder="Inicie o registro das frequências observadas..."
-                    className="w-full h-64 bg-nature-50/50 p-6 rounded-3xl text-sm italic border-none focus:ring-2 focus:ring-primary-100 outline-none resize-none"
-                  />
-              </div>
-          </div>
+          <PatientRecord 
+              patient={selectedPatient}
+              notes={notes}
+              onSaveNotes={setNotes} // In real app, debounce inside or pass saver
+              isSaving={isSaving}
+              lastSaved={lastSaved}
+          />
       </PortalView>
   );
 
@@ -198,16 +196,19 @@ export const ProViews: React.FC<{
   if (view === ViewState.PRO_FINANCE) return (
       <PortalView title="Fluxo" subtitle="ABUNDÂNCIA" onBack={() => setView(ViewState.PRO_HOME)}>
           <div className="space-y-8">
-              <div className="bg-nature-900 p-10 rounded-[4rem] text-white shadow-2xl relative overflow-hidden">
-                  <p className="text-[10px] font-bold text-primary-400 uppercase tracking-widest mb-2">Saldo em Sincronia</p>
-                  <h3 className="text-5xl font-serif italic leading-none">R$ 14.500,80</h3>
+              <div className="bg-nature-900 p-10 rounded-[3rem] text-white shadow-2xl shadow-nature-900/20 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors duration-1000"></div>
+                  <div className="relative z-10">
+                    <p className="text-[10px] font-bold text-nature-300 uppercase tracking-widest mb-3">Saldo em Sincronia</p>
+                    <h3 className="text-5xl font-serif font-medium leading-none tracking-tight">R$ 14.500,80</h3>
+                  </div>
               </div>
               <div className="space-y-4">
                   <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Histórico de Trocas</h4>
                   {transactions.map(tx => (
-                      <div key={tx.id} className="bg-white p-6 rounded-3xl border border-nature-100 flex justify-between items-center shadow-sm">
-                          <div><p className="text-xs font-bold text-nature-900">{tx.description}</p><p className="text-[9px] text-nature-300 font-bold uppercase">{new Date(tx.date).toLocaleDateString()}</p></div>
-                          <span className={`text-sm font-bold ${tx.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>{tx.type === 'income' ? '+' : '-'} R$ {tx.amount.toFixed(2)}</span>
+                      <div key={tx.id} className="bg-white p-6 rounded-[2rem] border border-nature-100 flex justify-between items-center shadow-sm">
+                          <div><p className="text-xs font-bold text-nature-900">{tx.description}</p><p className="text-[9px] text-nature-300 font-bold uppercase mt-1">{new Date(tx.date).toLocaleDateString()}</p></div>
+                          <span className={`text-sm font-bold bg-opacity-10 px-3 py-1 rounded-full ${tx.type === 'income' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50'}`}>{tx.type === 'income' ? '+' : '-'} R$ {tx.amount.toFixed(2)}</span>
                       </div>
                   ))}
               </div>
@@ -216,23 +217,48 @@ export const ProViews: React.FC<{
   );
 
   return (
-    <div className="flex flex-col animate-in fade-in pb-24">
-        <header className="flex items-center justify-between mt-10 mb-12">
+    <div className="flex flex-col animate-in fade-in pb-24 selection:bg-primary-500 selection:text-white">
+        <header className="flex items-center justify-between mt-10 mb-12 px-2">
             <div className="space-y-1.5">
                 <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.4em]">GUARDIÃO • NÍVEL {user.prestigeLevel || 3}</p>
-                <h2 className="text-4xl font-serif italic text-nature-900 leading-tight">Olá, {user.name.split(' ')[0]}</h2>
+                <h2 className="text-4xl font-serif font-medium text-nature-900 leading-tight">Olá, {user.name.split(' ')[0]}</h2>
             </div>
-            <button onClick={() => setView(ViewState.SETTINGS)} className="w-16 h-16 rounded-[1.8rem] border-[3px] border-white shadow-xl overflow-hidden active:scale-95 transition-all">
+            <button onClick={() => setView(ViewState.SETTINGS)} className="w-16 h-16 rounded-[2rem] border-[4px] border-white shadow-xl shadow-nature-900/10 overflow-hidden active:scale-95 transition-all hover:rotate-3">
                 <img src={user.avatar} className="w-full h-full object-cover" />
             </button>
         </header>
         
-        <div className="grid grid-cols-2 gap-6">
-             <PortalCard title="Agenda" subtitle="TEMPO" icon={CalendarIcon} bgImage="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=600" onClick={() => setView(ViewState.PRO_AGENDA)} />
-             <PortalCard title="Jardim" subtitle="PACIENTES" icon={Flower} bgImage="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600" onClick={() => setView(ViewState.PRO_PATIENTS)} delay={100} />
-             <PortalCard title="Alquimia" subtitle="REDE" icon={Zap} bgImage="https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=600" onClick={() => setView(ViewState.PRO_NETWORK)} delay={200} />
-             <PortalCard title="Oportunidades" subtitle="VAGAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=600" onClick={() => setView(ViewState.PRO_OPPORTUNITIES)} delay={300} />
-             <PortalCard title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?q=80&w=600" onClick={() => setView(ViewState.PRO_FINANCE)} delay={400} />
+        <div className="space-y-8">
+            {/* Agenda Viva Widget */}
+            <AgendaWidget 
+                appointments={appointments}
+                onConfirm={async (id) => {
+                    await api.appointments.updateStatus(id, 'confirmed');
+                    setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'confirmed' } : a));
+                }}
+                onCancel={(id) => {}}
+                onViewRecord={(clientId) => {
+                    const apt = appointments.find(a => a.clientId === clientId);
+                    if (apt) {
+                        setSelectedPatient({ 
+                            id: apt.clientId, 
+                            name: apt.clientName, 
+                            email: `${apt.clientName.toLowerCase().replace(' ', '.')}@viva360.com`, // Mock email
+                            plantStage: 'BLOOM', // Mock data integration
+                            plantState: 'HEALTHY'
+                        });
+                        setView(ViewState.PRO_PATIENT_DETAILS);
+                    }
+                }}
+            />
+
+            <div className="grid grid-cols-2 gap-6">
+                 <PortalCard title="Agenda" subtitle="TEMPO" icon={CalendarIcon} bgImage="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=600" onClick={() => setView(ViewState.PRO_AGENDA)} />
+                 <PortalCard title="Jardim" subtitle="PACIENTES" icon={Flower} bgImage="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600" onClick={() => setView(ViewState.PRO_PATIENTS)} delay={100} />
+                 <PortalCard title="Alquimia" subtitle="REDE" icon={Zap} bgImage="https://images.unsplash.com/photo-1507413245164-6160d8298b31?q=80&w=600" onClick={() => setView(ViewState.PRO_NETWORK)} delay={200} />
+                 <PortalCard title="Oportunidades" subtitle="VAGAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1497215728101-856f4ea42174?q=80&w=600" onClick={() => setView(ViewState.PRO_OPPORTUNITIES)} delay={300} />
+                 <PortalCard title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?q=80&w=600" onClick={() => setView(ViewState.PRO_FINANCE)} delay={400} />
+            </div>
         </div>
         <SimpleActionModal 
             isOpen={!!modalAction} 

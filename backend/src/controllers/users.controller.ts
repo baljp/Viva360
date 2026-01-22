@@ -1,92 +1,41 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth';
 import { AppError, asyncHandler } from '../middleware/error';
+import { userService } from '../services/user.service';
 import prisma from '../config/database';
 
-// Get User Profile
+// Get Current User Profile (from token)
+export const getMe = asyncHandler(async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) throw new AppError('Usuário não autenticado', 401);
+
+  const user = await userService.getMe(userId);
+  res.json(user);
+});
+
+// Get User Profile by ID
 export const getUserProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
   const { id } = req.params;
-
-  const user = await prisma.user.findUnique({
-    where: { id: String(id) },
-    include: {
-      professional: true,
-      space: true,
-    },
-  });
-
-  if (!user) {
-    throw new AppError('Usuário não encontrado', 404);
-  }
-
-  const { password: _, ...userWithoutPassword } = user;
-  res.json(userWithoutPassword);
+  const user = await userService.getUserProfile(String(id));
+  res.json(user);
 });
 
 // Update User Profile
 export const updateUserProfile = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
-  const updates = req.body;
+  if (!userId) throw new AppError('Usuário não autenticado', 401);
 
-  if (!userId) {
-    throw new AppError('Usuário não autenticado', 401);
-  }
-
-  // Remove sensitive fields from updates
-  delete updates.password;
-  delete updates.email;
-  delete updates.role;
-
-  const updatedUser = await prisma.user.update({
-    where: { id: userId },
-    data: updates,
-    include: {
-      professional: true,
-      space: true,
-    },
-  });
-
-  const { password: _, ...userWithoutPassword } = updatedUser;
-  res.json(userWithoutPassword);
+  const user = await userService.updateUserProfile(userId, req.body);
+  res.json(user);
 });
 
 // Check-in (gamification)
 export const checkIn = asyncHandler(async (req: AuthRequest, res: Response) => {
   const userId = req.user?.userId;
+  if (!userId) throw new AppError('Usuário não autenticado', 401);
 
-  if (!userId) {
-    throw new AppError('Usuário não autenticado', 401);
-  }
-
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  
-  if (!user) {
-    throw new AppError('Usuário não encontrado', 404);
-  }
-
-  const today = new Date().toISOString().split('T')[0];
-  const lastCheckIn = user.lastCheckIn?.toISOString().split('T')[0];
-
-  if (lastCheckIn === today) {
-    throw new AppError('Check-in já realizado hoje', 400);
-  }
-
-  const reward = 50;
-  const updatedUser = await prisma.user.update({
-    where: { id: userId },
-    data: {
-      karma: user.karma + reward,
-      streak: user.streak + 1,
-      lastCheckIn: new Date(),
-      plantXp: user.plantXp + 10,
-    },
-  });
-
-  res.json({
-    message: 'Check-in realizado com sucesso!',
-    reward,
-    user: updatedUser,
-  });
+  const result = await userService.performCheckIn(userId);
+  res.json(result);
 });
 
 // Update Balance

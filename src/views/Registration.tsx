@@ -85,13 +85,13 @@ const ClientForm: React.FC<any> = ({ setView, onRegister }) => {
     };
 
     return (
-        <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-primary-50/50">
+        <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-nature-50 selection:bg-primary-500 selection:text-white">
             <header className="flex items-center gap-4 mb-8">
-                <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} /></button>
-                <div><h2 className="text-2xl font-serif italic text-nature-900">Sou Buscador</h2><p className="text-xs text-nature-400 font-medium">Inicie sua jornada de cura</p></div>
+                <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-full shadow-lg shadow-nature-900/5 border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} className="text-nature-600" /></button>
+                <div><h2 className="text-2xl font-serif italic font-medium text-nature-900">Sou Buscador</h2><p className="text-xs text-nature-500 font-medium tracking-wide">Inicie sua jornada de cura</p></div>
             </header>
             <div className="space-y-6">
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
+                <div className="bg-nature-50/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/60 shadow-xl shadow-nature-900/5 space-y-4">
                      <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Credenciais</p>
                     <GoogleButton onClick={handleGoogleRegister} />
                     <Divider />
@@ -100,12 +100,12 @@ const ClientForm: React.FC<any> = ({ setView, onRegister }) => {
                     <InputField icon={<Lock size={18}/>} type="password" placeholder="Crie uma senha segura" value={formData.password} onChange={(e:any) => setFormData(p => ({...p, password: e.target.value}))} />
                 </div>
                 
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-6">
+                <div className="bg-nature-50/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/60 shadow-xl shadow-nature-900/5 space-y-6">
                     <CheckboxGroup title="O que você busca curar?" options={['Reduzir estresse', 'Aliviar dores', 'Clareza mental', 'Mais energia', 'Autoconhecimento']} selected={formData.goals} onChange={handleGoalChange} />
                     <RadioGroup title="Abordagem preferida" options={['Corporal (Massagem, Yoga)', 'Energética (Reiki, Barras)', 'Mental (Terapia, Meditação)']} selected={formData.therapyPreferences} onChange={val => setFormData(p => ({...p, therapyPreferences: val}))} />
                 </div>
 
-                <button onClick={handleRegister} className="w-full bg-primary-900 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all hover:bg-primary-800">Criar Perfil</button>
+                <button onClick={handleRegister} className="w-full bg-nature-900 text-white py-5 rounded-full font-medium tracking-widest text-xs shadow-xl shadow-nature-900/20 active:scale-95 transition-all hover:bg-nature-800 uppercase">Criar Perfil</button>
             </div>
         </div>
     );
@@ -120,13 +120,13 @@ const ProForm: React.FC<any> = ({ setView, onRegister }) => {
     };
 
     return (
-         <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-amber-50/30">
+         <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-nature-50 selection:bg-primary-500 selection:text-white">
             <header className="flex items-center gap-4 mb-8">
-                <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} /></button>
-                <div><h2 className="text-2xl font-serif italic text-nature-900">Sou Guardião</h2><p className="text-xs text-nature-400 font-medium">Ofereça seus dons ao mundo</p></div>
+                <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-full shadow-lg shadow-nature-900/5 border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} className="text-nature-600" /></button>
+                <div><h2 className="text-2xl font-serif italic font-medium text-nature-900">Sou Guardião</h2><p className="text-xs text-nature-500 font-medium tracking-wide">Ofereça seus dons ao mundo</p></div>
             </header>
             <div className="space-y-6">
-                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
+                 <div className="bg-nature-50/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/60 shadow-xl shadow-nature-900/5 space-y-4">
                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Dados Profissionais</p>
                     <GoogleButton onClick={handleGoogleRegister} />
                     <Divider />
@@ -135,13 +135,13 @@ const ProForm: React.FC<any> = ({ setView, onRegister }) => {
                     <InputField icon={<Lock size={18}/>} type="password" placeholder="Senha de Acesso" value={formData.password} onChange={(e:any) => setFormData(p => ({...p, password: e.target.value}))} />
                 </div>
 
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-6">
+                <div className="bg-nature-50/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/60 shadow-xl shadow-nature-900/5 space-y-6">
                     <InputField icon={<Sparkles size={18}/>} type="text" placeholder="Especialidades (Ex: Reiki, Yoga)" onChange={(e:any) => setFormData(p => ({...p, specialty: e.target.value.split(',')}))} />
                     <InputField icon={<MapPin size={18}/>} type="text" placeholder="Bairro de Atendimento" value={formData.location} onChange={(e:any) => setFormData(p => ({...p, location: e.target.value}))} />
                     <RadioGroup title="Sua abordagem principal" options={['Corporal', 'Energética', 'Mental/Emocional']} selected={formData.approach} onChange={val => setFormData(p => ({...p, approach: val}))} />
                 </div>
                 
-                <button onClick={handleRegister} className="w-full bg-amber-700 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all hover:bg-amber-800">Finalizar Cadastro</button>
+                <button onClick={handleRegister} className="w-full bg-primary-600 text-white py-5 rounded-full font-medium tracking-widest text-xs shadow-xl shadow-primary-600/20 active:scale-95 transition-all hover:bg-primary-500 uppercase">Finalizar Cadastro</button>
             </div>
         </div>
     );
@@ -156,13 +156,13 @@ const SpaceForm: React.FC<any> = ({ setView, onRegister }) => {
     };
 
      return (
-         <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-indigo-50/30">
+         <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-nature-50 selection:bg-primary-500 selection:text-white">
             <header className="flex items-center gap-4 mb-8">
-                <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} /></button>
-                <div><h2 className="text-2xl font-serif italic text-nature-900">Sou Santuário</h2><p className="text-xs text-nature-400 font-medium">Cadastre seu espaço de cura</p></div>
+                <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-full shadow-lg shadow-nature-900/5 border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} className="text-nature-600" /></button>
+                <div><h2 className="text-2xl font-serif italic font-medium text-nature-900">Sou Santuário</h2><p className="text-xs text-nature-500 font-medium tracking-wide">Cadastre seu espaço de cura</p></div>
             </header>
              <div className="space-y-6">
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
+                <div className="bg-nature-50/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/60 shadow-xl shadow-nature-900/5 space-y-4">
                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Gestão do Hub</p>
                     <GoogleButton onClick={handleGoogleRegister} />
                     <Divider />
@@ -170,12 +170,12 @@ const SpaceForm: React.FC<any> = ({ setView, onRegister }) => {
                     <InputField icon={<Mail size={18}/>} type="email" placeholder="E-mail Administrativo" value={formData.email} onChange={(e:any) => setFormData(p => ({...p, email: e.target.value}))} />
                     <InputField icon={<Lock size={18}/>} type="password" placeholder="Senha Mestra" value={formData.password} onChange={(e:any) => setFormData(p => ({...p, password: e.target.value}))} />
                 </div>
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
+                <div className="bg-nature-50/50 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/60 shadow-xl shadow-nature-900/5 space-y-4">
                      <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Localização</p>
                     <InputField icon={<MapPin size={18}/>} type="text" placeholder="Endereço Completo" value={formData.address} onChange={(e:any) => setFormData(p => ({...p, address: e.target.value}))} />
                 </div>
 
-                 <button onClick={handleRegister} className="w-full bg-indigo-800 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all hover:bg-indigo-900">Cadastrar Santuário</button>
+                 <button onClick={handleRegister} className="w-full bg-nature-800 text-white py-5 rounded-full font-medium tracking-widest text-xs shadow-xl shadow-nature-900/20 active:scale-95 transition-all hover:bg-nature-700 uppercase">Cadastrar Santuário</button>
             </div>
         </div>
     );
@@ -186,18 +186,18 @@ const SpaceForm: React.FC<any> = ({ setView, onRegister }) => {
 export const RegistrationViews: React.FC<RegistrationProps> = ({ view, setView, onRegister }) => {
     
     const renderRoleSelection = () => (
-        <div className="min-h-full flex flex-col bg-primary-50 animate-in fade-in duration-500">
+        <div className="min-h-full flex flex-col bg-nature-50/50 animate-in fade-in duration-500">
             <header className="px-8 pt-12 pb-6 flex-none">
-                 <button onClick={() => setView(ViewState.LOGIN)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100/80 mb-6 hover:scale-105 transition-transform"><ArrowLeft size={20} /></button>
-                 <h1 className="text-3xl font-serif italic text-primary-900 leading-tight">Escolha sua<br/>Frequência</h1>
-                 <p className="text-nature-500 text-sm mt-2">Como você deseja interagir com o ecossistema Viva360?</p>
+                 <button onClick={() => setView(ViewState.LOGIN)} className="p-3 bg-white rounded-full shadow-lg shadow-nature-900/5 border border-nature-100 mb-8 hover:scale-105 transition-transform"><ArrowLeft size={20} className="text-nature-600" /></button>
+                 <h1 className="text-4xl font-serif font-medium text-nature-900 leading-tight tracking-wide">Escolha sua<br/><span className="text-primary-600 italic">Frequência</span></h1>
+                 <p className="text-nature-500 text-sm mt-3 tracking-wide">Como você deseja interagir com o ecossistema Viva360?</p>
             </header>
             
              <div className="flex-1 px-6 pb-12 space-y-4">
                 {/* Card Buscador */}
                 <button 
                     onClick={() => setView(ViewState.REGISTER_CLIENT)} 
-                    className="w-full bg-white p-6 rounded-3xl border border-nature-100/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all group relative overflow-hidden text-left hover:border-primary-200"
+                    className="w-full bg-white p-6 rounded-[2rem] border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:shadow-primary-500/10 transition-all group relative overflow-hidden text-left hover:border-primary-200"
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary-50 rounded-bl-[100px] transition-transform group-hover:scale-150 duration-700"></div>
                     <div className="relative z-10 flex gap-5 items-start">
@@ -205,8 +205,8 @@ export const RegistrationViews: React.FC<RegistrationProps> = ({ view, setView, 
                             <Leaf size={28} />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-nature-900">Sou Buscador</h3>
-                            <p className="text-xs text-nature-500 mt-1 leading-relaxed pr-4">Desejo encontrar terapias, produtos e rituais para meu bem-estar.</p>
+                            <h3 className="text-lg font-bold text-nature-900 group-hover:text-primary-700 transition-colors">Sou Buscador</h3>
+                            <p className="text-xs text-nature-500 mt-1 leading-relaxed pr-4 font-medium">Desejo encontrar terapias, produtos e rituais para meu bem-estar.</p>
                         </div>
                     </div>
                 </button>
@@ -214,7 +214,7 @@ export const RegistrationViews: React.FC<RegistrationProps> = ({ view, setView, 
                 {/* Card Profissional */}
                 <button 
                     onClick={() => setView(ViewState.REGISTER_PRO)} 
-                    className="w-full bg-white p-6 rounded-3xl border border-nature-100/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all group relative overflow-hidden text-left hover:border-amber-200"
+                    className="w-full bg-white p-6 rounded-[2rem] border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:shadow-amber-500/10 transition-all group relative overflow-hidden text-left hover:border-amber-200"
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-bl-[100px] transition-transform group-hover:scale-150 duration-700"></div>
                     <div className="relative z-10 flex gap-5 items-start">
@@ -222,8 +222,8 @@ export const RegistrationViews: React.FC<RegistrationProps> = ({ view, setView, 
                             <Briefcase size={28} />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-nature-900">Sou Guardião</h3>
-                            <p className="text-xs text-nature-500 mt-1 leading-relaxed pr-4">Sou terapeuta ou facilitador e quero oferecer meus serviços.</p>
+                            <h3 className="text-lg font-bold text-nature-900 group-hover:text-amber-700 transition-colors">Sou Guardião</h3>
+                            <p className="text-xs text-nature-500 mt-1 leading-relaxed pr-4 font-medium">Sou terapeuta ou facilitador e quero oferecer meus serviços.</p>
                         </div>
                     </div>
                 </button>
@@ -231,7 +231,7 @@ export const RegistrationViews: React.FC<RegistrationProps> = ({ view, setView, 
                 {/* Card Santuário */}
                 <button 
                     onClick={() => setView(ViewState.REGISTER_SPACE)} 
-                    className="w-full bg-white p-6 rounded-3xl border border-nature-100/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl transition-all group relative overflow-hidden text-left hover:border-indigo-200"
+                    className="w-full bg-white p-6 rounded-[2rem] border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-xl hover:shadow-indigo-500/10 transition-all group relative overflow-hidden text-left hover:border-indigo-200"
                 >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[100px] transition-transform group-hover:scale-150 duration-700"></div>
                     <div className="relative z-10 flex gap-5 items-start">
@@ -239,8 +239,8 @@ export const RegistrationViews: React.FC<RegistrationProps> = ({ view, setView, 
                             <Building size={28} />
                         </div>
                         <div>
-                            <h3 className="text-lg font-bold text-nature-900">Sou Santuário</h3>
-                            <p className="text-xs text-nature-500 mt-1 leading-relaxed pr-4">Gerencio um espaço físico e quero conectar minha equipe.</p>
+                            <h3 className="text-lg font-bold text-nature-900 group-hover:text-indigo-700 transition-colors">Sou Santuário</h3>
+                            <p className="text-xs text-nature-500 mt-1 leading-relaxed pr-4 font-medium">Gerencio um espaço físico e quero conectar minha equipe.</p>
                         </div>
                     </div>
                 </button>

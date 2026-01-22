@@ -70,7 +70,7 @@ const generateClients = (): User[] => {
             streak: Math.floor(pseudoRandom(seed + 6) * 30),
             multiplier: 1.0,
             inventory: { incense: 3, crystals: 10 },
-            plantStage: 'flower',
+            plantStage: 'BLOOM',
             plantXp: plantXp % 100,
             dailyQuests: generateDailyQuests(seed),
             badges: generateBadges(seed, UserRole.CLIENT),
@@ -149,8 +149,8 @@ export const Database = {
     pros: CACHED_PROS,
     spaces: CACHED_SPACES,
     getNotifications: (uid: string, role: UserRole) => [
-        { id: 'n1', userId: uid, type: 'ritual', title: 'Sessão Confirmada', message: 'Seu ritual de Reiki começa em 1h.', timestamp: new Date().toISOString(), read: false },
-        { id: 'n2', userId: uid, type: 'alert', title: 'Jardim Sedento', message: 'Sua planta precisa de atenção.', timestamp: new Date().toISOString(), read: false }
+        { id: 'n1', userId: uid, type: 'REMINDER', title: 'Sessão Confirmada', message: 'Seu ritual de Reiki começa em 1h.', timestamp: new Date().toISOString(), read: false },
+        { id: 'n2', userId: uid, type: 'SYSTEM', title: 'Jardim Sedento', message: 'Sua planta precisa de atenção.', timestamp: new Date().toISOString(), read: false }
     ] as Notification[],
     getTransactions: (uid: string) => [
         { id: 't1', userId: uid, type: 'income', amount: 150, description: 'Sessão de Yoga', date: new Date().toISOString(), status: 'completed' },

@@ -67,10 +67,13 @@ export const createProduct = asyncHandler(async (req: AuthRequest, res: Response
       description,
       price,
       image,
-      category: String(category) as any,
+      category: String(category),
       type: String(type) as any,
       stock: stock || 0,
-      sellerId: type === 'SERVICE' && userId ? userId : null,
+      sellerId: (type === 'SERVICE' || type === 'EVENT') && userId ? userId : null,
+      eventDate: req.body.eventDate ? new Date(req.body.eventDate) : null,
+      duration: req.body.duration,
+      downloadUrl: req.body.downloadUrl,
     },
   });
 

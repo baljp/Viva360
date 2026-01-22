@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import { AppError, asyncHandler } from '../middleware/error';
 import prisma from '../config/database';
 import { pushService } from '../services/push.service';
+import { queueNotification } from '../config/queue';
 
 // Create Appointment
 export const createAppointment = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -24,66 +25,68 @@ export const createAppointment = asyncHandler(async (req: AuthRequest, res: Resp
     throw new AppError('Cliente ou profissional não encontrado', 404);
   }
 
-  const appointment = await prisma.appointment.create({
-    data: {
-      clientId: userId,
-      professionalId,
-      serviceName,
-      price,
-      date: new Date(date),
-      time,
-      duration: duration || 60,
-      status: 'PENDING',
-    },
+  // CRITICAL: Use transaction for atomic operations (30k scale fix)
+  const result = await prisma.$transaction(async (tx) => {
+    // Create appointment
+    const appointment = await tx.appointment.create({
+      data: {
+        clientId: userId,
+        professionalId,
+        serviceName,
+        price,
+        date: new Date(date),
+        time,
+        duration: duration || 60,
+        status: 'PENDING',
+        type: req.body.type || 'PAID',
+      },
+    });
+
+    // Create transaction record
+    await tx.transaction.create({
+      data: {
+        userId,
+        type: 'EXPENSE',
+        amount: price,
+        description: `Agendamento: ${serviceName}`,
+        reference: appointment.id,
+        status: 'COMPLETED',
+      },
+    });
+
+    // Update client balance
+    await tx.user.update({
+      where: { id: userId },
+      data: {
+        personalBalance: client.personalBalance - price,
+        karma: client.karma + Math.floor(price * 2),
+        plantXp: client.plantXp + Math.floor(price / 10),
+      },
+    });
+
+// ...
+    // Create notification for professional
+    await tx.notification.create({
+      data: {
+        userId: professionalId,
+        type: 'APPOINTMENT',
+        title: 'Novo Agendamento',
+        message: `${client.name} agendou ${serviceName} para ${new Date(date).toLocaleDateString()}`,
+        actionUrl: `/appointments/${appointment.id}`,
+      },
+    });
+
+    return appointment;
   });
 
-  // Create transaction
-  await prisma.transaction.create({
-    data: {
-      userId,
-      type: 'EXPENSE',
-      amount: price,
-      description: `Agendamento: ${serviceName}`,
-      reference: appointment.id,
-      status: 'COMPLETED',
-    },
-  });
-
-  // Update client balance
-  await prisma.user.update({
-    where: { id: userId },
-    data: {
-      personalBalance: client.personalBalance - price,
-      karma: client.karma + Math.floor(price * 2),
-      plantXp: client.plantXp + Math.floor(price / 10),
-    },
-  });
-
-  // Create notification for professional
-  await prisma.notification.create({
-    data: {
+  // Async: Queue Push Notification Side Effect
+  queueNotification({
       userId: professionalId,
-      type: 'APPOINTMENT',
       title: 'Novo Agendamento',
-      message: `${client.name} agendou ${serviceName} para ${new Date(date).toLocaleDateString()}`,
-      actionUrl: `/appointments/${appointment.id}`,
-    },
-  });
+      message: `Você tem um novo agendamento de ${serviceName}.`
+  }).catch(console.error);
 
-  // Try to push notification (assuming user might have a subscription stored in a real implementation)
-  // For now, we simulate the intent
-  /*
-  const subscription = await prisma.pushSubscription.findUnique({ where: { userId: professionalId } });
-  if (subscription) {
-    pushService.sendNotification(subscription.data, JSON.stringify({
-      title: 'Novo Agendamento',
-      body: `${client.name} agendou ${serviceName}`,
-      url: `/appointments/${appointment.id}`
-    }));
-  }
-  */
-
-  res.status(201).json(appointment);
+  res.status(201).json(result);
 });
 
 // Get User Appointments
@@ -183,43 +186,48 @@ export const updateAppointmentStatus = asyncHandler(async (req: AuthRequest, res
     throw new AppError('Apenas o profissional pode atualizar o status', 403);
   }
 
-  const updated = await prisma.appointment.update({
-    where: { id },
-    data: {
-      status,
-      ...(notes && { notes }),
-    },
-  });
-
-  // If completed, create income transaction for professional
-  if (status === 'COMPLETED') {
-    await prisma.transaction.create({
+  // CRITICAL: Use transaction for atomic status update + income (30k scale fix)
+  const result = await prisma.$transaction(async (tx) => {
+    const updated = await tx.appointment.update({
+      where: { id },
       data: {
-        userId: appointment.professionalId,
-        type: 'INCOME',
-        amount: appointment.price,
-        description: `Sessão concluída: ${appointment.serviceName}`,
-        reference: appointment.id,
-        status: 'COMPLETED',
+        status,
+        ...(notes && { notes }),
       },
     });
 
-    // Update professional stats
-    const professional = await prisma.professional.findUnique({
-      where: { userId: appointment.professionalId },
-    });
-
-    if (professional) {
-      await prisma.professional.update({
-        where: { userId: appointment.professionalId },
+    // If completed, create income transaction for professional
+    if (status === 'COMPLETED') {
+      await tx.transaction.create({
         data: {
-          totalHealingHours: professional.totalHealingHours + (appointment.duration / 60),
+          userId: appointment.professionalId,
+          type: 'INCOME',
+          amount: appointment.price,
+          description: `Sessão concluída: ${appointment.serviceName}`,
+          reference: appointment.id,
+          status: 'COMPLETED',
         },
       });
-    }
-  }
 
-  res.json(updated);
+      // Update professional stats
+      const professional = await tx.professional.findUnique({
+        where: { userId: appointment.professionalId },
+      });
+
+      if (professional) {
+        await tx.professional.update({
+          where: { userId: appointment.professionalId },
+          data: {
+            totalHealingHours: professional.totalHealingHours + (appointment.duration / 60),
+          },
+        });
+      }
+    }
+
+    return updated;
+  });
+
+  res.json(result);
 });
 
 // Cancel Appointment
@@ -238,37 +246,43 @@ export const cancelAppointment = asyncHandler(async (req: AuthRequest, res: Resp
     throw new AppError('Acesso não autorizado', 403);
   }
 
-  const updated = await prisma.appointment.update({
-    where: { id },
-    data: { status: 'CANCELLED' },
+  // CRITICAL: Use transaction for atomic cancel + refund (30k scale fix)
+  const hoursUntilAppointment = (appointment.date.getTime() - Date.now()) / (1000 * 60 * 60);
+  const shouldRefund = appointment.professionalId === userId || hoursUntilAppointment > 24;
+  
+  const result = await prisma.$transaction(async (tx) => {
+    const updated = await tx.appointment.update({
+      where: { id },
+      data: { status: 'CANCELLED' },
+    });
+
+    // Refund client if applicable
+    if (shouldRefund) {
+      const client = await tx.user.findUnique({ where: { id: appointment.clientId } });
+      
+      if (client) {
+        await tx.user.update({
+          where: { id: appointment.clientId },
+          data: {
+            personalBalance: client.personalBalance + appointment.price,
+          },
+        });
+
+        await tx.transaction.create({
+          data: {
+            userId: appointment.clientId,
+            type: 'INCOME',
+            amount: appointment.price,
+            description: `Reembolso: ${appointment.serviceName}`,
+            reference: appointment.id,
+            status: 'COMPLETED',
+          },
+        });
+      }
+    }
+
+    return updated;
   });
 
-  // Refund client if cancelled by professional or within 24h
-  const hoursUntilAppointment = (appointment.date.getTime() - Date.now()) / (1000 * 60 * 60);
-  
-  if (appointment.professionalId === userId || hoursUntilAppointment > 24) {
-    const client = await prisma.user.findUnique({ where: { id: appointment.clientId } });
-    
-    if (client) {
-      await prisma.user.update({
-        where: { id: appointment.clientId },
-        data: {
-          personalBalance: client.personalBalance + appointment.price,
-        },
-      });
-
-      await prisma.transaction.create({
-        data: {
-          userId: appointment.clientId,
-          type: 'INCOME',
-          amount: appointment.price,
-          description: `Reembolso: ${appointment.serviceName}`,
-          reference: appointment.id,
-          status: 'COMPLETED',
-        },
-      });
-    }
-  }
-
-  res.json(updated);
+  res.json(result);
 });

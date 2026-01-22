@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Users, Heart, Flame, Send, Plus, Crown, Sparkles, MessageCircle, Gift, Star, Trophy, TrendingUp, X } from 'lucide-react';
-import { User } from '../types';
+import { User, PlantStage, PlantState } from '../types';
 import { Card, DynamicAvatar } from './Common';
 
 interface TribeMember {
@@ -12,6 +12,8 @@ interface TribeMember {
     avatar?: string;
     streak: number;
     karma: number;
+    plantStage?: PlantStage;
+    plantState?: PlantState;
   };
   role: string;
   energySent: number;
@@ -57,7 +59,7 @@ export const TribeScreen: React.FC<TribeScreenProps> = ({ user, onClose, onSendE
         {
           id: '1',
           userId: 'current',
-          user: { id: 'current', name: user.name, avatar: user.avatar, streak: user.streak || 0, karma: user.karma },
+          user: { id: 'current', name: user.name, avatar: user.avatar, streak: user.streak || 0, karma: user.karma, plantStage: user.plantStage, plantState: user.plantState },
           role: 'OWNER',
           energySent: 150,
           energyReceived: 200,
@@ -66,7 +68,7 @@ export const TribeScreen: React.FC<TribeScreenProps> = ({ user, onClose, onSendE
         {
           id: '2',
           userId: '2',
-          user: { id: '2', name: 'Luna Chen', avatar: undefined, streak: 12, karma: 890 },
+          user: { id: '2', name: 'Luna Chen', avatar: undefined, streak: 12, karma: 890, plantStage: 'BLOOM', plantState: 'HEALTHY' },
           role: 'ELDER',
           energySent: 320,
           energyReceived: 280,
@@ -75,7 +77,7 @@ export const TribeScreen: React.FC<TribeScreenProps> = ({ user, onClose, onSendE
         {
           id: '3',
           userId: '3',
-          user: { id: '3', name: 'Marco Silva', avatar: undefined, streak: 8, karma: 650 },
+          user: { id: '3', name: 'Marco Silva', avatar: undefined, streak: 8, karma: 650, plantStage: 'SAPLING', plantState: 'THIRSTY' },
           role: 'MEMBER',
           energySent: 180,
           energyReceived: 150,
@@ -84,7 +86,7 @@ export const TribeScreen: React.FC<TribeScreenProps> = ({ user, onClose, onSendE
         {
           id: '4',
           userId: '4',
-          user: { id: '4', name: 'Sofia Ramalho', avatar: undefined, streak: 15, karma: 1200 },
+          user: { id: '4', name: 'Sofia Ramalho', avatar: undefined, streak: 15, karma: 1200, plantStage: 'TREE', plantState: 'HEALTHY' },
           role: 'MEMBER',
           energySent: 420,
           energyReceived: 380,
@@ -219,9 +221,14 @@ export const TribeScreen: React.FC<TribeScreenProps> = ({ user, onClose, onSendE
                           {member.user.streak} dias
                         </span>
                         <span className="flex items-center gap-1">
-                          <Sparkles size={12} className="text-primary-500" />
                           {member.user.karma} karma
                         </span>
+                        {member.user.plantState === 'THIRSTY' && (
+                            <span className="flex items-center gap-1 text-amber-500 font-bold">
+                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                Precisa de Luz
+                            </span>
+                        )}
                       </div>
                     </div>
                     {!isCurrentUser && (

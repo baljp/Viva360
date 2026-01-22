@@ -120,33 +120,53 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: () => void }> 
 }
 
 export const SoulGarden: React.FC<{ user: UserType, onWater: () => void }> = ({ user, onWater }) => {
-  const stageIcons: Record<string, any> = { seed: Sprout, sprout: Leaf, bud: Flower, flower: Sparkles, tree: Trees, withered: Wind };
-  const stageKey = (user.plantStage || 'seed').toLowerCase();
+  const stageIcons: Record<string, any> = { seed: Sprout, sprout: Leaf, sapling: Flower, bloom: Sparkles, tree: Trees };
+  const stageKey = (user.plantStage || 'SEED').toLowerCase();
   const Icon = stageIcons[stageKey] || Sprout;
-  const stageLabels = { seed: 'Semente', sprout: 'Brotar', bud: 'Botão', flower: 'Florescer', tree: 'Árvore', withered: 'Renascimento' };
+  const stageLabels: Record<string, string> = { seed: 'Semente', sprout: 'Brotar', sapling: 'Muda', bloom: 'Florescer', tree: 'Árvore' };
+  
+  // Plant State Logic
+  const isThirsty = (user.plantState || 'HEALTHY') === 'THIRSTY';
+  const stateColor = isThirsty ? 'text-amber-500' : 'text-primary-600';
+  const stateBg = isThirsty ? 'bg-amber-100/50' : 'bg-primary-50';
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[3.5rem] border border-nature-100 shadow-xl flex flex-col items-center text-center gap-6 relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-100/30 rounded-bl-[120px] transition-transform group-hover:scale-110"></div>
+    <div className={`bg-white/80 backdrop-blur-xl p-8 rounded-[3.5rem] border transition-all duration-700 shadow-xl flex flex-col items-center text-center gap-6 relative overflow-hidden group ${isThirsty ? 'border-amber-200 shadow-amber-900/10' : 'border-nature-100'}`}>
+      <div className={`absolute top-0 right-0 w-32 h-32 rounded-bl-[120px] transition-transform group-hover:scale-110 ${isThirsty ? 'bg-amber-100/30' : 'bg-primary-100/30'}`}></div>
+      
       <div className="relative">
-          <div className="absolute inset-0 bg-primary-400/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
-          <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center text-primary-600 relative z-10 border border-primary-100 shadow-inner group-hover:rotate-12 transition-transform duration-700">
-            <Icon size={40} />
+          <div className={`absolute inset-0 blur-3xl rounded-full scale-150 animate-pulse ${isThirsty ? 'bg-amber-400/20' : 'bg-primary-400/20'}`}></div>
+          <div className={`w-24 h-24 rounded-full flex items-center justify-center relative z-10 border shadow-inner group-hover:rotate-12 transition-transform duration-700 ${stateBg} ${isThirsty ? 'border-amber-200' : 'border-primary-100'}`}>
+            <Icon size={48} className={`transition-colors duration-500 ${stateColor} ${isThirsty ? 'animate-pulse-slow' : ''}`} />
           </div>
+          {isThirsty && (
+              <div className="absolute -top-2 -right-2 bg-amber-500 text-white p-2 rounded-full shadow-lg animate-bounce z-20">
+                  <Droplets size={16} fill="currentColor" />
+              </div>
+          )}
       </div>
+
       <div className="space-y-1 relative z-10">
-          <h3 className="text-xl font-serif italic text-nature-900">Jardim da Alma</h3>
+          <h3 className="text-2xl font-serif italic text-nature-900">Jardim da Alma</h3>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-[9px] font-bold text-primary-700 uppercase tracking-widest">{stageLabels[user.plantStage || 'seed']}</span>
+            <span className="text-[10px] font-bold text-primary-700 uppercase tracking-widest">{stageLabels[stageKey] || stageLabels['seed']}</span>
             <span className="w-1 h-1 bg-nature-200 rounded-full"></span>
-            <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Nível {Math.floor((user.plantXp || 0) / 20) + 1}</span>
+            <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Nível {Math.floor((user.plantXp || 0) / 20) + 1}</span>
           </div>
       </div>
+
       <div className="w-full max-w-[160px] h-2 bg-nature-100 rounded-full overflow-hidden border border-nature-200 shadow-inner">
-        <div className="h-full bg-gradient-to-r from-primary-400 to-primary-600 transition-all duration-[2000ms]" style={{ width: `${(user.plantXp || 0) % 100}%` }}></div>
+        <div className={`h-full transition-all duration-[2000ms] ${isThirsty ? 'bg-amber-400' : 'bg-gradient-to-r from-primary-400 to-primary-600'}`} style={{ width: `${(user.plantXp || 0) % 100}%` }}></div>
       </div>
-      <button onClick={onWater} className="px-6 py-3 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-[0.3em] flex items-center gap-2 hover:bg-black transition-all active:scale-95 shadow-lg group">
-        <Droplets size={14} className="group-hover:animate-bounce" /> Regar Essência
+
+      <button 
+        onClick={onWater} 
+        className={`px-8 py-4 rounded-xl text-[10px] font-bold uppercase tracking-[0.3em] flex items-center gap-2 transition-all active:scale-95 shadow-lg relative overflow-hidden group/btn ${isThirsty ? 'bg-amber-500 text-white animate-pulse-gentle hover:bg-amber-600' : 'bg-nature-900 text-white hover:bg-black'}`}
+      >
+        <span className="relative z-10 flex items-center gap-2">
+            <Droplets size={14} className={isThirsty ? "animate-bounce" : "group-hover/btn:animate-bounce"} /> 
+            {isThirsty ? "Regar Agora" : "Nutrir Essência"}
+        </span>
       </button>
     </div>
   );

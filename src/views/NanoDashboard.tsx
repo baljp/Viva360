@@ -1,102 +1,176 @@
 
-import React from 'react';
-import { User, ViewState, Product } from '../types';
-import { NanoCard, NanoButton } from '../components/common/NanoComponents';
-import { Sparkles, Calendar, Zap, ArrowRight, Play, ShoppingBag } from 'lucide-react';
+import React, { useState } from 'react';
+import { User, ViewState, Product, MoodType } from '../types';
+import { DynamicAvatar, PortalCard, Card, SoulGarden, MoodTracker, ZenToast } from '../components/Common';
+import { Sparkles, Calendar, Zap, ArrowRight, Play, ShoppingBag, Moon, Sun, Camera, Activity, Compass, Heart, Map as MapIcon, User as UserIcon } from 'lucide-react';
+import { api } from '../services/api';
 
 interface NanoDashboardProps {
   user: User;
   setView: (view: ViewState) => void;
   onAddToCart: (product: Product) => void;
+  onMoodSelect: (mood: MoodType) => void;
+  onCheckIn: () => void;
 }
 
-export const NanoDashboard: React.FC<NanoDashboardProps> = ({ user, setView, onAddToCart }) => {
+export const NanoDashboard: React.FC<NanoDashboardProps> = ({ user, setView, onAddToCart, onMoodSelect, onCheckIn }) => {
+  const [period, setPeriod] = useState<'SEMANA' | 'MÊS'>('SEMANA');
+  const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+
+  // Helper to handle mood selection
+  const handleMoodSelect = (mood: MoodType) => {
+      onMoodSelect(mood);
+      // Toast potentially handled by parent, or local feedback? Parent handles it in ClientViews
+  };
+
+  // Helper to handle check-in
+  const handleCheckIn = () => {
+       onCheckIn();
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      
-      {/* Header Section */}
-      <div className="flex justify-between items-end">
-        <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-nano-400 bg-clip-text text-transparent">
-                Hello, {user.name.split(' ')[0]}.
-            </h1>
-            <p className="text-nano-400 mt-2">Your frequency is rising today.</p>
-        </div>
-        <div className="hidden sm:block">
-             <div className="text-right">
-                <span className="text-sm text-nano-500 uppercase tracking-widest font-bold">Karma Balance</span>
-                <p className="text-2xl font-bold text-banana-400">{user.karma || 0} pts</p>
-             </div>
-        </div>
-      </div>
-
-      {/* Hero / Next Action */}
-      <NanoCard className="relative overflow-hidden group hover:border-banana-400/50 transition-colors">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-banana-400/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 group-hover:bg-banana-400/10 transition-colors"></div>
-        <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-                <div className="flex items-center gap-2 mb-3">
-                    <span className="px-2 py-1 bg-banana-400/10 rounded-md text-xs font-bold text-banana-400 uppercase tracking-wider">Next Ritual</span>
-                    <span className="text-nano-400 text-xs">Today, 14:00</span>
-                </div>
-                <h3 className="text-2xl font-bold text-white mb-1">Energy Alignment</h3>
-                <p className="text-nano-400 max-w-md">Master Alchemist Sarah is waiting for your session.</p>
+    <div className="flex flex-col animate-in fade-in pb-24 selection:bg-primary-500 selection:text-white pt-24 space-y-8 px-4 sm:px-6">
+        {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+        
+        {/* HEADER */}
+        <header className="flex items-center justify-between mb-2">
+            <div className="space-y-1.5">
+                <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">BUSCADOR • NÍVEL {Math.floor((user.plantXp || 0) / 100) + 1}</p>
+                <h1 className="text-4xl font-serif font-medium text-nature-900 leading-tight">Salve, Viajante</h1>
             </div>
-            <NanoButton onClick={() => setView(ViewState.CLIENT_VIDEO_SESSION)} icon={Play} className="w-full md:w-auto shadow-[0_0_20px_rgba(250,204,21,0.2)]">
-                Start Session
-            </NanoButton>
-        </div>
-      </NanoCard>
+            <button onClick={() => setView(ViewState.SETTINGS)} className="w-16 h-16 rounded-[2rem] border-[4px] border-white shadow-xl shadow-nature-900/10 overflow-hidden active:scale-95 transition-all hover:rotate-3">
+                <img src={user.avatar} className="w-full h-full object-cover" />
+            </button>
+        </header>
 
-      {/* Quick Actions Grid using Bento Grid Style */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Marketplace Highlight */}
-        <NanoCard className="col-span-1 md:col-span-2 bg-gradient-to-br from-nano-800 to-nano-900 border-white/5 p-0 relative overflow-hidden group cursor-pointer" onClick={() => setView(ViewState.CLIENT_MARKETPLACE)}>
-            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1618331835717-801e976710b2?q=80&w=1000&auto=format&fit=crop')] bg-cover bg-center opacity-30 group-hover:opacity-40 transition-opacity"></div>
-            <div className="absolute inset-0 bg-gradient-to-t from-nano-950 via-nano-950/50 to-transparent"></div>
-            <div className="relative p-6 h-64 flex flex-col justify-end">
-                <h3 className="text-xl font-bold text-white mb-1">Elixirs & Rituals</h3>
-                <p className="text-nano-300 text-sm mb-4">Discover potent tools for your journey.</p>
-                <div className="flex items-center gap-2 text-banana-400 text-sm font-bold group-hover:translate-x-2 transition-transform">
-                    Explore Shop <ArrowRight size={16} />
-                </div>
-            </div>
-        </NanoCard>
+        {/* MOOD TRACKER */}
+        <MoodTracker currentMood={user.lastMood} onSelect={handleMoodSelect} />
 
-        {/* Tribe / Social */}
-        <NanoCard className="col-span-1 bg-nano-800 p-6 flex flex-col justify-between group cursor-pointer hover:border-white/20" onClick={() => setView(ViewState.CLIENT_TRIBO)}>
-             <div>
-                <div className="w-10 h-10 bg-sky-500/10 rounded-xl flex items-center justify-center text-sky-400 mb-4">
-                    <Sparkles size={20} />
+        {/* JARDIM DA ALMA */}
+        <SoulGarden user={user} onWater={() => setToast({ title: "Essência Nutrid", message: "Sua planta agradece o cuidado." })} />
+
+        {/* BENÇÃO DO DIA (Card Version) */}
+        <div className="relative overflow-hidden bg-white rounded-[3.5rem] p-10 shadow-sm border border-nature-100 text-center space-y-6">
+             <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-amber-50 to-transparent opacity-50 pointer-events-none"></div>
+             <div className="relative">
+                <div className="w-24 h-24 bg-amber-100/50 rounded-full flex items-center justify-center mx-auto text-amber-500 shadow-inner">
+                    <Sun size={48} className="animate-spin-slow" />
                 </div>
-                <h3 className="text-lg font-bold text-white">Your Tribe</h3>
-                <p className="text-nano-400 text-sm mt-1">3 new members joined.</p>
+                 <div className="absolute -top-2 -right-2 bg-primary-600 text-white p-2 rounded-full shadow-lg"><Zap size={16} fill="currentColor"/></div>
              </div>
-             <div className="mt-4 flex -space-x-3">
-                {[1,2,3].map(i => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-nano-700 border-2 border-nano-800 flex items-center justify-center text-xs text-white">
-                        U{i}
+             <div className="space-y-2 relative z-10">
+                <h3 className="text-3xl font-serif italic text-nature-900">Bênção do Dia</h3>
+                <p className="text-sm text-nature-500 leading-relaxed italic max-w-xs mx-auto">"Sua energia é o motor deste ecossistema. Receba sua luz diária."</p>
+            </div>
+             <div className="bg-nature-50 p-4 rounded-3xl border border-nature-100 relative z-10">
+                <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mb-1">Recompensa</p>
+                <p className="text-2xl font-serif text-primary-700">+{50 * (user.multiplier || 1)} Karma</p>
+            </div>
+             <button onClick={handleCheckIn} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all relative z-10 hover:bg-black">Sintonizar Agora</button>
+        </div>
+
+        {/* VISUAL RECORD (Minha Metamorfose) */}
+        <Card className="p-8 space-y-6">
+            <div className="flex justify-between items-center">
+                 <div>
+                    <h3 className="text-2xl font-serif italic text-nature-900">Minha Metamorfose</h3>
+                    <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mt-1">REGISTRO VISUAL</p>
+                 </div>
+                 <div className="flex bg-nature-50 rounded-full p-1 border border-nature-100">
+                     {(['SEMANA', 'MÊS'] as const).map(p => (
+                         <button 
+                            key={p} 
+                            onClick={() => setPeriod(p)}
+                            className={`px-4 py-2 rounded-full text-[9px] font-bold uppercase tracking-widest transition-all ${period === p ? 'bg-white text-nature-900 shadow-sm' : 'text-nature-400 hover:text-nature-600'}`}
+                         >
+                             {p}
+                         </button>
+                     ))}
+                 </div>
+            </div>
+
+            <div className="grid grid-cols-4 gap-3">
+                {/* Mock Photos */}
+                {[1,2,3,4].map((i) => (
+                    <div key={i} className="aspect-[3/4] rounded-2xl overflow-hidden relative group cursor-pointer">
+                        <img src={`https://images.unsplash.com/photo-${1500000000000 + i * 1000}?w=400&h=600&fit=crop`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
                     </div>
                 ))}
+            </div>
+             
+             <div className="grid grid-cols-4 gap-3">
+                 {[1,2,3,4].map(i => (
+                     <button key={i} className="aspect-[3/4] rounded-2xl border-2 border-dashed border-nature-200 flex items-center justify-center text-nature-300 hover:text-primary-500 hover:border-primary-200 transition-all hover:bg-primary-50">
+                         <Camera size={20} />
+                     </button>
+                 ))}
              </div>
-        </NanoCard>
+        </Card>
 
-        {/* Stats / Progress */}
-        <NanoCard className="col-span-1 md:col-span-3 bg-nano-800 p-6 flex items-center justify-between">
+        {/* FREQUENCY ANALYSIS */}
+        <Card className="p-8 text-center space-y-6 relative overflow-hidden">
+             <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto text-primary-600 relative z-10">
+                 <Activity size={32}/>
+             </div>
+             
+             <div className="space-y-2 relative z-10">
+                 <h3 className="text-2xl font-serif italic text-nature-900">Análise de Frequência</h3>
+                 <p className="text-sm text-nature-500 leading-relaxed max-w-sm mx-auto">Seus padrões sugerem uma evolução gradual da serenidade esta semana. Continue regando sua essência.</p>
+             </div>
+
+             {/* Simple Frequency Chart Visualization */}
+             <div className="h-32 flex items-end justify-center gap-3 pt-6 relative z-10 px-4">
+                 {[40, 65, 45, 80, 55, 70, 60].map((h, i) => (
+                     <div key={i} className="w-full bg-nature-100 rounded-t-xl relative group overflow-hidden">
+                         <div className="absolute bottom-0 left-0 w-full bg-primary-300 transition-all duration-1000 group-hover:bg-primary-400" style={{ height: `${h}%` }}></div>
+                     </div>
+                 ))}
+             </div>
+        </Card>
+
+        {/* MOMENTO PRESENTE (Grid) */}
+        <div className="space-y-4">
              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center text-green-400">
-                    <Zap size={24} />
-                </div>
-                <div>
-                    <p className="text-sm text-nano-400 uppercase tracking-widest font-bold">Current Streak</p>
-                    <h3 className="text-2xl font-bold text-white">{user.streak || 0} Days</h3>
-                </div>
+                <div className="h-px bg-nature-200 flex-1"></div>
+                <span className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">MOMENTO PRESENTE</span>
+                <div className="h-px bg-nature-200 flex-1"></div>
              </div>
-             <div className="h-2 w-32 bg-nano-700 rounded-full overflow-hidden">
-                <div className="h-full bg-green-500 w-3/4"></div>
+             
+             <div className="grid grid-cols-2 gap-4">
+                 <PortalCard 
+                    title="Explorar" 
+                    subtitle="MAPA DE CURA" 
+                    icon={Compass} 
+                    bgImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=600" 
+                    onClick={() => setView(ViewState.CLIENT_EXPLORE)} 
+                />
+                 <PortalCard 
+                    title="Bazar" 
+                    subtitle="FERRAMENTAS" 
+                    icon={ShoppingBag} 
+                    bgImage="https://images.unsplash.com/photo-1455165814004-1126a7199f9b?q=80&w=600" 
+                    onClick={() => setView(ViewState.CLIENT_MARKETPLACE)} 
+                    delay={100}
+                />
+                 <PortalCard 
+                    title="Metamorfose" 
+                    subtitle="JORNADA" 
+                    icon={Sparkles} 
+                    bgImage="https://images.unsplash.com/photo-1469474968028-56623f02e42e?q=80&w=600" 
+                    onClick={() => setView(ViewState.CLIENT_JOURNEY)} 
+                    delay={200}
+                />
+                 <PortalCard 
+                    title="Tribo" 
+                    subtitle="SINCRO" 
+                    icon={Heart} 
+                    bgImage="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=600" 
+                    onClick={() => setView(ViewState.CLIENT_TRIBO)} 
+                    delay={300}
+                />
              </div>
-        </NanoCard>
-      </div>
+        </div>
 
     </div>
   );
