@@ -1,0 +1,53 @@
+name: Enterprise CI Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  quality-check:
+    name: 🛡️ Type Check & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          
+      - name: Install Architecture Deps
+        run: npm ci
+        
+      - name: TypeScript Check (Frontend)
+        run: npm run build # Vite build runs tsc
+        
+      - name: TypeScript Check (Backend)
+        working-directory: ./backend
+        run: |
+          npm ci
+          npm run build
+
+  unit-test:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    needs: quality-check
+    steps:
+      - uses: actions/checkout@v3
+      # Ideally run backend tests here (Jest/Vitest)
+      - name: Run Backend Tests
+        working-directory: ./backend
+        run: echo "Mocking test run - Implement Jest later" 
+
+  docker-build:
+    name: 🐳 Docker Build Verify
+    runs-on: ubuntu-latest
+    needs: unit-test
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build Backend Image
+        run: docker build -t viva360-backend ./backend

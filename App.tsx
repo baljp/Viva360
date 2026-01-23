@@ -1,20 +1,33 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { User, UserRole, ViewState, Professional, CartItem, Product, Appointment } from './types';
 import Layout from './components/Layout';
-import Auth from './views/Auth';
-import { ClientViews } from './views/ClientViews';
-import { ProViews } from './views/ProViews';
-import { SpaceViews } from './views/SpaceViews';
-import { SettingsViews } from './views/SettingsViews';
-import { RegistrationViews } from './views/Registration';
-import { OnboardingTutorial } from './components/Onboarding';
-import { CartDrawer, CheckoutScreen, SuccessScreen } from './components/Checkout';
-import { VideoSessionView, OrdersListView } from './views/ServiceViews';
+import { SmartTutorial } from './components/SmartTutorial';
+import { CartDrawer } from './components/Checkout'; // Keep lightweight components eager
 import { api } from './services/api';
 import { supabase } from './lib/supabase';
 import { ZenToast } from './components/Common';
 
+// Lazy Load Views
+const Auth = lazy(() => import('./views/Auth'));
+const ClientViews = lazy(() => import('./views/ClientViews').then(module => ({ default: module.ClientViews })));
+const ProViews = lazy(() => import('./views/ProViews').then(module => ({ default: module.ProViews })));
+const SpaceViews = lazy(() => import('./views/SpaceViews').then(module => ({ default: module.SpaceViews })));
+const SettingsViews = lazy(() => import('./views/SettingsViews').then(module => ({ default: module.SettingsViews })));
+const RegistrationViews = lazy(() => import('./views/Registration').then(module => ({ default: module.RegistrationViews })));
+const CheckoutScreen = lazy(() => import('./components/Checkout').then(module => ({ default: module.CheckoutScreen })));
+const SuccessScreen = lazy(() => import('./components/Checkout').then(module => ({ default: module.SuccessScreen })));
+const OrdersListView = lazy(() => import('./views/ServiceViews').then(module => ({ default: module.OrdersListView })));
+
+// Loading Component
+const PageLoader = () => (
+  <div className="h-full w-full flex items-center justify-center min-h-[50vh]">
+    <div className="w-8 h-8 border-4 border-nature-200 border-t-nature-900 rounded-full animate-spin"></div>
+  </div>
+);
+
+// Splash Screen Component (Keep eager)
 const Splash: React.FC = () => (
   <div className="h-screen w-full bg-nature-900 flex flex-col items-center justify-center text-white animate-in fade-in duration-1000">
     <div className="relative mb-8">
@@ -29,158 +42,218 @@ const Splash: React.FC = () => (
 );
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentView, setCurrentView] = useState<ViewState>(ViewState.SPLASH);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [toast, setToast] = useState<{title: string, message: string} | null>(null);
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const user = await api.auth.getCurrentSession();
-        if (user) {
-            setCurrentUser(user);
-            const homeView = user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME;
-            setCurrentView(homeView);
-        } else {
-            setCurrentView(ViewState.LOGIN);
-        }
-      } catch (e) {
-        console.error("Erro na inicialização:", e);
-        setCurrentView(ViewState.LOGIN);
-      }
-      setIsLoading(false);
-    };
-    init();
-  }, []);
-
-  const addToCart = (p: Product) => {
-    setCart(prev => {
-        const exist = prev.find(x => x.id === p.id);
-        if (exist) return prev.map(x => x.id === p.id ? {...x, quantity: x.quantity + 1} : x);
-        return [...prev, {...p, quantity: 1}];
-    });
-    setIsCartOpen(true);
-  };
-
-  const removeFromCart = (id: string) => {
-      setCart(c => c.filter(x => x.id !== id));
-      setToast({ title: "Item Removido", message: "O item foi devolvido ao fluxo." });
-  };
-
-  const processCheckout = async () => {
-    if (!currentUser) return;
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [cart, setCart] = useState<CartItem[]>([]);
+    const [isCartOpen, setIsCartOpen] = useState(false);
+    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     
-    try {
-        for (const item of cart) {
-            const itemTotal = item.price * item.quantity;
-            let providerId = item.ownerId;
+    const navigate = useNavigate();
+    const location = useLocation();
 
-            if (item.type === 'service') {
-                const proId = item.id.split('_')[1] || 'pro_0';
-                providerId = proId;
-                const pro = (await api.professionals.list()).find(p => p.id === proId);
-                
-                await api.appointments.create({
-                    id: `a_${Date.now()}_${item.id}`,
-                    clientId: currentUser.id,
-                    clientName: currentUser.name,
-                    professionalId: proId,
-                    professionalName: pro?.name || "Guardião",
-                    serviceName: item.name.replace('Ritual: ', ''),
-                    price: item.price,
-                    date: new Date().toISOString(),
-                    time: "14:00",
-                    status: 'pending'
-                });
+    // Mapping URL path to ViewState for backwards compatibility
+    const getCurrentViewFromPath = (): ViewState => {
+        const path = location.pathname;
+        if (path === '/login') return ViewState.LOGIN;
+        if (path === '/register') return ViewState.REGISTER;
+        
+        // Client Routes
+        if (path === '/client/home') return ViewState.CLIENT_HOME;
+        if (path === '/client/journey') return ViewState.CLIENT_JOURNEY;
+        if (path === '/client/explore') return ViewState.CLIENT_EXPLORE;
+        if (path === '/client/tribe') return ViewState.CLIENT_TRIBO;
+        if (path === '/client/orders') return ViewState.CLIENT_ORDERS;
+        if (path === '/checkout') return ViewState.CLIENT_CHECKOUT;
+        if (path === '/checkout/success') return ViewState.CLIENT_CHECKOUT_SUCCESS;
+
+        // Pro Routes
+        if (path === '/pro/home') return ViewState.PRO_HOME;
+        if (path === '/pro/patients') return ViewState.PRO_PATIENTS;
+        if (path === '/pro/agenda') return ViewState.PRO_AGENDA;
+        if (path === '/pro/marketplace') return ViewState.PRO_MARKETPLACE;
+        if (path === '/pro/network') return ViewState.PRO_NETWORK;
+        if (path === '/pro/finance') return ViewState.PRO_FINANCE;
+        if (path === '/pro/opportunities') return ViewState.PRO_OPPORTUNITIES;
+
+        // Space Routes
+        if (path === '/space/home') return ViewState.SPACE_HOME;
+        if (path === '/space/team') return ViewState.SPACE_TEAM;
+        if (path === '/space/team') return ViewState.SPACE_TEAM;
+        if (path === '/space/recruitment') return ViewState.SPACE_RECRUITMENT;
+        if (path === '/space/finance') return ViewState.SPACE_FINANCE;
+        if (path === '/space/marketplace') return ViewState.SPACE_MARKETPLACE;
+        if (path === '/space/rooms') return ViewState.SPACE_ROOMS;
+
+        // Settings
+        if (path === '/settings') return ViewState.SETTINGS;
+        if (path === '/settings/profile') return ViewState.SETTINGS_PROFILE;
+        if (path === '/settings/wallet') return ViewState.SETTINGS_WALLET;
+        if (path === '/settings/notifications') return ViewState.SETTINGS_NOTIFICATIONS;
+        if (path === '/settings/security') return ViewState.SETTINGS_SECURITY;
+
+        return ViewState.SPLASH; 
+    };
+
+    const currentView = getCurrentViewFromPath();
+
+    // Navigation Helper
+    const setView = (view: ViewState) => {
+        switch(view) {
+            case ViewState.LOGIN: navigate('/login'); break;
+            case ViewState.REGISTER: navigate('/register'); break;
+            case ViewState.CLIENT_HOME: navigate('/client/home'); break;
+            case ViewState.CLIENT_JOURNEY: navigate('/client/journey'); break;
+            case ViewState.CLIENT_EXPLORE: navigate('/client/explore'); break;
+            case ViewState.CLIENT_TRIBO: navigate('/client/tribe'); break;
+            case ViewState.CLIENT_ORDERS: navigate('/client/orders'); break;
+            case ViewState.CLIENT_CHECKOUT: navigate('/checkout'); break;
+            case ViewState.CLIENT_CHECKOUT_SUCCESS: navigate('/checkout/success'); break;
+            case ViewState.PRO_HOME: navigate('/pro/home'); break;
+            case ViewState.PRO_PATIENTS: navigate('/pro/patients'); break;
+            case ViewState.PRO_AGENDA: navigate('/pro/agenda'); break;
+            case ViewState.PRO_MARKETPLACE: navigate('/pro/marketplace'); break;
+            case ViewState.PRO_NETWORK: navigate('/pro/network'); break;
+            case ViewState.PRO_FINANCE: navigate('/pro/finance'); break;
+            case ViewState.PRO_OPPORTUNITIES: navigate('/pro/opportunities'); break;
+            case ViewState.SPACE_HOME: navigate('/space/home'); break;
+            case ViewState.SPACE_TEAM: navigate('/space/team'); break;
+            case ViewState.SPACE_TEAM: navigate('/space/team'); break;
+            case ViewState.SPACE_RECRUITMENT: navigate('/space/recruitment'); break;
+            case ViewState.SPACE_FINANCE: navigate('/space/finance'); break;
+            case ViewState.SPACE_MARKETPLACE: navigate('/space/marketplace'); break;
+            case ViewState.SPACE_ROOMS: navigate('/space/rooms'); break;
+            case ViewState.SETTINGS: navigate('/settings'); break;
+            case ViewState.SETTINGS_PROFILE: navigate('/settings/profile'); break;
+            case ViewState.SETTINGS_WALLET: navigate('/settings/wallet'); break;
+            case ViewState.SETTINGS_NOTIFICATIONS: navigate('/settings/notifications'); break;
+            case ViewState.SETTINGS_SECURITY: navigate('/settings/security'); break;
+            default: break; 
+        }
+    };
+
+    useEffect(() => {
+        const init = async () => {
+            try {
+                const user = await api.auth.getCurrentSession();
+                if (user) {
+                    setCurrentUser(user);
+                    if (location.pathname === '/' || location.pathname === '/login') {
+                        const homePath = user.role === UserRole.CLIENT ? '/client/home' : user.role === UserRole.PROFESSIONAL ? '/pro/home' : '/space/home';
+                        navigate(homePath);
+                    }
+                } else {
+                    if (location.pathname !== '/register') {
+                        navigate('/login');
+                    }
+                }
+            } catch (e) {
+                console.error("Initialization Error", e);
+                navigate('/login');
             }
+            setIsLoading(false);
+        };
+        init();
+    }, []);
 
-            await api.payment.checkout(itemTotal, `Compra: ${item.name}`, providerId);
+    const addToCart = (p: Product) => {
+        setCart(prev => {
+            const exist = prev.find(x => x.id === p.id);
+            if (exist) return prev.map(x => x.id === p.id ? {...x, quantity: x.quantity + 1} : x);
+            return [...prev, {...p, quantity: 1}];
+        });
+        setIsCartOpen(true);
+    };
+
+    const removeFromCart = (id: string) => {
+        setCart(c => c.filter(x => x.id !== id));
+        setToast({ title: "Item Removido", message: "O item foi devolvido ao fluxo." });
+    };
+
+    const processCheckout = async () => {
+        if (!currentUser) return;
+        try {
+            const checkoutPromises = cart.map(async (item) => {
+                const itemTotal = item.price * item.quantity;
+                let providerId = item.ownerId;
+                if (item.type === 'service') {
+                    const proId = item.id.split('_')[1] || 'pro_0';
+                    providerId = proId;
+                    const pro = (await api.professionals.list()).find(p => p.id === proId);
+                    await api.appointments.create({
+                        id: `a_${Date.now()}_${item.id}`,
+                        clientId: currentUser.id, clientName: currentUser.name, professionalId: proId,
+                        professionalName: pro?.name || "Guardião", serviceName: item.name.replace('Ritual: ', ''),
+                        price: item.price, date: new Date().toISOString(), time: "14:00", status: 'pending'
+                    });
+                }
+                return api.payment.checkout(itemTotal, `Compra: ${item.name}`, providerId);
+            });
+
+            await Promise.all(checkoutPromises);
+
+            const updatedUser = await api.users.getById(currentUser.id);
+            if (updatedUser) setCurrentUser(updatedUser);
+            
+            setCart([]);
+            navigate('/checkout/success');
+        } catch (e: any) {
+            console.error("Checkout Error", e);
+            setToast({ title: "Fluxo Interrompido", message: e.message || "Erro no sistema." });
         }
+    };
 
-        const updatedUser = await api.users.getById(currentUser.id);
-        if (updatedUser) {
-            setCurrentUser(updatedUser);
-        }
-        
-        setCart([]);
-        setCurrentView(ViewState.CLIENT_CHECKOUT_SUCCESS);
-        
-    } catch (e: any) {
-        console.error("Erro no checkout:", e);
-        setToast({ title: "Fluxo Interrompido", message: e.message || "Saldo insuficiente ou erro no sistema." });
-    }
-  };
-
-  if (isLoading) return <Splash />;
-
-  let content = null;
-
-  if (!currentUser) {
-    content = <Auth onLogin={(u) => { 
-        if(u) {
-            setCurrentUser(u);
-            setCurrentView(u.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : u.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : u.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN);
-        }
-    }} setView={setCurrentView} />;
-  } else if (currentView === ViewState.CLIENT_CHECKOUT) {
-    content = <CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} onSuccess={processCheckout} onCancel={() => setCurrentView(ViewState.CLIENT_HOME)} />;
-  } else if (currentView === ViewState.CLIENT_CHECKOUT_SUCCESS) {
-    content = <SuccessScreen onHome={() => setCurrentView(ViewState.CLIENT_HOME)} />;
-  } else if (currentView === ViewState.CLIENT_ORDERS) {
-    content = <OrdersListView user={currentUser} onBack={() => setCurrentView(currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : currentUser.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME)} setView={setCurrentView} />;
-  } else if (currentView === ViewState.CLIENT_VIDEO_SESSION) {
-     content = <VideoSessionView appointment={{} as Appointment} onEnd={() => setCurrentView(currentUser.role === UserRole.CLIENT ? ViewState.CLIENT_ORDERS : ViewState.PRO_HOME)} />;
-  } else if (currentView.startsWith('SETTINGS')) {
-     content = <SettingsViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onLogout={async () => {
+    const handleLogout = async () => {
         await supabase.auth.signOut();
         setCurrentUser(null);
-        setCurrentView(ViewState.LOGIN);
-     }} />;
-  } else if (currentView.startsWith('REGISTER')) {
-    content = <RegistrationViews view={currentView} setView={setCurrentView} onRegister={async (u) => { const user = await api.auth.register(u); setCurrentUser(user); setCurrentView(user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : user.role === UserRole.SPACE ? ViewState.SPACE_HOME : ViewState.LOGIN); }} />;
-  } else {
-    switch(currentUser.role) {
-        case UserRole.CLIENT: 
-            content = <ClientViews user={currentUser} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} onAddToCart={addToCart} />; 
-            break;
-        case UserRole.PROFESSIONAL: 
-            content = <ProViews user={currentUser as Professional} view={currentView} setView={setCurrentView} updateUser={setCurrentUser} />; 
-            break;
-        case UserRole.SPACE: 
-            content = <SpaceViews user={currentUser} view={currentView} setView={setCurrentView} />; 
-            break;
-        default: 
-            content = <div className="p-12 text-center italic text-nature-400">Sincronia de perfil não identificada.</div>;
-    }
-  }
+        navigate('/login');
+    };
 
-  // LISTA COMPLETA DE SUB-VIEWS QUE USAM PORTALVIEW (FullScreen) PARA OCULTAR NAV PADRÃO
-  const shouldHideNav = isCartOpen || !currentUser || [
-    ViewState.SPLASH, ViewState.LOGIN, ViewState.CLIENT_RITUAL, ViewState.CLIENT_VIDEO_SESSION,
-    ViewState.CLIENT_CHECKOUT, ViewState.CLIENT_CHECKOUT_SUCCESS, ViewState.CLIENT_PRO_DETAILS,
-    ViewState.CLIENT_PRODUCT_DETAILS, ViewState.CLIENT_JOURNEY, ViewState.CLIENT_EXPLORE,
-    ViewState.CLIENT_MARKETPLACE, ViewState.CLIENT_TRIBO, ViewState.PRO_PATIENT_DETAILS,
-    ViewState.PRO_OPPORTUNITIES, ViewState.PRO_AGENDA, ViewState.PRO_NETWORK,
-    ViewState.PRO_MARKETPLACE, ViewState.PRO_FINANCE, ViewState.PRO_PATIENTS,
-    ViewState.SPACE_TEAM_DETAILS, ViewState.SPACE_VACANCY_DETAILS, ViewState.SPACE_MARKETPLACE,
-    ViewState.SPACE_FINANCE, ViewState.SPACE_TEAM, ViewState.SPACE_RECRUITMENT, ViewState.SPACE_ROOMS
-  ].includes(currentView) || currentView.startsWith('REGISTER') || currentView.startsWith('SETTINGS_');
+    if (isLoading) return <Splash />;
 
-  return (
-    <Layout user={currentUser} currentView={currentView} setView={setCurrentView} onLogout={async () => {
-        await supabase.auth.signOut();
-        setCurrentUser(null);
-        setCurrentView(ViewState.LOGIN);
-    }} shouldHideNav={shouldHideNav}>
-        {content}
-        {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={removeFromCart} onProceed={() => {setIsCartOpen(false); setCurrentView(ViewState.CLIENT_CHECKOUT)}} />
-        <OnboardingTutorial />
-    </Layout>
-  );
+    const shouldHideNav = isCartOpen || !currentUser || ['/', '/login', '/register', '/checkout', '/checkout/success'].includes(location.pathname);
+
+    return (
+        <Layout user={currentUser} currentView={currentView} setView={setView} onLogout={handleLogout} shouldHideNav={shouldHideNav}>
+            <Suspense fallback={<PageLoader />}>
+                <Routes>
+                    <Route path="/" element={<Navigate to="/login" replace />} />
+                    <Route path="/login" element={<Auth onLogin={(u) => { 
+                        setCurrentUser(u); 
+                        const home = u.role === UserRole.CLIENT ? '/client/home' : u.role === UserRole.PROFESSIONAL ? '/pro/home' : '/space/home';
+                        navigate(home);
+                    }} setView={setView} />} />
+                    
+                    <Route path="/register" element={<RegistrationViews view={currentView} setView={setView} onRegister={async (u) => { 
+                        const user = await api.auth.register(u); 
+                        setCurrentUser(user); 
+                        const home = user.role === UserRole.CLIENT ? '/client/home' : user.role === UserRole.PROFESSIONAL ? '/pro/home' : '/space/home';
+                        navigate(home);
+                    }} />} />
+
+                    {/* Client Routes */}
+                    <Route path="/client/*" element={(currentUser?.role === UserRole.CLIENT || (currentUser?.role as any) === 'CLIENT') ? <ClientViews user={currentUser} view={currentView} setView={setView} updateUser={setCurrentUser} onAddToCart={addToCart} /> : <Navigate to="/login" />} />
+                    <Route path="/checkout" element={<CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} onSuccess={processCheckout} onCancel={() => navigate(-1)} />} />
+                    <Route path="/checkout/success" element={<SuccessScreen onHome={() => navigate('/client/home')} />} />
+                    <Route path="/client/orders" element={<OrdersListView user={currentUser!} onBack={() => navigate('/client/home')} setView={setView} />} />
+
+                    {/* Pro Routes */}
+                    <Route path="/pro/*" element={(currentUser?.role === UserRole.PROFESSIONAL || (currentUser?.role as any) === 'PROFESSIONAL') ? <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={setCurrentUser} /> : <Navigate to="/login" />} />
+                    
+                    {/* Space Routes */}
+                    <Route path="/space/*" element={(currentUser?.role === UserRole.SPACE || (currentUser?.role as any) === 'SPACE') ? <SpaceViews user={currentUser} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
+
+                    {/* Shared Routes */}
+                    <Route path="/settings" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} />} />
+                    
+                    <Route path="*" element={<Navigate to="/" />} />
+                </Routes>
+            </Suspense>
+
+            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={removeFromCart} onProceed={() => {setIsCartOpen(false); navigate('/checkout');}} />
+            <SmartTutorial />
+        </Layout>
+    );
 };
 
 export default App;

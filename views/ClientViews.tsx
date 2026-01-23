@@ -67,6 +67,44 @@ export const ClientViews: React.FC<{
       }
   };
 
+  // --- VIEW: DETALHES DO GUARDIÃO ---
+  if (view === ViewState.CLIENT_PRO_DETAILS) {
+    if (!searchQuery && filteredPros.length > 0) {
+       // Mock detail view using the first pro if none selected contextually (simple fix for now)
+       const pro = filteredPros[0]; 
+       return (
+            <PortalView title="Guardião" subtitle={pro.name.toUpperCase()} onBack={() => setView(ViewState.CLIENT_EXPLORE)}>
+                <div className="space-y-6">
+                    <div className="flex flex-col items-center text-center space-y-4">
+                        <DynamicAvatar user={pro} size="xl" className="border-4 border-white shadow-xl" />
+                        <div>
+                            <h3 className="text-2xl font-serif italic text-nature-900">{pro.name}</h3>
+                            <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">{pro.specialty.join(' • ')}</p>
+                        </div>
+                        <div className="flex gap-4">
+                            <button className="px-6 py-3 bg-nature-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">Agendar Ritual</button>
+                            <button className="p-3 bg-nature-50 text-nature-600 rounded-2xl border border-nature-100 hover:bg-white transition-all"><MessageCircle size={20}/></button>
+                        </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
+                        <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Biografia</h4>
+                        <p className="text-sm text-nature-600 italic leading-relaxed px-2">"{pro.bio || 'Dedicado à cura integral e ao despertar da consciência através de práticas ancestrais e modernas.'}"</p>
+                    </div>
+                </div>
+            </PortalView>
+       );
+    }
+    // Fallback if no pro selected logic exists yet
+    return <PortalView title="Guardião" subtitle="DETALHES" onBack={() => setView(ViewState.CLIENT_EXPLORE)}><div className="text-center p-10 opacity-50">Selecione um Guardião no Mapa da Cura</div></PortalView>;
+  }
+
+  // --- VIEW: DETALHES DO PRODUTO ---
+  if (view === ViewState.CLIENT_PRODUCT_DETAILS) return (
+     <PortalView title="Detalhes" subtitle="ALQUIMIA" onBack={() => setView(ViewState.CLIENT_MARKETPLACE)}>
+         <div className="text-center p-10 opacity-50">Detalhes do produto em breve...</div>
+     </PortalView>
+  );
+
   // --- VIEW: METAMORFOSE (JOURNEY) ---
   if (view === ViewState.CLIENT_JOURNEY) return (
     <PortalView title="Metamorfose" subtitle="DIÁRIO VISUAL" onBack={() => setView(ViewState.CLIENT_HOME)}>
@@ -334,7 +372,7 @@ export const ClientViews: React.FC<{
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <button onClick={() => setView(ViewState.CLIENT_JOURNEY)} className="bg-white p-8 rounded-[3rem] border border-nature-100 shadow-sm flex flex-col items-center text-center space-y-4 group active:scale-95 transition-all hover:shadow-md">
+                <button id="metamorphosis-card" onClick={() => setView(ViewState.CLIENT_JOURNEY)} className="bg-white p-8 rounded-[3rem] border border-nature-100 shadow-sm flex flex-col items-center text-center space-y-4 group active:scale-95 transition-all hover:shadow-md">
                     <div className="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform"><Sunrise size={28}/></div>
                     <span className="text-[11px] font-bold text-nature-900 uppercase tracking-widest">Metamorfose</span>
                 </button>
@@ -347,7 +385,7 @@ export const ClientViews: React.FC<{
             <div className="space-y-4">
                 <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em] px-2 flex justify-between items-center">Portais da Cura <ArrowRight size={12}/></h4>
                 <div className="grid grid-cols-2 gap-4">
-                    <PortalCard title="Mapa da Cura" subtitle="EXPLORAR" icon={Compass} bgImage="https://images.unsplash.com/photo-1600618528240-fb9fc964b853?q=80&w=600" onClick={() => setView(ViewState.CLIENT_EXPLORE)} />
+                    <PortalCard id="body-map-card" title="Mapa da Cura" subtitle="EXPLORAR" icon={Compass} bgImage="https://images.unsplash.com/photo-1600618528240-fb9fc964b853?q=80&w=600" onClick={() => setView(ViewState.CLIENT_EXPLORE)} />
                     <PortalCard title="Bazar" subtitle="FARMÁCIA" icon={ShoppingBag} bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=600" onClick={() => setView(ViewState.CLIENT_MARKETPLACE)} delay={100} />
                 </div>
             </div>

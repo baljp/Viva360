@@ -13,7 +13,7 @@ interface AuthProps {
 const OnboardingCarousel: React.FC = () => {
     const slides = [
         {
-            image: 'https://images.unsplash.com/photo-1540331580430-3980b24445a5?q=80&w=1200&auto=format&fit=crop',
+            image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=1200&auto=format&fit=crop',
             subtitle: 'Sincronia',
             title: 'Uma jornada de dentro para fora.',
             text: 'Conecte-se com sua essência e encontre o equilíbrio entre corpo, mente e energia.'
@@ -48,6 +48,8 @@ const OnboardingCarousel: React.FC = () => {
                     <div className="absolute inset-0 overflow-hidden">
                         <img 
                             src={slide.image} 
+                            crossOrigin="anonymous"
+                            onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x800/1a211d/FFF?text=Viva360'; }}
                             className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${index === currentSlide ? 'scale-110' : 'scale-100'}`} 
                             alt="Onboarding" 
                         />
