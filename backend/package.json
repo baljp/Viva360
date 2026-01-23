@@ -1,0 +1,39 @@
+{
+  "name": "viva360-backend",
+  "version": "1.0.0",
+  "description": "Enterprise-grade Node.js backend for Viva360",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "ts-node-dev -r dotenv/config --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "lint": "eslint . --ext .ts",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.69.0",
+    "@opentelemetry/sdk-node": "^0.211.0",
+    "@supabase/supabase-js": "^2.39.0",
+    "axios": "^1.13.2",
+    "bullmq": "^5.66.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "ioredis": "^5.9.2",
+    "morgan": "^1.10.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/ioredis": "^4.28.10",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.10.0",
+    "eslint": "^8.54.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.2"
+  }
+}

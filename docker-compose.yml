@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # BACKEND SERVICE
+  api:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=development
+      # Connect to local postgres service
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/viva360
+      - SUPABASE_URL=http://studio:8000 # Mocking Supabase Local
+      # Redis for Cache/Queue
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev # Overwrite prod command for dev hot-reload
+
+  # FRONTEND SERVICE
+  web:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /app/backend/node_modules # Exclusion
+    ports:
+      - "5173:5173"
+    command: sh -c "npm install && npm run dev -- --host"
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    depends_on:
+      - api
+
+  # DATABASE (Postgres)
+  db:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: viva360
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Auto-run init scripts
+      - ./supabase_setup.sql:/docker-entrypoint-initdb.d/10-schema.sql
+      - ./backend/migrations:/docker-entrypoint-initdb.d/20-migrations.sql
+
+  # REDIS (Cache & Queues)
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  postgres_data:
+  redis_data:

@@ -114,7 +114,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
                         </div>
                     </div>
                 </main>
-                {!shouldHideNav && <BottomNav user={user} currentView={currentView} setView={setView} />}
+                {!shouldHideNav && <BottomNav user={user} currentView={currentView} setView={setView} onLogout={onLogout} />}
             </div>
             <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onMarkAsRead={(id) => {}} onMarkAllRead={() => {}} />
         </div>

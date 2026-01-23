@@ -31,6 +31,8 @@ export const VideoSessionView: React.FC<{ appointment: Appointment, onEnd: () =>
         <div className="flex-1 bg-nature-900 rounded-[3rem] overflow-hidden relative shadow-2xl flex items-center justify-center">
            <img 
              src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1200" 
+             crossOrigin="anonymous"
+             onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x800/1a211d/FFF?text=Stream+Offline'; }}
              className="w-full h-full object-cover opacity-80 absolute inset-0" 
              alt="Stream"
            />
