@@ -56,6 +56,9 @@ const App: React.FC = () => {
         const path = location.pathname;
         if (path === '/login') return ViewState.LOGIN;
         if (path === '/register') return ViewState.REGISTER;
+        if (path === '/register/client') return ViewState.REGISTER_CLIENT;
+        if (path === '/register/pro') return ViewState.REGISTER_PRO;
+        if (path === '/register/space') return ViewState.REGISTER_SPACE;
         
         // Client Routes
         if (path === '/client/home') return ViewState.CLIENT_HOME;
@@ -100,7 +103,10 @@ const App: React.FC = () => {
     const setView = (view: ViewState) => {
         switch(view) {
             case ViewState.LOGIN: navigate('/login'); break;
-            case ViewState.REGISTER: navigate('/register'); break;
+        case ViewState.REGISTER: navigate('/register'); break;
+        case ViewState.REGISTER_CLIENT: navigate('/register/client'); break;
+        case ViewState.REGISTER_PRO: navigate('/register/pro'); break;
+        case ViewState.REGISTER_SPACE: navigate('/register/space'); break;
             case ViewState.CLIENT_HOME: navigate('/client/home'); break;
             case ViewState.CLIENT_JOURNEY: navigate('/client/journey'); break;
             case ViewState.CLIENT_EXPLORE: navigate('/client/explore'); break;
@@ -136,9 +142,16 @@ const App: React.FC = () => {
             try {
                 const user = await api.auth.getCurrentSession();
                 if (user) {
-                    setCurrentUser(user);
-                    if (location.pathname === '/' || location.pathname === '/login') {
-                        const homePath = user.role === UserRole.CLIENT ? '/client/home' : user.role === UserRole.PROFESSIONAL ? '/pro/home' : '/space/home';
+                    // Standardize role
+                    const standardizedUser = { ...user };
+                    if (typeof standardizedUser.role === 'string') {
+                        standardizedUser.role = (standardizedUser.role as string).toUpperCase() as any;
+                    }
+                    setCurrentUser(standardizedUser);
+                    
+                    if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register') {
+                        const role = String(standardizedUser.role).toUpperCase();
+                        const homePath = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : '/space/home');
                         navigate(homePath);
                     }
                 } else {
@@ -154,6 +167,20 @@ const App: React.FC = () => {
         };
         init();
     }, []);
+
+    const handleUpdateUser = (u: any) => {
+        if (!u) return;
+        setCurrentUser(prev => {
+            if (!prev) return u as User;
+            // Use spread to merge, and ensure we don't lose the role if the update is partial
+            const updated = { ...prev, ...u };
+            // Standardize role to uppercase if it's a string
+            if (typeof updated.role === 'string') {
+                updated.role = updated.role.toUpperCase();
+            }
+            return updated;
+        });
+    };
 
     const addToCart = (p: Product) => {
         setCart(prev => {
@@ -225,22 +252,38 @@ const App: React.FC = () => {
                     
                     <Route path="/register" element={<RegistrationViews view={currentView} setView={setView} onRegister={async (u) => { 
                         const user = await api.auth.register(u); 
-                        setCurrentUser(user); 
-                        const home = user.role === UserRole.CLIENT ? '/client/home' : user.role === UserRole.PROFESSIONAL ? '/pro/home' : '/space/home';
+                        handleUpdateUser(user); 
+                        const role = String(user.role).toUpperCase();
+                        const home = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : '/space/home');
                         navigate(home);
+                    }} />} />
+                    <Route path="/register/client" element={<RegistrationViews view={ViewState.REGISTER_CLIENT} setView={setView} onRegister={async (u) => { 
+                        const user = await api.auth.register(u); 
+                        handleUpdateUser(user); 
+                        navigate('/client/home');
+                    }} />} />
+                    <Route path="/register/pro" element={<RegistrationViews view={ViewState.REGISTER_PRO} setView={setView} onRegister={async (u) => { 
+                        const user = await api.auth.register(u); 
+                        handleUpdateUser(user); 
+                        navigate('/pro/home');
+                    }} />} />
+                    <Route path="/register/space" element={<RegistrationViews view={ViewState.REGISTER_SPACE} setView={setView} onRegister={async (u) => { 
+                        const user = await api.auth.register(u); 
+                        handleUpdateUser(user); 
+                        navigate('/space/home');
                     }} />} />
 
                     {/* Client Routes */}
-                    <Route path="/client/*" element={(currentUser?.role === UserRole.CLIENT || (currentUser?.role as any) === 'CLIENT') ? <ClientViews user={currentUser} view={currentView} setView={setView} updateUser={setCurrentUser} onAddToCart={addToCart} /> : <Navigate to="/login" />} />
+                    <Route path="/client/*" element={(String(currentUser?.role).toUpperCase() === 'CLIENT') ? <ClientViews user={currentUser!} view={currentView} setView={setView} updateUser={handleUpdateUser} onAddToCart={addToCart} /> : <Navigate to="/login" />} />
                     <Route path="/checkout" element={<CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} onSuccess={processCheckout} onCancel={() => navigate(-1)} />} />
                     <Route path="/checkout/success" element={<SuccessScreen onHome={() => navigate('/client/home')} />} />
                     <Route path="/client/orders" element={<OrdersListView user={currentUser!} onBack={() => navigate('/client/home')} setView={setView} />} />
 
                     {/* Pro Routes */}
-                    <Route path="/pro/*" element={(currentUser?.role === UserRole.PROFESSIONAL || (currentUser?.role as any) === 'PROFESSIONAL') ? <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={setCurrentUser} /> : <Navigate to="/login" />} />
+                    <Route path="/pro/*" element={(String(currentUser?.role).toUpperCase() === 'PROFESSIONAL') ? <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} /> : <Navigate to="/login" />} />
                     
                     {/* Space Routes */}
-                    <Route path="/space/*" element={(currentUser?.role === UserRole.SPACE || (currentUser?.role as any) === 'SPACE') ? <SpaceViews user={currentUser} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
+                    <Route path="/space/*" element={(String(currentUser?.role).toUpperCase() === 'SPACE') ? <SpaceViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
 
                     {/* Shared Routes */}
                     <Route path="/settings" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} />} />
