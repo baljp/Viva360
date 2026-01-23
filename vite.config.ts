@@ -4,25 +4,13 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
-  // Use '/' for root domain deployment (Vercel/Hostinger root)
+  // Use './' se for publicar em uma subpasta, ou '/' para o domínio principal
   base: '/', 
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
-      // PWA Gold Standard Configuration
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,json}'],
-        navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//],
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
-        // skipWaiting: false allows user to control when update happens, preventing 
-        // HTML/JS mismatch that causes white screen after deploys
-        skipWaiting: false,
-        maximumFileSizeToCacheInBytes: 5000000 // Increase limit to prevent chunks being skipped
-      },
       manifest: {
         name: 'Viva360 - Ecossistema Holístico',
         short_name: 'Viva360',
@@ -34,17 +22,17 @@ export default defineConfig({
         orientation: 'portrait',
         icons: [
           {
-            src: '/icons/viva360-icon.png',
+            src: 'https://cdn-icons-png.flaticon.com/512/3209/3209931.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: '/icons/viva360-icon.png',
+            src: 'https://cdn-icons-png.flaticon.com/512/3209/3209931.png',
             sizes: '512x512',
             type: 'image/png'
           },
           {
-            src: '/icons/viva360-icon.png',
+            src: 'https://cdn-icons-png.flaticon.com/512/3209/3209931.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
@@ -55,9 +43,14 @@ export default defineConfig({
   ],
   build: {
     outDir: 'dist',
-    assetsDir: 'assets',
-    sourcemap: true, // Habilitar sourcemaps para debug em produção
+    sourcemap: false,
     minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: {

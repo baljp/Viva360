@@ -12,7 +12,6 @@
 
 # production
 /build
-/dist
 
 # misc
 .DS_Store
@@ -28,8 +27,3 @@ yarn-error.log*
 
 # vercel
 .vercel
-backup_01_20_2026/
-*.zip
-start_log.txt
-
-/src/generated/prisma
