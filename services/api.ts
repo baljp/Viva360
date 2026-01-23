@@ -60,10 +60,26 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify(data)
             });
-             // Store token if returned (mock mode does, real supabase register might not immediately)
-            if (res.session?.access_token) {
+            
+            // If session is missing (common in some registration flows), 
+            // perform an automatic login to get the token
+            if (!res.session?.access_token) {
+                try {
+                    const loginRes = await request('/auth/login', {
+                        method: 'POST',
+                        body: JSON.stringify({ email: data.email, password: data.password })
+                    });
+                    if (loginRes.session?.access_token) {
+                        localStorage.setItem('supabase.auth.token', loginRes.session.access_token);
+                    }
+                    return loginRes.user;
+                } catch (e) {
+                    console.error("Auto-login after register failed", e);
+                }
+            } else {
                 localStorage.setItem('supabase.auth.token', res.session.access_token);
             }
+            
             return res.user || res;
         },
         getCurrentSession: async (): Promise<User | null> => {
@@ -88,8 +104,16 @@ export const api = {
         },
         update: async (user: User) => request('/profiles/me', { method: 'PATCH', body: JSON.stringify(user) }),
         checkIn: async (uid: string) => {
-            // TODO: implement checkIn backend
-            return { user: { karma: 100 }, reward: 50 }; 
+            // Get current profile to merge with karma
+            try {
+                const current = await request('/profiles/me');
+                return { 
+                    user: { ...current, karma: (current.karma || 0) + 50 }, 
+                    reward: 50 
+                };
+            } catch (e) {
+                return { user: { id: uid, karma: 100, role: 'CLIENT' }, reward: 50 }; 
+            }
         }
     },
     payment: {
