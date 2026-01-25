@@ -44,8 +44,6 @@ const createMockUser = (email: string, name?: string, role?: UserRole): User => 
     personalBalance: 1000,
     corporateBalance: 0,
     // Add optional fields explicitly if needed to silence strict checks
-    notifications: [], // Wait, User type did NOT have notifications. But I can add 'as any' if needed, OR fix type.
-                       // Based on previous errors, notifications DOES NOT exist on User. So I omit it.
     // preferences: {} // Also does not exist.
     // createdAt: new Date() // Also does not exist.
 });
