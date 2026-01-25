@@ -89,4 +89,17 @@ export class AuthService {
       }
     };
   }
+
+  // Update Password
+  static async updatePassword(email: string, newPassword: string) {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    return prisma.user.update({
+      where: { email },
+      data: { encrypted_password: hashedPassword }
+    });
+  }
+
+  static async findByEmail(email: string) {
+    return prisma.user.findUnique({ where: { email } });
+  }
 }

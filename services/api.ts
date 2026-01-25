@@ -10,7 +10,7 @@ const getHeader = () => {
     };
 };
 
-const request = async (endpoint: string, options: RequestInit = {}) => {
+export const request = async (endpoint: string, options: RequestInit = {}) => {
     try {
         const res = await fetch(`${API_URL}${endpoint}`, {
             ...options,
