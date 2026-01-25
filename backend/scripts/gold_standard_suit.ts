@@ -30,8 +30,8 @@ async function runProfileJourney(role: string, index: number) {
         // 3. Activity specific tasks
         if (role === 'CLIENT') {
             await axios.get(`${BASE_URL}/marketplace/products`, { headers });
-            await axios.post(`${BASE_URL}/marketplace/purchase`, { 
-                product_id: 'prod-1', 
+            await axios.post(`${BASE_URL}/checkout/pay`, { 
+                items: [{ id: 'prod-1', price: 50 }],
                 amount: 50,
                 description: 'Ritual de Cura Gold' 
             }, { headers });
@@ -62,6 +62,7 @@ async function startGoldAudit() {
         for (let i = 0; i < 10; i++) {
             const success = await runProfileJourney(role, i);
             if (success) passCount++;
+            await new Promise(r => setTimeout(r, 300)); // Delay to respect Rate Limit
         }
         console.log(`\n📊 RESULT FOR ${role}: ${passCount}/10 PASSED`);
         if (passCount < 10) {

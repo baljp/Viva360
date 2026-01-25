@@ -15,8 +15,12 @@ import calendarRoutes from './calendar.routes';
 import tribeRoutes from './tribe.routes';
 import alchemyRoutes from './alchemy.routes';
 import marketplaceRoutes from './marketplace.routes';
+import recordsRoutes from './records.routes';
+
+import { rateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
+router.use(rateLimiter); // Upgrade 9.5: Global Rate Limit
 
 // Public Routes
 router.get('/ping', (req, res) => {
@@ -38,6 +42,10 @@ router.use('/calendar', authenticateUser, calendarRoutes);
 router.use('/tribe', authenticateUser, tribeRoutes);
 router.use('/alchemy', authenticateUser, alchemyRoutes);
 router.use('/marketplace', authenticateUser, marketplaceRoutes);
+router.use('/rooms', authenticateUser, roomsRoutes);
+router.use('/finance', authenticateUser, financeRoutes);
+router.use('/rituals', authenticateUser, ritualsRoutes);
+router.use('/records', authenticateUser, recordsRoutes);
 
 // Protected Routes (Example)
 router.use('/protected', authenticateUser, (req, res) => {

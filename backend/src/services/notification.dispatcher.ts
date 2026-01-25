@@ -17,9 +17,20 @@ export interface NotificationPayload {
 export class NotificationDispatcher {
     
     static async dispatch(payload: NotificationPayload) {
-        console.log(`\n📢 [DISPATCHER] Notify User: ${payload.userId}`);
+        if (process.env.SUPABASE_URL?.includes('mock')) {
+            console.log(`\n📢 [MOCK DISPATCHER] Notify User: ${payload.userId}`);
+        } else {
+            console.log(`\n📢 [DISPATCHER] Notify User: ${payload.userId}`);
+        }
 
         const results = await Promise.all(payload.channels.map(async (channel) => {
+            // Mock Preferences Check
+            // In a real scenario, this would check a 'UserPreferences' table
+            if (payload.userId === 'user-no-email' && channel === 'EMAIL') {
+                console.log('   🚫 [PREFS] Blocked EMAIL for user-no-email');
+                return { channel, status: 'skipped', reason: 'User Preference' };
+            }
+
             try {
                 switch (channel) {
                     case 'EMAIL':
@@ -70,9 +81,19 @@ export class NotificationDispatcher {
     }
 
     private static async getUserEmail(userId: string): Promise<string | null> {
-        // Stub using prisma
-        // const user = await prisma.user.findUnique({ where: { id: userId }});
-        // return user?.email;
-        return `user_${userId}@viva360.com`; // Mock return
+        if (userId === 'mock-user') return 'mock@test.com';
+        
+        // Mock DB lookup
+        if (process.env.SUPABASE_URL?.includes('mock')) {
+             return `user_${userId}@viva360.com`;
+        }
+
+        // Real DB lookup
+        try {
+            const user = await prisma.profile.findUnique({ where: { id: userId }});
+             return user?.email || null;
+        } catch {
+            return null;
+        }
     }
 }
