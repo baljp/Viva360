@@ -1,0 +1,221 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["public", "auth"]
+}
+
+// --------------------------------------------------------
+// Auth Schema (Vanilla Postgres Simulation for Supabase)
+// --------------------------------------------------------
+model User {
+  id                 String  @id @default(uuid()) @db.Uuid
+  email              String? @unique
+  encrypted_password String?
+
+  // Relations
+  profile Profile?
+
+  // Timestamps
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @updatedAt @db.Timestamptz(6)
+
+  @@map("users")
+  @@schema("auth")
+}
+
+// --------------------------------------------------------
+// Public Schema
+// --------------------------------------------------------
+
+model Profile {
+  id                String   @id @db.Uuid
+  email             String?
+  name              String?
+  role              String? // 'CLIENT', 'PROFESSIONAL', 'SPACE'
+  avatar            String?
+  bio               String?
+  karma             Int      @default(0)
+  streak            Int      @default(0)
+  multiplier        Decimal  @default(1)
+  personal_balance  Decimal  @default(0)
+  corporate_balance Decimal  @default(0)
+  plant_xp          Int      @default(0)
+  plant_stage       String   @default("seed")
+  location          String?
+  specialty         String[] @default([])
+  hub_id            String?  @db.Uuid
+  rating            Decimal  @default(5.0)
+  review_count      Int      @default(0)
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relations
+  user                   User           @relation(fields: [id], references: [id], onDelete: Cascade)
+  appointments_as_client Appointment[]  @relation("ClientAppointments")
+  appointments_as_pro    Appointment[]  @relation("ProAppointments")
+  transactions           Transaction[]
+  notifications          Notification[]
+  products               Product[]
+
+  // Rooms/Vacancies (simplification: generic ownership)
+  // Rooms/Vacancies
+  rooms Room[]
+
+  // New Features Relations
+  sent_messages     ChatMessage[]   @relation("SentMessages")
+  received_messages ChatMessage[]   @relation("ReceivedMessages")
+  swap_provided     SwapOffer[]     @relation("SwapProvider")
+  swap_requested    SwapOffer[]     @relation("SwapRequester")
+  tribe_invites     TribeInvite[]   @relation("HubInvites")
+  calendar_events   CalendarEvent[]
+
+  @@map("profiles")
+  @@schema("public") // Prisma default is public but explicit is better
+}
+
+model Appointment {
+  id                String   @id @default(uuid()) @db.Uuid
+  client_id         String?  @db.Uuid
+  professional_id   String?  @db.Uuid
+  service_name      String
+  professional_name String?
+  client_name       String?
+  date              DateTime @db.Timestamptz(6)
+  time              String
+  price             Decimal
+  status            String   @default("pending")
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  client       Profile? @relation("ClientAppointments", fields: [client_id], references: [id])
+  professional Profile? @relation("ProAppointments", fields: [professional_id], references: [id])
+
+  @@map("appointments")
+  @@schema("public")
+}
+
+model Product {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  price       Decimal
+  image       String?
+  category    String?
+  type        String?
+  description String?
+  owner_id    String?  @db.Uuid
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  owner Profile? @relation(fields: [owner_id], references: [id])
+
+  @@map("products")
+  @@schema("public")
+}
+
+model Transaction {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  type        String?
+  amount      Decimal
+  description String?
+  status      String?  @default("completed")
+  date        DateTime @default(now()) @db.Timestamptz(6)
+
+  user Profile @relation(fields: [user_id], references: [id])
+
+  @@map("transactions")
+  @@schema("public")
+}
+
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  user_id   String   @db.Uuid
+  type      String?
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  timestamp DateTime @default(now()) @db.Timestamptz(6)
+
+  user Profile @relation(fields: [user_id], references: [id])
+
+  @@map("notifications")
+  @@schema("public")
+}
+
+model Room {
+  id               String   @id @default(uuid()) @db.Uuid
+  hub_id           String   @db.Uuid
+  name             String
+  status           String   @default("available")
+  current_occupant String?
+  created_at       DateTime @default(now()) @db.Timestamptz(6)
+
+  hub Profile @relation(fields: [hub_id], references: [id])
+
+  @@map("rooms")
+  @@schema("public")
+}
+
+model ChatMessage {
+  id          String   @id @default(uuid()) @db.Uuid
+  sender_id   String   @db.Uuid
+  receiver_id String   @db.Uuid
+  content     String
+  read        Boolean  @default(false)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  sender   Profile @relation("SentMessages", fields: [sender_id], references: [id])
+  receiver Profile @relation("ReceivedMessages", fields: [receiver_id], references: [id])
+
+  @@map("chat_messages")
+  @@schema("public")
+}
+
+model SwapOffer {
+  id                String   @id @default(uuid()) @db.Uuid
+  provider_id       String   @db.Uuid
+  requester_id      String   @db.Uuid
+  offered_item_id   String?  @db.Uuid
+  requested_item_id String?  @db.Uuid
+  description       String?
+  status            String   @default("pending")
+  created_at        DateTime @default(now()) @db.Timestamptz(6)
+
+  provider  Profile @relation("SwapProvider", fields: [provider_id], references: [id])
+  requester Profile @relation("SwapRequester", fields: [requester_id], references: [id])
+
+  @@map("swap_offers")
+  @@schema("public")
+}
+
+model TribeInvite {
+  id         String   @id @default(uuid()) @db.Uuid
+  hub_id     String   @db.Uuid
+  email      String
+  token      String   @unique
+  status     String   @default("pending")
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  hub Profile @relation("HubInvites", fields: [hub_id], references: [id])
+
+  @@map("tribe_invites")
+  @@schema("public")
+}
+
+model CalendarEvent {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  title      String
+  start_time DateTime @db.Timestamptz(6)
+  end_time   DateTime @db.Timestamptz(6)
+  type       String?
+  details    String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  user Profile @relation(fields: [user_id], references: [id])
+
+  @@map("calendar_events")
+  @@schema("public")
+}

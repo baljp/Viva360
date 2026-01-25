@@ -1,54 +1,31 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.markAsRead = exports.listNotifications = void 0;
-const supabase_service_1 = require("../services/supabase.service");
-const listNotifications = async (req, res) => {
-    try {
-        const user = req.user;
-        if (!user)
-            return res.status(401).json({ error: 'Unauthorized' });
-        if ((0, supabase_service_1.isMockMode)()) {
-            return res.json([
-                { id: 'notif-1', title: 'Agendamento Confirmado', message: 'Sua sessão foi confirmada.', read: false, created_at: new Date().toISOString() },
-                { id: 'notif-2', title: 'Bem-vindo!', message: 'Complete seu perfil para ganhar bônus.', read: true, created_at: new Date(Date.now() - 86400000).toISOString() }
-            ]);
-        }
-        const { data, error } = await supabase_service_1.supabaseAdmin
-            .from('notifications')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-        if (error)
-            throw error;
-        return res.json(data);
-    }
-    catch (error) {
-        return res.status(400).json({ error: error.message });
-    }
+exports.sendPushSimulation = exports.list = void 0;
+const prisma_1 = __importDefault(require("../lib/prisma"));
+const list = async (req, res) => {
+    const userId = req.user?.userId;
+    const notifications = await prisma_1.default.notification.findMany({
+        where: { user_id: userId },
+        orderBy: { timestamp: 'desc' }
+    });
+    return res.json(notifications);
 };
-exports.listNotifications = listNotifications;
-const markAsRead = async (req, res) => {
-    try {
-        const user = req.user;
-        const { id } = req.params;
-        if (!user)
-            return res.status(401).json({ error: 'Unauthorized' });
-        if ((0, supabase_service_1.isMockMode)()) {
-            return res.json({ success: true, id, read: true });
+exports.list = list;
+const sendPushSimulation = async (userId, title, message) => {
+    // 1. Store in DB
+    await prisma_1.default.notification.create({
+        data: {
+            user_id: userId,
+            title,
+            message,
+            type: 'push_sim',
         }
-        const { data, error } = await supabase_service_1.supabaseAdmin
-            .from('notifications')
-            .update({ read: true })
-            .eq('id', id)
-            .eq('user_id', user.id)
-            .select()
-            .single();
-        if (error)
-            throw error;
-        return res.json(data);
-    }
-    catch (error) {
-        return res.status(400).json({ error: error.message });
-    }
+    });
+    // 2. Simulate Push (Log to console as "Mobile Push Service")
+    console.log(`[MOBILE PUSH] To: ${userId} | "${title}: ${message}"`);
+    // Future: Integraiton with Expo/FCM would go here
 };
-exports.markAsRead = markAsRead;
+exports.sendPushSimulation = sendPushSimulation;
