@@ -5,27 +5,10 @@ import {
     Users, ChevronLeft, BarChart3, Wallet, Plus, Sparkles, RefreshCw, Activity, ChevronRight, Briefcase, DollarSign, Star, DoorOpen, Timer, CheckCircle, Trash2, LayoutDashboard, History, Search, UserPlus, Award, Clock, TrendingUp, Filter, MapPin, ArrowUpRight, ArrowDownRight, MoreVertical, Settings, Building2, Flame, Heart, Zap, ShieldCheck, Package, LayoutGrid, Tag, ShoppingBag, Eye, Calendar, UserCheck, AlertCircle, Share2
 } from 'lucide-react';
 import { api } from '../services/api';
-import { DynamicAvatar, PortalCard, Card, ZenToast, ProductFormModal, OrganicSkeleton, BottomSheet, VacancyFormModal } from '../components/Common';
+import { DynamicAvatar, PortalCard, Card, ZenToast, ProductFormModal, OrganicSkeleton, BottomSheet, VacancyFormModal, PortalView } from '../components/Common';
 import { SPECIALTIES } from '../constants';
 
-const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode, footer?: React.ReactNode }> = ({ title, subtitle, onBack, children, footer }) => (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-full">
-        <header className="flex-none flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 bg-white border-b border-nature-100 z-10 shadow-sm">
-            <div className="flex items-center gap-4">
-                <button onClick={onBack} className="p-3 bg-nature-50 rounded-2xl text-nature-600 active:scale-90 transition-all shadow-sm"><ChevronLeft size={22} /></button>
-                <div className="space-y-0.5">
-                    <h2 className="text-xl font-serif italic text-nature-900 leading-none">{title}</h2>
-                    <p className="text-[10px] text-nature-400 uppercase tracking-[0.3em] font-bold">{subtitle}</p>
-                </div>
-            </div>
-            <button className="p-3 bg-nature-50 rounded-2xl text-nature-300"><Settings size={20}/></button>
-        </header>
-        <div className="flex-1 overflow-y-auto no-scrollbar p-6 pb-[calc(6rem+env(safe-area-inset-bottom))]">
-            {children}
-        </div>
-        {footer && <div className="flex-none border-t border-nature-100 bg-white p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">{footer}</div>}
-    </div>
-);
+
 
 export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void }> = ({ user, view, setView }) => {
   const [rooms, setRooms] = useState<SpaceRoom[]>([]);
