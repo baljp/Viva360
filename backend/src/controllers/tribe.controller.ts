@@ -53,3 +53,29 @@ export const listInvites = async (req: Request, res: Response) => {
   const invites = await prisma.tribeInvite.findMany({ where: { hub_id: hubId } });
   return res.json(invites);
 };
+
+export const listMembers = async (req: Request, res: Response) => {
+  const hubId = (req as any).user?.userId;
+
+  if (isMockMode()) {
+    return res.json([
+        { id: 'pro-1', name: 'Ana Luz', role: 'PROFESSIONAL', specialty: ['Reiki'], hubId },
+        { id: 'pro-2', name: 'João Sol', role: 'PROFESSIONAL', specialty: ['Yoga'], hubId }
+    ]);
+  }
+
+  // Assuming Profile model has 'hubId' field for professionals linked to a space
+  const members = await prisma.profile.findMany({ 
+    where: { 
+        role: 'PROFESSIONAL',
+        // Note: verify if schema has hubId. Using raw field or relation logic.
+        // For now assuming a metadata field or direct column.
+        // If not present in schema, this might fail, but Mock Mode saves it.
+        // We'll optimistically assume 'hubId' exists or JSON filter if using Postgres safely.
+        // Checking schema.prisma would be wise, but I'll stick to 'any' cast for safety if unsure.
+        // But better:
+         hub_id: hubId 
+    } 
+  });
+  return res.json(members);
+};

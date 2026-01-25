@@ -185,13 +185,13 @@ export const api = {
     },
     marketplace: {
         listAll: async (): Promise<Product[]> => request('/marketplace/products'),
-        listByOwner: async (ownerId: string): Promise<Product[]> => [],
+        listByOwner: async (ownerId: string): Promise<Product[]> => request(`/marketplace/products?ownerId=${ownerId}`),
         create: async (product: any) => ({ ...product, id: 'mock' }),
         delete: async (id: string) => true
     },
     spaces: {
         getRooms: async (sid: string): Promise<SpaceRoom[]> => request(`/rooms`), // Assuming general room list for now
-        getTeam: async (sid: string) => [],
+        getTeam: async (sid: string) => request('/tribe/members'),
         getVacancies: async () => request('/rooms/vacancies'),
         createVacancy: async (vacancy: any) => request('/rooms/vacancies', { method: 'POST', body: JSON.stringify(vacancy) }),
         getTransactions: async (uid: string) => request('/finance/transactions')
@@ -200,5 +200,15 @@ export const api = {
         list: async (uid: string) => request('/notifications'),
         markAsRead: async (uid: string, nid: string) => request(`/notifications/${nid}/read`, { method: 'PATCH' }),
         markAllAsRead: async (uid: string) => true
+    },
+    admin: {
+        getDashboard: async () => request('/admin/dashboard'),
+        listUsers: async () => request('/admin/users'),
+        blockUser: async (id: string) => request(`/admin/users/${id}/block`, { method: 'POST' }),
+        getMetrics: async (type: 'seekers'|'guardians'|'sanctuaries') => request(`/admin/metrics/${type}`),
+        getMarketplaceOffers: async () => request('/admin/marketplace/offers'),
+        getGlobalFinance: async () => request('/admin/finance/global'),
+        getLgpdAudit: async () => request('/admin/lgpd/audit'),
+        getSystemHealth: async () => request('/admin/system/health')
     }
 };

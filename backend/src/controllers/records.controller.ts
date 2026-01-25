@@ -33,9 +33,13 @@ export const listNotes = async (req: Request, res: Response) => {
     const targetPatientId = (patientId as string) || requestorId;
 
     // 2. Permission Check (Mock ACL)
-    // In real app: Check if 'requestorId' has grant for 'targetPatientId'
-    // For now, allow if requestor == target OR requestor is PRO
-    
+    // LGPD ABSOLUTE RULE: ADMIN CANNOT VIEW RECORDS
+    const userRole = (req as any).user?.role; // Assuming middleware populates this
+    if (userRole === 'ADMIN') {
+        console.warn(`🛑 [SECURITY] Admin ${requestorId} attempted to access PRONTUÁRIO. ACCESS DENIED.`);
+        return res.status(403).json({ error: 'LGPD_VIOLATION: Admin cannot access sensitive health records.' });
+    }
+
     await AuditService.logAccess(requestorId, `patient:${targetPatientId}`, 'READ_RECORD', 'SUCCESS');
 
     if (isMockMode()) {

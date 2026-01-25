@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { User as UserType, UserRole, PlantStage, MoodType, DailyQuest, Notification, Badge, Appointment, Review, Product } from '../types';
 import { api } from '../services/api';
+import { getDailyMessage } from '../src/utils/dailyWisdom';
 
 // --- AURORA BACKGROUND ---
 export const AuroraBackground: React.FC = () => (
@@ -435,7 +436,7 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: () => void }> 
                 </div>
                 <div className="space-y-2">
                     <h3 className="text-3xl font-serif italic text-nature-900">Bênção do Dia</h3>
-                    <p className="text-sm text-nature-500 leading-relaxed italic">"Sua energia é o motor deste ecossistema. Receba sua luz diária."</p>
+                    <p className="text-sm text-nature-500 leading-relaxed italic">"{getDailyMessage()}"</p>
                 </div>
                 <div className="bg-nature-50 p-4 rounded-3xl border border-nature-100">
                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mb-1">Recompensa</p>

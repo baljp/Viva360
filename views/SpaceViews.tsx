@@ -7,6 +7,7 @@ import {
 import { api } from '../services/api';
 import { DynamicAvatar, PortalCard, Card, ZenToast, ProductFormModal, OrganicSkeleton, BottomSheet, VacancyFormModal, PortalView } from '../components/Common';
 import { SPECIALTIES } from '../constants';
+import { getDailyMessage } from '../src/utils/dailyWisdom';
 
 
 
@@ -417,6 +418,10 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                     <div className="flex justify-between items-start">
                        <div><p className="text-[10px] font-bold uppercase tracking-[0.3em] text-indigo-200">Radiance Score</p><h3 className="text-4xl font-serif italic flex items-center gap-2">94% <Sparkles size={20} className="text-amber-400"/></h3></div>
                        <TrendingUp size={24} className="text-emerald-400" />
+                    </div>
+                    <div className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10">
+                        <p className="text-[8px] font-bold uppercase text-indigo-200 mb-1">Vibração do Dia</p>
+                        <p className="text-xs text-white italic leading-relaxed">"{getDailyMessage()}"</p>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <button onClick={() => setView(ViewState.SPACE_TEAM)} className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10 text-left hover:bg-white/20 transition-all"><p className="text-[8px] font-bold uppercase text-indigo-300">Equipe Ativa</p><span className="text-xl font-bold">{team.length} Mestres</span></button>

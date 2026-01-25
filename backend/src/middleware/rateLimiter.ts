@@ -8,7 +8,7 @@ export const rateLimiter = (req: Request, res: Response, next: NextFunction) => 
     const ip = req.ip || 'unknown';
     const now = Date.now();
     const windowMs = 1000;
-    const limit = 200; // Increased for Stress Test
+    const limit = 5000; // Unlocked for 1k User Stress Test
 
     if (!requestCounts[ip]) {
         requestCounts[ip] = { count: 0, start: now };
