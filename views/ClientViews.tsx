@@ -8,6 +8,8 @@ import { ConstellationOrbit, TimelapseViewer, GlobalMandala } from '../component
 import { SPECIALTIES } from '../constants';
 
 import { getDailyMetamorphosisInsight } from '../src/utils/dailyWisdom';
+import { OracleView } from './gamification/OracleView';
+import { RitualBuilderView } from './gamification/RitualBuilderView';
 
 export const ClientViews: React.FC<{ 
   user: User, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onAddToCart: (p: Product) => void
@@ -112,12 +114,14 @@ export const ClientViews: React.FC<{
     return <PortalView title="Guardião" subtitle="DETALHES" onBack={() => setView(ViewState.CLIENT_EXPLORE)}><div className="text-center p-10 opacity-50">Selecione um Guardião no Mapa da Cura</div></PortalView>;
   }
 
-  // --- VIEW: DETALHES DO PRODUTO ---
   if (view === ViewState.CLIENT_PRODUCT_DETAILS) return (
      <PortalView title="Detalhes" subtitle="ALQUIMIA" onBack={() => setView(ViewState.CLIENT_MARKETPLACE)}>
          <div className="text-center p-10 opacity-50">Detalhes do produto em breve...</div>
      </PortalView>
   );
+
+  if (view === ViewState.CLIENT_ORACLE) return <OracleView setView={setView} />;
+  if (view === ViewState.CLIENT_RITUAL_BUILDER) return <RitualBuilderView setView={setView} />;
 
   // --- VIEW: METAMORFOSE (JOURNEY) ---
   if (view === ViewState.CLIENT_JOURNEY) return (
@@ -476,6 +480,22 @@ export const ClientViews: React.FC<{
                     bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=600" 
                     onClick={() => setView(ViewState.CLIENT_MARKETPLACE)} 
                     delay={300} 
+                />
+                <PortalCard 
+                    title="Oráculo" 
+                    subtitle="MENSAGEM" 
+                    icon={Sparkles} 
+                    bgImage="https://images.unsplash.com/photo-1634926526846-978df317e34c?q=80&w=600" 
+                    onClick={() => setView(ViewState.CLIENT_ORACLE)} 
+                    delay={400} 
+                />
+                <PortalCard 
+                    title="Rituais" 
+                    subtitle="HÁBITOS" 
+                    icon={CheckCircle2} 
+                    bgImage="https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=600" 
+                    onClick={() => setView(ViewState.CLIENT_RITUAL_BUILDER)} 
+                    delay={500} 
                 />
             </div>
         </div>
