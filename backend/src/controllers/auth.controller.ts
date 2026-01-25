@@ -31,6 +31,17 @@ export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, name, role } = registerSchema.parse(req.body);
     const data = await AuthService.register(email, password, name, role); // Pass role
+    
+    // Trigger Holistic Welcome Email (Async - Fire & Forget)
+    import('../services/email.service').then(({ emailService }) => {
+      emailService.send({
+        to: email,
+        subject: 'Bem-vindo ao Viva360 - Sua Jornada Começa Agora 🌿',
+        template: 'WELCOME',
+        context: { name }
+      }).catch(err => console.error("Email Error:", err));
+    });
+
     return res.status(201).json(data);
   } catch (error: any) {
     if (error instanceof z.ZodError) {
