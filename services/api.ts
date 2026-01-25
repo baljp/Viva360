@@ -186,8 +186,8 @@ export const api = {
     marketplace: {
         listAll: async (): Promise<Product[]> => request('/marketplace/products'),
         listByOwner: async (ownerId: string): Promise<Product[]> => request(`/marketplace/products?ownerId=${ownerId}`),
-        create: async (product: any) => ({ ...product, id: 'mock' }),
-        delete: async (id: string) => true
+        create: async (product: any) => request('/marketplace/products', { method: 'POST', body: JSON.stringify(product) }),
+        delete: async (id: string) => request(`/marketplace/products/${id}`, { method: 'DELETE' })
     },
     spaces: {
         getRooms: async (sid: string): Promise<SpaceRoom[]> => request(`/rooms`), // Assuming general room list for now
