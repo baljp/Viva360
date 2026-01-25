@@ -53,7 +53,6 @@ export const api = {
                     avatar: 'https://i.pravatar.cc/150?u=mock',
                     karma: 100,
                     streak: 5,
-                    preferences: {},
                     createdAt: new Date()
                 };
                 localStorage.setItem('supabase.auth.token', 'mock_token_' + Date.now());
@@ -101,7 +100,6 @@ export const api = {
                     avatar: 'https://i.pravatar.cc/150?u=new',
                     karma: 0,
                     streak: 0,
-                    preferences: {},
                     createdAt: new Date()
                  };
                  localStorage.setItem('supabase.auth.token', 'mock_token_reg');
