@@ -98,8 +98,11 @@ export const api = {
                     role: data.role || UserRole.CLIENT,
                     avatar: 'https://i.pravatar.cc/150?u=new',
                     karma: 0,
-                    streak: 0,
-                 };
+                    streak: 5,
+                    multiplier: 1,
+                    personalBalance: 1000,
+                    corporateBalance: 0,
+                    createdAt: new Date()                };
                  localStorage.setItem('supabase.auth.token', 'mock_token_reg');
                  return mockUser;
             }
