@@ -20,6 +20,7 @@ const RegistrationViews = lazy(() => import('./views/Registration').then(module 
 const CheckoutScreen = lazy(() => import('./components/Checkout').then(module => ({ default: module.CheckoutScreen })));
 const SuccessScreen = lazy(() => import('./components/Checkout').then(module => ({ default: module.SuccessScreen })));
 const OrdersListView = lazy(() => import('./views/ServiceViews').then(module => ({ default: module.OrdersListView })));
+const AdminViews = lazy(() => import('./views/AdminViews').then(module => ({ default: module.AdminViews })));
 
 // Loading Component
 const PageLoader = () => (
@@ -93,7 +94,15 @@ const App: React.FC = () => {
         if (path === '/settings/profile') return ViewState.SETTINGS_PROFILE;
         if (path === '/settings/wallet') return ViewState.SETTINGS_WALLET;
         if (path === '/settings/notifications') return ViewState.SETTINGS_NOTIFICATIONS;
+        if (path === '/settings/notifications') return ViewState.SETTINGS_NOTIFICATIONS;
         if (path === '/settings/security') return ViewState.SETTINGS_SECURITY;
+
+        // Admin Routes
+        if (path === '/admin/dashboard') return ViewState.ADMIN_DASHBOARD;
+        if (path === '/admin/users') return ViewState.ADMIN_USERS;
+        if (path === '/admin/lgpd') return ViewState.ADMIN_LGPD;
+       
+        return ViewState.SPLASH; 
 
         return ViewState.SPLASH; 
     };
@@ -134,6 +143,9 @@ const App: React.FC = () => {
             case ViewState.SETTINGS_WALLET: navigate('/settings/wallet'); break;
             case ViewState.SETTINGS_NOTIFICATIONS: navigate('/settings/notifications'); break;
             case ViewState.SETTINGS_SECURITY: navigate('/settings/security'); break;
+            case ViewState.ADMIN_DASHBOARD: navigate('/admin/dashboard'); break;
+            case ViewState.ADMIN_USERS: navigate('/admin/users'); break;
+            case ViewState.ADMIN_LGPD: navigate('/admin/lgpd'); break;
             default: break; 
         }
     };
@@ -152,7 +164,7 @@ const App: React.FC = () => {
                     
                     if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register') {
                         const role = String(standardizedUser.role).toUpperCase();
-                        const homePath = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : '/space/home');
+                        const homePath = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : (role === 'SPACE' ? '/space/home' : '/admin/dashboard'));
                         navigate(homePath);
                     }
                 } else {
@@ -255,7 +267,7 @@ const App: React.FC = () => {
                     <Route path="/" element={<Navigate to="/login" replace />} />
                     <Route path="/login" element={<Auth onLogin={(u) => { 
                         setCurrentUser(u); 
-                        const home = u.role === UserRole.CLIENT ? '/client/home' : u.role === UserRole.PROFESSIONAL ? '/pro/home' : '/space/home';
+                        const home = u.role === UserRole.CLIENT ? '/client/home' : u.role === UserRole.PROFESSIONAL ? '/pro/home' : u.role === UserRole.SPACE ? '/space/home' : '/admin/dashboard';
                         navigate(home);
                     }} setView={setView} />} />
                     
@@ -289,7 +301,11 @@ const App: React.FC = () => {
                     <Route path="/pro/*" element={(String(currentUser?.role).toUpperCase() === 'PROFESSIONAL') ? <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} /> : <Navigate to="/login" />} />
                     
                     {/* Space Routes */}
+                    {/* Space Routes */}
                     <Route path="/space/*" element={(String(currentUser?.role).toUpperCase() === 'SPACE') ? <SpaceViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
+
+                    {/* Admin Routes */}
+                     <Route path="/admin/*" element={(String(currentUser?.role).toUpperCase() === 'ADMIN') ? <AdminViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
 
                     {/* Shared Routes */}
                     <Route path="/settings/*" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} />} />
