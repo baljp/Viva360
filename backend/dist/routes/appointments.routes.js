@@ -37,5 +37,6 @@ const express_1 = require("express");
 const AppointmentsController = __importStar(require("../controllers/appointments.controller"));
 const router = (0, express_1.Router)();
 router.get('/', AppointmentsController.listAppointments);
+router.get('/me', AppointmentsController.listAppointments);
 router.post('/', AppointmentsController.createAppointment);
 exports.default = router;

@@ -374,6 +374,37 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string }, onC
   );
 };
 
+// --- PORTAL VIEW (LAYOUT WRAPPER) ---
+export const PortalView: React.FC<{ 
+    title: string, 
+    subtitle: string, 
+    onBack: () => void, 
+    children: React.ReactNode, 
+    footer?: React.ReactNode,
+    headerRight?: React.ReactNode 
+}> = ({ title, subtitle, onBack, children, footer, headerRight }) => (
+    <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-full">
+        <header className="flex-none flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 bg-white border-b border-nature-100 z-10 shadow-sm">
+            <div className="flex items-center gap-4">
+                <button onClick={onBack} className="p-3 bg-nature-50 rounded-2xl text-nature-600 active:scale-90 transition-all shadow-sm">
+                    <ChevronRight className="rotate-180" size={22} />
+                </button>
+                <div className="space-y-0.5">
+                    <h2 className="text-xl font-serif italic text-nature-900 leading-none">{title}</h2>
+                    <p className="text-[10px] text-nature-400 uppercase tracking-[0.3em] font-bold">{subtitle}</p>
+                </div>
+            </div>
+            {headerRight}
+        </header>
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 pb-[calc(6rem+env(safe-area-inset-bottom))]">
+            {children}
+        </div>
+        {footer && <div className="flex-none bg-white border-t border-nature-100 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+            {footer}
+        </div>}
+    </div>
+);
+
 // --- PORTAL CARD ---
 export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string, icon: React.FC<any>, bgImage: string, onClick: () => void, delay?: number }> = ({ id, title, subtitle, icon: Icon, bgImage, onClick, delay = 0 }) => (
   <button id={id} onClick={onClick} style={{ animationDelay: `${delay}ms` }} className="relative aspect-square rounded-[2.5rem] overflow-hidden group shadow-lg hover:shadow-2xl transition-all duration-500 animate-in fade-in slide-up">

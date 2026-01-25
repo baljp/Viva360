@@ -61,8 +61,13 @@ export const api = {
                 body: JSON.stringify(data)
             });
             
-            // If session is missing (common in some registration flows), 
-            // perform an automatic login to get the token
+            let user = res.user || res;
+            // Flatten Supabase-style metadata if present
+            if (user.user_metadata) {
+                user = { ...user, ...user.user_metadata };
+                delete user.user_metadata;
+            }
+
             if (!res.session?.access_token) {
                 try {
                     const loginRes = await request('/auth/login', {
@@ -80,7 +85,7 @@ export const api = {
                 localStorage.setItem('supabase.auth.token', res.session.access_token);
             }
             
-            return res.user || res;
+            return user as User;
         },
         getCurrentSession: async (): Promise<User | null> => {
             try {
@@ -104,15 +109,24 @@ export const api = {
         },
         update: async (user: User) => request('/profiles/me', { method: 'PATCH', body: JSON.stringify(user) }),
         checkIn: async (uid: string) => {
-            // Get current profile to merge with karma
+            const today = new Date().toISOString().split('T')[0];
             try {
                 const current = await request('/profiles/me');
+                const updatedUser = { 
+                    ...current, 
+                    karma: (current.karma || 0) + 50,
+                    lastCheckIn: today 
+                };
+                // Pre-emptively update local storage or just return for state update
                 return { 
-                    user: { ...current, karma: (current.karma || 0) + 50 }, 
+                    user: updatedUser, 
                     reward: 50 
                 };
             } catch (e) {
-                return { user: { id: uid, karma: 100, role: 'CLIENT' }, reward: 50 }; 
+                return { 
+                    user: { id: uid, karma: 100, role: 'CLIENT', lastCheckIn: today }, 
+                    reward: 50 
+                }; 
             }
         }
     },

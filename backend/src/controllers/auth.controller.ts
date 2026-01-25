@@ -75,25 +75,57 @@ export const register = async (req: Request, res: Response) => {
     const { email, password, name, role } = registerSchema.parse(req.body);
 
     if (isMockMode()) {
+      const mockUser = {
+        id: `mock-user-${Date.now()}`,
+        email,
+        role: role || 'CLIENT',
+        name,
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + name, // Dynamic avatar
+        karma: 0,
+        streak: 0,
+        multiplier: 1.0,
+        plantStage: 'seed',
+        plantXp: 0,
+        corporateBalance: 0,
+        personalBalance: 0,
+        needs: [],
+        offers: [],
+        rating: 5,
+        swapCredits: 100,
+        isAvailableForSwap: true
+      };
+
       return res.json({
-        user: { id: 'mock-new-user-id', email, user_metadata: { name, role } },
-        session: null, // Usually register requires email confirmation
+        user: mockUser,
+        session: { access_token: `mock-register-token-${Date.now()}`, refresh_token: 'mock-refresh-token' },
       });
     }
 
-    const { data, error } = await supabaseAdmin.auth.signUp({
+    // Use Admin API to create user with auto-confirmation
+    const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      options: {
-        data: {
-          name,
-          role: role || 'CLIENT',
-        },
-      },
+      email_confirm: true, // Auto-confirm email
+      user_metadata: {
+        name,
+        role: role || 'CLIENT',
+      }
     });
 
-    if (error) throw error;
-    return res.json(data);
+    if (createError) throw createError;
+
+    // Immediately sign in to get a session
+    const { data: sessionData, error: signInError } = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (signInError) throw signInError;
+
+    return res.json({
+        user: userData.user,
+        session: sessionData.session
+    });
   } catch (error: any) {
      if (error instanceof z.ZodError) {
       return res.status(400).json({ error: error.errors });

@@ -17,11 +17,18 @@ const getProfile = async (req, res) => {
         if ((0, supabase_service_1.isMockMode)()) {
             return res.json({
                 id: user.id || 'mock-id',
-                name: 'Mock User',
+                name: user.name || 'Buscador Demo',
                 email: user.email || 'mock@example.com',
-                role: 'CLIENT',
-                bio: 'This is a mock profile',
-                personal_balance: 1000
+                role: user.role || 'CLIENT', // Now this comes correctly from middleware
+                avatar: user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200',
+                karma: user.karma || 120,
+                streak: user.streak || 5,
+                multiplier: user.multiplier || 1.2,
+                plantStage: user.plantStage || 'seed',
+                plantXp: user.plantXp || 45,
+                corporateBalance: user.corporateBalance || 0,
+                personalBalance: user.personalBalance || 500,
+                bio: user.bio || 'Perfil em Modo de Demonstração',
             });
         }
         const { data, error } = await supabase_service_1.supabaseAdmin
