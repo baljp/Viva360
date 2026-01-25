@@ -168,6 +168,14 @@ const App: React.FC = () => {
         init();
     }, []);
 
+    const handleLogin = (u: any) => {
+        if (!u) return;
+        handleUpdateUser(u);
+        const role = String(u.role).toUpperCase();
+        const homePath = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : '/space/home');
+        navigate(homePath);
+    };
+
     const handleUpdateUser = (u: any) => {
         if (!u) return;
         setCurrentUser(prev => {
@@ -250,27 +258,23 @@ const App: React.FC = () => {
                         navigate(home);
                     }} setView={setView} />} />
                     
-                    <Route path="/register" element={<RegistrationViews view={currentView} setView={setView} onRegister={async (u) => { 
+                    <Route path="/login" element={<Auth onLogin={handleLogin} setView={setView} />} />
+
+                    <Route path="/register" element={<RegistrationViews view={ViewState.REGISTER} setView={setView} onRegister={async (u) => { 
                         const user = await api.auth.register(u); 
-                        handleUpdateUser(user); 
-                        const role = String(user.role).toUpperCase();
-                        const home = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : '/space/home');
-                        navigate(home);
+                        handleLogin(user); 
                     }} />} />
                     <Route path="/register/client" element={<RegistrationViews view={ViewState.REGISTER_CLIENT} setView={setView} onRegister={async (u) => { 
                         const user = await api.auth.register(u); 
-                        handleUpdateUser(user); 
-                        navigate('/client/home');
+                        handleLogin(user);
                     }} />} />
                     <Route path="/register/pro" element={<RegistrationViews view={ViewState.REGISTER_PRO} setView={setView} onRegister={async (u) => { 
                         const user = await api.auth.register(u); 
-                        handleUpdateUser(user); 
-                        navigate('/pro/home');
+                        handleLogin(user);
                     }} />} />
                     <Route path="/register/space" element={<RegistrationViews view={ViewState.REGISTER_SPACE} setView={setView} onRegister={async (u) => { 
                         const user = await api.auth.register(u); 
-                        handleUpdateUser(user); 
-                        navigate('/space/home');
+                        handleLogin(user);
                     }} />} />
 
                     {/* Client Routes */}
@@ -286,7 +290,7 @@ const App: React.FC = () => {
                     <Route path="/space/*" element={(String(currentUser?.role).toUpperCase() === 'SPACE') ? <SpaceViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
 
                     {/* Shared Routes */}
-                    <Route path="/settings" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} />} />
+                    <Route path="/settings/*" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} />} />
                     
                     <Route path="*" element={<Navigate to="/" />} />
                 </Routes>

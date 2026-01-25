@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.processPurchase = exports.listProducts = void 0;
 const supabase_service_1 = require("../services/supabase.service");
+const database_manager_1 = require("../lib/database_manager");
+const queue_1 = require("../lib/queue");
 const zod_1 = require("zod");
 const purchaseSchema = zod_1.z.object({
     product_id: zod_1.z.string(),
@@ -16,7 +18,8 @@ const listProducts = async (req, res) => {
                 { id: 'prod-2', name: 'Tapete Yoga', price: 120.0, category: 'Acessórios', image: 'https://placehold.co/400' },
             ]);
         }
-        const { data, error } = await supabase_service_1.supabaseAdmin.from('products').select('*');
+        // CQRS: Read from Replica
+        const { data, error } = await database_manager_1.dbManager.getReader().from('products').select('*');
         if (error)
             throw error;
         return res.json(data);
@@ -44,15 +47,19 @@ const processPurchase = async (req, res) => {
                 message: 'Purchase successful'
             });
         }
-        // Call the complex Postgres function via RPC
-        const { data, error } = await supabase_service_1.supabaseAdmin.rpc('process_payment', {
+        // ASYNC ARCHITECTURE: Push to Redis Queue
+        const job = await queue_1.checkoutQueue.add('purchase', {
             amount,
             description,
-            receiver_id: null // Ideally we'd look up product owner here
+            user_id: user.id,
+            receiver_id: null
         });
-        if (error)
-            throw error;
-        return res.json(data);
+        return res.json({
+            success: true,
+            status: 'queued',
+            jobId: job.id,
+            message: 'Transaction queued for processing'
+        });
     }
     catch (error) {
         if (error instanceof zod_1.z.ZodError) {

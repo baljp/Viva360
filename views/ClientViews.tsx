@@ -3,22 +3,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ViewState, Professional, User, Product, Appointment, MoodType, DailyRitualSnap, Badge, Review } from '../types';
 import { api } from '../services/api'; 
 import { Search, Compass, ShoppingBag, ChevronLeft, ChevronRight, Wind, X, Moon, Sparkles, Heart, Activity, ShoppingCart, Calendar, MapPin, Star, ShieldCheck, Camera, Scan, Zap, Fingerprint, Aperture, CheckCircle2, BarChart3, Wifi, ArrowRight, PenLine, Smile, Frown, Meh, CloudRain, Sun, Plus, Filter, Tag, PlayCircle, Users, Clock, Info, Loader2, Sunrise, Sunset, Image as ImageIcon, Share2, Globe, MessageCircle, Trophy, Droplets, Leaf, BookOpen, Coffee, Play, Flame, Award, LayoutDashboard, SearchCode, Sparkle, Brain, Target, Stethoscope } from 'lucide-react';
-import { DynamicAvatar, SoulGarden, ZenToast, PortalCard, DailyBlessing, Card, MoodTracker, CameraWidget, ReviewCard, ReviewFormModal, DailyQuestsWidget, BottomSheet, StarRating, VerifiedBadge } from '../components/Common';
+import { DynamicAvatar, SoulGarden, ZenToast, PortalCard, DailyBlessing, Card, MoodTracker, CameraWidget, ReviewCard, ReviewFormModal, DailyQuestsWidget, BottomSheet, StarRating, VerifiedBadge, PortalView } from '../components/Common';
 import { ConstellationOrbit, TimelapseViewer, GlobalMandala } from '../components/SocialFeatures';
 import { SPECIALTIES } from '../constants';
-
-const PortalView: React.FC<{ title: string, subtitle: string, onBack: () => void, children: React.ReactNode, footer?: React.ReactNode }> = ({ title, subtitle, onBack, children, footer }) => (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-full">
-        <header className="flex-none flex items-center gap-4 px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 bg-white border-b border-nature-100 shadow-sm z-20">
-            <button onClick={onBack} className="p-3 bg-nature-50 rounded-2xl text-nature-600 active:scale-90 transition-all shadow-sm"><ChevronLeft size={22} /></button>
-            <div className="space-y-0.5"><h2 className="text-xl font-serif italic text-nature-900 leading-none">{title}</h2><p className="text-[10px] text-nature-400 uppercase tracking-[0.3em] font-bold">{subtitle}</p></div>
-        </header>
-        <div className="flex-1 overflow-y-auto no-scrollbar p-6 pb-[calc(6rem+env(safe-area-inset-bottom))]">
-            {children}
-        </div>
-        {footer && <div className="flex-none border-t border-nature-100 bg-white/80 backdrop-blur-md p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">{footer}</div>}
-    </div>
-);
 
 export const ClientViews: React.FC<{ 
   user: User, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onAddToCart: (p: Product) => void

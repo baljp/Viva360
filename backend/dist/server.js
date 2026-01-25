@@ -3,6 +3,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const instrumentation_1 = require("./lib/instrumentation");
+// Initialize Telemetry before anything else
+(0, instrumentation_1.initTelemetry)();
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
@@ -18,6 +21,12 @@ app.use((0, helmet_1.default)()); // Security headers
 app.use((0, cors_1.default)()); // Enable CORS
 app.use(express_1.default.json()); // Parse JSON bodies
 app.use((0, morgan_1.default)('combined')); // Logging
+// CHAOS ENGINEERING (Enabled via ENV)
+const chaos_1 = require("./lib/chaos");
+if (process.env.CHAOS_MODE === 'true') {
+    app.use(chaos_1.chaosMiddleware);
+    console.warn("⚠️  CHAOS MODE ENABLED: Expect random failures! ⚠️");
+}
 // API Routes
 app.use('/api', routes_1.default);
 // Health Check Route
