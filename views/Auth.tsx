@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ViewState, User } from '../types';
-import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon } from 'lucide-react';
+import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { api } from '../services/api';
 import { isMockMode } from '../lib/supabase';
 
@@ -165,13 +165,20 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                         <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all">
                             <Lock size={18} className="text-nature-400 shrink-0"/>
                             <input 
-                                type="password" 
+                                type={showPassword ? "text" : "password"} 
                                 required={!isMockMode}
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm" 
                                 placeholder="••••••••"
                             />
+                            <button 
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="text-nature-400 hover:text-nature-600 transition-colors p-1"
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 
