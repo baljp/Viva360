@@ -12,6 +12,7 @@ import dotenv from 'dotenv';
 import router from './routes';
 import rateLimit from 'express-rate-limit';
 import { chaosMiddleware } from './lib/chaos';
+import register, { httpRequestDurationMicroseconds, httpRequestErrors } from './lib/metrics';
 
 // Load environment variables
 dotenv.config();
@@ -42,6 +43,27 @@ if (cluster.isPrimary && process.env.NODE_ENV !== 'test') { // Simple check to a
   // app.use(morgan('combined')); // Disable logging in workers to reduce IO noise during stress test?
   // Let's keep it minimal
   if (process.env.NODE_ENV !== 'production') app.use(morgan('tiny'));
+
+  // Observability Middleware
+  app.use((req, res, next) => {
+    const start = Date.now();
+    res.on('finish', () => {
+      const duration = (Date.now() - start) / 1000;
+      const route = req.route ? req.route.path : req.path;
+      httpRequestDurationMicroseconds.labels(req.method, route, res.statusCode.toString()).observe(duration);
+      
+      if (res.statusCode >= 400) {
+        httpRequestErrors.labels(req.method, route, res.statusCode.toString()).inc();
+      }
+    });
+    next();
+  });
+
+  // Metrics Endpoint
+  app.get('/metrics', async (req, res) => {
+    res.setHeader('Content-Type', register.contentType);
+    res.send(await register.metrics());
+  });
 
   // RATE LIMITING
   const limiter = rateLimit({
