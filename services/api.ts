@@ -49,6 +49,7 @@ const createMockUser = (email: string, name?: string, role?: UserRole): User => 
 });
 
 export const api = {
+    request,
     auth: {
         loginWithPassword: async (email: string, password: string): Promise<User> => {
             try {

@@ -155,6 +155,7 @@ const ForgotPasswordForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> = ({ onBack, onSubmit }) => {
     const [email, setEmail] = useState(isMockMode ? 'client0@viva360.com' : '');
     const [password, setPassword] = useState(isMockMode ? '123456' : '');
+    const [showPassword, setShowPassword] = useState(false);
     const [showForgot, setShowForgot] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
