@@ -266,12 +266,12 @@ const App: React.FC = () => {
                 <Routes>
                     <Route path="/" element={<Navigate to="/login" replace />} />
                     <Route path="/login" element={<Auth onLogin={(u) => { 
+                        if (!u) return;
                         setCurrentUser(u); 
-                        const home = u.role === UserRole.CLIENT ? '/client/home' : u.role === UserRole.PROFESSIONAL ? '/pro/home' : u.role === UserRole.SPACE ? '/space/home' : '/admin/dashboard';
+                        const role = String(u.role).toUpperCase();
+                        const home = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : (role === 'SPACE' ? '/space/home' : '/admin/dashboard'));
                         navigate(home);
                     }} setView={setView} />} />
-                    
-                    <Route path="/login" element={<Auth onLogin={handleLogin} setView={setView} />} />
                     <Route path="/reset-password" element={<ResetPasswordView />} />
 
                     <Route path="/register" element={<RegistrationViews view={ViewState.REGISTER} setView={setView} onRegister={async (u) => { 
