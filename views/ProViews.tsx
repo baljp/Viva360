@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { ViewState, Professional, Appointment, User, Transaction, Product, RecordAccess, Vacancy } from '../types';
+import { api } from '../services/api';
 import { 
     Calendar as CalendarIcon, ChevronLeft, Wallet, Flower, Zap, 
     Heart, Clock, Star, History, Plus, RefreshCw, CheckCircle2, FileText, ChevronRight, Video, MessageSquare, Users, Briefcase, MapPin, Sparkles, Save, ArrowUpRight, ArrowDownRight, Filter, Share2, Shield, Lock, Trash2, TrendingUp, Droplets, Activity, Sun, Wind, Phone as PhoneIcon, LayoutDashboard, UserCheck, AlertCircle, Target, ShoppingBag, Award, BarChart3, Play, Moon, Search, Package, Layers, ExternalLink, Building

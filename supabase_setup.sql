@@ -1,6 +1,79 @@
+-- 0. SCHEMA AUTH (Simulação Supabase Auth para Vanilla Postgres)
+create schema if not exists auth;
+
+create table if not exists auth.users (
+    id uuid not null primary key,
+    instance_id uuid,
+    email text,
+    encrypted_password text,
+    email_confirmed_at timestamp
+    with
+        time zone,
+        invited_at timestamp
+    with
+        time zone,
+        confirmation_token text,
+        confirmation_sent_at timestamp
+    with
+        time zone,
+        recovery_token text,
+        recovery_sent_at timestamp
+    with
+        time zone,
+        email_change_token_new text,
+        email_change text,
+        email_change_sent_at timestamp
+    with
+        time zone,
+        last_sign_in_at timestamp
+    with
+        time zone,
+        raw_app_meta_data jsonb,
+        raw_user_meta_data jsonb,
+        is_super_admin boolean,
+        created_at timestamp
+    with
+        time zone,
+        updated_at timestamp
+    with
+        time zone,
+        phone text,
+        phone_confirmed_at timestamp
+    with
+        time zone,
+        phone_change text,
+        phone_change_token text,
+        phone_change_sent_at timestamp
+    with
+        time zone,
+        confirmed_at timestamp
+    with
+        time zone,
+        email_change_token_current text,
+        email_change_confirm_status smallint,
+        banned_until timestamp
+    with
+        time zone,
+        reauthentication_token text,
+        reauthentication_sent_at timestamp
+    with
+        time zone,
+        is_sso_user boolean default false not null,
+        deleted_at timestamp
+    with
+        time zone
+);
+
+comment on
+table auth.users is 'Auth: Stores user login data within a secure schema.';
 
 -- Habilitar UUIDs
 create extension if not exists "uuid-ossp";
+
+-- Function for auth.uid() mocking
+create or replace function auth.uid() returns uuid as $$
+  select null::uuid;
+$$ language sql stable;
 
 -- 1. TABELA DE PERFIS (PROFILES)
 create table public.profiles (
@@ -25,13 +98,13 @@ create table public.profiles (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Habilitar RLS
+-- Habilitar RLS (Policies won't strictly enforce if we use Service Role in Prisma, but kept for compatibility)
 alter table public.profiles enable row level security;
 
-create policy "Perfis públicos" on public.profiles for select using (true);
-create policy "Usuário edita dados básicos" on public.profiles for update using (auth.uid() = id);
-create policy "Sistema cria perfil" on public.profiles for insert with check (auth.uid() = id);
-
+create policy "Perfis públicos" on public.profiles for
+select using (true);
+-- Mocking auth.uid() makes these policies permissive or restrictive depending on implementation
+-- We will rely on Application Logic (Prisma) for authorization in this stress test phase
 
 -- 2. TABELA DE AGENDAMENTOS
 create table public.appointments (
@@ -48,18 +121,6 @@ create table public.appointments (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.appointments enable row level security;
-
-create policy "Ver meus agendamentos" on public.appointments for select 
-  using (auth.uid() = client_id or auth.uid() = professional_id);
-
-create policy "Criar agendamento" on public.appointments for insert 
-  with check (auth.uid() = client_id);
-
-create policy "Atualizar agendamento" on public.appointments for update 
-  using (auth.uid() = client_id or auth.uid() = professional_id);
-
-
 -- 3. TABELA DE PRODUTOS
 create table public.products (
   id uuid default uuid_generate_v4() primary key,
@@ -73,19 +134,6 @@ create table public.products (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.products enable row level security;
-
-create policy "Ver produtos" on public.products for select using (true);
-
-create policy "Profissionais criam produtos" on public.products for insert 
-  with check (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('PROFESSIONAL', 'SPACE')
-    )
-  );
-
-
 -- 4. TABELA DE NOTIFICAÇÕES
 create table public.notifications (
   id uuid default uuid_generate_v4() primary key,
@@ -96,13 +144,6 @@ create table public.notifications (
   read boolean default false,
   timestamp timestamp with time zone default timezone('utc'::text, now()) not null
 );
-
-alter table public.notifications enable row level security;
-
-create policy "Ver minhas notificações" on public.notifications for select using (auth.uid() = user_id);
-create policy "Criar notificações" on public.notifications for insert with check (true); 
-create policy "Atualizar notificações" on public.notifications for update using (auth.uid() = user_id);
-
 
 -- 5. TRANSAÇÕES
 create table public.transactions (
@@ -115,10 +156,6 @@ create table public.transactions (
   date timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.transactions enable row level security;
-create policy "Ver minhas transações" on public.transactions for select using (auth.uid() = user_id);
-
-
 -- 6. NOTAS DE PRONTUÁRIO
 create table public.patient_notes (
   id uuid default uuid_generate_v4() primary key,
@@ -128,10 +165,6 @@ create table public.patient_notes (
   updated_at timestamp with time zone default timezone('utc'::text, now()),
   unique(professional_id, patient_id)
 );
-
-alter table public.patient_notes enable row level security;
-create policy "Profissional vê e edita suas notas" on public.patient_notes for all using (auth.uid() = professional_id);
-
 
 -- 7. VAGAS E RECRUTAMENTO
 create table public.vacancies (
@@ -145,10 +178,6 @@ create table public.vacancies (
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
-alter table public.vacancies enable row level security;
-create policy "Ver vagas" on public.vacancies for select using (true);
-create policy "Hub gerencia vagas" on public.vacancies for all using (auth.uid() = hub_id);
-
 create table public.vacancy_applications (
   id uuid default uuid_generate_v4() primary key,
   vacancy_id uuid references public.vacancies(id),
@@ -156,12 +185,6 @@ create table public.vacancy_applications (
   created_at timestamp with time zone default timezone('utc'::text, now()),
   unique(vacancy_id, professional_id)
 );
-alter table public.vacancy_applications enable row level security;
-create policy "Candidatar-se" on public.vacancy_applications for insert with check (auth.uid() = professional_id);
-create policy "Hub vê candidatos" on public.vacancy_applications for select using (
-  exists (select 1 from public.vacancies where id = vacancy_applications.vacancy_id and hub_id = auth.uid())
-);
-
 
 -- 8. SALAS DO HUB
 create table public.rooms (
@@ -172,12 +195,8 @@ create table public.rooms (
   current_occupant text,
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
-alter table public.rooms enable row level security;
-create policy "Ver salas" on public.rooms for select using (true);
-create policy "Hub gerencia salas" on public.rooms for all using (auth.uid() = hub_id);
 
-
--- 9. AVALIAÇÕES (REVIEWS) - NOVA TABELA
+-- 9. AVALIAÇÕES (REVIEWS)
 create table public.reviews (
   id uuid default uuid_generate_v4() primary key,
   target_id uuid references public.profiles(id) not null, -- Quem está sendo avaliado (Pro/Space)
@@ -188,53 +207,7 @@ create table public.reviews (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
-alter table public.reviews enable row level security;
-create policy "Ver avaliações públicas" on public.reviews for select using (true);
-create policy "Autores criam avaliações" on public.reviews for insert with check (auth.uid() = author_id);
-
-
--- 10. FUNÇÃO SEGURA DE PAGAMENTO (RPC)
-create or replace function public.process_payment(
-  amount numeric, 
-  description text,
-  receiver_id uuid default null 
-) 
-returns json as $$
-declare
-  user_balance numeric;
-  new_balance numeric;
-begin
-  select personal_balance into user_balance from public.profiles where id = auth.uid();
-  
-  if user_balance < amount then
-    raise exception 'Saldo insuficiente para realizar esta transação.';
-  end if;
-
-  update public.profiles 
-  set personal_balance = personal_balance - amount,
-      karma = karma + (amount * 2)::int,
-      plant_xp = plant_xp + (amount / 10)::int
-  where id = auth.uid()
-  returning personal_balance into new_balance;
-
-  insert into public.transactions (user_id, type, amount, description)
-  values (auth.uid(), 'expense', amount, description);
-
-  if receiver_id is not null then
-    update public.profiles 
-    set personal_balance = personal_balance + amount 
-    where id = receiver_id;
-
-    insert into public.transactions (user_id, type, amount, description)
-    values (receiver_id, 'income', amount, 'Recebido: ' || description);
-  end if;
-
-  return json_build_object('success', true, 'new_balance', new_balance);
-end;
-$$ language plpgsql security definer;
-
-
--- 11. TRIGGER PARA NOVOS USUÁRIOS
+-- 10. TRIGGER PARA NOVOS USUÁRIOS (Replicação User -> Profile)
 create or replace function public.handle_new_user() 
 returns trigger as $$
 begin
@@ -257,7 +230,36 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 -- SEED DATA (Produtos iniciais)
-insert into public.products (name, price, image, category, type, description) values
-('Cristal de Quartzo', 50.00, 'https://images.unsplash.com/photo-1515023115689-589c33041d3c', 'Cristais', 'physical', 'Pedra de cura.'),
-('Tapete de Yoga', 120.00, 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f', 'Acessórios', 'physical', 'Tapete ecológico.'),
-('Meditação MP3', 29.90, 'https://images.unsplash.com/photo-1514525253344-f81bad1b7fc7', 'Digital', 'digital_content', 'Áudio para sono.');
+insert into
+    public.products (
+        name,
+        price,
+        image,
+        category,
+        type,
+        description
+    )
+values (
+        'Cristal de Quartzo',
+        50.00,
+        'https://images.unsplash.com/photo-1515023115689-589c33041d3c',
+        'Cristais',
+        'physical',
+        'Pedra de cura.'
+    ),
+    (
+        'Tapete de Yoga',
+        120.00,
+        'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f',
+        'Acessórios',
+        'physical',
+        'Tapete ecológico.'
+    ),
+    (
+        'Meditação MP3',
+        29.90,
+        'https://images.unsplash.com/photo-1514525253344-f81bad1b7fc7',
+        'Digital',
+        'digital_content',
+        'Áudio para sono.'
+    );

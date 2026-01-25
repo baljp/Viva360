@@ -35,9 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const MarketplaceController = __importStar(require("../controllers/marketplace.controller"));
-const auth_middleware_1 = require("../middleware/auth.middleware");
 const router = (0, express_1.Router)();
-// Public listing? Or protected? Let's make it protected for now as per enterprise requirements usually
-router.get('/products', auth_middleware_1.authenticateUser, MarketplaceController.listProducts);
-router.post('/purchase', auth_middleware_1.authenticateUser, MarketplaceController.processPurchase);
+router.post('/products', MarketplaceController.createProduct);
+router.get('/products', MarketplaceController.listProducts);
 exports.default = router;
