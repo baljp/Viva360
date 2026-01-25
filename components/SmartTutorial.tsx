@@ -136,7 +136,10 @@ export const SmartTutorial: React.FC = () => {
 
     const finishTutorial = () => {
         setIsActive(false);
-        localStorage.setItem('viva360_smart_tutorial_seen', 'true');
+        if (user) {
+            localStorage.setItem(`viva360_tutorial_seen_${user.id}`, 'true');
+            localStorage.setItem('viva360_smart_tutorial_seen', 'true'); // Fallback
+        }
     };
 
     const restartTutorial = () => {
@@ -145,6 +148,8 @@ export const SmartTutorial: React.FC = () => {
     };
 
     if (!isActive) {
+        if (!user) return null; // Don't show help button on login/splash
+        
         return (
             <button 
                 onClick={restartTutorial}

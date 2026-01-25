@@ -316,7 +316,7 @@ const App: React.FC = () => {
 
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={removeFromCart} onProceed={() => {setIsCartOpen(false); navigate('/checkout');}} />
-            <SmartTutorial />
+            <SmartTutorial user={currentUser} />
         </Layout>
     );
 };
