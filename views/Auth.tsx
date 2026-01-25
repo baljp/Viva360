@@ -85,10 +85,77 @@ const OnboardingCarousel: React.FC = () => {
     );
 };
 
+// --- FORGOT PASSWORD FORM ---
+const ForgotPasswordForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const [email, setEmail] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+        try {
+            await api.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+            setSuccess(true);
+        } catch (err: any) {
+            setError(err.message || "Erro ao conectar com o santuário.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="bg-[#f4f7f5] rounded-t-[3rem] w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col h-[60vh]">
+            <div className="p-8">
+                <div className="w-12 h-1.5 bg-nature-200 rounded-full mx-auto opacity-50 mb-6"></div>
+                
+                <header className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-serif italic text-nature-900">Recuperar Acesso</h3>
+                    <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200"><X size={20}/></button>
+                </header>
+
+                {!success ? (
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <p className="text-nature-600 text-sm leading-relaxed">
+                            Digite seu e-mail para recebermos um elo de recuperação.
+                        </p>
+                        <div className="space-y-2">
+                             <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 transition-all">
+                                <Mail size={18} className="text-nature-400 shrink-0"/>
+                                <input 
+                                    type="email" required value={email} onChange={e => setEmail(e.target.value)}
+                                    className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm" 
+                                    placeholder="seu@email.com"
+                                />
+                            </div>
+                        </div>
+                        {error && <p className="text-rose-500 text-xs font-bold">{error}</p>}
+                        <button type="submit" disabled={loading} className="w-full bg-nature-900 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">
+                            {loading ? 'Enviando Elo...' : 'Enviar Elo de Recuperação'}
+                        </button>
+                    </form>
+                ) : (
+                    <div className="text-center space-y-4 animate-in fade-in">
+                        <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Check size={32} />
+                        </div>
+                        <h4 className="text-xl font-bold text-nature-900">Elo Enviado!</h4>
+                        <p className="text-nature-600 text-sm">Verifique sua caixa de entrada (e spam) para redefinir sua harmonia.</p>
+                        <button onClick={onBack} className="text-primary-600 font-bold hover:underline mt-4">Voltar ao Login</button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 // --- LOGIN FORM COMPONENT ---
 const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> = ({ onBack, onSubmit }) => {
     const [email, setEmail] = useState(isMockMode ? 'client0@viva360.com' : '');
     const [password, setPassword] = useState(isMockMode ? '123456' : '');
+    const [showForgot, setShowForgot] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -114,6 +181,8 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         if (role === 'space') setEmail('contato.hub0@viva360.com');
         setPassword('123456');
     };
+
+    if (showForgot) return <ForgotPasswordForm onBack={() => setShowForgot(false)} />;
 
     return (
         <div className="bg-[#f4f7f5] rounded-t-[3rem] w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col h-[85vh]">
@@ -199,7 +268,9 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                     
                     {!isMockMode && (
                         <div className="text-center pt-2">
-                            <p className="text-xs text-nature-400">Esqueceu sua senha? <button className="text-primary-600 font-bold hover:underline">Recuperar</button></p>
+                            <button type="button" onClick={() => setShowForgot(true)} className="text-xs text-primary-600 font-bold hover:underline">
+                                Esqueceu sua senha? Recuperar
+                            </button>
                         </div>
                     )}
                     

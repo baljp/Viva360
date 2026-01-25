@@ -11,6 +11,7 @@ import { ZenToast } from './components/Common';
 
 // Lazy Load Views
 const Auth = lazy(() => import('./views/Auth'));
+const ResetPasswordView = lazy(() => import('./views/ResetPassword').then(m => ({ default: m.ResetPasswordView })));
 const ClientViews = lazy(() => import('./views/ClientViews').then(module => ({ default: module.ClientViews })));
 const ProViews = lazy(() => import('./views/ProViews').then(module => ({ default: module.ProViews })));
 const SpaceViews = lazy(() => import('./views/SpaceViews').then(module => ({ default: module.SpaceViews })));
@@ -259,6 +260,7 @@ const App: React.FC = () => {
                     }} setView={setView} />} />
                     
                     <Route path="/login" element={<Auth onLogin={handleLogin} setView={setView} />} />
+                    <Route path="/reset-password" element={<ResetPasswordView />} />
 
                     <Route path="/register" element={<RegistrationViews view={ViewState.REGISTER} setView={setView} onRegister={async (u) => { 
                         const user = await api.auth.register(u); 
