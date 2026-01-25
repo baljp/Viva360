@@ -7,6 +7,8 @@ import { DynamicAvatar, SoulGarden, ZenToast, PortalCard, DailyBlessing, Card, M
 import { ConstellationOrbit, TimelapseViewer, GlobalMandala } from '../components/SocialFeatures';
 import { SPECIALTIES } from '../constants';
 
+import { getDailyMetamorphosisInsight } from '../src/utils/dailyWisdom';
+
 export const ClientViews: React.FC<{ 
   user: User, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onAddToCart: (p: Product) => void
 }> = ({ user, view, setView, updateUser, onAddToCart }) => {
@@ -142,9 +144,6 @@ export const ClientViews: React.FC<{
            <TimelapseViewer snaps={user.snaps || []} />
         </div>
 
-import { getDailyMetamorphosisInsight } from '../src/utils/dailyWisdom';
-
-// ... inside component ...
         <div className="bg-nature-900 rounded-[3rem] p-8 text-white">
            <h4 className="font-serif italic text-lg mb-2">Insight de Metamorfose</h4>
            <p className="text-xs text-primary-200 leading-relaxed italic">"{getDailyMetamorphosisInsight()}"</p>
