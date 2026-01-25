@@ -154,24 +154,26 @@ export const api = {
     },
     payment: {
         checkout: async (amount: number, description: string, providerId?: string) => {
-            return request('/marketplace/purchase', {
+            return request('/checkout/pay', {
                 method: 'POST',
-                body: JSON.stringify({ product_id: 'checkout_generic', amount, description })
+                body: JSON.stringify({ items: [{ id: 'generic', price: amount }], amount, description, receiverId: providerId })
             });
         }
     },
     professionals: {
         list: async (): Promise<Professional[]> => {
-             // TODO: Backend endpoint for listing pros
-             return [];
+             return request('/profiles?role=PROFESSIONAL');
         },
-        updateNotes: async (patientId: string, proId: string, content: string) => true,
-        getNotes: async (patientId: string, proId: string) => "",
-        grantAccess: async () => ({ id: 'mock', status: 'active' } as any),
+        updateNotes: async (patientId: string, proId: string, content: string) => request('/records', {
+            method: 'POST',
+            body: JSON.stringify({ patientId, content, type: 'session' })
+        }),
+        getNotes: async (patientId: string, proId: string) => request(`/records?patientId=${patientId}`),
+        grantAccess: async (proId: string) => request('/records/grant', { method: 'POST', body: JSON.stringify({ professionalId: proId }) }),
         revokeAccess: async () => true,
         getRecordAccessList: async () => [],
-        applyToVacancy: async (vacancyId: string, proId: string) => true,
-        getFinanceSummary: async (proId: string) => ({ transactions: [] })
+        applyToVacancy: async (vacancyId: string, proId: string) => request(`/tribe/join`, { method: 'POST', body: JSON.stringify({ vacancyId }) }),
+        getFinanceSummary: async (proId: string) => request('/finance/balance')
     },
     appointments: {
         list: async (uid: string, role: UserRole) => request('/appointments'),
@@ -188,11 +190,11 @@ export const api = {
         delete: async (id: string) => true
     },
     spaces: {
-        getRooms: async (sid: string): Promise<SpaceRoom[]> => [],
+        getRooms: async (sid: string): Promise<SpaceRoom[]> => request(`/rooms`), // Assuming general room list for now
         getTeam: async (sid: string) => [],
-        getVacancies: async () => [],
-        createVacancy: async (vacancy: any) => ({ ...vacancy, id: 'mock' }),
-        getTransactions: async (uid: string) => []
+        getVacancies: async () => request('/rooms/vacancies'),
+        createVacancy: async (vacancy: any) => request('/rooms/vacancies', { method: 'POST', body: JSON.stringify(vacancy) }),
+        getTransactions: async (uid: string) => request('/finance/transactions')
     },
     notifications: {
         list: async (uid: string) => request('/notifications'),

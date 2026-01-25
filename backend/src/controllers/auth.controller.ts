@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
+import jwt from 'jsonwebtoken';
 import { AuthService } from '../services/auth.service';
+import { isMockMode } from '../services/supabase.service';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -17,6 +21,15 @@ const registerSchema = z.object({
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
+
+    if (isMockMode()) {
+       const token = jwt.sign({ userId: 'mock-user-id', email, role: 'CLIENT' }, JWT_SECRET, { expiresIn: '1h' });
+       return res.json({
+         user: { id: 'mock-user-id', email },
+         session: { access_token: token, refresh_token: 'mock-refresh' }
+       });
+    }
+
     const data = await AuthService.login(email, password);
     return res.json(data);
   } catch (error: any) {
@@ -30,6 +43,15 @@ export const login = async (req: Request, res: Response) => {
 export const register = async (req: Request, res: Response) => {
   try {
     const { email, password, name, role } = registerSchema.parse(req.body);
+
+    if (isMockMode()) {
+       const token = jwt.sign({ userId: 'mock-user-id', email, role: role || 'CLIENT' }, JWT_SECRET, { expiresIn: '1h' });
+       return res.status(201).json({
+         user: { id: 'mock-user-id', email, role },
+         session: { access_token: token, refresh_token: 'mock-refresh' }
+       });
+    }
+
     const data = await AuthService.register(email, password, name, role); // Pass role
     
     // Trigger Holistic Welcome Email (Async - Fire & Forget)

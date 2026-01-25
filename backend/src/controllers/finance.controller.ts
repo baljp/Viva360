@@ -1,10 +1,18 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
+import { isMockMode } from '../services/supabase.service';
 
 import { cacheGet, cacheSet, cacheInvalidate } from '../lib/cache';
 
 export const getSummary = async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
+
+  if (isMockMode()) {
+    return res.json({
+      personal_balance: 500,
+      corporate_balance: 1500
+    });
+  }
   
   const cacheKey = `fin_summary:${userId}`;
   const cached = await cacheGet(cacheKey);
@@ -24,6 +32,13 @@ export const getSummary = async (req: Request, res: Response) => {
 export const getTransactions = async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   
+  if (isMockMode()) {
+    return res.json([
+      { id: 'tx-1', amount: 100, description: 'Consulta Inicial', date: new Date().toISOString(), type: 'credit' },
+      { id: 'tx-2', amount: -50, description: 'Taxa de Plataforma', date: new Date().toISOString(), type: 'debit' }
+    ]);
+  }
+
   const transactions = await prisma.transaction.findMany({
     where: { user_id: userId },
     orderBy: { date: 'desc' },
