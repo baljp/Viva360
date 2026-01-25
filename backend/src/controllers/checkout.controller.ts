@@ -1,12 +1,36 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { sendPushSimulation } from './notifications.controller';
+import { isMockMode } from '../services/supabase.service';
 
 export const processPayment = async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
-  const { amount, description, receiverId } = req.body;
+  const { amount, description, receiverId, items } = req.body; // items: [{ id, price, type }]
 
   try {
+    if (isMockMode()) {
+       // Simulate Cart Checkout
+       const total = items ? items.reduce((acc: number, item: any) => acc + item.price, 0) : amount;
+       
+       // UPGRADE: 9.2 Inventory Logic
+       if (items) {
+           console.log(`   📉 [INVENTORY] Deducting stock for ${items.length} items...`);
+           items.forEach((i: any) => console.log(`      - Item ${i.id}: Stock -1`));
+       }
+
+       return res.json({
+         id: 'mock-tx-cart-id',
+         user_id: userId || 'mock-sender',
+         type: 'expense',
+         amount: total,
+         description: description || `Checkout (${items?.length || 1} items)`,
+         items: items || [],
+         status: 'completed',
+         fulfillment: items?.map((i: any) => ({ itemId: i.id, status: 'fulfilled', type: i.type })) || [],
+         created_at: new Date().toISOString()
+       });
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       // 1. Check Sender Balance
       const sender = await tx.profile.findUnique({ where: { id: userId } });

@@ -72,3 +72,45 @@ export const updateProfile = async (req: Request, res: Response) => {
     return res.status(400).json({ error: error.message || 'Failed to update profile' });
   }
 };
+
+export const listProfiles = async (req: Request, res: Response) => {
+    try {
+        const role = req.query.role as string;
+        
+        if (isMockMode()) {
+            // Mock listing
+            return res.json([
+                { id: 'pro1', name: 'Guardião Mock', role: 'PROFESSIONAL', specialty: ['Reiki'] },
+                { id: 'pro2', name: 'Terapeuta Mock', role: 'PROFESSIONAL', specialty: ['Yoga'] }
+            ]);
+        }
+
+        // Using Supabase/Prisma to filter profiles
+        // Note: Profile table has 'role' column?
+        // Checking Auth Service (Step 1170), Profile create has 'role'.
+        // So we can filter by role.
+        
+        const { data, error } = await supabaseAdmin
+            .from('profiles')
+            .select('*')
+            .eq('role', role || 'PROFESSIONAL'); // Default to PRO search if undefined? Or list all?
+            // If role is provided, filter. 
+        
+        if (role) {
+             // The .eq above handles it.
+             // But if role is undefined, we might want all?
+             // Re-writing query logic slightly for robustness
+        }
+
+        let query = supabaseAdmin.from('profiles').select('*');
+        if (role) query = query.eq('role', role);
+        
+        const { data: profiles, error: err } = await query;
+        
+        if (err) throw err;
+        return res.json(profiles);
+
+    } catch (error: any) {
+        return res.status(500).json({ error: error.message });
+    }
+};
