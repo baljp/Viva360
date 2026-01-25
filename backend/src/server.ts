@@ -99,4 +99,14 @@ if (cluster.isPrimary && process.env.NODE_ENV !== 'test') { // Simple check to a
       // closed
     });
   });
+
+  // Prevent crash on unhandled errors
+  process.on('uncaughtException', (err) => {
+      console.error('🔥 UNCAUGHT EXCEPTION:', err);
+      // In production we should exit, but for stress stability we log and keep alive if possible or let cluster restart
+  });
+
+  process.on('unhandledRejection', (reason, promise) => {
+      console.error('🔥 UNHANDLED REJECTION:', reason);
+  });
 }

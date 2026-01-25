@@ -94,13 +94,34 @@ async function run() {
         }, { headers: { Authorization: `Bearer ${guardToken}` } });
         console.log('✅ Swap Offer Created');
 
-        // 8. NOTIFICATIONS (Check if Guardião received Push Simulation from Payment & Chat)
+        // 8. NOTIFICATIONS
         console.log('\n[8] Verifying Notifications...');
         const notifRes = await axios.get(`${API_URL}/notifications`, {
             headers: { Authorization: `Bearer ${guardToken}` }
         });
         console.log(`✅ Guardião has ${notifRes.data.length} notifications.`);
         notifRes.data.forEach((n: any) => console.log(`   - [${n.type}] ${n.title}: ${n.message}`));
+
+        // 9. ORACLE (Gamification)
+        console.log('\n[9] Testing Oracle...');
+        const oracleRes = await axios.post(`${API_URL}/oracle/draw`, {
+            mood: 'anxious'
+        }, { headers: { Authorization: `Bearer ${buscToken}` } });
+        console.log(`✅ Oracle Card Drawn: ${oracleRes.data.card.name} (${oracleRes.data.card.element})`);
+
+        // 10. RITUALS (Habits)
+        console.log('\n[10] Testing Ritual Builder...');
+        await axios.post(`${API_URL}/rituals`, {
+            type: 'morning',
+            steps: [{ id: '1', title: 'E2E Yoga', duration: 15, icon: 'Sun' }]
+        }, { headers: { Authorization: `Bearer ${buscToken}` } });
+        console.log('✅ Morning Ritual Saved');
+
+        const ritualRes = await axios.get(`${API_URL}/rituals?type=morning`, {
+            headers: { Authorization: `Bearer ${buscToken}` }
+        });
+        if (ritualRes.data[0].title === 'E2E Yoga') console.log('✅ Ritual Persistence Verified');
+        else console.error('❌ Ritual Persistence Failed');
 
         console.log('\n✨ ALL SYSTEMS OPERATIONAL ✨');
 

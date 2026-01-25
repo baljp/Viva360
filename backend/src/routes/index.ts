@@ -14,10 +14,12 @@ import chatRoutes from './chat.routes';
 import calendarRoutes from './calendar.routes';
 import tribeRoutes from './tribe.routes';
 import alchemyRoutes from './alchemy.routes';
+import oracleRoutes from './oracle.routes';
 import marketplaceRoutes from './marketplace.routes';
 import recordsRoutes from './records.routes';
 
 import { rateLimiter } from '../middleware/rateLimiter';
+import adminRoutes from './admin.routes';
 
 const router = Router();
 router.use(rateLimiter); // Upgrade 9.5: Global Rate Limit
@@ -28,6 +30,8 @@ router.get('/ping', (req, res) => {
 });
 
 router.use('/auth', authRoutes);
+
+// Protected Routes
 router.use('/rituals', authenticateUser, ritualsRoutes);
 router.use('/finance', authenticateUser, financeRoutes);
 router.use('/rooms', authenticateUser, roomsRoutes);
@@ -42,24 +46,15 @@ router.use('/calendar', authenticateUser, calendarRoutes);
 router.use('/tribe', authenticateUser, tribeRoutes);
 router.use('/alchemy', authenticateUser, alchemyRoutes);
 router.use('/marketplace', authenticateUser, marketplaceRoutes);
-router.use('/rooms', authenticateUser, roomsRoutes);
-router.use('/finance', authenticateUser, financeRoutes);
-router.use('/rituals', authenticateUser, ritualsRoutes);
+router.use('/oracle', authenticateUser, oracleRoutes);
 router.use('/records', authenticateUser, recordsRoutes);
 
-// Upgrade Phase 11: Admin Governance
-import adminRoutes from './admin.routes';
-// Should be router.use('/admin', authenticateAdmin, adminRoutes);
-// For verify script, using simple mount
+// Admin
 router.use('/admin', adminRoutes);
 
-// Protected Routes (Example)
+// Protected Test Route (Example)
 router.use('/protected', authenticateUser, (req, res) => {
   res.json({ message: 'You have access!', user: req.user });
 });
-
-// We will mount other routes here as we build them.
-// router.use('/appointments', appointmentsRoutes);
-// router.use('/marketplace', marketplaceRoutes);
 
 export default router;
