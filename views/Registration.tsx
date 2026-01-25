@@ -12,12 +12,32 @@ interface RegistrationProps {
 }
 
 // --- Componentes de UI Auxiliares ---
-const InputField: React.FC<any> = ({ icon, ...props }) => (
-    <div className="relative group">
-        <div className="absolute top-1/2 -translate-y-1/2 left-5 text-nature-400 group-focus-within:text-primary-600 transition-colors">{icon}</div>
-        <input {...props} className="w-full bg-white border border-nature-100 py-4 pl-14 pr-5 rounded-2xl text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none shadow-sm transition-all placeholder:text-nature-300" />
-    </div>
-);
+import { Eye, EyeOff } from 'lucide-react';
+
+const InputField: React.FC<any> = ({ icon, type = "text", ...props }) => {
+    const [showPassword, setShowPassword] = useState(false);
+    const isPassword = type === 'password';
+    
+    return (
+        <div className="relative group">
+            <div className="absolute top-1/2 -translate-y-1/2 left-5 text-nature-400 group-focus-within:text-primary-600 transition-colors">{icon}</div>
+            <input 
+                {...props} 
+                type={isPassword ? (showPassword ? "text" : "password") : type}
+                className="w-full bg-white border border-nature-100 py-4 pl-14 pr-12 rounded-2xl text-sm focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 outline-none shadow-sm transition-all placeholder:text-nature-300" 
+            />
+            {isPassword && (
+                <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute top-1/2 -translate-y-1/2 right-4 text-nature-400 hover:text-nature-600"
+                >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+            )}
+        </div>
+    );
+};
 
 const GoogleButton: React.FC<{ onClick: () => void, label?: string }> = ({ onClick, label = "Usar conta Google" }) => (
     <button onClick={onClick} className="w-full bg-white border border-nature-200 py-4 rounded-2xl font-bold text-nature-700 text-xs uppercase tracking-widest shadow-sm hover:bg-nature-50 active:scale-95 transition-all flex items-center justify-center gap-3">

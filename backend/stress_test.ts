@@ -2,8 +2,8 @@
 import fetch from 'node-fetch';
 
 const API_URL = 'http://localhost:3000/api';
-const CONCURRENCY = 100; // Requests per batch
-const BATCHES = 5; // Total 500 requests
+const CONCURRENCY = 200; // Requests per batch
+const BATCHES = 5; // Total 1000 requests
 const TARGET_MS = 2000; // Acceptable max average latency
 
 async function stress() {

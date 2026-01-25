@@ -16,6 +16,31 @@ export const ClientViews: React.FC<{
   const [selectedCategory, setSelectedCategory] = useState<string>("Tudo");
   const [isLoading, setIsLoading] = useState(true);
   const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+  const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
+  const [inviteEmail, setInviteEmail] = useState("");
+
+  const handleCapture = async (image: string) => {
+      const newSnap: DailyRitualSnap = {
+          id: Date.now().toString(),
+          date: new Date().toISOString(),
+          image,
+          mood: 'SERENO', // Default, could be selected
+          note: 'Registro de Metamorfose'
+      };
+      const updatedUser = { ...user, snaps: [newSnap, ...(user.snaps || [])] };
+      const res = await api.users.update(updatedUser);
+      updateUser(res);
+      setActiveModal(null);
+      setToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada." });
+  };
+
+  const handleInvite = () => {
+      if (!inviteEmail) return;
+      // Mock Invite Logic
+      setToast({ title: "Convite Enviado", message: `Chamado enviado para ${inviteEmail}` });
+      setInviteEmail("");
+      setActiveModal(null);
+  };
 
   useEffect(() => { 
     setIsLoading(true);
@@ -112,14 +137,17 @@ export const ClientViews: React.FC<{
         <div className="space-y-4">
            <div className="flex justify-between items-center px-2">
              <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Evolução de Ritual</h4>
-             <button className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1"><Camera size={12}/> Novo Registro</button>
+             <button onClick={() => setActiveModal('camera')} className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1 bg-white border border-primary-100 px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition-transform"><Camera size={12}/> Novo Registro</button>
            </div>
            <TimelapseViewer snaps={user.snaps || []} />
         </div>
 
+import { getDailyMetamorphosisInsight } from '../src/utils/dailyWisdom';
+
+// ... inside component ...
         <div className="bg-nature-900 rounded-[3rem] p-8 text-white">
            <h4 className="font-serif italic text-lg mb-2">Insight de Metamorfose</h4>
-           <p className="text-xs text-primary-200 leading-relaxed italic">"Notamos que seus momentos de maior gratidão ocorrem após sessões matinais. Que tal agendar um Reiki para amanhã às 08:00?"</p>
+           <p className="text-xs text-primary-200 leading-relaxed italic">"{getDailyMetamorphosisInsight()}"</p>
            <button onClick={() => setView(ViewState.CLIENT_EXPLORE)} className="mt-6 w-full py-4 bg-white text-nature-900 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl">Ver Agenda de Guardiões</button>
         </div>
       </div>
@@ -297,7 +325,7 @@ export const ClientViews: React.FC<{
         <div className="space-y-4">
            <div className="flex justify-between items-center px-4">
               <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2"><Flame size={12} className="text-amber-500"/> Pactos Ativos</h4>
-              <button className="text-[9px] font-bold text-primary-600 uppercase">Novo Pacto</button>
+              <button onClick={() => setActiveModal('invite')} className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1 bg-white border border-primary-100 px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition-transform"><Plus size={12}/> Convidar Alma</button>
            </div>
            <div className="bg-white p-6 rounded-[3rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all">
               <div className="flex items-center gap-5">
@@ -324,7 +352,7 @@ export const ClientViews: React.FC<{
               {[1,2,3,4,5].map(i => <img key={i} src={`https://api.dicebear.com/7.x/notionists/svg?seed=tribo${i}`} className="w-14 h-14 rounded-full border-4 border-indigo-800 shadow-xl object-cover" />)}
            </div>
            <p className="text-xs text-indigo-200 italic px-4 relative z-10">"Sua tribo elevou a vibração coletiva em 14% este mês. Continuem brilhando."</p>
-           <button className="w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest relative z-10">Ver Leaderboard</button>
+           <button onClick={() => setActiveModal('leaderboard')} className="w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest relative z-10 hover:bg-white/20 transition-all">Ver Classificação</button>
         </div>
       </div>
     </PortalView>
@@ -334,6 +362,72 @@ export const ClientViews: React.FC<{
   return (
     <div className="flex flex-col animate-in fade-in w-full bg-primary-50 min-h-screen pb-24">
         {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+        
+        {/* MODAIS DE SUPORTE */}
+        <BottomSheet isOpen={activeModal === 'camera'} onClose={() => setActiveModal(null)} title="Novo Registro">
+             <div className="h-[60vh] -mx-4">
+                 <CameraWidget onCapture={handleCapture} />
+             </div>
+        </BottomSheet>
+
+        <BottomSheet isOpen={activeModal === 'invite'} onClose={() => setActiveModal(null)} title="Convidar para Tribo">
+             <div className="space-y-6 pb-20">
+                 <div className="text-center space-y-4">
+                     <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-500"><Users size={40}/></div>
+                     <p className="text-sm text-nature-600">Convide uma alma afim para caminhar junto. <br/>Vocês compartilharão Karma e evolução.</p>
+                 </div>
+                 <div className="space-y-2">
+                     <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">E-mail do Convidado</label>
+                     <input 
+                        value={inviteEmail} 
+                        onChange={e => setInviteEmail(e.target.value)} 
+                        placeholder="nome@email.com" 
+                        className="w-full bg-nature-50 border border-nature-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100"
+                     />
+                 </div>
+                 <button onClick={handleInvite} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Enviar Chamado</button>
+             </div>
+        </BottomSheet>
+
+        <BottomSheet isOpen={activeModal === 'leaderboard'} onClose={() => setActiveModal(null)} title="Classificação Radiante">
+             <div className="space-y-6 pb-12">
+                 <div className="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 flex justify-between items-center">
+                     <div className="flex items-center gap-4">
+                        <div className="text-2xl font-black text-indigo-200">#42</div>
+                        <DynamicAvatar user={user} size="md" />
+                        <div>
+                            <h4 className="font-bold text-nature-900 text-sm">Você</h4>
+                            <p className="text-[10px] font-bold text-indigo-500 uppercase">{user.plantStage} • Nível {Math.floor((user.plantXp || 0) / 20) + 1}</p>
+                        </div>
+                     </div>
+                     <div className="text-right">
+                        <span className="block text-xl font-black text-nature-900">{user.karma}</span>
+                        <span className="text-[9px] font-bold text-nature-400 uppercase">Karma</span>
+                     </div>
+                 </div>
+
+                 <div className="space-y-4">
+                     <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Top 3 da Semana</h4>
+                     {[1, 2, 3].map((rank) => (
+                         <div key={rank} className="flex items-center justify-between p-4 bg-white border border-nature-100 rounded-3xl shadow-sm">
+                             <div className="flex items-center gap-4">
+                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black ${rank === 1 ? 'bg-amber-100 text-amber-600' : rank === 2 ? 'bg-stone-100 text-stone-600' : 'bg-orange-100 text-orange-600'}`}>{rank}</div>
+                                 <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=top${rank}`} className="w-10 h-10 rounded-full border border-nature-100" />
+                                 <div>
+                                     <h5 className="font-bold text-nature-900 text-sm">Alma Radiante {rank}</h5>
+                                     <p className="text-[9px] text-nature-400 uppercase">Fluindo</p>
+                                 </div>
+                             </div>
+                             <div className="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg">
+                                 <Sparkles size={10} className="text-amber-500" />
+                                 <span className="text-xs font-bold text-amber-700">{1000 - (rank * 50)}</span>
+                             </div>
+                         </div>
+                     ))}
+                 </div>
+             </div>
+        </BottomSheet>
+
         <DailyBlessing user={user} onCheckIn={handleDailyCheckIn} />
         <header className="flex items-center justify-between mt-8 mb-10 px-6 flex-none">
             <div className="flex items-center gap-4">

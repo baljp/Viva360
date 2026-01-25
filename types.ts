@@ -1,8 +1,8 @@
-
 export enum UserRole {
   CLIENT = 'CLIENT',
   PROFESSIONAL = 'PROFESSIONAL',
-  SPACE = 'SPACE'
+  SPACE = 'SPACE',
+  ADMIN = 'ADMIN'
 }
 
 export type MoodType = 'SERENO' | 'VIBRANTE' | 'MELANCÓLICO' | 'ANSIOSO' | 'FOCADO' | 'EXAUSTO' | 'GRATO';
@@ -54,6 +54,12 @@ export enum ViewState {
   SETTINGS_SECURITY = 'SETTINGS_SECURITY',
   SETTINGS_NOTIFICATIONS = 'SETTINGS_NOTIFICATIONS',
   SETTINGS_WALLET = 'SETTINGS_WALLET',
+
+  ADMIN_DASHBOARD = 'ADMIN_DASHBOARD',
+  ADMIN_USERS = 'ADMIN_USERS',
+  ADMIN_METRICS = 'ADMIN_METRICS',
+  ADMIN_FINANCE = 'ADMIN_FINANCE',
+  ADMIN_LGPD = 'ADMIN_LGPD',
 }
 
 // Add Badge interface
@@ -77,7 +83,8 @@ export interface DailyQuest {
 // Add DailyRitualSnap interface
 export interface DailyRitualSnap {
   id: string;
-  imageUrl: string;
+  image: string; // Renamed from imageUrl to match frontend usage
+  imageUrl?: string; // Keeping for backward compat if needed
   date: string;
   mood?: MoodType;
   note?: string;

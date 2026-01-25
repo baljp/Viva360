@@ -7,6 +7,7 @@ import {
     Heart, Clock, Star, History, Plus, RefreshCw, CheckCircle2, FileText, ChevronRight, Video, MessageSquare, Users, Briefcase, MapPin, Sparkles, Save, ArrowUpRight, ArrowDownRight, Filter, Share2, Shield, Lock, Trash2, TrendingUp, Droplets, Activity, Sun, Wind, Phone as PhoneIcon, LayoutDashboard, UserCheck, AlertCircle, Target, ShoppingBag, Award, BarChart3, Play, Moon, Search, Package, Layers, ExternalLink, Building
 } from 'lucide-react';
 import { DynamicAvatar, Card, ZenToast, PortalCard, BottomSheet, OrganicSkeleton, ProductFormModal, PortalView } from '../components/Common';
+import { getDailyMessage } from '../src/utils/dailyWisdom';
 
 export const ProViews: React.FC<{ 
     user: Professional, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void 
@@ -425,11 +426,19 @@ export const ProViews: React.FC<{
                 <div className="absolute inset-0 bg-gradient-to-t from-nature-900 via-nature-900/40 to-transparent"></div>
                 <div className="absolute inset-x-8 bottom-8 flex justify-between items-end text-white">
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2 bg-emerald-500 text-[8px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit animate-pulse">Ritual em 15min</div>
+                         <div className="flex items-center gap-2 bg-emerald-500 text-[8px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit animate-pulse">Ritual em 15min</div>
                         <h3 className="text-4xl font-serif italic leading-none">Ana Luz</h3>
                         <p className="text-[10px] text-primary-200 font-bold uppercase tracking-[0.2em]">Sessão: Reiki & Cristais</p>
                     </div>
-                    <button className="w-16 h-16 bg-white text-nature-900 rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-all hover:bg-primary-50"><Play size={24} fill="currentColor" className="ml-1" /></button>
+                   <button className="w-16 h-16 bg-white text-nature-900 rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-all hover:bg-primary-50"><Play size={24} fill="currentColor" className="ml-1" /></button>
+                </div>
+            </div>
+
+            <div className="bg-nature-50 p-6 rounded-[2.5rem] border border-nature-100/50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
+                <div className="relative z-10">
+                    <h4 className="font-bold text-nature-400 text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2"><Sun size={12} className="text-amber-500"/> Mantra do Guardião</h4>
+                    <p className="font-serif italic text-nature-900 text-sm leading-relaxed">"{getDailyMessage()}"</p>
                 </div>
             </div>
 
