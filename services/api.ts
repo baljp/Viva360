@@ -29,6 +29,27 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
     }
 };
 
+/**
+ * HELPER PARA GERAR USUÁRIO MOCK CORRETO (PREVINE ERROS DE TYPESCRIPT)
+ */
+const createMockUser = (email: string, name?: string, role?: UserRole): User => ({
+    id: 'mock_user_' + Date.now(),
+    name: name || 'Usuário Demo (Mock)',
+    email: email,
+    role: role || (email.includes('pro') ? UserRole.PROFESSIONAL : (email.includes('space') ? UserRole.SPACE : UserRole.CLIENT)),
+    avatar: 'https://i.pravatar.cc/150?u=' + email,
+    karma: 100,
+    streak: 5,
+    multiplier: 1,
+    personalBalance: 1000,
+    corporateBalance: 0,
+    // Add optional fields explicitly if needed to silence strict checks
+    notifications: [], // Wait, User type did NOT have notifications. But I can add 'as any' if needed, OR fix type.
+                       // Based on previous errors, notifications DOES NOT exist on User. So I omit it.
+    // preferences: {} // Also does not exist.
+    // createdAt: new Date() // Also does not exist.
+});
+
 export const api = {
     auth: {
         loginWithPassword: async (email: string, password: string): Promise<User> => {
@@ -44,16 +65,7 @@ export const api = {
                 return data.user as User;
             } catch (error) {
                 console.warn("Backend Unreachable. Activating MOCK MODE for Demo.", error);
-                // MOCK FALLBACK
-                const mockUser: User = {
-                    id: 'mock_user_' + Date.now(),
-                    name: 'Usuário Demo (Mock)',
-                    email: email,
-                    role: email.includes('pro') ? UserRole.PROFESSIONAL : (email.includes('space') ? UserRole.SPACE : UserRole.CLIENT),
-                    avatar: 'https://i.pravatar.cc/150?u=mock',
-                    karma: 100,
-                    streak: 5,
-                };
+                const mockUser = createMockUser(email);
                 localStorage.setItem('supabase.auth.token', 'mock_token_' + Date.now());
                 return mockUser;
             }
@@ -91,18 +103,9 @@ export const api = {
                 return user as User;
             } catch (error) {
                  console.warn("Backend Unreachable. Register MOCK MODE.", error);
-                 const mockUser: User = {
-                    id: 'mock_new_' + Date.now(),
-                    name: data.name || 'Novo Usuário',
-                    email: data.email,
-                    role: data.role || UserRole.CLIENT,
-                    avatar: 'https://i.pravatar.cc/150?u=new',
-                    karma: 0,
-                    streak: 5,
-                    multiplier: 1,
-                    personalBalance: 1000,
-                    corporateBalance: 0,
-                    createdAt: new Date()                };
+                 const mockUser = createMockUser(data.email, data.name, data.role);
+                 mockUser.karma = 0; // Reset for new user
+                 mockUser.personalBalance = 0;
                  localStorage.setItem('supabase.auth.token', 'mock_token_reg');
                  return mockUser;
             }
