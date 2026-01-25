@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authenticateUser = void 0;
-const supabase_service_1 = require("../services/supabase.service");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
 const authenticateUser = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -12,51 +16,12 @@ const authenticateUser = async (req, res, next) => {
         return res.status(401).json({ error: 'Invalid Authorization header format' });
     }
     try {
-        if (process.env.MOCK_MODE === 'true') {
-            // Extract role from token suffix "mock-jwt-token-ROLE"
-            const roleSuffix = token.split('-').pop(); // 'PROFESSIONAL', 'SPACE', or 'token' (default)
-            let role = 'CLIENT';
-            if (roleSuffix === 'PROFESSIONAL')
-                role = 'PROFESSIONAL';
-            if (roleSuffix === 'SPACE')
-                role = 'SPACE';
-            let name = 'Buscador Demo';
-            let avatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200';
-            if (role === 'PROFESSIONAL') {
-                name = 'Guardião Demo';
-                avatar = 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=200';
-            }
-            if (role === 'SPACE') {
-                name = 'Santuário Demo';
-                avatar = 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=200';
-            }
-            req.user = {
-                id: `mock-user-${role.toLowerCase()}`,
-                email: 'mock@viva360.com',
-                role,
-                name,
-                avatar,
-                karma: 120,
-                streak: 5,
-                multiplier: 1.2,
-                plantStage: 'seed',
-                plantXp: 45,
-                corporateBalance: 0,
-                personalBalance: 500
-            };
-            return next();
-        }
-        const { data: { user }, error } = await supabase_service_1.supabaseAdmin.auth.getUser(token);
-        if (error || !user) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        // Attach user to request
-        req.user = user;
+        const decoded = jsonwebtoken_1.default.verify(token, JWT_SECRET);
+        req.user = decoded;
         next();
     }
     catch (err) {
-        console.error('Auth middleware error:', err);
-        return res.status(500).json({ error: 'Internal Server Error during authentication' });
+        return res.status(401).json({ error: 'Invalid or expired token' });
     }
 };
 exports.authenticateUser = authenticateUser;
