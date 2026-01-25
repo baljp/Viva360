@@ -1,12 +1,22 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { z } from 'zod';
+import { isMockMode } from '../services/supabase.service';
 
 import { cacheGet, cacheSet, cacheInvalidate } from '../lib/cache';
 
 export const getStatus = async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (isMockMode()) {
+    return res.json({
+        karma: 120,
+        streak: 5,
+        multiplier: 1.2,
+        plant: { xp: 45, stage: 'seed' }
+    });
+  }
 
   const cacheKey = `status:${userId}`;
   const cached = await cacheGet(cacheKey);
@@ -41,6 +51,10 @@ export const getQuests = async (req: Request, res: Response) => {
 export const checkIn = async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   const { mood } = req.body;
+  
+  if (isMockMode()) {
+     return res.json({ success: true, new_streak: 6 });
+  }
 
   const profile = await prisma.profile.update({
     where: { id: userId },
