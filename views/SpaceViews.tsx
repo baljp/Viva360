@@ -396,11 +396,86 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
       </PortalView>
   );
 
+  // --- TELA: MASTER CALENDAR (AGENDA CENTRALIZADA) ---
+  if (view === ViewState.SPACE_CALENDAR) {
+     const [filterPro, setFilterPro] = useState<string>('all');
+     
+     // Mock appointments for demo (since we don't have a full appointments endpoint in this file yet)
+     // In real app, use api.spaces.getAppointments(user.id)
+     const mockAppointments = [
+         { id: '1', time: '09:00', client: 'Ana Silva', proId: team[0]?.id, proName: team[0]?.name || 'Mestre 1', status: 'confirmed', room: 'Sala Hera' },
+         { id: '2', time: '10:30', client: 'Carlos B.', proId: team[0]?.id, proName: team[0]?.name || 'Mestre 1', status: 'pending', room: 'Sala Zeus' },
+         { id: '3', time: '14:00', client: 'Julia M.', proId: team[1]?.id, proName: team[1]?.name || 'Mestre 2', status: 'confirmed', room: 'Sala Gaia' },
+     ];
+
+     const filteredApps = filterPro === 'all' ? mockAppointments : mockAppointments.filter(mock => mock.proId === filterPro);
+
+     return (
+        <PortalView 
+            title="Agenda do Santuário" 
+            subtitle="VISÃO UNIFICADA" 
+            onBack={() => setView(ViewState.SPACE_HOME)}
+            footer={
+                <div className="flex gap-2">
+                     <button className="flex-1 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px]">Novo Agendamento</button>
+                     <button className="p-4 bg-white border border-nature-100 rounded-2xl text-nature-400"><Filter size={20}/></button>
+                </div>
+            }
+        >
+            <div className="space-y-6">
+                <div className="bg-white p-4 rounded-3xl border border-nature-100 shadow-sm">
+                    <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2 mb-2 block">Filtrar por Guardião</label>
+                    <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                        <button 
+                            onClick={() => setFilterPro('all')}
+                            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${filterPro === 'all' ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-nature-50 text-nature-500 border-nature-100'}`}
+                        >
+                            Todos
+                        </button>
+                        {team.map((t: any) => (
+                             <button 
+                                key={t.id}
+                                onClick={() => setFilterPro(t.id)}
+                                className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all border ${filterPro === t.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-nature-50 text-nature-500 border-nature-100'}`}
+                            >
+                                {t.name.split(' ')[0]}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Hoje, {new Date().toLocaleDateString('pt-BR')}</h4>
+                    {filteredApps.length === 0 ? (
+                        <div className="p-10 text-center opacity-50">Nenhum agendamento encontrado para este filtro.</div>
+                    ) : filteredApps.map((app: any) => (
+                        <div key={app.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex gap-4 items-center shadow-sm relative overflow-hidden group">
+                             <div className="absolute left-0 top-0 bottom-0 w-2 bg-indigo-500"></div>
+                             <div className="pl-4">
+                                <p className="text-xl font-serif italic text-nature-900">{app.time}</p>
+                                <p className="text-[9px] font-bold uppercase text-nature-300">60 min</p>
+                             </div>
+                             <div className="flex-1 border-l border-nature-100 pl-4 bg-nature-50/50 rounded-r-2xl py-2">
+                                <div className="flex justify-between items-start">
+                                    <h4 className="font-bold text-nature-900 text-sm">{app.client}</h4>
+                                    <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-lg ${app.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>{app.status}</span>
+                                </div>
+                                <p className="text-[10px] text-nature-500 mt-1 flex items-center gap-1"><Users size={10}/> {app.proName}</p>
+                                <p className="text-[10px] text-indigo-500 mt-0.5 flex items-center gap-1 font-bold"><MapPin size={10}/> {app.room}</p>
+                             </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </PortalView>
+     );
+  }
+
   // --- TELA: HOME (DASHBOARD) ---
   return (
-    <div className="flex flex-col animate-in fade-in w-full bg-primary-50 min-h-screen pb-24">
+    <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-24">
         {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-        <header className="flex items-center justify-between mt-8 mb-10 px-6 flex-none">
+        <header className="flex items-center justify-between mt-8 mb-8 px-6 flex-none">
             <div className="flex items-center gap-4">
                 <div className="relative group" onClick={() => setView(ViewState.SETTINGS)}>
                   <img src={user.avatar} className="w-14 h-14 rounded-[1.5rem] border-4 border-white shadow-xl object-cover cursor-pointer group-hover:scale-105 transition-transform" />
@@ -408,7 +483,10 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 </div>
                 <div><p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">Santuário Viva360</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1">{user.name.split(' ')[0]}</h2></div>
             </div>
-            <button onClick={() => setView(ViewState.SPACE_FINANCE)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-indigo-600 active:scale-95 transition-all"><BarChart3 size={20}/></button>
+            <div className="flex gap-2">
+                <button onClick={() => setView(ViewState.SPACE_CALENDAR)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><Calendar size={20}/></button>
+                <button onClick={() => setView(ViewState.SPACE_FINANCE)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-indigo-600 active:scale-95 transition-all"><BarChart3 size={20}/></button>
+            </div>
         </header>
 
         <div className="px-4 space-y-8">
@@ -435,19 +513,27 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 <PortalCard title="Equipe" subtitle="CONEXÃO MESTRES" icon={Users} bgImage="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=600" onClick={() => setView(ViewState.SPACE_TEAM)} delay={100} />
             </div>
 
-            <div className="bg-white rounded-[3rem] p-8 shadow-sm border border-nature-100 flex items-center justify-between group active:scale-95 transition-all cursor-pointer" onClick={() => setView(ViewState.SPACE_MARKETPLACE)}>
-                <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><ShoppingBag size={28}/></div>
-                    <div><h4 className="font-bold text-nature-900 text-sm">Bazar do Hub</h4><p className="text-[10px] text-nature-400 font-bold uppercase mt-1">{myProducts.length} Ofertas Ativas</p></div>
-                </div>
-                <ChevronRight size={20} className="text-nature-200" />
+            <div className="grid grid-cols-2 gap-4">
+                <PortalCard title="Expansão" subtitle="RECRUTAMENTO" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=600" onClick={() => setView(ViewState.SPACE_RECRUITMENT)} delay={200} />
+                <PortalCard title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => setView(ViewState.SPACE_FINANCE)} delay={300} />
+            </div>
+
+            <div className="pb-8">
+                 <PortalCard 
+                    title="Bazar do Hub" 
+                    subtitle="LOJA" 
+                    icon={ShoppingBag} 
+                    bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=600" 
+                    onClick={() => setView(ViewState.SPACE_MARKETPLACE)} 
+                    delay={400} 
+                />
             </div>
 
             <div className="space-y-4 pb-8">
                 <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em] px-2 flex justify-between items-center">Monitor de Altares <span className="text-emerald-600 text-[9px] font-bold animate-pulse">AO VIVO</span></h4>
                 <div className="grid grid-cols-1 gap-3">
                     {rooms.slice(0, 3).map(room => (
-                        <div key={room.id} className="bg-white p-5 rounded-3xl border border-nature-100 flex items-center justify-between group">
+                         <div key={room.id} className="bg-white p-5 rounded-3xl border border-nature-100 flex items-center justify-between group shadow-sm">
                             <div className="flex items-center gap-4">
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${room.status === 'occupied' ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'}`}><Activity size={18} className={room.status === 'occupied' ? 'animate-pulse' : ''} /></div>
                                 <div><h4 className="text-xs font-bold text-nature-900">{room.name}</h4><p className="text-[9px] text-nature-400 uppercase font-bold">{room.status === 'occupied' ? `Com ${room.currentOccupant}` : 'Disponível'}</p></div>
@@ -458,17 +544,6 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                     ))}
                     <button onClick={() => setView(ViewState.SPACE_ROOMS)} className="w-full py-4 text-center text-[10px] font-bold text-nature-400 uppercase tracking-widest hover:text-indigo-600 transition-colors">Ver Todas as Salas</button>
                 </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 pb-8">
-                 <button onClick={() => setView(ViewState.SPACE_RECRUITMENT)} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex flex-col items-center text-center space-y-3 group active:scale-95 transition-all">
-                    <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform"><Briefcase size={24}/></div>
-                    <span className="text-[10px] font-bold text-nature-900 uppercase tracking-widest">Contratar</span>
-                </button>
-                <button onClick={() => setView(ViewState.SPACE_FINANCE)} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex flex-col items-center text-center space-y-3 group active:scale-95 transition-all">
-                    <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform"><Wallet size={24}/></div>
-                    <span className="text-[10px] font-bold text-nature-900 uppercase tracking-widest">Financeiro</span>
-                </button>
             </div>
         </div>
     </div>

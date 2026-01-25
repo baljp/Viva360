@@ -405,11 +405,11 @@ export const ProViews: React.FC<{
     </PortalView>
   );
 
-  // --- TELA: DASHBOARD (HOME) ---
+   // --- TELA: DASHBOARD (HOME) ---
   return (
-    <div className="flex flex-col animate-in fade-in w-full bg-primary-50 min-h-screen pb-24">
+    <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-24">
         {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-        <header className="flex items-center justify-between mt-8 mb-10 px-6 flex-none">
+        <header className="flex items-center justify-between mt-8 mb-8 px-6 flex-none">
             <div className="flex items-center gap-4">
                 <button onClick={() => setView(ViewState.SETTINGS)} className="relative group">
                     <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl group-hover:scale-105 transition-transform" />
@@ -422,48 +422,37 @@ export const ProViews: React.FC<{
 
         <div className="px-4 space-y-8">
             <div className="relative h-80 rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => setView(ViewState.PRO_AGENDA)}>
-                <img src="https://images.unsplash.com/photo-1620733723572-11c52f7c2d82?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" />
+                <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-t from-nature-900 via-nature-900/40 to-transparent"></div>
                 <div className="absolute inset-x-8 bottom-8 flex justify-between items-end text-white">
                     <div className="space-y-2">
-                         <div className="flex items-center gap-2 bg-emerald-500 text-[8px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit animate-pulse">Ritual em 15min</div>
-                        <h3 className="text-4xl font-serif italic leading-none">Ana Luz</h3>
-                        <p className="text-[10px] text-primary-200 font-bold uppercase tracking-[0.2em]">Sessão: Reiki & Cristais</p>
+                         <div className="flex items-center gap-2 bg-emerald-500 text-[8px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit animate-pulse">Próximo Ritual • 14:00</div>
+                        <h3 className="text-4xl font-serif italic leading-none">Agenda</h3>
+                        <p className="text-[10px] text-primary-200 font-bold uppercase tracking-[0.2em]">3 Sessões Hoje</p>
                     </div>
-                   <button className="w-16 h-16 bg-white text-nature-900 rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-all hover:bg-primary-50"><Play size={24} fill="currentColor" className="ml-1" /></button>
-                </div>
-            </div>
-
-            <div className="bg-nature-50 p-6 rounded-[2.5rem] border border-nature-100/50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full blur-3xl -translate-y-16 translate-x-16"></div>
-                <div className="relative z-10">
-                    <h4 className="font-bold text-nature-400 text-[10px] uppercase tracking-widest mb-2 flex items-center gap-2"><Sun size={12} className="text-amber-500"/> Mantra do Guardião</h4>
-                    <p className="font-serif italic text-nature-900 text-sm leading-relaxed">"{getDailyMessage()}"</p>
+                   <button className="w-16 h-16 bg-white text-nature-900 rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-all hover:bg-primary-50"><CalendarIcon size={24} className="ml-1" /></button>
                 </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <PortalCard title="Jardim" subtitle="PACIENTES" icon={Flower} bgImage="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?q=80&w=600" onClick={() => setView(ViewState.PRO_PATIENTS)} />
-                <PortalCard title="Alquimia" subtitle="REDE & TROCA" icon={Zap} bgImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=600" onClick={() => setView(ViewState.PRO_NETWORK)} delay={100} />
+                <PortalCard title="Jardim" subtitle="PACIENTES" icon={Flower} bgImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=600" onClick={() => setView(ViewState.PRO_PATIENTS)} />
+                <PortalCard title="Alquimia" subtitle="REDE" icon={Zap} bgImage="https://images.unsplash.com/photo-1517960413843-0aee8e2b3285?q=80&w=600" onClick={() => setView(ViewState.PRO_NETWORK)} delay={100} />
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pb-8">
-                 <button onClick={() => setView(ViewState.PRO_OPPORTUNITIES)} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex flex-col items-center text-center space-y-3 group active:scale-95 transition-all">
-                    <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform"><Briefcase size={24}/></div>
-                    <span className="text-[10px] font-bold text-nature-900 uppercase tracking-widest">Oportunidades</span>
-                </button>
-                <button onClick={() => setView(ViewState.PRO_FINANCE)} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex flex-col items-center text-center space-y-3 group active:scale-95 transition-all">
-                    <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform"><Wallet size={24}/></div>
-                    <span className="text-[10px] font-bold text-nature-900 uppercase tracking-widest">Abundância</span>
-                </button>
+            <div className="grid grid-cols-2 gap-4">
+                <PortalCard title="Crescimento" subtitle="OPORTUNIDADES" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600" onClick={() => setView(ViewState.PRO_OPPORTUNITIES)} delay={200} />
+                <PortalCard title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => setView(ViewState.PRO_FINANCE)} delay={300} />
             </div>
 
-            <div className="bg-white rounded-[3rem] p-8 shadow-sm border border-nature-100 flex items-center justify-between group active:scale-95 transition-all cursor-pointer" onClick={() => setView(ViewState.PRO_MARKETPLACE)}>
-                <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><ShoppingBag size={28}/></div>
-                    <div><h4 className="font-bold text-nature-900 text-sm">Meu Bazar</h4><p className="text-[10px] text-nature-400 font-bold uppercase mt-1">{myProducts.length} Itens Publicados</p></div>
-                </div>
-                <ChevronRight size={20} className="text-nature-200" />
+            <div className="pb-8">
+                 <PortalCard 
+                    title="Meu Bazar" 
+                    subtitle="LOJA" 
+                    icon={ShoppingBag} 
+                    bgImage="https://images.unsplash.com/photo-1472851294608-415105a16863?q=80&w=600" // Crystals/Shop image
+                    onClick={() => setView(ViewState.PRO_MARKETPLACE)} 
+                    delay={400} 
+                />
             </div>
         </div>
     </div>

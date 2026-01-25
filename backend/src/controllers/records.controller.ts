@@ -11,19 +11,43 @@ export const createNote = async (req: Request, res: Response) => {
     await AuditService.logAccess(proId, `patient:${patientId}`, 'WRITE_RECORD', 'SUCCESS', `Type: ${type}`);
 
     if (isMockMode()) {
-        return res.status(201).json({
-            id: 'mock-record-id',
-            patient_id: patientId,
-            professional_id: proId,
-            content,
-            type,
-            created_at: new Date().toISOString()
-        });
+        try {
+            const record = await prisma.record.create({
+                data: {
+                    patient_id: patientId,
+                    professional_id: proId,
+                    content,
+                    type
+                }
+            });
+            return res.status(201).json(record);
+        } catch (e: any) {
+             console.error("DB Error:", e);
+             // Fallback to mock if DB fails (SAFE MODE)
+             return res.status(201).json({
+                id: 'mock-record-id',
+                patient_id: patientId,
+                professional_id: proId,
+                content,
+                type,
+                created_at: new Date().toISOString()
+            });
+        }
     }
 
-    // Real DB Implementation (Needs Record Model)
-    // await prisma.record.create(...)
-    return res.status(501).json({ error: 'DB Implementation pending schema update' });
+    try {
+        const record = await prisma.record.create({
+            data: {
+                patient_id: patientId,
+                professional_id: proId,
+                content,
+                type
+            }
+        });
+        return res.status(201).json(record);
+    } catch (e: any) {
+        return res.status(500).json({ error: e.message || "Failed to create record" });
+    }
 };
 
 export const listNotes = async (req: Request, res: Response) => {
@@ -43,13 +67,30 @@ export const listNotes = async (req: Request, res: Response) => {
     await AuditService.logAccess(requestorId, `patient:${targetPatientId}`, 'READ_RECORD', 'SUCCESS');
 
     if (isMockMode()) {
+        try {
+             // Try fetching from DB even in mock mode if available, else mock return
+             const records = await prisma.record.findMany({
+                where: { patient_id: targetPatientId },
+                orderBy: { created_at: 'desc' }
+             });
+             if (records.length > 0) return res.json(records);
+        } catch (e) { /* ignore in mock mode */ }
+
         return res.json([
-            { id: 'rec-1', type: 'anamnesis', content: 'Patient reports anxiety.', date: '2024-01-20' },
-            { id: 'rec-2', type: 'session', content: 'Reiki session complete.', date: '2024-01-25' }
+            { id: 'rec-1', type: 'anamnesis', content: 'Patient reports anxiety. (Mock)', date: '2024-01-20' },
+            { id: 'rec-2', type: 'session', content: 'Reiki session complete. (Mock)', date: '2024-01-25' }
         ]);
     }
 
-    return res.json([]);
+    try {
+        const records = await prisma.record.findMany({
+            where: { patient_id: targetPatientId },
+             orderBy: { created_at: 'desc' }
+        });
+        return res.json(records);
+    } catch (e: any) {
+        return res.status(500).json({ error: "Failed to fetch records" });
+    }
 };
 
 export const grantAccess = async (req: Request, res: Response) => {
