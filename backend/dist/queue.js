@@ -11,8 +11,22 @@ const connection = new ioredis_1.default({
     port: parseInt(process.env.REDIS_PORT || '6379'),
     maxRetriesPerRequest: null
 });
-exports.logsQueue = new bullmq_1.Queue('logs', { connection });
-exports.notificationsQueue = new bullmq_1.Queue('notifications', { connection });
-exports.ritualsQueue = new bullmq_1.Queue('rituals', { connection });
-exports.metricsQueue = new bullmq_1.Queue('metrics', { connection });
+// Graceful connection for local testing without Docker
+const createQueue = (name) => {
+    const q = new bullmq_1.Queue(name, {
+        connection,
+        defaultJobOptions: { removeOnComplete: true, removeOnFail: true }
+    });
+    q.on('error', (err) => {
+        // Suppress Redis connection errors in dev console if server not running
+        if (err.code === 'ECONNREFUSED')
+            return;
+        console.error(`Queue ${name} error:`, err.message);
+    });
+    return q;
+};
+exports.logsQueue = createQueue('logs');
+exports.notificationsQueue = createQueue('notifications');
+exports.ritualsQueue = createQueue('rituals');
+exports.metricsQueue = createQueue('metrics');
 console.log('🚀 queues initialized');
