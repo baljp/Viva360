@@ -113,7 +113,11 @@ export const ClientViews: React.FC<{
        );
     }
     // Fallback if no pro selected logic exists yet
-    return <PortalView title="Guardião" subtitle="DETALHES" onBack={() => setView(ViewState.CLIENT_EXPLORE)}><div className="text-center p-10 opacity-50">Selecione um Guardião no Mapa da Cura</div></PortalView>;
+    return (
+        <PortalView title="Guardião" subtitle="DETALHES" onBack={() => setView(ViewState.CLIENT_EXPLORE)}>
+            <div className="text-center p-10 opacity-50">Selecione um Guardião no Mapa da Cura</div>
+        </PortalView>
+    );
   }
 
   if (view === ViewState.CLIENT_PRODUCT_DETAILS) return (
