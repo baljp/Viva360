@@ -86,8 +86,7 @@ export const api = {
                     delete user.user_metadata;
                 }
 
-                if (!res.session?.access_token) {
-                } else {
+                if (res.session?.access_token) {
                     localStorage.setItem('supabase.auth.token', res.session.access_token);
                 }
                 return user as User;

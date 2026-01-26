@@ -47,7 +47,7 @@ const connection = new ioredis_1.default({
 });
 console.log('🚀 Worker Process Starting...');
 const logWorker = new bullmq_1.Worker('logs', async (job) => {
-    console.log(`[LOG] Processing log ${job.id}:`, job.data);
+    console.log(`[LOG] Processing log ${job.id}:`, JSON.stringify(job.data, null, 2));
     // EVENT SOURCING (Phase 3)
     // 1. Append to Event Store
     try {
