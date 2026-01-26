@@ -254,3 +254,32 @@ model Record {
   @@map("records")
   @@schema("public")
 }
+
+// --------------------------------------------------------
+// Distributed Systems Schema (Phase 3)
+// --------------------------------------------------------
+
+model Event {
+  id         String   @id @default(uuid()) @db.Uuid
+  stream_id  String   @db.Uuid // Usually userId or EntityId
+  type       String // e.g., 'MOOD_LOGGED'
+  payload    Json
+  version    Int      @default(1)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([stream_id])
+  @@map("events")
+  @@schema("public")
+}
+
+model MetamorphosisProjection {
+  user_id         String   @id @db.Uuid
+  total_checkins  Int      @default(0)
+  last_mood       String?
+  streak_days     Int      @default(0)
+  evolution_score Int      @default(0)
+  last_updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@map("metamorphosis_projections")
+  @@schema("public")
+}

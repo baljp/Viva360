@@ -10,6 +10,10 @@ import { SPECIALTIES } from '../constants';
 import { getDailyMetamorphosisInsight } from '../src/utils/dailyWisdom';
 import { OracleView } from './gamification/OracleView';
 import { RitualBuilderView } from './gamification/RitualBuilderView';
+import { MetamorphosisWizard } from './metamorphosis/MetamorphosisWizard';
+import { TimeLapseView } from './metamorphosis/TimeLapseView';
+import { MetamorphosisWizard } from './metamorphosis/MetamorphosisWizard';
+import { TimeLapseView } from './metamorphosis/TimeLapseView';
 
 export const ClientViews: React.FC<{ 
   user: User, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onAddToCart: (p: Product) => void
@@ -122,23 +126,13 @@ export const ClientViews: React.FC<{
 
   if (view === ViewState.CLIENT_ORACLE) return <OracleView setView={setView} />;
   if (view === ViewState.CLIENT_RITUAL_BUILDER) return <RitualBuilderView setView={setView} />;
+  
+  if (view === ViewState.CLIENT_METAMORPHOSIS) return <MetamorphosisWizard setView={setView} />;
+  if (view === ViewState.CLIENT_TIMELAPSE) return <TimeLapseView setView={setView} />;
 
   // --- VIEW: METAMORFOSE (JOURNEY) ---
   if (view === ViewState.CLIENT_JOURNEY) return (
     <PortalView title="Metamorfose" subtitle="DIÁRIO VISUAL" onBack={() => setView(ViewState.CLIENT_HOME)}>
-      <div className="space-y-8">
-        <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm text-center space-y-4">
-           <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto text-primary-600"><Activity size={40}/></div>
-           <h3 className="text-xl font-serif italic text-nature-900">Sua Frequência</h3>
-           <p className="text-xs text-nature-500 italic">"Você está 15% mais radiante que na última semana. Continue florescendo."</p>
-           <div className="flex justify-center gap-1 h-12 items-end">
-              {[40, 60, 45, 90, 70, 85, 100].map((h, i) => (
-                <div key={i} className="w-3 bg-primary-100 rounded-full overflow-hidden relative h-full">
-                   <div className="absolute bottom-0 w-full bg-primary-500 rounded-full" style={{ height: `${h}%` }}></div>
-                </div>
-              ))}
-           </div>
-        </div>
 
         <div className="space-y-4">
            <div className="flex justify-between items-center px-2">

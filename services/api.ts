@@ -193,5 +193,10 @@ export const api = {
     rituals: {
         save: (type: string, steps: any[]) => request('/rituals', { method: 'POST', body: JSON.stringify({ type, steps }) }),
         get: (type: string) => request(`/rituals?type=${type}`)
+    },
+    metamorphosis: {
+        checkIn: (mood: string, photoHash: string, photoThumb: string) => request('/metamorphosis/checkin', { method: 'POST', body: JSON.stringify({ mood, photoHash, photoThumb }) }),
+        getEvolution: () => request('/metamorphosis/evolution')
     }
 };
+```

@@ -55,7 +55,7 @@ export const updateStatus = async (req: Request, res: Response) => {
 
 export const createVacancy = async (req: Request, res: Response) => {
     try {
-        const { title, description, specialties } = req.body;
+        const { title, description, specialties, availability } = req.body; // Added availability
         
         if (isMockMode()) {
             return res.status(201).json({
@@ -63,6 +63,7 @@ export const createVacancy = async (req: Request, res: Response) => {
                 title,
                 description,
                 specialties,
+                availability,
                 spaceId: (req as any).user?.id || 'mock-space-id',
                 created_at: new Date().toISOString()
             });
@@ -73,7 +74,7 @@ export const createVacancy = async (req: Request, res: Response) => {
                 title,
                 description,
                 specialties: specialties || [],
-                spaceId: req.user?.userId || 'unknown'
+                space_id: req.user?.userId || 'unknown'
             }
         });
         return res.status(201).json(vacancy);
