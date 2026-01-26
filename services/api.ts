@@ -147,7 +147,7 @@ export const api = {
         revokeAccess: async () => true,
         getRecordAccessList: async () => [],
         applyToVacancy: async (vacancyId: string, proId: string) => request(`/tribe/join`, { method: 'POST', body: JSON.stringify({ vacancyId }) }),
-        getFinanceSummary: async (proId: string) => request('/finance/balance')
+        getFinanceSummary: async (proId: string) => request('/finance/summary')
     },
     appointments: {
         list: async (uid: string, role: UserRole) => request('/appointments'),

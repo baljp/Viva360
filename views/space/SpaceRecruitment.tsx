@@ -1,0 +1,106 @@
+import React, { useState } from 'react';
+import { Briefcase, UserPlus, Users, ChevronRight, Award, Plus } from 'lucide-react';
+import { ViewState, User, Vacancy } from '../../types';
+import { PortalView, VacancyFormModal, ZenToast } from '../../components/Common';
+import { api } from '../../services/api';
+
+interface SpaceRecruitmentProps {
+    view: ViewState;
+    setView: (v: ViewState) => void;
+    user: User;
+    vacancies: Vacancy[];
+    refreshData: () => Promise<void>;
+}
+
+export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setView, user, vacancies, refreshData }) => {
+    const [showAddVacancy, setShowAddVacancy] = useState(false);
+    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+
+    return (
+        <>
+            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+            <PortalView 
+              title="Sincronia Mestra" 
+              subtitle="EXPANSÃO DO CÍRCULO" 
+              onBack={() => setView(ViewState.SPACE_HOME)}
+              footer={
+                <button onClick={() => setShowAddVacancy(true)} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+                    <Plus size={18}/> Novo Manifesto de Busca
+                </button>
+              }
+            >
+              <div className="space-y-8">
+                <div className="bg-indigo-900 rounded-[3.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
+                   <Briefcase size={160} className="absolute -right-12 -bottom-12 opacity-10 rotate-12" />
+                   <div className="relative z-10 space-y-4">
+                      <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full w-fit border border-white/10">
+                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                         <span className="text-[8px] font-bold uppercase tracking-widest">Hub em Expansão</span>
+                      </div>
+                      <h3 className="text-2xl font-serif italic leading-tight">Manifeste o Guardião Ideal</h3>
+                      <p className="text-xs text-indigo-200 italic leading-relaxed">Conecte seu Santuário a mestres que vibram na mesma frequência. Gerencie o funil de luz aqui.</p>
+                   </div>
+                </div>
+        
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm text-center space-y-1">
+                        <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Candidatos Ativos</p>
+                        <h4 className="text-2xl font-serif italic text-nature-900">28</h4>
+                    </div>
+                    <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm text-center space-y-1">
+                        <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Vagas Abertas</p>
+                        <h4 className="text-2xl font-serif italic text-indigo-600">{vacancies.length}</h4>
+                    </div>
+                </div>
+        
+                <div className="space-y-4">
+                   <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Manifestos de Busca (Vagas)</h4>
+                   {vacancies.length > 0 ? vacancies.map(v => (
+                     <div key={v.id} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-5 group hover:shadow-md transition-all">
+                        <div className="flex justify-between items-start">
+                           <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center"><UserPlus size={24}/></div>
+                              <div>
+                                 <h4 className="font-bold text-nature-900 text-sm leading-none">{v.title}</h4>
+                                 <div className="flex gap-1.5 mt-2">
+                                   {v.specialties.map(s => <span key={s} className="text-[8px] px-2 py-0.5 bg-nature-50 text-nature-400 rounded-lg font-bold uppercase border border-nature-100">{s}</span>)}
+                                 </div>
+                              </div>
+                           </div>
+                           <div className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border border-emerald-100">Ativo</div>
+                        </div>
+                        <p className="text-xs text-nature-500 line-clamp-2 italic leading-relaxed px-1">"{v.description}"</p>
+                        <div className="flex items-center justify-between pt-4 border-t border-nature-50">
+                           <div className="flex items-center gap-2 text-nature-400">
+                              <Users size={14}/>
+                              <span className="text-[10px] font-bold uppercase tracking-tighter">{v.applicantsCount} Guardiões Inscritos</span>
+                           </div>
+                           <button className="flex items-center gap-1.5 px-4 py-2 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                              Sincronizar <ChevronRight size={12}/>
+                           </button>
+                        </div>
+                     </div>
+                   )) : (
+                     <div className="py-20 text-center space-y-4 opacity-40">
+                        <div className="w-20 h-20 bg-nature-100 rounded-full flex items-center justify-center mx-auto text-nature-300 shadow-inner"><Briefcase size={32} /></div>
+                        <p className="italic text-sm">Nenhum manifesto ativo no momento.<br/>O Santuário está em equilíbrio completo.</p>
+                     </div>
+                   )}
+                </div>
+        
+                <div className="bg-amber-50 p-8 rounded-[3.5rem] border border-amber-100 space-y-4 text-center">
+                    <Award size={40} className="mx-auto text-amber-500" />
+                    <h4 className="font-serif italic text-lg text-amber-900">Impulsione seu Santuário</h4>
+                    <p className="text-xs text-amber-700 italic px-4 leading-relaxed">Destaque suas vagas no topo do Mapa da Cura de todos os Guardiões do Viva360.</p>
+                    <button className="px-6 py-3 bg-amber-500 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">Ativar Selo de Destaque</button>
+                </div>
+              </div>
+              <VacancyFormModal isOpen={showAddVacancy} onClose={() => setShowAddVacancy(false)} onSubmit={(title, desc, specs) => {
+                  api.spaces.createVacancy({ title, description: desc, specialties: specs, hubId: user.id });
+                  refreshData();
+                  setToast({ title: "Oportunidade Criada", message: "O universo agora sabe que você busca novos guardiões." });
+              }} />
+            </PortalView>
+        </>
+    );
+};
