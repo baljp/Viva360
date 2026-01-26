@@ -12,8 +12,6 @@ import { OracleView } from './gamification/OracleView';
 import { RitualBuilderView } from './gamification/RitualBuilderView';
 import { MetamorphosisWizard } from './metamorphosis/MetamorphosisWizard';
 import { TimeLapseView } from './metamorphosis/TimeLapseView';
-import { MetamorphosisWizard } from './metamorphosis/MetamorphosisWizard';
-import { TimeLapseView } from './metamorphosis/TimeLapseView';
 
 export const ClientViews: React.FC<{ 
   user: User, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onAddToCart: (p: Product) => void
@@ -147,7 +145,6 @@ export const ClientViews: React.FC<{
            <p className="text-xs text-primary-200 leading-relaxed italic">"{getDailyMetamorphosisInsight()}"</p>
            <button onClick={() => setView(ViewState.CLIENT_EXPLORE)} className="mt-6 w-full py-4 bg-white text-nature-900 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl">Ver Agenda de Guardiões</button>
         </div>
-      </div>
     </PortalView>
   );
 
