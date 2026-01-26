@@ -4,7 +4,7 @@ import { PortalView } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
 
-const CARD_BACK = "https://images.unsplash.com/photo-1634926526846-978df317e34c?q=80&w=600";
+const CARD_BACK = "https://images.unsplash.com/photo-1506318137071-a8bcbf675bfa?q=80&w=600";
 const CARD_FRONT_BG = "https://images.unsplash.com/photo-1533158388470-9a56699990c6?q=80&w=600";
 
 export const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
