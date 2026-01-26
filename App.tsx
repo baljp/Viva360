@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { User, UserRole, ViewState, Professional, CartItem, Product, Appointment } from './types';
+import { User, ViewState, Professional, CartItem, Product } from './types';
 import Layout from './components/Layout';
 import { SmartTutorial } from './components/SmartTutorial';
 import { CartDrawer } from './components/Checkout'; // Keep lightweight components eager
@@ -132,7 +132,6 @@ const App: React.FC = () => {
             case ViewState.PRO_FINANCE: navigate('/pro/finance'); break;
             case ViewState.PRO_OPPORTUNITIES: navigate('/pro/opportunities'); break;
             case ViewState.SPACE_HOME: navigate('/space/home'); break;
-            case ViewState.SPACE_TEAM: navigate('/space/team'); break;
             case ViewState.SPACE_TEAM: navigate('/space/team'); break;
             case ViewState.SPACE_RECRUITMENT: navigate('/space/recruitment'); break;
             case ViewState.SPACE_FINANCE: navigate('/space/finance'); break;
@@ -293,7 +292,7 @@ const App: React.FC = () => {
 
                     {/* Client Routes */}
                     <Route path="/client/*" element={(String(currentUser?.role).toUpperCase() === 'CLIENT') ? <ClientViews user={currentUser!} view={currentView} setView={setView} updateUser={handleUpdateUser} onAddToCart={addToCart} /> : <Navigate to="/login" />} />
-                    <Route path="/checkout" element={<CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} onSuccess={processCheckout} onCancel={() => navigate(-1)} />} />
+                    <Route path="/checkout" element={<CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} items={cart} onSuccess={processCheckout} onCancel={() => navigate(-1)} />} />
                     <Route path="/checkout/success" element={<SuccessScreen onHome={() => navigate('/client/home')} />} />
                     <Route path="/client/orders" element={<OrdersListView user={currentUser!} onBack={() => navigate('/client/home')} setView={setView} />} />
 

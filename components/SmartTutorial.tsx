@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect, useRef } from 'react';
-import { X, ChevronRight, ChevronLeft, MapPin, Camera, Users, HelpCircle, Compass, Sparkles, Heart, Zap } from 'lucide-react';
+import { X, ChevronRight, MapPin, Camera, Compass, Sparkles, Zap } from 'lucide-react';
+import { User } from '../types';
 
 interface TutorialStep {
     targetId?: string; // ID of the element to highlight. If null, centers.
@@ -32,6 +32,7 @@ const tutorialSteps: TutorialStep[] = [
         color: "bg-indigo-50 text-nature-900"
     },
     {
+        targetId: "karma-summary", // Added ID for karma
         title: "Milhas Aéreas da Alma",
         desc: "Seu Karma não é apenas um número. São pontos de luz que você acumula e troca por benefícios reais.",
         icon: <Zap className="text-amber-500" size={28} />,
@@ -45,7 +46,7 @@ const tutorialSteps: TutorialStep[] = [
     }
 ];
 
-export const SmartTutorial: React.FC = () => {
+export const SmartTutorial: React.FC<{ user: User | null }> = ({ user }) => {
     const [isActive, setIsActive] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
     const [position, setPosition] = useState<{ top?: number, left?: number, bottom?: number, right?: number, width?: number, isCentered?: boolean }>({ isCentered: true });
@@ -54,9 +55,10 @@ export const SmartTutorial: React.FC = () => {
     useEffect(() => {
         const seen = localStorage.getItem('viva360_smart_tutorial_seen');
         if (!seen) {
-            setIsActive(true);
+             // Only auto-start if user is logged in, optionally
+            if (user) setIsActive(true);
         }
-    }, []);
+    }, [user]);
 
     const step = tutorialSteps[stepIndex];
     const cardRef = useRef<HTMLDivElement>(null);
@@ -88,7 +90,7 @@ export const SmartTutorial: React.FC = () => {
             const spaceBelow = viewportHeight - rect.bottom;
             const spaceAbove = rect.top;
 
-            let newPos: any = { left: rect.left, width: rect.width, isCentered: false };
+            const newPos: any = { left: rect.left, width: rect.width, isCentered: false };
 
             // Centralized Mode for huge elements
             if (rect.height > viewportHeight * 0.6) {
