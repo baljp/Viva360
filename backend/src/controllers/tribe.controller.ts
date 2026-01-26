@@ -78,4 +78,23 @@ export const listMembers = async (req: Request, res: Response) => {
     } 
   });
   return res.json(members);
+
+};
+
+export const joinTribe = async (req: Request, res: Response) => {
+    const { vacancyId } = req.body;
+    const proId = (req as any).user?.userId;
+
+    if (isMockMode()) {
+        return res.json({
+            success: true,
+            message: 'Application sent (Mock)',
+            proId,
+            vacancyId
+        });
+    }
+
+    // Improve: Connect to vacancy logic
+    // For now, simple ack
+    return res.json({ success: true, message: 'Application received' });
 };

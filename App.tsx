@@ -83,7 +83,7 @@ const App: React.FC = () => {
         // Space Routes
         if (path === '/space/home') return ViewState.SPACE_HOME;
         if (path === '/space/team') return ViewState.SPACE_TEAM;
-        if (path === '/space/team') return ViewState.SPACE_TEAM;
+
         if (path === '/space/recruitment') return ViewState.SPACE_RECRUITMENT;
         if (path === '/space/finance') return ViewState.SPACE_FINANCE;
         if (path === '/space/marketplace') return ViewState.SPACE_MARKETPLACE;
@@ -94,7 +94,7 @@ const App: React.FC = () => {
         if (path === '/settings/profile') return ViewState.SETTINGS_PROFILE;
         if (path === '/settings/wallet') return ViewState.SETTINGS_WALLET;
         if (path === '/settings/notifications') return ViewState.SETTINGS_NOTIFICATIONS;
-        if (path === '/settings/notifications') return ViewState.SETTINGS_NOTIFICATIONS;
+
         if (path === '/settings/security') return ViewState.SETTINGS_SECURITY;
 
         // Admin Routes
@@ -104,7 +104,7 @@ const App: React.FC = () => {
        
         return ViewState.SPLASH; 
 
-        return ViewState.SPLASH; 
+ 
     };
 
     const currentView = getCurrentViewFromPath();
@@ -300,7 +300,7 @@ const App: React.FC = () => {
                     <Route path="/pro/*" element={(String(currentUser?.role).toUpperCase() === 'PROFESSIONAL') ? <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} /> : <Navigate to="/login" />} />
                     
                     {/* Space Routes */}
-                    {/* Space Routes */}
+
                     <Route path="/space/*" element={(String(currentUser?.role).toUpperCase() === 'SPACE') ? <SpaceViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
 
                     {/* Admin Routes */}
