@@ -91,13 +91,13 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <PortalCard title="Altares" subtitle="GESTÃO DE SALAS" icon={DoorOpen} bgImage="https://images.unsplash.com/photo-1600618528240-fb9fc964b853?q=80&w=600" onClick={() => setView(ViewState.SPACE_ROOMS)} />
-                <PortalCard title="Equipe" subtitle="CONEXÃO MESTRES" icon={Users} bgImage="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=600" onClick={() => setView(ViewState.SPACE_TEAM)} delay={100} />
+                <PortalCard title="Altares" subtitle="GESTÃO DE SALAS" icon={DoorOpen} bgImage="https://images.unsplash.com/photo-1595514020176-8740771009cd?q=80&w=600" onClick={() => setView(ViewState.SPACE_ROOMS)} />
+                <PortalCard title="Equipe" subtitle="CONEXÃO MESTRES" icon={Users} bgImage="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600" onClick={() => setView(ViewState.SPACE_TEAM)} delay={100} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <PortalCard title="Expansão" subtitle="RECRUTAMENTO" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=600" onClick={() => setView(ViewState.SPACE_RECRUITMENT)} delay={200} />
-                <PortalCard title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => setView(ViewState.SPACE_FINANCE)} delay={300} />
+                <PortalCard title="Expansão" subtitle="RECRUTAMENTO" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600" onClick={() => setView(ViewState.SPACE_RECRUITMENT)} delay={200} />
+                <PortalCard title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1579621970795-87facc2f976d?q=80&w=600" onClick={() => setView(ViewState.SPACE_FINANCE)} delay={300} />
             </div>
 
             <div className="pb-8">
@@ -105,7 +105,7 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                     title="Bazar do Hub" 
                     subtitle="LOJA" 
                     icon={ShoppingBag} 
-                    bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=600" 
+                    bgImage="https://images.unsplash.com/photo-1472851294608-415105a16863?q=80&w=600" 
                     onClick={() => setView(ViewState.SPACE_MARKETPLACE)} 
                     delay={400} 
                 />

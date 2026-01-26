@@ -444,12 +444,13 @@ export const ClientViews: React.FC<{
             </div>
 
             {/* GRID PRINCIPAL */}
+            {/* GRID PRINCIPAL */}
             <div className="grid grid-cols-2 gap-4">
                 <PortalCard 
                     title="Metamorfose" 
                     subtitle="DIÁRIO" 
                     icon={Sunrise} 
-                    bgImage="https://images.unsplash.com/photo-1507643179173-61b8d64f8476?q=80&w=600" 
+                    bgImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=600" 
                     onClick={() => setView(ViewState.CLIENT_JOURNEY)} 
                 />
                 <PortalCard 
@@ -480,7 +481,7 @@ export const ClientViews: React.FC<{
                     title="Oráculo" 
                     subtitle="MENSAGEM" 
                     icon={Sparkles} 
-                    bgImage="https://images.unsplash.com/photo-1634926526846-978df317e34c?q=80&w=600" 
+                    bgImage="https://images.unsplash.com/photo-1506318137071-a8bcbf675bfa?q=80&w=600" 
                     onClick={() => setView(ViewState.CLIENT_ORACLE)} 
                     delay={400} 
                 />
@@ -488,7 +489,7 @@ export const ClientViews: React.FC<{
                     title="Rituais" 
                     subtitle="HÁBITOS" 
                     icon={CheckCircle2} 
-                    bgImage="https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=600" 
+                    bgImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=600" 
                     onClick={() => setView(ViewState.CLIENT_RITUAL_BUILDER)} 
                     delay={500} 
                 />

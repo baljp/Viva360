@@ -31,9 +31,9 @@ export const MetamorphosisWizard: React.FC<{ setView: (v: ViewState) => void }> 
     // Step 2: Photo Capture (Simulated)
     const handleCapture = () => {
         // In real app, Camera API. Here, mock.
-        setPhoto('https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=400'); // Symbolic placeholder
+        setPhoto('https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400'); // Symbolic placeholder
         setStep(3);
-        processMetamorphosis('https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=400');
+        processMetamorphosis('https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400');
     };
 
     // Step 3: Deterministic Processing
