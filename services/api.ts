@@ -199,4 +199,3 @@ export const api = {
         getEvolution: () => request('/metamorphosis/evolution')
     }
 };
-```
