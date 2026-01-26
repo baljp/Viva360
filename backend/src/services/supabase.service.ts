@@ -13,19 +13,26 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 // Flag for Mock Mode
-const IS_MOCK_MODE = SUPABASE_URL.includes('mock');
+const IS_MOCK_MODE = !SUPABASE_URL || SUPABASE_URL.includes('mock') || !SUPABASE_SERVICE_ROLE_KEY;
 
 // Admin client with Service Role (bypass RLS for admin tasks)
-export const supabaseAdmin: SupabaseClient = createClient(
-  SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-    },
+let adminClient: SupabaseClient;
+
+try {
+  if (IS_MOCK_MODE) {
+      console.warn('⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).');
+      adminClient = createClient('https://mock.supabase.co', 'mock-key', { auth: { persistSession: false } });
+  } else {
+      adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
   }
-);
+} catch (e) {
+  console.error("Failed to init Supabase Admin:", e);
+  adminClient = createClient('https://mock.supabase.co', 'fallback-key');
+}
+
+export const supabaseAdmin = adminClient;
 
 /**
  * Helper to create a client on behalf of a user (respects RLS)
