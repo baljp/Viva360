@@ -1,8 +1,25 @@
 import { PrismaClient } from '@prisma/client';
 
-// Singleton Prisma Client with connection pooling managed by Prisma
+// Primary Client (Writes)
 const prisma = new PrismaClient({
-  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error', 'warn'],
+    datasources: {
+        db: {
+            url: process.env.DATABASE_URL
+        }
+    },
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
+});
+
+// Read Client (Reads - connects to Replica)
+// If DATABASE_READ_URL is not set, fallback to Primary
+const prismaRead = new PrismaClient({
+    datasources: {
+        db: {
+            url: process.env.DATABASE_READ_URL || process.env.DATABASE_URL
+        }
+    },
+    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
 });
 
 export default prisma;
+export { prismaRead };

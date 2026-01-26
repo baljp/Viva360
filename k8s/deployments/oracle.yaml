@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oracle-service
+  namespace: viva360
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: oracle-service
+  template:
+    metadata:
+      labels:
+        app: oracle-service
+    spec:
+      containers:
+      - name: oracle-service
+        image: viva360/backend:latest
+        command: ["npm", "run", "dev:oracle"]
+        ports:
+        - containerPort: 3003
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: viva360-secrets
+              key: database-url
+        - name: REDIS_HOST
+          value: redis-master
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: oracle-service
+  namespace: viva360
+spec:
+  selector:
+    app: oracle-service
+  ports:
+  - protocol: TCP
+    port: 3003
+    targetPort: 3003
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: oracle-service-hpa
+  namespace: viva360
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: oracle-service
+  minReplicas: 2
+  maxReplicas: 15 # Higher max for oracle due to traffic spikes
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60

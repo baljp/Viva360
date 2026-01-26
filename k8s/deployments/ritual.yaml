@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ritual-service
+  namespace: viva360
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ritual-service
+  template:
+    metadata:
+      labels:
+        app: ritual-service
+    spec:
+      containers:
+      - name: ritual-service
+        image: viva360/backend:latest
+        command: ["npm", "run", "dev:ritual"]
+        ports:
+        - containerPort: 3002
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: viva360-secrets
+              key: database-url
+        - name: REDIS_HOST
+          value: redis-master
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ritual-service
+  namespace: viva360
+spec:
+  selector:
+    app: ritual-service
+  ports:
+  - protocol: TCP
+    port: 3002
+    targetPort: 3002
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ritual-service-hpa
+  namespace: viva360
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: ritual-service
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70

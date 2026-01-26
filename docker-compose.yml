@@ -1,29 +1,133 @@
 version: '3.8'
 
 services:
-  # BACKEND SERVICE
-  api:
+  # GATEWAY (NGINX)
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "3000:80"
+    volumes:
+      - ./infrastructure/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - auth-service
+      - ritual-service
+      - oracle-service
+      - marketplace-service
+      - notification-service
+
+  # AUTH SERVICE
+  auth-service:
     build: 
       context: ./backend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
-      - PORT=3000
+      - PORT=3001
       - NODE_ENV=development
-      # Connect to local postgres service
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/viva360
-      - SUPABASE_URL=http://studio:8000 # Mocking Supabase Local
-      # Redis for Cache/Queue
+      - SUPABASE_URL=http://studio:8000
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-    depends_on:
-      - db
-      - redis
     volumes:
       - ./backend:/app
       - /app/node_modules
-    command: npm run dev # Overwrite prod command for dev hot-reload
+    command: npm run dev:auth
+    depends_on:
+      - db
+      - redis
+
+  # RITUAL SERVICE
+  ritual-service:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3002
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/viva360
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev:ritual
+    depends_on:
+      - db
+      - redis
+
+  # ORACLE SERVICE
+  oracle-service:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3003
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/viva360
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev:oracle
+    depends_on:
+      - db
+      - redis
+
+  # MARKETPLACE SERVICE
+  marketplace-service:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3004
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/viva360
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev:marketplace
+    depends_on:
+      - db
+      - redis
+
+  # NOTIFICATION SERVICE
+  notification-service:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - PORT=3005
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/viva360
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev:notification
+    depends_on:
+      - db
+      - redis
+
+  # WORKER SERVICE (Async Queues)
+  worker:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/viva360
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run dev:worker
+    depends_on:
+      - db
+      - redis
 
   # FRONTEND SERVICE
   web:
@@ -39,9 +143,9 @@ services:
     environment:
       - VITE_API_URL=http://localhost:3000
     depends_on:
-      - api
+      - gateway
 
-  # DATABASE (Postgres)
+  # DATABASE (Postgres Primary)
   db:
     image: postgres:15-alpine
     restart: always
@@ -53,9 +157,36 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Auto-run init scripts
       - ./supabase_setup.sql:/docker-entrypoint-initdb.d/10-schema.sql
       - ./backend/migrations:/docker-entrypoint-initdb.d/20-migrations.sql
+      - ./infrastructure/primary_init.sh:/docker-entrypoint-initdb.d/init_replication.sh
+
+  # DATABASE (Postgres Read Replica) - Simulated
+  db-replica:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: viva360
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_replica_data:/var/lib/postgresql/data
+
+  # PgBouncer (Connection Pooling)
+  pgbouncer:
+    image: edoburu/pgbouncer
+    environment:
+      - DB_USER=postgres
+      - DB_PASSWORD=postgrespassword
+      - DB_HOST=db
+      - POOL_MODE=transaction
+      - MAX_CLIENT_CONNECTION=100
+    ports:
+      - "6432:5432"
+    depends_on:
+      - db
 
   # REDIS (Cache & Queues)
   redis:
@@ -69,4 +200,5 @@ services:
 
 volumes:
   postgres_data:
+  postgres_replica_data:
   redis_data:

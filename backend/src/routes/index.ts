@@ -52,9 +52,9 @@ router.use('/records', authenticateUser, recordsRoutes);
 // Admin
 router.use('/admin', adminRoutes);
 
-// Protected Test Route (Example)
-router.use('/protected', authenticateUser, (req, res) => {
-  res.json({ message: 'You have access!', user: req.user });
-});
+import metamorphosisRoutes from './metamorphosis.routes';
 
+// ... (other imports)
+
+router.use('/metamorphosis', authenticateUser, metamorphosisRoutes);
 export default router;

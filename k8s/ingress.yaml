@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: viva360-ingress
+  namespace: viva360
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /api/auth/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 3001
+      - path: /api/profiles/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: auth-service
+            port:
+              number: 3001
+      - path: /api/rituals/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: ritual-service
+            port:
+              number: 3002
+      - path: /api/oracle/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: oracle-service
+            port:
+              number: 3003
+      - path: /api/marketplace/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: marketplace-service
+            port:
+              number: 3004
+      - path: /api/notifications/(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: notification-service
+            port:
+              number: 3005

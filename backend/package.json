@@ -5,6 +5,12 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev -r dotenv/config --respawn --transpile-only src/server.ts",
+    "dev:auth": "ts-node-dev -r dotenv/config --respawn --transpile-only src/server-auth.ts",
+    "dev:ritual": "ts-node-dev -r dotenv/config --respawn --transpile-only src/server-ritual.ts",
+    "dev:oracle": "ts-node-dev -r dotenv/config --respawn --transpile-only src/server-oracle.ts",
+    "dev:marketplace": "ts-node-dev -r dotenv/config --respawn --transpile-only src/server-marketplace.ts",
+    "dev:notification": "ts-node-dev -r dotenv/config --respawn --transpile-only src/server-notification.ts",
+    "dev:worker": "ts-node-dev -r dotenv/config --respawn --transpile-only src/worker.ts",
     "build": "tsc",
     "start": "node dist/server.js",
     "lint": "eslint . --ext .ts",

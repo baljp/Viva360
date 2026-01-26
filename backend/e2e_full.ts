@@ -123,6 +123,25 @@ async function run() {
         if (ritualRes.data[0].title === 'E2E Yoga') console.log('✅ Ritual Persistence Verified');
         else console.error('❌ Ritual Persistence Failed');
 
+        // 11. METAMORPHOSIS (Evolution)
+        console.log('\n[11] Testing Metamorphosis Engine...');
+        await axios.post(`${API_URL}/metamorphosis/checkin`, {
+            mood: 'Feliz',
+            photoHash: 'test_hash_123',
+            photoThumb: 'http://placeholder.com/thumb.jpg'
+        }, { headers: { Authorization: `Bearer ${buscToken}` } });
+        console.log('✅ Daily Ritual Check-in Saved');
+
+        const evolutionRes = await axios.get(`${API_URL}/metamorphosis/evolution`, {
+            headers: { Authorization: `Bearer ${buscToken}` }
+        });
+        if (evolutionRes.data.entries.length > 0 && evolutionRes.data.entries[0].quote) {
+             console.log(`✅ Time-lapse Data Retrieved (${evolutionRes.data.entries.length} entries)`);
+             console.log(`   - Deterministic Quote: "${evolutionRes.data.entries[0].quote}"`);
+        } else {
+             console.error('❌ Time-lapse Logic Failed');
+        }
+
         console.log('\n✨ ALL SYSTEMS OPERATIONAL ✨');
 
     } catch (error: any) {
