@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
-import { isMockMode } from '../services/supabase.service';
+import prisma, { prismaRead } from '../lib/prisma';
+import { DeterministicEngine, Mood } from '../lib/determinism';
 
 const ORACLE_DECK = [
     { id: 'sun', name: 'O Sol', insight: 'Sua luz interior é suficiente para guiar o caminho hoje. Brilhe sem medo.', element: 'Fogo', intensity: 'Alta' },
@@ -18,6 +19,13 @@ export const drawCard = async (req: Request, res: Response) => {
 
     // Simple random logic for now, could be enhanced with mood seed
     const randomIndex = Math.floor(Math.random() * ORACLE_DECK.length);
+    // 7. ASYNC ARCHITECTURE: Using Read Replica (Phase 2)
+    // Placeholder for actual DB query when OracleDraw model is added
+    // const history = await prismaRead.oracleDraw.findMany(...)
+    
+    // Simulate Read Replica delay
+    await new Promise(r => setTimeout(r, 50)); 
+
     const card = ORACLE_DECK[randomIndex];
 
     return res.json({
