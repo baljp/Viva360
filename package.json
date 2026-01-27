@@ -15,7 +15,9 @@
     "lint": "eslint .",
     "test:qa": "npx playwright test --config=playwright.qa.config.ts",
     "test:qa:visual": "npx playwright test --config=playwright.qa.config.ts --project=chromium --grep @visual",
-    "test:qa:stress": "npx playwright test --config=playwright.qa.config.ts --grep @stress"
+    "test:qa:stress": "npx playwright test --config=playwright.qa.config.ts --grep @stress",
+    "deploy:auto": "bash scripts/setup_vercel.sh && npx vercel --prod",
+    "db:sync": "bash scripts/db_sync.sh"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",

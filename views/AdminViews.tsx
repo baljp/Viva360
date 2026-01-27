@@ -32,10 +32,10 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
-            const list = await api.admin.listUsers().catch(() => [
-                { id: 'u1', name: 'Maria Silva', email: 'maria@email.com', role: 'CLIENT', status: 'active' },
-                { id: 'u2', name: 'Dr. João', email: 'joao@email.com', role: 'PROFESSIONAL', status: 'active' },
-                { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: 'SPACE', status: 'blocked' }
+            const list: User[] = await api.admin.listUsers().catch(() => [
+                { id: 'u1', name: 'Maria Silva', email: 'maria@email.com', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
+                { id: 'u2', name: 'Dr. João', email: 'joao@email.com', role: UserRole.PROFESSIONAL, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
+                { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: UserRole.SPACE, status: 'blocked', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any
             ]);
             setUsers(list);
         } catch (e) { console.error(e); }

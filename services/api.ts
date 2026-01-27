@@ -188,12 +188,12 @@ export const api = {
         ),
         listByOwner: async (oid: string) => [],
         create: async (p: any) => p,
-        delete: async () => true
+        delete: async (id: string) => true
     },
     spaces: {
-        getRooms: async () => [],
-        getTeam: async () => [],
-        getVacancies: async () => mockFallback(
+        getRooms: async (uid?: string) => [],
+        getTeam: async (uid?: string) => [],
+        getVacancies: async (uid?: string) => mockFallback(
             request('/rooms/vacancies'),
             () => [
                 { id: 'v1', title: 'Terapeuta Floral', description: 'Vaga para especialista', applicantsCount: 3, status: 'open' }
@@ -203,9 +203,9 @@ export const api = {
         getTransactions: async () => []
     },
     notifications: {
-        list: async () => [],
-        markAsRead: async () => true,
-        markAllAsRead: async () => true
+        list: async (uid?: string) => [],
+        markAsRead: async (id: string) => true,
+        markAllAsRead: async (uid?: string) => true
     },
     admin: {
         getDashboard: async () => ({}),
@@ -225,8 +225,8 @@ export const api = {
         history: async () => []
     },
     rituals: {
-        save: async () => true,
-        get: async () => []
+        save: async (period: string, data: any) => true,
+        get: async (period: string) => []
     },
     metamorphosis: {
         checkIn: async (mood: string, hash: string, thumb: string) => mockFallback(
@@ -241,6 +241,7 @@ export const api = {
                 }
             })
         ),
-        getEvolution: async () => []
-    }
+        getEvolution: async () => ({ entries: [] })
+    },
+    request
 };
