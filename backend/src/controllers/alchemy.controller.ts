@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
+import { asyncHandler } from '../middleware/async.middleware';
 
-export const createOffer = async (req: Request, res: Response) => {
+export const createOffer = asyncHandler(async (req: Request, res: Response) => {
   const providerId = (req as any).user?.userId;
   const { requesterId, description } = req.body;
 
@@ -26,9 +27,9 @@ export const createOffer = async (req: Request, res: Response) => {
   });
 
   return res.json(offer);
-};
+});
 
-export const listOffers = async (req: Request, res: Response) => {
+export const listOffers = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   
   if (isMockMode()) {
@@ -43,4 +44,4 @@ export const listOffers = async (req: Request, res: Response) => {
     }
   });
   return res.json(offers);
-};
+});

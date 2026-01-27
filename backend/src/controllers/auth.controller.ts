@@ -3,6 +3,8 @@ import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import { AuthService } from '../services/auth.service';
 import { isMockMode } from '../services/supabase.service';
+import { mockData } from '../services/mockData.service';
+import { asyncHandler } from '../middleware/async.middleware';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
 
@@ -18,30 +20,37 @@ const registerSchema = z.object({
   role: z.enum(['CLIENT', 'PROFESSIONAL', 'SPACE']).optional(),
 });
 
-export const login = async (req: Request, res: Response) => {
-  try {
+export const login = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = loginSchema.parse(req.body);
 
     if (isMockMode()) {
-       const token = jwt.sign({ userId: 'mock-user-id', email, role: 'CLIENT' }, JWT_SECRET, { expiresIn: '1h' });
+       // Try to find in curated dataset first
+       const roundedUser = mockData.findUserByEmail(email);
+       
+       let userPayload;
+       if (roundedUser) {
+           userPayload = { id: roundedUser.id, email: roundedUser.email, role: roundedUser.role };
+       } else {
+           // Fallback for dev convenience if not in dataset but valid email format
+           let role = 'CLIENT';
+           if (email.startsWith('admin')) role = 'ADMIN';
+           else if (email.startsWith('pro')) role = 'PROFESSIONAL';
+           else if (email.startsWith('space')) role = 'SPACE';
+           userPayload = { id: 'mock-fallback-id', email, role };
+       }
+
+       const token = jwt.sign({ userId: userPayload.id, email: userPayload.email, role: userPayload.role }, JWT_SECRET, { expiresIn: '1h' });
        return res.json({
-         user: { id: 'mock-user-id', email },
+         user: userPayload,
          session: { access_token: token, refresh_token: 'mock-refresh' }
        });
     }
 
     const data = await AuthService.login(email, password);
     return res.json(data);
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    return res.status(401).json({ error: error.message || 'Authentication failed' });
-  }
-};
+});
 
-export const register = async (req: Request, res: Response) => {
-  try {
+export const register = asyncHandler(async (req: Request, res: Response) => {
     const { email, password, name, role } = registerSchema.parse(req.body);
 
     if (isMockMode()) {
@@ -65,10 +74,4 @@ export const register = async (req: Request, res: Response) => {
     });
 
     return res.status(201).json(data);
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    return res.status(400).json({ error: error.message || 'Registration failed' });
-  }
-};
+});

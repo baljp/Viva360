@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
+import { asyncHandler } from '../middleware/async.middleware';
 
-export const getRealTime = async (req: Request, res: Response) => {
+export const getRealTime = asyncHandler(async (req: Request, res: Response) => {
   if (isMockMode()) {
     return res.json([
       { id: 'mock-room-1', name: 'Sala Hera', status: 'available', next_booking: null },
@@ -12,9 +13,9 @@ export const getRealTime = async (req: Request, res: Response) => {
   // Return all rooms for simplicity or filter by hub
   const rooms = await prisma.room.findMany();
   return res.json(rooms);
-};
+});
 
-export const getAnalytics = async (req: Request, res: Response) => {
+export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
   if (isMockMode()) {
     return res.json({
       total_rooms: 10,
@@ -32,58 +33,50 @@ export const getAnalytics = async (req: Request, res: Response) => {
     occupied_rate: totalRooms > 0 ? (occupied / totalRooms) * 100 : 0,
     revenue_today: 1250.00 // Mock for speed
   });
-};
+});
 
-export const updateStatus = async (req: Request, res: Response) => {
+export const updateStatus = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status } = req.body;
   
-  try {
-    if (isMockMode() || id === 'dummy_id') {
-       return res.json({ id, status, success: true, mock: true });
-    }
-
-    const room = await prisma.room.update({
-      where: { id },
-      data: { status }
-    });
-    return res.json(room);
-  } catch (e) {
-    return res.status(404).json({ error: 'Room not found' });
+  if (isMockMode() || id === 'dummy_id') {
+      return res.json({ id, status, success: true, mock: true });
   }
-};
 
-export const createVacancy = async (req: Request, res: Response) => {
-    try {
-        const { title, description, specialties, availability } = req.body; // Added availability
-        
-        if (isMockMode()) {
-            return res.status(201).json({
-                id: 'mock-vacancy-id',
-                title,
-                description,
-                specialties,
-                availability,
-                spaceId: (req as any).user?.id || 'mock-space-id',
-                created_at: new Date().toISOString()
-            });
-        }
+  const room = await prisma.room.update({
+    where: { id },
+    data: { status }
+  });
+  return res.json(room);
+});
 
-        const vacancy = await prisma.vacancy.create({
-            data: {
-                title,
-                description,
-                specialties: specialties || [],
-                space_id: req.user?.userId || 'unknown'
-            }
+export const createVacancy = asyncHandler(async (req: Request, res: Response) => {
+    const { title, description, specialties, availability } = req.body; // Added availability
+    
+    if (isMockMode()) {
+        return res.status(201).json({
+            id: 'mock-vacancy-id',
+            title,
+            description,
+            specialties,
+            availability,
+            spaceId: (req as any).user?.id || 'mock-space-id',
+            created_at: new Date().toISOString()
         });
-        return res.status(201).json(vacancy);
-    } catch (e: any) {
-        return res.status(500).json({ error: e.message || "Failed to create vacancy" });
     }
-};
 
-export const listVacancies = async (req: Request, res: Response) => {
+    const vacancy = await prisma.vacancy.create({
+        data: {
+            title,
+            description,
+            specialties: specialties || [],
+            space_id: req.user?.userId || 'unknown'
+        }
+    });
+    return res.status(201).json(vacancy);
+});
+
+export const listVacancies = asyncHandler(async (req: Request, res: Response) => {
     if (isMockMode()) {
         return res.json([
             { id: 'v1', title: 'Psicólogo(a) Clínico', description: 'Atendimento de segunda a sexta', specialties: ['Psicologia'] },
@@ -93,4 +86,4 @@ export const listVacancies = async (req: Request, res: Response) => {
     
     const vacancies = await prisma.vacancy.findMany();
     return res.json(vacancies);
-};
+});

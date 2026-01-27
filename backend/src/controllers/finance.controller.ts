@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
+import { cacheGet, cacheSet } from '../lib/cache';
+import { asyncHandler } from '../middleware/async.middleware';
 
-import { cacheGet, cacheSet, cacheInvalidate } from '../lib/cache';
-
-export const getSummary = async (req: Request, res: Response) => {
+export const getSummary = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
 
   if (isMockMode()) {
@@ -27,9 +27,9 @@ export const getSummary = async (req: Request, res: Response) => {
   };
   await cacheSet(cacheKey, data, 10); // Short cache (10s) as balance changes often
   return res.json(data);
-};
+});
 
-export const getTransactions = async (req: Request, res: Response) => {
+export const getTransactions = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   
   if (isMockMode()) {
@@ -46,4 +46,4 @@ export const getTransactions = async (req: Request, res: Response) => {
   });
 
   return res.json(transactions);
-};
+});

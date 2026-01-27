@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
+import { asyncHandler } from '../middleware/async.middleware';
 
-export const createProduct = async (req: Request, res: Response) => {
+export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const ownerId = (req as any).user?.userId;
   const { name, price, category, type, image, description, eventDate, hostName, spotsLeft, karmaReward } = req.body;
 
@@ -16,18 +17,12 @@ export const createProduct = async (req: Request, res: Response) => {
       type: type || 'PRODUCT',
       description,
       owner_id: ownerId || 'mock-owner',
-      eventDate, // Mock handling extended fields
+      eventDate, 
       hostName,
       spotsLeft, 
       karmaReward
     });
   }
-
-  // Note: Prisma Schema might need updates for eventDate/karmaReward if strictly relied upon.
-  // For now, we map basic fields and potential JSON fields if schema allows, or ignore extra if strict.
-  // Based on reading schema.prisma, only basic fields exist.
-  // We will save basic fields. If DB supports JSON or extra columns, we'd add them.
-  // Assuming 'description' can hold stringified JSON for extra metadata if needed, or just standard fields.
   
   const product = await prisma.product.create({
     data: {
@@ -42,9 +37,9 @@ export const createProduct = async (req: Request, res: Response) => {
   });
 
   return res.json(product);
-};
+});
 
-export const listProducts = async (req: Request, res: Response) => {
+export const listProducts = asyncHandler(async (req: Request, res: Response) => {
   const { ownerId } = req.query;
 
   if (isMockMode()) {
@@ -68,11 +63,10 @@ export const listProducts = async (req: Request, res: Response) => {
       price: Number(p.price)
   }));
   return res.json(sanitized);
-};
+});
 
-export const deleteProduct = async (req: Request, res: Response) => {
+export const deleteProduct = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const ownerId = (req as any).user?.userId; // In real app, verify ownership
 
     if (isMockMode()) {
         return res.json({ success: true, id });
@@ -80,4 +74,4 @@ export const deleteProduct = async (req: Request, res: Response) => {
 
     await prisma.product.delete({ where: { id } });
     return res.json({ success: true });
-};
+});

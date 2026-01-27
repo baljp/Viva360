@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
 import { AuditService } from '../services/audit.service';
+import { asyncHandler } from '../middleware/async.middleware';
 
-export const createNote = async (req: Request, res: Response) => {
+export const createNote = asyncHandler(async (req: Request, res: Response) => {
     const proId = (req as any).user?.userId;
     const { patientId, content, type } = req.body; // type: 'anamnesis' | 'session'
 
@@ -11,46 +12,29 @@ export const createNote = async (req: Request, res: Response) => {
     await AuditService.logAccess(proId, `patient:${patientId}`, 'WRITE_RECORD', 'SUCCESS', `Type: ${type}`);
 
     if (isMockMode()) {
-        try {
-            const record = await prisma.record.create({
-                data: {
-                    patient_id: patientId,
-                    professional_id: proId,
-                    content,
-                    type
-                }
-            });
-            return res.status(201).json(record);
-        } catch (e: any) {
-             console.error("DB Error:", e);
-             // Fallback to mock if DB fails (SAFE MODE)
-             return res.status(201).json({
-                id: 'mock-record-id',
-                patient_id: patientId,
-                professional_id: proId,
-                content,
-                type,
-                created_at: new Date().toISOString()
-            });
-        }
-    }
-
-    try {
-        const record = await prisma.record.create({
-            data: {
-                patient_id: patientId,
-                professional_id: proId,
-                content,
-                type
-            }
+        // Safe mock handling
+        return res.status(201).json({
+            id: 'mock-record-id',
+            patient_id: patientId,
+            professional_id: proId,
+            content,
+            type,
+            created_at: new Date().toISOString()
         });
-        return res.status(201).json(record);
-    } catch (e: any) {
-        return res.status(500).json({ error: e.message || "Failed to create record" });
     }
-};
 
-export const listNotes = async (req: Request, res: Response) => {
+    const record = await prisma.record.create({
+        data: {
+            patient_id: patientId,
+            professional_id: proId,
+            content,
+            type
+        }
+    });
+    return res.status(201).json(record);
+});
+
+export const listNotes = asyncHandler(async (req: Request, res: Response) => {
     const requestorId = (req as any).user?.userId;
     const { patientId } = req.query; // If param is missing, assume list OWN records?
 
@@ -67,33 +51,20 @@ export const listNotes = async (req: Request, res: Response) => {
     await AuditService.logAccess(requestorId, `patient:${targetPatientId}`, 'READ_RECORD', 'SUCCESS');
 
     if (isMockMode()) {
-        try {
-             // Try fetching from DB even in mock mode if available, else mock return
-             const records = await prisma.record.findMany({
-                where: { patient_id: targetPatientId },
-                orderBy: { created_at: 'desc' }
-             });
-             if (records.length > 0) return res.json(records);
-        } catch (e) { /* ignore in mock mode */ }
-
         return res.json([
             { id: 'rec-1', type: 'anamnesis', content: 'Patient reports anxiety. (Mock)', date: '2024-01-20' },
             { id: 'rec-2', type: 'session', content: 'Reiki session complete. (Mock)', date: '2024-01-25' }
         ]);
     }
 
-    try {
-        const records = await prisma.record.findMany({
-            where: { patient_id: targetPatientId },
-             orderBy: { created_at: 'desc' }
-        });
-        return res.json(records);
-    } catch (e: any) {
-        return res.status(500).json({ error: "Failed to fetch records" });
-    }
-};
+    const records = await prisma.record.findMany({
+        where: { patient_id: targetPatientId },
+        orderBy: { created_at: 'desc' }
+    });
+    return res.json(records);
+});
 
-export const grantAccess = async (req: Request, res: Response) => {
+export const grantAccess = asyncHandler(async (req: Request, res: Response) => {
     const patientId = (req as any).user?.userId;
     const { professionalId } = req.body;
 
@@ -104,9 +75,9 @@ export const grantAccess = async (req: Request, res: Response) => {
     }
     
     return res.json({ success: true });
-};
+});
 
-export const exportData = async (req: Request, res: Response) => {
+export const exportData = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
 
     await AuditService.logAccess(userId, 'all_data', 'EXPORT_DATA', 'SUCCESS');
@@ -125,4 +96,4 @@ export const exportData = async (req: Request, res: Response) => {
     }
 
     return res.status(501).json({ error: 'Real export not implemented' });
-};
+});
