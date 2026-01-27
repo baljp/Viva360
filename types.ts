@@ -153,6 +153,8 @@ export interface User {
   intention?: string;
   plantStage?: PlantStage;
   plantXp?: number; 
+  plantType?: string; // Variety (oak, lotus, etc.)
+  journeyType?: string; // Archetype (emocional, mental, etc.)
   corporateBalance: number;
   personalBalance: number;
   lastMood?: MoodType;
