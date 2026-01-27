@@ -227,6 +227,9 @@ export interface Notification {
   message: string;
   timestamp: string;
   read: boolean;
+  priority?: 'high' | 'normal' | 'low';
+  actionUrl?: string; // Deep link
+  metadata?: any;
 }
 
 export interface SpaceRoom {
@@ -242,11 +245,18 @@ export interface SpaceRoom {
 export interface Transaction {
   id: string;
   userId: string;
-  type: 'income' | 'expense';
+  providerId?: string; // Who receives funds (after split)
+  type: 'income' | 'expense' | 'deposit' | 'withdrawal';
   amount: number;
+  currency: string;
   description: string;
   date: string;
-  status: 'completed' | 'pending';
+  status: 'completed' | 'pending' | 'failed';
+  paymentMethod?: 'credit_card' | 'pix' | 'wallet';
+  split?: {
+    platform: number;
+    provider: number;
+  };
 }
 
 // Add Review interface
@@ -272,4 +282,32 @@ export interface Vacancy {
   applicantsCount: number;
   createdAt: string;
   status: 'open' | 'closed';
+}
+
+// Chat System Types
+export interface ChatParticipant {
+  id: string;
+  name: string;
+  avatar: string;
+  role: 'CLIENT' | 'PRO' | 'COMMUNITY' | 'SYSTEM';
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  content: string;
+  timestamp: string;
+  read: boolean;
+  type?: 'text' | 'image' | 'audio' | 'system';
+}
+
+export interface ChatRoom {
+  id: string;
+  participants: ChatParticipant[];
+  lastMessage?: Message;
+  unreadCount: number;
+  type: 'private' | 'group' | 'channel';
+  isPact?: boolean;
+  pactLabel?: string;
+  typing?: string[]; // IDs of users typing
 }

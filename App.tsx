@@ -8,6 +8,10 @@ import { CartDrawer } from './components/Checkout'; // Keep lightweight componen
 import { api } from './services/api';
 import { supabase } from './lib/supabase';
 import { ZenToast } from './components/Common';
+import { BuscadorFlowProvider } from './src/flow/BuscadorFlowContext';
+import { GuardiaoFlowProvider } from './src/flow/GuardiaoFlowContext';
+import { SantuarioFlowProvider } from './src/flow/SantuarioFlowContext';
+import { NotificationProvider } from './src/context/NotificationContext';
 
 // Lazy Load Views
 const Auth = lazy(() => import('./views/Auth'));
@@ -265,6 +269,7 @@ const App: React.FC = () => {
     const shouldHideNav = isCartOpen || !currentUser || ['/', '/login', '/register', '/checkout', '/checkout/success'].includes(location.pathname);
 
     return (
+      <NotificationProvider>
         <Layout user={currentUser} currentView={currentView} setView={setView} onLogout={handleLogout} shouldHideNav={shouldHideNav}>
             <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -290,13 +295,21 @@ const App: React.FC = () => {
                     }} />} />
 
                     {/* Client Routes */}
-                    <Route path="/client/*" element={(String(currentUser?.role).toUpperCase() === 'CLIENT') ? <ClientViews user={currentUser!} view={currentView} setView={setView} updateUser={handleUpdateUser} onAddToCart={addToCart} /> : <Navigate to="/login" />} />
+                    <Route path="/client/*" element={(String(currentUser?.role).toUpperCase() === 'CLIENT') ? (
+                        <BuscadorFlowProvider>
+                            <ClientViews user={currentUser!} view={currentView} setView={setView} updateUser={handleUpdateUser} onAddToCart={addToCart} />
+                        </BuscadorFlowProvider>
+                    ) : <Navigate to="/login" />} />
                     <Route path="/checkout" element={<CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} items={cart} onSuccess={processCheckout} onCancel={() => navigate(-1)} />} />
                     <Route path="/checkout/success" element={<SuccessScreen onHome={() => navigate('/client/home')} />} />
                     <Route path="/client/orders" element={<OrdersListView user={currentUser!} onBack={() => navigate('/client/home')} setView={setView} />} />
 
                     {/* Pro Routes */}
-                    <Route path="/pro/*" element={(String(currentUser?.role).toUpperCase() === 'PROFESSIONAL') ? <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} /> : <Navigate to="/login" />} />
+                    <Route path="/pro/*" element={(String(currentUser?.role).toUpperCase() === 'PROFESSIONAL') ? (
+                        <GuardiaoFlowProvider>
+                            <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} />
+                        </GuardiaoFlowProvider>
+                    ) : <Navigate to="/login" />} />
                     
                     {/* Space Routes */}
 
@@ -316,6 +329,7 @@ const App: React.FC = () => {
             <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={removeFromCart} onProceed={() => {setIsCartOpen(false); navigate('/checkout');}} />
             <SmartTutorial user={currentUser} />
         </Layout>
+      </NotificationProvider>
     );
 };
 
