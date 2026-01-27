@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { User, Professional, SpaceRoom } from '../../types';
 import { ViewState } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Clock, TrendingUp, ShoppingBag, Calendar, Wallet 
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Clock, TrendingUp, ShoppingBag, Calendar, Wallet, Droplets 
 } from 'lucide-react';
 import { PortalCard, ZenToast } from '../../components/Common';
 import { getDailyMessage } from '../../src/utils/dailyWisdom';
@@ -12,9 +12,9 @@ import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 // Extracted from SpaceViews.tsx
 export const SpaceDashboard: React.FC<{ 
     user: User, 
-    data: { team: Professional[], rooms: SpaceRoom[] } 
+    data: any 
 }> = ({ user, data }) => {
-    const { team, rooms } = data;
+    const { team = [], rooms = [] } = data || {};
     const { go } = useSantuarioFlow();
 
     return (
@@ -60,6 +60,25 @@ export const SpaceDashboard: React.FC<{
                 <div className="grid grid-cols-2 gap-4">
                     <PortalCard title="Expansão" subtitle="RECRUTAMENTO" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600" onClick={() => go('VAGAS_LIST')} delay={200} />
                     <PortalCard title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1579621970795-87facc2f976d?q=80&w=600" onClick={() => go('FINANCE_OVERVIEW')} delay={300} />
+                </div>
+
+                <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm flex items-center justify-between">
+                    <div className="flex items-center gap-5">
+                       <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-3xl flex items-center justify-center"><Droplets size={32} /></div>
+                       <div>
+                          <h4 className="font-serif italic text-xl">Jardim Comunitário</h4>
+                          <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mt-1">Saúde Coletiva: 88%</p>
+                       </div>
+                    </div>
+                    <div className="text-right">
+                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-tighter">Estável</span>
+                        <div className="flex gap-1 mt-1">
+                            <div className="w-1 h-3 bg-emerald-500 rounded-full"></div>
+                            <div className="w-1 h-3 bg-emerald-500 rounded-full"></div>
+                            <div className="w-1 h-3 bg-emerald-500 rounded-full"></div>
+                            <div className="w-1 h-3 bg-emerald-200 rounded-full"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="pb-8">

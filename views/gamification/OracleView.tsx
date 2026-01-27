@@ -18,14 +18,33 @@ export const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setV
         setIsFlipped(false);
         setCard(null);
 
-        // Sound effect (simulated delay)
-        const drawData = await api.oracle.draw('calm');
-        
-        setTimeout(() => {
-            setCard(drawData.card);
-            setIsShuffling(false);
-            setIsFlipped(true);
-        }, 2000);
+        try {
+             // Sound effect (simulated delay)
+            const drawData = await api.oracle.draw('calm');
+            
+            setTimeout(() => {
+                setCard(drawData?.card || { 
+                    name: 'O Silêncio', 
+                    element: 'Éter', 
+                    intensity: 'Suave', 
+                    insight: 'No silêncio, todas as respostas surgem.' 
+                });
+                setIsShuffling(false);
+                setIsFlipped(true);
+            }, 2000);
+        } catch (e) {
+            console.error("Oracle Error", e);
+             setTimeout(() => {
+                setCard({ 
+                    name: 'O Caos', 
+                    element: 'Fogo', 
+                    intensity: 'Imprevisível', 
+                    insight: 'Mesmo na desordem, há um padrão divino.' 
+                });
+                setIsShuffling(false);
+                setIsFlipped(true);
+            }, 2000);
+        }
     };
 
     return (

@@ -76,7 +76,8 @@ export const ProViews: React.FC<{
                 user={user} 
                 updateUser={updateUser}
                 setView={setView} 
-                {...{data: globalData} as any}
+                setToast={setToast}
+                data={globalData} 
             />
         </div>
     );

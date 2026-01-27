@@ -37,7 +37,7 @@ export default function VagasList() {
 
        <div className="flex-1 px-6 space-y-4 pb-24">
            {vacancies.map(v => (
-               <div key={v.id} onClick={() => go('VAGA_DETAILS')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm hover:shadow-md transition-all cursor-pointer group space-y-4">
+               <div key={v.id} onClick={() => alert(`Detalhes da Vaga: ${v.title}\n\nEm breve: Tela detalhada com requisitos e aplicação.`)} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm hover:shadow-md transition-all cursor-pointer group space-y-4">
                    <div className="flex justify-between items-start">
                        <div className="flex items-center gap-3">
                            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600"><Building size={18}/></div>

@@ -1,11 +1,16 @@
-
 import React from 'react';
 import { ViewState, Professional, User } from '../../types';
-import { Zap, History, Calendar as CalendarIcon, Flower, Briefcase, Wallet, ShoppingBag } from 'lucide-react';
+import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 
-export const ProDashboard: React.FC<{ user: Professional, setView: (v: ViewState) => void }> = ({ user, setView }) => {
+export const ProDashboard: React.FC<{ 
+    user: Professional, 
+    setView: (v: ViewState) => void, 
+    updateUser: (u: User) => void,
+    setToast: (t: { title: string, message: string } | null) => void,
+    data?: any
+}> = ({ user, setView, updateUser, setToast, data }) => {
     const { go } = useGuardiaoFlow();
 
     return (
@@ -18,7 +23,7 @@ export const ProDashboard: React.FC<{ user: Professional, setView: (v: ViewState
                 </button>
                 <div><p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">Bom Despertar,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1">Mestre {user.name.split(' ')[0]}</h2></div>
             </div>
-            <button className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400"><History size={20}/></button>
+            <button onClick={() => go('AGENDA_VIEW')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><Calendar size={20}/></button>
         </header>
 
         <div className="px-4 space-y-8">
@@ -31,7 +36,7 @@ export const ProDashboard: React.FC<{ user: Professional, setView: (v: ViewState
                         <h3 className="text-4xl font-serif italic leading-none">Agenda</h3>
                         <p className="text-[10px] text-primary-200 font-bold uppercase tracking-[0.2em]">3 Sessões Hoje</p>
                     </div>
-                   <button className="w-16 h-16 bg-white text-nature-900 rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-all hover:bg-primary-50"><CalendarIcon size={24} className="ml-1" /></button>
+                   <button className="w-16 h-16 bg-white text-nature-900 rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-all hover:bg-primary-50"><Calendar size={24} className="ml-1" /></button>
                 </div>
             </div>
 
@@ -42,7 +47,24 @@ export const ProDashboard: React.FC<{ user: Professional, setView: (v: ViewState
 
             <div className="grid grid-cols-2 gap-4">
                 <PortalCard title="Crescimento" subtitle="OPORTUNIDADES" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600" onClick={() => go('VAGAS_LIST')} delay={200} />
-                <PortalCard title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCE_OVERVIEW')} delay={300} />
+                <PortalCard title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} delay={300} />
+            </div>
+
+            <div className="bg-emerald-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group cursor-pointer" onClick={() => {
+                setToast({ title: "Bênção Global Ativada", message: "Você enviou luz para todos os buscadores. +50 Pontos de Luz." });
+                updateUser({ ...user, karma: (user.karma || 0) + 50 });
+            }}>
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400 group-hover:scale-150 transition-transform duration-700 blur-[60px] opacity-20"></div>
+                <div className="relative z-10 flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20"><Sparkles className="text-emerald-400" size={28} /></div>
+                        <div>
+                            <h4 className="text-xl font-serif italic">Abençoar Sementes</h4>
+                            <p className="text-[10px] font-bold uppercase text-emerald-300 tracking-widest mt-1">Recupere jardins da comunidade</p>
+                        </div>
+                    </div>
+                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center border border-white/20 group-hover:rotate-12 transition-transform"><Plus size={20} /></div>
+                </div>
             </div>
 
             <div className="pb-8">
