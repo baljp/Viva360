@@ -16,9 +16,8 @@ test.describe('Master Enterprise E2E Suite', () => {
       await page.goto('/');
       
       const loginBtn = page.getByRole('button', { name: /já tenho conta/i });
-      if (await loginBtn.isVisible()) {
-        await loginBtn.click();
-      }
+      await expect(loginBtn).toBeVisible({ timeout: 10000 });
+      await loginBtn.click();
 
       await page.fill('input[placeholder="seu@email.com"]', role.email);
       await page.fill('input[placeholder="••••••••"]', role.password);

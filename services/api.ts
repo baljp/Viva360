@@ -33,7 +33,7 @@ const createMockUser = (email: string, name?: string, role?: UserRole): User => 
     id: 'mock_user_' + Date.now(),
     name: name || 'Usuário Demo (Mock)',
     email: email,
-    role: role || (email.includes('pro') ? UserRole.PROFESSIONAL : (email.includes('space') ? UserRole.SPACE : UserRole.CLIENT)),
+    role: role || (email.includes('admin') ? UserRole.ADMIN : (email.includes('pro') ? UserRole.PROFESSIONAL : (email.includes('space') ? UserRole.SPACE : UserRole.CLIENT))),
     avatar: 'https://i.pravatar.cc/150?u=' + email,
     karma: 100,
     streak: 5,
