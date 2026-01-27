@@ -57,9 +57,9 @@ export const gardenService = {
     },
 
     /**
-     * Get visual properties for the current plant stage
+     * Get visual properties for the current plant plant variety and stage
      */
-    getPlantVisuals: (stage: PlantStage, status: GardenStatus) => {
+    getPlantVisuals: (stage: PlantStage, status: GardenStatus, variety: string = 'oak') => {
         const visuals: Record<PlantStage, any> = {
             seed: { icon: '🌱', size: '2rem', label: 'Semente' },
             sprout: { icon: '🌿', size: '4rem', label: 'Broto' },
@@ -74,6 +74,17 @@ export const gardenService = {
         const opacity = status === 'withered' ? '0.4' : status === 'thirsty' ? '0.7' : '1';
         const filter = status === 'glowing' ? 'drop-shadow(0 0 15px #10b981)' : 'none';
 
-        return { ...config, opacity, filter };
+        return { ...config, opacity, filter, color: variety === 'lotus' ? 'text-rose-400' : 'text-emerald-500' };
+    },
+
+    getVarietyByJourney: (journey: string): string => {
+        const mapping: Record<string, string> = {
+            'emocional': 'lotus',
+            'mental': 'sunflower',
+            'forca': 'oak',
+            'espiritual': 'lavender',
+            'transforma': 'butterfly'
+        };
+        return mapping[journey] || 'oak';
     }
 };
