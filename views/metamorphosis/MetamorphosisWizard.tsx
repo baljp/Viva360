@@ -43,12 +43,34 @@ export const MetamorphosisWizard: React.FC<{ setView: (v: ViewState) => void }> 
         const photoHash = 'hash_' + Date.now(); 
         const photoThumb = photoUrl; // In real app, resize here.
 
-        const res = await api.metamorphosis.checkIn(mood, photoHash, photoThumb);
-        setTimeout(() => {
-            setResult(res.entry);
+        try {
+            const res = await api.metamorphosis.checkIn(mood, photoHash, photoThumb);
+            const entry = res?.entry || { 
+                id: Date.now(), 
+                mood, 
+                photoThumb, 
+                quote: "Sua luz é eterna.", 
+                ritual: ["Respire"] 
+            };
+            
+            setTimeout(() => {
+                setResult(entry);
+                setIsProcessing(false);
+                setStep(4);
+            }, 2000); 
+        } catch (e) {
+            console.error("Metamorphosis Error", e);
+            // Fallback UI State
+            setResult({
+                id: Date.now(),
+                mood,
+                photoThumb,
+                quote: "Ainda que haja ruído, sua essência permanece.",
+                ritual: ["Silêncio", "Pausa"]
+            });
             setIsProcessing(false);
             setStep(4);
-        }, 2000); // Animation delay
+        }
     };
 
     return (
@@ -131,9 +153,15 @@ export const MetamorphosisWizard: React.FC<{ setView: (v: ViewState) => void }> 
                         <Heart size={64} className="text-rose-400 animate-bounce mb-6" />
                         <h2 className="text-2xl font-serif italic text-nature-900">Jornada Registrada</h2>
                         <p className="text-nature-500 mt-2 mb-8">Você está cultivando sua própria luz.</p>
-                        <button onClick={() => setView(ViewState.CLIENT_HOME)} className="px-8 py-3 bg-nature-100 text-nature-900 rounded-full font-bold text-xs uppercase tracking-widest hover:bg-nature-200 transition-colors">
-                            Voltar ao Início
-                        </button>
+                        
+                        <div className="flex flex-col w-full px-12 gap-3">
+                            <button onClick={() => setView(ViewState.CLIENT_TIMELAPSE)} className="px-8 py-4 bg-nature-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-nature-800 transition-colors shadow-lg">
+                                Ver Evolução
+                            </button>
+                            <button onClick={() => setView(ViewState.CLIENT_HOME)} className="px-8 py-3 bg-nature-100 text-nature-400 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-nature-200 transition-colors">
+                                Voltar ao Início
+                            </button>
+                        </div>
                     </div>
                 )}
 
