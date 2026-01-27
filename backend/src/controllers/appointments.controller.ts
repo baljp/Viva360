@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin, isMockMode } from '../services/supabase.service';
 import { z } from 'zod';
+import { asyncHandler } from '../middleware/async.middleware';
 
 const createAppointmentSchema = z.object({
   professional_id: z.string().uuid().or(z.string()), // Allow simple string for mock
@@ -10,8 +11,7 @@ const createAppointmentSchema = z.object({
   price: z.number(),
 });
 
-export const listAppointments = async (req: Request, res: Response) => {
-  try {
+export const listAppointments = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user;
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -46,13 +46,9 @@ export const listAppointments = async (req: Request, res: Response) => {
 
     if (error) throw error;
     return res.json(data);
-  } catch (error: any) {
-    return res.status(400).json({ error: error.message || 'Failed to fetch appointments' });
-  }
-};
+});
 
-export const createAppointment = async (req: Request, res: Response) => {
-  try {
+export const createAppointment = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user;
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -79,10 +75,4 @@ export const createAppointment = async (req: Request, res: Response) => {
 
     if (error) throw error;
     return res.json(data);
-  } catch (error: any) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    return res.status(400).json({ error: error.message || 'Failed to create appointment' });
-  }
-};
+});

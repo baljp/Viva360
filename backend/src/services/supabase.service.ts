@@ -5,15 +5,11 @@ dotenv.config();
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const APP_MODE = process.env.APP_MODE || (SUPABASE_URL ? 'PROD' : 'MOCK');
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.warn(
-    '⚠️  WARNING: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in .env file. Database interactions will fail.'
-  );
-}
-
-// Flag for Mock Mode
-const IS_MOCK_MODE = !SUPABASE_URL || SUPABASE_URL.includes('mock') || !SUPABASE_SERVICE_ROLE_KEY;
+// Flag for Mock/Demo Mode (Backend uses mock logic for both to ensure safety)
+const IS_MOCK_MODE = APP_MODE === 'MOCK' || APP_MODE === 'DEMO' || !SUPABASE_URL;
+const IS_DEMO_MODE = APP_MODE === 'DEMO';
 
 // Admin client with Service Role (bypass RLS for admin tasks)
 let adminClient: SupabaseClient;
@@ -51,3 +47,4 @@ export const createSupabaseUserClient = (accessToken: string): SupabaseClient =>
 };
 
 export const isMockMode = () => IS_MOCK_MODE;
+export const isDemoMode = () => IS_DEMO_MODE;

@@ -2,12 +2,12 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { sendPushSimulation } from './notifications.controller';
 import { isMockMode } from '../services/supabase.service';
+import { asyncHandler } from '../middleware/async.middleware';
 
-export const processPayment = async (req: Request, res: Response) => {
+export const processPayment = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   const { amount, description, receiverId, items } = req.body; // items: [{ id, price, type }]
 
-  try {
     if (isMockMode()) {
        // Simulate Cart Checkout
        const total = items ? items.reduce((acc: number, item: any) => acc + item.price, 0) : amount;
@@ -73,7 +73,4 @@ export const processPayment = async (req: Request, res: Response) => {
     await sendPushSimulation(userId, 'Payment Successful', `Spent ${amount} coins.`);
 
     return res.json(result);
-  } catch (err: any) {
-    return res.status(400).json({ error: err.message });
-  }
-};
+});

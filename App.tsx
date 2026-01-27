@@ -184,7 +184,12 @@ const App: React.FC = () => {
         if (!u) return;
         handleUpdateUser(u);
         const role = String(u.role).toUpperCase();
-        const homePath = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : '/space/home');
+        console.log("DEBUG: handleLogin Role:", role);
+        const homePath = role === 'CLIENT' ? '/client/home' : 
+                        (role === 'PROFESSIONAL' ? '/pro/home' : 
+                        (role === 'SPACE' ? '/space/home' : 
+                        (role === 'ADMIN' ? '/admin/dashboard' : '/client/home')));
+        console.log("DEBUG: handleLogin Redirecting to:", homePath);
         navigate(homePath);
     };
 
@@ -264,13 +269,7 @@ const App: React.FC = () => {
             <Suspense fallback={<PageLoader />}>
                 <Routes>
                     <Route path="/" element={<Navigate to="/login" replace />} />
-                    <Route path="/login" element={<Auth onLogin={(u) => { 
-                        if (!u) return;
-                        setCurrentUser(u); 
-                        const role = String(u.role).toUpperCase();
-                        const home = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : (role === 'SPACE' ? '/space/home' : '/admin/dashboard'));
-                        navigate(home);
-                    }} setView={setView} />} />
+                    <Route path="/login" element={<Auth onLogin={handleLogin} setView={setView} />} />
                     <Route path="/reset-password" element={<ResetPasswordView />} />
 
                     <Route path="/register" element={<RegistrationViews view={ViewState.REGISTER} setView={setView} onRegister={async (u) => { 
