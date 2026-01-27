@@ -145,6 +145,10 @@ export interface User {
   streak: number; 
   multiplier: number;
   lastCheckIn?: string;
+  lastWateredAt?: string; // ISO date for garden logic
+  plantHealth?: number; // 0-100
+  wateredBy?: string[]; // IDs of friends who helped today
+  lastBlessingAt?: string; // ISO date of last Guardian blessing
   bio?: string;
   intention?: string;
   plantStage?: PlantStage;

@@ -5,6 +5,7 @@ import { ClientDashboard } from '../../views/client/ClientDashboard';
 import { OracleView } from '../../views/gamification/OracleView'; 
 import { MetamorphosisWizard } from '../../views/metamorphosis/MetamorphosisWizard'; 
 import { TimeLapseView } from '../../views/metamorphosis/TimeLapseView';
+import { InternalGarden } from '../../views/client/InternalGarden';
 import { TribeView } from '../../views/client/TribeView';
 import { BookingSearch } from '../../views/client/BookingSearch';
 import { BookingSelect } from '../../views/client/BookingSelect';
@@ -18,6 +19,7 @@ import ChatListScreen from '../../views/client/chat/ChatListScreen';
 import ChatRoomScreen from '../../views/client/chat/ChatRoomScreen';
 import CheckoutScreen from '../../views/client/financial/CheckoutScreen';
 import PaymentHistoryScreen from '../../views/client/financial/PaymentHistoryScreen';
+import { OrdersListView } from '../../views/ServiceViews';
 import CheckoutSuccessScreen from '../../views/client/generated/BookingConfirm'; // Reusing BookingConfirm as Success/Pseudo-success for now
 
 // Guardião Screens
@@ -57,7 +59,6 @@ export const screenMap: any = {
         METAMORPHOSIS_CHECKIN: MetamorphosisWizard,
         METAMORPHOSIS_CAMERA: MetamorphosisWizard,
         METAMORPHOSIS_MESSAGE: MetamorphosisWizard,
-        METAMORPHOSIS_RITUAL: MetamorphosisWizard,
         METAMORPHOSIS_FEEDBACK: MetamorphosisWizard,
         HISTORY: TimeLapseView,
         TRIBE_DASH: TribeView,
@@ -73,6 +74,12 @@ export const screenMap: any = {
         CHECKOUT: CheckoutScreen,
         PAYMENT_SUCCESS: CheckoutSuccessScreen,
         PAYMENT_HISTORY: PaymentHistoryScreen,
+        CLIENT_EXPLORE: BookingSearch,
+        CLIENT_MARKETPLACE: BookingSearch, // Placeholder or dedicated marketplace if found
+        CLIENT_RITUAL: OrdersListView,
+        CLIENT_TIMELAPSE: TimeLapseView,
+        METAMORPHOSIS_RITUAL: OrdersListView, // Mapping rituals to the orders/rituais list
+        GARDEN_VIEW: InternalGarden,
     },
     // GUARDIAO
     GUARDIAO: {

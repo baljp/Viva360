@@ -62,7 +62,7 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
                     updateUser={updateUser} 
                     setView={setView} 
                     flow={flowContext}
-                    {...rest} // Pass extra data
+                    {...rest} 
                 />
             </motion.div>
         </AnimatePresence>
