@@ -200,7 +200,7 @@ export const api = {
             ] as Vacancy[]
         ),
         createVacancy: async (v: any) => v,
-        getTransactions: async () => []
+        getTransactions: async (uid?: string) => []
     },
     notifications: {
         list: async (uid?: string) => [],
