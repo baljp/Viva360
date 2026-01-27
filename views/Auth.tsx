@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState, User } from '../types';
 import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { api } from '../services/api';
-import { isMockMode } from '../lib/supabase';
+import { isMockMode, isDemoMode } from '../lib/supabase';
 
 interface AuthProps {
     onLogin: (user?: User) => void;
@@ -194,12 +194,12 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                 <header className="flex justify-between items-center mb-6">
                     <div>
                         <h3 className="text-2xl font-serif italic text-nature-900">Login</h3>
-                        {isMockMode && <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Modo Demo Ativo</p>}
+                        {(isMockMode || isDemoMode) && <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Ambiente Seguro Ativo</p>}
                     </div>
                     <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20}/></button>
                 </header>
 
-                {isMockMode && (
+                {isMockMode && !isDemoMode && (
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                         <button type="button" onClick={() => setDemoCredentials('client')} className="flex items-center gap-2 px-4 py-3 bg-emerald-100 text-emerald-700 rounded-xl text-[10px] font-bold uppercase shrink-0 hover:bg-emerald-200 transition-colors">
                             <UserIcon size={14}/> Buscador
@@ -209,6 +209,34 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                         </button>
                         <button type="button" onClick={() => setDemoCredentials('space')} className="flex items-center gap-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-xl text-[10px] font-bold uppercase shrink-0 hover:bg-indigo-200 transition-colors">
                             <Building size={14}/> Santuário
+                        </button>
+                    </div>
+                )}
+
+                {isDemoMode && (
+                    <div className="space-y-3">
+                        <div className="p-4 bg-primary-500/10 border border-primary-500/30 rounded-2xl flex items-center gap-3 animate-pulse">
+                            <Zap size={20} className="text-primary-500 shrink-0" />
+                            <div>
+                                <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest leading-none mb-1">Modo Demo Ativo</p>
+                                <p className="text-[10px] text-nature-600 font-medium">Plataforma em modo de apresentação segura.</p>
+                            </div>
+                        </div>
+                        
+                        <button 
+                            type="button" 
+                            onClick={async () => { 
+                                setEmail('admin@viva360.com'); 
+                                setPassword('123456'); 
+                                // Submit next tick
+                                setTimeout(() => {
+                                   const submitBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
+                                   if (submitBtn) submitBtn.click();
+                                }, 100);
+                            }}
+                            className="w-full bg-primary-500 text-white py-4 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg active:scale-95 transition-all hover:bg-primary-600 flex items-center justify-center gap-3 border-none"
+                        >
+                            <Sparkles size={16} fill="currentColor" /> Acesso Instantâneo (Admin Demo)
                         </button>
                     </div>
                 )}

@@ -4,6 +4,7 @@ import { User, UserRole, ViewState, Notification } from '../types';
 import { Home, Compass, ShoppingBag, User as UserIcon, LogOut, Activity, Building, Users, Wallet, Calendar, Sun, Settings, Heart, Flower, Bell, Briefcase, Zap, Sparkles } from 'lucide-react';
 import { AuroraBackground, NotificationDrawer } from './Common';
 import { api } from '../services/api';
+import { isDemoMode, isMockMode } from '../lib/supabase';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -117,6 +118,22 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
                 {!shouldHideNav && <BottomNav user={user} currentView={currentView} setView={setView} onLogout={onLogout} />}
             </div>
             <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onMarkAsRead={(id) => {}} onMarkAllRead={() => {}} />
+            
+            {(isDemoMode || isMockMode) && (
+                <div className="fixed bottom-4 right-4 z-[9999] pointer-events-none">
+                    <div className="bg-nature-900/90 backdrop-blur-md text-white px-4 py-2 rounded-full shadow-2xl flex items-center gap-3 border border-white/10 animate-in slide-in-from-bottom-10 fade-in duration-700">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase tracking-widest leading-none text-emerald-400">
+                                {isDemoMode ? 'Modo Demo' : 'Modo Mock'}
+                            </span>
+                            <span className="text-[8px] font-medium opacity-60 leading-tight">
+                                Dados Fictícios • Seguro
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

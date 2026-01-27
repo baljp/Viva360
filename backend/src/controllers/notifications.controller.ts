@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
+import { asyncHandler } from '../middleware/async.middleware';
 
-export const list = async (req: Request, res: Response) => {
+export const list = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   
   if (isMockMode()) {
@@ -16,7 +17,7 @@ export const list = async (req: Request, res: Response) => {
     orderBy: { timestamp: 'desc' }
   });
   return res.json(notifications);
-};
+});
 
 export const sendPushSimulation = async (userId: string, title: string, message: string) => {
   if (isMockMode()) {

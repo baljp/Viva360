@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
+import { asyncHandler } from '../middleware/async.middleware';
 
-export const getEvents = async (req: Request, res: Response) => {
+export const getEvents = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   
   if (isMockMode()) {
@@ -29,10 +30,10 @@ export const getEvents = async (req: Request, res: Response) => {
     orderBy: { start_time: 'asc' }
   });
   return res.json(events);
-};
+});
 
 
-export const createEvent = async (req: Request, res: Response) => {
+export const createEvent = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
     const { title, start, end, type } = req.body;
     
@@ -64,9 +65,9 @@ export const createEvent = async (req: Request, res: Response) => {
     });
 
     return res.json(event);
-};
+});
 
-export const syncToMobile = async (req: Request, res: Response) => {
+export const syncToMobile = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   
   if (isMockMode()) {
@@ -79,4 +80,4 @@ export const syncToMobile = async (req: Request, res: Response) => {
   const icsData = events.map(e => `BEGIN:VEVENT\nSUMMARY:${e.title}\nDTSTART:${e.start_time.toISOString()}\nEND:VEVENT`).join('\n');
   
   return res.json({ format: 'ics', data: icsData, sync_status: 'synced' });
-};
+});

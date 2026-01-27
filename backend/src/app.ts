@@ -70,4 +70,8 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', pid: process.pid, timestamp: new Date().toISOString() });
 });
 
+// Global Error Handler
+import { errorHandler } from './middleware/error.middleware';
+app.use(errorHandler);
+
 export default app;

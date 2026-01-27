@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma, { prismaRead } from '../lib/prisma';
 import { DeterministicEngine, Mood } from '../lib/determinism';
+import { asyncHandler } from '../middleware/async.middleware';
 
 const ORACLE_DECK = [
     { id: 'sun', name: 'O Sol', insight: 'Sua luz interior é suficiente para guiar o caminho hoje. Brilhe sem medo.', element: 'Fogo', intensity: 'Alta' },
@@ -10,7 +11,7 @@ const ORACLE_DECK = [
     { id: 'wind', name: 'Vento de Mudança', insight: 'Não resista ao fluxo. A mudança trará o crescimento que você pediu.', element: 'Ar', intensity: 'Alta' }
 ];
 
-export const drawCard = async (req: Request, res: Response) => {
+export const drawCard = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
     const { mood } = req.body;
 
@@ -34,11 +35,11 @@ export const drawCard = async (req: Request, res: Response) => {
         drawnAt: new Date().toISOString(),
         moodContext: mood || 'neutral'
     });
-};
+});
 
-export const getHistory = async (req: Request, res: Response) => {
+export const getHistory = asyncHandler(async (req: Request, res: Response) => {
      return res.json([
          { date: '2024-01-20', card: ORACLE_DECK[0] },
          { date: '2024-01-21', card: ORACLE_DECK[2] }
      ]);
-};
+});

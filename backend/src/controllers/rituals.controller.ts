@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { asyncHandler } from '../middleware/async.middleware';
 
 // In-memory storage for demo purposes until Schema update
 let MOCK_ROUTINES: any = {
@@ -12,15 +13,15 @@ let MOCK_ROUTINES: any = {
     ]
 };
 
-export const getRoutine = async (req: Request, res: Response) => {
+export const getRoutine = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
     const { type } = req.query; // 'morning' | 'night'
     
     const routineType = (type as string) || 'morning';
     return res.json(MOCK_ROUTINES[routineType] || []);
-};
+});
 
-export const saveRoutine = async (req: Request, res: Response) => {
+export const saveRoutine = asyncHandler(async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId;
     const { type, steps } = req.body;
 
@@ -29,4 +30,4 @@ export const saveRoutine = async (req: Request, res: Response) => {
     MOCK_ROUTINES[type] = steps;
     
     return res.json({ success: true, message: 'Ritual cristalizado com sucesso.' });
-};
+});
