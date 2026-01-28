@@ -7,7 +7,7 @@ import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { SPECIALTIES } from '../../constants'; // Explicitly check this path
 
 export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolean }> = ({ pros = [], isLoading = false }) => {
-    const { go } = useBuscadorFlow();
+    const { go, selectProfessional } = useBuscadorFlow();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("Tudo");
 
@@ -68,7 +68,10 @@ export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolea
           ) : filteredPros.map(pro => (
               <button 
                 key={pro.id} 
-                onClick={() => go('BOOKING_SELECT')}
+                onClick={() => {
+                  selectProfessional(pro.id);
+                  go('BOOKING_SELECT');
+                }}
                 className="w-full bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center gap-5 hover:shadow-md transition-all group text-left"
               >
                 <div className="relative">

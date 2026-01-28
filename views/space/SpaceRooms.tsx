@@ -1,53 +1,88 @@
-import React from 'react';
-import { Activity, DoorOpen, Clock, MoreVertical, Plus } from 'lucide-react';
-import { ViewState, SpaceRoom } from '../../types';
+import React, { useState } from 'react';
+import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 import { PortalView } from '../../components/Common';
+import { Plus, Edit3, Image as ImageIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
-interface SpaceRoomsProps {
-    view: ViewState;
-    setView: (v: ViewState) => void;
-    rooms: SpaceRoom[];
-    flow: any;
-}
+export const SpaceRooms: React.FC = () => {
+    const { go } = useSantuarioFlow();
+    
+    // Mock Data with multiple images for carousel
+    const rooms = [
+        { id: 1, name: 'Sala Cristal', capacity: 15, current: 0, status: 'Livre', images: [
+            'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=600',
+            'https://images.unsplash.com/photo-1552693673-1bf958298935?q=80&w=600'
+        ]},
+        { id: 2, name: 'Templo Solar', capacity: 40, current: 12, status: 'Ocupado', images: [
+            'https://images.unsplash.com/photo-1596131397935-33ec8a7e0892?q=80&w=600'
+        ]},
+        { id: 3, name: 'Domo da Cura', capacity: 8, current: 0, status: 'Manutenção', images: [
+             'https://images.unsplash.com/photo-1545167622-3a6ac15600f3?q=80&w=600',
+             'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?q=80&w=600'
+        ]}
+    ];
 
-export const SpaceRooms: React.FC<SpaceRoomsProps> = ({ view, setView, rooms, flow }) => {
+    const [activeImages, setActiveImages] = useState<Record<number, number>>({});
+
+    const nextImage = (e: React.MouseEvent, roomId: number, max: number) => {
+        e.stopPropagation();
+        setActiveImages(prev => ({...prev, [roomId]: ((prev[roomId] || 0) + 1) % max}));
+    };
+
     return (
-        <PortalView title="Altares" subtitle="GESTÃO DE AMBIENTES" onBack={() => flow.go('EXEC_DASHBOARD')}>
-            <div className="space-y-8">
-                <div className="grid grid-cols-2 gap-4">
-                <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm text-center">
-                    <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Total Salas</p>
-                    <h4 className="text-2xl font-serif italic text-nature-900">{rooms.length}</h4>
-                </div>
-                <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm text-center">
-                    <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Disponíveis</p>
-                    <h4 className="text-2xl font-serif italic text-emerald-600">{rooms.filter(r => r.status === 'available').length}</h4>
-                </div>
+        <PortalView title="Mundo Físico" subtitle="SEUS ALTARES" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1560183286-68199927b202?q=80&w=800">
+            <div className="space-y-6 px-2">
+                <div className="bg-nature-900 rounded-[3.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-nature-700 rounded-full blur-[80px] -mr-32 -mt-32 opacity-50"></div>
+                    <h3 className="text-3xl font-serif italic relative z-10">Altares Sagrados</h3>
+                    <p className="text-nature-200 text-xs mt-2 relative z-10 max-w-xs">Gerencie a energia e ocupação dos seus espaços de cura.</p>
                 </div>
 
-                <div className="space-y-4">
-                {rooms.map(room => (
-                    <div key={room.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between group">
-                        <div className="flex items-center gap-5">
-                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${room.status === 'occupied' ? 'bg-indigo-50 text-indigo-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                            {room.status === 'occupied' ? <Activity size={24} className="animate-pulse" /> : <DoorOpen size={24}/>}
+                <div className="grid grid-cols-1 gap-6 pb-24">
+                    {rooms.map(room => (
+                        <div key={room.id} className="bg-white rounded-[2.5rem] border border-nature-100 shadow-lg overflow-hidden relative group">
+                            {/* Image Carousel */}
+                            <div className="h-48 w-full relative bg-nature-100">
+                                <img 
+                                    src={room.images[activeImages[room.id] || 0]} 
+                                    className="w-full h-full object-cover transition-all duration-500"
+                                />
+                                {room.images.length > 1 && (
+                                    <button 
+                                        onClick={(e) => nextImage(e, room.id, room.images.length)}
+                                        className="absolute right-4 bottom-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:bg-white/40 transition-colors"
+                                    >
+                                        <ChevronRight size={20} />
+                                    </button>
+                                )}
+                                <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[10px] font-bold uppercase text-nature-900 shadow-sm">
+                                    {room.status}
+                                </div>
+                            </div>
+
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <h4 className="text-xl font-serif italic text-nature-900">{room.name}</h4>
+                                        <p className="text-[10px] uppercase font-bold text-nature-400 tracking-widest mt-1">Capacidade: {room.capacity} Almas</p>
+                                    </div>
+                                    <div className="w-10 h-10 bg-nature-50 rounded-full flex items-center justify-center text-nature-400 hover:bg-nature-900 hover:text-white transition-colors cursor-pointer">
+                                        <Edit3 size={16}/>
+                                    </div>
+                                </div>
+                                <div className="w-full bg-nature-50 h-2 rounded-full overflow-hidden">
+                                     <div className="bg-nature-900 h-full transition-all duration-1000" style={{ width: `${(room.current/room.capacity)*100}%` }}></div>
+                                </div>
+                                <div className="flex justify-between mt-2 text-[9px] font-bold text-nature-400 uppercase">
+                                    <span>Ocupação</span>
+                                    <span>{Math.round((room.current/room.capacity)*100)}%</span>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h4 className="font-bold text-nature-900 text-sm leading-tight">{room.name}</h4>
-                            <p className={`text-[10px] font-bold uppercase mt-1 ${room.status === 'occupied' ? 'text-indigo-400' : 'text-emerald-500'}`}>
-                                {room.status === 'occupied' ? `Ocupada: ${room.currentOccupant}` : 'Pronta para Ritual'}
-                            </p>
-                        </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-2">
-                        {room.status === 'occupied' && (
-                            <div className="flex items-center gap-1 text-[10px] text-nature-400 font-bold"><Clock size={12}/> 25m restantes</div>
-                        )}
-                        <button className="p-2 text-nature-300 hover:text-nature-900 transition-colors"><MoreVertical size={18}/></button>
-                        </div>
-                    </div>
-                ))}
-                <button className="w-full py-5 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-white transition-all"><Plus size={16}/> Adicionar Novo Altar</button>
+                    ))}
+                    
+                    <button onClick={() => go('SANTUARIO_LIST')} className="w-full py-6 border-2 border-dashed border-nature-200 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest hover:border-nature-400 hover:text-nature-600 transition-all flex items-center justify-center gap-2">
+                        <Plus size={20} /> Novo Altar
+                    </button>
                 </div>
             </div>
         </PortalView>

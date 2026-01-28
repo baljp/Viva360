@@ -243,17 +243,37 @@ export const api = {
     metamorphosis: {
         checkIn: async (mood: string, hash: string, thumb: string) => mockFallback(
             request('/metamorphosis/checkin', { method: 'POST', body: JSON.stringify({ mood }) }),
-            () => ({ 
-                entry: {
+            () => {
+                const entry = { 
                     id: Date.now(),
                     mood,
                     photoThumb: thumb,
                     quote: "A luz que você procura está dentro de você.",
-                    ritual: ["Respire fundo 3 vezes", "Beba um copo de água", "Agradeça por um momento"]
-                }
-            })
+                    ritual: ["Respire fundo 3 vezes", "Beba um copo de água", "Agradeça por um momento"],
+                    timestamp: new Date().toISOString()
+                };
+                const historyStr = localStorage.getItem('viva360.evolution_history') || '[]';
+                const history = JSON.parse(historyStr);
+                history.unshift(entry);
+                localStorage.setItem('viva360.evolution_history', JSON.stringify(history.slice(0, 50)));
+                return { entry };
+            }
         ),
-        getEvolution: async () => ({ entries: [] })
-    },
-    request
+        getEvolution: async () => mockFallback(
+            request('/metamorphosis/evolution'),
+            () => {
+                const historyStr = localStorage.getItem('viva360.evolution_history');
+                if (historyStr) return { entries: JSON.parse(historyStr) };
+                
+                // default mock if empty
+                return {
+                    entries: [
+                        { id: 1, mood: 'Feliz', photoThumb: 'https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400', quote: 'Alegria é o sol da alma.', timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
+                        { id: 2, mood: 'Calmo', photoThumb: 'https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400', quote: 'Sua paz é seu poder.', timestamp: new Date(Date.now() - 86400000).toISOString() },
+                        { id: 3, mood: 'Motivado', photoThumb: 'https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400', quote: 'Tudo é possível.', timestamp: new Date().toISOString() }
+                    ]
+                };
+            }
+        )
+    }
 };
