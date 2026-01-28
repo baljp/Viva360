@@ -28,6 +28,9 @@ import { ProDashboard } from '../../views/pro/ProDashboard';
 import { ProFinance } from '../../views/pro/ProFinance';
 import { ProTribe } from '../../views/pro/ProTribe';
 import { ProMarketplace } from '../../views/pro/ProMarketplace'; 
+import { AlquimiaOffersView } from '../../views/pro/AlquimiaOffersView';
+import { AlquimiaCreateOffer } from '../../views/pro/AlquimiaCreateOffer';
+import { VideoSessionView } from '../../views/ServiceViews';
 // Guardião Generated
 import AgendaView from '../../views/pro/generated/AgendaView';
 import PatientsList from '../../views/pro/generated/PatientsList';
@@ -79,14 +82,10 @@ export const screenMap: any = {
         CLIENT_MARKETPLACE: BookingSearch, // Placeholder or dedicated marketplace if found
         CLIENT_RITUAL: OrdersListView,
         CLIENT_TIMELAPSE: TimeLapseView,
-        METAMORPHOSIS_RITUAL: OrdersListView, // Mapping rituals to the orders/rituais list
+        METAMORPHOSIS_RITUAL: OrdersListView, 
         GARDEN_VIEW: InternalGarden,
-        SETTINGS: ChatRoomScreen, // Placeholder for Global Settings, or dedicated component. Using ChatRoomScreen as generic placeholder to avoid import errors for now, or use imported SettingsViews if verified usable.
-        // Actually, let's map it to ClientDashboard momentarily or Settings view if available.
-        // There is 'SettingsViews' in views/. But importing it might be tricky if lazy loaded.
-        // Let's use OrdersListView as a placeholder 'List' for now, or BookingSearch.
-        // Wait, ClientDashboard imports "ViewState".
-        MARKETPLACE: BookingSearch,
+        SETTINGS: SettingsViews,
+        MARKETPLACE: ProMarketplace, 
     },
     // GUARDIAO
     GUARDIAO: {
@@ -98,6 +97,7 @@ export const screenMap: any = {
         AGENDA_CONFIRM: AgendaView, // Reused
         PATIENTS_LIST: PatientsList,
         PATIENT_PROFILE: PatientProfile,
+        VIDEO_SESSION: VideoSessionView,
         PATIENT_RECORDS: PatientProfile, // Reused
         VAGAS_LIST: VagasList,
         VAGA_DETAILS: VagasList,
@@ -106,8 +106,8 @@ export const screenMap: any = {
         TRIBE_CHAT: ProChatListScreen, // Entry point
         CHAT_LIST: ProChatListScreen,
         CHAT_ROOM: ProChatRoomScreen,
-        ESCAMBO_MARKET: ProMarketplace,
-        ESCAMBO_PROPOSE: ProMarketplace,
+        ESCAMBO_MARKET: AlquimiaOffersView,
+        ESCAMBO_PROPOSE: AlquimiaCreateOffer,
         ESCAMBO_CONFIRM: ProMarketplace,
         FINANCE_DETAILS: ProFinance, // Reused
         FINANCIAL_DASHBOARD: WalletViewScreen,

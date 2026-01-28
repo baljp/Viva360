@@ -4,7 +4,7 @@ import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product
 import { 
     Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Clock, TrendingUp, ShoppingBag, Calendar, Wallet, Droplets 
 } from 'lucide-react';
-import { PortalCard, ZenToast } from '../../components/Common';
+import { PortalCard, ZenToast, Logo } from '../../components/Common';
 import { getDailyMessage } from '../../src/utils/dailyWisdom';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 
@@ -21,7 +21,8 @@ export const SpaceDashboard: React.FC<{
 
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-24">
-            <header className="flex items-center justify-between mt-8 mb-8 px-6 flex-none">
+            <header className="flex items-center justify-between mt-8 mb-8 px-6 flex-none relative overflow-hidden">
+                <Logo size="xl" className="absolute -top-10 -left-10 opacity-[0.03] rotate-12 pointer-events-none" />
                 <div className="flex items-center gap-4">
                     <div className="relative group" onClick={() => {}}>
                       <img src={user.avatar} className="w-14 h-14 rounded-[1.5rem] border-4 border-white shadow-xl object-cover cursor-pointer group-hover:scale-110 transition-transform" />

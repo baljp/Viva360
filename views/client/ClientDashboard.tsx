@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ViewState, User, DailyRitualSnap } from '../../types';
 import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2 } from 'lucide-react';
-import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBlessing } from '../../components/Common';
+import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBlessing, Logo } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
@@ -101,7 +101,8 @@ export const ClientDashboard: React.FC<{
 
             <DailyBlessing user={user} onCheckIn={handleDailyCheckIn} />
             
-            <header className="flex items-center justify-between mt-8 mb-6 px-6 flex-none">
+            <header className="flex items-center justify-between mt-8 mb-6 px-6 flex-none relative overflow-hidden">
+                <Logo size="xl" className="absolute -top-10 -left-10 opacity-[0.03] rotate-12 pointer-events-none" />
                 <div className="flex items-center gap-4">
                     <div className="relative group" onClick={() => go('SETTINGS')}>
                         <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl relative z-10 cursor-pointer group-hover:scale-105 transition-transform" />

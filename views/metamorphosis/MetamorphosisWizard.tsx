@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Heart, Activity, Coffee, Moon, Sun, ArrowRight, CheckCircle, Smile, Frown, Meh, CloudRain, Zap, Battery } from 'lucide-react';
-import { PortalView } from '../../components/Common';
+import { Camera, Heart, Activity, Coffee, Moon, Sun, ArrowRight, CheckCircle, Smile, Frown, Meh, CloudRain, Zap, Battery, X } from 'lucide-react';
+import { PortalView, CameraWidget } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
 
@@ -28,12 +28,11 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         setStep(2);
     };
 
-    // Step 2: Photo Capture (Simulated)
-    const handleCapture = () => {
-        // In real app, Camera API. Here, mock.
-        setPhoto('https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400'); // Symbolic placeholder
+    // Step 2: Photo Capture
+    const handleCapture = (photoUrl: string) => {
+        setPhoto(photoUrl);
         setStep(3);
-        processMetamorphosis('https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400');
+        processMetamorphosis(photoUrl);
     };
 
     // Step 3: Deterministic Processing
@@ -74,7 +73,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     };
 
     return (
-        <PortalView title="Metamorfose" subtitle="RITUAL DIÁRIO" onBack={() => flow.go('DASHBOARD')}>
+        <PortalView title="Metamorfose" subtitle="RITUAL DIÁRIO" onBack={() => flow.back()} heroImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=800">
             <div className="flex flex-col h-[70vh]">
                 
                 {/* STEP 1: MOOD */}
@@ -96,12 +95,9 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 {step === 2 && (
                     <div className="flex-1 flex flex-col items-center justify-center animate-in fade-in slide-in-from-right duration-500">
                         <h2 className="text-xl font-serif italic mb-6 text-nature-900">Registre sua essência de hoje</h2>
-                        <div className="w-64 h-80 bg-black rounded-3xl relative overflow-hidden shadow-2xl border-4 border-white mb-8">
-                            {photo ? <img src={photo} className="w-full h-full object-cover"/> : <div className="absolute inset-0 bg-nature-800 flex items-center justify-center"><Camera className="text-white/20" size={48}/></div>}
+                        <div className="w-full h-[50vh] bg-black rounded-3xl relative overflow-hidden shadow-2xl border-4 border-white mb-8">
+                            <CameraWidget onCapture={handleCapture} />
                         </div>
-                        <button onClick={handleCapture} className="w-16 h-16 rounded-full border-4 border-nature-900 flex items-center justify-center">
-                            <div className="w-12 h-12 bg-nature-900 rounded-full"></div>
-                        </button>
                         <p className="mt-4 text-xs text-nature-500 text-center max-w-xs">Sua foto é criptografada e salva apenas no seu dispositivo. O santuário vê apenas sua luz (metadados). 🔒 LGPD</p>
                     </div>
                 )}

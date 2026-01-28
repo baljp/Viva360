@@ -6,12 +6,11 @@ import { DynamicAvatar, PortalView } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 
 export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }) => {
-    const { go } = useBuscadorFlow();
+    const { go, state } = useBuscadorFlow();
     
-    // For now, selecting the first pro or using context state. 
-    // In a real flow, 'selectedPro' should be in the context or passed as route param.
-    // We will assume the context holds it or we mock it with the first pro.
-    const pro = Array.isArray(pros) ? pros[0] : null;
+    // Find selected pro from context state or props
+    const contextPro = state.data.pros.find(p => p.id === state.selectedProfessionalId);
+    const pro = contextPro || (Array.isArray(pros) ? pros[0] : null);
 
     if (!pro) return (
         <PortalView title="Guardião" subtitle="DETALHES" onBack={() => go('BOOKING_SEARCH')}>

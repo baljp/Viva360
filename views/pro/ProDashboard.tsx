@@ -1,8 +1,9 @@
 import React from 'react';
 import { ViewState, Professional, User } from '../../types';
 import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus } from 'lucide-react';
-import { DynamicAvatar, PortalCard, ZenToast } from '../../components/Common';
+import { DynamicAvatar, PortalCard, ZenToast, Logo } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { api } from '../../services/api';
 
 export const ProDashboard: React.FC<{ 
     user: Professional, 
@@ -15,7 +16,8 @@ export const ProDashboard: React.FC<{
 
     return (
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-24">
-        <header className="flex items-center justify-between mt-8 mb-8 px-6 flex-none">
+        <header className="flex items-center justify-between mt-8 mb-8 px-6 flex-none relative overflow-hidden">
+            <Logo size="xl" className="absolute -top-10 -left-10 opacity-[0.03] rotate-12 pointer-events-none" />
             <div className="flex items-center gap-4">
                 <button onClick={() => go('SETTINGS')} className="relative group">
                     <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl group-hover:scale-105 transition-transform" />
@@ -50,9 +52,11 @@ export const ProDashboard: React.FC<{
                 <PortalCard id="portal-finance" title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} delay={300} />
             </div>
 
-            <div className="bg-emerald-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group cursor-pointer" onClick={() => {
+            <div className="bg-emerald-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group cursor-pointer" onClick={async () => {
+                const updatedUser = { ...user, karma: (user.karma || 0) + 50 };
+                updateUser(updatedUser); // Optimistic
+                await api.users.update(updatedUser); // Persist
                 setToast({ title: "Bênção Global Ativada", message: "Você enviou luz para todos os buscadores. +50 Pontos de Luz." });
-                updateUser({ ...user, karma: (user.karma || 0) + 50 });
             }}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400 group-hover:scale-150 transition-transform duration-700 blur-[60px] opacity-20"></div>
                 <div className="relative z-10 flex justify-between items-center">

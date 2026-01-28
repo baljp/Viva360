@@ -4,6 +4,7 @@ import { ViewState, User } from '../types';
 import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { api } from '../services/api';
 import { isMockMode, isDemoMode } from '../lib/supabase';
+import { Logo } from '../components/Common';
 
 interface AuthProps {
     onLogin: (user?: User) => void;
@@ -193,7 +194,10 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                 
                 <header className="flex justify-between items-center mb-6">
                     <div>
-                        <h3 className="text-2xl font-serif italic text-nature-900">Login</h3>
+                        <div className="flex items-center gap-3 mb-1">
+                            <Logo size="sm" />
+                            <h3 className="text-2xl font-serif italic text-nature-900">Login</h3>
+                        </div>
                         {(isMockMode || isDemoMode) && <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Ambiente Seguro Ativo</p>}
                     </div>
                     <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20}/></button>
@@ -316,6 +320,10 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
     return (
         <div className="relative h-screen w-full bg-[#1a211d] overflow-hidden flex flex-col justify-end">
             <OnboardingCarousel />
+            
+            <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-30 animate-in fade-in zoom-in duration-1000">
+                <Logo size="lg" animated />
+            </div>
             
             <div className="relative z-30 p-8 pb-[calc(2rem+env(safe-area-inset-bottom))] w-full bg-gradient-to-t from-[#1a211d] via-[#1a211d] to-transparent pt-32">
                  <div className="flex flex-col gap-4">

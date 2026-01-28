@@ -9,6 +9,30 @@ import { User as UserType, UserRole, PlantStage, MoodType, DailyQuest, Notificat
 import { api } from '../services/api';
 import { getDailyMessage } from '../src/utils/dailyWisdom';
 
+// --- LOGO COMPONENT ---
+export const Logo: React.FC<{ size?: 'sm' | 'md' | 'lg' | 'xl' | 'splash', className?: string, animated?: boolean }> = ({ size = 'md', className = "", animated = false }) => {
+  const sizeMap = {
+    sm: 'w-6 h-6',
+    md: 'w-10 h-10',
+    lg: 'w-20 h-20',
+    xl: 'w-32 h-32',
+    splash: 'w-48 h-48'
+  };
+
+  return (
+    <div className={`relative flex items-center justify-center ${sizeMap[size]} ${className}`}>
+      {animated && (
+        <div className="absolute inset-0 bg-primary-400/20 rounded-full blur-3xl animate-breathe"></div>
+      )}
+      <img 
+        src="/logo.png" 
+        alt="Viva360 Logo" 
+        className={`w-full h-full object-contain relative z-10 ${animated ? 'animate-breathe' : ''}`}
+      />
+    </div>
+  );
+};
+
 // --- AURORA BACKGROUND ---
 export const AuroraBackground: React.FC = () => (
   <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
@@ -382,25 +406,36 @@ export const PortalView: React.FC<{
     onBack: () => void, 
     children: React.ReactNode, 
     footer?: React.ReactNode,
-    headerRight?: React.ReactNode 
-}> = ({ title, subtitle, onBack, children, footer, headerRight }) => (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-full">
-        <header className="flex-none flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 bg-white border-b border-nature-100 z-10 shadow-sm">
+    headerRight?: React.ReactNode,
+    heroImage?: string
+}> = ({ title, subtitle, onBack, children, footer, headerRight, heroImage }) => (
+    <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-[100vw]">
+        <header className={`flex-none flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 z-20 transition-colors ${heroImage ? 'bg-transparent text-white fixed top-0 w-full' : 'bg-white border-b border-nature-100 shadow-sm relative'}`}>
             <div className="flex items-center gap-4">
-                <button onClick={onBack} className="p-3 bg-nature-50 rounded-2xl text-nature-600 active:scale-90 transition-all shadow-sm">
+                <button onClick={onBack} className={`p-3 rounded-2xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
                     <ChevronRight className="rotate-180" size={22} />
                 </button>
                 <div className="space-y-0.5">
-                    <h2 className="text-xl font-serif italic text-nature-900 leading-none">{title}</h2>
-                    <p className="text-[10px] text-nature-400 uppercase tracking-[0.3em] font-bold">{subtitle}</p>
+                    <h2 className={`text-xl font-serif italic leading-none ${heroImage ? 'text-white drop-shadow-md' : 'text-nature-900'}`}>{title}</h2>
+                    <p className={`text-[10px] uppercase tracking-[0.3em] font-bold ${heroImage ? 'text-white/80 drop-shadow-sm' : 'text-nature-400'}`}>{subtitle}</p>
                 </div>
             </div>
             {headerRight}
         </header>
-        <div className="flex-1 overflow-y-auto no-scrollbar p-6 pb-[calc(6rem+env(safe-area-inset-bottom))]">
-            {children}
+        
+        <div className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] overscroll-contain relative">
+            {heroImage && (
+                <div className="w-full h-72 relative shrink-0">
+                    <img src={heroImage} className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-nature-50/20"></div>
+                </div>
+            )}
+            <div className={`flex flex-col ${heroImage ? '-mt-12 relative z-10 bg-nature-50 rounded-t-[2.5rem] min-h-[50vh] p-6 shadow-2xl border-t border-white/20' : 'p-6'}`}>
+                {children}
+            </div>
         </div>
-        {footer && <div className="flex-none bg-white border-t border-nature-100 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
+        
+        {footer && <div className="flex-none bg-white border-t border-nature-100 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] relative z-30">
             {footer}
         </div>}
     </div>
@@ -530,8 +565,18 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [camError, setCamError] = useState<string | null>(null);
+
   useEffect(() => { 
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } }).then(stream => { if (videoRef.current) videoRef.current.srcObject = stream; }); 
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'user' } } })
+        .then(stream => { 
+            if (videoRef.current) videoRef.current.srcObject = stream; 
+            setCamError(null);
+        })
+        .catch(err => {
+            console.error("Camera error:", err);
+            setCamError("Não foi possível acessar a câmera. Verifique as permissões ou use o upload.");
+        }); 
   }, []);
 
   const capture = () => {
@@ -560,13 +605,22 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
   return (
     <div className="flex flex-col h-full bg-black rounded-[3rem] overflow-hidden">
       {/* Viewport de Vídeo - Ocupa todo o espaço disponível MENOS a barra de controle */}
-      <div className="flex-1 relative overflow-hidden bg-nature-900">
-          <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
+      <div className="flex-1 relative overflow-hidden bg-nature-900 flex items-center justify-center">
+          {camError ? (
+              <div className="px-8 text-center space-y-4">
+                  <Camera size={48} className="mx-auto text-nature-300 opacity-50" />
+                  <p className="text-sm text-nature-200">{camError}</p>
+              </div>
+          ) : (
+              <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
+          )}
           <canvas ref={canvasRef} className="hidden" />
           {/* Overlay de Foco */}
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
-              <div className="w-64 h-64 border-2 border-white/50 rounded-[2.5rem]"></div>
-          </div>
+          {!camError && (
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
+                  <div className="w-64 h-64 border-2 border-white/50 rounded-[2.5rem]"></div>
+              </div>
+          )}
       </div>
       
       {/* Barra de Controles Dedicada - Não sobreposta */}

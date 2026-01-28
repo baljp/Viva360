@@ -48,7 +48,7 @@ export const OracleView: React.FC<{ flow: any, setView: (v: ViewState) => void }
     };
 
     return (
-        <PortalView title="O Oráculo" subtitle="MENSAGEM DO DIA" onBack={() => flow.go('DASHBOARD')}>
+        <PortalView title="O Oráculo" subtitle="MENSAGEM DO DIA" onBack={() => flow.back()} heroImage="https://images.unsplash.com/photo-1506318137071-a8bcbf675bfa?q=80&w=800">
             <div className="flex flex-col items-center justify-center min-h-[60vh] perspective-1000">
                 <style>{`
                     .perspective-1000 { perspective: 1000px; }
