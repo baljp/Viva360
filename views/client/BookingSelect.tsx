@@ -25,7 +25,7 @@ export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }
                 <DynamicAvatar user={pro} size="xl" className="border-4 border-white shadow-xl" />
                 <div>
                     <h3 className="text-2xl font-serif italic text-nature-900">{pro.name}</h3>
-                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">{pro.specialty.join(' • ')}</p>
+                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">{(pro.specialty || []).join(' • ')}</p>
                 </div>
                 <div className="flex gap-4">
                     <button onClick={() => go('BOOKING_CONFIRM')} className="px-6 py-3 bg-nature-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">Agendar Ritual</button>
