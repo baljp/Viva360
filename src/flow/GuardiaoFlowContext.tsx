@@ -3,7 +3,7 @@ import React, { createContext, useContext, useReducer, ReactNode, useEffect } fr
 import { GuardiaoState } from './guardiaoTypes';
 import { GuardiaoFlowEngine } from './GuardiaoFlowEngine';
 import { isMockMode } from '../../lib/supabase'; 
-import { Appointment, Vacancy, Product, Transaction, Professional } from '../../types';
+import { Appointment, Vacancy, Product, Transaction, Professional, UserRole } from '../../types';
 import { api } from '../../services/api';
 
 // Define Context State
@@ -110,7 +110,7 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
             const [apts, vacs, prods, txData] = await Promise.all([
-                api.appointments.list(userId, 'professional'),
+                api.appointments.list(userId, UserRole.PROFESSIONAL),
                 api.spaces.getVacancies(),
                 api.marketplace.listByOwner(userId),
                 api.professionals.getFinanceSummary(userId)
