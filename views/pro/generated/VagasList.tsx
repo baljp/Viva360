@@ -1,8 +1,4 @@
 
-import React from 'react';
-import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { ChevronLeft, Briefcase, MapPin, Building, Search } from 'lucide-react';
-
 import React, { useState } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
 import { ChevronLeft, Briefcase, MapPin, Building, Search, X, CheckCircle, Clock, DollarSign } from 'lucide-react';

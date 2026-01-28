@@ -1,0 +1,77 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    
+    <!-- SEO Básico -->
+    <title>Viva360 - Ecossistema Holístico</title>
+    <meta name="description" content="A maior plataforma de bem-estar holístico. Conecte-se com guardiões, santuários e sua própria essência." />
+    <meta name="keywords" content="holístico, yoga, reiki, bem-estar, terapias, saúde mental" />
+    
+    <!-- PWA / Mobile -->
+    <meta name="application-name" content="Viva360" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Viva360" />
+    <link rel="apple-touch-icon" href="./logo.png" />
+    <meta name="theme-color" content="#263732" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: { 50: '#f4f7f5', 100: '#e3ebe7', 200: '#c5dcd3', 300: '#9dbfb2', 400: '#759f90', 500: '#558273', 600: '#41665a', 700: '#365249', 800: '#2d423c', 900: '#263732' },
+              nature: { 50: '#fafbf9', 100: '#f2f4f1', 200: '#e4e8e1', 300: '#d1d8cd', 400: '#aab5a4', 500: '#86947e', 600: '#687561', 700: '#545f4e', 800: '#444c40', 900: '#1a211d' }
+            },
+            fontFamily: { sans: ['Inter', 'sans-serif'], serif: ['Playfair Display', 'serif'] },
+            animation: { 
+              'fade-in': 'fadeIn 0.8s ease-out forwards', 
+              'slide-up': 'slideUp 0.8s ease-out forwards',
+              'breathe': 'breathe 4s ease-in-out infinite',
+              'spin-slow': 'spin 8s linear infinite'
+            },
+            keyframes: {
+              fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+              slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+              breathe: { '0%, 100%': { transform: 'scale(1)', opacity: '0.9' }, '50%': { transform: 'scale(1.05)', opacity: '1' } }
+            }
+          }
+        }
+      }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
+    <style>
+      :root { --sab: env(safe-area-inset-bottom); --sat: env(safe-area-inset-top); }
+      body { 
+        font-family: 'Inter', sans-serif; 
+        background-color: #f4f7f5; 
+        color: #1a211d; 
+        overscroll-behavior-y: contain; 
+        overflow: hidden; 
+        user-select: none; 
+        -webkit-tap-highlight-color: transparent;
+      }
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+      .animate-float { animation: float 6s ease-in-out infinite; }
+      
+      @media (min-width: 1024px) {
+        body { background-color: #e3ebe7; }
+        #root { max-width: 100%; height: 100dvh; margin: 0; }
+      }
+    </style>
+
+  <script type="module" crossorigin src="./assets/index-CYGA8Jc-.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/vendor-3-FDx-vZ.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-BAtWe9iT.css">
+<link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
+  <body>
+    <div id="root" class="w-full h-full bg-primary-50 overflow-hidden"></div>
+  </body>
+</html>
