@@ -16,6 +16,7 @@
     "test:qa": "npx playwright test --config=playwright.qa.config.ts",
     "test:qa:visual": "npx playwright test --config=playwright.qa.config.ts --project=chromium --grep @visual",
     "test:qa:stress": "npx playwright test --config=playwright.qa.config.ts --grep @stress",
+    "test:buscador-flow": "npx playwright test --config=playwright.qa.config.ts qa/flows/buscador-flow.spec.ts",
     "deploy:auto": "bash scripts/setup_vercel.sh && npx vercel --prod",
     "db:sync": "bash scripts/db_sync.sh"
   },
