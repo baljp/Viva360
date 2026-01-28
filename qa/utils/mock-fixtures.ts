@@ -64,6 +64,11 @@ export const test = base.extend<JourneyFixtures>({
 
       console.log(`[Journey] Logging in as ${role} (${email})...`);
       
+      // Disable Smart Tutorial for tests
+      await page.addInitScript(() => {
+          window.localStorage.setItem('viva360_smart_tutorial_seen', 'true');
+      });
+
       await page.goto('/', { waitUntil: 'networkidle' });
       // Handle potential "Already logged in" or "Landing page"
       const loginBtn = page.getByRole('button', { name: /já tenho conta/i });
