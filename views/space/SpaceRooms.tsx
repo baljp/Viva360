@@ -29,7 +29,7 @@ export const SpaceRooms: React.FC = () => {
     };
 
     return (
-        <PortalView title="Mundo Físico" subtitle="SEUS ALTARES" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1560183286-68199927b202?q=80&w=800">
+        <PortalView title="Mundo Físico" subtitle="SEUS ALTARES" onBack={() => go('EXEC_DASHBOARD')} heroImage="https://images.unsplash.com/photo-1560183286-68199927b202?q=80&w=800">
             <div className="space-y-6 px-2">
                 <div className="bg-nature-900 rounded-[3.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-nature-700 rounded-full blur-[80px] -mr-32 -mt-32 opacity-50"></div>
@@ -80,7 +80,7 @@ export const SpaceRooms: React.FC = () => {
                         </div>
                     ))}
                     
-                    <button onClick={() => go('SANTUARIO_LIST')} className="w-full py-6 border-2 border-dashed border-nature-200 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest hover:border-nature-400 hover:text-nature-600 transition-all flex items-center justify-center gap-2">
+                    <button onClick={() => go('PROS_LIST')} className="w-full py-6 border-2 border-dashed border-nature-200 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest hover:border-nature-400 hover:text-nature-600 transition-all flex items-center justify-center gap-2">
                         <Plus size={20} /> Novo Altar
                     </button>
                 </div>
