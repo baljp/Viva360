@@ -64,14 +64,18 @@ export const test = base.extend<JourneyFixtures>({
 
       console.log(`[Journey] Logging in as ${role} (${email})...`);
       
-      await page.goto('/');
+      await page.goto('/', { waitUntil: 'networkidle' });
       // Handle potential "Already logged in" or "Landing page"
       const loginBtn = page.getByRole('button', { name: /já tenho conta/i });
       if (await loginBtn.isVisible()) {
           await loginBtn.click();
       }
 
-      await page.fill('input[placeholder="seu@email.com"]', email);
+      // Wait for login form to animate in
+      const emailInput = page.locator('input[placeholder="seu@email.com"]');
+      await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+      
+      await emailInput.fill(email);
       await page.fill('input[placeholder="••••••••"]', password);
       await page.click('button[type="submit"]');
 

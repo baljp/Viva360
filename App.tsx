@@ -313,7 +313,11 @@ const App: React.FC = () => {
                     
                     {/* Space Routes */}
 
-                    <Route path="/space/*" element={(String(currentUser?.role).toUpperCase() === 'SPACE') ? <SpaceViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
+                    <Route path="/space/*" element={(String(currentUser?.role).toUpperCase() === 'SPACE') ? (
+                        <SantuarioFlowProvider>
+                            <SpaceViews user={currentUser!} view={currentView} setView={setView} />
+                        </SantuarioFlowProvider>
+                    ) : <Navigate to="/login" />} />
 
                     {/* Admin Routes */}
                      <Route path="/admin/*" element={(String(currentUser?.role).toUpperCase() === 'ADMIN') ? <AdminViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
