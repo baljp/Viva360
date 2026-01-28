@@ -10,9 +10,10 @@ interface SpaceRecruitmentProps {
     user: User;
     vacancies: Vacancy[];
     refreshData: () => Promise<void>;
+    flow: any;
 }
 
-export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setView, user, vacancies, refreshData }) => {
+export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setView, user, vacancies, refreshData, flow }) => {
     const [showAddVacancy, setShowAddVacancy] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
 
@@ -22,7 +23,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
             <PortalView 
               title="Sincronia Mestra" 
               subtitle="EXPANSÃO DO CÍRCULO" 
-              onBack={() => setView(ViewState.SPACE_HOME)}
+              onBack={() => flow.go('EXEC_DASHBOARD')}
               footer={
                 <button onClick={() => setShowAddVacancy(true)} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
                     <Plus size={18}/> Novo Manifesto de Busca
@@ -55,7 +56,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
         
                 <div className="space-y-4">
                    <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Manifestos de Busca (Vagas)</h4>
-                   {vacancies.length > 0 ? vacancies.map(v => (
+                   {(vacancies || []).length > 0 ? (vacancies || []).map(v => (
                      <div key={v.id} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-5 group hover:shadow-md transition-all">
                         <div className="flex justify-between items-start">
                            <div className="flex items-center gap-4">
@@ -63,7 +64,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                               <div>
                                  <h4 className="font-bold text-nature-900 text-sm leading-none">{v.title}</h4>
                                  <div className="flex gap-1.5 mt-2">
-                                   {v.specialties.map(s => <span key={s} className="text-[8px] px-2 py-0.5 bg-nature-50 text-nature-400 rounded-lg font-bold uppercase border border-nature-100">{s}</span>)}
+                                   {(v.specialties || []).map(s => <span key={s} className="text-[8px] px-2 py-0.5 bg-nature-50 text-nature-400 rounded-lg font-bold uppercase border border-nature-100">{s}</span>)}
                                  </div>
                               </div>
                            </div>

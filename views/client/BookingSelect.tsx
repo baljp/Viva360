@@ -5,14 +5,13 @@ import { MessageCircle } from 'lucide-react';
 import { DynamicAvatar, PortalView } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 
-export const BookingSelect: React.FC<{ data: { pros: Professional[] } }> = ({ data }) => {
-    const { pros } = data;
+export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }) => {
     const { go } = useBuscadorFlow();
     
     // For now, selecting the first pro or using context state. 
     // In a real flow, 'selectedPro' should be in the context or passed as route param.
     // We will assume the context holds it or we mock it with the first pro.
-    const pro = pros[0];
+    const pro = Array.isArray(pros) ? pros[0] : null;
 
     if (!pro) return (
         <PortalView title="Guardião" subtitle="DETALHES" onBack={() => go('BOOKING_SEARCH')}>

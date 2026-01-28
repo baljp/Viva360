@@ -7,11 +7,12 @@ interface SpaceTeamProps {
     view: ViewState;
     setView: (v: ViewState) => void;
     team: Professional[];
+    flow: any;
 }
 
-export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team }) => {
+export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow }) => {
     return (
-        <PortalView title="Círculo de Guardiões" subtitle="GESTÃO DE EQUIPE" onBack={() => setView(ViewState.SPACE_HOME)}>
+        <PortalView title="Círculo de Guardiões" subtitle="GESTÃO DE EQUIPE" onBack={() => flow.go('EXEC_DASHBOARD')}>
             <div className="space-y-8">
                 <div className="bg-indigo-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
                     <Users size={140} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />
@@ -47,7 +48,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team }) => 
                             <ChevronRight size={18} className="text-nature-200 group-hover:text-indigo-500 transition-colors" />
                         </button>
                     ))}
-                    <button onClick={() => setView(ViewState.SPACE_RECRUITMENT)} className="w-full py-6 border-2 border-dashed border-indigo-100 rounded-[2.5rem] text-indigo-600 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-indigo-50 mt-4 transition-all"><UserPlus size={18} /> Expandir o Círculo</button>
+                    <button onClick={() => flow.go('VAGAS_LIST')} className="w-full py-6 border-2 border-dashed border-indigo-100 rounded-[2.5rem] text-indigo-600 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-indigo-50 mt-4 transition-all"><UserPlus size={18} /> Expandir o Círculo</button>
                 </div>
             </div>
         </PortalView>

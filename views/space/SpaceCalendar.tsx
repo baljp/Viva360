@@ -6,9 +6,10 @@ import { PortalView } from '../../components/Common';
 interface SpaceCalendarProps {
     team: Professional[];
     setView: (v: ViewState) => void;
+    flow: any;
 }
 
-export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView }) => {
+export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flow }) => {
      const [filterPro, setFilterPro] = useState<string>('all');
      
      // Mock appointments for demo (since we don't have a full appointments endpoint in this file yet)
@@ -25,7 +26,7 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView }) =
         <PortalView 
             title="Agenda do Santuário" 
             subtitle="VISÃO UNIFICADA" 
-            onBack={() => setView(ViewState.SPACE_HOME)}
+            onBack={() => flow.go('EXEC_DASHBOARD')}
             footer={
                 <div className="flex gap-2">
                      <button className="flex-1 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px]">Novo Agendamento</button>

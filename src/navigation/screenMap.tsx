@@ -2,6 +2,7 @@
 import React from 'react';
 // Buscador Screens
 import { ClientDashboard } from '../../views/client/ClientDashboard';
+import { SettingsViews } from '../../views/SettingsViews';
 import { OracleView } from '../../views/gamification/OracleView'; 
 import { MetamorphosisWizard } from '../../views/metamorphosis/MetamorphosisWizard'; 
 import { TimeLapseView } from '../../views/metamorphosis/TimeLapseView';
@@ -113,6 +114,7 @@ export const screenMap: any = {
         SANTUARIO_LIST: ProDashboard, // Placeholder
         SANTUARIO_PROFILE: ProDashboard, // Placeholder
         SANTUARIO_CONTRACT: ProDashboard, // Placeholder
+        SETTINGS: SettingsViews,
     },
     // SANTUARIO
     SANTUARIO: {

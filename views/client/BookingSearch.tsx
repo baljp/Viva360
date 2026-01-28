@@ -4,18 +4,18 @@ import { ViewState, Professional } from '../../types';
 import { Activity, Brain, Sparkle, Search, MapPin, Clock, ChevronRight, Star, ShieldCheck } from 'lucide-react';
 import { DynamicAvatar, PortalView } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
-import { SPECIALTIES } from '../../constants';
+import { SPECIALTIES } from '../../constants'; // Explicitly check this path
 
-export const BookingSearch: React.FC<{ data: { pros: Professional[], isLoading: boolean } }> = ({ data }) => {
-    const { pros, isLoading } = data;
+export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolean }> = ({ pros = [], isLoading = false }) => {
     const { go } = useBuscadorFlow();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("Tudo");
 
     const filteredPros = useMemo(() => {
+        if (!Array.isArray(pros)) return [];
         return pros.filter(p => 
-          (selectedCategory === "Tudo" || p.specialty.includes(selectedCategory)) &&
-          (p.name.toLowerCase().includes(searchQuery.toLowerCase()) || p.specialty.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())))
+          (selectedCategory === "Tudo" || (p.specialty?.includes(selectedCategory))) &&
+          (p.name?.toLowerCase().includes(searchQuery.toLowerCase()) || p.specialty?.some(s => s.toLowerCase().includes(searchQuery.toLowerCase())))
         );
     }, [pros, selectedCategory, searchQuery]);
 
@@ -50,7 +50,7 @@ export const BookingSearch: React.FC<{ data: { pros: Professional[], isLoading: 
         </div>
 
         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-          {["Tudo", ...SPECIALTIES.slice(0, 10)].map(cat => (
+          {(Array.isArray(SPECIALTIES) ? ["Tudo", ...SPECIALTIES.slice(0, 10)] : ["Tudo"]).map(cat => (
             <button 
               key={cat} 
               onClick={() => setSelectedCategory(cat)}
@@ -80,7 +80,7 @@ export const BookingSearch: React.FC<{ data: { pros: Professional[], isLoading: 
                     <h4 className="font-bold text-nature-900 text-sm truncate">{pro.name}</h4>
                     <div className="flex items-center gap-1 bg-amber-50 px-2 py-0.5 rounded-lg"><Star size={10} className="text-amber-500 fill-amber-500" /><span className="text-[10px] font-bold text-amber-700">{pro.rating}</span></div>
                   </div>
-                  <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-1 truncate">{pro.specialty.join(', ')}</p>
+                  <p className="text-[10px] font-bold text-primary-600 uppercase tracking-widest mt-1 truncate">{(pro.specialty || []).join(', ')}</p>
                   <div className="flex items-center gap-4 mt-3 text-nature-400">
                      <div className="flex items-center gap-1"><MapPin size={10} /><span className="text-[9px] font-bold uppercase">{pro.location || 'Online'}</span></div>
                      <div className="flex items-center gap-1"><Clock size={10} /><span className="text-[9px] font-bold uppercase">60 min</span></div>

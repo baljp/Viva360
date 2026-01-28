@@ -5,8 +5,7 @@ import { TrendingUp, Filter, ArrowUpRight, ArrowDownRight, Share2 } from 'lucide
 import { PortalView } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 
-export const ProFinance: React.FC<{ user: Professional, data: { transactions: Transaction[] } }> = ({ user, data }) => {
-    const { transactions } = data;
+export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions = [] }) => {
     const { go } = useGuardiaoFlow();
 
     return (

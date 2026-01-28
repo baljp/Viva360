@@ -1,20 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
-import { ViewState, Professional, User, Product } from '../types';
+import React, { useEffect } from 'react';
+import { ViewState, Product, User } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
 import { useBuscadorFlow } from '../src/flow/BuscadorFlowContext';
 import { BuscadorState } from '../src/flow/types';
-import { api } from '../services/api';
 import { ZenToast } from '../components/Common';
 
 export const ClientViews: React.FC<{ 
   user: User, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onAddToCart: (p: Product) => void
 }> = ({ user, view, setView, updateUser, onAddToCart }) => {
-  const { state: flowState, go } = useBuscadorFlow();
-  const [pros, setPros] = useState<Professional[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+  const { state: flowState, go, refreshData } = useBuscadorFlow();
 
    // Sync Router View -> Flow State (Deep Linking Support)
    useEffect(() => {
@@ -25,11 +20,6 @@ export const ClientViews: React.FC<{
            [ViewState.CLIENT_METAMORPHOSIS]: 'METAMORPHOSIS_CHECKIN', 
            [ViewState.CLIENT_TRIBO]: 'TRIBE_DASH',
            [ViewState.CLIENT_EXPLORE]: 'BOOKING_SEARCH',
-           [ViewState.CLIENT_MARKETPLACE]: 'ORACLE_PORTAL', // Placeholder shift as per previous logic discussion, or we update types.
-           // Actually, 'ORACLE_PORTAL' was used in extract? No.
-           // In ClientDashboard extracted, Marketplace card goes to 'ORACLE_PORTAL' because I put it there? 
-           // Wait, ClientDashboard line 506: onClick={() => go('BOOKING_SEARCH')} 
-           // Let's keep it consistent.
            [ViewState.CLIENT_PRO_DETAILS]: 'BOOKING_SELECT',
        };
        const target = map[view];
@@ -40,34 +30,30 @@ export const ClientViews: React.FC<{
        }
    }, [view]);
 
-   useEffect(() => { 
-    setIsLoading(true);
-    Promise.all([
-      api.professionals.list(),
-      api.marketplace.listAll()
-    ]).then(([prosData, productsData]) => {
-      setPros(prosData);
-      setProducts(productsData);
-      setIsLoading(false);
-    });
-  }, []);
-
   const globalData = {
-      pros,
-      products,
-      isLoading,
-      onAddToCart // Special prop for client
+      pros: flowState.data.pros,
+      products: flowState.data.products,
+      isLoading: flowState.isLoading,
+      onAddToCart,
+      refreshData
   };
 
   return (
     <div className="w-full h-full bg-[#f8faf9]">
-        {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+        {flowState.error && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[500] bg-rose-50 border border-rose-100 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-500">
+                <p className="text-rose-900 text-xs font-bold uppercase tracking-widest">{flowState.error}</p>
+                <button onClick={() => refreshData()} className="p-2 bg-rose-100 rounded-lg text-rose-600 hover:bg-rose-200 transition-colors uppercase text-[9px] font-bold">Tentar Novamente</button>
+            </div>
+        )}
+        {flowState.toast && <ZenToast toast={flowState.toast} onClose={() => {}} />} 
         <ScreenConnector 
             profile="BUSCADOR" 
             user={user} 
             updateUser={updateUser}
             setView={setView} 
-            {...{data: globalData} as any}
+            flow={{ state: flowState, go }}
+            {...globalData}
         />
     </div>
   );
