@@ -1,8 +1,10 @@
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { GuardiaoState } from './guardiaoTypes';
 import { GuardiaoFlowEngine } from './GuardiaoFlowEngine';
 import { isMockMode } from '../../lib/supabase'; 
+import { Appointment, Vacancy, Product, Transaction, Professional } from '../../types';
+import { api } from '../../services/api';
 
 // Define Context State
 interface GuardiaoContextState {
@@ -12,11 +14,11 @@ interface GuardiaoContextState {
     isLoading: boolean;
     error: string | null;
     notification: { title: string; message: string; type: 'info' | 'success' | 'warning' } | null;
-    // Mock Data Holders
-    mockStats: {
-        pendingAppointments: number;
-        revenueToday: number;
-        reputation: number;
+    data: {
+        appointments: Appointment[];
+        vacancies: Vacancy[];
+        myProducts: Product[];
+        transactions: Transaction[];
     }
 }
 
@@ -25,50 +27,64 @@ type FlowAction =
     | { type: 'TRANSITION'; payload: GuardiaoState }
     | { type: 'BACK' }
     | { type: 'RESET' }
+    | { type: 'SET_ERROR'; payload: string }
     | { type: 'SET_LOADING'; payload: boolean }
+    | { type: 'SET_DATA'; payload: { appointments: Appointment[]; vacancies: Vacancy[]; myProducts: Product[]; transactions: Transaction[] } }
     | { type: 'NOTIFY'; payload: { title: string; message: string; type: 'info' | 'success' | 'warning' } }
     | { type: 'CLEAR_NOTIFICATION' };
 
-// Initial State
-const initialState: GuardiaoContextState = {
+// Initial State Factory
+const createInitialState = (): GuardiaoContextState => ({
     currentState: 'START',
     history: [],
     engine: new GuardiaoFlowEngine('START'),
     isLoading: false,
     error: null,
     notification: null,
-    mockStats: {
-        pendingAppointments: 3,
-        revenueToday: 450.00,
-        reputation: 4.9
+    data: {
+        appointments: [],
+        vacancies: [],
+        myProducts: [],
+        transactions: [],
     }
-};
+});
 
 // Reducer
 const flowReducer = (state: GuardiaoContextState, action: FlowAction): GuardiaoContextState => {
     switch (action.type) {
-        case 'TRANSITION':
-            const success = state.engine.transition(action.payload);
+        case 'TRANSITION': {
+            const tempEngine = new GuardiaoFlowEngine(state.currentState, [...state.history]);
+            const success = tempEngine.transition(action.payload);
             if (success) {
                 return {
                     ...state,
-                    currentState: state.engine.getState(),
-                    history: [...state.engine['history']],
+                    currentState: tempEngine.currentState,
+                    history: [...tempEngine.history],
+                    engine: tempEngine,
+                    error: null,
                 };
             }
             return state;
-        case 'BACK':
-            state.engine.back();
+        }
+        case 'BACK': {
+            const tempEngine = new GuardiaoFlowEngine(state.currentState, [...state.history]);
+            tempEngine.back();
             return {
                 ...state,
-                currentState: state.engine.getState(),
-                history: [...state.engine['history']],
+                currentState: tempEngine.currentState,
+                history: [...tempEngine.history],
+                engine: tempEngine,
+                error: null,
             };
+        }
         case 'RESET':
-            state.engine.reset();
-            return { ...initialState };
+            return createInitialState();
+        case 'SET_ERROR':
+            return { ...state, error: action.payload };
         case 'SET_LOADING':
             return { ...state, isLoading: action.payload };
+        case 'SET_DATA':
+            return { ...state, data: action.payload };
         case 'NOTIFY':
             return { ...state, notification: action.payload };
         case 'CLEAR_NOTIFICATION':
@@ -83,10 +99,38 @@ const GuardiaoFlowContext = createContext<{
     go: (target: GuardiaoState) => void;
     back: () => void;
     reset: () => void;
+    refreshData: (userId: string) => Promise<void>;
 } | undefined>(undefined);
 
 export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [state, dispatch] = useReducer(flowReducer, initialState);
+    const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
+
+    const refreshData = async (userId: string) => {
+        if (!userId) return;
+        dispatch({ type: 'SET_LOADING', payload: true });
+        try {
+            const [apts, vacs, prods, txData] = await Promise.all([
+                api.appointments.list(userId, 'professional'),
+                api.spaces.getVacancies(),
+                api.marketplace.listByOwner(userId),
+                api.professionals.getFinanceSummary(userId)
+            ]);
+            dispatch({ 
+                type: 'SET_DATA', 
+                payload: { 
+                    appointments: apts, 
+                    vacancies: vacs, 
+                    myProducts: prods, 
+                    transactions: txData.transactions 
+                } 
+            });
+        } catch (e) {
+            console.error('Failed to fetch Guardiao data', e);
+            dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar dados do portal.' });
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    };
 
     const go = (target: GuardiaoState) => {
         dispatch({ type: 'SET_LOADING', payload: true });
@@ -115,7 +159,7 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const reset = () => dispatch({ type: 'RESET' });
 
     return (
-        <GuardiaoFlowContext.Provider value={{ state, go, back, reset }}>
+        <GuardiaoFlowContext.Provider value={{ state, go, back, reset, refreshData }}>
             {children}
         </GuardiaoFlowContext.Provider>
     );

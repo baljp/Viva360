@@ -9,27 +9,15 @@ import { AnimatePresence, motion } from 'framer-motion';
 interface ConnectorProps {
     profile: 'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO';
     user: any; // User type
+    flow: any; // Flow Context
     updateUser?: (u: any) => void;
     setView?: (v: any) => void; // Legacy compatibility
 }
 
-export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> = ({ profile, user, updateUser, setView, ...rest }) => {
-    let currentState: string = 'START';
-    let flowContext: any = null;
+export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> = ({ profile, user, flow, updateUser, setView, ...rest }) => {
+    const currentState = flow.state.currentState;
 
-    if (profile === 'BUSCADOR') {
-        const ctx = useBuscadorFlow();
-        currentState = ctx.state.currentState;
-        flowContext = ctx;
-    } else if (profile === 'GUARDIAO') {
-        const ctx = useGuardiaoFlow();
-        currentState = ctx.state.currentState;
-        flowContext = ctx;
-    } else if (profile === 'SANTUARIO') {
-        const ctx = useSantuarioFlow();
-        currentState = ctx.state.currentState;
-        flowContext = ctx;
-    }
+    console.log(`[ScreenConnector] profile=${profile} currentState=${currentState}`);
 
     // Resolve Screen Component
     const ProfileMap = screenMap[profile];
@@ -41,7 +29,7 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
                 <div className="text-center opacity-50">
                     <h3 className="text-xl font-bold">Estado Desconhecido: {currentState}</h3>
                     <p>Nenhuma tela mapeada para este fluxo.</p>
-                    <button onClick={() => flowContext.reset()} className="mt-4 px-4 py-2 bg-gray-200 rounded">Resetar Fluxo</button>
+                    <button onClick={() => flow.reset()} className="mt-4 px-4 py-2 bg-gray-200 rounded">Resetar Fluxo</button>
                 </div>
             </div>
         );
@@ -61,7 +49,7 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
                     user={user} 
                     updateUser={updateUser} 
                     setView={setView} 
-                    flow={flowContext}
+                    flow={flow}
                     {...rest} 
                 />
             </motion.div>

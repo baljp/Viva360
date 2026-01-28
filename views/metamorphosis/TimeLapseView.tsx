@@ -4,7 +4,7 @@ import { PortalView } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
 
-export const TimeLapseView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
+export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => void }> = ({ flow, setView }) => {
     const [entries, setEntries] = useState<any[]>([]);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentFrame, setCurrentFrame] = useState(0);
@@ -34,7 +34,7 @@ export const TimeLapseView: React.FC<{ setView: (v: ViewState) => void }> = ({ s
     const activeEntry = entries[currentFrame];
 
     return (
-        <PortalView title="Minha Metamorfose" subtitle="TIME-LAPSE" onBack={() => setView(ViewState.CLIENT_HOME)}>
+        <PortalView title="Minha Metamorfose" subtitle="TIME-LAPSE" onBack={() => flow.go('DASHBOARD')}>
             <div className="flex flex-col h-[75vh]">
                 
                 {/* VIEWER */}

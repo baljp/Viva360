@@ -6,8 +6,11 @@ import { PortalView, ProductFormModal } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { api } from '../../services/api';
 
-export const ProMarketplace: React.FC<{ user: Professional, data: { myProducts: Product[], refreshData: () => void } }> = ({ user, data }) => {
-    const { myProducts, refreshData } = data;
+export const ProMarketplace: React.FC<{ 
+    user: Professional, 
+    myProducts?: Product[], 
+    refreshData?: () => void 
+}> = ({ user, myProducts = [], refreshData = () => {} }) => {
     const { go } = useGuardiaoFlow();
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);

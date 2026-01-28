@@ -114,7 +114,7 @@ export const ClientDashboard: React.FC<{
 
             <div className="px-4 space-y-8">
                 {/* JARDIM INTERNO HERO CARD */}
-                <div className="relative rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('GARDEN_VIEW')}>
+                <div id="hero-garden" className="relative rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('GARDEN_VIEW')}>
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors z-10"></div>
                     <img src="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                     <div className="relative z-20 p-8 h-64 flex flex-col justify-between">
@@ -144,6 +144,7 @@ export const ClientDashboard: React.FC<{
                 {/* GRID PRINCIPAL */}
                 <div className="grid grid-cols-2 gap-4">
                     <PortalCard 
+                        id="portal-metamorphosis"
                         title="Metamorfose" 
                         subtitle="RITUAL DIÁRIO" 
                         icon={Sunrise} 
@@ -152,6 +153,7 @@ export const ClientDashboard: React.FC<{
                         delay={100}
                     />
                     <PortalCard 
+                        id="portal-tribe"
                         title="Minha Tribo" 
                         subtitle="COMUNIDADE" 
                         icon={Users} 
@@ -160,6 +162,7 @@ export const ClientDashboard: React.FC<{
                         delay={100}
                     />
                     <PortalCard 
+                        id="portal-map"
                         title="Mapa da Cura" 
                         subtitle="EXPLORAR" 
                         icon={Compass} 
@@ -168,6 +171,7 @@ export const ClientDashboard: React.FC<{
                         delay={200} 
                     />
                     <PortalCard 
+                        id="portal-marketplace"
                         title="Bazar" 
                         subtitle="FARMÁCIA" 
                         icon={ShoppingBag} 
@@ -176,6 +180,7 @@ export const ClientDashboard: React.FC<{
                         delay={300} 
                     />
                     <PortalCard 
+                        id="portal-oracle"
                         title="Oráculo" 
                         subtitle="MENSAGEM" 
                         icon={Sparkles} 
@@ -184,6 +189,7 @@ export const ClientDashboard: React.FC<{
                         delay={400} 
                     />
                     <PortalCard 
+                        id="portal-rituals"
                         title="Rituais" 
                         subtitle="HÁBITOS" 
                         icon={CheckCircle2} 

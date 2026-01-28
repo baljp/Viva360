@@ -38,7 +38,7 @@ const Toggle: React.FC<{ active: boolean, onToggle: () => void }> = ({ active, o
     </button>
 );
 
-export const SettingsViews: React.FC<SettingsProps> = ({ user, view, setView, updateUser, onLogout }) => {
+export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({ user, view, setView, updateUser, onLogout, flow }) => {
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     const [showPass, setShowPass] = useState(false);
     const [privacyState, setPrivacyState] = useState({ tribe: true, patterns: false, history: true });
@@ -315,6 +315,19 @@ export const SettingsViews: React.FC<SettingsProps> = ({ user, view, setView, up
                   className="w-full py-6 border-2 border-dashed border-rose-100 text-rose-400 rounded-[2rem] font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-rose-50"
                 >
                     <LogOut size={18} /> Encerrar Sincronia
+                </button>
+                <button 
+                  onClick={() => {
+                        if (flow) {
+                            flow.go('DASHBOARD');
+                        } else {
+                            const home = user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : (user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME);
+                            setView(home);
+                        }
+                  }} 
+                  className="w-full mt-4 py-6 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl"
+                >
+                    <ChevronLeft size={18} /> Voltar ao Início
                 </button>
             </div>
         </div>

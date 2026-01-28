@@ -15,7 +15,7 @@ const MOODS = [
     { id: 'Sobrecarregado', icon: Activity, color: 'text-red-500', bg: 'bg-red-100' }
 ];
 
-export const MetamorphosisWizard: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
+export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) => void }> = ({ flow, setView }) => {
     const [step, setStep] = useState(1);
     const [mood, setMood] = useState('');
     const [photo, setPhoto] = useState<string | null>(null);
@@ -74,7 +74,7 @@ export const MetamorphosisWizard: React.FC<{ setView: (v: ViewState) => void }> 
     };
 
     return (
-        <PortalView title="Metamorfose" subtitle="RITUAL DIÁRIO" onBack={() => setView(ViewState.CLIENT_HOME)}>
+        <PortalView title="Metamorfose" subtitle="RITUAL DIÁRIO" onBack={() => flow.go('DASHBOARD')}>
             <div className="flex flex-col h-[70vh]">
                 
                 {/* STEP 1: MOOD */}
@@ -155,10 +155,10 @@ export const MetamorphosisWizard: React.FC<{ setView: (v: ViewState) => void }> 
                         <p className="text-nature-500 mt-2 mb-8">Você está cultivando sua própria luz.</p>
                         
                         <div className="flex flex-col w-full px-12 gap-3">
-                            <button onClick={() => setView(ViewState.CLIENT_TIMELAPSE)} className="px-8 py-4 bg-nature-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-nature-800 transition-colors shadow-lg">
+                            <button onClick={() => flow.go('HISTORY')} className="px-8 py-4 bg-nature-900 text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-nature-800 transition-colors shadow-lg">
                                 Ver Evolução
                             </button>
-                            <button onClick={() => setView(ViewState.CLIENT_HOME)} className="px-8 py-3 bg-nature-100 text-nature-400 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-nature-200 transition-colors">
+                            <button onClick={() => flow.go('DASHBOARD')} className="px-8 py-3 bg-nature-100 text-nature-400 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-nature-200 transition-colors">
                                 Voltar ao Início
                             </button>
                         </div>

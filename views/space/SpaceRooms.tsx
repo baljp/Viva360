@@ -7,11 +7,12 @@ interface SpaceRoomsProps {
     view: ViewState;
     setView: (v: ViewState) => void;
     rooms: SpaceRoom[];
+    flow: any;
 }
 
-export const SpaceRooms: React.FC<SpaceRoomsProps> = ({ view, setView, rooms }) => {
+export const SpaceRooms: React.FC<SpaceRoomsProps> = ({ view, setView, rooms, flow }) => {
     return (
-        <PortalView title="Altares" subtitle="GESTÃO DE AMBIENTES" onBack={() => setView(ViewState.SPACE_HOME)}>
+        <PortalView title="Altares" subtitle="GESTÃO DE AMBIENTES" onBack={() => flow.go('EXEC_DASHBOARD')}>
             <div className="space-y-8">
                 <div className="grid grid-cols-2 gap-4">
                 <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm text-center">

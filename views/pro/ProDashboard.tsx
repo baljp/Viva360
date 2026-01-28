@@ -17,7 +17,7 @@ export const ProDashboard: React.FC<{
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-24">
         <header className="flex items-center justify-between mt-8 mb-8 px-6 flex-none">
             <div className="flex items-center gap-4">
-                <button onClick={() => setView(ViewState.SETTINGS)} className="relative group">
+                <button onClick={() => go('SETTINGS')} className="relative group">
                     <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl group-hover:scale-105 transition-transform" />
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full flex items-center justify-center z-20 pointer-events-none shadow-md animate-pulse"><Zap size={10} className="text-white fill-white" /></div>
                 </button>
@@ -27,7 +27,7 @@ export const ProDashboard: React.FC<{
         </header>
 
         <div className="px-4 space-y-8">
-            <div className="relative h-80 rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('AGENDA_VIEW')}>
+            <div id="hero-agenda" className="relative h-80 rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('AGENDA_VIEW')}>
                 <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" />
                 <div className="absolute inset-0 bg-gradient-to-t from-nature-900 via-nature-900/40 to-transparent"></div>
                 <div className="absolute inset-x-8 bottom-8 flex justify-between items-end text-white">
@@ -41,13 +41,13 @@ export const ProDashboard: React.FC<{
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <PortalCard title="Jardim" subtitle="PACIENTES" icon={Flower} bgImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
-                <PortalCard title="Alquimia" subtitle="REDE" icon={Zap} bgImage="https://images.unsplash.com/photo-1517960413843-0aee8e2b3285?q=80&w=600" onClick={() => go('TRIBE_PRO')} delay={100} />
+                <PortalCard id="portal-patients" title="Jardim" subtitle="PACIENTES" icon={Flower} bgImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
+                <PortalCard id="portal-network" title="Alquimia" subtitle="REDE" icon={Zap} bgImage="https://images.unsplash.com/photo-1517960413843-0aee8e2b3285?q=80&w=600" onClick={() => go('TRIBE_PRO')} delay={100} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <PortalCard title="Crescimento" subtitle="OPORTUNIDADES" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600" onClick={() => go('VAGAS_LIST')} delay={200} />
-                <PortalCard title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} delay={300} />
+                <PortalCard id="portal-vagas" title="Crescimento" subtitle="OPORTUNIDADES" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600" onClick={() => go('VAGAS_LIST')} delay={200} />
+                <PortalCard id="portal-finance" title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} delay={300} />
             </div>
 
             <div className="bg-emerald-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group cursor-pointer" onClick={() => {
@@ -69,6 +69,7 @@ export const ProDashboard: React.FC<{
 
             <div className="pb-8">
                  <PortalCard 
+                    id="portal-marketplace"
                     title="Meu Bazar" 
                     subtitle="LOJA" 
                     icon={ShoppingBag} 

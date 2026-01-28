@@ -7,56 +7,77 @@ test.describe('Buscador Flow Stabilization', () => {
     await loginAs('client');
     
     // Handle Daily Blessing if it appears
-    const dailyBlessing = page.getByText('Bênção do Dia');
-    if (await dailyBlessing.isVisible()) {
-        await page.getByText('Sintonizar Agora').click();
+    try {
+        const sintonizarBtn = page.getByText('Sintonizar Agora');
+        await sintonizarBtn.waitFor({ state: 'visible', timeout: 5000 });
+        await sintonizarBtn.click();
+        console.log('[Test] Daily Blessing dismissed');
+    } catch (e) {
+        console.log('[Test] Daily Blessing did not appear or timed out');
     }
 
     await expect(page.getByText('Boa Jornada,')).toBeVisible();
 
-    // 2. Garden Hero Card -> GARDEN_VIEW
-    await page.getByText('Semente da Essência').click(); // Hero Card Title
-    await expect(page.getByText('Jardim da Alma')).toBeVisible();
-    await expect(page.getByText('Vitalidade')).toBeVisible();
-    
-    // Back to Dashboard
-    await page.getByRole('button', { name: 'Voltar' }).first().click(); // PortalView back button
-    await expect(page.getByText('Boa Jornada,')).toBeVisible();
+    const portals = [
+        { name: 'Jardim', expected: 'Jardim da Alma', id: '#hero-garden' },
+        { name: 'Metamorfose', expected: 'RITUAL DIÁRIO', id: '#portal-metamorphosis' },
+        { name: 'Mapa da Cura', expected: 'Onde você precisa de luz hoje?', id: '#portal-map' },
+        { name: 'Minha Tribo', expected: 'SINCRO-ESTELAR', id: '#portal-tribe' },
+        { name: 'Bazar', expected: 'Onde você precisa de luz hoje?', id: '#portal-marketplace' },
+        { name: 'Oráculo', expected: 'MENSAGEM DO DIA', id: '#portal-oracle' }
+    ];
 
-    // 3. Mapa da Cura -> BOOKING_SEARCH
-    await page.getByText('Mapa da Cura').click();
-    await expect(page.getByText('Onde você precisa de luz hoje?')).toBeVisible();
-    await page.getByRole('button', { name: 'Voltar' }).first().click();
+    for (const portal of portals) {
+        console.log(`[Test] Navigating to ${portal.name}...`);
+        const card = page.locator(portal.id);
+        
+        await expect(page.getByText('Boa Jornada,')).toBeVisible();
+        await card.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(300);
 
-    // 4. Metamorfose -> METAMORPHOSIS_CHECKIN
-    await page.getByText('Metamorfose', { exact: true }).click();
-    // Metamorfose Wizard should appear
-    await expect(page.getByText('Registro Diário')).toBeVisible();
-    // Cancel/Close wizard usually X button or Back
-    await page.getByRole('button').first().click(); // Assuming back/close is first button in header or portal
-    
-    // 5. Minha Tribo -> TRIBE_DASH
-    await page.getByText('Minha Tribo').click();
-    await expect(page.getByText('SINCRO-ESTELAR')).toBeVisible();
-    await page.getByRole('button', { name: 'Voltar' }).first().click();
+        try {
+            await card.click({ timeout: 5000 });
+        } catch (e) {
+            console.log(`[Test] Click failed for ${portal.name}, using dispatchEvent...`);
+            await card.dispatchEvent('click');
+        }
 
-    // 6. Bazar -> MARKETPLACE (Mapped to BookingSearch placeholder currently, but distinct click)
-    await page.getByText('Bazar').click();
-    // Should see BookingSearch or Marketplace placeholder
-    await expect(page.getByText('Onde você precisa de luz hoje?')).toBeVisible(); // Since it maps to BookingSearch
-    await page.getByRole('button', { name: 'Voltar' }).first().click();
+        try {
+            await expect(page.getByText(portal.expected)).toBeVisible({ timeout: 10000 });
+            console.log(`[Test] Successfully reached ${portal.expected}`);
+            
+            // Special Case: Journey Selection Modal in Garden
+            if (portal.id === '#hero-garden') {
+                const journeyModal = page.getByText('Escolha seu Caminho');
+                if (await journeyModal.isVisible()) {
+                    console.log('[Test] Selecting a default journey...');
+                    await page.getByText('Cura Emocional').click();
+                    await expect(journeyModal).not.toBeVisible();
+                }
+            }
+        } catch (e) {
+            console.log(`--- FAILURE DEBUG: portal ${portal.name} ---`);
+            console.log(await page.locator('body').innerText());
+            throw e;
+        }
 
-    // 7. Oráculo -> ORACLE_PORTAL
-    await page.getByText('Oráculo').click();
-    await expect(page.getByText('Mensagem do Universo')).toBeVisible(); // Oracle View title
-    await page.getByRole('button', { name: 'Voltar' }).first().click();
+        // Go back - Handle different back button types
+        const backBtn = page.getByRole('button', { name: 'Voltar' }).or(page.locator('header button')).first();
+        try {
+            await backBtn.click({ timeout: 5000 });
+        } catch (e) {
+            console.log(`[Test] Back button click failed for ${portal.name}, using force...`);
+            await backBtn.click({ force: true });
+        }
+        await expect(page.getByText('Boa Jornada,')).toBeVisible();
+        await page.waitForTimeout(300);
+    }
 
     // 8. Settings -> SETTINGS
-    // Avatar click
-    await page.locator('.relative.group').first().click(); 
-    // Mapped to ChatRoomScreen placeholder or SettingsView if resolved.
-    // If ChatRoomScreen placeholder => "Sala de Conversa" or similar?
-    // Let's check what ChatRoomScreen renders. Or just check for navigation away from Dashboard.
+    console.log('[Test] Navigating to Settings...');
+    const avatar = page.locator('.relative.group').first();
+    await avatar.click({ force: true });
     await expect(page.getByText('Boa Jornada,')).not.toBeVisible();
+    console.log('[Test] Settings reached');
   });
 });

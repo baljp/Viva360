@@ -1,22 +1,15 @@
 
-import React, { useState, useEffect } from 'react';
-import { ViewState, Professional, User, Appointment, Vacancy, Product, Transaction } from '../types';
+import React, { useEffect } from 'react';
+import { ViewState, Professional, User } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
 import { useGuardiaoFlow } from '../src/flow/GuardiaoFlowContext';
 import { GuardiaoState } from '../src/flow/guardiaoTypes';
-import { api } from '../services/api';
 import { ZenToast } from '../components/Common';
 
 export const ProViews: React.FC<{ 
     user: Professional, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void 
 }> = ({ user, view, setView, updateUser }) => {
-    const { state: flowState, go } = useGuardiaoFlow();
-    const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const [vacancies, setVacancies] = useState<Vacancy[]>([]);
-    const [myProducts, setMyProducts] = useState<Product[]>([]);
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const { state: flowState, go, refreshData } = useGuardiaoFlow();
 
     // Sync Router View -> Flow State (Deep Linking Support)
     useEffect(() => {
@@ -38,46 +31,39 @@ export const ProViews: React.FC<{
          }
     }, [view]);
 
-     const refreshData = async () => {
-        setIsLoading(true);
-        try {
-            const [apts, vacs, prods, txs] = await Promise.all([
-                api.appointments.list(user.id, user.role),
-                api.spaces.getVacancies(),
-                api.marketplace.listByOwner(user.id),
-                api.professionals.getFinanceSummary(user.id).then(res => res.transactions)
-            ]);
-            setAppointments(apts);
-            setVacancies(vacs);
-            setMyProducts(prods);
-            setTransactions(txs);
-        } catch (e) {
-            console.error(e);
+    // Initial load and re-fetch when user.id changes
+    useEffect(() => {
+        if (user.id) {
+            refreshData(user.id);
         }
-        setIsLoading(false);
-      };
-    
-      useEffect(() => { refreshData(); }, [user.id]);
+    }, [user.id]);
 
-       // Prepare Data Object
-        const globalData = {
-            appointments,
-            vacancies,
-            myProducts,
-            transactions,
-            refreshData
-        };
+    // Prepare Data Object
+    const globalData = {
+        appointments: flowState.data.appointments,
+        vacancies: flowState.data.vacancies,
+        myProducts: flowState.data.myProducts,
+        transactions: flowState.data.transactions,
+        isLoading: flowState.isLoading,
+        refreshData: () => refreshData(user.id)
+    };
 
     return (
         <div className="w-full h-full bg-[#fcfdfc]">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+            {flowState.error && (
+                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[500] bg-rose-50 border border-rose-100 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-500">
+                    <p className="text-rose-900 text-xs font-bold uppercase tracking-widest">{flowState.error}</p>
+                    <button onClick={() => refreshData(user.id)} className="p-2 bg-rose-100 rounded-lg text-rose-600 hover:bg-rose-200 transition-colors uppercase text-[9px] font-bold">Tentar Novamente</button>
+                </div>
+            )}
+            {flowState.notification && <ZenToast toast={flowState.notification} onClose={() => {}} />} 
             <ScreenConnector 
                 profile="GUARDIAO" 
                 user={user} 
                 updateUser={updateUser}
                 setView={setView} 
-                setToast={setToast}
-                data={globalData} 
+                flow={{ state: flowState, go }}
+                {...globalData}
             />
         </div>
     );

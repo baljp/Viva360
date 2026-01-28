@@ -7,7 +7,7 @@ import { api } from '../../services/api';
 const CARD_BACK = "https://images.unsplash.com/photo-1506318137071-a8bcbf675bfa?q=80&w=600";
 const CARD_FRONT_BG = "https://images.unsplash.com/photo-1533158388470-9a56699990c6?q=80&w=600";
 
-export const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setView }) => {
+export const OracleView: React.FC<{ flow: any, setView: (v: ViewState) => void }> = ({ flow, setView }) => {
     const [isFlipped, setIsFlipped] = useState(false);
     const [isShuffling, setIsShuffling] = useState(false);
     const [card, setCard] = useState<any>(null);
@@ -48,7 +48,7 @@ export const OracleView: React.FC<{ setView: (v: ViewState) => void }> = ({ setV
     };
 
     return (
-        <PortalView title="O Oráculo" subtitle="MENSAGEM DO DIA" onBack={() => setView(ViewState.CLIENT_HOME)}>
+        <PortalView title="O Oráculo" subtitle="MENSAGEM DO DIA" onBack={() => flow.go('DASHBOARD')}>
             <div className="flex flex-col items-center justify-center min-h-[60vh] perspective-1000">
                 <style>{`
                     .perspective-1000 { perspective: 1000px; }

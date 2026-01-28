@@ -10,9 +10,10 @@ interface SpaceMarketplaceProps {
     user: User;
     myProducts: Product[];
     refreshData: () => Promise<void>;
+    flow: any;
 }
 
-export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setView, user, myProducts, refreshData }) => {
+export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setView, user, myProducts, refreshData, flow }) => {
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
 
@@ -22,7 +23,7 @@ export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setVie
             <PortalView 
                 title="Alquimia Comercial" 
                 subtitle="INVENTÁRIO DO HUB" 
-                onBack={() => setView(ViewState.SPACE_HOME)}
+                onBack={() => flow.go('EXEC_DASHBOARD')}
                 footer={
                     <button onClick={() => setShowAddProduct(true)} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
                         <Plus size={18}/> Novo Produto ou Aluguel

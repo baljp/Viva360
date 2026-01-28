@@ -2,12 +2,12 @@
 import { SantuarioState, santuarioTransitions } from './santuarioTypes';
 
 export class SantuarioFlowEngine {
-    private currentState: SantuarioState;
-    private history: SantuarioState[];
+    public currentState: SantuarioState;
+    public history: SantuarioState[];
 
-    constructor(initialState: SantuarioState = 'START') {
+    constructor(initialState: SantuarioState = 'START', initialHistory: SantuarioState[] = []) {
         this.currentState = initialState;
-        this.history = [];
+        this.history = initialHistory;
     }
 
     public getState(): SantuarioState {

@@ -7,11 +7,12 @@ interface SpaceFinanceProps {
     view: ViewState;
     setView: (v: ViewState) => void;
     transactions: Transaction[];
+    flow: any;
 }
 
-export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, transactions }) => {
+export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, transactions, flow }) => {
     return (
-        <PortalView title="Prosperidade" subtitle="GESTÃO DE FLUXO" onBack={() => setView(ViewState.SPACE_HOME)}>
+        <PortalView title="Prosperidade" subtitle="GESTÃO DE FLUXO" onBack={() => flow.go('EXEC_DASHBOARD')}>
             <div className="space-y-8">
                 <div className="bg-nature-900 rounded-[3.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] -translate-y-12 translate-x-12"></div>
@@ -66,7 +67,7 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                       <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Fluxo Recente</h4>
                       <button className="p-2 bg-white rounded-xl border border-nature-100"><Filter size={14} className="text-nature-400"/></button>
                    </div>
-                   {transactions.map(tx => (
+                   {(transactions || []).map(tx => (
                      <div key={tx.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm group hover:shadow-md transition-all">
                         <div className="flex items-center gap-4">
                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
