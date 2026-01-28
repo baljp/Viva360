@@ -3,9 +3,11 @@ import { User, ViewState } from '../../types';
 import { Droplet, Heart, Users, Sparkles, TrendingUp, History, Info } from 'lucide-react';
 import { PortalView, ZenToast } from '../../components/Common';
 import { gardenService, GardenStatus } from '../../services/gardenService';
+import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 
-export const InternalGarden: React.FC<{ user: User, setView: (v: ViewState) => void, updateUser: (u: User) => void }> = ({ user, setView, updateUser }) => {
+export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
+    const { go } = useBuscadorFlow();
     const [status, setStatus] = useState<{ status: GardenStatus; health: number; recoveryNeeded: boolean }>(gardenService.getPlantStatus(user));
     const [isWatering, setIsWatering] = useState(false);
     const [activeModal, setActiveModal] = useState<'journey' | null>(!user.plantType ? 'journey' : null);
@@ -60,7 +62,7 @@ export const InternalGarden: React.FC<{ user: User, setView: (v: ViewState) => v
     };
 
     return (
-        <PortalView title="Jardim da Alma" subtitle="SEMENTE DA ESSÊNCIA" onBack={() => setView(ViewState.CLIENT_HOME)}>
+        <PortalView title="Jardim da Alma" subtitle="SEMENTE DA ESSÊNCIA" onBack={() => go('DASHBOARD')}>
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="flex flex-col h-full bg-gradient-to-b from-transparent to-nature-50/50 pb-32">
@@ -144,7 +146,7 @@ export const InternalGarden: React.FC<{ user: User, setView: (v: ViewState) => v
                             <Users size={20} className="text-primary-600" />
                             <span className="text-[9px] font-bold uppercase text-nature-400">Chamar Tribo</span>
                         </button>
-                        <button className="bg-white p-5 rounded-3xl border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-colors" onClick={() => setView(ViewState.CLIENT_TIMELAPSE)}>
+                        <button className="bg-white p-5 rounded-3xl border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-colors" onClick={() => go('HISTORY')}>
                             <History size={20} className="text-amber-500" />
                             <span className="text-[9px] font-bold uppercase text-nature-400">Ver Evolução</span>
                         </button>

@@ -103,7 +103,7 @@ export const ClientDashboard: React.FC<{
             
             <header className="flex items-center justify-between mt-8 mb-6 px-6 flex-none">
                 <div className="flex items-center gap-4">
-                    <div className="relative group" onClick={() => setView(ViewState.SETTINGS)}>
+                    <div className="relative group" onClick={() => go('SETTINGS')}>
                         <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl relative z-10 cursor-pointer group-hover:scale-105 transition-transform" />
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full flex items-center justify-center z-20 pointer-events-none shadow-md animate-pulse"><Zap size={10} className="text-white fill-white" /></div>
                     </div>
@@ -164,7 +164,7 @@ export const ClientDashboard: React.FC<{
                         subtitle="EXPLORAR" 
                         icon={Compass} 
                         bgImage="https://images.unsplash.com/photo-1581591524425-c7e0978865fc?q=80&w=600" 
-                        onClick={() => setView(ViewState.CLIENT_EXPLORE)} 
+                        onClick={() => go('BOOKING_SEARCH')} 
                         delay={200} 
                     />
                     <PortalCard 
@@ -172,7 +172,7 @@ export const ClientDashboard: React.FC<{
                         subtitle="FARMÁCIA" 
                         icon={ShoppingBag} 
                         bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=600" 
-                        onClick={() => setView(ViewState.CLIENT_MARKETPLACE)} 
+                        onClick={() => go('MARKETPLACE')} 
                         delay={300} 
                     />
                     <PortalCard 

@@ -80,6 +80,12 @@ export const screenMap: any = {
         CLIENT_TIMELAPSE: TimeLapseView,
         METAMORPHOSIS_RITUAL: OrdersListView, // Mapping rituals to the orders/rituais list
         GARDEN_VIEW: InternalGarden,
+        SETTINGS: ChatRoomScreen, // Placeholder for Global Settings, or dedicated component. Using ChatRoomScreen as generic placeholder to avoid import errors for now, or use imported SettingsViews if verified usable.
+        // Actually, let's map it to ClientDashboard momentarily or Settings view if available.
+        // There is 'SettingsViews' in views/. But importing it might be tricky if lazy loaded.
+        // Let's use OrdersListView as a placeholder 'List' for now, or BookingSearch.
+        // Wait, ClientDashboard imports "ViewState".
+        MARKETPLACE: BookingSearch,
     },
     // GUARDIAO
     GUARDIAO: {
