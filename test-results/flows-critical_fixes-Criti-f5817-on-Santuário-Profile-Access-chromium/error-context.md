@@ -1,0 +1,54 @@
+# Page snapshot
+
+```yaml
+- main [ref=e5]:
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - img "Onboarding" [ref=e13]
+        - generic [ref=e15]:
+          - generic [ref=e16]: Sincronia
+          - heading "Uma jornada de dentro para fora." [level=2] [ref=e17]
+          - paragraph [ref=e18]: Conecte-se com sua essência e encontre o equilíbrio entre corpo, mente e energia.
+      - generic [ref=e19]:
+        - img "Onboarding" [ref=e21]
+        - generic [ref=e23]:
+          - generic [ref=e24]: Santuários
+          - heading "Espaços que curam e acolhem." [level=2] [ref=e25]
+          - paragraph [ref=e26]: Descubra refúgios seguros e guardiões preparados para guiar sua evolução.
+      - generic [ref=e27]:
+        - img "Onboarding" [ref=e29]
+        - generic [ref=e31]:
+          - generic [ref=e32]: Ecos
+          - heading "A cura acontece em comunidade." [level=2] [ref=e33]
+          - paragraph [ref=e34]: Troque experiências, envie boas vibrações e cresça junto com o ecossistema.
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - button "Já tenho conta" [ref=e43] [cursor=pointer]:
+          - text: Já tenho conta
+          - img [ref=e44]
+        - button "Iniciar Jornada (Cadastro)" [ref=e46] [cursor=pointer]
+      - paragraph [ref=e47]: Ao entrar, você concorda com nossos Termos de Harmonia e Política de Privacidade.
+    - generic [ref=e50]:
+      - generic [ref=e53]:
+        - heading "Login" [level=3] [ref=e55]
+        - button [ref=e56] [cursor=pointer]:
+          - img [ref=e57]
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - text: E-mail
+          - generic [ref=e63]:
+            - img [ref=e64]
+            - textbox "seu@email.com" [ref=e67]: contato.hub0@viva360.com
+        - generic [ref=e68]:
+          - text: Senha
+          - generic [ref=e69]:
+            - img [ref=e70]
+            - textbox "••••••••" [active] [ref=e73]: "123456"
+            - button [ref=e74] [cursor=pointer]:
+              - img [ref=e75]
+        - button "Entrar no Fluxo" [ref=e78] [cursor=pointer]:
+          - text: Entrar no Fluxo
+          - img [ref=e79]
+        - button "Esqueceu sua senha? Recuperar" [ref=e83] [cursor=pointer]
+```
