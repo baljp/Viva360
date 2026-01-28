@@ -2,12 +2,12 @@
 import { GuardiaoState, guardiaoTransitions } from './guardiaoTypes';
 
 export class GuardiaoFlowEngine {
-    private currentState: GuardiaoState;
-    private history: GuardiaoState[];
+    public currentState: GuardiaoState;
+    public history: GuardiaoState[];
 
-    constructor(initialState: GuardiaoState = 'START') {
+    constructor(initialState: GuardiaoState = 'START', initialHistory: GuardiaoState[] = []) {
         this.currentState = initialState;
-        this.history = [];
+        this.history = initialHistory;
     }
 
     public getState(): GuardiaoState {

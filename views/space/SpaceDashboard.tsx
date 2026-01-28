@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { User, Professional, SpaceRoom } from '../../types';
-import { ViewState } from '../../types';
+import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
     Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Clock, TrendingUp, ShoppingBag, Calendar, Wallet, Droplets 
 } from 'lucide-react';
@@ -12,9 +11,12 @@ import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 // Extracted from SpaceViews.tsx
 export const SpaceDashboard: React.FC<{ 
     user: User, 
-    data: any 
-}> = ({ user, data }) => {
-    const { team = [], rooms = [] } = data || {};
+    rooms?: SpaceRoom[],
+    team?: Professional[],
+    vacancies?: Vacancy[],
+    transactions?: Transaction[],
+    myProducts?: Product[],
+}> = ({ user, rooms = [], team = [], vacancies = [], transactions = [], myProducts = [] }) => {
     const { go } = useSantuarioFlow();
 
     return (
@@ -53,13 +55,13 @@ export const SpaceDashboard: React.FC<{
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <PortalCard title="Altares" subtitle="GESTÃO DE SALAS" icon={DoorOpen} bgImage="https://images.unsplash.com/photo-1595514020176-8740771009cd?q=80&w=600" onClick={() => go('ROOMS_STATUS')} />
-                    <PortalCard title="Equipe" subtitle="CONEXÃO MESTRES" icon={Users} bgImage="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600" onClick={() => go('PROS_LIST')} delay={100} />
+                    <PortalCard id="portal-rooms" title="Altares" subtitle="GESTÃO DE SALAS" icon={DoorOpen} bgImage="https://images.unsplash.com/photo-1595514020176-8740771009cd?q=80&w=600" onClick={() => go('ROOMS_STATUS')} />
+                    <PortalCard id="portal-team" title="Equipe" subtitle="CONEXÃO MESTRES" icon={Users} bgImage="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600" onClick={() => go('PROS_LIST')} delay={100} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <PortalCard title="Expansão" subtitle="RECRUTAMENTO" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600" onClick={() => go('VAGAS_LIST')} delay={200} />
-                    <PortalCard title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1579621970795-87facc2f976d?q=80&w=600" onClick={() => go('FINANCE_OVERVIEW')} delay={300} />
+                    <PortalCard id="portal-recruitment" title="Expansão" subtitle="RECRUTAMENTO" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600" onClick={() => go('VAGAS_LIST')} delay={200} />
+                    <PortalCard id="portal-finance" title="Abundância" subtitle="FINANCEIRO" icon={Wallet} bgImage="https://images.unsplash.com/photo-1579621970795-87facc2f976d?q=80&w=600" onClick={() => go('FINANCE_OVERVIEW')} delay={300} />
                 </div>
 
                 <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm flex items-center justify-between">
@@ -83,6 +85,7 @@ export const SpaceDashboard: React.FC<{
 
                 <div className="pb-8">
                      <PortalCard 
+                        id="portal-marketplace"
                         title="Bazar do Hub" 
                         subtitle="LOJA" 
                         icon={ShoppingBag} 

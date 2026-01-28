@@ -119,9 +119,8 @@ const SpaceViewsWithData: React.FC<{ user: User, view: ViewState, setView: (v: V
             profile="SANTUARIO" 
             user={user} 
             setView={setView} 
-            // We pass globalData as 'extra' prop. We need to update ScreenConnector to handle this.
-            // For now, let's cast it to any.
-            {...{data: globalData} as any}
+            flow={{ state: flowState, go }}
+            {...globalData}
         />
     );
 }

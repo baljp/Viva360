@@ -2,12 +2,12 @@
 import { BuscadorState, transitions } from './types';
 
 export class BuscadorFlowEngine {
-    private currentState: BuscadorState;
-    private history: BuscadorState[];
+    public currentState: BuscadorState;
+    public history: BuscadorState[];
 
-    constructor(initialState: BuscadorState = 'START') {
+    constructor(initialState: BuscadorState = 'START', initialHistory: BuscadorState[] = []) {
         this.currentState = initialState;
-        this.history = [];
+        this.history = initialHistory;
     }
 
     public getState(): BuscadorState {

@@ -28,7 +28,7 @@ type FlowAction =
     | { type: 'NOTIFY'; payload: { title: string; message: string; type: 'info' | 'success' | 'warning' } }
     | { type: 'CLEAR_NOTIFICATION' };
 
-const initialState: SantuarioContextState = {
+const createInitialState = (): SantuarioContextState => ({
     currentState: 'START',
     history: [],
     engine: new SantuarioFlowEngine('START'),
@@ -41,30 +41,43 @@ const initialState: SantuarioContextState = {
         occupancyRate: 85,
         monthlyRevenue: 125000
     }
-};
+});
 
 const flowReducer = (state: SantuarioContextState, action: FlowAction): SantuarioContextState => {
     switch (action.type) {
-        case 'TRANSITION':
-            const success = state.engine.transition(action.payload);
+        case 'TRANSITION': {
+            console.log(`[SantuarioFlow] Attempting transition: ${state.currentState} -> ${action.payload}`);
+            // PURE: Instantiate a new engine with current state to avoid mutating original
+            const tempEngine = new SantuarioFlowEngine(state.currentState, [...state.history]);
+            const success = tempEngine.transition(action.payload);
+            
+            if (success) {
+                console.log(`[SantuarioFlow] Transition success: ${action.payload}`);
+                return {
+                    ...state,
+                    currentState: tempEngine.currentState,
+                    history: [...tempEngine.history],
+                    engine: tempEngine // Replace engine instance
+                };
+            }
+            console.warn(`[SantuarioFlow] Invalid transition: ${state.currentState} -> ${action.payload}`);
+            return state;
+        }
+        case 'BACK': {
+            const tempEngine = new SantuarioFlowEngine(state.currentState, [...state.history]);
+            const success = tempEngine.back();
             if (success) {
                 return {
                     ...state,
-                    currentState: state.engine.getState(),
-                    history: [...state.engine['history']],
+                    currentState: tempEngine.currentState,
+                    history: [...tempEngine.history],
+                    engine: tempEngine
                 };
             }
             return state;
-        case 'BACK':
-            state.engine.back();
-            return {
-                ...state,
-                currentState: state.engine.getState(),
-                history: [...state.engine['history']],
-            };
+        }
         case 'RESET':
-            state.engine.reset();
-            return { ...initialState };
+            return createInitialState();
         case 'SET_LOADING':
             return { ...state, isLoading: action.payload };
         case 'NOTIFY':
@@ -84,9 +97,10 @@ const SantuarioFlowContext = createContext<{
 } | undefined>(undefined);
 
 export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [state, dispatch] = useReducer(flowReducer, initialState);
+    const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
 
     const go = (target: SantuarioState) => {
+        console.log(`[SantuarioFlow] go('${target}') called. Current: ${state.currentState}`);
         dispatch({ type: 'SET_LOADING', payload: true });
         
         // Mock Latency
