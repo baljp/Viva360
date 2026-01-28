@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, Eye, EyeOff, Check, X, AlertCircle } from 'lucide-react';
-import { api } from '../services/api';
+import { api, request } from '../services/api';
 
 export const ResetPasswordView: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -27,7 +27,7 @@ export const ResetPasswordView: React.FC = () => {
         setError('');
         
         try {
-            await api.request('/auth/reset-password', {
+            await request('/auth/reset-password', {
                 method: 'POST',
                 body: JSON.stringify({ token, newPassword: password })
             });

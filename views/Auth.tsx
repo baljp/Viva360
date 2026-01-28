@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState, User } from '../types';
 import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon, Eye, EyeOff } from 'lucide-react';
-import { api } from '../services/api';
+import { api, request } from '../services/api';
 import { isMockMode, isDemoMode } from '../lib/supabase';
 import { Logo } from '../components/Common';
 
@@ -98,7 +98,7 @@ const ForgotPasswordForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         setLoading(true);
         setError('');
         try {
-            await api.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
+            await request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
             setSuccess(true);
         } catch (err: any) {
             setError(err.message || "Erro ao conectar com o santuário.");
