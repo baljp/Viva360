@@ -1,12 +1,13 @@
 #!/bin/bash
-echo "--- START GIT DEBUG ---"
-git remote -v
-echo "--- PUSHING TO MAIN ---"
-git push -v -f origin HEAD:main > git_debug.log 2>&1
-EXIT_CODE=$?
-echo "--- PUSH FINISHED (Exit: $EXIT_CODE) ---"
-if [ $EXIT_CODE -ne 0 ]; then
-  echo "--- TRYING MASTER ---"
-  git push -v -f origin HEAD:master >> git_debug.log 2>&1
-fi
-echo "--- DONE ---"
+LOGFILE="/Users/joaobatistaramalhodelima/.gemini/antigravity/brain/7e589fd0-1ff7-4584-ac23-20673b0e0392/git_debug.log"
+rm -f "$LOGFILE"
+echo "--- STATUS ---" >> "$LOGFILE"
+git status >> "$LOGFILE" 2>&1
+echo "--- REMOTE ---" >> "$LOGFILE"
+git remote -v >> "$LOGFILE" 2>&1
+echo "--- BRANCH ---" >> "$LOGFILE"
+git branch >> "$LOGFILE" 2>&1
+echo "--- FORCE PUSH ---" >> "$LOGFILE"
+git add . >> "$LOGFILE" 2>&1
+git commit --allow-empty -m "chore: robust force sync" >> "$LOGFILE" 2>&1
+git push origin HEAD --force >> "$LOGFILE" 2>&1

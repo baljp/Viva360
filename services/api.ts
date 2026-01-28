@@ -84,6 +84,11 @@ export const api = {
                 request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }).then(d => d.user),
                 () => {
                     const user = createMockUser(email);
+                    // Force role persistence for specific emails if needed
+                    if (email.includes('pro')) user.role = UserRole.PROFESSIONAL;
+                    if (email.includes('santuario') || email.includes('space') || email.includes('hub')) user.role = UserRole.SPACE;
+                    if (email.includes('admin')) user.role = UserRole.ADMIN;
+                    
                     localStorage.setItem('supabase.auth.token', 'mock_token_' + Date.now());
                     localStorage.setItem('viva360.mock_user', JSON.stringify(user));
                     return user;
@@ -137,7 +142,14 @@ export const api = {
         ),
         checkIn: async (uid: string) => mockFallback(
             request('/profiles/me/checkin', { method: 'POST' }),
-            () => ({ user: { ...createMockUser('current'), karma: 200 }, reward: 50 })
+            () => {
+                const today = new Date().toISOString().split('T')[0];
+                const savedUser = localStorage.getItem('viva360.mock_user');
+                const currentUser = savedUser ? JSON.parse(savedUser) : createMockUser('current');
+                const updatedUser = { ...currentUser, karma: (currentUser.karma || 0) + 50, lastCheckIn: today };
+                localStorage.setItem('viva360.mock_user', JSON.stringify(updatedUser)); // Persist!
+                return { user: updatedUser, reward: 50 };
+            }
         )
     },
     payment: {
