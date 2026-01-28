@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Clock, TrendingUp, ShoppingBag, Calendar, Wallet, Droplets 
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Clock, TrendingUp, ShoppingBag, Calendar, Wallet, Droplets, ChevronRight 
 } from 'lucide-react';
 import { PortalCard, ZenToast, Logo } from '../../components/Common';
 import { getDailyMessage } from '../../src/utils/dailyWisdom';
@@ -37,12 +37,12 @@ export const SpaceDashboard: React.FC<{
             </header>
 
             <div className="px-4 space-y-8">
-                <div className="bg-indigo-900 rounded-[3.5rem] p-8 text-white shadow-2xl overflow-hidden relative group">
+                <div className="bg-indigo-900 rounded-[3.5rem] p-8 text-white shadow-2xl overflow-hidden relative group cursor-pointer transition-transform active:scale-[0.98]" onClick={() => go('FINANCE_OVERVIEW')}>
                     <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
                     <div className="relative z-10 space-y-6">
                         <div className="flex justify-between items-start">
                            <div><p className="text-[10px] font-bold uppercase tracking-[0.3em] text-indigo-200">Radiance Score</p><h3 className="text-4xl font-serif italic flex items-center gap-2">94% <Sparkles size={20} className="text-amber-400"/></h3></div>
-                           <TrendingUp size={24} className="text-emerald-400" />
+                           <div className="bg-white/20 p-2 rounded-full cursor-pointer hover:bg-white/30 transition-colors"><ChevronRight size={24} className="text-white" /></div>
                         </div>
                         <div className="bg-white/10 backdrop-blur-md p-4 rounded-3xl border border-white/10">
                             <p className="text-[8px] font-bold uppercase text-indigo-200 mb-1">Vibração do Dia</p>
