@@ -7,7 +7,7 @@ import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 
 export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
-    const { go } = useBuscadorFlow();
+    const { go, back } = useBuscadorFlow();
     const [status, setStatus] = useState<{ status: GardenStatus; health: number; recoveryNeeded: boolean }>(gardenService.getPlantStatus(user));
     const [isWatering, setIsWatering] = useState(false);
     const [activeModal, setActiveModal] = useState<'journey' | null>(!user.plantType ? 'journey' : null);
@@ -62,7 +62,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
     };
 
     return (
-        <PortalView title="Jardim da Alma" subtitle="SEMENTE DA ESSÊNCIA" onBack={() => go('DASHBOARD')}>
+        <PortalView title="Jardim da Alma" subtitle="SEMENTE DA ESSÊNCIA" onBack={back} heroImage="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800">
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="flex flex-col h-full bg-gradient-to-b from-transparent to-nature-50/50 pb-32">
@@ -142,7 +142,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                     </button>
 
                     <div className="grid grid-cols-2 gap-4 pb-8">
-                        <button className="bg-white p-5 rounded-3xl border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-colors">
+                        <button className="bg-white p-5 rounded-3xl border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-colors" onClick={() => go('TRIBE_DASH')}>
                             <Users size={20} className="text-primary-600" />
                             <span className="text-[9px] font-bold uppercase text-nature-400">Chamar Tribo</span>
                         </button>

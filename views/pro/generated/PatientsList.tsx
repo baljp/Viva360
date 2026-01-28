@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
 import { ChevronLeft, Search, Filter, Flower, ChevronRight } from 'lucide-react';
+import { PortalView } from '../../../components/Common';
 
 export default function PatientsList() {
-  const { go } = useGuardiaoFlow();
+  const { go, back } = useGuardiaoFlow();
 
   // Mock Data
   const patients = [
@@ -14,23 +14,15 @@ export default function PatientsList() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fcfdfc] flex flex-col animate-in fade-in duration-500">
-       <header className="p-6 flex items-center justify-between sticky top-0 bg-[#fcfdfc]/80 backdrop-blur-md z-10">
-           <button onClick={() => go('DASHBOARD')} className="p-3 bg-nature-50 rounded-2xl text-nature-900 border border-nature-100 hover:bg-nature-100 transition-colors">
-               <ChevronLeft size={20}/>
-           </button>
-           <h1 className="text-lg font-serif italic text-nature-900">Meu Jardim</h1>
-           <button className="p-3 bg-nature-50 rounded-2xl text-nature-400 border border-nature-100"><Filter size={20}/></button>
-       </header>
-
-       <div className="px-6 mb-6">
+    <PortalView title="Meu Jardim" subtitle="SEUS PACIENTES" onBack={back} heroImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=800">
+       <div className="px-2 mb-6">
            <div className="bg-white p-4 rounded-3xl border border-nature-100 flex items-center gap-3 shadow-sm">
                <Search size={20} className="text-nature-300" />
                <input type="text" placeholder="Buscar alma..." className="flex-1 bg-transparent border-none outline-none text-nature-900 placeholder:text-nature-300" />
            </div>
        </div>
 
-       <div className="flex-1 px-6 space-y-4 pb-24">
+       <div className="space-y-4 pb-24 px-2">
            {patients.map(p => (
                <div key={p.id} onClick={() => go('PATIENT_PROFILE')} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer group">
                    <div className="flex items-center gap-4">
@@ -55,6 +47,6 @@ export default function PatientsList() {
                </div>
            ))}
        </div>
-    </div>
+    </PortalView>
   );
 }

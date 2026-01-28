@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { ChevronLeft, Calendar as CalendarIcon, Clock, Video, MoreHorizontal } from 'lucide-react';
+import { ChevronLeft, Calendar as CalendarIcon, Clock, Video, MoreHorizontal, User } from 'lucide-react';
+import { PortalView } from '../../../components/Common';
 
 export default function AgendaView() {
-  const { go } = useGuardiaoFlow();
+  const { go, back } = useGuardiaoFlow();
 
   const appointments = [
       { id: 1, time: '14:00', client: 'Ana Silva', type: 'Reiki à Distância', status: 'confirmed' },
@@ -13,16 +13,8 @@ export default function AgendaView() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#fcfdfc] flex flex-col animate-in fade-in duration-500">
-       <header className="p-6 flex items-center justify-between sticky top-0 bg-[#fcfdfc]/80 backdrop-blur-md z-10">
-           <button onClick={() => go('DASHBOARD')} className="p-3 bg-nature-50 rounded-2xl text-nature-900 border border-nature-100 hover:bg-nature-100 transition-colors">
-               <ChevronLeft size={20}/>
-           </button>
-           <h1 className="text-lg font-serif italic text-nature-900">Agenda de Luz</h1>
-           <button className="p-3 bg-nature-50 rounded-2xl text-nature-400 border border-nature-100"><CalendarIcon size={20}/></button>
-       </header>
-
-       <div className="flex-1 px-6 space-y-6 pb-24">
+    <PortalView title="Agenda de Luz" subtitle="SEUS RITUAIS" onBack={back} heroImage="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800">
+       <div className="space-y-6 px-2">
            {/* Date Selector */}
            <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
                {['SEG','TER','QUA','QUI','SEX'].map((d, i) => (
@@ -36,7 +28,7 @@ export default function AgendaView() {
            <div className="space-y-4">
                <h3 className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.2em] px-2">Rituais de Hoje</h3>
                {appointments.map(apt => (
-                   <div key={apt.id} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex items-center justify-between shadow-sm group hover:shadow-md transition-all cursor-pointer" onClick={() => go('PATIENT_PROFILE')}>
+                   <div key={apt.id} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex items-center justify-between shadow-sm group hover:shadow-md transition-all cursor-pointer" onClick={() => go('PATIENTS_LIST')}>
                        <div className="flex items-center gap-4">
                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xs ${apt.status === 'confirmed' ? 'bg-primary-50 text-primary-600' : 'bg-amber-50 text-amber-600'}`}>
                                {apt.time}
@@ -47,7 +39,7 @@ export default function AgendaView() {
                            </div>
                        </div>
                        {apt.status === 'confirmed' ? (
-                           <button onClick={(e) => { e.stopPropagation(); alert("Sala de Vídeo (Mock) Iniciada. Em produção, abriria o Jitsi/Zoom."); }} className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors">
+                           <button onClick={(e) => { e.stopPropagation(); go('VIDEO_SESSION'); }} className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors">
                                <Video size={16}/>
                            </button>
                        ) : (
@@ -59,6 +51,6 @@ export default function AgendaView() {
                ))}
            </div>
        </div>
-    </div>
+    </PortalView>
   );
 }

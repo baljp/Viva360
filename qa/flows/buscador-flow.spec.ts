@@ -22,8 +22,8 @@ test.describe('Buscador Flow Stabilization', () => {
         { name: 'Jardim', expected: 'Jardim da Alma', id: '#hero-garden' },
         { name: 'Metamorfose', expected: 'RITUAL DIÁRIO', id: '#portal-metamorphosis' },
         { name: 'Mapa da Cura', expected: 'Onde você precisa de luz hoje?', id: '#portal-map' },
-        { name: 'Minha Tribo', expected: 'SINCRO-ESTELAR', id: '#portal-tribe' },
-        { name: 'Bazar', expected: 'Onde você precisa de luz hoje?', id: '#portal-marketplace' },
+        { name: 'Minha Tribo', expected: 'Minha Tribo', id: '#portal-tribe' },
+        { name: 'Bazar', expected: 'Marketplace', id: '#portal-marketplace' },
         { name: 'Oráculo', expected: 'MENSAGEM DO DIA', id: '#portal-oracle' }
     ];
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState, Appointment, Professional, User } from '../types';
 import { Video, Mic, MicOff, VideoOff, X, FileText, User as UserIcon, Clock, ChevronLeft, Heart, Sparkles, MessageSquare, ShieldCheck, Share2, Wind, Ticket, History, Calendar as CalendarIcon, Tag, Wallet, Timer, ArrowUpRight, PlayCircle } from 'lucide-react';
 import { api } from '../services/api';
-import { DynamicAvatar, OrganicSkeleton, Card } from '../components/Common';
+import { DynamicAvatar, OrganicSkeleton, Card, PortalView } from '../components/Common';
 
 // Fix: Added missing VideoSessionView component for tele-health ritual sessions
 export const VideoSessionView: React.FC<{ appointment: Appointment, onEnd: () => void }> = ({ appointment, onEnd }) => {
@@ -100,11 +100,12 @@ export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView:
   }, [user.id, activeTab]);
 
   return (
-    <div className="h-full flex flex-col pb-40 animate-in slide-in-from-right pt-4 px-2 overflow-y-auto no-scrollbar">
-       <header className="flex items-center gap-4 mb-8 flex-none px-4">
-          <button onClick={onBack} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-300 active:scale-90 transition-all"><ChevronLeft size={20}/></button>
-          <div><h2 className="text-2xl font-serif italic text-nature-900 leading-tight">Cofre Sagrado</h2><p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">Gestão de Seus Ativos</p></div>
-       </header>
+    <PortalView 
+        title="Cofre Sagrado" 
+        subtitle="GESTÃO DE ATIVOS" 
+        onBack={onBack} 
+        heroImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=800"
+    >
 
        <div className="flex gap-2 px-4 mb-8 overflow-x-auto no-scrollbar">
           {[
@@ -186,6 +187,6 @@ export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView:
             </>
           )}
        </div>
-    </div>
+    </PortalView>
   );
 };

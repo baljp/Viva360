@@ -135,24 +135,19 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const go = (target: GuardiaoState) => {
         dispatch({ type: 'SET_LOADING', payload: true });
         
-        // Mock Latency & Logic
-        const delay = isMockMode ? 600 : 0;
-        
-        setTimeout(() => {
-            // Logic Hooks
-            if (target === 'ESCAMBO_CONFIRM') {
-                dispatch({ type: 'NOTIFY', payload: { title: 'Proposta Enviada', message: 'O guardião receberá seu chamado de troca.', type: 'success' } });
-            }
-            if (target === 'SANTUARIO_CONTRACT') {
-                 dispatch({ type: 'NOTIFY', payload: { title: 'Vínculo Estabelecido', message: 'Contrato energético firmado com o Santuário.', type: 'success' } });
-            }
-            if (target === 'VAGA_APPLY') {
-                 dispatch({ type: 'NOTIFY', payload: { title: 'Candidatura Realizada', message: 'Sua intenção foi enviada ao espaço.', type: 'success' } });
-            }
+        // Immediate visual feedback or Notification Hooks
+        if (target === 'ESCAMBO_CONFIRM') {
+            dispatch({ type: 'NOTIFY', payload: { title: 'Proposta Enviada', message: 'O guardião receberá seu chamado de troca.', type: 'success' } });
+        }
+        if (target === 'SANTUARIO_CONTRACT') {
+             dispatch({ type: 'NOTIFY', payload: { title: 'Vínculo Estabelecido', message: 'Contrato energético firmado com o Santuário.', type: 'success' } });
+        }
+        if (target === 'VAGA_APPLY') {
+             dispatch({ type: 'NOTIFY', payload: { title: 'Candidatura Realizada', message: 'Sua intenção foi enviada ao espaço.', type: 'success' } });
+        }
 
-            dispatch({ type: 'TRANSITION', payload: target });
-            dispatch({ type: 'SET_LOADING', payload: false });
-        }, delay);
+        dispatch({ type: 'TRANSITION', payload: target });
+        dispatch({ type: 'SET_LOADING', payload: false });
     };
 
     const back = () => dispatch({ type: 'BACK' });

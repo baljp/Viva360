@@ -40,6 +40,46 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
 
                 <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm space-y-6">
                    <div className="flex justify-between items-center">
+                      <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Performance da Egrégora</h4>
+                      <BarChart3 size={14} className="text-nature-200"/>
+                   </div>
+                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                       {/* Occupancy Chart */}
+                       <div className="space-y-3">
+                           <h5 className="text-xs font-serif italic text-nature-900">Ocupação dos Altares</h5>
+                           <div className="flex items-end gap-2 h-24 pb-2 border-b border-nature-50">
+                               {[45, 60, 75, 80, 65, 90, 85].map((val, i) => (
+                                   <div key={i} className="flex-1 bg-indigo-100 rounded-t-lg relative group">
+                                       <div className="absolute bottom-0 inset-x-0 bg-indigo-500 rounded-t-lg transition-all duration-1000" style={{ height: `${val}%` }}></div>
+                                   </div>
+                               ))}
+                           </div>
+                           <div className="flex justify-between text-[8px] text-nature-300 font-bold uppercase">
+                               <span>Seg</span><span>Dom</span>
+                           </div>
+                       </div>
+
+                       {/* Top Pros */}
+                       <div className="space-y-3">
+                           <h5 className="text-xs font-serif italic text-nature-900">Guardiões em Destaque</h5>
+                           <div className="space-y-3">
+                               {['Ana S. (Reiki)', 'Pedro L. (Yoga)', 'Maria C. (Theta)'].map((name, i) => (
+                                   <div key={i} className="flex items-center justify-between text-xs">
+                                       <span className="text-nature-600 font-medium">{name}</span>
+                                       <div className="flex items-center gap-1">
+                                           <div className="w-16 h-1.5 bg-nature-50 rounded-full overflow-hidden">
+                                               <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${90 - i * 15}%` }}></div>
+                                           </div>
+                                       </div>
+                                   </div>
+                               ))}
+                           </div>
+                       </div>
+                   </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm space-y-6">
+                   <div className="flex justify-between items-center">
                       <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Distribuição de Receita</h4>
                       <BarChart3 size={14} className="text-nature-200"/>
                    </div>

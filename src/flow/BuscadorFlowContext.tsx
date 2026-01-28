@@ -17,7 +17,8 @@ interface FlowContextState {
     data: {
         pros: Professional[];
         products: Product[];
-    }
+    };
+    selectedProfessionalId: string | null;
 }
 
 // Actions
@@ -29,7 +30,8 @@ type FlowAction =
     | { type: 'SET_LOADING'; payload: boolean }
     | { type: 'SET_DATA'; payload: { pros: Professional[]; products: Product[] } }
     | { type: 'SHOW_TOAST'; payload: { title: string; message: string } }
-    | { type: 'CLEAR_TOAST' };
+    | { type: 'CLEAR_TOAST' }
+    | { type: 'SELECT_PROFESSIONAL'; payload: string | null };
 
 // Initial State Factory
 const createInitialState = (): FlowContextState => ({
@@ -42,7 +44,8 @@ const createInitialState = (): FlowContextState => ({
     data: {
         pros: [],
         products: [],
-    }
+    },
+    selectedProfessionalId: null
 });
 
 // Reducer
@@ -92,6 +95,8 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
             return { ...state, toast: action.payload };
         case 'CLEAR_TOAST':
             return { ...state, toast: null };
+        case 'SELECT_PROFESSIONAL':
+            return { ...state, selectedProfessionalId: action.payload };
         default:
             return state;
     }
@@ -104,6 +109,7 @@ const BuscadorFlowContext = createContext<{
     back: () => void;
     reset: () => void;
     refreshData: () => Promise<void>;
+    selectProfessional: (id: string | null) => void;
 } | undefined>(undefined);
 
 // Provider Component
@@ -132,30 +138,28 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     const go = (target: BuscadorState) => {
         dispatch({ type: 'SET_LOADING', payload: true });
-        const delay = isMockMode ? 800 : 0; 
         
-        setTimeout(() => {
-             // Gamification Triggers
-             if (target === 'METAMORPHOSIS_FEEDBACK') {
-                 dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +10', message: 'Evolução registrada.' }});
-             }
-             if (target === 'ORACLE_REVEAL') {
-                 dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +2', message: 'Sabedoria adquirida.' }});
-             }
-             if (target === 'PAYMENT_SUCCESS') {
-                 dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +5', message: 'Troca energética realizada.' }});
-             }
+        // Immediate visual feedback for gamification
+        if (target === 'METAMORPHOSIS_FEEDBACK') {
+            dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +10', message: 'Evolução registrada.' }});
+        }
+        if (target === 'ORACLE_REVEAL') {
+            dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +2', message: 'Sabedoria adquirida.' }});
+        }
+        if (target === 'PAYMENT_SUCCESS') {
+            dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +5', message: 'Troca energética realizada.' }});
+        }
 
-             dispatch({ type: 'TRANSITION', payload: target });
-             dispatch({ type: 'SET_LOADING', payload: false });
-        }, delay);
+        dispatch({ type: 'TRANSITION', payload: target });
+        dispatch({ type: 'SET_LOADING', payload: false });
     };
 
     const back = () => dispatch({ type: 'BACK' });
     const reset = () => dispatch({ type: 'RESET' });
+    const selectProfessional = (id: string | null) => dispatch({ type: 'SELECT_PROFESSIONAL', payload: id });
 
     return (
-        <BuscadorFlowContext.Provider value={{ state, go, back, reset, refreshData }}>
+        <BuscadorFlowContext.Provider value={{ state, go, back, reset, refreshData, selectProfessional }}>
             {children}
         </BuscadorFlowContext.Provider>
     );
