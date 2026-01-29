@@ -468,32 +468,55 @@ export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string
   </button>
 );
 
+import { getDailyWisdom } from '../src/utils/dailyWisdom';
+
 // --- DAILY BLESSING (CHECK-IN) ---
-export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: () => void }> = ({ user, onCheckIn }) => {
+export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: number) => void }> = ({ user, onCheckIn }) => {
+    const [dismissed, setDismissed] = useState(false);
     const today = new Date().toISOString().split('T')[0];
     const lastCheckInDate = user.lastCheckIn ? user.lastCheckIn.split('T')[0] : null;
     
-    if (lastCheckInDate === today) return null;
+    // Deterministic wisdom for today
+    const wisdom = getDailyWisdom(user.id, user.karma);
+
+    if (lastCheckInDate === today || dismissed) return null;
 
     return (
-        <div className="fixed inset-0 z-[400] flex items-center justify-center p-6 bg-nature-900/60 backdrop-blur-md animate-in fade-in">
-            <div className="bg-white rounded-[3.5rem] p-10 max-w-sm w-full text-center space-y-6 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-amber-50 to-transparent opacity-50"></div>
-                <div className="relative">
-                    <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-amber-600 shadow-inner">
-                        <Sun size={48} className="animate-spin-slow" />
+        <div className="fixed inset-x-0 top-0 z-[400] flex items-start justify-center p-4 pointer-events-none animate-in slide-in-from-top-4 duration-700">
+            <div className="bg-white/90 backdrop-blur-2xl rounded-[2.5rem] p-6 max-w-sm w-full shadow-2xl relative border border-white pointer-events-auto overflow-hidden group">
+                {/* Rarity Glow */}
+                <div className={`absolute -top-10 -right-10 w-32 h-32 blur-3xl rounded-full opacity-20 ${wisdom.rarity === 'Legendary' ? 'bg-amber-400' : wisdom.rarity === 'Epic' ? 'bg-indigo-400' : 'bg-primary-400'}`}></div>
+                
+                <button onClick={() => setDismissed(true)} className="absolute top-4 right-4 p-2 text-nature-300 hover:text-nature-900 transition-colors z-20"><X size={16}/></button>
+                
+                <div className="flex items-center gap-5 relative z-10">
+                    <div className="relative">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-inner ${wisdom.rarity === 'Legendary' ? 'bg-amber-50 text-amber-600' : 'bg-primary-50 text-primary-600'}`}>
+                            <Sun size={32} className="animate-spin-slow" />
+                        </div>
+                        {wisdom.rarity !== 'Common' && (
+                             <div className="absolute -top-1 -right-1 bg-amber-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">{wisdom.rarity}</div>
+                        )}
                     </div>
-                    <div className="absolute -top-2 -right-2 bg-primary-600 text-white p-2 rounded-full shadow-lg"><Zap size={16} fill="currentColor"/></div>
+                    
+                    <div className="flex-1 text-left">
+                        <h3 className="text-lg font-serif italic text-nature-900 leading-tight">Benção Matinal</h3>
+                        <p className={`text-[11px] leading-relaxed italic mt-1 font-medium ${wisdom.color}`}>"{wisdom.message}"</p>
+                    </div>
                 </div>
-                <div className="space-y-2">
-                    <h3 className="text-3xl font-serif italic text-nature-900">Bênção do Dia</h3>
-                    <p className="text-sm text-nature-500 leading-relaxed italic">"{getDailyMessage()}"</p>
+
+                <div className="mt-5 flex items-center justify-between gap-4">
+                    <div className="flex flex-col">
+                        <span className="text-[8px] font-bold text-nature-400 uppercase tracking-widest leading-none mb-1">Oferenda de Hoje</span>
+                        <span className="text-sm font-bold text-nature-900">+{wisdom.reward} Karma</span>
+                    </div>
+                    <button 
+                        onClick={() => onCheckIn(wisdom.reward)} 
+                        className="px-6 py-2.5 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-black"
+                    >
+                        Sintonizar
+                    </button>
                 </div>
-                <div className="bg-nature-50 p-4 rounded-3xl border border-nature-100">
-                    <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mb-1">Recompensa</p>
-                    <p className="text-2xl font-serif text-primary-700">+{50 * (user.multiplier || 1)} Karma</p>
-                </div>
-                <button onClick={onCheckIn} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Sintonizar Agora</button>
             </div>
         </div>
     );
