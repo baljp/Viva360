@@ -5,6 +5,7 @@ import { Video, Mic, MicOff, VideoOff, X, FileText, User as UserIcon, Clock, Che
 import { api } from '../services/api';
 import { DynamicAvatar, OrganicSkeleton, Card, PortalView } from '../components/Common';
 import { useGuardiaoFlow } from '../src/flow/GuardiaoFlowContext'; 
+import { useOrdersList } from '../frontend/src/hooks/useOrdersList';
 
 // Fix: Added missing VideoSessionView component for tele-health ritual sessions
 export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void, flow?: any }> = ({ appointment, onEnd, flow }) => {
@@ -112,17 +113,9 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
 };
 
 export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView: (v: ViewState) => void }> = ({ user, onBack, setView }) => {
-  const [activeTab, setActiveTab] = useState<'rituais' | 'vouchers' | 'historico'>('rituais');
-  const [items, setItems] = useState<Appointment[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    setIsLoading(true);
-    api.appointments.list(user.id, user.role).then(data => {
-        setItems(data);
-        setIsLoading(false);
-    });
-  }, [user.id, activeTab]);
+  const { state, actions } = useOrdersList(user);
+  const { activeTab, items, isLoading } = state;
+  const { setActiveTab } = actions;
 
   return (
     <PortalView 

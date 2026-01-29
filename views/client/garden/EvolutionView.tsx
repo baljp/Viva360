@@ -1,24 +1,13 @@
 import React from 'react';
 import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { gardenService, TimeLayer } from '../../../services/gardenService';
 import { ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { useEvolution } from '../../../frontend/src/hooks/useEvolution';
 
 export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
-    const { go, back } = useBuscadorFlow();
-    
-    const layers: { id: TimeLayer; label: string; period: string }[] = [
-        { id: 'daily', label: 'Hoje', period: '24h' },
-        { id: 'weekly', label: 'Semana', period: '7 dias' },
-        { id: 'fortnightly', label: 'Quinzena', period: '15 dias' },
-        { id: 'monthly', label: 'Mês', period: '30 dias' },
-        { id: 'quarterly', label: 'Trimestre', period: '90 dias' },
-        { id: 'semiannual', label: 'Semestre', period: '180 dias' },
-        { id: 'annual', label: 'Ano', period: '365 dias' }
-    ];
-
-    const evolution = gardenService.calculateEvolution(user);
+    const { actions, data } = useEvolution(user);
+    const { go } = actions;
+    const { layers } = data;
 
     const renderTrend = (trend: 'up' | 'down' | 'right') => {
         if (trend === 'up') return <TrendingUp size={14} className="text-emerald-500" />;
@@ -38,60 +27,37 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                 {/* Cards Scroll Horizontal */}
                 <div className="mt-8 overflow-x-auto pb-8 scrollbar-hide">
                     <div className="flex px-6 gap-4 min-w-max">
-                        {layers.map((layer) => {
-                            // Calculate real progress based on snaps for the period
-                            // Daily: Percentage of daily rituals (max 4 per day)
-                            const now = new Date();
-                            const periodDays = layer.period.includes('24h') ? 1 : parseInt(layer.period) || 1;
-                            
-                            let progress = 0;
-                            
-                            if (layer.id === 'daily') {
-                                progress = evolution.rituals; // Use the granular ritual metric
-                            } else {
-                                const pastDate = new Date();
-                                pastDate.setDate(now.getDate() - periodDays);
-                                
-                                const periodSnaps = (user.snaps || []).filter(s => new Date(s.date) >= pastDate);
-                                // Heuristic: 1 snap per day expected. Progress = (snaps / days) * 100
-                                const expected = periodDays; 
-                                progress = Math.min(100, Math.floor((periodSnaps.length / expected) * 100));
-                            }
-                            
-                            const state = gardenService.getEvolutionState(progress);
-                            
-                            return (
-                                <button 
-                                    key={layer.id}
-                                    onClick={() => go('EVOLUTION_HISTORY')} // Could go to specific detail
-                                    className="w-64 bg-white p-6 rounded-[2.5rem] border border-white shadow-xl shadow-nature-900/5 flex flex-col items-center text-center group active:scale-95 transition-all"
-                                >
-                                    <div className="w-full flex justify-between items-center mb-6">
-                                        <span className="text-[10px] font-black text-nature-400 uppercase tracking-widest">{layer.label}</span>
-                                        {renderTrend(state.trend as any)}
-                                    </div>
+                        {layers.map((layer) => (
+                            <button 
+                                key={layer.id}
+                                onClick={() => go('EVOLUTION_HISTORY')} 
+                                className="w-64 bg-white p-6 rounded-[2.5rem] border border-white shadow-xl shadow-nature-900/5 flex flex-col items-center text-center group active:scale-95 transition-all"
+                            >
+                                <div className="w-full flex justify-between items-center mb-6">
+                                    <span className="text-[10px] font-black text-nature-400 uppercase tracking-widest">{layer.label}</span>
+                                    {renderTrend(layer.state.trend as any)}
+                                </div>
 
-                                    <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-500">
-                                        {state.symbol}
-                                    </div>
+                                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-500">
+                                    {layer.state.symbol}
+                                </div>
 
-                                    <h4 className="text-lg font-bold text-nature-900 mb-1">{state.label}</h4>
-                                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mb-6">{layer.period}</p>
+                                <h4 className="text-lg font-bold text-nature-900 mb-1">{layer.state.label}</h4>
+                                <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mb-6">{layer.period}</p>
 
-                                    <div className="w-full h-1 bg-nature-50 rounded-full overflow-hidden mb-6">
-                                        <div 
-                                            className="h-full bg-nature-900 transition-all duration-1000" 
-                                            style={{ width: `${progress}%` }}
-                                        />
-                                    </div>
+                                <div className="w-full h-1 bg-nature-50 rounded-full overflow-hidden mb-6">
+                                    <div 
+                                        className="h-full bg-nature-900 transition-all duration-1000" 
+                                        style={{ width: `${layer.progress}%` }}
+                                    />
+                                </div>
 
-                                    <div className="w-full flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-nature-400">
-                                        <span>Progresso</span>
-                                        <span className="text-nature-900 font-bold">{progress}%</span>
-                                    </div>
-                                </button>
-                            );
-                        })}
+                                <div className="w-full flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-nature-400">
+                                    <span>Progresso</span>
+                                    <span className="text-nature-900 font-bold">{layer.progress}%</span>
+                                </div>
+                            </button>
+                        ))}
                     </div>
                 </div>
 
@@ -125,7 +91,7 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                     
                     <div className="space-y-4">
                         <h4 className="font-serif italic text-nature-900 px-2">Linha do Tempo</h4>
-                        {(user.snaps || []).slice(0, 5).map(snap => (
+                        {data.recentSnaps.map(snap => (
                             <button key={snap.id} onClick={() => go('TIME_LAPSE_EXPERIENCE')} className="w-full p-4 bg-white rounded-2xl border border-white shadow-sm flex items-center gap-4 group active:scale-95 transition-all">
                                 <img src={snap.image} alt="Snap" className="w-16 h-16 rounded-xl object-cover" />
                                 <div className="text-left flex-1">
