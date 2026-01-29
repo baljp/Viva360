@@ -23,8 +23,8 @@ export const ProMarketplace: React.FC<{
 
     return (
     <PortalView 
-        title="Alquimia Comercial" 
-        subtitle="GESTÃO DE BAZAR" 
+        title="Meu Bazar" 
+        subtitle="MEU NEGÓCIO" 
         onBack={() => go('DASHBOARD')}
         footer={
             <button onClick={() => setShowAddProduct(true)} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl flex items-center justify-center gap-2">

@@ -1,7 +1,7 @@
-import React from 'react';
-import { TrendingUp, ArrowUpRight, ArrowDownRight, BarChart3, Filter } from 'lucide-react';
+import React, { useState } from 'react';
+import { TrendingUp, ArrowUpRight, ArrowDownRight, BarChart3, Filter, Users, Wallet, AlertTriangle, Clock, Calendar, CheckCircle2 } from 'lucide-react';
 import { ViewState, Transaction } from '../../types';
-import { PortalView } from '../../components/Common';
+import { PortalView, ZenToast } from '../../components/Common';
 
 interface SpaceFinanceProps {
     view: ViewState;
@@ -11,122 +11,177 @@ interface SpaceFinanceProps {
 }
 
 export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, transactions, flow }) => {
+    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'warning' | 'info'} | null>(null);
+
+    const handleAction = (action: string) => {
+        setToast({ title: 'Ação Iniciada', message: `Processando: ${action}`, type: 'info' });
+        setTimeout(() => setToast(null), 3000);
+    };
+
     return (
-        <PortalView title="Prosperidade" subtitle="GESTÃO DE FLUXO" onBack={() => flow.go('EXEC_DASHBOARD')}>
-            <div className="space-y-8">
-                <div className="bg-nature-900 rounded-[3.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
-                   <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] -translate-y-12 translate-x-12"></div>
-                   <TrendingUp size={140} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />
-                   <div className="relative z-10 space-y-6">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary-400 mb-2">Faturamento Consolidado</p>
-                        <h3 className="text-5xl font-serif italic">R$ 24.850<span className="text-xl text-primary-400">,00</span></h3>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                          <div className="bg-white/10 backdrop-blur-md p-5 rounded-3xl border border-white/10">
-                            <p className="text-[8px] font-bold uppercase text-primary-200 mb-1">Média p/ Sala</p>
-                            <span className="text-lg font-bold text-white">R$ 4.2k</span>
-                          </div>
-                          <div className="bg-white/10 backdrop-blur-md p-5 rounded-3xl border border-white/10">
-                            <p className="text-[8px] font-bold uppercase text-primary-200 mb-1">Crescimento</p>
-                            <div className="flex items-center gap-1.5 text-emerald-400">
-                                <ArrowUpRight size={14} />
-                                <span className="text-lg font-bold">12%</span>
+        <PortalView title="Painel de Prosperidade" subtitle="GESTÃO FINANCEIRA & OPERACIONAL" onBack={() => flow.go('EXEC_DASHBOARD')}>
+            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+            
+            <div className="space-y-6">
+                {/* 1. VISÃO GERAL (HEADER EXECUTIVO) */}
+                <div className="bg-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] -translate-y-12 translate-x-12"></div>
+                    <Wallet size={120} className="absolute -right-6 -bottom-6 opacity-5 rotate-12" />
+                    
+                    <div className="relative z-10 space-y-6">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-primary-400 mb-2">Faturamento do Período</p>
+                            <h3 className="text-4xl font-serif italic text-white">R$ 24.850<span className="text-xl text-primary-400 opacity-60">,00</span></h3>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {[
+                                { label: 'Média p/ Sala', value: 'R$ 4.200', icon: BarChart3 },
+                                { label: 'Crescimento', value: '+12%', icon: TrendingUp, highlight: true },
+                                { label: 'Ticket Médio', value: 'R$ 135', icon: Wallet },
+                                { label: 'Taxa Ocupação', value: '78%', icon: Users }
+                            ].map((stat, i) => (
+                                <div key={i} className="bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/5">
+                                    <p className="text-[8px] font-bold uppercase text-primary-200/70 mb-1">{stat.label}</p>
+                                    <div className={`text-sm font-bold flex items-center gap-1 ${stat.highlight ? 'text-emerald-400' : 'text-white'}`}>
+                                        {stat.value}
+                                        {stat.highlight && <ArrowUpRight size={10} />}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* 2. OCUPAÇÃO DOS ALTARES */}
+                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm relative overflow-hidden">
+                    <div className="flex justify-between items-center mb-6">
+                        <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2"><BarChart3 size={14}/> Ocupação Semanal</h4>
+                        <button onClick={() => handleAction('Ver Agenda')} className="text-[10px] font-bold text-indigo-600 hover:underline">Ver detalhada</button>
+                    </div>
+                    <div className="space-y-4">
+                        {[
+                            { name: 'Altar Gaia', level: 82, color: 'bg-emerald-500' },
+                            { name: 'Altar Sol', level: 74, color: 'bg-amber-500' },
+                            { name: 'Altar Lua', level: 65, color: 'bg-indigo-500' },
+                            { name: 'Altar Terra', level: 91, color: 'bg-stone-500' }
+                        ].map(altar => (
+                            <div key={altar.name} className="space-y-1">
+                                <div className="flex justify-between text-[10px] font-bold text-nature-600">
+                                    <span>{altar.name}</span>
+                                    <span>{altar.level}%</span>
+                                </div>
+                                <div className="h-2 w-full bg-nature-50 rounded-full overflow-hidden">
+                                    <div className={`h-full ${altar.color} rounded-full transition-all duration-1000`} style={{ width: `${altar.level}%` }}></div>
+                                </div>
                             </div>
-                          </div>
-                      </div>
-                   </div>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm space-y-6">
-                   <div className="flex justify-between items-center">
-                      <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Performance da Egrégora</h4>
-                      <BarChart3 size={14} className="text-nature-200"/>
-                   </div>
-                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                       {/* Occupancy Chart */}
-                       <div className="space-y-3">
-                           <h5 className="text-xs font-serif italic text-nature-900">Ocupação dos Altares</h5>
-                           <div className="flex items-end gap-2 h-24 pb-2 border-b border-nature-50">
-                               {[45, 60, 75, 80, 65, 90, 85].map((val, i) => (
-                                   <div key={i} className="flex-1 bg-indigo-100 rounded-t-lg relative group">
-                                       <div className="absolute bottom-0 inset-x-0 bg-indigo-500 rounded-t-lg transition-all duration-1000" style={{ height: `${val}%` }}></div>
-                                   </div>
-                               ))}
-                           </div>
-                           <div className="flex justify-between text-[8px] text-nature-300 font-bold uppercase">
-                               <span>Seg</span><span>Dom</span>
-                           </div>
-                       </div>
-
-                       {/* Top Pros */}
-                       <div className="space-y-3">
-                           <h5 className="text-xs font-serif italic text-nature-900">Guardiões em Destaque</h5>
-                           <div className="space-y-3">
-                               {['Ana S. (Reiki)', 'Pedro L. (Yoga)', 'Maria C. (Theta)'].map((name, i) => (
-                                   <div key={i} className="flex items-center justify-between text-xs">
-                                       <span className="text-nature-600 font-medium">{name}</span>
-                                       <div className="flex items-center gap-1">
-                                           <div className="w-16 h-1.5 bg-nature-50 rounded-full overflow-hidden">
-                                               <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${90 - i * 15}%` }}></div>
-                                           </div>
-                                       </div>
-                                   </div>
-                               ))}
-                           </div>
-                       </div>
-                   </div>
-                </div>
-
-                <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm space-y-6">
-                   <div className="flex justify-between items-center">
-                      <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Distribuição de Receita</h4>
-                      <BarChart3 size={14} className="text-nature-200"/>
-                   </div>
-                   <div className="space-y-4">
-                      {[
-                          { label: 'Aluguel de Altares', value: 65, color: 'bg-primary-500' },
-                          { label: 'Eventos & Workshops', value: 20, color: 'bg-indigo-500' },
-                          { label: 'Vendas Bazar', value: 15, color: 'bg-amber-500' }
-                      ].map(item => (
-                          <div key={item.label} className="space-y-1.5">
-                              <div className="flex justify-between text-[10px] font-bold uppercase tracking-tight">
-                                  <span className="text-nature-500">{item.label}</span>
-                                  <span className="text-nature-900">{item.value}%</span>
-                              </div>
-                              <div className="h-2 w-full bg-nature-50 rounded-full overflow-hidden">
-                                  <div className={`h-full ${item.color} rounded-full transition-all duration-1000`} style={{ width: `${item.value}%` }}></div>
-                              </div>
-                          </div>
-                      ))}
-                   </div>
-                </div>
-
-                <div className="space-y-4">
-                   <div className="flex justify-between items-center px-2">
-                      <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Fluxo Recente</h4>
-                      <button className="p-2 bg-white rounded-xl border border-nature-100"><Filter size={14} className="text-nature-400"/></button>
-                   </div>
-                   {(transactions || []).map(tx => (
-                     <div key={tx.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm group hover:shadow-md transition-all">
-                        <div className="flex items-center gap-4">
-                           <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
-                              {tx.type === 'income' ? <ArrowUpRight size={20}/> : <ArrowDownRight size={20}/>}
-                           </div>
-                           <div>
-                              <h4 className="font-bold text-nature-900 text-sm truncate max-w-[150px]">{tx.description}</h4>
-                              <p className="text-[10px] text-nature-400 font-bold uppercase">{new Date(tx.date).toLocaleDateString()}</p>
-                           </div>
+                {/* 3. CAPACIDADE OPERACIONAL */}
+                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
+                    <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Clock size={14}/> Capacidade Operacional</h4>
+                    <div className="flex gap-4 mb-6">
+                        <div className="flex-1 p-3 bg-nature-50 rounded-2xl border border-nature-100 text-center">
+                            <span className="block text-xl font-bold text-nature-900">320h</span>
+                            <span className="text-[8px] font-bold text-nature-400 uppercase">Disponíveis</span>
                         </div>
-                        <div className="text-right">
-                           <p className={`font-bold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {tx.type === 'income' ? '+' : '-'} R$ {tx.amount}
-                           </p>
-                           <span className="text-[8px] text-nature-200 uppercase font-bold tracking-tighter">{tx.status}</span>
+                        <div className="flex-1 p-3 bg-indigo-50 rounded-2xl border border-indigo-100 text-center">
+                            <span className="block text-xl font-bold text-indigo-700">250h</span>
+                            <span className="text-[8px] font-bold text-indigo-400 uppercase">Ocupadas</span>
                         </div>
+                        <div className="flex-1 p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-center">
+                            <span className="block text-xl font-bold text-emerald-700">70h</span>
+                            <span className="text-[8px] font-bold text-emerald-500 uppercase">Ociosa</span>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        {[
+                            { label: 'Abrir Horários', icon: Calendar },
+                            { label: 'Criar Evento', icon: Users },
+                            { label: 'Bloquear', icon: AlertTriangle }
+                        ].map(act => (
+                            <button key={act.label} onClick={() => handleAction(act.label)} className="flex-1 py-3 border border-nature-100 rounded-xl flex flex-col items-center gap-1 hover:bg-nature-50 transition-colors active:scale-95">
+                                <act.icon size={14} className="text-nature-400" />
+                                <span className="text-[9px] font-bold text-nature-600 uppercase tracking-tight">{act.label}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* 4. PERFORMANCE DOS GUARDIÕES */}
+                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
+                    <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mb-4 flex items-center gap-2"><Users size={14}/> Performance da Equipe</h4>
+                    <div className="space-y-3">
+                        {[
+                            { name: 'Ana S.', role: 'Reiki', occ: 92 },
+                            { name: 'Pedro L.', role: 'Yoga', occ: 88 },
+                            { name: 'Maria C.', role: 'Theta', occ: 76 }
+                        ].map((g, i) => (
+                            <button key={i} onClick={() => flow.go('PROS_LIST')} className="w-full flex justify-between items-center p-3 hover:bg-nature-50 rounded-2xl transition-colors group">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-nature-100 flex items-center justify-center text-[10px] font-bold text-nature-600">{g.name[0]}</div>
+                                    <div className="text-left">
+                                        <h5 className="text-xs font-bold text-nature-900 group-hover:text-indigo-600 transition-colors">{g.name}</h5>
+                                        <p className="text-[9px] text-nature-400 uppercase">{g.role}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-xs font-bold ${g.occ > 90 ? 'text-emerald-600' : 'text-nature-600'}`}>{g.occ}%</span>
+                                    <div className="w-16 h-1.5 bg-nature-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-nature-900 rounded-full" style={{ width: `${g.occ}%` }}></div>
+                                    </div>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* 5. FLUXO FINANCEIRO */}
+                <div className="bg-gradient-to-br from-indigo-50 to-white p-6 rounded-[2.5rem] border border-indigo-100/50 space-y-4">
+                    <h4 className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2"><TrendingUp size={14}/> Fluxo do Período</h4>
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-center py-2 border-b border-indigo-100">
+                            <span className="text-xs text-nature-600">Entradas Totais</span>
+                            <span className="text-sm font-bold text-nature-900">R$ 24.850</span>
+                        </div>
+                        <div className="flex justify-between items-center py-2 border-b border-indigo-100">
+                            <span className="text-xs text-nature-600">Repasse Guardiões</span>
+                            <span className="text-sm font-bold text-nature-900">- R$ 16.400</span>
+                        </div>
+                         <div className="flex justify-between items-center py-2 border-b border-indigo-100">
+                            <span className="text-xs text-nature-600">Comissão Santuário</span>
+                            <span className="text-sm font-bold text-emerald-600">+ R$ 8.450</span>
+                        </div>
+                         <div className="flex justify-between items-center py-2">
+                            <span className="text-xs text-nature-600 font-medium">Saques Pendentes</span>
+                            <span className="text-sm font-bold text-amber-500">R$ 1.320</span>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                        <button onClick={() => handleAction('Ver Extrato')} className="py-3 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold text-indigo-600 uppercase hover:bg-indigo-50 transition-colors">Ver Extrato</button>
+                         <button onClick={() => handleAction('Solicitar Saque')} className="py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors active:scale-95">Solicitar Saque</button>
+                    </div>
+                </div>
+
+                {/* 6. ALERTAS OPERACIONAIS */}
+                <div className="bg-amber-50/50 p-6 rounded-[2.5rem] border border-amber-100">
+                     <h4 className="text-[10px] font-bold text-amber-500 uppercase tracking-widest flex items-center gap-2 mb-3"><AlertTriangle size={14}/> Alertas</h4>
+                     <div className="space-y-2">
+                        {[
+                            { msg: 'Sala Terra com alta demanda amanhã', type: 'warn' },
+                            { msg: 'Horários de sexta quase lotados', type: 'warn' },
+                            { msg: 'Sugestão: abrir mais 2 janelas noturnas', type: 'idea' }
+                        ].map((a, i) => (
+                            <div key={i} className="flex items-start gap-2 text-xs text-nature-700 bg-white/60 p-2 rounded-xl">
+                                {a.type === 'warn' ? <AlertTriangle size={14} className="text-amber-500 shrink-0"/> : <CheckCircle2 size={14} className="text-indigo-500 shrink-0"/>}
+                                <span className="leading-tight">{a.msg}</span>
+                            </div>
+                        ))}
                      </div>
-                   ))}
                 </div>
+
             </div>
         </PortalView>
     );

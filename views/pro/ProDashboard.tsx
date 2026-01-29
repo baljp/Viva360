@@ -9,10 +9,9 @@ export const ProDashboard: React.FC<{
     user: Professional, 
     setView: (v: ViewState) => void, 
     updateUser: (u: User) => void,
-    setToast: (t: { title: string, message: string } | null) => void,
     data?: any
-}> = ({ user, setView, updateUser, setToast, data }) => {
-    const { go } = useGuardiaoFlow();
+}> = ({ user, setView, updateUser, data }) => {
+    const { go, notify } = useGuardiaoFlow();
 
     return (
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-24">
@@ -23,7 +22,14 @@ export const ProDashboard: React.FC<{
                     <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl group-hover:scale-105 transition-transform" />
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full flex items-center justify-center z-20 pointer-events-none shadow-md animate-pulse"><Zap size={10} className="text-white fill-white" /></div>
                 </button>
-                <div><p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">Bom Despertar,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1">Mestre {user.name.split(' ')[0]}</h2></div>
+                <div>
+                    <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em] mb-0.5">Bom Despertar,</p>
+                    <h2 className="text-2xl font-serif italic text-nature-900 leading-none">Mestre {user.name.split(' ')[0]}</h2>
+                    <div className="flex items-center gap-2 mt-1 opacity-60">
+                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                         <span className="text-[9px] font-bold uppercase tracking-wider text-nature-500">32 Almas Ativas</span>
+                    </div>
+                </div>
             </div>
             <button onClick={() => go('AGENDA_VIEW')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><Calendar size={20}/></button>
         </header>
@@ -44,19 +50,19 @@ export const ProDashboard: React.FC<{
 
             <div className="grid grid-cols-2 gap-4">
                 <PortalCard id="portal-patients" title="Jardim" subtitle="PACIENTES" icon={Flower} bgImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
-                <PortalCard id="portal-network" title="Alquimia" subtitle="REDE" icon={Zap} bgImage="https://images.unsplash.com/photo-1517960413843-0aee8e2b3285?q=80&w=600" onClick={() => go('TRIBE_PRO')} delay={100} />
+                <PortalCard id="portal-network" title="Rede" subtitle="COMUNIDADE" icon={Zap} bgImage="https://images.unsplash.com/photo-1517960413843-0aee8e2b3285?q=80&w=600" onClick={() => go('TRIBE_PRO')} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-                <PortalCard id="portal-vagas" title="Crescimento" subtitle="OPORTUNIDADES" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600" onClick={() => go('VAGAS_LIST')} delay={200} />
-                <PortalCard id="portal-finance" title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} delay={300} />
+                <PortalCard id="portal-vagas" title="Crescimento" subtitle="OPORTUNIDADES" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=600" onClick={() => go('VAGAS_LIST')} />
+                <PortalCard id="portal-finance" title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} />
             </div>
 
             <div className="bg-emerald-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group cursor-pointer" onClick={async () => {
                 const updatedUser = { ...user, karma: (user.karma || 0) + 50 };
                 updateUser(updatedUser); // Optimistic
                 await api.users.update(updatedUser); // Persist
-                setToast({ title: "Bênção Global Ativada", message: "Você enviou luz para todos os buscadores. +50 Pontos de Luz." });
+                notify("Bênção Global Ativada", "Você enviou luz para todos os buscadores. +50 Pontos de Luz.", "success");
             }}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400 group-hover:scale-150 transition-transform duration-700 blur-[60px] opacity-20"></div>
                 <div className="relative z-10 flex justify-between items-center">
@@ -72,14 +78,13 @@ export const ProDashboard: React.FC<{
             </div>
 
             <div className="pb-8">
-                 <PortalCard 
+                <PortalCard 
                     id="portal-marketplace"
                     title="Meu Bazar" 
-                    subtitle="LOJA" 
+                    subtitle="MEU NEGÓCIO" 
                     icon={ShoppingBag} 
                     bgImage="https://images.unsplash.com/photo-1472851294608-415105a16863?q=80&w=600" 
                     onClick={() => go('ESCAMBO_MARKET')} 
-                    delay={400} 
                 />
             </div>
         </div>

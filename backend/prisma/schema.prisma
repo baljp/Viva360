@@ -75,8 +75,9 @@ model Profile {
   vacancies         Vacancy[]
 
   // Records Relations
-  patient_records      Record[] @relation("PatientRecords")
-  professional_records Record[] @relation("ProfessionalRecords")
+  patient_records      Record[]        @relation("PatientRecords")
+  professional_records Record[]        @relation("ProfessionalRecords")
+  oracleHistories      OracleHistory[]
 
   @@map("profiles")
   @@schema("public") // Prisma default is public but explicit is better
@@ -281,5 +282,37 @@ model MetamorphosisProjection {
   last_updated_at DateTime @default(now()) @db.Timestamptz(6)
 
   @@map("metamorphosis_projections")
+  @@schema("public")
+}
+
+model OracleMessage {
+  id              String          @id @default(uuid()) @db.Uuid
+  text            String
+  category        String // cura_emocional, consciencia, acao_foco, etc.
+  element         String // Fogo, Agua, Terra, Ar
+  moods           String[] // Array of moods (e.g., ['ansioso', 'triste'])
+  phases          String[] // Array of metamorphosis phases
+  depth           Int             @default(1)
+  weight          Decimal         @default(1.0)
+  rarity          String          @default("common") // common, rare, epic
+  created_at      DateTime        @default(now()) @db.Timestamptz(6)
+  oracleHistories OracleHistory[]
+
+  @@map("oracle_messages")
+  @@schema("public")
+}
+
+model OracleHistory {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  message_id String   @db.Uuid
+  drawn_at   DateTime @default(now()) @db.Timestamptz(6)
+  context    Json // Stores context at draw time (mood, garden status, etc)
+
+  // Relations
+  user    Profile       @relation(fields: [user_id], references: [id])
+  message OracleMessage @relation(fields: [message_id], references: [id])
+
+  @@map("oracle_history")
   @@schema("public")
 }

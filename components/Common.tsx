@@ -383,12 +383,26 @@ export const MoodTracker: React.FC<{ currentMood?: MoodType, onSelect: (m: MoodT
 };
 
 // --- ZEN TOAST ---
-export const ZenToast: React.FC<{ toast: { title: string, message: string }, onClose: () => void }> = ({ toast, onClose }) => {
+// --- ZEN TOAST ---
+export const ZenToast: React.FC<{ toast: { title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning' }, onClose: () => void }> = ({ toast, onClose }) => {
   useEffect(() => { const timer = setTimeout(onClose, 4000); return () => clearTimeout(timer); }, [onClose]);
+  
+  const typeConfig = {
+      success: { bg: 'bg-emerald-50 border-emerald-100', iconBg: 'bg-emerald-100 text-emerald-600', icon: CheckCircle2 },
+      error: { bg: 'bg-rose-50 border-rose-100', iconBg: 'bg-rose-100 text-rose-600', icon: AlertCircle },
+      warning: { bg: 'bg-amber-50 border-amber-100', iconBg: 'bg-amber-100 text-amber-600', icon: AlertCircle },
+      info: { bg: 'bg-white/90 border-white', iconBg: 'bg-primary-50 text-primary-600', icon: Sparkles }
+  };
+
+  const config = typeConfig[toast.type || 'info'];
+  const Icon = config.icon;
+
   return (
     <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-sm animate-in slide-in-from-top duration-500">
-      <div className="bg-white/90 backdrop-blur-xl border border-white p-6 rounded-[2rem] shadow-2xl flex items-start gap-4">
-        <div className="w-10 h-10 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center shrink-0"><Sparkles size={20} className="animate-pulse" /></div>
+      <div className={`${config.bg} backdrop-blur-xl border p-6 rounded-[2rem] shadow-2xl flex items-start gap-4`}>
+        <div className={`w-10 h-10 ${config.iconBg} rounded-2xl flex items-center justify-center shrink-0`}>
+             <Icon size={20} className="animate-pulse" />
+        </div>
         <div className="flex-1">
           <h4 className="font-serif italic text-nature-900 leading-tight">{toast.title}</h4>
           <p className="text-xs text-nature-500 mt-1">{toast.message}</p>

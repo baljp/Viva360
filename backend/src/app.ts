@@ -62,6 +62,10 @@ if (process.env.CHAOS_MODE === 'true') {
     app.use(chaosMiddleware);
 }
 
+// CIRCUIT BREAKER (Enterprise Resilience)
+import { circuitBreaker } from './middleware/circuitBreaker';
+app.use(circuitBreaker);
+
 // API Routes
 app.use('/api', router);
 
