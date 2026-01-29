@@ -471,7 +471,9 @@ export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string
 // --- DAILY BLESSING (CHECK-IN) ---
 export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: () => void }> = ({ user, onCheckIn }) => {
     const today = new Date().toISOString().split('T')[0];
-    if (user.lastCheckIn === today) return null;
+    const lastCheckInDate = user.lastCheckIn ? user.lastCheckIn.split('T')[0] : null;
+    
+    if (lastCheckInDate === today) return null;
 
     return (
         <div className="fixed inset-0 z-[400] flex items-center justify-center p-6 bg-nature-900/60 backdrop-blur-md animate-in fade-in">
