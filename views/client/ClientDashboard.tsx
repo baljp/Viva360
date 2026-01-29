@@ -145,10 +145,10 @@ export const ClientDashboard: React.FC<{
                     <div className="grid grid-cols-2 gap-3">
                         <PortalCard 
                             id="portal-metamorphosis"
-                            title="Metamorfose" 
-                            subtitle="DIÁRIO" 
-                            icon={Sunrise} 
-                            bgImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=600" 
+                            title="Card da Alma" 
+                            subtitle="RITUAL DIÁRIO" 
+                            icon={Sparkles} 
+                            bgImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=600" 
                             onClick={() => go('METAMORPHOSIS_CHECKIN')} 
                             delay={100}
                         />

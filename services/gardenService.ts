@@ -2,6 +2,17 @@ import { User, PlantStage } from '../types';
 
 export type GardenStatus = 'healthy' | 'thirsty' | 'withered' | 'glowing';
 
+export interface EvolutionMetrics {
+    constancy: number;      // 0-100
+    positivity: number;     // 0-100
+    rituals: number;        // 0-100
+    tribe: number;          // 0-100
+    curation: number;       // 0-100
+    total: number;          // 0-100
+}
+
+export type TimeLayer = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'semiannual' | 'annual';
+
 export const gardenService = {
     /**
      * Calculates the current status and health of the user's plant
@@ -46,6 +57,45 @@ export const gardenService = {
     },
 
     /**
+     * Calculates evolution metrics based on the formula:
+     * Evolução = Constância (40%) + Emoção Positiva (20%) + Ritual Diário (20%) + Interações Tribais (10%) + Sessões de Cura (10%)
+     */
+    calculateEvolution: (user: User): EvolutionMetrics => {
+        const constancy = Math.min(100, (user.streak || 0) * 5); // 20 days for 100%
+        const rituals = Math.min(100, (user.ritualsCompleted || 0) * 2); // 50 rituals for 100%
+        const tribe = Math.min(100, (user.tribeInteractions || 0) * 10);
+        const curation = Math.min(100, (user.curationSessions || 0) * 15);
+        
+        // Positivity based on recent snaps mood
+        const recentSnaps = user.snaps?.slice(-10) || [];
+        const positiveMoods = ['happy', 'grateful', 'peaceful', 'excited', '😄', '😊', '😌'];
+        const positivity = recentSnaps.length > 0
+            ? (recentSnaps.filter(s => positiveMoods.includes(s.mood?.toLowerCase())).length / recentSnaps.length) * 100
+            : 50;
+
+        const total = (constancy * 0.4) + (positivity * 0.2) + (rituals * 0.2) + (tribe * 0.1) + (curation * 0.1);
+
+        return {
+            constancy,
+            positivity,
+            rituals,
+            tribe,
+            curation,
+            total: Math.floor(total)
+        };
+    },
+
+    /**
+     * Get state label based on evolution percentage
+     */
+    getEvolutionState: (progress: number) => {
+        if (progress > 80) return { label: 'Florescendo', symbol: '🌳', trend: 'up' };
+        if (progress > 50) return { label: 'Em Crescimento', symbol: '🌿', trend: 'up' };
+        if (progress > 20) return { label: 'Semente Ativa', symbol: '🌱', trend: 'right' };
+        return { label: 'Iniciando', symbol: '✨', trend: 'right' };
+    },
+
+    /**
      * Calculates growth XP based on watering action
      */
     calculateWateringReward: (user: User) => {
@@ -67,9 +117,8 @@ export const gardenService = {
         };
     },
 
-
     /**
-     * Get visual properties for the current plant plant variety and stage
+     * Get visual properties for the current plant variety and stage
      */
     getPlantVisuals: (stage: PlantStage, status: GardenStatus, variety: string = 'oak') => {
         const visuals: Record<PlantStage, any> = {
@@ -100,3 +149,4 @@ export const gardenService = {
         return mapping[journey] || 'oak';
     }
 };
+

@@ -172,6 +172,9 @@ export interface User {
   favorites?: string[];
   rating?: number; // Added for unified rating access
   reviewCount?: number; // Added for unified rating access
+  ritualsCompleted?: number;
+  tribeInteractions?: number;
+  curationSessions?: number;
 }
 
 export interface Professional extends User {

@@ -15,6 +15,8 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
     const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
     const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', status.status, user.plantType || 'oak');
+    const evolution = gardenService.calculateEvolution(user);
+    const evolutionState = gardenService.getEvolutionState(evolution.total);
 
     const handleRitualComplete = (updatedUser: User) => {
         updateUser(updatedUser);
@@ -92,8 +94,24 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                         </div>
                     </div>
 
+                    {/* Evolution Quick Indicators */}
+                    <div className="px-6 mt-4 flex justify-between gap-2">
+                        {[
+                            { icon: <TrendingUp size={14} />, label: 'Constância', value: `${user.streak || 0} dias`, color: 'text-amber-600' },
+                            { icon: <Heart size={14} />, label: 'Humor', value: `${Math.floor(evolution.positivity)}%`, color: 'text-rose-500' },
+                            { icon: <Sparkles size={14} />, label: 'Energia', value: evolution.total > 70 ? 'Alta' : 'Normal', color: 'text-primary-500' },
+                            { icon: <Users size={14} />, label: 'Tribo', value: `${user.constellation?.length || 0} conexões`, color: 'text-indigo-500' }
+                        ].map((stat, i) => (
+                            <div key={i} className="flex-1 bg-white/40 backdrop-blur-sm p-2 rounded-2xl border border-white/50 text-center">
+                                <div className={`flex justify-center mb-1 ${stat.color}`}>{stat.icon}</div>
+                                <p className="text-[7px] font-black text-nature-400 uppercase tracking-tighter">{stat.label}</p>
+                                <p className="text-[9px] font-bold text-nature-900">{stat.value}</p>
+                            </div>
+                        ))}
+                    </div>
+
                     {/* Living Plant Stage */}
-                    <div className="flex-1 flex flex-col items-center justify-center relative py-12 group">
+                    <div className="flex-1 flex flex-col items-center justify-center relative py-8 group">
                         
                         {/* Interactive Aura */}
                         <div className={`absolute w-80 h-80 rounded-full blur-[100px] opacity-30 transition-all duration-[2000ms] animate-breathe ${
@@ -109,11 +127,11 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                             </span>
                         </div>
 
-                        <div className="mt-12 text-center space-y-3 relative z-10">
+                        <div className="mt-8 text-center space-y-3 relative z-10">
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/30 backdrop-blur-md rounded-full border border-white/20">
                                 <Sparkles size={12} className="text-amber-400" />
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-nature-800">
-                                    {status.status === 'glowing' ? 'O JARDIM SENTE SUA PRESENÇA' : 'SEU JARDIM AGUARDA'}
+                                    Seu Jardim hoje: {evolutionState.symbol} {evolutionState.label.toUpperCase()}
                                 </span>
                             </div>
                         </div>
@@ -136,14 +154,15 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                         <div className="grid grid-cols-2 gap-4">
                             <button className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-all active:scale-95" onClick={() => setActiveModal('tribe')}>
                                 <Users size={20} className="text-indigo-500" />
-                                <span className="text-[9px] font-bold uppercase text-nature-500 tracking-widest">Chamar Tribo</span>
+                                <span className="text-[9px] font-bold uppercase text-nature-500 tracking-widest">Tribo</span>
                             </button>
-                            <button className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-all active:scale-95" onClick={() => go('HISTORY')}>
-                                <History size={20} className="text-amber-500" />
-                                <span className="text-[9px] font-bold uppercase text-nature-500 tracking-widest">Ver Evolução</span>
+                            <button className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-all active:scale-95" onClick={() => go('EVOLUTION')}>
+                                <TrendingUp size={20} className="text-amber-500" />
+                                <span className="text-[9px] font-bold uppercase text-nature-500 tracking-widest">Evolução</span>
                             </button>
                         </div>
                     </div>
+
 
                     {/* Journey Selection Modal */}
                     {activeModal === 'journey' && (
