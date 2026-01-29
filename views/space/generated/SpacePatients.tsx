@@ -18,7 +18,7 @@ const SpacePatients: React.FC = () => {
     <PortalView 
         title="Jardim do Santuário" 
         subtitle="GESTÃO DE PACIENTES" 
-        onBack={() => go('EXEC_DASHBOARD')}
+        onClose={() => go('EXEC_DASHBOARD')}
         heroImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=800"
     >
         <div className="space-y-6">

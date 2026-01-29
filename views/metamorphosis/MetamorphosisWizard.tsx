@@ -23,7 +23,7 @@ const ELEMENT_ICONS = {
     'Ar': <Wind size={14} className="text-indigo-500" />
 };
 
-export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) => void }> = ({ flow, setView }) => {
+export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) => void, onClose?: () => void }> = ({ flow, setView, onClose }) => {
     const [step, setStep] = useState(1);
     const [mood, setMood] = useState('');
     const [photo, setPhoto] = useState<string | null>(null);
@@ -223,12 +223,12 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     }, [step, result]);
 
     const styling = result ? (MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo']) : MOOD_ELEMENTS['Calmo'];
-
     return (
         <PortalView 
             title="Card da Alma" 
             subtitle="RITUAL DE PRESENÇA" 
             onBack={() => step > 1 ? setStep(step - 1) : flow.back()}
+            onClose={onClose || (() => flow.reset())}
             heroImage={step === 1 ? "https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=800" : undefined}
         >
             <div className="flex flex-col h-full min-h-[70vh]">

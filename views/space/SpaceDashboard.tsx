@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle
 } from 'lucide-react';
-import { PortalCard, ZenToast, Logo, DynamicAvatar } from '../../components/Common';
+import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 
 // --- COMPONENTS ---
@@ -81,15 +81,7 @@ const OperationsTab = ({ go }: any) => (
                  <p className="text-[9px] text-emerald-500 font-bold uppercase">Active</p>
              </div>
         </div>
-         <div onClick={() => go('EVENTS_MANAGE')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex justify-between items-center cursor-pointer hover:border-amber-200 transition-all group">
-             <div className="flex items-center gap-4">
-                 <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><Sparkles size={24}/></div>
-                 <div>
-                     <h4 className="font-bold text-nature-900 text-lg">Eventos & Workshops</h4>
-                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Experiências Coletivas</p>
-                 </div>
-             </div>
-        </div>
+
     </div>
 );
 
@@ -178,6 +170,17 @@ export const SpaceDashboard: React.FC<{
 }> = ({ user, rooms = [], team = [], vacancies = [], Transactions = [], myProducts = [] }) => {
     const { go } = useSantuarioFlow();
     const [activeTab, setActiveTab] = useState<'ops' | 'admin' | 'growth'>('ops');
+    const [showNotifications, setShowNotifications] = useState(false);
+
+    // Mock Notifications
+    const [notifications, setNotifications] = useState([
+        { id: '1', title: 'Manutenção', message: 'Ar condicionado Sala Gaia revisado.', type: 'alert', read: false },
+        { id: '2', title: 'Novo Guardião', message: 'Mestre Carlos aceitou o convite.', type: 'ritual', read: true },
+    ]);
+
+    const handleMarkAsRead = (id: string) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    };
     
     // Calculated Revenue
     const revenue = Transactions
@@ -186,6 +189,13 @@ export const SpaceDashboard: React.FC<{
 
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-32">
+            <NotificationDrawer 
+                isOpen={showNotifications} 
+                onClose={() => setShowNotifications(false)} 
+                notifications={notifications as any} 
+                onMarkAsRead={handleMarkAsRead} 
+                onMarkAllRead={() => {}} 
+            />
             
             {/* Header */}
             <header className="flex items-center justify-between mt-8 mb-6 px-6 relative">
@@ -196,7 +206,14 @@ export const SpaceDashboard: React.FC<{
                          <h2 className="text-xl font-serif italic text-nature-900 leading-none">{user.name}</h2>
                      </div>
                  </div>
-                 <button className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all"><Settings size={18}/></button>
+                 <div className="flex items-center gap-2">
+                    <button className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all"><MessageCircle size={18}/></button>
+                    <button onClick={() => setShowNotifications(true)} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all relative">
+                        <Bell size={18}/>
+                        {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white"></span>}
+                    </button>
+                    <button className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all"><Settings size={18}/></button>
+                 </div>
             </header>
 
             <div className="px-4">

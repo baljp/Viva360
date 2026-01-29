@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ViewState, Professional, User } from '../../types';
-import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight } from 'lucide-react';
-import { DynamicAvatar, PortalCard, ZenToast, Logo } from '../../components/Common';
+import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle } from 'lucide-react';
+import { DynamicAvatar, PortalCard, ZenToast, Logo, NotificationDrawer } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { api } from '../../services/api';
 
@@ -13,9 +13,27 @@ export const ProDashboard: React.FC<{
 }> = ({ user, setView, updateUser, data }) => {
     const { go, notify } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'consultorio' | 'expansao'>('consultorio');
+    const [showNotifications, setShowNotifications] = useState(false);
+    
+    // Mock Notifications
+    const [notifications, setNotifications] = useState([
+        { id: '1', title: 'Paciente Check-in', message: 'Ana Silva completou o ritual diário.', type: 'ritual', read: false },
+        { id: '2', title: 'Proposta de Troca', message: 'Nova oferta no Escambo Rede Viva.', type: 'alert', read: false },
+    ]);
+
+    const handleMarkAsRead = (id: string) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    };
 
     return (
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-32">
+        <NotificationDrawer 
+                isOpen={showNotifications} 
+                onClose={() => setShowNotifications(false)} 
+                notifications={notifications as any} 
+                onMarkAsRead={handleMarkAsRead} 
+                onMarkAllRead={() => {}} 
+        />
         <header className="flex items-center justify-between mt-8 mb-6 px-6 flex-none relative overflow-hidden">
             <Logo size="xl" className="absolute -top-10 -left-10 opacity-[0.03] rotate-12 pointer-events-none" />
             <div className="flex items-center gap-4">
@@ -26,9 +44,15 @@ export const ProDashboard: React.FC<{
                 <div>
                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em] mb-0.5">Bom Despertar,</p>
                     <h2 className="text-2xl font-serif italic text-nature-900 leading-none">Mestre {user.name.split(' ')[0]}</h2>
-                </div>
             </div>
-            <button onClick={() => go('AGENDA_VIEW')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><Calendar size={20}/></button>
+            <div className="flex items-center gap-2">
+                 <button onClick={() => go('CHAT_LIST')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><MessageCircle size={20}/></button>
+                 <button onClick={() => setShowNotifications(true)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none relative">
+                     <Bell size={20}/>
+                     {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>}
+                 </button>
+                 <button onClick={() => go('AGENDA_VIEW')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><Calendar size={20}/></button>
+            </div>
         </header>
 
         {/* TABS DE NAVEGAÇÃO SUPERIOR */}
@@ -69,17 +93,11 @@ export const ProDashboard: React.FC<{
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         <PortalCard id="portal-patients" title="Meus Pacientes" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
-                        <PortalCard id="portal-records" title="Prontuários" subtitle="REGISTROS" icon={History} bgImage="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
                     </div>
 
-                    <button 
-                        onClick={() => go('AGENDA_VIEW')} 
-                        className="w-full py-4 bg-nature-50 text-nature-500 rounded-3xl text-[10px] font-bold uppercase tracking-widest hover:bg-nature-100 transition-colors flex items-center justify-center gap-2"
-                    >
-                        Ver Calendário Completo <ChevronRight size={14}/>
-                    </button>
+
                 </div>
             )}
 
@@ -115,6 +133,8 @@ export const ProDashboard: React.FC<{
                         bgImage="https://images.unsplash.com/photo-1472851294608-415105a16863?q=80&w=600" 
                         onClick={() => go('ESCAMBO_MARKET')} 
                     />
+
+
 
                     <div className="bg-emerald-50 rounded-[2.5rem] p-6 text-emerald-900 border border-emerald-100 flex items-center justify-between cursor-pointer active:scale-95 transition-all" onClick={async () => {
                         const updatedUser = { ...user, karma: (user.karma || 0) + 50 };

@@ -28,7 +28,6 @@ const navItemsDefinition = (user: User | null) => {
         case UserRole.PROFESSIONAL: return [
             { id: ViewState.PRO_HOME, label: 'Início', icon: Activity },
             { id: ViewState.PRO_PATIENTS, label: 'Jardim', icon: Flower }, 
-            { id: ViewState.PRO_MARKETPLACE, label: 'Alquimia', icon: ShoppingBag },
             { id: ViewState.PRO_AGENDA, label: 'Agenda', icon: Calendar },
             { id: ViewState.SETTINGS, label: 'Perfil', icon: UserIcon },
         ];
