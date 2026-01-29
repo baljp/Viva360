@@ -39,8 +39,25 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                 <div className="mt-8 overflow-x-auto pb-8 scrollbar-hide">
                     <div className="flex px-6 gap-4 min-w-max">
                         {layers.map((layer) => {
-                            // Mocking progress for layers other than daily for visual demo
-                            const progress = layer.id === 'daily' ? evolution.total : Math.floor(Math.random() * 60) + 20;
+                            // Calculate real progress based on snaps for the period
+                            // Daily: Percentage of daily rituals (max 4 per day)
+                            const now = new Date();
+                            const periodDays = layer.period.includes('24h') ? 1 : parseInt(layer.period) || 1;
+                            
+                            let progress = 0;
+                            
+                            if (layer.id === 'daily') {
+                                progress = evolution.rituals; // Use the granular ritual metric
+                            } else {
+                                const pastDate = new Date();
+                                pastDate.setDate(now.getDate() - periodDays);
+                                
+                                const periodSnaps = (user.snaps || []).filter(s => new Date(s.date) >= pastDate);
+                                // Heuristic: 1 snap per day expected. Progress = (snaps / days) * 100
+                                const expected = periodDays; 
+                                progress = Math.min(100, Math.floor((periodSnaps.length / expected) * 100));
+                            }
+                            
                             const state = gardenService.getEvolutionState(progress);
                             
                             return (
@@ -106,14 +123,31 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                         <ChevronRight size={20} className="text-nature-300 group-hover:translate-x-1 transition-transform" />
                     </button>
                     
-                    <button onClick={() => go('EVOLUTION_HISTORY')} className="w-full p-6 bg-nature-900 rounded-[2rem] text-white flex items-center justify-between group active:scale-95 transition-all">
+                    <div className="space-y-4">
+                        <h4 className="font-serif italic text-nature-900 px-2">Linha do Tempo</h4>
+                        {(user.snaps || []).slice(0, 5).map(snap => (
+                            <button key={snap.id} onClick={() => go('TIME_LAPSE_EXPERIENCE')} className="w-full p-4 bg-white rounded-2xl border border-white shadow-sm flex items-center gap-4 group active:scale-95 transition-all">
+                                <img src={snap.image} alt="Snap" className="w-16 h-16 rounded-xl object-cover" />
+                                <div className="text-left flex-1">
+                                    <div className="flex justify-between items-center mb-1">
+                                        <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">{new Date(snap.date).toLocaleDateString()}</p>
+                                        <span className="text-xs">{snap.mood === 'VIBRANTE' ? '🔥' : '🌱'}</span>
+                                    </div>
+                                    <h5 className="font-bold text-sm text-nature-900 line-clamp-1">{snap.note || 'Momento de conexão'}</h5>
+                                </div>
+                                <ChevronRight size={16} className="text-nature-300" />
+                            </button>
+                        ))}
+                    </div>
+
+                    <button onClick={() => go('EVOLUTION_HISTORY')} className="w-full mt-4 p-6 bg-nature-900 rounded-[2rem] text-white flex items-center justify-between group active:scale-95 transition-all">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center">
-                                <TrendingUp size={24} className="rotate-90" /> {/* Placeholder for Timeline */}
+                                <TrendingUp size={24} className="rotate-90" />
                             </div>
                             <div className="text-left">
-                                <h4 className="font-bold text-sm">Histórico Emocional</h4>
-                                <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Memórias da Jornada</p>
+                                <h4 className="font-bold text-sm">Histórico Completo</h4>
+                                <p className="text-[10px] text-white/40 uppercase font-black tracking-widest">Ver Todas as Memórias</p>
                             </div>
                         </div>
                         <ChevronRight size={20} className="text-white/30 group-hover:translate-x-1 transition-transform" />

@@ -40,22 +40,29 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
 
     const handleDraw = async () => {
         setIsLoading(true);
+        setToast(null); // Clear previous errors
         try {
             const res = await api.oracle.draw('sereno');
             
+            if (!res || !res.card) throw new Error("Deck vazio"); // Safety check
+
             const newCard: OracleMessage = {
                 id: Date.now().toString(),
-                text: res.card.insight,
+                text: res.card.insight || "O silêncio também é uma resposta.",
                 category: "inspiração",
-                element: res.card.element,
+                element: res.card.element || "ether",
                 depth: Math.floor(Math.random() * 3) + 1
             };
             
             setDailyCard(newCard);
             setShowCard(true);
         } catch (e) {
-            console.error(e);
-            setToast({ title: "Erro", message: "O oráculo está em silêncio agora." });
+            console.error("Oracle Draw Error:", e);
+            setToast({ 
+                title: "Interferência Mística", 
+                message: "A conexão com o oráculo oscilou. Respire e tente novamente." 
+            });
+            setIsLoading(false); // Ensure loading is false on error
         } finally {
             setIsLoading(false);
         }

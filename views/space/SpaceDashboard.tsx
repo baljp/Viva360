@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info
 } from 'lucide-react';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 
 // --- COMPONENTS ---
 
-const RadianceHero = ({ score, trend }: { score: number, trend: number }) => (
-    <div className="bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group mb-8">
+const RadianceHero = ({ score, trend, onClick }: { score: number, trend: number, onClick: () => void }) => (
+    <button onClick={onClick} className="w-full text-left bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group mb-8 active:scale-95 transition-all outline-none">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl -translate-y-12 translate-x-12 animate-pulse-slow"></div>
         <div className="relative z-10 flex justify-between items-end">
              <div>
@@ -27,11 +27,53 @@ const RadianceHero = ({ score, trend }: { score: number, trend: number }) => (
                      {[1,2,3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-indigo-900 bg-indigo-200"></div>)}
                      <div className="w-8 h-8 rounded-full border-2 border-indigo-900 bg-nature-800 text-white flex items-center justify-center text-[10px] font-bold">+12</div>
                  </div>
-                 <p className="text-[9px] font-bold uppercase text-indigo-200 tracking-wider">Almas no Espaço</p>
+                 <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                    <Info size={10} />
+                    <p className="text-[8px] font-bold uppercase text-indigo-200 tracking-wider">Ver detalhes</p>
+                 </div>
              </div>
         </div>
-    </div>
+    </button>
 );
+
+const RadianceDetailsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-nature-900/60 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="bg-white w-full max-w-md rounded-[3rem] overflow-hidden shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 duration-500">
+                <div className="bg-gradient-to-br from-indigo-900 to-purple-900 p-8 text-white relative">
+                    <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
+                        <X size={20} />
+                    </button>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300 mb-2">Breakdown do Score</p>
+                    <h3 className="text-3xl font-serif italic">Radiance Vitality</h3>
+                </div>
+                <div className="p-8 space-y-6">
+                    {[
+                        { label: 'Ocupação de Altares', value: 88, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                        { label: 'Faturamento vs Meta', value: 92, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+                        { label: 'Harmonia da Equipe', value: 95, color: 'text-amber-500', bg: 'bg-amber-50' },
+                        { label: 'Satisfação das Almas', value: 98, color: 'text-rose-500', bg: 'bg-rose-50' },
+                    ].map((m, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 rounded-3xl border border-nature-50">
+                            <div>
+                                <h4 className="font-bold text-nature-900 text-sm">{m.label}</h4>
+                                <div className="flex gap-1 mt-1">
+                                    {[1,2,3,4,5].map(dot => (
+                                        <div key={dot} className={`w-1.5 h-1.5 rounded-full ${dot <= (m.value/20) ? m.color.replace('text-', 'bg-') : 'bg-nature-100'}`}></div>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className={`${m.bg} ${m.color} px-3 py-1 rounded-full font-bold text-sm tracking-tighter`}>{m.value}%</div>
+                        </div>
+                    ))}
+                    <button onClick={onClose} className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all">Fechar</button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const QuickStat = ({ label, value, icon: Icon, color }: any) => (
     <div className="bg-white p-4 rounded-3xl border border-nature-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all">
@@ -171,6 +213,7 @@ export const SpaceDashboard: React.FC<{
     const { go } = useSantuarioFlow();
     const [activeTab, setActiveTab] = useState<'ops' | 'admin' | 'growth'>('ops');
     const [showNotifications, setShowNotifications] = useState(false);
+    const [isRadianceModalOpen, setIsRadianceModalOpen] = useState(false);
 
     // Mock Notifications
     const [notifications, setNotifications] = useState([
@@ -217,7 +260,8 @@ export const SpaceDashboard: React.FC<{
             </header>
 
             <div className="px-4">
-                <RadianceHero score={94} trend={3.2} />
+                <RadianceHero score={94} trend={3.2} onClick={() => setIsRadianceModalOpen(true)} />
+                <RadianceDetailsModal isOpen={isRadianceModalOpen} onClose={() => setIsRadianceModalOpen(false)} />
 
                 {/* TABS NAVIGATION */}
                 <div className="flex p-1.5 bg-white rounded-[2rem] border border-nature-100 shadow-sm mb-6 sticky top-4 z-20">
