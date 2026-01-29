@@ -15,7 +15,8 @@ const STORAGE_KEYS = {
     REVIEWS: 'viva360.db.reviews',
     CHAT_ROOMS: 'viva360.db.chat_rooms',
     EVOLUTION_HISTORY: 'viva360.evolution_history',
-    RITUALS: 'viva360.db.rituals' // New
+    RITUALS: 'viva360.db.rituals',
+    ORACLE_DRAWS: 'viva360.db.oracle_draws' // New
 };
 
 // --- SEEDS ---
@@ -255,13 +256,29 @@ export const MockDB = {
         return SEED_NOTIFICATIONS.filter(n => n.userId === userId);
     },
 
-    // Evolution History (Time-Lapse) - New
+    // Evolution History (Time-Lapse)
     getEvolutionHistory: () => MockDB._get<any[]>(STORAGE_KEYS.EVOLUTION_HISTORY, SEED_EVOLUTION),
     addEvolutionEntry: (entry: any) => {
         const history = MockDB.getEvolutionHistory();
         history.unshift(entry);
         MockDB._set(STORAGE_KEYS.EVOLUTION_HISTORY, history);
         return entry;
+    },
+
+    // Oracle (New)
+    saveOracleDraw: (userId: string, card: any) => {
+        const today = new Date().toISOString().split('T')[0];
+        const key = `${userId}_${today}`;
+        const all = MockDB._get<Record<string, any>>(STORAGE_KEYS.ORACLE_DRAWS, {});
+        all[key] = card;
+        MockDB._set(STORAGE_KEYS.ORACLE_DRAWS, all);
+        return card;
+    },
+    getDailyOracle: (userId: string) => {
+        const today = new Date().toISOString().split('T')[0];
+        const key = `${userId}_${today}`;
+        const all = MockDB._get<Record<string, any>>(STORAGE_KEYS.ORACLE_DRAWS, {});
+        return all[key] || null;
     },
 
     // Chat
