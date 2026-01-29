@@ -8,11 +8,14 @@ export default function PatientsList() {
 
   // Mock Data (matches "Meu Jardim" concept)
   const patients = [
-      { id: 1, name: 'Ana Silva', sessions: 12, mood: 'Vibrante', progress: 85, nextSession: '14/Mai' },
-      { id: 2, name: 'Carlos Luz', sessions: 4, mood: 'Ansioso', progress: 40, nextSession: '18/Mai' },
+      { id: 1, name: 'Ana Silva', sessions: 12, mood: 'Ansioso', progress: 45, nextSession: 'Hoje' },
+      { id: 2, name: 'Carlos Luz', sessions: 4, mood: 'Estável', progress: 40, nextSession: '18/Mai' },
       { id: 3, name: 'Beatriz Sol', sessions: 28, mood: 'Sereno', progress: 95, nextSession: '15/Mai' },
       { id: 4, name: 'João Terra', sessions: 1, mood: 'Reflexivo', progress: 15, nextSession: '20/Mai' },
   ];
+
+  const criticalPatients = patients.filter(p => p.mood === 'Ansioso' || p.progress < 20);
+  const flourishingPatients = patients.filter(p => !criticalPatients.includes(p));
 
   return (
     <PortalView title="Meu Jardim" subtitle="ALMAS EM JORNADA" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=800">
@@ -45,9 +48,37 @@ export default function PatientsList() {
            </div>
        </div>
 
+        <div className="space-y-4 pb-4 px-2">
+            {criticalPatients.length > 0 && (
+                <>
+                    <h4 className="text-[10px] font-bold text-rose-500 uppercase tracking-widest pl-2 flex items-center gap-2">
+                         <Zap size={12} className="fill-rose-500"/> Necessitam de Cuidado
+                    </h4>
+                    {criticalPatients.map((p) => (
+                        <div key={p.id} onClick={() => go('PATIENT_PROFILE')} className="bg-rose-50/50 p-5 rounded-[2.5rem] border border-rose-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer group animate-in slide-in-from-bottom-2">
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-rose-400 relative">
+                                    <Flower size={24} />
+                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white bg-rose-500 animate-pulse"></div>
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-nature-900">{p.name}</h4>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-md text-[8px] font-bold uppercase tracking-wide">{p.mood}</span>
+                                        <span className="text-[9px] text-rose-400 font-bold">• {p.nextSession}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <ChevronRight size={16} className="text-rose-300 group-hover:text-rose-600 transition-colors"/>
+                        </div>
+                    ))}
+                </>
+            )}
+        </div>
+
        <div className="space-y-4 pb-24 px-2">
            <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest pl-2">Florescimento Recente</h4>
-           {patients.map((p, i) => (
+           {flourishingPatients.map((p, i) => (
                <div key={p.id} onClick={() => go('PATIENT_PROFILE')} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm hover:shadow-lg transition-all cursor-pointer group animate-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 100}ms` }}>
                    <div className="flex items-center gap-4">
                        <div className="w-14 h-14 bg-nature-50 rounded-2xl flex items-center justify-center text-nature-400 relative group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ViewState, Professional, User } from '../../types';
-import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle } from 'lucide-react';
+import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle, Video } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, Logo, NotificationDrawer } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { api } from '../../services/api';
@@ -55,6 +55,28 @@ export const ProDashboard: React.FC<{
                  <button onClick={() => go('AGENDA_VIEW')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><Calendar size={20}/></button>
             </div>
         </header>
+
+        {/* MENSAGEM DE SESSÃO IMINENTE (NOVO) */}
+        <div className="px-6 mb-6 animate-in slide-in-from-top-2 duration-500">
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 rounded-3xl text-white shadow-lg flex items-center justify-between group overflow-hidden relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                <div className="flex items-center gap-4 relative z-10">
+                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                        <Video size={20} className="text-white animate-pulse" />
+                    </div>
+                    <div>
+                        <p className="text-[8px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Sessão Iminente • 14:00</p>
+                        <h4 className="text-sm font-bold">Iniciando com Ana Silva</h4>
+                    </div>
+                </div>
+                <button 
+                    onClick={() => go('VIDEO_PREP')} 
+                    className="bg-white text-emerald-700 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-md active:scale-95 transition-all relative z-10"
+                >
+                    Entrar agora
+                </button>
+            </div>
+        </div>
 
         {/* TABS DE NAVEGAÇÃO SUPERIOR */}
         <div className="px-6 mb-6">
