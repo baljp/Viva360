@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { User } from '../../types';
 import { Flame, Plus, Trophy } from 'lucide-react';
@@ -24,7 +23,7 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> 
         <div className="space-y-4">
            <div className="flex justify-between items-center px-4">
               <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2"><Flame size={12} className="text-amber-500"/> Pactos Ativos</h4>
-              <button onClick={() => go('TRIBE_INVITE')} className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1 bg-white border border-primary-100 px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition-transform"><Plus size={12}/> Convidar Alma</button>
+              <button onClick={() => go('TRIBE_INVITE')} className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1 bg-white border border-primary-100 px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition-transform"><Plus size={12}/> Plantar Semente</button>
            </div>
            <div className="bg-white p-6 rounded-[3rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all" onClick={() => go('TRIBE_INTERACTION')}>
               <div className="flex items-center gap-5">
@@ -46,12 +45,12 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> 
 
         <div className="bg-indigo-900 rounded-[3.5rem] p-10 text-white text-center space-y-6 relative overflow-hidden">
            <Trophy size={160} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />
-           <h4 className="font-serif italic text-2xl relative z-10">Líderes de Radiância</h4>
+           <h4 className="font-serif italic text-2xl relative z-10">Jornada Coletiva</h4>
            <div className="flex justify-center -space-x-4 relative z-10">
               {[1,2,3,4,5].map(i => <img key={i} src={`https://api.dicebear.com/7.x/notionists/svg?seed=tribo${i}`} className="w-14 h-14 rounded-full border-4 border-indigo-800 shadow-xl object-cover" />)}
            </div>
            <p className="text-xs text-indigo-200 italic px-4 relative z-10">"Sua tribo elevou a vibração coletiva em 14% este mês. Continuem brilhando."</p>
-           <button onClick={() => setActiveModal('leaderboard')} className="w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest relative z-10 hover:bg-white/20 transition-all">Ver Classificação</button>
+           <button onClick={() => setActiveModal('leaderboard')} className="w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest relative z-10 hover:bg-white/20 transition-all">Ver evolução da tribo</button>
         </div>
         
         <BottomSheet isOpen={activeModal === 'leaderboard'} onClose={() => setActiveModal(null)} title="Classificação Radiante">

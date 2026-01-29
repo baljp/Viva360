@@ -3,43 +3,45 @@ import prisma, { prismaRead } from '../lib/prisma';
 import { DeterministicEngine, Mood } from '../lib/determinism';
 import { asyncHandler } from '../middleware/async.middleware';
 
-const ORACLE_DECK = [
-    { id: 'sun', name: 'O Sol', insight: 'Sua luz interior é suficiente para guiar o caminho hoje. Brilhe sem medo.', element: 'Fogo', intensity: 'Alta' },
-    { id: 'moon', name: 'A Lua', insight: 'Intuição é sua bússola. O que está oculto logo será revelado.', element: 'Água', intensity: 'Média' },
-    { id: 'star', name: 'A Estrela', insight: 'Esperança renovada. Um ciclo difícil se encerra para o novo surgir.', element: 'Ar', intensity: 'Suave' },
-    { id: 'root', name: 'Raízes', insight: 'Conecte-se com a terra. Estabilidade é o que você precisa agora.', element: 'Terra', intensity: 'Média' },
-    { id: 'wind', name: 'Vento de Mudança', insight: 'Não resista ao fluxo. A mudança trará o crescimento que você pediu.', element: 'Ar', intensity: 'Alta' }
-];
+import { oracleService } from '../services/oracle.service';
+
+// Mock DB/Service calls for context until authentic User/Profile services are fully typed/linked
+const getUserContext = async (userId: string, moodBody: string) => {
+    // In real app, fetch from Profile/GardenService
+    return {
+        mood: moodBody || 'sereno',
+        gardenStatus: { health: 80, waterNeeded: false }, // Mock
+        metamorphosisPhase: 'germinacao' // Mock
+    };
+};
 
 export const drawCard = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).user?.userId || 'mock-user-id'; // Fallback for dev
     const { mood } = req.body;
 
-    // Simulate "shuffling" delay
+    // Simulate "shuffling" delay for UX
     await new Promise(r => setTimeout(r, 1500));
 
-    // Simple random logic for now, could be enhanced with mood seed
-    const randomIndex = Math.floor(Math.random() * ORACLE_DECK.length);
-    // 7. ASYNC ARCHITECTURE: Using Read Replica (Phase 2)
-    // Placeholder for actual DB query when OracleDraw model is added
-    // const history = await prismaRead.oracleDraw.findMany(...)
-    
-    // Simulate Read Replica delay
-    await new Promise(r => setTimeout(r, 50)); 
-
-    const card = ORACLE_DECK[randomIndex];
+    const context = await getUserContext(userId, mood);
+    const card = await oracleService.drawCard(userId, context);
 
     return res.json({
         drawId: Date.now().toString(),
-        card,
+        card: {
+            id: card.id,
+            name: 'Oráculo Viva360', // Generic title or from Category
+            insight: card.text,
+            element: card.element,
+            intensity: 'Média', // Could calculate based on depth
+            category: card.category
+        },
         drawnAt: new Date().toISOString(),
         moodContext: mood || 'neutral'
     });
 });
 
+// History endpoint to be implemented with real OracleHistory model
 export const getHistory = asyncHandler(async (req: Request, res: Response) => {
-     return res.json([
-         { date: '2024-01-20', card: ORACLE_DECK[0] },
-         { date: '2024-01-21', card: ORACLE_DECK[2] }
-     ]);
+     // Mock return for now
+     return res.json([]);
 });

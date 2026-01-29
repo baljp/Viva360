@@ -57,6 +57,18 @@ export const gardenService = {
     },
 
     /**
+     * Calculates reward for completing a Micro-Journey
+     */
+    calculateMicroJourneyReward: (user: User) => {
+        return {
+            xp: 25,
+            karma: 10,
+            health: 10
+        };
+    },
+
+
+    /**
      * Get visual properties for the current plant plant variety and stage
      */
     getPlantVisuals: (stage: PlantStage, status: GardenStatus, variety: string = 'oak') => {
