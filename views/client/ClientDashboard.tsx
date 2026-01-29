@@ -113,7 +113,7 @@ export const ClientDashboard: React.FC<{
                 <div className="px-5 py-2.5 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100 animate-in slide-in-from-top"><Sparkles size={16} className="text-amber-400" /><span className="text-sm font-bold text-nature-900">{user.karma}</span></div>
             </header>
 
-            <div className="px-4 space-y-8">
+            <div className="px-4 pb-8 space-y-8">
                 {/* JARDIM INTERNO HERO CARD */}
                 <div id="hero-garden" className="relative rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('GARDEN_VIEW')}>
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors z-10"></div>
@@ -135,68 +135,86 @@ export const ClientDashboard: React.FC<{
                              </p>
                         </div>
                     </div>
-                    {gardenStatus.status === 'withered' && (
-                        <div className="absolute inset-0 bg-rose-900/40 rounded-[3.5rem] flex items-center justify-center backdrop-blur-[2px]">
-                            <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] animate-pulse">Precisa de Atenção</span>
-                        </div>
-                    )}
                 </div>
 
-                {/* GRID PRINCIPAL */}
-                <div className="grid grid-cols-2 gap-4">
-                    <PortalCard 
-                        id="portal-metamorphosis"
-                        title="Metamorfose" 
-                        subtitle="RITUAL DIÁRIO" 
-                        icon={Sunrise} 
-                        bgImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=600" 
-                        onClick={() => go('METAMORPHOSIS_CHECKIN')} 
-                        delay={100}
-                    />
-                    <PortalCard 
-                        id="portal-tribe"
-                        title="Minha Tribo" 
-                        subtitle="COMUNIDADE" 
-                        icon={Users} 
-                        bgImage="https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=600" 
-                        onClick={() => go('TRIBE_DASH')} 
-                        delay={100}
-                    />
-                    <PortalCard 
-                        id="portal-map"
-                        title="Mapa da Cura" 
-                        subtitle="EXPLORAR" 
-                        icon={Compass} 
-                        bgImage="https://images.unsplash.com/photo-1581591524425-c7e0978865fc?q=80&w=600" 
-                        onClick={() => go('BOOKING_SEARCH')} 
-                        delay={200} 
-                    />
+                {/* SESSÃO 1: RITUAIS DE PODER */}
+                <div className="space-y-4">
+                    <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
+                        <Sparkles size={14}/> Rituais de Poder
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        <PortalCard 
+                            id="portal-metamorphosis"
+                            title="Metamorfose" 
+                            subtitle="DIÁRIO" 
+                            icon={Sunrise} 
+                            bgImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=600" 
+                            onClick={() => go('METAMORPHOSIS_CHECKIN')} 
+                            delay={100}
+                        />
+                         <div className="space-y-3">
+                            <PortalCard 
+                                id="portal-oracle"
+                                title="Oráculo" 
+                                subtitle="GUIA" 
+                                icon={Sparkles} 
+                                bgImage="https://images.unsplash.com/photo-1506318137071-a8bcbf675bfa?q=80&w=600" 
+                                onClick={() => go('ORACLE_PORTAL')} 
+                                delay={150} 
+                            />
+                            <PortalCard 
+                                id="portal-rituals"
+                                title="Rituais" 
+                                subtitle="PRÁTICAS" 
+                                icon={CheckCircle2} 
+                                bgImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=600" 
+                                onClick={() => go('METAMORPHOSIS_RITUAL')} // Correct mapping to RitualsView if possible, or METAMORPHOSIS_RITUAL
+                                delay={200} 
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* SESSÃO 2: CONEXÕES ÁLMICAS */}
+                <div className="space-y-4">
+                    <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
+                        <Users size={14}/> Conexões Álmicas
+                    </h4>
+                    <div className="grid grid-cols-2 gap-3">
+                        <PortalCard 
+                            id="portal-tribe"
+                            title="Minha Tribo" 
+                            subtitle="COMUNIDADE" 
+                            icon={Users} 
+                            bgImage="https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=600" 
+                            onClick={() => go('TRIBE_DASH')} 
+                            delay={300}
+                        />
+                        <PortalCard 
+                            id="portal-map"
+                            title="Mapa da Cura" 
+                            subtitle="EXPLORAR" 
+                            icon={Compass} 
+                            bgImage="https://images.unsplash.com/photo-1581591524425-c7e0978865fc?q=80&w=600" 
+                            onClick={() => go('BOOKING_SEARCH')} 
+                            delay={350} 
+                        />
+                    </div>
+                </div>
+
+                {/* SESSÃO 3: RECURSOS */}
+                <div className="space-y-4">
+                    <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
+                        <ShoppingBag size={14}/> Recursos
+                    </h4>
                     <PortalCard 
                         id="portal-marketplace"
-                        title="Bazar" 
-                        subtitle="FARMÁCIA" 
+                        title="Bazar da Tribo" 
+                        subtitle="FARMÁCIA NATURAL" 
                         icon={ShoppingBag} 
-                        bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=600" 
+                        bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=800" 
                         onClick={() => go('MARKETPLACE')} 
-                        delay={300} 
-                    />
-                    <PortalCard 
-                        id="portal-oracle"
-                        title="Oráculo" 
-                        subtitle="MENSAGEM" 
-                        icon={Sparkles} 
-                        bgImage="https://images.unsplash.com/photo-1506318137071-a8bcbf675bfa?q=80&w=600" 
-                        onClick={() => go('ORACLE_PORTAL')} 
                         delay={400} 
-                    />
-                    <PortalCard 
-                        id="portal-rituals"
-                        title="Rituais" 
-                        subtitle="HÁBITOS" 
-                        icon={CheckCircle2} 
-                        bgImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=600" 
-                        onClick={() => go('METAMORPHOSIS_RITUAL')}
-                        delay={500} 
                     />
                 </div>
             </div>
