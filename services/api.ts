@@ -85,13 +85,16 @@ export const api = {
     // ... auth ...
     auth: {
         loginWithPassword: async (email: string, password: string): Promise<User> => {
-             // Basic mock login leveraging MockDB could be added here, keeping existing simple mock for now
              const user = createMockUser(email); 
+             MockDB.updateUser(user);
+             localStorage.setItem('viva360.mock_user', JSON.stringify(user));
              return user;
         },
         // ...
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
              const user = createMockUser(`google_${Date.now()}@gmail.com`, 'Usuário Google', role);
+             MockDB.updateUser(user);
+             localStorage.setItem('viva360.mock_user', JSON.stringify(user));
              return user;
         },
         register: async (data: any): Promise<User> => {
@@ -123,6 +126,7 @@ export const api = {
              if (user) {
                  const updated = { ...user, karma: (user.karma || 0) + reward, lastCheckIn: new Date().toISOString() };
                  MockDB.updateUser(updated);
+                 localStorage.setItem('viva360.mock_user', JSON.stringify(updated));
                  return { user: updated, reward };
              }
              return { user: null, reward: 0 };

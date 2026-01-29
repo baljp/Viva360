@@ -25,6 +25,10 @@ import { OrdersListView } from '../../views/ServiceViews';
 import CheckoutSuccessScreen from '../../views/client/generated/BookingConfirm'; // Reusing BookingConfirm as Success/Pseudo-success for now
 import { ClientMarketplace } from '../../views/client/ClientMarketplace';
 import { EvolutionView } from '../../views/client/garden/EvolutionView';
+import { EvolutionAnalytics } from '../../views/client/garden/EvolutionAnalytics';
+import { AchievementsView } from '../../views/client/garden/AchievementsView';
+import { EmotionalHistory } from '../../views/client/garden/EmotionalHistory';
+import { TimeLapseExperience } from '../../views/client/garden/TimeLapseExperience';
 
 // Guardião Screens
 import { ProDashboard } from '../../views/pro/ProDashboard';
@@ -89,6 +93,11 @@ export const screenMap: any = {
         CLIENT_TIMELAPSE: TimeLapseView,
         METAMORPHOSIS_RITUAL: RitualsView, 
         GARDEN_VIEW: InternalGarden,
+        EVOLUTION: EvolutionView,
+        EVOLUTION_ANALYTICS: EvolutionAnalytics,
+        EVOLUTION_ACHIEVEMENTS: AchievementsView,
+        EVOLUTION_HISTORY: EmotionalHistory,
+        EVOLUTION_TIMELAPSE: TimeLapseExperience,
         SETTINGS: SettingsViews,
         MARKETPLACE: ClientMarketplace, 
     },

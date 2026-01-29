@@ -9,7 +9,7 @@ import { ZenToast } from '../components/Common';
 export const ClientViews: React.FC<{ 
   user: User, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onAddToCart: (p: Product) => void
 }> = ({ user, view, setView, updateUser, onAddToCart }) => {
-  const { state: flowState, go, refreshData } = useBuscadorFlow();
+  const { state: flowState, go, back, reset, refreshData } = useBuscadorFlow();
 
    // Sync Router View -> Flow State (Deep Linking Support)
    useEffect(() => {
@@ -52,7 +52,7 @@ export const ClientViews: React.FC<{
             user={user} 
             updateUser={updateUser}
             setView={setView} 
-            flow={{ state: flowState, go }}
+            flow={{ state: flowState, go, back, reset }}
             {...globalData}
         />
     </div>
