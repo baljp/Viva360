@@ -1,6 +1,6 @@
 import React from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView } from '../../components/Common';
+import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { PortalView } from '../../../components/Common';
 import { Star, Award, Calendar, Shield, Crown, MessageCircle, MapPin } from 'lucide-react';
 
 export default function SpaceProDetails() {

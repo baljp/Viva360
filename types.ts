@@ -320,3 +320,11 @@ export interface ChatRoom {
   pactLabel?: string;
   typing?: string[]; // IDs of users typing
 }
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  content: string;
+  timestamp: string;
+  status: 'sent' | 'delivered' | 'read' | 'received';
+}

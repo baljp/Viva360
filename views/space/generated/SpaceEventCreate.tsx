@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast } from '../../components/Common';
+import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { PortalView, ZenToast } from '../../../components/Common';
 import { Calendar, MapPin, Users, Ticket, Image as ImageIcon, Save, ArrowRight } from 'lucide-react';
 
 export default function SpaceEventCreate() {
