@@ -5,72 +5,20 @@ import { PortalView, ZenToast } from '../../components/Common';
 import { OracleCard } from '../../src/components/OracleCard';
 import { api } from '../../services/api';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useOracle, OracleMessage } from '../../frontend/src/hooks/useOracle';
 
 // Stub until backend typing is synced
-interface OracleMessage {
-    id: string;
-    text: string;
-    category: string;
-    element: string;
-    depth: number;
-}
+// OracleMessage now imported from hook
 
 export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
     const { go } = useBuscadorFlow();
-    const [isLoading, setIsLoading] = useState(false);
-    const [dailyCard, setDailyCard] = useState<OracleMessage | null>(null);
-    const [showCard, setShowCard] = useState(false);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
-
-    // Check for daily card on mount
-    useEffect(() => {
-        api.oracle.getToday().then(res => {
-            if (res && res.card) {
-                const card: OracleMessage = {
-                    id: 'today',
-                    text: res.card.insight,
-                    category: "inspiração",
-                    element: res.card.element,
-                    depth: 2
-                };
-                setDailyCard(card);
-            }
-        });
-    }, [user.id]);
-
-    const handleDraw = async () => {
-        setIsLoading(true);
-        setToast(null); // Clear previous errors
-        try {
-            const res = await api.oracle.draw('sereno');
-            
-            if (!res || !res.card) throw new Error("Deck vazio"); // Safety check
-
-            const newCard: OracleMessage = {
-                id: Date.now().toString(),
-                text: res.card.insight || "O silêncio também é uma resposta.",
-                category: "inspiração",
-                element: res.card.element || "ether",
-                depth: Math.floor(Math.random() * 3) + 1
-            };
-            
-            setDailyCard(newCard);
-            setShowCard(true);
-        } catch (e) {
-            console.error("Oracle Draw Error:", e);
-            setToast({ 
-                title: "Interferência Mística", 
-                message: "A conexão com o oráculo oscilou. Respire e tente novamente." 
-            });
-            setIsLoading(false); // Ensure loading is false on error
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const { state, actions } = useOracle(user.id);
+    const { isLoading, dailyCard, showCard, toast } = state;
+    const { handleDraw, setShowCard, closeCard, clearToast } = actions;
 
     return (
         <PortalView title="Oráculo Viva360" subtitle="GUIA SIMBÓLICO" onBack={() => go('DASHBOARD')}>
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+            {toast && <ZenToast toast={toast} onClose={clearToast} />}
             
             <div className="flex flex-col h-full relative">
                 
@@ -135,7 +83,7 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
 
             {/* Render the Card Modal overlay */}
             {showCard && dailyCard && (
-                <OracleCard card={dailyCard} onClose={() => setShowCard(false)} />
+                <OracleCard card={dailyCard} onClose={closeCard} />
             )}
 
         </PortalView>

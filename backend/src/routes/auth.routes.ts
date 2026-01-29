@@ -4,9 +4,12 @@ import * as RecoverController from '../controllers/recover.controller';
 
 const router = Router();
 
-router.post('/login', AuthController.login);
-router.post('/register', AuthController.register);
-router.post('/forgot-password', RecoverController.forgotPassword);
-router.post('/reset-password', RecoverController.resetPassword);
+import { validate } from '../middleware/validate.middleware';
+import { loginSchema, registerSchema } from '../schemas/auth.schema';
+
+router.post('/login', validate(loginSchema), AuthController.login);
+router.post('/register', validate(registerSchema), AuthController.register);
+router.post('/forgot-password', RecoverController.forgotPassword); // Add schema later
+router.post('/reset-password', RecoverController.resetPassword); // Add schema later
 
 export default router;

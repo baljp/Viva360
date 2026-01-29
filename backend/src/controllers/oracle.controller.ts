@@ -30,7 +30,7 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
         card: {
             id: card.id,
             name: 'Oráculo Viva360', // Generic title or from Category
-            insight: card.text,
+            insight: (card as any).text || (card as any).message,
             element: card.element,
             intensity: 'Média', // Could calculate based on depth
             category: card.category

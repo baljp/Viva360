@@ -1,4 +1,5 @@
 import prisma, { prismaRead } from '../lib/prisma';
+import { isMockMode } from './supabase.service';
 import { User } from '@prisma/client'; // Assuming types match or using direct DB types
 import { Profile } from '@prisma/client';
 
@@ -12,6 +13,10 @@ export class OracleService {
     
     // Core Algorithm: Select the best card based on context
     async drawCard(userId: string, context: OracleContext) {
+        if (isMockMode()) {
+            return this.getRandomFallback();
+        }
+
         // 1. Fetch Candidate Messages (Filtered by basic rules)
         // - No repeats last 60 days
         const sixtyDaysAgo = new Date();

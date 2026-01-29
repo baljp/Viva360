@@ -2,6 +2,7 @@
 import cluster from 'cluster';
 import os from 'os';
 import app from './app';
+import { logger } from './lib/logger';
 
 const PORT = process.env.PORT || 3000;
 const numCPUs = os.cpus().length;
@@ -42,12 +43,13 @@ if (cluster.isPrimary && process.env.NODE_ENV !== 'test' && process.env.NODE_ENV
     });
   });
 
+
   // Prevent crash on unhandled errors
   process.on('uncaughtException', (err) => {
-      console.error('🔥 UNCAUGHT EXCEPTION:', err);
+      logger.error('🔥 UNCAUGHT EXCEPTION:', err);
   });
 
   process.on('unhandledRejection', (reason) => {
-      console.error('🔥 UNHANDLED REJECTION:', reason);
+      logger.error('🔥 UNHANDLED REJECTION:', reason);
   });
 }
