@@ -2,16 +2,28 @@ import React from 'react';
 import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { api } from '../../../services/api';
 import { gardenService } from '../../../services/gardenService';
 import { Calendar as CalendarIcon, Filter, Search } from 'lucide-react';
 import { SoulCard } from '../../../src/components/SoulCard';
 
 export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();
-    const snaps = user.snaps || [];
+    const [snaps, setSnaps] = React.useState<any[]>([]);
+    const [isLoading, setIsLoading] = React.useState(true);
 
-    // Grouping by date could be an enhancement here
-    
+    React.useEffect(() => {
+        api.metamorphosis.getEvolution().then(res => {
+            // Map legacy photoThumb to image if necessary for SoulCard compatibility
+            const mapped = res.entries.map((e: any) => ({
+                ...e,
+                image: e.image || e.photoThumb,
+                date: e.timestamp || e.date
+            }));
+            setSnaps(mapped);
+            setIsLoading(false);
+        });
+    }, []);
     return (
         <PortalView title="Histórico" subtitle="MEMÓRIAS DO SER" onBack={() => go('EVOLUTION')} heroImage="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=800">
             <div className="flex flex-col h-full bg-nature-50/20 px-6 pt-8 pb-32">

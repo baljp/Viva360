@@ -30,6 +30,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const [result, setResult] = useState<any>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [cardPhrase, setCardPhrase] = useState('');
+    const [isDrawing, setIsDrawing] = useState(false); // Lock share until ready
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     // Step 1: Mood Selection
@@ -52,24 +53,17 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         const photoHash = 'hash_' + Date.now(); 
         
         try {
-            const entry = { 
-                id: Date.now(), 
-                mood, 
-                photoThumb: photoUrl, 
-                quote: cardPhrase, 
-                timestamp: new Date().toISOString()
-            };
+            const entry = await api.metamorphosis.checkIn(mood, photoHash, photoUrl);
             
-            await api.metamorphosis.checkIn(mood, photoHash, photoUrl);
-
             // Longer delay for ritualistic feel
             setTimeout(() => {
                 setResult(entry);
                 setIsProcessing(false);
                 setStep(4);
-            }, 3000); 
+            }, 2500); 
         } catch (e) {
             console.error("Metamorphosis Error", e);
+            // Fallback for UI continuity
             setResult({
                 id: Date.now(),
                 mood,
@@ -91,7 +85,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     };
 
     const shareCard = async () => {
-        if (!canvasRef.current) return;
+        if (!canvasRef.current || isDrawing) return;
         try {
             const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
             const blob = await (await fetch(dataUrl)).blob();
@@ -116,9 +110,21 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     // User requested "Card Format" - let's stick to a rich Portrait Card (Story/Status friendly 9:16 approx)
     useEffect(() => {
         if (step === 4 && result && canvasRef.current) {
+            setIsDrawing(true);
             const canvas = canvasRef.current;
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
+
+            // Safe Rounded Rect Helper (Browser Compatibility)
+            const drawRoundRect = (x: number, y: number, w: number, h: number, r: number) => {
+                ctx.beginPath();
+                ctx.moveTo(x + r, y);
+                ctx.arcTo(x + w, y, x + w, y + h, r);
+                ctx.arcTo(x + w, y + h, x, y + h, r);
+                ctx.arcTo(x, y + h, x, y, r);
+                ctx.arcTo(x, y, x+w, y, r);
+                ctx.closePath();
+            };
 
             const userImg = new Image();
             userImg.crossOrigin = "anonymous";
@@ -126,7 +132,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
             userImg.onload = () => {
                 const W = 1080; 
-                const H = 1920; // Story Format
+                const H = 1920; 
                 canvas.width = W;
                 canvas.height = H;
 
@@ -162,7 +168,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 ctx.shadowBlur = 60;
                 ctx.shadowOffsetY = 30;
                 ctx.fillStyle = '#ffffff';
-                ctx.roundRect(margin, cardY, cardW, cardH, 40);
+                drawRoundRect(margin, cardY, cardW, cardH, 40);
                 ctx.fill();
 
                 // Reset Shadow
@@ -182,7 +188,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
                 ctx.save();
                 ctx.beginPath();
-                ctx.roundRect(photoX, photoY, photoW, photoH, 20);
+                drawRoundRect(photoX, photoY, photoW, photoH, 20);
                 ctx.clip();
                 
                 // Draw Image Cover
@@ -266,6 +272,8 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 ctx.fillStyle = '#ffffff';
                 ctx.textAlign = 'center';
                 ctx.fillText('Card da Alma', centerX, 160);
+
+                setIsDrawing(false);
             };
         }
     }, [step, result]);
@@ -367,8 +375,13 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
                         {/* Premium Sharing Tray */}
                         <div className="mt-8 w-full grid grid-cols-2 gap-4 px-4">
-                            <button onClick={shareCard} className="col-span-2 py-5 bg-nature-900 text-white rounded-[2rem] flex items-center justify-center gap-3 font-bold uppercase text-[10px] tracking-[0.3em] shadow-2xl active:scale-95 transition-all">
-                                <Share2 size={18} /> Viralizar Jornada
+                            <button 
+                                onClick={shareCard} 
+                                disabled={isDrawing}
+                                className="col-span-2 py-5 bg-nature-900 text-white rounded-[2rem] flex items-center justify-center gap-3 font-bold uppercase text-[10px] tracking-[0.3em] shadow-2xl active:scale-95 transition-all disabled:opacity-50"
+                            >
+                                {isDrawing ? <Sparkles size={18} className="animate-spin" /> : <Share2 size={18} />} 
+                                {isDrawing ? 'Preparando Card...' : 'Viralizar Jornada'}
                             </button>
                             <button onClick={downloadCard} className="py-4 bg-white border border-nature-100 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase text-[9px] tracking-widest text-nature-400 active:scale-95 transition-all">
                                 <Download size={16} /> Salvar HD

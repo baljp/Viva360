@@ -265,7 +265,25 @@ export const api = {
         getSystemHealth: async () => ({})
     },
     oracle: {
-        draw: async (mood: string) => ({ card: MOCK_CARDS[Math.floor(Math.random() * MOCK_CARDS.length)] }),
+        draw: async (mood: string) => {
+            const user = await api.auth.getCurrentSession();
+            if (!user) throw new Error('Unauthorized');
+
+            // Strategy: Check if already drawn today in MockDB
+            const existing = MockDB.getDailyOracle(user.id);
+            if (existing) return { card: existing };
+
+            // Draw new
+            const card = MOCK_CARDS[Math.floor(Math.random() * MOCK_CARDS.length)];
+            MockDB.saveOracleDraw(user.id, card);
+            return { card };
+        },
+        getToday: async () => {
+             const user = await api.auth.getCurrentSession();
+             if (!user) return null;
+             const card = MockDB.getDailyOracle(user.id);
+             return card ? { card } : null;
+        },
         history: async () => []
     },
     chat: {
@@ -318,25 +336,21 @@ export const api = {
     },
     metamorphosis: {
         checkIn: async (mood: string, hash: string, thumb: string) => {
-                 // Existing mock logic kept for Metamorphosis checkin
-                const entry = { 
+                 const user = await api.auth.getCurrentSession();
+                 // Create record logic consistent with MockDB
+                 const entry = { 
                     id: Date.now(),
                     mood,
                     photoThumb: thumb,
                     quote: "A luz que você procura está dentro de você.",
                     ritual: ["Respire fundo 3 vezes"],
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    userId: user?.id
                 };
-                const historyStr = localStorage.getItem('viva360.evolution_history') || '[]';
-                const history = JSON.parse(historyStr);
-                history.unshift(entry);
-                localStorage.setItem('viva360.evolution_history', JSON.stringify(history.slice(0, 50)));
-                return { entry };
+                return MockDB.addEvolutionEntry(entry);
         },
         getEvolution: async () => {
-             const historyStr = localStorage.getItem('viva360.evolution_history');
-             if (historyStr) return { entries: JSON.parse(historyStr) };
-             return { entries: [] };
+             return { entries: MockDB.getEvolutionHistory() };
         }
     }
 };
