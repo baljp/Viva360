@@ -42,7 +42,7 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: 0.05 }}
                 className="w-full h-full"
             >
                 <ScreenComponent 

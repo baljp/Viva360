@@ -9,7 +9,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
     const { go } = useGuardiaoFlow();
 
     return (
-    <PortalView title="Rede Alquimia" subtitle="ESCAMBO HOLÍSTICO" onBack={() => go('DASHBOARD')}>
+    <PortalView title="Rede de Guardiões" subtitle="MINHA TRIBO" onBack={() => go('DASHBOARD')}>
       <div className="space-y-8">
         <div className="bg-indigo-900 rounded-[3.5rem] p-8 text-white relative overflow-hidden">
            <Zap size={140} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />

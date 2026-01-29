@@ -3,13 +3,14 @@ import React from 'react';
 // Buscador Screens
 import { ClientDashboard } from '../../views/client/ClientDashboard';
 import { SettingsViews } from '../../views/SettingsViews';
-import { OracleView } from '../../views/gamification/OracleView'; 
+import { OracleView } from '../../views/client/OracleView'; 
 import { MetamorphosisWizard } from '../../views/metamorphosis/MetamorphosisWizard'; 
 import { TimeLapseView } from '../../views/metamorphosis/TimeLapseView';
 import { InternalGarden } from '../../views/client/InternalGarden';
 import { TribeView } from '../../views/client/TribeView';
 import { BookingSearch } from '../../views/client/BookingSearch';
 import { BookingSelect } from '../../views/client/BookingSelect';
+import { RitualsView } from '../../views/client/RitualsView';
 // Buscador Generated
 import BookingConfirm from '../../views/client/generated/BookingConfirm';
 import Checkout from '../../views/client/generated/Checkout';
@@ -22,6 +23,8 @@ import CheckoutScreen from '../../views/client/financial/CheckoutScreen';
 import PaymentHistoryScreen from '../../views/client/financial/PaymentHistoryScreen';
 import { OrdersListView } from '../../views/ServiceViews';
 import CheckoutSuccessScreen from '../../views/client/generated/BookingConfirm'; // Reusing BookingConfirm as Success/Pseudo-success for now
+import { ClientMarketplace } from '../../views/client/ClientMarketplace';
+import { EvolutionView } from '../../views/client/garden/EvolutionView';
 
 // Guardião Screens
 import { ProDashboard } from '../../views/pro/ProDashboard';
@@ -35,6 +38,7 @@ import { VideoSessionView } from '../../views/ServiceViews';
 import AgendaView from '../../views/pro/generated/AgendaView';
 import PatientsList from '../../views/pro/generated/PatientsList';
 import PatientProfile from '../../views/pro/generated/PatientProfile';
+import PatientEvolutionView from '../../views/pro/generated/PatientEvolutionView';
 import VagasList from '../../views/pro/generated/VagasList';
 import ProChatListScreen from '../../views/pro/chat/ProChatListScreen';
 import ProChatRoomScreen from '../../views/pro/chat/ProChatRoomScreen';
@@ -57,6 +61,7 @@ export const screenMap: any = {
     BUSCADOR: {
         START: ClientDashboard,
         DASHBOARD: ClientDashboard,
+        ORACLE: OracleView,
         ORACLE_PORTAL: OracleView,
         ORACLE_SHUFFLE: OracleView,
         ORACLE_REVEAL: OracleView,
@@ -64,7 +69,7 @@ export const screenMap: any = {
         METAMORPHOSIS_CAMERA: MetamorphosisWizard,
         METAMORPHOSIS_MESSAGE: MetamorphosisWizard,
         METAMORPHOSIS_FEEDBACK: MetamorphosisWizard,
-        HISTORY: TimeLapseView,
+        HISTORY: EvolutionView,
         TRIBE_DASH: TribeView,
         TRIBE_INVITE: TribeInvite,
         TRIBE_INTERACTION: TribeInteraction,
@@ -79,13 +84,13 @@ export const screenMap: any = {
         PAYMENT_SUCCESS: CheckoutSuccessScreen,
         PAYMENT_HISTORY: PaymentHistoryScreen,
         CLIENT_EXPLORE: BookingSearch,
-        CLIENT_MARKETPLACE: BookingSearch, // Placeholder or dedicated marketplace if found
-        CLIENT_RITUAL: OrdersListView,
+        CLIENT_MARKETPLACE: ClientMarketplace, 
+        CLIENT_RITUAL: RitualsView,
         CLIENT_TIMELAPSE: TimeLapseView,
-        METAMORPHOSIS_RITUAL: OrdersListView, 
+        METAMORPHOSIS_RITUAL: RitualsView, 
         GARDEN_VIEW: InternalGarden,
         SETTINGS: SettingsViews,
-        MARKETPLACE: ProMarketplace, 
+        MARKETPLACE: ClientMarketplace, 
     },
     // GUARDIAO
     GUARDIAO: {
@@ -98,7 +103,7 @@ export const screenMap: any = {
         PATIENTS_LIST: PatientsList,
         PATIENT_PROFILE: PatientProfile,
         VIDEO_SESSION: VideoSessionView,
-        PATIENT_RECORDS: PatientProfile, // Reused
+        PATIENT_RECORDS: PatientEvolutionView, 
         VAGAS_LIST: VagasList,
         VAGA_DETAILS: VagasList,
         VAGA_APPLY: VagasList, // Reused

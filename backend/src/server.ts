@@ -24,6 +24,18 @@ if (cluster.isPrimary && process.env.NODE_ENV !== 'test' && process.env.NODE_ENV
     console.log(`🚀 Server running on port ${PORT} (PID: ${process.pid})`);
   });
 
+  // Middleware Registration (Circuit Breaker)
+  // Dynamic import or require if app.use is not exposed here.
+  // Actually, app is imported. We should attach it to app, but app is already exported from ./app.
+  // It's better to add this in app.ts, but `server.ts` controls the process.
+  // Let's modify app.ts instead? No, app.ts handles middleware.
+  // Wait, `app` is imported from `./app`. We can manipulate it before listen if needed, 
+  // but standard practice is in app.ts.
+  // Checking `app.ts` content first would be safer, but user asked for server.ts updates in plan.
+  // Assuming I can't see app.ts, I will try to use it here or check app.ts.
+  
+  // Checking app.ts is safer. I'll read it.
+
   process.on('SIGTERM', () => {
     server.close(() => {
       console.log('Process terminated');

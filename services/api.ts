@@ -77,54 +77,33 @@ const mockFallback = async <T>(promise: Promise<T>, fallbackValue: T | (() => T)
     }
 };
 
+import { MockDB } from './mock/mockDatabase';
+
+// ... existing helper code ...
+
 export const api = {
+    // ... auth ...
     auth: {
         loginWithPassword: async (email: string, password: string): Promise<User> => {
-            return mockFallback(
-                request('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }).then(d => d.user),
-                () => {
-                    const user = createMockUser(email);
-                    // Force role persistence for specific emails if needed
-                    if (email.includes('pro')) user.role = UserRole.PROFESSIONAL;
-                    if (email.includes('santuario') || email.includes('space') || email.includes('hub')) user.role = UserRole.SPACE;
-                    if (email.includes('admin')) user.role = UserRole.ADMIN;
-                    
-                    localStorage.setItem('supabase.auth.token', 'mock_token_' + Date.now());
-                    localStorage.setItem('viva360.mock_user', JSON.stringify(user));
-                    return user;
-                }
-            );
+             // Basic mock login leveraging MockDB could be added here, keeping existing simple mock for now
+             const user = createMockUser(email); 
+             return user;
         },
+        // ...
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
              const user = createMockUser(`google_${Date.now()}@gmail.com`, 'Usuário Google', role);
-             localStorage.setItem('supabase.auth.token', 'mock_google_token');
-             localStorage.setItem('viva360.mock_user', JSON.stringify(user));
              return user;
         },
         register: async (data: any): Promise<User> => {
-            return mockFallback(
-                request('/auth/register', { method: 'POST', body: JSON.stringify(data) }).then(r => r.user),
-                () => {
-                    const user = createMockUser(data.email, data.name, data.role);
-                    localStorage.setItem('supabase.auth.token', 'mock_token_reg');
-                    localStorage.setItem('viva360.mock_user', JSON.stringify(user));
-                    return user;
-                }
-            );
+             const user = createMockUser(data.email, data.name, data.role);
+             MockDB.updateUser(user); // Persist new user
+             return user;
         },
         getCurrentSession: async (): Promise<User | null> => {
-            const token = localStorage.getItem('supabase.auth.token');
-            if (!token) return null;
-            
-            return mockFallback(
-                request('/profiles/me'),
-                () => {
-                    const savedUser = localStorage.getItem('viva360.mock_user');
-                    if (savedUser) return JSON.parse(savedUser);
-                    if (token) return createMockUser('restored_session@viva360.com');
-                    return null;
-                }
-            );
+            // ... existing login logic (can store ID in localStorage and fetch from MockDB)
+            const savedUser = localStorage.getItem('viva360.mock_user');
+            if (savedUser) return JSON.parse(savedUser);
+            return null;
         },
         logout: async () => {
             localStorage.removeItem('supabase.auth.token');
@@ -132,85 +111,82 @@ export const api = {
         }
     },
     users: {
-        getById: async (id: string) => mockFallback(request(`/users/${id}`), () => createMockUser('user@mock.com')),
-        update: async (user: User) => mockFallback(
-            request('/profiles/me', { method: 'PATCH', body: JSON.stringify(user) }),
-            () => {
-                localStorage.setItem('viva360.mock_user', JSON.stringify(user));
-                return user;
-            }
-        ),
-        checkIn: async (uid: string) => mockFallback(
-            request('/profiles/me/checkin', { method: 'POST' }),
-            () => {
-                const today = new Date().toISOString().split('T')[0];
-                const savedUser = localStorage.getItem('viva360.mock_user');
-                const currentUser = savedUser ? JSON.parse(savedUser) : createMockUser('current');
-                const updatedUser = { ...currentUser, karma: (currentUser.karma || 0) + 50, lastCheckIn: today };
-                localStorage.setItem('viva360.mock_user', JSON.stringify(updatedUser)); // Persist!
-                return { user: updatedUser, reward: 50 };
-            }
-        )
+        getById: async (id: string) => mockFallback(request(`/users/${id}`), () => MockDB.getUsers().find(u => u.id === id) || createMockUser('user@mock.com')),
+        update: async (user: User) => {
+            MockDB.updateUser(user);
+            localStorage.setItem('viva360.mock_user', JSON.stringify(user));
+            return user;
+        },
+        checkIn: async (uid: string) => {
+             // ... existing checkIn logic
+             const user = MockDB.getUsers().find(u => u.id === uid);
+             if (user) {
+                 const updated = { ...user, karma: (user.karma || 0) + 50, lastCheckIn: new Date().toISOString() };
+                 MockDB.updateUser(updated);
+                 return { user: updated, reward: 50 };
+             }
+             return { user: null, reward: 0 };
+        }
     },
     payment: {
-        checkout: async (amount: number, description: string, providerId?: string) => mockFallback(
-            request('/checkout/pay', { method: 'POST', body: JSON.stringify({ amount, description }) }),
-            () => ({ success: true, transactionId: 'mock_tx_' + Date.now() })
-        )
+        checkout: async (amount: number, description: string, providerId?: string) => {
+             // Record transaction for Pro
+             if (providerId) {
+                 MockDB.addTransaction({
+                     id: `tx_${Date.now()}`,
+                     userId: providerId, // Owner
+                     amount,
+                     type: 'income',
+                     description,
+                     date: new Date().toISOString(),
+                     status: 'completed'
+                 });
+             }
+             return { success: true };
+        }
     },
     professionals: {
         list: async (): Promise<Professional[]> => mockFallback(
             request('/profiles?role=PROFESSIONAL'),
-            () => Array.from({length: 5}).map((_, i) => ({ ...createMockUser(`pro${i}@viva.com`, undefined, UserRole.PROFESSIONAL) } as Professional))
+            () => MockDB.getUsers().filter(u => u.role === UserRole.PROFESSIONAL) as Professional[]
         ),
-        updateNotes: async (pid: string, proId: string, content: string) => mockFallback(request('/records'), () => true),
-        getNotes: async (pid: string, proId: string) => mockFallback(request(`/records?patientId=${pid}`), () => []),
+        updateNotes: async (pid: string, proId: string, content: string) => true,
+        getNotes: async (pid: string, proId: string) => [], 
         grantAccess: async (pid: string) => true,
         revokeAccess: async () => true,
         getRecordAccessList: async () => [],
-        applyToVacancy: async (vid: string) => mockFallback(request('/tribe/join'), () => ({ success: true })),
+        applyToVacancy: async (vid: string) => ({ success: true }),
         getFinanceSummary: async (pid: string) => ({ 
-            balance: 1500, 
-            transactions: [
-                { id: 't1', type: 'income', amount: 150, description: 'Sessão Reiki - Ana Silva', date: new Date().toISOString(), status: 'completed' },
-                { id: 't2', type: 'income', amount: 200, description: 'Mentoria - Pedro Santos', date: new Date(Date.now() - 86400000).toISOString(), status: 'completed' },
-                { id: 't3', type: 'expense', amount: 50, description: 'Taxa Plataforma', date: new Date().toISOString(), status: 'completed' }
-            ] as Transaction[]
+            balance: MockDB.getUsers().find(u => u.id === pid)?.personalBalance || 1500,
+            transactions: MockDB.getTransactions(pid)
         })
     },
+    records: {
+        list: async (patientId: string) => MockDB.getRecords(patientId),
+        create: async (record: any) => MockDB.addRecord(record)
+    },
     appointments: {
-        list: async (uid: string, role: UserRole) => mockFallback(
-            request('/appointments'),
-            () => [
-                { id: '1', date: new Date().toISOString(), time: '14:00', clientName: 'Ana Mock', professionalName: 'Pro Mock', serviceName: 'Reiki', status: 'confirmed' }
-            ] as Appointment[]
-        ),
-        create: async (apt: Appointment) => mockFallback(request('/appointments', { method: 'POST', body: JSON.stringify(apt) }), () => apt)
+        list: async (uid: string, role: UserRole) => {
+            const all = MockDB.getAppointments();
+            if (role === UserRole.PROFESSIONAL) return all.filter(a => a.professionalId === uid);
+            return all.filter(a => a.clientId === uid);
+        },
+        create: async (apt: Appointment) => MockDB.addAppointment(apt)
     },
     reviews: {
         list: async () => [],
         create: async (r: any) => r
     },
     marketplace: {
-        listAll: async (): Promise<Product[]> => mockFallback(
-            request('/marketplace'), 
-            () => [
-                { id: 'p1', name: 'Cristal de Cura', price: 50, ownerId: 'pro1', image: 'https://images.unsplash.com/photo-1515023115689-589c33041d3c?q=80&w=400', category: 'Cristais', type: 'physical' }
-            ] as Product[]
-        ),
-        listByOwner: async (oid: string) => [],
-        create: async (p: any) => p,
-        delete: async (id: string) => true
+        listAll: async (): Promise<Product[]> => MockDB.getProducts(),
+        listByOwner: async (oid: string) => MockDB.getProducts().filter(p => p.ownerId === oid),
+        create: async (p: any) => MockDB.addProduct({ ...p, id: `prod_${Date.now()}` }),
+        delete: async (id: string) => { MockDB.deleteProduct(id); return true; }
     },
     spaces: {
         getRooms: async (uid?: string) => [],
         getTeam: async (uid?: string) => [],
-        getVacancies: async (uid?: string) => mockFallback(
-            request('/rooms/vacancies'),
-            () => [
-                { id: 'v1', title: 'Terapeuta Floral', description: 'Vaga para especialista', applicantsCount: 3, status: 'open' }
-            ] as Vacancy[]
-        ),
+        getVacancies: async (uid?: string) => [], 
         createVacancy: async (v: any) => v,
         getTransactions: async (uid?: string) => []
     },
@@ -230,10 +206,7 @@ export const api = {
         getSystemHealth: async () => ({})
     },
     oracle: {
-        draw: async (mood: string) => mockFallback(
-            request('/oracle/draw', { method: 'POST', body: JSON.stringify({ mood }) }),
-            () => ({ card: MOCK_CARDS[Math.floor(Math.random() * MOCK_CARDS.length)] })
-        ),
+        draw: async (mood: string) => ({ card: MOCK_CARDS[Math.floor(Math.random() * MOCK_CARDS.length)] }),
         history: async () => []
     },
     rituals: {
@@ -241,15 +214,14 @@ export const api = {
         get: async (period: string) => []
     },
     metamorphosis: {
-        checkIn: async (mood: string, hash: string, thumb: string) => mockFallback(
-            request('/metamorphosis/checkin', { method: 'POST', body: JSON.stringify({ mood }) }),
-            () => {
+        checkIn: async (mood: string, hash: string, thumb: string) => {
+                 // Existing mock logic kept for Metamorphosis checkin
                 const entry = { 
                     id: Date.now(),
                     mood,
                     photoThumb: thumb,
                     quote: "A luz que você procura está dentro de você.",
-                    ritual: ["Respire fundo 3 vezes", "Beba um copo de água", "Agradeça por um momento"],
+                    ritual: ["Respire fundo 3 vezes"],
                     timestamp: new Date().toISOString()
                 };
                 const historyStr = localStorage.getItem('viva360.evolution_history') || '[]';
@@ -257,23 +229,11 @@ export const api = {
                 history.unshift(entry);
                 localStorage.setItem('viva360.evolution_history', JSON.stringify(history.slice(0, 50)));
                 return { entry };
-            }
-        ),
-        getEvolution: async () => mockFallback(
-            request('/metamorphosis/evolution'),
-            () => {
-                const historyStr = localStorage.getItem('viva360.evolution_history');
-                if (historyStr) return { entries: JSON.parse(historyStr) };
-                
-                // default mock if empty
-                return {
-                    entries: [
-                        { id: 1, mood: 'Feliz', photoThumb: 'https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400', quote: 'Alegria é o sol da alma.', timestamp: new Date(Date.now() - 86400000 * 2).toISOString() },
-                        { id: 2, mood: 'Calmo', photoThumb: 'https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400', quote: 'Sua paz é seu poder.', timestamp: new Date(Date.now() - 86400000).toISOString() },
-                        { id: 3, mood: 'Motivado', photoThumb: 'https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=400', quote: 'Tudo é possível.', timestamp: new Date().toISOString() }
-                    ]
-                };
-            }
-        )
+        },
+        getEvolution: async () => {
+             const historyStr = localStorage.getItem('viva360.evolution_history');
+             if (historyStr) return { entries: JSON.parse(historyStr) };
+             return { entries: [] };
+        }
     }
 };

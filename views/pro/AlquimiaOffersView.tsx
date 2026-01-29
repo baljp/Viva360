@@ -17,8 +17,8 @@ export const AlquimiaOffersView: React.FC<{ flow: any }> = ({ flow }) => {
 
     return (
         <PortalView 
-            title="Rede Alquimia" 
-            subtitle="ESCAMBO PROFISSIONAL" 
+            title="Bazar Alquímico" 
+            subtitle="ESCAMBO & TROCAS" 
             onBack={() => go('DASHBOARD')}
             heroImage="https://images.unsplash.com/photo-1517960413843-0aee8e2b3285?q=80&w=800"
         >
