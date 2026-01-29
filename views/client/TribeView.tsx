@@ -23,7 +23,7 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> 
         <div className="space-y-4">
            <div className="flex justify-between items-center px-4">
               <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2"><Flame size={12} className="text-amber-500"/> Pactos Ativos</h4>
-              <button onClick={() => go('TRIBE_INVITE')} className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1 bg-white border border-primary-100 px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition-transform"><Plus size={12}/> Plantar Semente</button>
+              <button onClick={() => go('TRIBE_INVITE')} className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1 bg-white border border-primary-100 px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition-transform"><Plus size={12}/> Convidar / Plantar</button>
            </div>
 
             {/* Referral / Invite Tracking */}
