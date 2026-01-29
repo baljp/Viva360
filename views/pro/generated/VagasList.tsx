@@ -25,7 +25,7 @@ export default function VagasList() {
   };
 
   return (
-    <PortalView title="Mural de Oportunidades" subtitle="EXPANDA SEU DOM" onBack={back} heroImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800">
+    <PortalView title="Mural de Oportunidades" subtitle="EXPANDA SEU DOM" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800">
        {showToast && <ZenToast toast={{ title: 'Aplicação Enviada', message: 'O Espaço receberá sua intenção.' }} onClose={() => setShowToast(false)} />}
        
        <div className="px-2 mb-6">

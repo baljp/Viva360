@@ -1,168 +1,114 @@
+// Collection of base elements to generate 5000+ unique messages via combinatorics
 
-// Collection of 365 Daily Holistic Messages for Viva360
-
-const DAILY_MESSAGES = [
-    "Sua energia é o motor deste ecossistema. Receba sua luz diária.",
-    "Respire fundo. O universo está em sincronia com seu ritmo.",
-    "Hoje é um dia perfeito para cultivar gratidão.",
-    "A cura começa quando silenciamos a mente e ouvimos o coração.",
-    "Sua presença ilumina o mundo. Brilhe sem medo.",
-    "Cada passo consciente é uma vitória sobre o caos.",
-    "Nutra suas raízes para que seus galhos toquem o céu.",
-    "O equilíbrio não é estático, é um movimento constante.",
-    "Você é uma obra de arte em constante evolução.",
-    "A paz que você procura já reside dentro de você.",
-    "Sintonize a frequência do amor incondicional hoje.",
-    "Seus sentimentos são mensageiros sagrados. Escute-os.",
-    "A natureza não tem pressa, e mesmo assim tudo realiza.",
-    "Confie no fluxo da vida. Você está onde precisa estar.",
-    "Sua intuição é a bússola mais precisa que existe.",
-    "Hoje, escolha a leveza em cada interação.",
-    "Perdoe-se. Você está aprendendo e crescendo.",
-    "A beleza da vida mora nos pequenos detalhes.",
-    "Conecte-se com a terra. Sinta a estabilidade.",
-    "Você é feito de pó de estrelas e sonhos.",
-    "Sua voz tem poder. Use-a para criar bondade.",
-    "O passado é lição, o futuro é promessa, o agora é presente.",
-    "Abra espaço para o novo, soltando o que não serve mais.",
-    "Sua vulnerabilidade é sua maior força.",
-    "Celebre suas pequenas vitórias hoje.",
-    "O universo conspira a favor de quem vibra amor.",
-    "Silencie o ruído externo para ouvir sua verdade.",
-    "Cada respiração é um recomeço.",
-    "Você é o guardião da sua própria energia.",
-    "A gratidão transforma o que temos em suficiente.",
-    "Hoje, seja gentil com você mesmo.",
-    "Sua luz interior não pode ser apagada.",
-    "Abrace a incerteza como um campo de infinitas possibilidades.",
-    "O amor é a resposta, não importa a pergunta.",
-    "Sua jornada é única e sagrada. Honre-a.",
-    "Plante sementes de bondade e colha paz.",
-    "A harmonia começa de dentro para fora.",
-    "Você é um canal de cura e transformação.",
-    "Dê permissão a si mesmo para descansar.",
-    "A alegria é o estado natural do ser.",
-    "Sua mente é um jardim. Que pensamentos você rega?",
-    "A coragem não é ausência de medo, é agir com o coração.",
-    "Conecte-se com a sabedoria dos seus ancestrais.",
-    "O corpo fala. Esteja atento aos seus sinais.",
-    "Hoje, pratique o não-julgamento.",
-    "Você é digno de todo amor e abundância.",
-    "A simplicidade é o último grau de sofisticação.",
-    "Flua como a água, adapte-se e contorne obstáculos.",
-    "Sua energia atrai sua tribo.",
-    "O momento presente é o único lugar onde a vida acontece.",
-    // ... (To avoid huge file, we generate variations algorithmically below if exact 365 strings aren't listed)
-    // Adding more unique ones to ensure variety before algorithmic filler
-    "Acalme seu coração, a resposta virá no silêncio.",
-    "Você é um co-criador da sua realidade.",
-    "A escuridão apenas realça o brilho da sua luz.",
-    "Hoje, ofereça um sorriso genuíno a um estranho.",
-    "Seja o amor que você deseja ver no mundo.",
-    "A paciência é a chave que abre muitas portas.",
-    "Sua autenticidade é seu superpoder.",
-    "Renove suas energias em contato com a natureza.",
-    "A vida é um espelho do seu mundo interior.",
-    "Gratidão é a memória do coração.",
-    "Solte o controle e permita que a magia aconteça.",
-    "Você é suficiente, exatamente como é.",
-    "A cura vem em ondas. Respeite seu fluxo.",
-    "Hoje é dia de manifestar seus sonhos mais puros.",
-    "Ame suas sombras tanto quanto sua luz.",
-    "O universo habita em você.",
-    "Sintonize com a abundância que já existe.",
-    "Seus limites são sagrados. Respeite-os.",
-    "A vida acontece para você, não com você.",
-    "Transforme desafios em degraus para sua evolução.",
-    "Sua alma conhece o caminho. Confie.",
-    "Hoje, faça algo que faça seu coração cantar.",
-    "A quietude é onde as grandes ideias nascem.",
-    "Você é uma parte essencial do todo.",
-    "Libere o peso das expectativas alheias.",
-    "Sua presença é um presente para o mundo.",
-    "Cultive a paz interior como seu maior tesouro.",
-    "A vida é uma dança. Mova-se com graça.",
-    "Hoje, observe a beleza ao seu redor.",
-    "Você é um farol de esperança.",
-    "Receba as bênçãos que estão chegando para você.",
-    "Acredite na magia dos novos começos.",
-    "Sua energia é magnética.",
-    "O amor cura tudo.",
-    "Seja leve, seja livre, seja você.",
-    "Hoje, pratique a escuta ativa.",
-    "Agradeça pelo seu corpo e tudo que ele faz.",
-    "Você está seguro e protegido.",
-    "A sabedoria está em aceitar o que não pode mudar.",
-    "Brilhe sua luz sem pedir desculpas.",
-    "A vida é curta demais para não ser feliz.",
-    "Sintonize a frequência da alegria.",
-    "Você é um milagre vivo.",
-    "Hoje, plante intenções positivas.",
-    "A natureza cura. Respire ar puro.",
-    "Você é amado além da medida.",
-    "A quietude fala volumes.",
-    "Siga a bússola do seu coração.",
-    "A abundância é seu direito de nascença.",
-    "Hoje, seja fonte de paz.",
+const PREFIXES = [
+    "Respire fundo.", "Sintonize agora.", "O universo sussurra:", "Escute o silêncio.",
+    "Neste portal,", "Sua luz hoje,", "A harmonia busca,", "A cura revela:",
+    "Na dança cósmica,", "Seu coração sabe:", "Abra o espaço,", "Flua com a vida:",
+    "A semente dorme,", "O despertar urge:", "Na teia da vida,", "Sinta a batida:",
+    "O segredo é:", "A verdade brilha:", "Seu dom floresce,", "A jornada mística:",
+    "O oráculo diz:", "A paz regressa,", "Sua essência clama:", "A vibrante energia:",
+    "Onde há sombra,", "Hoje a estrela,", "A alma recorda:", "O mestre interior:",
+    "Neste instante,", "A magia opera:"
 ];
 
-// Fallback templates to generate infinite wisdom
-const TEMPLATES = [
-    "Hoje é um dia para focar em {NOUN}. Deixe a {NOUN} guiar seus passos.",
-    "Sintonize com a vibração da {NOUN}. Você é pura {NOUN}.",
-    "Receba a benção da {NOUN} neste dia sagrado.",
-    "Sua alma pede por {NOUN}. Ouça o chamado.",
-    "A chave para hoje é {NOUN}. Pratique com amor.",
-    "Cultive {NOUN} em seu coração e veja o mundo mudar.",
-    "A {NOUN} é o caminho para a sua evolução hoje."
+const CORES = [
+    "o amor incondicional é a sua bússola",
+    "a gratidão transforma a escassez em abundância",
+    "seu ritmo interno está em fase com as galáxias",
+    "cada respiração reconecta o seu ser ao todo",
+    "a vulnerabilidade é a porta para a força real",
+    "o silêncio é a voz mais alta da sua sabedoria",
+    "sua presença é o presente que o mundo esperava",
+    "a dor é o solo fértil onde a consciência brota",
+    "o equilíbrio nasce da aceitação do que é",
+    "sua intuição nunca erra o caminho do coração",
+    "a beleza reside na imperfeição de ser humano",
+    "você é um oceano de luz em uma gota de vida",
+    "o agora é o único templo onde a paz habita",
+    "sua voz tem o poder de curar realidades",
+    "o florescer não tem pressa, apenas intenção",
+    "a simplicidade é a chave da sofisticação divina",
+    "seus ancestrais celebram cada vitória sua",
+    "a cura que você busca já mora em suas mãos",
+    "o universo conspira no silêncio da sua fé",
+    "sua luz interna não depende de chamas externas"
 ];
 
-const NOUNS = [
-    "Paz", "Luz", "Cura", "Gratidão", "Harmonia", "Serenidade", "Coragem", "Amor", 
-    "Esperança", "Sabedoria", "Intuição", "Beleza", "Simplicidade", "Verdade", 
-    "Liberdade", "Compaixão", "Empatia", "Vitalidade", "Energia", "Conexão",
-    "Natureza", "Essência", "Alma", "Espiritualidade", "Transformação", "Renovação",
-    "Criatividade", "Alegria", "Felicidade", "Abundância", "Prosperidade", "Confiança"
+const SUFFIXES = [
+    "Siga com fé.", "Brilhe hoje.", "Confie no fluxo.", "Paz profunda.",
+    "Amo você.", "Luz e amor.", "Assim é.", "Namastê.",
+    "Crie o novo.", "Seja a cura.", "Voe alto.", "Enraíze-se.",
+    "Permita-se.", "Sinta o agora.", "Abrace a luz.", "Viva o dom.",
+    "Seja grato.", "Flua livre.", "Ame sempre.", "Deseje o bem."
 ];
 
-const METAMORPHOSIS_INSIGHTS = [
-    "Notamos que seus momentos de maior gratidão ocorrem após sessões matinais.",
-    "Seu padrão de sono melhorou 20% quando você meditou antes de dormir.",
-    "Sua energia vital parece atingir o pico às terças-feiras. Aproveite para criar.",
-    "Você tende a se sentir mais ansioso aos domingos. Que tal um ritual de aterramento?",
-    "Seus registros de gratidão aumentaram sua frequência vibracional.",
-    "A fase da lua atual favorece sua introspecção. Respeite seu recolhimento.",
-    "Você floresce quando está em contato com a água. Beba mais água hoje.",
-    "Sua constelação está vibrando alto. É um bom momento para conexões.",
-    "Observe como sua respiração muda quando você está focado.",
-    "Seu chakra cardíaco mostra sinais de expansão. Permita-se sentir.",
-    "A cor verde tem aparecido muito em sua jornada. Conecte-se com a natureza.",
-    "Você está num ciclo de manifestação acelerada. Cuidado com o que pensa.",
-    "Sua resiliência aumentou notavelmente no último mês.",
-    "Picante na alimentação tem elevado seu fogo interno.",
-    "O silêncio tem sido seu maior aliado na cura."
-];
+// Combinatorics Check: 30 * 20 * 20 = 12,000 unique variations
 
-export const getDailyMessage = (): string => {
-    const today = new Date();
-    const start = new Date(today.getFullYear(), 0, 0);
-    const diff = (today.getTime() - start.getTime()) + ((start.getTimezoneOffset() - today.getTimezoneOffset()) * 60 * 1000);
-    const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+export interface DailyWisdom {
+    message: string;
+    reward: number;
+    rarity: 'Common' | 'Rare' | 'Epic' | 'Legendary';
+    color: string;
+}
 
-    // Use dayOfYear to deterministic select a message
-    if (dayOfYear < DAILY_MESSAGES.length) {
-        return DAILY_MESSAGES[dayOfYear];
+export const getDailyWisdom = (userId: string, karma: number = 0): DailyWisdom => {
+    // Deterministic seed based on userId and current date
+    const dateStr = new Date().toISOString().split('T')[0];
+    const seedStr = userId + dateStr;
+    let hash = 0;
+    for (let i = 0; i < seedStr.length; i++) {
+        hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+        hash |= 0;
     }
+    const seed = Math.abs(hash);
+
+    const prefix = PREFIXES[seed % PREFIXES.length];
+    const core = CORES[(seed >> 2) % CORES.length];
+    const suffix = SUFFIXES[(seed >> 4) % SUFFIXES.length];
+
+    const message = `${prefix} ${core}. ${suffix}`;
+
+    // Predictive Reward Algorithm
+    // Uses seed to determine rarity
+    const rarityRoll = seed % 100;
+    let reward = 50;
+    let rarity: DailyWisdom['rarity'] = 'Common';
+    let color = 'text-nature-500';
+
+    if (rarityRoll > 95) {
+        rarity = 'Legendary';
+        reward = 500 + (seed % 500); // 500-1000
+        color = 'text-amber-600';
+    } else if (rarityRoll > 85) {
+        rarity = 'Epic';
+        reward = 200 + (seed % 100); // 200-300
+        color = 'text-indigo-600';
+    } else if (rarityRoll > 70) {
+        rarity = 'Rare';
+        reward = 100 + (seed % 50); // 100-150
+        color = 'text-emerald-600';
+    }
+
+    // Adjust reward slightly based on current karma (predictive: help those with less, reward those with more)
+    if (karma < 100) reward = Math.floor(reward * 1.5);
     
-    // Algorithmic fallback for days beyond static list size (if < 365)
-    const templateIndex = (dayOfYear * 7) % TEMPLATES.length;
-    const nounIndex = (dayOfYear * 13) % NOUNS.length;
-    
-    return TEMPLATES[templateIndex].replace(/{NOUN}/g, NOUNS[nounIndex]);
+    return { message, reward, rarity, color };
+};
+
+// Keeping original method for backward compatibility if needed, but upgrading it
+export const getDailyMessage = (): string => {
+    const wisdom = getDailyWisdom('anonymous-' + Date.now());
+    return wisdom.message;
 };
 
 export const getDailyMetamorphosisInsight = (): string => {
-    const today = new Date();
-    const dayIndex = today.getDate() + today.getMonth() * 31; // Simple day hash
-    return METAMORPHOSIS_INSIGHTS[dayIndex % METAMORPHOSIS_INSIGHTS.length];
+    const insights = [
+        "Sua energia vital parece atingir o pico agora.",
+        "A fase atual favorece sua introspecção.",
+        "Você florece quando está focado.",
+        "Sua resiliência aumentou notavelmente.",
+        "O silêncio tem sido seu maior aliado."
+    ];
+    const day = new Date().getDate();
+    return insights[day % insights.length];
 };
