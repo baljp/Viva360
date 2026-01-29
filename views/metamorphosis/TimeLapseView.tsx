@@ -8,8 +8,93 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     const [entries, setEntries] = useState<any[]>([]);
     const [isPlaying, setIsPlaying] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
+    const [progress, setProgress] = useState(0);
     const progressInterval = useRef<any>(null);
-    const [progress, setProgress] = useState(0); // 0 to 100 for current slide
+    const [activeModal, setActiveModal] = useState<'share_video' | null>(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<Blob[]>([]);
+
+    // Video Recording Function
+    const startRecording = async () => {
+        if (!entries.length || !canvasRef.current) return;
+        
+        setIsRecording(true);
+        setCurrentIndex(0);
+        setProgress(0);
+        setIsPlaying(true);
+        chunksRef.current = [];
+
+        // Capture Canvas Stream
+        const stream = canvasRef.current.captureStream(30); // 30 FPS
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+        
+        recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+
+        recorder.onstop = () => {
+            const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+            setRecordedBlob(blob);
+            setIsRecording(false);
+            setActiveModal('share_video'); // Open Modal on Finish
+        };
+
+        mediaRecorderRef.current = recorder;
+        recorder.start();
+
+        // Auto-stop when playback finishes (calculated approx duration)
+        // 25 seconds max + buffer
+        const checkEnd = setInterval(() => {
+            if (currentIndex === entries.length - 1 && progress >= 99) {
+                 recorder.stop();
+                 setIsPlaying(false);
+                 clearInterval(checkEnd);
+            }
+        }, 100);
+    };
+
+    const handleShareAction = () => {
+        if(recordedBlob) {
+            setActiveModal('share_video');
+        } else {
+            // Trigger image share if no video
+            shareMemory();
+        }
+    };
+
+    const shareVideo = async (platform: string) => {
+        if (!recordedBlob) return;
+        
+        try {
+            const file = new File([recordedBlob], 'viva360-journey.webm', { type: 'video/webm' });
+            
+            if (navigator.share) {
+                await navigator.share({
+                    title: 'Minha Jornada Viva360',
+                    text: 'Confira minha evolução cristalizada no Viva360.',
+                    files: [file]
+                });
+            } else {
+                 // Fallback Download
+                const url = URL.createObjectURL(recordedBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `viva360-journey-${Date.now()}.webm`;
+                a.click();
+            }
+        } catch (e) {
+            console.error("Share Failed", e);
+            alert("Compartilhamento não suportado neste navegador. Vídeo baixado.");
+            // Force download if share fails
+            const url = URL.createObjectURL(recordedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `viva360-journey-${Date.now()}.webm`;
+            a.click();
+        }
+    };
 
     // Load Data
     useEffect(() => {
@@ -258,12 +343,38 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                          <Calendar size={20} />
                          <span className="text-[9px] uppercase font-bold">Data</span>
                      </button>
-                     <button onClick={shareMemory} className="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+                     
+                     <button onClick={startRecording} disabled={isRecording} className="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity disabled:opacity-50">
+                          {isRecording ? <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div> : <Download size={20} />}
+                          <span className="text-[9px] uppercase font-bold text-red-500">{isRecording ? 'Gravando...' : 'Salvar Vídeo'}</span>
+                     </button>
+
+                     <button onClick={handleShareAction} className="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
                          <Share2 size={20} />
                          <span className="text-[9px] uppercase font-bold">Share</span>
                      </button>
                 </div>
             </div>
+
+            {/* SHARE MODAL */}
+            {activeModal === 'share_video' && (
+                <div className="absolute inset-0 z-[60] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in">
+                    <h3 className="text-2xl font-serif italic text-white mb-2">Sua História Cristalizada</h3>
+                    <p className="text-white/60 text-xs mb-8 text-center max-w-xs">Compartilhe sua evolução com sua tribo ou no mundo.</p>
+                    
+                    <div className="space-y-4 w-full max-w-xs">
+                         <button onClick={() => shareVideo('whatsapp')} className="w-full py-4 bg-[#25D366] text-white rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                            <Share2 size={20} /> WhatsApp
+                         </button>
+                         <button onClick={() => shareVideo('instagram')} className="w-full py-4 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">
+                            <Share2 size={20} /> Stories
+                         </button>
+                         <button onClick={() => setActiveModal(null)} className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold uppercase tracking-widest">
+                            Voltar
+                         </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
