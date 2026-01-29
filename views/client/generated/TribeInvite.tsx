@@ -51,7 +51,7 @@ export default function TribeInvite() {
                      <span className="text-[10px] font-bold uppercase">Outros</span>
                  </button>
              </div>
-          </div>
+
 
           <div className="p-6 border-t border-slate-100 text-center">
              <button onClick={back} className="text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-600">Voltar</button>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ViewState, User, DailyRitualSnap } from '../../types';
-import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle } from 'lucide-react';
+import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle, TrendingUp } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView } from '../../components/Common';
+import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { PortalView } from '../../../components/Common';
 import { Star, TrendingUp, User, Calendar, MessageCircle } from 'lucide-react';
 
 export default function SpaceReputation() {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast } from '../../components/Common';
+import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { PortalView, ZenToast } from '../../../components/Common';
 import { Camera, Save, Plus, ArrowRight } from 'lucide-react';
 
 export default function SpaceRoomCreate() {

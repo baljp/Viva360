@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast, DynamicAvatar } from '../../components/Common';
-import { Star, thumbsUp, MessageCircle, Send, Heart, Award } from 'lucide-react';
+import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { PortalView, ZenToast, DynamicAvatar } from '../../../components/Common';
+import { Star, ThumbsUp, MessageCircle, Send, Heart, Award } from 'lucide-react';
 
 export default function ServiceEvaluation() {
     const { back, go } = useSantuarioFlow();
