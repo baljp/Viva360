@@ -202,19 +202,6 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                     <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20}/></button>
                 </header>
 
-                {isMockMode && !isDemoMode && (
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
-                        <button type="button" onClick={() => setDemoCredentials('client')} className="flex items-center gap-2 px-4 py-3 bg-emerald-100 text-emerald-700 rounded-xl text-[10px] font-bold uppercase shrink-0 hover:bg-emerald-200 transition-colors">
-                            <UserIcon size={14}/> Buscador
-                        </button>
-                        <button type="button" onClick={() => setDemoCredentials('pro')} className="flex items-center gap-2 px-4 py-3 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-bold uppercase shrink-0 hover:bg-amber-200 transition-colors">
-                            <Briefcase size={14}/> Guardião
-                        </button>
-                        <button type="button" onClick={() => setDemoCredentials('space')} className="flex items-center gap-2 px-4 py-3 bg-indigo-100 text-indigo-700 rounded-xl text-[10px] font-bold uppercase shrink-0 hover:bg-indigo-200 transition-colors">
-                            <Building size={14}/> Santuário
-                        </button>
-                    </div>
-                )}
 
                 {isDemoMode && (
                     <div className="space-y-3">

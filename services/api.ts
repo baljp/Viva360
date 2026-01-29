@@ -27,14 +27,17 @@ const createMockUser = (email: string, name?: string, role?: UserRole): User => 
         name: name || (detectedRole === UserRole.SPACE ? 'Santuário Demo' : (detectedRole === UserRole.PROFESSIONAL ? 'Guardião Demo' : 'Buscador Demo')),
         email: email,
         role: detectedRole!,
-        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${email}`, // More stable avatar
-        karma: 150,
-        streak: 5,
-        multiplier: 1.2,
-        personalBalance: 1250,
-        corporateBalance: 500,
-        plantStage: 'sprout',
-        plantXp: 45
+        avatar: `https://api.dicebear.com/7.x/initials/svg?seed=${email}`, 
+        karma: 0, // Reset to 0
+        streak: 0, // Reset to 0
+        multiplier: 1.0, // Reset
+        personalBalance: 0, // Reset
+        corporateBalance: 0, // Reset
+        plantStage: 'seed', // Start as seed
+        plantXp: 0,
+        snaps: [], // Empty history
+        // friends: [], // Removed to fix lint error
+        // notifications: [], // Removed to fix lint error
     };
 };
 
