@@ -3,7 +3,7 @@ import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 import { PortalView, ZenToast, DynamicAvatar } from '../../../components/Common';
 import { Search, Filter, Heart, Sparkles, TrendingUp, Calendar, Shield, MapPin, ChevronRight, UserPlus } from 'lucide-react';
 
-export const SpacePatients: React.FC = () => {
+const SpacePatients: React.FC = () => {
   const { go } = useSantuarioFlow();
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -111,3 +111,4 @@ export const SpacePatients: React.FC = () => {
     </PortalView>
   );
 }
+export default SpacePatients;
