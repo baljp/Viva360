@@ -27,54 +27,89 @@ export default function TribeInvite() {
       canvas.width = W;
       canvas.height = H;
 
-      // Background - Deep Royal Indigo
+      // Background - Deep Royal Indigo (Gradient)
       const bgGrad = ctx.createLinearGradient(0,0,0,H);
       bgGrad.addColorStop(0, '#312e81'); // Indigo 900
+      bgGrad.addColorStop(0.5, '#4338ca'); // Indigo 700
       bgGrad.addColorStop(1, '#1e1b4b'); // Indigo 950
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0,0,W,H);
 
-      // Ornaments
-      ctx.strokeStyle = '#fbbf24'; // Amber 400 (Gold)
+      // Ornaments (Golden Geometry)
+      ctx.strokeStyle = '#fbbf24'; // Amber 400
       ctx.lineWidth = 4;
-      ctx.strokeRect(40,40,W-80,H-80);
+      ctx.strokeRect(60,60,W-120,H-120);
 
+      // Central Mandala Halo
+      ctx.save();
+      ctx.globalAlpha = 0.1;
+      for(let i=0; i<360; i+=15) {
+          ctx.beginPath();
+          ctx.ellipse(W/2, H/3, 400, 100, (i * Math.PI) / 180, 0, 2 * Math.PI);
+          ctx.stroke();
+      }
+      ctx.restore();
+
+      // Avatar/Icon Placeholder
       ctx.beginPath();
-      ctx.arc(W/2, 300, 100, 0, Math.PI*2);
-      ctx.fillStyle = '#4338ca';
+      ctx.arc(W/2, 400, 120, 0, Math.PI*2);
+      ctx.fillStyle = '#fff';
       ctx.fill();
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 10;
       ctx.stroke();
-
-      // Text
+      
+      // Avatar Text Initial
+      ctx.fillStyle = '#4338ca';
+      ctx.font = 'bold 100px sans-serif';
       ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('J', W/2, 400); // Mock Initial
+
+      // Text Content
+      ctx.textAlign = 'center';
+      
+      // "CONVITE REAL" Badge
       ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 80px "Times New Roman", serif';
-      ctx.fillText('CONVITE REAL', W/2, 600);
+      ctx.font = 'bold 60px "Times New Roman", serif';
+      // ctx.letterSpacing removed to fix type error
+      ctx.fillText('CONVITE REAL', W/2, 650);
       
       ctx.fillStyle = '#fff';
-      ctx.font = '40px sans-serif';
-      ctx.fillText('Você foi chamado para a tribo de', W/2, 700);
+      ctx.font = '300 40px sans-serif';
+      ctx.fillText('Você foi chamado para a tribo de', W/2, 750);
       
-      ctx.font = 'bold 60px sans-serif';
-      ctx.fillText('JOÃO LUZ', W/2, 800);
+      ctx.font = 'bold 80px sans-serif';
+      ctx.fillText('JOÃO LUZ', W/2, 850);
 
-      ctx.font = 'italic 40px serif';
-      ctx.fillStyle = '#94a3b8';
-      ctx.fillText('"A evolução é mais leve quando compartilhada."', W/2, 1000);
-
-      // Button Sim
-      ctx.fillStyle = '#fff';
-      ctx.roundRect(W/2 - 250, 1200, 500, 120, 60);
+      // Quote Area
+      ctx.fillStyle = 'rgba(255,255,255,0.1)';
+      ctx.roundRect(W/2 - 400, 950, 800, 250, 40);
       ctx.fill();
+
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'italic 45px serif';
+      ctx.fillText('"A evolução é mais leve', W/2, 1040);
+      ctx.fillText('quando compartilhada."', W/2, 1110);
+
+      // CTA Button Visual
+      ctx.shadowColor = "rgba(0,0,0,0.3)";
+      ctx.shadowBlur = 30;
+      ctx.fillStyle = '#fbbf24';
+      ctx.roundRect(W/2 - 300, 1350, 600, 140, 70);
+      ctx.fill();
+      ctx.shadowColor = "transparent";
       
       ctx.fillStyle = '#1e1b4b';
-      ctx.font = 'bold 40px sans-serif';
-      ctx.fillText('ACEITAR CHAMADO', W/2, 1275);
+      ctx.font = 'bold 45px sans-serif';
+      ctx.fillText('ACEITAR CHAMADO', W/2, 1435);
       
-      // Footer Link
-      ctx.fillStyle = '#fbbf24';
+      // Footer
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
       ctx.font = '30px monospace';
-      ctx.fillText(INVITE_LINK, W/2, 1500);
+      ctx.fillText(INVITE_LINK, W/2, 1600);
+      ctx.font = 'bold 30px sans-serif';
+      ctx.fillText('VIVA360', W/2, 1750);
 
       setInviteImage(canvas.toDataURL());
   };
@@ -158,7 +193,10 @@ export default function TribeInvite() {
                <button onClick={() => shareInvite('generic')} className="py-4 bg-indigo-600 text-white rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest active:scale-95 transition-all">
                    <Share2 size={18} /> Outros
                </button>
-               <button onClick={() => { navigator.clipboard.writeText(`https://${INVITE_LINK}`); alert('Link Copiado!'); }} className="py-4 bg-indigo-900/50 border border-indigo-500/30 text-indigo-200 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest active:scale-95 transition-all">
+               <button onClick={() => { 
+                   navigator.clipboard.writeText(`https://${INVITE_LINK}`); 
+                   alert('✨ Link copiado! Espalhe a luz.'); // Enhanced feedback (Mock toast)
+                }} className="py-4 bg-indigo-900/50 border border-indigo-500/30 text-indigo-200 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest active:scale-95 transition-all w-full">
                    <Copy size={18} /> Copiar
                </button>
            </div>
