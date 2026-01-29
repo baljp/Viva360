@@ -28,7 +28,7 @@ const navItemsDefinition = (user: User | null) => {
         case UserRole.PROFESSIONAL: return [
             { id: ViewState.PRO_HOME, label: 'Início', icon: Activity },
             { id: ViewState.PRO_PATIENTS, label: 'Jardim', icon: Flower }, 
-            { id: ViewState.PRO_MARKETPLACE, label: 'Bazar', icon: ShoppingBag },
+            { id: ViewState.PRO_MARKETPLACE, label: 'Alquimia', icon: ShoppingBag },
             { id: ViewState.PRO_AGENDA, label: 'Agenda', icon: Calendar },
             { id: ViewState.SETTINGS, label: 'Perfil', icon: UserIcon },
         ];
@@ -47,7 +47,6 @@ const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, o
     return (
         <aside className="hidden lg:flex flex-col w-80 bg-white border-r border-nature-100 h-full shadow-[10px_0_30px_rgba(0,0,0,0.02)] z-50">
             <div className="p-10 flex items-center gap-4">
-                <div className="w-12 h-12 bg-nature-900 rounded-[1.25rem] flex items-center justify-center text-white font-serif italic text-2xl shadow-xl shadow-nature-900/20">V</div>
                 <div className="flex flex-col">
                     <span className="font-serif italic font-bold text-2xl tracking-tight text-nature-900 leading-none">Viva360</span>
                     <span className="text-[9px] font-bold text-primary-500 uppercase tracking-[0.3em] mt-1">Ecosistema Holístico</span>

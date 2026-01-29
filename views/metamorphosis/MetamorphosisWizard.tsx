@@ -224,7 +224,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const styling = result ? (MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo']) : MOOD_ELEMENTS['Calmo'];
 
     return (
-        <PortalView title="Metamorfose" subtitle="RITUAL DIÁRIO" onBack={() => flow.back()} heroImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=800">
+        <PortalView title="Metamorfose" subtitle="RITUAL DIÁRIO" onBack={() => step > 1 ? setStep(step - 1) : flow.back()} heroImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=800">
             <div className="flex flex-col h-[75vh]">
                 
                 {/* STEP 1: MOOD */}

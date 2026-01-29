@@ -38,10 +38,9 @@ const Splash: React.FC = () => (
   <div className="h-screen w-full bg-nature-900 flex flex-col items-center justify-center text-white animate-in fade-in duration-1000">
     <div className="relative mb-8">
       <div className="absolute inset-0 bg-primary-500/20 blur-[60px] rounded-full animate-pulse"></div>
-      <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center text-nature-900 font-serif italic text-4xl shadow-2xl relative z-10 animate-float">V</div>
+      <div className="w-16 h-16 border-4 border-t-primary-400 border-white/10 rounded-full animate-spin"></div>
     </div>
     <div className="space-y-2 text-center">
-      <h1 className="text-2xl font-serif italic tracking-widest opacity-90">Viva360</h1>
       <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-primary-400 animate-pulse">Sintonizando Frequência</p>
     </div>
   </div>

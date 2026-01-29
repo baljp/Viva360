@@ -31,7 +31,7 @@ import { ProDashboard } from '../../views/pro/ProDashboard';
 import { ProFinance } from '../../views/pro/ProFinance';
 import { ProTribe } from '../../views/pro/ProTribe';
 import { ProMarketplace } from '../../views/pro/ProMarketplace'; 
-import { AlquimiaOffersView } from '../../views/pro/AlquimiaOffersView';
+// import { AlquimiaOffersView } from '../../views/pro/AlquimiaOffersView'; // Removed
 import { AlquimiaCreateOffer } from '../../views/pro/AlquimiaCreateOffer';
 import { VideoSessionView } from '../../views/ServiceViews';
 // Guardião Generated
@@ -111,7 +111,7 @@ export const screenMap: any = {
         TRIBE_CHAT: ProChatListScreen, // Entry point
         CHAT_LIST: ProChatListScreen,
         CHAT_ROOM: ProChatRoomScreen,
-        ESCAMBO_MARKET: AlquimiaOffersView,
+        ESCAMBO_MARKET: ProMarketplace,
         ESCAMBO_PROPOSE: AlquimiaCreateOffer,
         ESCAMBO_CONFIRM: ProMarketplace,
         FINANCE_DETAILS: ProFinance, // Reused
