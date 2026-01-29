@@ -84,9 +84,6 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
                                     <Play size={14} fill="currentColor" /> 
                                     {journey.hero.primaryAction}
                                 </button>
-                                <div className="px-4 py-4 rounded-2xl border border-white/20 hover:bg-white/10 transition-colors cursor-pointer" onClick={() => go('BOOKING_SELECT')}>
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">Falar com Guardião</span>
-                                </div>
                             </div>
                         </div>
                     </div>
