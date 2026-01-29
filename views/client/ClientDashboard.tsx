@@ -5,7 +5,7 @@ import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBl
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
-import { useClientDashboard } from '../../frontend/src/hooks/useClientDashboard';
+import { useClientDashboard } from '../../src/hooks/useClientDashboard';
 
 export const ClientDashboard: React.FC<{ 
     user: User, 

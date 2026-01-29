@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
-import { User, DailyRitualSnap, ViewState } from '../../types';
-import { api } from '../../services/api';
-import { gardenService } from '../../services/gardenService';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { User, DailyRitualSnap, ViewState } from '../../../../types';
+import { api } from '../../../../services/api';
+import { gardenService } from '../../../../services/gardenService';
+import { useBuscadorFlow } from '../../../../src/flow/BuscadorFlowContext';
 
 export const useClientDashboard = (
     user: User, 
