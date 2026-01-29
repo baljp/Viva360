@@ -58,17 +58,27 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
     const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
     // Map local moods to premium elemental styles (borrowed from Metamorphosis)
+    // Map local moods to premium elemental styles (borrowed from Metamorphosis)
     const getCanvasStyle = (currentMood: MoodType) => {
-        // Default style
-        let style = { element: 'Água', bg: '#f0f9ff', color: '#06b6d4' }; 
+        // Default style (Ar)
+        let style = { element: 'Ar', bg: '#f8fafc', color: '#64748b', pattern: 'circle', accent: '#e2e8f0' }; 
         
-        if (currentMood === 'VIBRANTE') style = { element: 'Fogo', bg: '#fffbeb', color: '#f59e0b' }; // Amber
-        if (currentMood === 'FOCADO') style = { element: 'Fogo', bg: '#fff1f2', color: '#f43f5e' }; // Rose
-        if (currentMood === 'GRATO') style = { element: 'Terra', bg: '#f0fdf4', color: '#10b981' }; // Emerald
-        if (currentMood === 'EXAUSTO') style = { element: 'Terra', bg: '#f8fafc', color: '#64748b' }; // Slate
-        if (currentMood === 'ANSIOSO') style = { element: 'Água', bg: '#eff6ff', color: '#3b82f6' }; // Blue - Mapped ANSIOSO
-        if (currentMood === 'MELANCÓLICO') style = { element: 'Água', bg: '#eff6ff', color: '#3b82f6' }; // Blue
-        
+        if (currentMood === 'VIBRANTE' || currentMood === 'FOCADO') {
+            style = { element: 'Fogo', bg: '#fffbeb', color: '#f59e0b', pattern: 'rays', accent: '#fcd34d' }; // Amber
+        }
+        if (currentMood === 'VIBRANTE') style = { element: 'Fogo', bg: '#fff7ed', color: '#ea580c', pattern: 'rays', accent: '#fdba74' }; // Orange
+        if (currentMood === 'FOCADO') style = { element: 'Fogo', bg: '#fef2f2', color: '#e11d48', pattern: 'rays', accent: '#fda4af' }; // Rose
+
+        if (currentMood === 'GRATO' || currentMood === 'SERENO') {
+            style = { element: 'Terra', bg: '#f0fdf4', color: '#059669', pattern: 'leaf', accent: '#6ee7b7' }; // Emerald
+        }
+        if (currentMood === 'SERENO') style = { element: 'Terra', bg: '#f6f5f4', color: '#57534e', pattern: 'leaf', accent: '#a8a29e' }; // Warm Stone
+
+        if (currentMood === 'MELANCÓLICO' || currentMood === 'ANSIOSO' || currentMood === 'EXAUSTO') {
+            style = { element: 'Água', bg: '#eff6ff', color: '#2563eb', pattern: 'wave', accent: '#93c5fd' }; // Blue
+        }
+        if (currentMood === 'EXAUSTO') style = { element: 'Água', bg: '#faf5ff', color: '#9333ea', pattern: 'wave', accent: '#d8b4fe' }; // Purple
+
         return style;
     };
 
@@ -125,85 +135,148 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
                 ctx.fillStyle = style.bg;
                 ctx.fillRect(0, 0, W, H);
 
+                // 1.1 Patterns
+                ctx.save();
+                ctx.strokeStyle = style.accent;
+                ctx.lineWidth = 2;
+                if (style.pattern === 'rays') {
+                    for(let i=0; i<360; i+=10) {
+                        ctx.beginPath();
+                        ctx.moveTo(W/2, H/2);
+                        ctx.lineTo(W/2 + Math.cos(i*Math.PI/180)*W, H/2 + Math.sin(i*Math.PI/180)*W);
+                        ctx.stroke();
+                    }
+                } else if (style.pattern === 'wave') {
+                    for(let y=0; y<H; y+=40) {
+                        ctx.beginPath();
+                         ctx.moveTo(0, y);
+                         ctx.bezierCurveTo(W/3, y+30, 2*W/3, y-30, W, y);
+                         ctx.stroke();
+                    }
+                } else if (style.pattern === 'leaf') {
+                     for(let x=0; x<W; x+=100) {
+                        for(let y=0; y<H; y+=100) {
+                            ctx.beginPath();
+                            ctx.arc(x, y, 20, 0, Math.PI*2);
+                            ctx.stroke();
+                        }
+                    }
+                } else {
+                     ctx.globalAlpha = 0.3;
+                     for(let i=0; i<20; i++) {
+                         ctx.beginPath();
+                         ctx.arc(Math.random()*W, Math.random()*H, Math.random()*100, 0, Math.PI*2);
+                         ctx.stroke();
+                     }
+                }
+                ctx.restore();
+
                 // 2. Photo (Rounded Rect)
-                const pad = 80;
+                const pad = 120; // More padding for elegant look
                 const photoSize = W - (pad * 2);
                 
                 ctx.save();
-                const radius = 60;
+                const radius = 80;
+                
+                // Shadow
+                ctx.shadowColor = "rgba(0,0,0,0.15)";
+                ctx.shadowBlur = 40;
+                ctx.shadowOffsetY = 20;
+
                 ctx.beginPath();
-                ctx.moveTo(pad + radius, pad);
-                ctx.lineTo(pad + photoSize - radius, pad);
-                ctx.quadraticCurveTo(pad + photoSize, pad, pad + photoSize, pad + radius);
-                ctx.lineTo(pad + photoSize, pad + photoSize - radius);
-                ctx.quadraticCurveTo(pad + photoSize, pad + photoSize, pad + photoSize - radius, pad + photoSize);
-                ctx.lineTo(pad + radius, pad + photoSize);
-                ctx.quadraticCurveTo(pad, pad + photoSize, pad, pad + photoSize - radius);
-                ctx.lineTo(pad, pad + radius);
-                ctx.quadraticCurveTo(pad, pad, pad + radius, pad);
-                ctx.closePath();
-                ctx.clip();
+                ctx.roundRect(pad, pad + 100, photoSize, photoSize, radius); // Shifted down a bit
+                ctx.fillStyle = '#1e1b4b'; // Dark background behind image
+                ctx.fill();
+                ctx.shadowColor = "transparent"; // Reset shadow
+                
+                ctx.clip(); // Clip to the rect
 
                 const scale = Math.max(photoSize / userImg.width, photoSize / userImg.height);
                 const x = pad + (photoSize / 2) - (userImg.width * scale) / 2;
-                const y = pad + (photoSize / 2) - (userImg.height * scale) / 2;
+                const y = pad + 100 + (photoSize / 2) - (userImg.height * scale) / 2;
                 ctx.drawImage(userImg, x, y, userImg.width * scale, userImg.height * scale);
+                
+                // Vignette overlay on image
+                const grad = ctx.createLinearGradient(0, pad+100, 0, pad+100+photoSize);
+                grad.addColorStop(0, 'transparent');
+                grad.addColorStop(1, 'rgba(0,0,0,0.4)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(pad, pad+100, photoSize, photoSize);
+                
                 ctx.restore();
 
-                // 3. Badge
+                // 3. Element Badge (Top Center)
                 ctx.save();
-                ctx.shadowBlur = 30;
+                ctx.shadowBlur = 20;
                 ctx.shadowColor = 'rgba(0,0,0,0.1)';
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(W/2, pad, 50, 0, Math.PI * 2);
+                ctx.arc(W/2, pad + 100, 40, 0, Math.PI * 2); // Overlapping top edge of photo
                 ctx.fill();
                 ctx.restore();
 
-                // 4. Element Icon (Simple Colored Dot for now to match)
+                // Element Icon
                 ctx.fillStyle = style.color;
-                ctx.beginPath();
-                ctx.arc(W/2, pad, 15, 0, Math.PI * 2);
-                ctx.fill();
+                ctx.font = '40px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const elIcon = style.pattern === 'rays' ? '🔥' : style.pattern === 'wave' ? '💧' : style.pattern === 'leaf' ? '🌱' : '🍃';
+                ctx.fillText(elIcon, W/2, pad + 102);
+
 
                 // 5. Text Content
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
+                // Divider
+                ctx.strokeStyle = style.color;
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(W/2 - 50, pad + 100 + photoSize + 60);
+                ctx.lineTo(W/2 + 50, pad + 100 + photoSize + 60);
+                ctx.stroke();
+
                 // Intention/Quote
-                ctx.font = 'italic 500 48px serif';
+                ctx.font = 'italic 400 56px "Times New Roman", serif'; // Larger font
                 ctx.fillStyle = '#1e293b'; 
                 
                 const text = data.intention || "Respire. Sinta. Agradeça.";
                 const words = text.split(' ');
                 let line = '';
-                let lineY = pad + photoSize + 100;
+                let lineY = pad + 100 + photoSize + 120;
+                const lineHeight = 70;
                 
                 for(let n = 0; n < words.length; n++) {
                   const testLine = line + words[n] + ' ';
                   if (ctx.measureText(testLine).width > 800 && n > 0) {
                     ctx.fillText(line, W/2, lineY);
                     line = words[n] + ' ';
-                    lineY += 60;
+                    lineY += lineHeight;
                   } else {
                     line = testLine;
                   }
                 }
                 ctx.fillText(line, W/2, lineY);
 
-                // 6. Watermark
-                ctx.font = 'bold 24px sans-serif'; 
-                ctx.fillStyle = 'rgba(30, 41, 59, 0.4)';
-                
-                const dateText = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-                const spacedDate = dateText.split('').join('  ');
-                const spacedBrand = 'V I V A 3 6 0';
+                // Mood Label
+                lineY += 80;
+                ctx.fillStyle = style.color;
+                ctx.font = 'bold 30px sans-serif';
+                ctx.fillText(`— ESTADO ${data.mood.replace('MELANCÓLICO', 'REFLEXIVO')} —`, W/2, lineY);
 
+
+                // 6. Watermark Footer
+                const footerY = H - 80;
+                ctx.font = 'bold 28px sans-serif'; 
+                ctx.fillStyle = 'rgba(30, 41, 59, 0.5)';
+                
+                const dateText = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
+                
                 ctx.textAlign = 'left';
-                ctx.fillText(spacedDate, pad, H - 100);
+                ctx.fillText(dateText, pad, footerY);
                 
                 ctx.textAlign = 'right';
-                ctx.fillText(spacedBrand, W - pad, H - 100);
+                ctx.fillText("VIVA360", W - pad, footerY);
             };
         }
     }, [step, data.image]);
@@ -248,12 +321,11 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
          // API Call
          await api.users.update(updatedUser);
          
-         // Delay for animation effect
-         setTimeout(() => {
-             // Instead of completing, go to Tribe step
-             setStep('TRIBE');
-             // But we need to update parent state? Maybe passing updated user to Tribe step render
-         }, 4000);
+         // API Call
+         await api.users.update(updatedUser);
+         
+         // No auto-navigation timeout anymore. User must click "Continuar".
+         // This prevents race conditions if the user closes/navigates away.
     };
 
     const handleTribeAction = (action: 'BLESS' | 'UNION' | 'PACT' | 'SKIP') => {
@@ -440,7 +512,14 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
                          <div className="px-6 py-2 bg-white/10 rounded-full backdrop-blur-md border border-white/10 text-white text-xs font-bold uppercase tracking-widest">+15 Vitalidade</div>
                          <div className="px-6 py-2 bg-white/10 rounded-full backdrop-blur-md border border-white/10 text-white text-xs font-bold uppercase tracking-widest">+5 Karma</div>
                     </div>
-                </div>
+
+                    <button 
+                        onClick={() => setStep('TRIBE')}
+                        className="mt-8 px-12 py-4 bg-white text-emerald-900 rounded-full font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all animate-in fade-in delay-1000 duration-1000"
+                    >
+                        Continuar Jornada
+                    </button>
+                 </div>
             </div>
         );
     }

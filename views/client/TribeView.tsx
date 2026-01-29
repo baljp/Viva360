@@ -25,6 +25,20 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> 
               <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2"><Flame size={12} className="text-amber-500"/> Pactos Ativos</h4>
               <button onClick={() => go('TRIBE_INVITE')} className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1 bg-white border border-primary-100 px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition-transform"><Plus size={12}/> Plantar Semente</button>
            </div>
+
+            {/* Referral / Invite Tracking */}
+            <div className="bg-indigo-50 p-4 rounded-[2rem] border border-indigo-100 flex items-center justify-between mb-4">
+               <div>
+                  <h5 className="font-bold text-indigo-900 text-xs">Sementes Plantadas</h5>
+                  <p className="text-[10px] text-indigo-400 font-bold uppercase mt-1">3 Convites Aceitos</p>
+               </div>
+               <div className="flex -space-x-2">
+                   <div className="w-8 h-8 rounded-full bg-indigo-200 border-2 border-white flex items-center justify-center text-[10px]">👩‍🎨</div>
+                   <div className="w-8 h-8 rounded-full bg-emerald-200 border-2 border-white flex items-center justify-center text-[10px]">🧑‍💻</div>
+                   <div className="w-8 h-8 rounded-full bg-amber-200 border-2 border-white flex items-center justify-center text-[10px]">🦸‍♀️</div>
+               </div>
+            </div>
+
            <div className="bg-white p-6 rounded-[3rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all" onClick={() => go('TRIBE_INTERACTION')}>
               <div className="flex items-center gap-5">
                  <div className="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform"><Flame size={28}/></div>

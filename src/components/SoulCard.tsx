@@ -9,29 +9,77 @@ interface SoulCardProps {
 
 export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "" }) => {
     // Determine element based on mood or randomness if not specified
-    const getElementIcon = () => {
+    const getElementVisuals = () => {
         const mood = (snap.mood || 'SERENO').toUpperCase();
-        if (mood.includes('VIBRANTE') || mood.includes('FELIZ') || mood.includes('MOTIVADO')) return <Flame size={120} className="text-amber-500" />;
-        if (mood.includes('MELANCÓLICO') || mood.includes('TRISTE') || mood.includes('CALMO')) return <Droplet size={120} className="text-blue-500" />;
-        if (mood.includes('FOCADO') || mood.includes('GRATO') || mood.includes('CANSADO')) return <Mountain size={120} className="text-emerald-500" />;
-        return <Wind size={120} className="text-slate-500" />;
+        
+        if (mood.includes('VIBRANTE') || mood.includes('FOCADO')) {
+             return { 
+                 element: 'FOGO', 
+                 icon: <Flame size={120} className="text-amber-500" />,
+                 bg: 'bg-amber-50',
+                 border: 'border-amber-100',
+                 pattern: (
+                    <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+                         <path d="M50 50 L50 0 M50 50 L100 50 M50 50 L50 100 M50 50 L0 50 M50 50 L85 15 M50 50 L85 85 M50 50 L15 85 M50 50 L15 15" stroke="currentColor" strokeWidth="0.5" className="text-amber-900" />
+                    </svg>
+                 )
+             };
+        }
+        if (mood.includes('MELANCÓLICO') || mood.includes('ANSIOSO') || mood.includes('EXAUSTO')) {
+             return { 
+                 element: 'ÁGUA', 
+                 icon: <Droplet size={120} className="text-blue-500" />,
+                 bg: 'bg-blue-50',
+                 border: 'border-blue-100',
+                 pattern: (
+                    <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path d="M0 20 Q25 40 50 20 T100 20 M0 50 Q25 70 50 50 T100 50 M0 80 Q25 100 50 80 T100 80" stroke="currentColor" fill="none" strokeWidth="0.5" className="text-blue-900" />
+                    </svg>
+                 )
+             };
+        }
+        if (mood.includes('GRATO') || mood.includes('SERENO')) {
+             return { 
+                 element: 'TERRA', 
+                 icon: <Mountain size={120} className="text-emerald-500" />,
+                 bg: 'bg-emerald-50',
+                 border: 'border-emerald-100',
+                 pattern: (
+                    <svg className="absolute inset-0 w-full h-full opacity-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <circle cx="20" cy="20" r="10" stroke="currentColor" fill="none" className="text-emerald-900" />
+                        <circle cx="80" cy="80" r="15" stroke="currentColor" fill="none" className="text-emerald-900" />
+                        <circle cx="20" cy="80" r="8" stroke="currentColor" fill="none" className="text-emerald-900" />
+                        <circle cx="80" cy="20" r="12" stroke="currentColor" fill="none" className="text-emerald-900" />
+                    </svg>
+                 )
+             };
+        }
+        return { 
+            element: 'AR', 
+            icon: <Wind size={120} className="text-slate-500" />,
+            bg: 'bg-slate-50',
+            border: 'border-slate-100',
+            pattern: (
+                <svg className="absolute inset-0 w-full h-full opacity-5" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <circle cx="50" cy="50" r="40" stroke="currentColor" fill="none" strokeWidth="0.5" className="text-slate-900" />
+                    <circle cx="50" cy="50" r="30" stroke="currentColor" fill="none" strokeWidth="0.5" className="text-slate-900" />
+                    <circle cx="50" cy="50" r="20" stroke="currentColor" fill="none" strokeWidth="0.5" className="text-slate-900" />
+                </svg>
+            )
+        };
     };
 
-    const getElementLabel = () => {
-        const mood = (snap.mood || 'SERENO').toUpperCase();
-        if (mood.includes('VIBRANTE') || mood.includes('FELIZ') || mood.includes('MOTIVADO')) return 'FOGO';
-        if (mood.includes('MELANCÓLICO') || mood.includes('TRISTE') || mood.includes('CALMO')) return 'ÁGUA';
-        if (mood.includes('FOCADO') || mood.includes('GRATO') || mood.includes('CANSADO')) return 'TERRA';
-        return 'AR';
-    };
+    const visuals = getElementVisuals();
 
     return (
-        <div className={`relative aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl group border-[6px] border-nature-100 bg-nature-50 ${className}`}>
+        <div className={`relative aspect-[3/4] rounded-[2rem] overflow-hidden shadow-2xl group border-[6px] ${visuals.border} ${visuals.bg} ${className}`}>
             
+            {visuals.pattern}
+
             {/* Header Element */}
             <div className="absolute top-4 left-0 right-0 flex justify-center z-20">
                  <div className="px-4 py-1 bg-white/20 backdrop-blur-md rounded-full border border-white/30 text-[10px] font-black tracking-[0.3em] text-white shadow-sm uppercase">
-                    {getElementLabel()}
+                    {visuals.element}
                  </div>
             </div>
 
@@ -48,7 +96,7 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "" }) => {
 
             {/* Background Element Symbol (Translucent) */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 z-0 pointer-events-none blur-sm">
-                {getElementIcon()}
+                {visuals.icon}
             </div>
 
             {/* Overlay Gradient */}

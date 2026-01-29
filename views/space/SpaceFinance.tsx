@@ -159,9 +159,22 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                             <span className="text-sm font-bold text-amber-500">R$ 1.320</span>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3 pt-2">
-                        <button onClick={() => handleAction('Ver Extrato')} className="py-3 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold text-indigo-600 uppercase hover:bg-indigo-50 transition-colors">Ver Extrato</button>
-                         <button onClick={() => handleAction('Solicitar Saque')} className="py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors active:scale-95">Solicitar Saque</button>
+                    <div className="flex flex-col gap-3 pt-2">
+                        <div className="grid grid-cols-2 gap-3">
+                            <button onClick={() => handleAction('Ver Extrato')} className="py-3 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold text-indigo-600 uppercase hover:bg-indigo-50 transition-colors">Ver Extrato</button>
+                            <button onClick={() => handleAction('Solicitar Saque')} className="py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors active:scale-95">Solicitar Saque</button>
+                        </div>
+                        <button 
+                            onClick={() => {
+                                handleAction('Gerando Relatório...');
+                                setTimeout(() => {
+                                    setToast({ title: 'Sucesso', message: 'Relatório Mensal consolidado e enviado para o e-mail cadastrado.', type: 'success' });
+                                }, 2000);
+                            }} 
+                            className="w-full py-3 bg-nature-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-colors"
+                        >
+                            Exportar p/ Contabilidade
+                        </button>
                     </div>
                 </div>
 

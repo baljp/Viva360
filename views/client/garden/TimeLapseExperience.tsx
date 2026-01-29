@@ -11,8 +11,13 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
     const [progress, setProgress] = useState(0);
     const progressInterval = useRef<any>(null);
     const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
+    const [isRecording, setIsRecording] = useState(false);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const chunksRef = useRef<Blob[]>([]);
 
     const snaps = user.snaps || [];
+    const activeSnap = snaps[currentIndex];
 
     useEffect(() => {
         if (!snaps.length || !isPlaying) return;
@@ -38,7 +43,69 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
         return () => clearInterval(progressInterval.current);
     }, [currentIndex, isPlaying, snaps.length]);
 
-    const activeSnap = snaps[currentIndex];
+    // Video Recording Logic
+    const startRecording = async () => {
+        if (!canvasRef.current) return;
+        
+        setIsRecording(true);
+        setCurrentIndex(0);
+        setProgress(0);
+        setIsPlaying(true);
+        chunksRef.current = [];
+
+        const stream = canvasRef.current.captureStream(30); // 30 FPS
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+        
+        recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+
+        recorder.onstop = () => {
+            const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            
+            // Download or Share
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `viva360-emotional-journey-${Date.now()}.webm`;
+            a.click();
+            
+            setIsRecording(false);
+            alert('✨ Vídeo Emocional gerado com sucesso!');
+        };
+
+        mediaRecorderRef.current = recorder;
+        recorder.start();
+
+        // Stop recording when cycle ends (handled in effect or timeout)
+        // We calculate total duration: 3s per slide * count
+        setTimeout(() => {
+            recorder.stop();
+            setIsPlaying(false);
+        }, snaps.length * 3000 + 500);
+    };
+
+    // EFFECT: Draw to Canvas when activeSnap changes (for recording)
+    // Moved to top level to avoid conditional hook call
+    useEffect(() => {
+         if(canvasRef.current && activeSnap) {
+             const ctx = canvasRef.current.getContext('2d');
+             if(ctx) {
+                 const img = new Image();
+                 img.crossOrigin = "anonymous";
+                 img.src = activeSnap.image;
+                 img.onload = () => {
+                     ctx.drawImage(img, 0, 0, canvasRef.current!.width, canvasRef.current!.height);
+                     // Draw overlays
+                     ctx.fillStyle = 'rgba(0,0,0,0.4)';
+                     ctx.fillRect(0, canvasRef.current!.height - 400, canvasRef.current!.width, 400);
+                     ctx.fillStyle = 'white';
+                     ctx.font = 'italic 60px serif';
+                     ctx.fillText(activeSnap.note || '', 50, canvasRef.current!.height - 150);
+                 }
+             }
+         }
+    }, [activeSnap]);
 
     if (!snaps.length) {
         return (
@@ -80,14 +147,18 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                 </div>
             </div>
 
-            {/* Visual Content */}
+            {/* Visual Content (Canvas for Recording + Image for Display) */}
             <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+                {/* Image Display */}
                 <img 
                     src={activeSnap.image} 
                     className="w-full h-full object-cover opacity-80 transition-opacity duration-1000" 
                     alt="Ritual Snapshot"
                 />
                 
+                {/* Hidden Canvas for Recording */}
+                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full opacity-0 pointer-events-none" width={1080} height={1920} />
+
                 {/* Visual Overlays based on stats - Simulating Bloom */}
                 {currentIndex === snaps.length - 1 && (
                     <div className="absolute inset-0 bg-emerald-500/10 animate-pulse pointer-events-none" />
@@ -101,6 +172,7 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                      </div>
                 </div>
             </div>
+
 
             {/* Controls */}
             <div className="p-8 bg-black flex justify-between items-center">
@@ -116,9 +188,13 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                          <Calendar size={20} />
                          <span className="text-[9px] uppercase font-bold tracking-widest">Period</span>
                      </button>
-                     <button className="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
-                         <Share2 size={20} />
-                         <span className="text-[9px] uppercase font-bold tracking-widest">Share</span>
+                     <button 
+                        onClick={startRecording}
+                        disabled={isRecording}
+                        className="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity disabled:opacity-30"
+                     >
+                         <Share2 size={20} className={isRecording ? 'animate-pulse text-red-500' : ''} />
+                         <span className="text-[9px] uppercase font-bold tracking-widest">{isRecording ? 'Gravando...' : 'Gerar Vídeo'}</span>
                      </button>
                 </div>
             </div>
