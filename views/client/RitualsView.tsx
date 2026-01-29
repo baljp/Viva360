@@ -36,73 +36,130 @@ export const RitualsView: React.FC = () => {
         }
     };
 
-    const toggleStep = (period: 'morning' | 'night', id: string) => {
-        // In a real app, we'd save this state to the backend
+    const handleToggle = async (period: 'morning' | 'night', id: string) => {
         const updater = period === 'morning' ? setMorningRoutine : setNightRoutine;
         const current = period === 'morning' ? morningRoutine : nightRoutine;
+        const routineName = period === 'morning' ? 'Despertar Solar' : 'Recolhimento Lunar';
         
-        updater(current.map(step => {
-            if (step.id === id) {
-                const newState = !step.completed;
-                if (newState) setToast({ title: "Hábito Cristalizado", message: `+10 XP. ${step.title} concluído.` });
-                return { ...step, completed: newState };
-            }
-            return step;
-        }));
+        // Optimistic update
+        const updatedList = current.map(step => {
+             if (step.id === id) {
+                 const newState = !step.completed;
+                 if (newState) {
+                     setToast({ title: "Hábito Cristalizado", message: `+10 XP. ${step.title} concluído.` });
+                 }
+                 return { ...step, completed: newState };
+             }
+             return step;
+        });
+        updater(updatedList);
+
+        // API Call
+        try {
+            await api.rituals.toggle(period, id);
+        } catch (e) {
+            console.error("Failed to save ritual state", e);
+            // Revert on failure could be implemented here
+        }
     };
 
-    const renderRoutineSection = (title: string, icon: any, period: 'morning' | 'night', steps: RoutineStep[]) => (
-        <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
-             <div className="flex items-center gap-3">
-                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${period === 'morning' ? 'bg-amber-50 text-amber-500' : 'bg-indigo-50 text-indigo-500'}`}>
-                     {icon}
-                 </div>
-                 <h3 className="font-serif italic text-lg text-nature-900">{title}</h3>
-             </div>
-             
-             <div className="space-y-3">
-                 {steps.map(step => (
-                     <div 
-                        key={step.id} 
-                        onClick={() => toggleStep(period, step.id)}
-                        className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between group ${step.completed ? 'bg-nature-900 border-nature-900 text-white' : 'bg-nature-50 border-nature-100 hover:border-nature-300'}`}
-                     >
-                         <div className="flex items-center gap-3">
-                             <div className={`p-2 rounded-full ${step.completed ? 'bg-white/20' : 'bg-white'}`}>
-                                 {step.completed ? <CheckCircle2 size={16} /> : <Circle size={16} className="text-nature-300" />}
-                             </div>
-                             <div>
-                                 <h4 className="font-bold text-sm">{step.title}</h4>
-                                 <p className={`text-[10px] uppercase tracking-widest font-bold ${step.completed ? 'text-white/50' : 'text-nature-400'}`}>{step.duration} min</p>
-                             </div>
+    const calculateProgress = () => {
+        const all = [...morningRoutine, ...nightRoutine];
+        if (all.length === 0) return 0;
+        const completed = all.filter(s => s.completed).length;
+        return Math.round((completed / all.length) * 100);
+    };
+
+    const renderRoutineSection = (title: string, icon: any, period: 'morning' | 'night', steps: RoutineStep[]) => {
+        const completedCount = steps.filter(s => s.completed).length;
+        const totalCount = steps.length;
+        const isAllDone = totalCount > 0 && completedCount === totalCount;
+
+        return (
+            <div className={`bg-white p-6 rounded-[2.5rem] border transition-all duration-500 shadow-sm space-y-4 ${isAllDone ? 'border-emerald-200 shadow-emerald-100' : 'border-nature-100'}`}>
+                 <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-3">
+                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner ${period === 'morning' ? 'bg-amber-50 text-amber-500' : 'bg-indigo-50 text-indigo-500'}`}>
+                             {icon}
+                         </div>
+                         <div>
+                             <h3 className="font-serif italic text-lg text-nature-900 leading-none mb-1">{title}</h3>
+                             <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">{completedCount}/{totalCount} Concluídos</p>
                          </div>
                      </div>
-                 ))}
-                 {steps.length === 0 && <p className="text-center text-xs text-nature-300 italic py-4">Nenhum ritual definido.</p>}
-             </div>
-        </div>
-    );
+                     {isAllDone && (
+                         <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 animate-in zoom-in duration-300">
+                             <CheckCircle2 size={16} />
+                         </div>
+                     )}
+                 </div>
+                 
+                 <div className="space-y-3">
+                     {steps.map(step => (
+                         <div 
+                            key={step.id} 
+                            onClick={() => handleToggle(period, step.id)}
+                            className={`p-4 rounded-3xl border transition-all cursor-pointer flex items-center justify-between group active:scale-[0.98] ${step.completed ? 'bg-nature-900 border-nature-900 text-white shadow-lg shadow-nature-900/20' : 'bg-nature-50 border-white hover:border-nature-200'}`}
+                         >
+                             <div className="flex items-center gap-4">
+                                 <div className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors ${step.completed ? 'bg-white/20 border-transparent' : 'bg-white border-nature-200'}`}>
+                                     {step.completed && <CheckCircle2 size={12} className="text-white" />}
+                                 </div>
+                                 <div>
+                                     <h4 className={`font-bold text-sm ${step.completed ? 'text-white' : 'text-nature-700'}`}>{step.title}</h4>
+                                     <div className="flex items-center gap-2 mt-0.5">
+                                        <span className={`text-[9px] uppercase tracking-widest font-bold ${step.completed ? 'text-white/60' : 'text-nature-400'}`}>{step.duration} min</span>
+                                     </div>
+                                 </div>
+                             </div>
+                             {step.completed && <span className="text-[9px] font-bold bg-white/20 px-2 py-0.5 rounded-md text-white">+10 XP</span>}
+                         </div>
+                     ))}
+                     {steps.length === 0 && <p className="text-center text-xs text-nature-300 italic py-4">Nenhum ritual definido.</p>}
+                 </div>
+            </div>
+        );
+    };
+
+    const progress = calculateProgress();
 
     return (
         <PortalView 
             title="Meus Rituais" 
             subtitle="HÁBITOS DE PODER" 
             onBack={() => go('DASHBOARD')}
-            heroImage="https://images.unsplash.com/photo-1531608139434-1912ae07b3da?q=80&w=800"
+            heroImage="https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=800"
         >
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
-            <div className="space-y-6">
+            <div className="space-y-6 pb-20 px-1">
+                {/* Progress Header */}
+                <div className="bg-nature-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-nature-900/20">
+                     <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+                     
+                     <div className="relative z-10 flex flex-col items-center text-center">
+                         <div className="w-20 h-20 relative mb-4 flex items-center justify-center">
+                             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                 <circle cx="50" cy="50" r="45" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="8" />
+                                 <circle cx="50" cy="50" r="45" fill="none" stroke="#10b981" strokeWidth="8" strokeDasharray="283" strokeDashoffset={283 - (283 * progress) / 100} strokeLinecap="round" className="transition-all duration-1000 ease-out" />
+                             </svg>
+                             <span className="absolute text-xl font-black">{progress}%</span>
+                         </div>
+                         <h2 className="font-serif italic text-2xl mb-1">Ritmo Diário</h2>
+                         <p className="text-xs text-white/60 max-w-[200px]">A constância é a chave para a transformação verdadeira.</p>
+                     </div>
+                </div>
+
                 {isLoading ? (
                     <div className="space-y-4">
-                        <div className="h-32 bg-gray-100 rounded-3xl animate-pulse" />
-                        <div className="h-32 bg-gray-100 rounded-3xl animate-pulse" />
+                        <div className="h-40 bg-gray-100 rounded-[2.5rem] animate-pulse" />
+                        <div className="h-40 bg-gray-100 rounded-[2.5rem] animate-pulse" />
                     </div>
                 ) : (
-                    <>
-                        {renderRoutineSection('Despertar Solar', <Sun size={20} />, 'morning', morningRoutine)}
-                        {renderRoutineSection('Recolhimento Lunar', <Moon size={20} />, 'night', nightRoutine)}
-                    </>
+                    <div className="space-y-6">
+                        {renderRoutineSection('Despertar Solar', <Sun size={24} />, 'morning', morningRoutine)}
+                        {renderRoutineSection('Recolhimento Lunar', <Moon size={24} />, 'night', nightRoutine)}
+                    </div>
                 )}
             </div>
         </PortalView>

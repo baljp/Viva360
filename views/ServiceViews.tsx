@@ -12,10 +12,13 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
   const [showNotes, setShowNotes] = useState(false);
 
   // Mock Data if appointment is missing
+  // Mock Data if appointment is missing (Logic for when accessed via go('VIDEO_SESSION') without props)
   const activeAppointment = appointment || {
      serviceName: 'Sessão de Cura (Mock)',
      professionalName: 'Guardião da Luz',
-     date: new Date().toISOString()
+     date: new Date().toISOString(),
+     startTime: new Date().toISOString(), 
+     status: 'in_progress'
   };
 
   const handleEnd = onEnd || (() => {

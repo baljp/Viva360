@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ViewState, User, DailyRitualSnap } from '../../types';
 import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle, TrendingUp } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
@@ -11,7 +11,7 @@ export const ClientDashboard: React.FC<{
     setView: (v: ViewState) => void, 
     updateUser: (u: User) => void,
     data?: any 
-}> = ({ user, setView, updateUser, data }) => {
+}> = React.memo(({ user, setView, updateUser, data }) => {
     const { go } = useBuscadorFlow();
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
@@ -24,14 +24,14 @@ export const ClientDashboard: React.FC<{
         { id: '2', title: 'Pagamento Recebido', message: 'Sua sessão com Dr. Pedro foi confirmada.', type: 'finance', read: true },
     ]);
 
-    const handleMarkAsRead = (id: string) => {
+    const handleMarkAsRead = useCallback((id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    };
+    }, []);
 
     const gardenStatus = gardenService.getPlantStatus(user);
     const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', gardenStatus.status);
 
-    const handleWaterPlant = async () => {
+    const handleWaterPlant = useCallback(async () => {
         try {
             const reward = gardenService.calculateWateringReward(user);
             const updated = { 
@@ -48,17 +48,17 @@ export const ClientDashboard: React.FC<{
             console.error("Water Plant Error", e);
             setToast({ title: "Erro na conexão", message: "Sua intenção foi registrada no éter." });
         }
-    };
+    }, [user, updateUser]);
 
-    const handleDailyCheckIn = async (reward: number) => {
+    const handleDailyCheckIn = useCallback(async (reward: number) => {
           const res = await api.users.checkIn(user.id, reward);
           if (res && res.user) {
               updateUser(res.user as User);
               setToast({ title: "Sincronizado", message: `+${res.reward} Karma recebido.` });
           }
-    };
+    }, [user, updateUser]);
 
-    const handleCapture = async (image: string) => {
+    const handleCapture = useCallback(async (image: string) => {
           const newSnap: DailyRitualSnap = {
               id: Date.now().toString(),
               date: new Date().toISOString(),
@@ -71,14 +71,14 @@ export const ClientDashboard: React.FC<{
           updateUser(res);
           setActiveModal(null);
           setToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada." });
-    };
+    }, [user, updateUser]);
 
-    const handleInvite = () => {
+    const handleInvite = useCallback(() => {
         if (!inviteEmail) return;
         setToast({ title: "Convite Enviado", message: `Chamado enviado para ${inviteEmail}` });
         setInviteEmail("");
         setActiveModal(null);
-    };
+    }, [inviteEmail]);
 
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-24">
@@ -213,11 +213,11 @@ export const ClientDashboard: React.FC<{
                              <div className="w-10 h-10 bg-nature-50 rounded-xl flex items-center justify-center text-nature-600 mb-1"><Zap size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Novo<br/>Registro</span>
                          </div>
-                         <div onClick={() => go('HISTORY')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
+                         <div onClick={() => go('EVOLUTION_HISTORY')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
                              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-1"><History size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Linha do<br/>Tempo</span>
                          </div>
-                         <div onClick={() => go('METAMORPHOSIS_CAMERA')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
+                         <div onClick={() => go('EVOLUTION_TIMELAPSE')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
                              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-1"><TrendingUp size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Time<br/>Lapse</span>
                          </div>
@@ -280,4 +280,4 @@ export const ClientDashboard: React.FC<{
             </div>
         </div>
     );
-};
+});

@@ -155,7 +155,20 @@ export const api = {
     professionals: {
         list: async (): Promise<Professional[]> => mockFallback(
             request('/profiles?role=PROFESSIONAL'),
-            () => MockDB.getUsers().filter(u => u.role === UserRole.PROFESSIONAL) as Professional[]
+            () => {
+                const pros = MockDB.getUsers().filter(u => u.role === UserRole.PROFESSIONAL) as Professional[];
+                // Enrich with mock reviews if empty
+                return pros.map(p => ({
+                    ...p,
+                    specialty: p.specialty || ['Holística Integrativa', 'Reiki'],
+                    rating: p.rating || 4.9,
+                    reviewCount: p.reviewCount || 12,
+                    reviews: [
+                        { id: 'r1', authorName: 'Maria S.', authorAvatar: '', rating: 5, comment: 'Transformador! Recomendo muito.', date: '2023-10-15', tags: ['Gratidão'], authorId: 'm1', targetId: p.id },
+                        { id: 'r2', authorName: 'João P.', authorAvatar: '', rating: 4.8, comment: 'Muita luz e sabedoria.', date: '2023-09-20', tags: ['Paz'], authorId: 'j1', targetId: p.id }
+                    ]
+                }));
+            }
         ),
         updateNotes: async (pid: string, proId: string, content: string) => true,
         getNotes: async (pid: string, proId: string) => [], 
@@ -190,24 +203,63 @@ export const api = {
         create: async (p: any) => MockDB.addProduct({ ...p, id: `prod_${Date.now()}` }),
         delete: async (id: string) => { MockDB.deleteProduct(id); return true; }
     },
-    spaces: {
-        getRooms: async (uid?: string) => [],
-        getTeam: async (uid?: string) => [],
-        getVacancies: async (uid?: string) => [], 
-        createVacancy: async (v: any) => v,
-        getTransactions: async (uid?: string) => []
-    },
+
     notifications: {
-        list: async (uid?: string) => [],
+        list: async (uid?: string) => {
+             // Mock notifications based on role
+             const baseNotes: Notification[] = [
+                 { id: 'n1', userId: uid || '', type: 'alert', title: 'Sessão Iniciando', message: 'Sua sessão de Reiki começa em 15 min.', timestamp: new Date().toISOString(), read: false, priority: 'high' }
+             ];
+             return baseNotes;
+        },
         markAsRead: async (id: string) => true,
         markAllAsRead: async (uid?: string) => true
     },
+    tribe: {
+        listPosts: async () => MockDB.getPosts(),
+        createPost: async (content: string, type: 'insight' | 'question' | 'celebration') => {
+            const user = await api.auth.getCurrentSession();
+            if (!user) throw new Error('Unauthorized');
+            return MockDB.addPost({
+                id: `pt_${Date.now()}`,
+                authorId: user.id,
+                authorName: user.name,
+                authorAvatar: user.avatar,
+                content,
+                likes: 0,
+                comments: 0,
+                timestamp: new Date().toISOString(),
+                type
+            });
+        },
+        likePost: async (id: string) => true // Mock action
+    },
+    spaces: {
+        getRooms: async (uid?: string) => MockDB.getRooms(),
+        getTeam: async (uid?: string) => MockDB.getUsers().filter(u => u.role === UserRole.PROFESSIONAL).slice(0, 3) as any, // Mock basic team
+        getVacancies: async (uid?: string) => [], 
+        createVacancy: async (v: any) => v,
+        getTransactions: async (uid?: string) => MockDB.getTransactions(uid || ''),
+        
+        // Governance
+        getProposals: async () => MockDB.getProposals(),
+        voteProposal: async (id: string, vote: 'for'|'against') => MockDB.voteProposal(id, vote),
+
+        // Events
+        getEvents: async () => MockDB.getEvents(),
+        createEvent: async (evt: any) => MockDB.addEvent({ ...evt, id: `evt_${Date.now()}`, enrolled: 0, status: 'upcoming' })
+    },
     admin: {
-        getDashboard: async () => ({}),
-        listUsers: async () => [],
+        getDashboard: async () => ({
+            totalUsers: MockDB.getUsers().length,
+            activeUsers: Math.floor(MockDB.getUsers().length * 0.8),
+            revenue: MockDB.getTransactions('').reduce((acc, t) => acc + t.amount, 0),
+            systemHealth: { status: 'healthy', uptime: 36000 } as any
+        }),
+        listUsers: async () => MockDB.getUsers(),
         blockUser: async () => true,
         getMetrics: async () => ({}),
-        getMarketplaceOffers: async () => [],
+        getMarketplaceOffers: async () => MockDB.getProducts(),
         getGlobalFinance: async () => ({}),
         getLgpdAudit: async () => [],
         getSystemHealth: async () => ({})
@@ -216,9 +268,53 @@ export const api = {
         draw: async (mood: string) => ({ card: MOCK_CARDS[Math.floor(Math.random() * MOCK_CARDS.length)] }),
         history: async () => []
     },
+    chat: {
+        listRooms: async () => {
+             const user = await api.auth.getCurrentSession();
+             if (!user) return [];
+             return MockDB.getChatRooms(user.id);
+        },
+        getMessages: async (roomId: string) => [], // Mock messages for now, could expand to SEED_MESSAGES
+        sendMessage: async (roomId: string, content: string) => true
+    },
     rituals: {
         save: async (period: string, data: any) => true,
-        get: async (period: string) => []
+        get: async (period: string) => {
+            // Updated to fallback to a Seeded default but essentially just check localStorage/DB
+            // For now, simpler to leave the default list OR move it to DB. 
+            // Let's keep the existing logic but recognize it's "MockDB compatible" 
+            const defaults = period === 'morning' ? [
+                { id: 'm1', title: 'Água com Limão', duration: 2, icon: 'Droplet', completed: false },
+                { id: 'm2', title: 'Meditação Solar', duration: 10, icon: 'Sun', completed: false },
+                { id: 'm3', title: 'Yoga Flow', duration: 15, icon: 'Activity', completed: false },
+                { id: 'm4', title: 'Leitura Inspiradora', duration: 10, icon: 'BookOpen', completed: false }
+            ] : [
+                { id: 'n1', title: 'Desconexão Digital', duration: 5, icon: 'WifiOff', completed: false },
+                { id: 'n2', title: 'Chá Calmante', duration: 10, icon: 'Coffee', completed: false },
+                { id: 'n3', title: 'Gratidão do Dia', duration: 5, icon: 'Heart', completed: false },
+                { id: 'n4', title: 'Leitura Leve', duration: 20, icon: 'Moon', completed: false }
+            ];
+            
+            const key = `viva360.rituals.${period}`;
+            const saved = localStorage.getItem(key);
+            if (saved) return JSON.parse(saved);
+            return defaults;
+        },
+        toggle: async (period: string, id: string) => {
+             const key = `viva360.rituals.${period}`;
+             const currentStr = localStorage.getItem(key);
+             let items = [];
+             
+             if (currentStr) {
+                 items = JSON.parse(currentStr);
+             } else {
+                 items = await api.rituals.get(period);
+             }
+             
+             const updated = items.map((i: any) => i.id === id ? { ...i, completed: !i.completed } : i);
+             localStorage.setItem(key, JSON.stringify(updated));
+             return updated;
+        }
     },
     metamorphosis: {
         checkIn: async (mood: string, hash: string, thumb: string) => {
