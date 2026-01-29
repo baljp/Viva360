@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ViewState, User, DailyRitualSnap } from '../../types';
-import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2 } from 'lucide-react';
-import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBlessing } from '../../components/Common';
+import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle } from 'lucide-react';
+import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
@@ -16,6 +16,17 @@ export const ClientDashboard: React.FC<{
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
     const [inviteEmail, setInviteEmail] = useState("");
+    const [showNotifications, setShowNotifications] = useState(false);
+
+    // Mock Notifications
+    const [notifications, setNotifications] = useState([
+        { id: '1', title: 'Hora do Ritual', message: 'O sol nasceu. Hora de despertar.', type: 'ritual', read: false },
+        { id: '2', title: 'Pagamento Recebido', message: 'Sua sessão com Dr. Pedro foi confirmada.', type: 'finance', read: true },
+    ]);
+
+    const handleMarkAsRead = (id: string) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    };
 
     const gardenStatus = gardenService.getPlantStatus(user);
     const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', gardenStatus.status);
@@ -72,6 +83,13 @@ export const ClientDashboard: React.FC<{
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-24">
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+            <NotificationDrawer 
+                isOpen={showNotifications} 
+                onClose={() => setShowNotifications(false)} 
+                notifications={notifications as any} 
+                onMarkAsRead={handleMarkAsRead} 
+                onMarkAllRead={() => {}} 
+            />
             
             {/* MODAIS */}
             <BottomSheet isOpen={activeModal === 'camera'} onClose={() => setActiveModal(null)} title="Novo Registro">
@@ -110,7 +128,14 @@ export const ClientDashboard: React.FC<{
                     </div>
                     <div><p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">Boa Jornada,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1">{user.name.split(' ')[0]}</h2></div>
                 </div>
-                <div className="px-5 py-2.5 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100 animate-in slide-in-from-top"><Sparkles size={16} className="text-amber-400" /><span className="text-sm font-bold text-nature-900">{user.karma}</span></div>
+                <div className="flex items-center gap-3">
+                     <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><MessageCircle size={20}/></button>
+                     <button onClick={() => setShowNotifications(true)} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all relative">
+                         <Bell size={20}/>
+                         {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>}
+                     </button>
+                     <div className="px-4 py-2 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100"><Sparkles size={16} className="text-amber-400" /><span className="text-xs font-bold text-nature-900">{user.karma}</span></div>
+                </div>
             </header>
 
             <div className="px-4 pb-8 space-y-8">
@@ -140,38 +165,41 @@ export const ClientDashboard: React.FC<{
                 {/* SESSÃO 1: RITUAIS DE PODER */}
                 <div className="space-y-4">
                     <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
-                        <Sparkles size={14}/> Rituais de Poder
+                        <Sparkles size={14}/> Oráculo Preditivo
                     </h4>
+                    
+                    {/* ORACLE HERO WIDGET */}
+                    <div onClick={() => go('ORACLE_PORTAL')} className="bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden group cursor-pointer mb-4">
+                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -translate-y-10 translate-x-10 group-hover:bg-indigo-500/30 transition-all duration-700"></div>
+                         <div className="relative z-10 flex items-center gap-6">
+                              <div className="w-20 h-24 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-inner flex flex-col items-center justify-center gap-2 group-hover:scale-105 transition-transform">
+                                  <Sparkles size={24} className="text-indigo-300" />
+                                  <span className="text-[8px] font-bold uppercase tracking-widest opacity-70">Carta do Dia</span>
+                              </div>
+                              <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                      <span className="px-2 py-0.5 bg-indigo-500/30 rounded-lg text-[8px] font-bold uppercase tracking-wider border border-indigo-400/30">Algoritmo Ativo</span>
+                                      <span className="text-[9px] opacity-60">Sincronicidade detectada</span>
+                                  </div>
+                                  <h3 className="font-serif italic text-2xl leading-tight mb-1">Revelar Mensagem</h3>
+                                  <p className="text-xs text-indigo-100/70 line-clamp-2">O universo tem uma resposta baseada na sua energia de hoje.</p>
+                              </div>
+                              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white group-hover:text-indigo-900 transition-all">
+                                  <div className="w-0 h-0 border-l-[6px] border-l-current border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5"></div>
+                              </div>
+                         </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3">
-                        <PortalCard 
-                            id="portal-metamorphosis"
-                            title="Card da Alma" 
-                            subtitle="RITUAL DIÁRIO" 
-                            icon={Sparkles} 
-                            bgImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=600" 
-                            onClick={() => go('METAMORPHOSIS_CHECKIN')} 
-                            delay={100}
-                        />
-                         <div className="space-y-3">
-                            <PortalCard 
-                                id="portal-oracle"
-                                title="Oráculo" 
-                                subtitle="GUIA" 
-                                icon={Sparkles} 
-                                bgImage="https://images.unsplash.com/photo-1506318137071-a8bcbf675bfa?q=80&w=600" 
-                                onClick={() => go('ORACLE_PORTAL')} 
-                                delay={150} 
-                            />
                             <PortalCard 
                                 id="portal-rituals"
                                 title="Rituais" 
                                 subtitle="PRÁTICAS" 
                                 icon={CheckCircle2} 
                                 bgImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=600" 
-                                onClick={() => go('METAMORPHOSIS_RITUAL')} // Correct mapping to RitualsView if possible, or METAMORPHOSIS_RITUAL
+                                onClick={() => go('METAMORPHOSIS_RITUAL')}
                                 delay={200} 
                             />
-                        </div>
                     </div>
                 </div>
 
@@ -207,15 +235,26 @@ export const ClientDashboard: React.FC<{
                     <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
                         <ShoppingBag size={14}/> Recursos
                     </h4>
-                    <PortalCard 
-                        id="portal-marketplace"
-                        title="Bazar da Tribo" 
-                        subtitle="FARMÁCIA NATURAL" 
-                        icon={ShoppingBag} 
-                        bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=800" 
-                        onClick={() => go('MARKETPLACE')} 
-                        delay={400} 
-                    />
+                    <div className="grid grid-cols-2 gap-3">
+                        <PortalCard 
+                            id="portal-abundance"
+                            title="Abundância" 
+                            subtitle="MINHAS TROCAS" 
+                            icon={Wallet} 
+                            bgImage="https://images.unsplash.com/photo-1560252829-804f1aedf1be?q=80&w=600" 
+                            onClick={() => go('PAYMENT_HISTORY')} 
+                            delay={400} 
+                        />
+                         <PortalCard 
+                            id="portal-marketplace"
+                            title="Bazar Natural" 
+                            subtitle="FARMÁCIA DA ALMA" 
+                            icon={ShoppingBag} 
+                            bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=800" 
+                            onClick={() => go('MARKETPLACE')} 
+                            delay={450} 
+                        />
+                    </div>
                 </div>
             </div>
         </div>

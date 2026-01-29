@@ -7,7 +7,7 @@ import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { DailyRitualWizard } from './garden/DailyRitualWizard';
 
-export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
+export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
     const { go, back } = useBuscadorFlow();
     const [status, setStatus] = useState<{ status: GardenStatus; health: number; recoveryNeeded: boolean }>(gardenService.getPlantStatus(user));
     const [isRitualActive, setIsRitualActive] = useState(false);
@@ -60,7 +60,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
     };
 
     return (
-        <PortalView title="Jardim da Alma" subtitle="NÚCLEO VIVO" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800">
+        <PortalView title="Jardim da Alma" subtitle="NÚCLEO VIVO" onBack={() => go('DASHBOARD')} onClose={onClose} heroImage="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800">
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             {isRitualActive ? (
@@ -71,7 +71,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                     {/* Living Status Bar */}
                     <div className="px-6 mt-6 grid grid-cols-2 gap-4">
                         <div className="bg-white/80 backdrop-blur-md p-5 rounded-[2rem] border border-white shadow-sm flex items-center gap-4">
-                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${status.health > 50 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
+                            <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center ${status.health > 50 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
                                 <Heart size={24} fill="currentColor" className="animate-pulse" />
                             </div>
                             <div>
@@ -82,7 +82,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                             </div>
                         </div>
                         <div className="bg-white/80 backdrop-blur-md p-5 rounded-[2rem] border border-white shadow-sm flex items-center gap-4">
-                            <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                            <div className="w-12 h-12 shrink-0 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
                                 <Leaf size={24} />
                             </div>
                             <div>

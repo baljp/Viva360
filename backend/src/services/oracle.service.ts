@@ -42,7 +42,7 @@ export class OracleService {
                     { element: this.getElementForMood(context.mood) }
                  ]
             }
-        });
+        }).catch(() => []); // Fallback for Mock Mode/DB Error
 
         if (candidates.length === 0) {
             // Fallback if user has exhausted all specific content (unlikely)
@@ -103,10 +103,24 @@ export class OracleService {
     }
 
     private async getRandomFallback() {
-        const count = await prismaRead.oracleMessage.count();
-        const skip = Math.floor(Math.random() * count);
-        const [card] = await prismaRead.oracleMessage.findMany({ take: 1, skip });
-        return card;
+        try {
+            const count = await prismaRead.oracleMessage.count();
+            const skip = Math.floor(Math.random() * count);
+            const [card] = await prismaRead.oracleMessage.findMany({ take: 1, skip });
+            return card;
+        } catch (e) {
+            // Mock Fallback
+            return {
+                id: 'mock-oracle-1',
+                message: 'O universo conspira a seu favor.',
+                author: 'Viva360',
+                moods: ['feliz'],
+                phases: ['inicio'],
+                element: 'Ar',
+                weight: 1,
+                category: 'consciencia'
+            };
+        }
     }
 }
 
