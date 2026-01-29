@@ -86,9 +86,6 @@ export const OracleCard: React.FC<OracleCardProps> = ({ card, onClose }) => {
                             </div>
 
                             {/* Footer / Actions */}
-                                    </div>
-                                </div>
-
                                 <button 
                                     onClick={() => {
                                         if (navigator.share) {
@@ -111,7 +108,7 @@ export const OracleCard: React.FC<OracleCardProps> = ({ card, onClose }) => {
                                 <p className="text-center text-[8px] text-white/30 uppercase tracking-[0.3em]">Oráculo Viva360</p>
                             </div>
                         </div>
-                    </div>
+
 
                 </div>
             </div>

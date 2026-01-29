@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast } from '../../components/Common';
+import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { PortalView, ZenToast } from '../../../components/Common';
 import { Zap, Send, Shield, Crown, AlertOctagon } from 'lucide-react';
 
 export default function SpaceSummon() {

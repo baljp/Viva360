@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChatMessage } from '../../../types';
+import { Message } from '../../../types';
 import { ChatServiceMock } from '../../../services/mock/chatMock';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Send, MoreVertical, Phone, Video } from 'lucide-react';
@@ -8,7 +8,7 @@ import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 
 export default function SpaceChatRoomScreen() {
     const { back } = useSantuarioFlow();
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState("");
     const [loading, setLoading] = useState(true);
 
@@ -28,24 +28,24 @@ export default function SpaceChatRoomScreen() {
 
     const handleSend = () => {
         if (!inputText.trim()) return;
-        const newMsg: ChatMessage = {
+        const newMsg: Message = {
             id: Date.now().toString(),
             senderId: 'me',
             content: inputText,
             timestamp: new Date().toISOString(),
-            status: 'sent'
+            read: true
         };
         setMessages(prev => [...prev, newMsg]);
         setInputText("");
         
         // Simulate reply
         setTimeout(() => {
-            const reply: ChatMessage = {
+            const reply: Message = {
                 id: (Date.now() + 1).toString(),
                 senderId: 'other',
                 content: 'Recebido. Vamos ajustar os detalhes.',
                 timestamp: new Date().toISOString(),
-                status: 'received'
+                read: false
             };
             setMessages(prev => [...prev, reply]);
         }, 1500);

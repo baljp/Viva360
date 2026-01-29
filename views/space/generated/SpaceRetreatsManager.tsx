@@ -1,6 +1,6 @@
 import React from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView } from '../../components/Common';
+import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { PortalView } from '../../../components/Common';
 import { Calendar, Users, MapPin, Plus, ArrowRight } from 'lucide-react';
 
 export default function SpaceRetreatsManager() {

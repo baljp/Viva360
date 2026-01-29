@@ -10,7 +10,7 @@ interface MarketplaceExplorerProps {
     baseFilter?: string; // Optional default filter
 }
 
-export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = ({ onPurchase, baseFilter = 'all' }) => {
+export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = ({ onPurchase, onTrade, baseFilter = 'all' }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");

@@ -20,7 +20,7 @@ export default function SpaceChatListScreen() {
     }, []);
 
     return (
-        <PortalView title="Egrégora Digital" subtitle="COMUNICAÇÃO INTERNA" onBack={() => go('DASHBOARD')}>
+        <PortalView title="Egrégora Digital" subtitle="COMUNICAÇÃO INTERNA" onBack={() => go('EXEC_DASHBOARD')}>
             <div className="space-y-6">
                 {/* Space Header: Filters */}
                 <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
