@@ -6,10 +6,22 @@ import { api } from '../services/api';
 import { DynamicAvatar, OrganicSkeleton, Card, PortalView } from '../components/Common';
 
 // Fix: Added missing VideoSessionView component for tele-health ritual sessions
-export const VideoSessionView: React.FC<{ appointment: Appointment, onEnd: () => void }> = ({ appointment, onEnd }) => {
+export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void }> = ({ appointment, onEnd }) => {
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
+
+  // Mock Data if appointment is missing
+  const activeAppointment = appointment || {
+     serviceName: 'Sessão de Cura (Mock)',
+     professionalName: 'Guardião da Luz',
+     date: new Date().toISOString()
+  };
+
+  const handleEnd = onEnd || (() => {
+      // If no onEnd provided, try to go back using history or window
+      window.history.back();
+  });
 
   return (
     <div className="fixed inset-0 z-[500] bg-nature-900 flex flex-col animate-in fade-in duration-500 h-full w-full">
@@ -18,7 +30,7 @@ export const VideoSessionView: React.FC<{ appointment: Appointment, onEnd: () =>
         <div className="flex items-center gap-4">
            <div className="w-10 h-10 bg-primary-500 rounded-2xl flex items-center justify-center font-serif text-xl italic shadow-lg">V</div>
            <div>
-              <h3 className="font-bold text-sm">{appointment.serviceName || 'Ritual de Cura'}</h3>
+              <h3 className="font-bold text-sm">{activeAppointment.serviceName || 'Ritual de Cura'}</h3>
               <p className="text-[10px] text-primary-300 font-bold uppercase tracking-widest flex items-center gap-1.5"><Timer size={10} className="animate-pulse" /> Sessão em curso</p>
            </div>
         </div>
@@ -61,7 +73,7 @@ export const VideoSessionView: React.FC<{ appointment: Appointment, onEnd: () =>
         <button onClick={() => setIsMicOn(!isMicOn)} className={`p-5 rounded-full shadow-xl transition-all active:scale-90 ${isMicOn ? 'bg-white/10 text-white border border-white/20' : 'bg-rose-500 text-white shadow-rose-500/20'}`}>
           {isMicOn ? <Mic size={24}/> : <MicOff size={24}/>}
         </button>
-        <button onClick={onEnd} className="w-20 h-20 bg-rose-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-rose-600/30 active:scale-90 transition-all hover:bg-rose-700">
+        <button onClick={handleEnd} className="w-20 h-20 bg-rose-600 text-white rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-rose-600/30 active:scale-90 transition-all hover:bg-rose-700">
           <X size={32} strokeWidth={3} />
         </button>
         <button onClick={() => setIsVideoOn(!isVideoOn)} className={`p-5 rounded-full shadow-xl transition-all active:scale-90 ${isVideoOn ? 'bg-white/10 text-white border border-white/20' : 'bg-rose-500 text-white shadow-rose-500/20'}`}>

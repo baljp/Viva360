@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { Product } from '../types';
-import { Search, ShoppingBag, Package, Star, Filter } from 'lucide-react';
+import { Search, ShoppingBag, Package, Star, Filter, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
 
 interface MarketplaceExplorerProps {
     onPurchase: (product: Product) => void;
+    onTrade?: (product: Product) => void;
     baseFilter?: string; // Optional default filter
 }
 
@@ -88,12 +89,21 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = ({ onPurc
                             </div>
                             <div className="mt-4 flex items-center justify-between px-1">
                                 <span className="text-sm font-bold text-nature-900">R$ {product.price}</span>
-                                <button 
-                                    onClick={() => onPurchase(product)}
-                                    className="p-2 bg-nature-900 text-white rounded-xl active:scale-95 transition-all shadow-lg hover:bg-black"
-                                >
-                                    <ShoppingBag size={14} />
-                                </button>
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={() => onPurchase(product)}
+                                        className="p-2 bg-nature-900 text-white rounded-xl active:scale-95 transition-all shadow-lg hover:bg-black"
+                                    >
+                                        <ShoppingBag size={14} />
+                                    </button>
+                                     <button 
+                                        onClick={() => onTrade && onTrade(product)}
+                                        className="p-2 bg-indigo-50 text-indigo-600 rounded-xl active:scale-95 transition-all shadow-sm border border-indigo-100 hover:bg-indigo-100"
+                                        title="Propor Troca"
+                                    >
+                                        <RefreshCw size={14} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     ))}

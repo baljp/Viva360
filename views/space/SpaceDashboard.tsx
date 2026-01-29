@@ -55,7 +55,7 @@ const OperationsTab = ({ go }: any) => (
                 title="Agenda Viva" 
                 subtitle="FLUXO DIÁRIO" 
                 icon={Calendar} 
-                bgImage="https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=600"
+                bgImage="https://images.unsplash.com/photo-1506784926709-b219a7501d2a?q=80&w=600"
                 onClick={() => go('AGENDA_OVERVIEW')}
             />
             <PortalCard 
@@ -63,7 +63,7 @@ const OperationsTab = ({ go }: any) => (
                 title="Salas" 
                 subtitle="ESPAÇOS FÍSICOS" 
                 icon={DoorOpen} 
-                bgImage="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?q=80&w=600"
+                bgImage="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600"
                 onClick={() => go('ROOMS_STATUS')}
                 delay={100}
             />

@@ -88,7 +88,7 @@ export const RitualsView: React.FC = () => {
             title="Meus Rituais" 
             subtitle="HÁBITOS DE PODER" 
             onBack={() => go('DASHBOARD')}
-            heroImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=800"
+            heroImage="https://images.unsplash.com/photo-1531608139434-1912ae07b3da?q=80&w=800"
         >
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             

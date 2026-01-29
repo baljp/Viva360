@@ -151,16 +151,8 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                             <p className="relative z-10 text-[9px] text-white/50 uppercase tracking-widest mt-1">Ritual Diário • 1 min</p>
                         </button>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <button className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-all active:scale-95" onClick={() => setActiveModal('tribe')}>
-                                <Users size={20} className="text-indigo-500" />
-                                <span className="text-[9px] font-bold uppercase text-nature-500 tracking-widest">Tribo</span>
-                            </button>
-                            <button className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center gap-2 hover:border-primary-200 transition-all active:scale-95" onClick={() => go('EVOLUTION')}>
-                                <TrendingUp size={20} className="text-amber-500" />
-                                <span className="text-[9px] font-bold uppercase text-nature-500 tracking-widest">Evolução</span>
-                            </button>
-                        </div>
+                        </button>
+                    </div>
                     </div>
 
 

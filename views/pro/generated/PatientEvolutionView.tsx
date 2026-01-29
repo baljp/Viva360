@@ -45,8 +45,15 @@ const InterventionCard: React.FC<{ title: string, outcome: string, type: string 
 const Check = ({ size }: any) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
 
 export default function PatientEvolutionView() {
-    const { back, go, notify } = useGuardiaoFlow();
+    const { back, go, notify, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'timeline' | 'patterns' | 'interventions' | 'plan'>('timeline');
+    
+    useEffect(() => {
+        if (state.currentState === 'PATIENT_PLAN') {
+            setActiveTab('plan');
+        }
+    }, [state.currentState]);
+
     const [records, setRecords] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 

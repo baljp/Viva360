@@ -86,17 +86,25 @@ export const OracleCard: React.FC<OracleCardProps> = ({ card, onClose }) => {
                             </div>
 
                             {/* Footer / Actions */}
-                            <div className="space-y-4">
-                                <div className="text-center">
-                                    <p className="text-[9px] font-bold text-white/50 uppercase tracking-[0.2em] mb-1">Profundidade</p>
-                                    <div className="flex justify-center gap-1">
-                                        {[1,2,3].map(i => (
-                                            <div key={i} className={`h-1 w-8 rounded-full ${i <= card.depth ? 'bg-white' : 'bg-white/10'}`} />
-                                        ))}
                                     </div>
                                 </div>
 
-                                <button className="w-full py-4 bg-white text-nature-950 rounded-2xl font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all">
+                                <button 
+                                    onClick={() => {
+                                        if (navigator.share) {
+                                            navigator.share({
+                                                title: 'Oráculo Viva360',
+                                                text: `Minha carta do dia: ${card.element} - "${card.text}"`,
+                                                url: window.location.href
+                                            }).catch(console.error);
+                                        } else {
+                                            // Fallback
+                                            navigator.clipboard.writeText(`Oráculo Viva360: "${card.text}"`);
+                                            alert('Mensagem copiada para a área de transferência!');
+                                        }
+                                    }}
+                                    className="w-full py-4 bg-white text-nature-950 rounded-2xl font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all outline-none"
+                                >
                                     <Share2 size={18} /> Compartilhar Insight
                                 </button>
                                 
