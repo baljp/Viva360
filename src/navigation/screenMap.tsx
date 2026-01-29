@@ -20,7 +20,7 @@ const MetamorphosisWizard = lazyNamed(() => import('../../views/metamorphosis/Me
 const TimeLapseView = lazyNamed(() => import('../../views/metamorphosis/TimeLapseView'), 'TimeLapseView');
 const InternalGarden = lazyNamed(() => import('../../views/client/InternalGarden'), 'InternalGarden');
 const TribeView = lazyNamed(() => import('../../views/client/TribeView'), 'TribeView');
-const BookingSearch = lazyNamed(() => import('../../views/client/BookingSearch'), 'BookingSearch');
+const MapaDaCuraView = lazyNamed(() => import('../../views/client/MapaDaCuraView'), 'MapaDaCuraView');
 const BookingSelect = lazyNamed(() => import('../../views/client/BookingSelect'), 'BookingSelect');
 const RitualsView = lazyNamed(() => import('../../views/client/RitualsView'), 'RitualsView');
 
@@ -44,6 +44,7 @@ const AchievementsView = lazyNamed(() => import('../../views/client/garden/Achie
 const EmotionalHistory = lazyNamed(() => import('../../views/client/garden/EmotionalHistory'), 'EmotionalHistory');
 const TimeLapseExperience = lazyNamed(() => import('../../views/client/garden/TimeLapseExperience'), 'TimeLapseExperience');
 const OracleGrimoire = lazyNamed(() => import('../../views/client/garden/OracleGrimoire'), 'OracleGrimoire');
+const CollectionGrimoire = lazyNamed(() => import('../../views/client/garden/CollectionGrimoire'), 'CollectionGrimoire');
 
 // --- GUARDIAO SCREENS ---
 const ProDashboard = lazyNamed(() => import('../../views/pro/ProDashboard'), 'ProDashboard');
@@ -111,13 +112,13 @@ export const screenMap: any = {
         CHAT_ROOM: ChatRoomScreen,
         CHAT_SETTINGS: ChatRoomScreen,
         CHAT_NEW: ChatListScreen,
-        BOOKING_SEARCH: BookingSearch,
+        BOOKING_SEARCH: MapaDaCuraView,
         BOOKING_SELECT: BookingSelect,
         BOOKING_CONFIRM: BookingConfirm,
         CHECKOUT: CheckoutScreen,
         PAYMENT_SUCCESS: CheckoutSuccessScreen,
         PAYMENT_HISTORY: PaymentHistoryScreen,
-        CLIENT_EXPLORE: BookingSearch,
+        CLIENT_EXPLORE: MapaDaCuraView,
         CLIENT_MARKETPLACE: ClientMarketplace, 
         CLIENT_RITUAL: RitualsView,
         CLIENT_TIMELAPSE: TimeLapseView,
@@ -132,6 +133,7 @@ export const screenMap: any = {
         MARKETPLACE: ClientMarketplace, 
         KARMA_WALLET: KarmaWallet,
         ORACLE_HISTORY: OracleGrimoire,
+        EVO_GRIMOIRE: CollectionGrimoire,
     },
     // GUARDIAO
     GUARDIAO: {

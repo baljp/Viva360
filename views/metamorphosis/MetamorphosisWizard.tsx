@@ -4,6 +4,8 @@ import { PortalView, CameraWidget } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
 import { getRandomPhrase, MOOD_ELEMENTS } from '../../src/data/metamorphosisData';
+import { useSoulCards } from '../../src/hooks/useSoulCards';
+import { SoulCardReveal } from './SoulCardReveal';
 
 const MOODS = [
     { id: 'Feliz', icon: Sun, element: 'Fogo' },
@@ -32,7 +34,10 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const [cardPhrase, setCardPhrase] = useState('');
     const [isDrawing, setIsDrawing] = useState(false); // Lock share until ready
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [drewCard, setDrewCard] = useState<any>(null);
+    const [showSoulReveal, setShowSoulReveal] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { performDraw } = useSoulCards('user_current'); // Should use real user ID
 
     // Step 1: Mood Selection
     const handleMoodSelect = (m: string) => {
@@ -58,9 +63,12 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             
             // Longer delay for ritualistic feel
             setTimeout(() => {
+                const card = performDraw(1, mood); // Mock streak 1 for now
+                setDrewCard(card);
                 setResult(entry);
                 setIsProcessing(false);
-                setStep(4);
+                setShowSoulReveal(true);
+                // setStep(4) will be triggered after reveal closes
             }, 2500); 
         } catch (e) {
             console.error("Metamorphosis Error", e);
@@ -296,6 +304,17 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             onClose={onClose || (() => flow.reset())}
             heroImage={step === 1 ? "https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=800" : undefined}
         >
+            {showSoulReveal && drewCard && photo && (
+                <SoulCardReveal 
+                    card={drewCard} 
+                    userPhoto={photo} 
+                    onClose={() => {
+                        setShowSoulReveal(false);
+                        setStep(4);
+                    }} 
+                />
+            )}
+
             <div className="flex flex-col h-full min-h-[70vh]">
                 
                 {/* STEP 1: MOOD SELECTION */}
