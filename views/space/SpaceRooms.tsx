@@ -111,10 +111,10 @@ export const SpaceRooms: React.FC = () => {
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-1 px-4 pb-4">
-                                <button onClick={() => handleAction('Ver Agenda')} className="py-2.5 bg-white border border-nature-100 rounded-xl text-[10px] font-bold text-nature-600 uppercase hover:bg-nature-50 transition-colors">
+                                <button onClick={() => go('ROOM_AGENDA')} className="py-2.5 bg-white border border-nature-100 rounded-xl text-[10px] font-bold text-nature-600 uppercase hover:bg-nature-50 transition-colors">
                                     {room.status === 'Ocupado' ? 'Ver Evento' : 'Ver Agenda'}
                                 </button>
-                                <button onClick={() => handleAction('Editar Altar')} className="py-2.5 bg-nature-900 text-white rounded-xl text-[10px] font-bold uppercase hover:bg-black transition-colors">
+                                <button onClick={() => go('ROOM_EDIT')} className="py-2.5 bg-nature-900 text-white rounded-xl text-[10px] font-bold uppercase hover:bg-black transition-colors">
                                     Editar
                                 </button>
                             </div>
@@ -181,7 +181,7 @@ export const SpaceRooms: React.FC = () => {
                 </div>
 
                 {/* 6. NOVO ALTAR */}
-                <button onClick={() => handleAction('Novo Altar')} className="w-full py-6 border-2 border-dashed border-nature-200 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest hover:border-nature-400 hover:text-nature-600 transition-all flex items-center justify-center gap-2">
+                <button onClick={() => go('ROOM_CREATE')} className="w-full py-6 border-2 border-dashed border-nature-200 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest hover:border-nature-400 hover:text-nature-600 transition-all flex items-center justify-center gap-2">
                     <Plus size={20} /> Novo Altar
                 </button>
             </div>

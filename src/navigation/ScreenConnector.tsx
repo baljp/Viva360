@@ -45,13 +45,19 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
                 transition={{ duration: 0.05 }}
                 className="w-full h-full"
             >
-                <ScreenComponent 
-                    user={user} 
-                    updateUser={updateUser} 
-                    setView={setView} 
-                    flow={flow}
-                    {...rest} 
-                />
+                <React.Suspense fallback={
+                    <div className="w-full h-full flex items-center justify-center">
+                        <div className="w-8 h-8 border-4 border-nature-200 border-t-nature-900 rounded-full animate-spin"></div>
+                    </div>
+                }>
+                    <ScreenComponent 
+                        user={user} 
+                        updateUser={updateUser} 
+                        setView={setView} 
+                        flow={flow}
+                        {...rest} 
+                    />
+                </React.Suspense>
             </motion.div>
         </AnimatePresence>
     );

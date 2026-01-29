@@ -14,10 +14,22 @@ export const AlquimiaCreateOffer: React.FC = () => {
     });
 
     const handleSubmit = async () => {
-        // Mock submission
-        await new Promise(r => setTimeout(r, 1000));
-        // In a real app, api.marketplace.create(...) would be called here
-        go('ESCAMBO_MARKET');
+        try {
+            await api.marketplace.create({
+                name: formData.title,
+                description: formData.description,
+                price: formData.credits,
+                category: formData.specialty || 'outros',
+                type: 'service', // Default to service/ritual
+                ownerId: 'current_user', // This will be handled by backend or api wrapper usually, but for mock:
+                image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800' // Default image for now
+            });
+            // Show success via the flow context if possible, or navigate back and show toast there
+            go('ESCAMBO_MARKET');
+        } catch (e) {
+            console.error(e);
+            alert('Erro ao criar oferta.');
+        }
     };
 
     return (

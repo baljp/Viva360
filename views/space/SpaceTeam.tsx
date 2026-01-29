@@ -121,7 +121,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                             { label: 'Facilitador', icon: Sprout },
                             { label: 'Mestre', icon: Crown }
                         ].map((role) => (
-                            <button key={role.label} onClick={() => handleInvite(role.label)} className="bg-white p-3 rounded-2xl border border-indigo-50 flex flex-col items-center gap-2 hover:border-indigo-200 hover:shadow-md transition-all active:scale-95">
+                            <button key={role.label} onClick={() => flow.go('TEAM_INVITE')} className="bg-white p-3 rounded-2xl border border-indigo-50 flex flex-col items-center gap-2 hover:border-indigo-200 hover:shadow-md transition-all active:scale-95">
                                 <role.icon size={18} className="text-indigo-500" />
                                 <span className="text-[9px] font-bold text-indigo-900 uppercase">{role.label}</span>
                             </button>
@@ -134,8 +134,8 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                     <h4 className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest mb-1 flex items-center gap-2"><Zap size={14}/> Convocar Círculo</h4>
                     <p className="text-xs text-nature-300 mb-4 opacity-80">Chame membros disponíveis para apoio em tempo real.</p>
                     <div className="grid grid-cols-2 gap-3">
-                        <button onClick={() => handleSummon('Guardiões')} className="py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-white/10 transition-all">Chamar Guardiões</button>
-                        <button onClick={() => handleSummon('Mestres')} className="py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-emerald-900/20 transition-all">Chamar Mestres</button>
+                        <button onClick={() => flow.go('TEAM_SUMMON')} className="py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-white/10 transition-all">Chamar Guardiões</button>
+                        <button onClick={() => flow.go('TEAM_SUMMON')} className="py-3 bg-emerald-600 hover:bg-emerald-500 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-emerald-900/20 transition-all">Chamar Mestres</button>
                     </div>
                 </div>
 

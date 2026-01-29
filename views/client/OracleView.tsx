@@ -22,32 +22,40 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
     const [showCard, setShowCard] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
 
-    // Effect to check if user already drew today (Mock logic for now, would be API call)
+    // Check for daily card on mount
     useEffect(() => {
-        // fetchDailyStatus()
-    }, []);
+        const today = new Date().toISOString().split('T')[0];
+        const saved = localStorage.getItem(`viva360.oracle.${user.id}.${today}`);
+        if (saved) {
+            setDailyCard(JSON.parse(saved));
+        }
+    }, [user.id]);
 
     const handleDraw = async () => {
         setIsLoading(true);
         try {
-            // Call API
-            // const res = await api.oracle.draw({ mood: 'sereno' });
-            // For now, mock response to verify UI
-            // Wait for simulated network
-            await new Promise(r => setTimeout(r, 2000));
+            // Simulated API Delay
+            await new Promise(r => setTimeout(r, 1500));
             
-            const mockCard: OracleMessage = {
-                id: '1',
-                text: "Nem tudo precisa ser resolvido hoje. Algumas respostas amadurecem no silêncio.",
-                category: "consciencia",
-                element: "Ar",
-                depth: 2
+            // Real Mock API Call
+            const res = await api.oracle.draw('sereno');
+            
+            // Map API response to Component Interface
+            const newCard: OracleMessage = {
+                id: Date.now().toString(),
+                text: res.card.insight,
+                category: "inspiração",
+                element: res.card.element,
+                depth: Math.floor(Math.random() * 3) + 1
             };
             
-            setDailyCard(mockCard);
+            setDailyCard(newCard);
             setShowCard(true);
             
-            // In real integration, we'd probably use `api.post('/oracle/draw', ...)`
+            // Persist
+            const today = new Date().toISOString().split('T')[0];
+            localStorage.setItem(`viva360.oracle.${user.id}.${today}`, JSON.stringify(newCard));
+            
         } catch (e) {
             console.error(e);
             setToast({ title: "Erro", message: "O oráculo está em silêncio agora." });

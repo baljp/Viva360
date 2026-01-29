@@ -39,9 +39,12 @@ const createMockUser = (email: string, name?: string, role?: UserRole): User => 
 };
 
 const MOCK_CARDS = [
-    { name: 'A Fênix', element: 'Fogo', intensity: 'Alta', insight: 'O fim é apenas o começo. Renasça.' },
-    { name: 'O Rio', element: 'Água', intensity: 'Suave', insight: 'Flua com as mudanças, não resista.' },
-    { name: 'A Montanha', element: 'Terra', intensity: 'Estável', insight: 'Sua força reside na permanência.' }
+    { name: 'A Fênix', element: 'Fogo', intensity: 'Alta', insight: 'O fim é apenas o começo. Renasça das cinzas com glória.' },
+    { name: 'O Rio', element: 'Água', intensity: 'Suave', insight: 'Flua com as mudanças, não resista à correnteza da vida.' },
+    { name: 'A Montanha', element: 'Terra', intensity: 'Estável', insight: 'Sua força reside na permanência e na paciência inabalável.' },
+    { name: 'O Vento', element: 'Ar', intensity: 'Rápida', insight: 'Novas ideias sopram em sua direção. Ouça o sussurro.' },
+    { name: 'A Estrela', element: 'Éter', intensity: 'Divina', insight: 'Sua luz guia outros. Confie no seu brilho interior.' },
+    { name: 'A Raiz', element: 'Terra', intensity: 'Profunda', insight: 'Fortaleça sua base antes de tentar alcançar o céu.' }
 ];
 
 export const request = async (endpoint: string, options: RequestInit = {}) => {
