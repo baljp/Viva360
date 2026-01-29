@@ -101,29 +101,19 @@ export const ClientDashboard: React.FC<{
                               <div className="flex justify-between items-end mb-2">
                                  <h3 className="text-3xl font-serif italic text-white drop-shadow-md">Semente da Essência</h3>
                                  <div className="flex gap-2">
-                                     <button 
-                                        onClick={(e) => { 
-                                            e.stopPropagation(); 
-                                            actions.handleWaterPlant();
-                                            // Trigger Invite immediately after action (Optimistic UI)
-                                            actions.setActiveModal('invite'); 
-                                            actions.setToast({ title: "Jardim Nutrido", message: "Convide sua tribo para celebrar!" });
-                                        }}
-                                        className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg"
-                                        title="Regar Agora"
-                                     >
-                                        <Droplet size={20} fill="currentColor" />
-                                     </button>
-                                     <button 
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            actions.setActiveModal('invite');
-                                        }}
-                                        className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg shadow-rose-500/20"
-                                        title="Compartilhar Energia"
-                                     >
-                                        <Heart size={20} fill="currentColor" className="text-rose-300" />
-                                     </button>
+                                      <button 
+                                         onClick={(e) => { 
+                                             e.stopPropagation(); 
+                                             actions.handleWaterPlant();
+                                             // Optimistic UI for immediate feedback
+                                             actions.setToast({ title: "Jardim Nutrido", message: "Sua semente absorveu a essência." });
+                                         }}
+                                         className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg w-full flex items-center justify-center gap-2"
+                                         title="Regar Agora"
+                                      >
+                                         <Droplet size={20} fill="currentColor" />
+                                         <span className="text-[10px] uppercase font-bold tracking-widest">Nutrir</span>
+                                      </button>
                                  </div>
                               </div>
                               <div className="w-full h-2 bg-white/30 rounded-full overflow-hidden backdrop-blur-sm">
@@ -164,17 +154,6 @@ export const ClientDashboard: React.FC<{
                          </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                            <PortalCard 
-                                id="portal-rituals"
-                                title="Rituais" 
-                                subtitle="PRÁTICAS" 
-                                icon={CheckCircle2} 
-                                bgImage="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600" 
-                                onClick={() => go('METAMORPHOSIS_RITUAL')}
-                                delay={200} 
-                            />
-                    </div>
                 </div>
 
                 {/* SESSÃO NOVA: JORNADA & EVOLUÇÃO (Moved from Garden) */}
@@ -186,10 +165,6 @@ export const ClientDashboard: React.FC<{
                          <div onClick={() => go('METAMORPHOSIS_CHECKIN')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
                              <div className="w-10 h-10 bg-nature-50 rounded-xl flex items-center justify-center text-nature-600 mb-1"><Zap size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Novo<br/>Registro</span>
-                         </div>
-                         <div onClick={() => go('EVOLUTION_HISTORY')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
-                             <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-1"><History size={20}/></div>
-                             <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Linha do<br/>Tempo</span>
                          </div>
                          <div onClick={() => go('EVOLUTION_TIMELAPSE')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
                              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-1"><TrendingUp size={20}/></div>
