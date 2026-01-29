@@ -1,8 +1,9 @@
-
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { SantuarioState } from './santuarioTypes';
 import { SantuarioFlowEngine } from './SantuarioFlowEngine';
-import { isMockMode } from '../../lib/supabase'; // Reuse existing mock check
+import { isMockMode } from '../../lib/supabase';
+import { api } from '../../services/api';
+import { SpaceRoom, Professional, Vacancy, Transaction, Product } from '../../types';
 
 interface SantuarioContextState {
     currentState: SantuarioState;
@@ -11,6 +12,14 @@ interface SantuarioContextState {
     isLoading: boolean;
     error: string | null;
     notification: { title: string; message: string; type: 'info' | 'success' | 'warning' } | null;
+    // Data State
+    data: {
+        rooms: SpaceRoom[];
+        team: Professional[];
+        vacancies: Vacancy[];
+        transactions: Transaction[];
+        myProducts: Product[];
+    }
     // Mock Data for Admin Dashboard
     adminStats: {
         activePros: number;
@@ -25,6 +34,8 @@ type FlowAction =
     | { type: 'BACK' }
     | { type: 'RESET' }
     | { type: 'SET_LOADING'; payload: boolean }
+    | { type: 'SET_ERROR'; payload: string }
+    | { type: 'SET_DATA'; payload: { rooms: SpaceRoom[]; team: Professional[]; vacancies: Vacancy[]; transactions: Transaction[]; myProducts: Product[] } }
     | { type: 'NOTIFY'; payload: { title: string; message: string; type: 'info' | 'success' | 'warning' } }
     | { type: 'CLEAR_NOTIFICATION' };
 
@@ -35,6 +46,13 @@ const createInitialState = (): SantuarioContextState => ({
     isLoading: false,
     error: null,
     notification: null,
+    data: {
+        rooms: [],
+        team: [],
+        vacancies: [],
+        transactions: [],
+        myProducts: []
+    },
     adminStats: {
         activePros: 12,
         totalPatients: 450,
@@ -47,7 +65,6 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
     switch (action.type) {
         case 'TRANSITION': {
             console.log(`[SantuarioFlow] Attempting transition: ${state.currentState} -> ${action.payload}`);
-            // PURE: Instantiate a new engine with current state to avoid mutating original
             const tempEngine = new SantuarioFlowEngine(state.currentState, [...state.history]);
             const success = tempEngine.transition(action.payload);
             
@@ -57,7 +74,8 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
                     ...state,
                     currentState: tempEngine.currentState,
                     history: [...tempEngine.history],
-                    engine: tempEngine // Replace engine instance
+                    engine: tempEngine,
+                    error: null
                 };
             }
             console.warn(`[SantuarioFlow] Invalid transition: ${state.currentState} -> ${action.payload}`);
@@ -71,7 +89,8 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
                     ...state,
                     currentState: tempEngine.currentState,
                     history: [...tempEngine.history],
-                    engine: tempEngine
+                    engine: tempEngine,
+                    error: null
                 };
             }
             return state;
@@ -80,6 +99,10 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
             return createInitialState();
         case 'SET_LOADING':
             return { ...state, isLoading: action.payload };
+        case 'SET_ERROR':
+            return { ...state, error: action.payload };
+        case 'SET_DATA':
+            return { ...state, data: action.payload };
         case 'NOTIFY':
             return { ...state, notification: action.payload };
         case 'CLEAR_NOTIFICATION':
@@ -94,20 +117,49 @@ const SantuarioFlowContext = createContext<{
     go: (target: SantuarioState) => void;
     back: () => void;
     reset: () => void;
+    refreshData: (userId: string) => Promise<void>;
 } | undefined>(undefined);
 
 export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
 
+    const refreshData = async (userId: string) => {
+        if (!userId) return;
+        dispatch({ type: 'SET_LOADING', payload: true });
+        try {
+            const [r, t, v, tx, prods] = await Promise.all([
+                  api.spaces.getRooms(userId),
+                  api.spaces.getTeam(userId),
+                  api.spaces.getVacancies(),
+                  api.spaces.getTransactions(userId),
+                  api.marketplace.listByOwner(userId)
+            ]);
+            
+            dispatch({
+                type: 'SET_DATA',
+                payload: {
+                    rooms: r,
+                    team: t, 
+                    vacancies: v,
+                    transactions: tx,
+                    myProducts: prods
+                }
+            });
+        } catch (e) {
+            console.error('Failed to fetch Santuario data', e);
+            dispatch({ type: 'SET_ERROR', payload: 'Erro ao conectar aos altares.' });
+        } finally {
+            dispatch({ type: 'SET_LOADING', payload: false });
+        }
+    };
+
     const go = (target: SantuarioState) => {
         console.log(`[SantuarioFlow] go('${target}') called. Current: ${state.currentState}`);
         dispatch({ type: 'SET_LOADING', payload: true });
         
-        // Mock Latency
         const delay = isMockMode ? 500 : 0;
         
         setTimeout(() => {
-            // Logic Hooks for Notifications
             if (target === 'FINANCE_REPASSES') {
                 dispatch({ type: 'NOTIFY', payload: { title: 'Lote Processado', message: 'Cálculo de repasses atualizado.', type: 'info' } });
             }
@@ -124,7 +176,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     const reset = () => dispatch({ type: 'RESET' });
 
     return (
-        <SantuarioFlowContext.Provider value={{ state, go, back, reset }}>
+        <SantuarioFlowContext.Provider value={{ state, go, back, reset, refreshData }}>
             {children}
         </SantuarioFlowContext.Provider>
     );
