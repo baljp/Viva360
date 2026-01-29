@@ -112,7 +112,8 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         }
     };
 
-    // Premium Canvas Drawing: 1:1 Instagram Square
+    // Premium Canvas Drawing: 1080x1920 (Story Format) or 1080x1080 (Post)
+    // User requested "Card Format" - let's stick to a rich Portrait Card (Story/Status friendly 9:16 approx)
     useEffect(() => {
         if (step === 4 && result && canvasRef.current) {
             const canvas = canvasRef.current;
@@ -124,160 +125,147 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             userImg.src = result.photoThumb;
 
             userImg.onload = () => {
-                const W = 1080; // IG High Res
-                const H = 1080;
+                const W = 1080; 
+                const H = 1920; // Story Format
                 canvas.width = W;
                 canvas.height = H;
 
                 const styling = MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo'];
                 
-                // --- LAYER 1: BACKGROUND BASE ---
-                const bgGradient = ctx.createLinearGradient(0, 0, W, H);
-                bgGradient.addColorStop(0, '#fdfbf7'); // Off-white paper
-                bgGradient.addColorStop(1, '#f3f4f6');
+                // --- LAYER 1: BACKGROUND (Dark/Premium) ---
+                const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
+                bgGradient.addColorStop(0, '#1a1c20'); 
+                bgGradient.addColorStop(1, '#0f172a');
                 ctx.fillStyle = bgGradient;
                 ctx.fillRect(0, 0, W, H);
 
-                // --- LAYER 2: ELEMENTAL AURA (Soft Glow) ---
+                // --- LAYER 2: Ethereal Glow ---
                 const elementColor = styling.color.includes('rose') ? '#f43f5e' : 
                                      styling.color.includes('cyan') ? '#06b6d4' : 
                                      styling.color.includes('emerald') ? '#10b981' : 
                                      styling.color.includes('indigo') ? '#6366f1' : '#f59e0b';
                 
-                const radGrad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 600);
-                radGrad.addColorStop(0, `${elementColor}15`); // Very faint
+                const radGrad = ctx.createRadialGradient(W/2, H/3, 100, W/2, H/3, 800);
+                radGrad.addColorStop(0, `${elementColor}40`); 
                 radGrad.addColorStop(1, 'transparent');
                 ctx.fillStyle = radGrad;
                 ctx.fillRect(0, 0, W, H);
 
-                // --- LAYER 3: MAIN PHOTO FRAME (POLAROID STYLE WITH GOLD BORDER) ---
-                const pad = 80;
-                const bottomPad = 250; 
-                const photoW = W - (pad * 2);
-                const photoH = H - (pad + bottomPad); // Leave space for text at bottom
+                // --- LAYER 3: FRAME & PHOTO ---
+                const margin = 80;
+                const cardW = W - (margin * 2);
+                const cardH = 1400; 
+                const cardY = 260;
 
-                // Drop Shadow for Frame
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
-                ctx.shadowBlur = 40;
-                ctx.shadowOffsetY = 20;
-                
-                // Photo Background (White Frame)
+                // Card Background (Paper/Texture)
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                ctx.shadowBlur = 60;
+                ctx.shadowOffsetY = 30;
                 ctx.fillStyle = '#ffffff';
-                ctx.roundRect(pad, pad, photoW, photoH, 40);
+                ctx.roundRect(margin, cardY, cardW, cardH, 40);
                 ctx.fill();
 
                 // Reset Shadow
                 ctx.shadowColor = 'transparent';
-                ctx.shadowBlur = 0;
-                ctx.shadowOffsetY = 0;
 
-                // Gold Border Outline
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = '#d4af37'; // Gold
+                // Golden Border
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#d4af37'; 
                 ctx.stroke();
 
-                // --- LAYER 4: THE PHOTO ITSELF ---
-                // Inner Padding for photo
-                const innerPad = 20;
-                const imgX = pad + innerPad;
-                const imgY = pad + innerPad;
-                const imgW = photoW - (innerPad * 2);
-                const imgH = photoH - (innerPad * 2);
+                // Photo Area
+                const photoPad = 30;
+                const photoW = cardW - (photoPad * 2);
+                const photoH = photoW * 1.25; // 4:5 Aspect Ratio
+                const photoX = margin + photoPad;
+                const photoY = cardY + photoPad;
 
                 ctx.save();
                 ctx.beginPath();
-                ctx.roundRect(imgX, imgY, imgW, imgH, 20);
+                ctx.roundRect(photoX, photoY, photoW, photoH, 20);
                 ctx.clip();
-
-                // Draw Image (Cover Fit)
-                const scale = Math.max(imgW / userImg.width, imgH / userImg.height);
-                const x = imgX + (imgW - userImg.width * scale) / 2;
-                const y = imgY + (imgH - userImg.height * scale) / 2;
-                ctx.drawImage(userImg, x, y, userImg.width * scale, userImg.height * scale);
                 
-                // Subtle Overlay on Photo
-                ctx.fillStyle = `${elementColor}20`; // 20% opacity tint
-                ctx.fillRect(imgX, imgY, imgW, imgH);
+                // Draw Image Cover
+                const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
+                const rx = photoX + (photoW - userImg.width * scale) / 2;
+                const ry = photoY + (photoH - userImg.height * scale) / 2;
+                ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
                 
+                // Subtle Overlay
+                ctx.fillStyle = `${elementColor}15`;
+                ctx.fillRect(photoX, photoY, photoW, photoH);
                 ctx.restore();
 
-                // --- LAYER 5: BADGE & ICONS ---
-                // Top Center Badge Overlapping Photo/Frame
-                const badgeY = pad;
-                ctx.shadowColor = 'rgba(0,0,0,0.1)';
-                ctx.shadowBlur = 10;
+                // --- LAYER 4: CONTENT ---
+                const centerX = W / 2;
                 
+                // Mood Badge (Overlapping photo bottom)
+                const badgeY = photoY + photoH;
                 ctx.beginPath();
-                ctx.arc(W/2, badgeY, 40, 0, Math.PI * 2);
+                ctx.arc(centerX, badgeY, 60, 0, Math.PI * 2);
                 ctx.fillStyle = '#ffffff';
                 ctx.fill();
-                
-                // Gold Ring
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = '#d4af37';
-                ctx.stroke();
-
-                // Element Icon Circle
                 ctx.beginPath();
-                ctx.arc(W/2, badgeY, 20, 0, Math.PI * 2);
+                ctx.arc(centerX, badgeY, 55, 0, Math.PI * 2);
                 ctx.fillStyle = elementColor;
                 ctx.fill();
-
-                // --- LAYER 6: TYPOGRAPHY (TEXT AREA) ---
-                const textCenter = W / 2;
-                const textStartY = pad + photoH + 60;
-
-                ctx.shadowColor = 'transparent';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'top';
-
-                // Quote
-                ctx.font = 'italic 500 42px "Times New Roman", serif';
-                ctx.fillStyle = '#1e293b'; // Slate 800
                 
+                // Icon placeholder (Circle) - In real canvas we'd draw SVG paths or an icon image
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 40px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(result.mood[0].toUpperCase(), centerX, badgeY);
+
+                // Text Content
+                const textY = badgeY + 100;
+                
+                // Quote
+                ctx.fillStyle = '#1e293b';
+                ctx.font = 'italic 500 48px "Times New Roman", serif';
                 const words = result.quote.split(' ');
                 let line = '';
-                let lineY = textStartY;
-                const lineHeight = 55;
-                
-                // Simple word wrap
+                let lineY = textY;
+                const lineHeight = 65;
+
                 for(let n = 0; n < words.length; n++) {
                   const testLine = line + words[n] + ' ';
-                  if (ctx.measureText(testLine).width > 800 && n > 0) {
-                    ctx.fillText(line, textCenter, lineY);
+                  if (ctx.measureText(testLine).width > (cardW - 100) && n > 0) {
+                    ctx.fillText(line, centerX, lineY);
                     line = words[n] + ' ';
                     lineY += lineHeight;
                   } else {
                     line = testLine;
                   }
                 }
-                ctx.fillText(line, textCenter, lineY);
+                ctx.fillText(line, centerX, lineY);
 
-                // Footer Info
-                const footerY = H - 60;
-                ctx.font = 'bold 20px sans-serif';
-                ctx.fillStyle = '#94a3b8'; // Slate 400
-                (ctx as any).letterSpacing = '4px';
-
-                const dateStr = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-                
-                ctx.textAlign = 'left';
-                ctx.fillText(dateStr.split('').join(' '), pad, footerY);
-                
-                ctx.textAlign = 'right';
-                ctx.fillText('VIVA360  •  JOURNEY', W - pad, footerY);
-
-                // --- FINAL GOLD FRAME AROUND ENTIRE CARD ---
-                ctx.lineWidth = 20;
-                ctx.strokeStyle = '#ffffff';
-                ctx.strokeRect(0, 0, W, H);
-                
+                // Divider
+                const dividerY = cardY + cardH - 140;
+                ctx.beginPath();
+                ctx.moveTo(centerX - 50, dividerY);
+                ctx.lineTo(centerX + 50, dividerY);
+                ctx.strokeStyle = '#e2e8f0';
                 ctx.lineWidth = 2;
-                ctx.strokeStyle = '#d4af37'; // Gold hairline
-                ctx.strokeRect(20, 20, W-40, H-40);
+                ctx.stroke();
 
-                // Force update the state to show the image if needed, 
-                // but usually we can just let the user see the canvas URL directly.
+                // Date & Branding
+                ctx.font = 'bold 24px sans-serif';
+                ctx.fillStyle = '#94a3b8';
+                (ctx as any).letterSpacing = '4px';
+                
+                const dateStr = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+                ctx.fillText(dateStr, centerX, dividerY + 50);
+                
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillStyle = '#d4af37';
+                ctx.fillText('VIVA360 JORNADA', centerX, dividerY + 90);
+
+                // --- TOP LOGO AREA ---
+                ctx.font = 'bold 60px "Times New Roman", serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.fillText('Card da Alma', centerX, 160);
             };
         }
     }, [step, result]);

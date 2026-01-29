@@ -60,21 +60,88 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     const activeEntry = entries[currentIndex];
 
     // Share Memory Logic
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
     const shareMemory = async () => {
-        if (!activeEntry) return;
-        try {
-            if (navigator.share) {
-                await navigator.share({
-                    title: 'Minha Jornada Viva360',
-                    text: `Minha memória de ${new Date(activeEntry.timestamp).toLocaleDateString()}: "${activeEntry.quote}"`,
-                    url: window.location.href // Simplified
-                });
-            } else {
-                alert('Compartilhamento disponível em dispositivos móveis.');
+        if (!activeEntry || !canvasRef.current) return;
+        
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // Draw Frame on Canvas for Sharing
+        const W = 1080;
+        const H = 1920;
+        canvas.width = W;
+        canvas.height = H;
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.src = activeEntry.photoThumb;
+
+        img.onload = async () => {
+            // Background
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, W, H);
+
+            // Image Cover
+            const scale = Math.max(W / img.width, H / img.height);
+            const x = (W - img.width * scale) / 2;
+            const y = (H - img.height * scale) / 2;
+            ctx.globalAlpha = 0.8;
+            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            ctx.globalAlpha = 1.0;
+
+            // Overlay Text
+            ctx.fillStyle = '#fff';
+            ctx.font = 'italic 500 50px "Times New Roman", serif';
+            ctx.textAlign = 'center';
+            const words = activeEntry.quote.split(' ');
+            let line = '';
+            let lineY = H - 400;
+            
+            for(let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                if (ctx.measureText(testLine).width > 800 && n > 0) {
+                    ctx.fillText(line, W/2, lineY);
+                    line = words[n] + ' ';
+                    lineY += 60;
+                } else {
+                    line = testLine;
+                }
             }
-        } catch (e) {
-            console.error(e);
-        }
+            ctx.fillText(line, W/2, lineY);
+
+            // Watermark
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.fillText(`VIVA360 • ${new Date(activeEntry.timestamp).toLocaleDateString()}`, W/2, H - 100);
+
+            // Export and Share
+            try {
+                const dataUrl = canvas.toDataURL('image/png');
+                const blob = await (await fetch(dataUrl)).blob();
+                const file = new File([blob], 'viva360-memory.png', { type: 'image/png' });
+
+                if (navigator.share) {
+                    await navigator.share({
+                        title: 'Minha Jornada Viva360',
+                        text: `✨ Minha memória cristalizada no Jardim da Alma: "${activeEntry.quote}" #Viva360 #Evolução`,
+                        files: [file]
+                    });
+                } else {
+                    // Fallback download
+                    const link = document.createElement('a');
+                    link.download = `memory-${Date.now()}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                }
+            } catch (e) {
+                console.error("Share failed", e);
+            }
+        };
+        // Trigger load if cached, otherwise handle in onload
+        if (img.complete) img.onload(new Event('load') as any);
     };
 
     if (entries.length === 0) {
@@ -87,6 +154,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
     return (
         <div className="fixed inset-0 z-50 bg-black text-white flex flex-col animate-in fade-in duration-500">
+            <canvas ref={canvasRef} className="hidden" />
             {/* Header / Progress Bars */}
             <div className="absolute top-0 left-0 right-0 z-20 p-4 pt-12 bg-gradient-to-b from-black/80 to-transparent">
                 <div className="flex gap-1 mb-3">

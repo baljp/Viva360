@@ -1,7 +1,33 @@
 
-import fetch from 'node-fetch';
+import fetch, { Response } from 'node-fetch';
 
 const API_URL = 'http://localhost:3000/api';
+
+// Types for Type Safety
+interface UserSession {
+    session: { access_token: string };
+    user: { id: string; role: string; email: string };
+}
+
+interface Appointment {
+    id?: string;
+    professional_id: string;
+    time: string;
+    date: string;
+    service_name: string;
+    price: number;
+}
+
+interface Product {
+    id?: string;
+    name: string;
+    price: number;
+    description: string;
+    category: string;
+    type: string;
+    karmaReward: number;
+    image: string;
+}
 
 // Emails from mockData.service.ts
 const ACTORS = {
@@ -10,7 +36,7 @@ const ACTORS = {
     sanctuary: { email: 'contact@templodaluz.com', password: '123456', token: '', id: '' }
 };
 
-async function step(name: string, fn: () => Promise<any>) {
+async function step<T>(name: string, fn: () => Promise<T>): Promise<T | null> {
     process.stdout.write(`[...] ${name}`);
     try {
         const res = await fn();
@@ -36,13 +62,13 @@ async function login(actorKey: keyof typeof ACTORS) {
         throw new Error(`Login failed for ${actor.email}: ${res.status} ${txt}`);
     }
     
-    const data = await res.json();
+    const data = await res.json() as UserSession;
     actor.token = data.session.access_token;
     actor.id = data.user.id;
     return { role: data.user.role, id: actor.id };
 }
 
-async function authFetch(actorKey: keyof typeof ACTORS, path: string, options: any = {}) {
+async function authFetch<T = any>(actorKey: keyof typeof ACTORS, path: string, options: any = {}): Promise<T> {
     const actor = ACTORS[actorKey];
     const headers = { 
         'Content-Type': 'application/json',
@@ -54,7 +80,7 @@ async function authFetch(actorKey: keyof typeof ACTORS, path: string, options: a
         const txt = await res.text();
         throw new Error(`${res.status} ${txt.substring(0, 100)}`);
     }
-    return res.json();
+    return res.json() as Promise<T>;
 }
 
 async function run() {
@@ -75,9 +101,9 @@ async function run() {
     // 2. SEEKER -> GUARDIAN (Booking)
     console.log("--- 1. BOOKING FLOW (Seeker books Guardian) ---");
     // Marketplace lists services (Sessão Reiki from mock)
-    await step('Seeker lists Services', () => authFetch('seeker', '/marketplace/products?category=service'));
+    await step('Seeker lists Services', () => authFetch<Product[]>('seeker', '/marketplace/products?category=service'));
     
-    const appointmentData = {
+    const appointmentData: Appointment = {
         professional_id: ACTORS.guardian.id, // Current logged in guardian (from Mock Data)
         time: '14:30',
         date: new Date(Date.now() + 86400000).toISOString(),
@@ -85,7 +111,7 @@ async function run() {
         price: 150
     };
 
-    const booking = await step('Seeker creates Appointment', () => authFetch('seeker', '/appointments', {
+    const booking = await step('Seeker creates Appointment', () => authFetch<Appointment>('seeker', '/appointments', {
         method: 'POST',
         body: JSON.stringify(appointmentData)
     }));
@@ -93,7 +119,7 @@ async function run() {
     if (booking) {
         // Guardian checks appointments
         await step('Guardian views Appointments', async () => {
-             const appts = await authFetch('guardian', '/appointments');
+             const appts = await authFetch<Appointment[]>('guardian', '/appointments');
              console.log(`\n    (Guardian sees ${appts.length} appointments)`);
              return appts;
         });
@@ -101,7 +127,7 @@ async function run() {
 
     // 3. GUARDIAN -> BAZAR (Listing)
     console.log("\n--- 2. BAZAR FLOW (Guardian Lists, Seeker checks) ---");
-    const productData = {
+    const productData: Product = {
         name: `Cristal Mestre Mock ${Date.now()}`,
         price: 88,
         description: 'Um cristal poderoso para testes.',
@@ -111,7 +137,7 @@ async function run() {
         image: 'https://via.placeholder.com/150'
     };
 
-    const product = await step('Guardian creates Product', () => authFetch('guardian', '/marketplace/products', {
+    const product = await step('Guardian creates Product', () => authFetch<Product>('guardian', '/marketplace/products', {
         method: 'POST',
         body: JSON.stringify(productData)
     }));
@@ -119,7 +145,7 @@ async function run() {
     // Note: Mock marketplace list is static, so we don't expect to see new one,
     // but the CREATE call should succeed (200/201).
     
-    await step('Seeker lists All Products', () => authFetch('seeker', '/marketplace/products'));
+    await step('Seeker lists All Products', () => authFetch<Product[]>('seeker', '/marketplace/products'));
 
     // 4. SANCTUARY -> GUARDIAN (Team/Recruitment)
     console.log("\n--- 3. SANCTUARY FLOW (Manage Team & Finance) ---");
