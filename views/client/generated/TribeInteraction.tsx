@@ -11,10 +11,21 @@ const ENERGIES = [
     { id: 'love', label: 'Amor', icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50', msg: 'Um abraço de alma para alma. Estamos juntos. ❤️' },
 ];
 
+interface Message {
+    id: number;
+    user: string;
+    avatar: string;
+    text: string;
+    likes?: number;
+    type: 'chat' | 'energy';
+    energy?: string;
+    mine: boolean;
+}
+
 export default function TribeInteraction() {
   const { go, back } = useBuscadorFlow();
   const [selectedEnergy, setSelectedEnergy] = useState<string | null>(null);
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
      { id: 1, user: 'Lucas Paz', avatar: 'bg-indigo-100', text: 'Alguém sentiu a energia do portal de hoje? Foi intenso! ✨', likes: 5, type: 'chat', mine: false },
      { id: 2, user: 'Você', avatar: 'bg-emerald-100', text: 'Sim! A meditação guiada ajudou muito a ancorar.', likes: 0, type: 'chat', mine: true },
      { id: 3, user: 'Ana Luz', avatar: 'bg-rose-100', text: 'Enviou Vitalidade para o grupo.', type: 'energy', energy: 'vitality', mine: false }
