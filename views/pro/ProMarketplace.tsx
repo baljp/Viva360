@@ -36,7 +36,7 @@ export const ProMarketplace: React.FC<{
         onBack={() => go('DASHBOARD')}
         footer={
             activeTab === 'manage' ? (
-                <button onClick={() => setShowAddProduct(true)} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
+                <button onClick={() => go('ESCAMBO_PROPOSE')} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] shadow-xl flex items-center justify-center gap-2 active:scale-95 transition-all">
                     <Plus size={18}/> Novo Produto ou Ritual
                 </button>
             ) : null
@@ -109,7 +109,7 @@ export const ProMarketplace: React.FC<{
 
             {activeTab === 'explore' && (
                 <div className="animate-in fade-in slide-in-from-right-4 duration-500 pb-24">
-                     <MarketplaceExplorer onPurchase={handleBuy} />
+                     <MarketplaceExplorer onPurchase={handleBuy} onTrade={() => go('ESCAMBO_TRADE')} />
                 </div>
             )}
         </div>

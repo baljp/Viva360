@@ -1,64 +1,92 @@
 
-import React from 'react';
-// Buscador Screens
-import { ClientDashboard } from '../../views/client/ClientDashboard';
-import { SettingsViews } from '../../views/SettingsViews';
-import { OracleView } from '../../views/client/OracleView'; 
-import { MetamorphosisWizard } from '../../views/metamorphosis/MetamorphosisWizard'; 
-import { TimeLapseView } from '../../views/metamorphosis/TimeLapseView';
-import { InternalGarden } from '../../views/client/InternalGarden';
-import { TribeView } from '../../views/client/TribeView';
-import { BookingSearch } from '../../views/client/BookingSearch';
-import { BookingSelect } from '../../views/client/BookingSelect';
-import { RitualsView } from '../../views/client/RitualsView';
-// Buscador Generated
-import BookingConfirm from '../../views/client/generated/BookingConfirm';
-import Checkout from '../../views/client/generated/Checkout';
-import PaymentSuccess from '../../views/client/generated/PaymentSuccess';
-import TribeInvite from '../../views/client/generated/TribeInvite';
-import TribeInteraction from '../../views/client/generated/TribeInteraction';
-import ChatListScreen from '../../views/client/chat/ChatListScreen';
-import ChatRoomScreen from '../../views/client/chat/ChatRoomScreen';
-import CheckoutScreen from '../../views/client/financial/CheckoutScreen';
-import PaymentHistoryScreen from '../../views/client/financial/PaymentHistoryScreen';
-import { OrdersListView } from '../../views/ServiceViews';
-import CheckoutSuccessScreen from '../../views/client/generated/BookingConfirm'; // Reusing BookingConfirm as Success/Pseudo-success for now
-import { ClientMarketplace } from '../../views/client/ClientMarketplace';
-import { EvolutionView } from '../../views/client/garden/EvolutionView';
-import { EvolutionAnalytics } from '../../views/client/garden/EvolutionAnalytics';
-import { AchievementsView } from '../../views/client/garden/AchievementsView';
-import { EmotionalHistory } from '../../views/client/garden/EmotionalHistory';
-import { TimeLapseExperience } from '../../views/client/garden/TimeLapseExperience';
+import React, { lazy } from 'react';
 
-// Guardião Screens
-import { ProDashboard } from '../../views/pro/ProDashboard';
-import { ProFinance } from '../../views/pro/ProFinance';
-import { ProTribe } from '../../views/pro/ProTribe';
-import { ProMarketplace } from '../../views/pro/ProMarketplace'; 
-// import { AlquimiaOffersView } from '../../views/pro/AlquimiaOffersView'; // Removed
-import { AlquimiaCreateOffer } from '../../views/pro/AlquimiaCreateOffer';
-import { VideoSessionView } from '../../views/ServiceViews';
-// Guardião Generated
-import AgendaView from '../../views/pro/generated/AgendaView';
-import PatientsList from '../../views/pro/generated/PatientsList';
-import PatientProfile from '../../views/pro/generated/PatientProfile';
-import PatientEvolutionView from '../../views/pro/generated/PatientEvolutionView';
-import VagasList from '../../views/pro/generated/VagasList';
-import ProChatListScreen from '../../views/pro/chat/ProChatListScreen';
-import ProChatRoomScreen from '../../views/pro/chat/ProChatRoomScreen';
-import WalletViewScreen from '../../views/pro/financial/WalletViewScreen';
+// --- HELPER FOR NAMED EXPORTS ---
+// Usage: const Component = lazyNamed(() => import('path'), 'ComponentName');
+const lazyNamed = <T extends React.ComponentType<any>>(
+  importFunc: () => Promise<{ [key: string]: any }>, 
+  componentName: string
+) => {
+  return lazy(() => 
+    importFunc().then(module => ({ default: module[componentName] }))
+  );
+};
 
-// Space Screens
-import { SpaceDashboard } from '../../views/space/SpaceDashboard';
-import { SpaceCalendar } from '../../views/space/SpaceCalendar';
-import { SpaceFinance } from '../../views/space/SpaceFinance';
-import { SpaceMarketplace } from '../../views/space/SpaceMarketplace';
-import { SpaceRecruitment } from '../../views/space/SpaceRecruitment';
-import { SpaceRooms } from '../../views/space/SpaceRooms';
-import { SpaceTeam } from '../../views/space/SpaceTeam';
-// Space Generated
-import SpacePatients from '../../views/space/generated/SpacePatients';
-import SpaceGovernance from '../../views/space/generated/SpaceGovernance';
+// --- BUSCADOR SCREENS ---
+const ClientDashboard = lazyNamed(() => import('../../views/client/ClientDashboard'), 'ClientDashboard');
+const SettingsViews = lazyNamed(() => import('../../views/SettingsViews'), 'SettingsViews');
+const OracleView = lazyNamed(() => import('../../views/client/OracleView'), 'OracleView');
+const MetamorphosisWizard = lazyNamed(() => import('../../views/metamorphosis/MetamorphosisWizard'), 'MetamorphosisWizard');
+const TimeLapseView = lazyNamed(() => import('../../views/metamorphosis/TimeLapseView'), 'TimeLapseView');
+const InternalGarden = lazyNamed(() => import('../../views/client/InternalGarden'), 'InternalGarden');
+const TribeView = lazyNamed(() => import('../../views/client/TribeView'), 'TribeView');
+const BookingSearch = lazyNamed(() => import('../../views/client/BookingSearch'), 'BookingSearch');
+const BookingSelect = lazyNamed(() => import('../../views/client/BookingSelect'), 'BookingSelect');
+const RitualsView = lazyNamed(() => import('../../views/client/RitualsView'), 'RitualsView');
+
+// --- BUSCADOR GENERATED (Default Exports usually) ---
+const BookingConfirm = lazy(() => import('../../views/client/generated/BookingConfirm'));
+const Checkout = lazy(() => import('../../views/client/generated/Checkout'));
+const PaymentSuccess = lazy(() => import('../../views/client/generated/PaymentSuccess'));
+const TribeInvite = lazy(() => import('../../views/client/generated/TribeInvite'));
+const TribeInteraction = lazy(() => import('../../views/client/generated/TribeInteraction'));
+const ChatListScreen = lazy(() => import('../../views/client/chat/ChatListScreen'));
+const ChatRoomScreen = lazy(() => import('../../views/client/chat/ChatRoomScreen'));
+const CheckoutScreen = lazy(() => import('../../views/client/financial/CheckoutScreen'));
+const PaymentHistoryScreen = lazy(() => import('../../views/client/financial/PaymentHistoryScreen'));
+const OrdersListView = lazyNamed(() => import('../../views/ServiceViews'), 'OrdersListView');
+const CheckoutSuccessScreen = lazy(() => import('../../views/client/generated/BookingConfirm')); // Reused
+const ClientMarketplace = lazyNamed(() => import('../../views/client/ClientMarketplace'), 'ClientMarketplace');
+const EvolutionView = lazyNamed(() => import('../../views/client/garden/EvolutionView'), 'EvolutionView');
+const EvolutionAnalytics = lazyNamed(() => import('../../views/client/garden/EvolutionAnalytics'), 'EvolutionAnalytics');
+const KarmaWallet = lazy(() => import('../../views/client/garden/KarmaWallet')); // Default export
+const AchievementsView = lazyNamed(() => import('../../views/client/garden/AchievementsView'), 'AchievementsView');
+const EmotionalHistory = lazyNamed(() => import('../../views/client/garden/EmotionalHistory'), 'EmotionalHistory');
+const TimeLapseExperience = lazyNamed(() => import('../../views/client/garden/TimeLapseExperience'), 'TimeLapseExperience');
+
+// --- GUARDIAO SCREENS ---
+const ProDashboard = lazyNamed(() => import('../../views/pro/ProDashboard'), 'ProDashboard');
+const ProFinance = lazyNamed(() => import('../../views/pro/ProFinance'), 'ProFinance');
+const ProTribe = lazyNamed(() => import('../../views/pro/ProTribe'), 'ProTribe');
+const ProMarketplace = lazyNamed(() => import('../../views/pro/ProMarketplace'), 'ProMarketplace');
+const AlquimiaCreateOffer = lazyNamed(() => import('../../views/pro/AlquimiaCreateOffer'), 'AlquimiaCreateOffer');
+const AlquimiaProposeTrade = lazyNamed(() => import('../../views/pro/AlquimiaProposeTrade'), 'AlquimiaProposeTrade');
+const VideoSessionView = lazyNamed(() => import('../../views/ServiceViews'), 'VideoSessionView');
+
+// --- GUARDIAO GENERATED ---
+const AgendaView = lazy(() => import('../../views/pro/generated/AgendaView'));
+const PatientsList = lazy(() => import('../../views/pro/generated/PatientsList'));
+const PatientProfile = lazy(() => import('../../views/pro/generated/PatientProfile'));
+const PatientEvolutionView = lazy(() => import('../../views/pro/generated/PatientEvolutionView'));
+const VagasList = lazy(() => import('../../views/pro/generated/VagasList'));
+const ProChatListScreen = lazy(() => import('../../views/pro/chat/ProChatListScreen'));
+const ProChatRoomScreen = lazy(() => import('../../views/pro/chat/ProChatRoomScreen'));
+const WalletViewScreen = lazy(() => import('../../views/pro/financial/WalletViewScreen'));
+
+// --- SANTUARIO SCREENS ---
+const SpaceDashboard = lazyNamed(() => import('../../views/space/SpaceDashboard'), 'SpaceDashboard');
+const SpaceCalendar = lazyNamed(() => import('../../views/space/SpaceCalendar'), 'SpaceCalendar');
+const SpaceFinance = lazyNamed(() => import('../../views/space/SpaceFinance'), 'SpaceFinance');
+const SpaceMarketplace = lazyNamed(() => import('../../views/space/SpaceMarketplace'), 'SpaceMarketplace');
+const SpaceRecruitment = lazyNamed(() => import('../../views/space/SpaceRecruitment'), 'SpaceRecruitment');
+const SpaceRooms = lazyNamed(() => import('../../views/space/SpaceRooms'), 'SpaceRooms');
+const SpaceTeam = lazyNamed(() => import('../../views/space/SpaceTeam'), 'SpaceTeam');
+
+// --- SANTUARIO GENERATED ---
+const SpacePatients = lazy(() => import('../../views/space/generated/SpacePatients'));
+const SpaceGovernance = lazy(() => import('../../views/space/generated/SpaceGovernance'));
+const SpaceRoomEdit = lazy(() => import('../../views/space/generated/SpaceRoomEdit'));
+const SpaceRoomAgenda = lazy(() => import('../../views/space/generated/SpaceRoomAgenda'));
+const SpaceRoomCreate = lazy(() => import('../../views/space/generated/SpaceRoomCreate'));
+const SpaceProDetails = lazy(() => import('../../views/space/generated/SpaceProDetails'));
+const SpaceSummon = lazy(() => import('../../views/space/generated/SpaceSummon'));
+const SpaceInvite = lazy(() => import('../../views/space/generated/SpaceInvite'));
+const SpaceEventCreate = lazy(() => import('../../views/space/generated/SpaceEventCreate'));
+const SpaceRetreatsManager = lazy(() => import('../../views/space/generated/SpaceRetreatsManager'));
+const SpaceReputation = lazy(() => import('../../views/space/generated/SpaceReputation'));
+const ServiceEvaluation = lazy(() => import('../../views/space/generated/ServiceEvaluation'));
+const SpaceChatListScreen = lazy(() => import('../../views/space/chat/SpaceChatListScreen'));
+const SpaceChatRoomScreen = lazy(() => import('../../views/space/chat/SpaceChatRoomScreen'));
 
 export const screenMap: any = {
     // BUSCADOR
@@ -79,8 +107,8 @@ export const screenMap: any = {
         TRIBE_INTERACTION: TribeInteraction,
         CHAT_LIST: ChatListScreen,
         CHAT_ROOM: ChatRoomScreen,
-        CHAT_SETTINGS: ChatRoomScreen, // Placeholder
-        CHAT_NEW: ChatListScreen, // Placeholder
+        CHAT_SETTINGS: ChatRoomScreen,
+        CHAT_NEW: ChatListScreen,
         BOOKING_SEARCH: BookingSearch,
         BOOKING_SELECT: BookingSelect,
         BOOKING_CONFIRM: BookingConfirm,
@@ -100,6 +128,7 @@ export const screenMap: any = {
         EVOLUTION_TIMELAPSE: TimeLapseExperience,
         SETTINGS: SettingsViews,
         MARKETPLACE: ClientMarketplace, 
+        KARMA_WALLET: KarmaWallet,
     },
     // GUARDIAO
     GUARDIAO: {
@@ -108,26 +137,28 @@ export const screenMap: any = {
         FINANCE_OVERVIEW: ProFinance,
         AGENDA_VIEW: AgendaView,
         AGENDA_EDIT: AgendaView,
-        AGENDA_CONFIRM: AgendaView, // Reused
+        AGENDA_CONFIRM: AgendaView,
         PATIENTS_LIST: PatientsList,
         PATIENT_PROFILE: PatientProfile,
         VIDEO_SESSION: VideoSessionView,
         PATIENT_RECORDS: PatientEvolutionView, 
+        PATIENT_PLAN: PatientEvolutionView,
         VAGAS_LIST: VagasList,
         VAGA_DETAILS: VagasList,
-        VAGA_APPLY: VagasList, // Reused
+        VAGA_APPLY: VagasList,
         TRIBE_PRO: ProTribe,
-        TRIBE_CHAT: ProChatListScreen, // Entry point
+        TRIBE_CHAT: ProChatListScreen,
         CHAT_LIST: ProChatListScreen,
         CHAT_ROOM: ProChatRoomScreen,
         ESCAMBO_MARKET: ProMarketplace,
         ESCAMBO_PROPOSE: AlquimiaCreateOffer,
+        ESCAMBO_TRADE: AlquimiaProposeTrade,
         ESCAMBO_CONFIRM: ProMarketplace,
-        FINANCE_DETAILS: ProFinance, // Reused
+        FINANCE_DETAILS: ProFinance,
         FINANCIAL_DASHBOARD: WalletViewScreen,
-        SANTUARIO_LIST: ProDashboard, // Placeholder
-        SANTUARIO_PROFILE: ProDashboard, // Placeholder
-        SANTUARIO_CONTRACT: ProDashboard, // Placeholder
+        SANTUARIO_LIST: ProDashboard,
+        SANTUARIO_PROFILE: ProDashboard,
+        SANTUARIO_CONTRACT: ProDashboard,
         SETTINGS: SettingsViews,
     },
     // SANTUARIO
@@ -135,27 +166,35 @@ export const screenMap: any = {
         START: SpaceDashboard,
         EXEC_DASHBOARD: SpaceDashboard,
         PROS_LIST: SpaceTeam,
-        PRO_PROFILE: SpaceTeam,
+        PRO_PROFILE: SpaceProDetails,
         PRO_PERFORMANCE: SpaceTeam,
+        TEAM_SUMMON: SpaceSummon,
+        TEAM_INVITE: SpaceInvite,
         PATIENTS_LIST: SpacePatients,
         PATIENT_PROFILE: SpacePatients,
-        PATIENT_RECORDS: SpacePatients, // Added for coverage
+        PATIENT_RECORDS: SpacePatients,
         AGENDA_OVERVIEW: SpaceCalendar,
         AGENDA_EDIT: SpaceCalendar,
         ROOMS_STATUS: SpaceRooms,
         ROOM_DETAILS: SpaceRooms,
+        ROOM_EDIT: SpaceRoomEdit,
+        ROOM_CREATE: SpaceRoomCreate,
+        ROOM_AGENDA: SpaceRoomAgenda,
         FINANCE_OVERVIEW: SpaceFinance,
         FINANCE_REPASSES: SpaceFinance,
         FINANCE_FORECAST: SpaceFinance,
         MARKETPLACE_MANAGE: SpaceMarketplace,
         MARKETPLACE_CREATE: SpaceMarketplace,
         EVENTS_MANAGE: SpaceDashboard, 
-        EVENT_CREATE: SpaceDashboard, 
+        EVENT_CREATE: SpaceEventCreate, 
+        RETREATS_MANAGE: SpaceRetreatsManager,
         VAGAS_LIST: SpaceRecruitment,
         VAGA_CREATE: SpaceRecruitment,
         VAGA_CANDIDATES: SpaceRecruitment,
         REPUTATION_OVERVIEW: SpaceDashboard,
         ANALYTICS_DASH: SpaceDashboard,
         GOVERNANCE: SpaceGovernance,
+        CHAT_LIST: SpaceChatListScreen,
+        CHAT_ROOM: SpaceChatRoomScreen,
     }
 }

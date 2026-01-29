@@ -68,11 +68,19 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
                                 <p className="text-[9px] font-bold uppercase text-nature-300">60 min</p>
                              </div>
                              <div className="flex-1 border-l border-nature-100 pl-4 bg-nature-50/50 rounded-r-2xl py-2">
-                                <div className="flex justify-between items-start">
+                                 <div className="flex justify-between items-start">
                                     <h4 className="font-bold text-nature-900 text-sm">{app.client}</h4>
                                     <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-lg ${app.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>{app.status}</span>
                                 </div>
-                                <p className="text-[10px] text-nature-500 mt-1 flex items-center gap-1"><Users size={10}/> {app.proName}</p>
+                                <p 
+                                    className="text-[10px] text-nature-500 mt-1 flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        flow.go('PRO_PROFILE');
+                                    }}
+                                >
+                                    <Users size={10}/> {app.proName}
+                                </p>
                                 <p className="text-[10px] text-indigo-500 mt-0.5 flex items-center gap-1 font-bold"><MapPin size={10}/> {app.room}</p>
                              </div>
                         </div>

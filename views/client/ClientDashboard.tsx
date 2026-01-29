@@ -134,7 +134,7 @@ export const ClientDashboard: React.FC<{
                          <Bell size={20}/>
                          {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>}
                      </button>
-                     <div className="px-4 py-2 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100"><Sparkles size={16} className="text-amber-400" /><span className="text-xs font-bold text-nature-900">{user.karma}</span></div>
+                     <div onClick={() => go('KARMA_WALLET')} className="px-4 py-2 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100 cursor-pointer hover:bg-nature-50 transition-colors"><Sparkles size={16} className="text-amber-400" /><span className="text-xs font-bold text-nature-900">{user.karma}</span></div>
                 </div>
             </header>
 
@@ -142,7 +142,7 @@ export const ClientDashboard: React.FC<{
                 {/* JARDIM INTERNO HERO CARD */}
                 <div id="hero-garden" className="relative rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('GARDEN_VIEW')}>
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors z-10"></div>
-                    <img src="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+                    <img src="https://images.unsplash.com/photo-1518173946687-a4c8892415f4?q=80&w=800&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
                     <div className="relative z-20 p-8 h-64 flex flex-col justify-between">
                         <div className="flex justify-between items-start">
                             <div className="bg-white/20 backdrop-blur-md border border-white/30 p-3 rounded-2xl text-white">
@@ -165,7 +165,7 @@ export const ClientDashboard: React.FC<{
                 {/* SESSÃO 1: RITUAIS DE PODER */}
                 <div className="space-y-4">
                     <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
-                        <Sparkles size={14}/> Oráculo Preditivo
+                        <Sparkles size={14}/> Sincronicidade
                     </h4>
                     
                     {/* ORACLE HERO WIDGET */}
@@ -178,7 +178,7 @@ export const ClientDashboard: React.FC<{
                               </div>
                               <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
-                                      <span className="px-2 py-0.5 bg-indigo-500/30 rounded-lg text-[8px] font-bold uppercase tracking-wider border border-indigo-400/30">Algoritmo Ativo</span>
+                                      <span className="px-2 py-0.5 bg-indigo-500/30 rounded-lg text-[8px] font-bold uppercase tracking-wider border border-indigo-400/30">Energia Ativa</span>
                                       <span className="text-[9px] opacity-60">Sincronicidade detectada</span>
                                   </div>
                                   <h3 className="font-serif italic text-2xl leading-tight mb-1">Revelar Mensagem</h3>
@@ -196,10 +196,31 @@ export const ClientDashboard: React.FC<{
                                 title="Rituais" 
                                 subtitle="PRÁTICAS" 
                                 icon={CheckCircle2} 
-                                bgImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=600" 
+                                bgImage="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600" 
                                 onClick={() => go('METAMORPHOSIS_RITUAL')}
                                 delay={200} 
                             />
+                    </div>
+                </div>
+
+                {/* SESSÃO NOVA: JORNADA & EVOLUÇÃO (Moved from Garden) */}
+                <div className="space-y-4">
+                    <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
+                        <History size={14}/> Jornada & Evolução
+                    </h4>
+                    <div className="grid grid-cols-3 gap-3">
+                         <div onClick={() => setActiveModal('camera')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
+                             <div className="w-10 h-10 bg-nature-50 rounded-xl flex items-center justify-center text-nature-600 mb-1"><Zap size={20}/></div>
+                             <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Novo<br/>Registro</span>
+                         </div>
+                         <div onClick={() => go('HISTORY')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
+                             <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-1"><History size={20}/></div>
+                             <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Linha do<br/>Tempo</span>
+                         </div>
+                         <div onClick={() => go('METAMORPHOSIS_CAMERA')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
+                             <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-1"><TrendingUp size={20}/></div>
+                             <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Time<br/>Lapse</span>
+                         </div>
                     </div>
                 </div>
 
@@ -214,7 +235,7 @@ export const ClientDashboard: React.FC<{
                             title="Minha Tribo" 
                             subtitle="COMUNIDADE" 
                             icon={Users} 
-                            bgImage="https://images.unsplash.com/photo-1523580494863-6f3031224c94?q=80&w=600" 
+                            bgImage="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=600" 
                             onClick={() => go('TRIBE_DASH')} 
                             delay={300}
                         />
@@ -223,7 +244,7 @@ export const ClientDashboard: React.FC<{
                             title="Mapa da Cura" 
                             subtitle="EXPLORAR" 
                             icon={Compass} 
-                            bgImage="https://images.unsplash.com/photo-1581591524425-c7e0978865fc?q=80&w=600" 
+                            bgImage="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?q=80&w=600" 
                             onClick={() => go('BOOKING_SEARCH')} 
                             delay={350} 
                         />
@@ -241,7 +262,7 @@ export const ClientDashboard: React.FC<{
                             title="Abundância" 
                             subtitle="MINHAS TROCAS" 
                             icon={Wallet} 
-                            bgImage="https://images.unsplash.com/photo-1560252829-804f1aedf1be?q=80&w=600" 
+                            bgImage="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=600" 
                             onClick={() => go('PAYMENT_HISTORY')} 
                             delay={400} 
                         />
@@ -250,7 +271,7 @@ export const ClientDashboard: React.FC<{
                             title="Bazar Natural" 
                             subtitle="FARMÁCIA DA ALMA" 
                             icon={ShoppingBag} 
-                            bgImage="https://images.unsplash.com/photo-1615486511484-92e172cc4fe0?q=80&w=800" 
+                            bgImage="https://images.unsplash.com/photo-1601314167099-232775b3d6fd?q=80&w=800" 
                             onClick={() => go('MARKETPLACE')} 
                             delay={450} 
                         />

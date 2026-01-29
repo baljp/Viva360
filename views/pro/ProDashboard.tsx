@@ -80,7 +80,7 @@ export const ProDashboard: React.FC<{
             {activeTab === 'consultorio' && (
                 <div className="space-y-6 animate-in slide-in-from-left-4 duration-300">
                     <div id="hero-agenda" className="relative h-72 rounded-[3.5rem] overflow-hidden shadow-xl group cursor-pointer" onClick={() => go('AGENDA_VIEW')}>
-                        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" />
+                        <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" />
                         <div className="absolute inset-0 bg-nature-900/60 transition-colors group-hover:bg-nature-900/40"></div>
                         <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
                             <div className="space-y-2">
@@ -95,7 +95,7 @@ export const ProDashboard: React.FC<{
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
-                        <PortalCard id="portal-patients" title="Meus Pacientes" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
+                        <PortalCard id="portal-patients" title="Meus Pacientes" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
                     </div>
 
 
@@ -122,8 +122,8 @@ export const ProDashboard: React.FC<{
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <PortalCard id="portal-network" title="Rede Viva" subtitle="COMUNIDADE" icon={Zap} bgImage="https://images.unsplash.com/photo-1517960413843-0aee8e2b3285?q=80&w=600" onClick={() => go('TRIBE_PRO')} />
-                        <PortalCard id="portal-finance" title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} />
+                        <PortalCard id="portal-network" title="Rede Viva" subtitle="COMUNIDADE" icon={Zap} bgImage="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=600" onClick={() => go('TRIBE_PRO')} />
+                        <PortalCard id="portal-finance" title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1565514020175-8501da23d5a3?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} />
                     </div>
 
                     <PortalCard 
@@ -131,7 +131,7 @@ export const ProDashboard: React.FC<{
                         title="Alquimia" 
                         subtitle="MEU BAZAR" 
                         icon={ShoppingBag} 
-                        bgImage="https://images.unsplash.com/photo-1472851294608-415105a16863?q=80&w=600" 
+                        bgImage="https://images.unsplash.com/photo-1512418490979-92798cec1380?q=80&w=600" 
                         onClick={() => go('ESCAMBO_MARKET')} 
                     />
 

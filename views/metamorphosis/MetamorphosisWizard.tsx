@@ -131,98 +131,165 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
                 const styling = MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo'];
                 
-                // 1. Background Layer (Premium Paper/Organic Texture)
-                ctx.fillStyle = styling.bg;
+                // --- LAYER 1: BACKGROUND BASE ---
+                const bgGradient = ctx.createLinearGradient(0, 0, W, H);
+                bgGradient.addColorStop(0, '#fdfbf7'); // Off-white paper
+                bgGradient.addColorStop(1, '#f3f4f6');
+                ctx.fillStyle = bgGradient;
                 ctx.fillRect(0, 0, W, H);
+
+                // --- LAYER 2: ELEMENTAL AURA (Soft Glow) ---
+                const elementColor = styling.color.includes('rose') ? '#f43f5e' : 
+                                     styling.color.includes('cyan') ? '#06b6d4' : 
+                                     styling.color.includes('emerald') ? '#10b981' : 
+                                     styling.color.includes('indigo') ? '#6366f1' : '#f59e0b';
                 
-                // 2. Main Photo Rendering (Protagonist)
-                // We center it slightly with a small padding for the premium border effect
+                const radGrad = ctx.createRadialGradient(W/2, H/2, 100, W/2, H/2, 600);
+                radGrad.addColorStop(0, `${elementColor}15`); // Very faint
+                radGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = radGrad;
+                ctx.fillRect(0, 0, W, H);
+
+                // --- LAYER 3: MAIN PHOTO FRAME (POLAROID STYLE WITH GOLD BORDER) ---
                 const pad = 80;
-                const photoSize = W - (pad * 2);
+                const bottomPad = 250; 
+                const photoW = W - (pad * 2);
+                const photoH = H - (pad + bottomPad); // Leave space for text at bottom
+
+                // Drop Shadow for Frame
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.15)';
+                ctx.shadowBlur = 40;
+                ctx.shadowOffsetY = 20;
                 
+                // Photo Background (White Frame)
+                ctx.fillStyle = '#ffffff';
+                ctx.roundRect(pad, pad, photoW, photoH, 40);
+                ctx.fill();
+
+                // Reset Shadow
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetY = 0;
+
+                // Gold Border Outline
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = '#d4af37'; // Gold
+                ctx.stroke();
+
+                // --- LAYER 4: THE PHOTO ITSELF ---
+                // Inner Padding for photo
+                const innerPad = 20;
+                const imgX = pad + innerPad;
+                const imgY = pad + innerPad;
+                const imgW = photoW - (innerPad * 2);
+                const imgH = photoH - (innerPad * 2);
+
                 ctx.save();
-                // Rounded Rectangle Mask for Photo
-                const radius = 60;
                 ctx.beginPath();
-                ctx.moveTo(pad + radius, pad);
-                ctx.lineTo(pad + photoSize - radius, pad);
-                ctx.quadraticCurveTo(pad + photoSize, pad, pad + photoSize, pad + radius);
-                ctx.lineTo(pad + photoSize, pad + photoSize - radius);
-                ctx.quadraticCurveTo(pad + photoSize, pad + photoSize, pad + photoSize - radius, pad + photoSize);
-                ctx.lineTo(pad + radius, pad + photoSize);
-                ctx.quadraticCurveTo(pad, pad + photoSize, pad, pad + photoSize - radius);
-                ctx.lineTo(pad, pad + radius);
-                ctx.quadraticCurveTo(pad, pad, pad + radius, pad);
-                ctx.closePath();
+                ctx.roundRect(imgX, imgY, imgW, imgH, 20);
                 ctx.clip();
 
-                // Draw Image Cover Style
-                const scale = Math.max(photoSize / userImg.width, photoSize / userImg.height);
-                const x = pad + (photoSize / 2) - (userImg.width * scale) / 2;
-                const y = pad + (photoSize / 2) - (userImg.height * scale) / 2;
+                // Draw Image (Cover Fit)
+                const scale = Math.max(imgW / userImg.width, imgH / userImg.height);
+                const x = imgX + (imgW - userImg.width * scale) / 2;
+                const y = imgY + (imgH - userImg.height * scale) / 2;
                 ctx.drawImage(userImg, x, y, userImg.width * scale, userImg.height * scale);
+                
+                // Subtle Overlay on Photo
+                ctx.fillStyle = `${elementColor}20`; // 20% opacity tint
+                ctx.fillRect(imgX, imgY, imgW, imgH);
+                
                 ctx.restore();
 
-                // 3. Elements Overlay (The "Pokémon" symbols)
-                // Top Center Badge
-                ctx.save();
-                ctx.shadowBlur = 30;
+                // --- LAYER 5: BADGE & ICONS ---
+                // Top Center Badge Overlapping Photo/Frame
+                const badgeY = pad;
                 ctx.shadowColor = 'rgba(0,0,0,0.1)';
-                ctx.fillStyle = '#ffffff';
+                ctx.shadowBlur = 10;
+                
                 ctx.beginPath();
-                ctx.arc(W/2, pad, 50, 0, Math.PI * 2);
+                ctx.arc(W/2, badgeY, 40, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
                 ctx.fill();
-                ctx.restore();
                 
-                // 4. Content Block (Frase do Dia)
+                // Gold Ring
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#d4af37';
+                ctx.stroke();
+
+                // Element Icon Circle
+                ctx.beginPath();
+                ctx.arc(W/2, badgeY, 20, 0, Math.PI * 2);
+                ctx.fillStyle = elementColor;
+                ctx.fill();
+
+                // --- LAYER 6: TYPOGRAPHY (TEXT AREA) ---
+                const textCenter = W / 2;
+                const textStartY = pad + photoH + 60;
+
+                ctx.shadowColor = 'transparent';
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                // Phrase
-                ctx.font = 'italic 500 48px serif'; // Mimic Playfair Display
-                ctx.fillStyle = '#1e293b'; 
+                ctx.textBaseline = 'top';
+
+                // Quote
+                ctx.font = 'italic 500 42px "Times New Roman", serif';
+                ctx.fillStyle = '#1e293b'; // Slate 800
                 
                 const words = result.quote.split(' ');
                 let line = '';
-                let lineY = pad + photoSize + 100;
+                let lineY = textStartY;
+                const lineHeight = 55;
                 
+                // Simple word wrap
                 for(let n = 0; n < words.length; n++) {
                   const testLine = line + words[n] + ' ';
                   if (ctx.measureText(testLine).width > 800 && n > 0) {
-                    ctx.fillText(line, W/2, lineY);
+                    ctx.fillText(line, textCenter, lineY);
                     line = words[n] + ' ';
-                    lineY += 60;
+                    lineY += lineHeight;
                   } else {
                     line = testLine;
                   }
                 }
-                ctx.fillText(line, W/2, lineY);
+                ctx.fillText(line, textCenter, lineY);
 
-                // 5. Branding & Timestamp (Premium Watermark)
-                ctx.font = 'bold 24px sans-serif'; 
-                ctx.fillStyle = 'rgba(30, 41, 59, 0.4)';
+                // Footer Info
+                const footerY = H - 60;
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillStyle = '#94a3b8'; // Slate 400
+                (ctx as any).letterSpacing = '4px';
+
+                const dateStr = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
                 
-                const dateText = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-                // Add spaces for tracking effect
-                const spacedDateText = dateText.split('').join('  ');
-                const spacedBrandText = 'V I V A 3 6 0';
-
                 ctx.textAlign = 'left';
-                ctx.fillText(spacedDateText, pad, H - 100);
+                ctx.fillText(dateStr.split('').join(' '), pad, footerY);
                 
                 ctx.textAlign = 'right';
-                ctx.fillText(spacedBrandText, W - pad, H - 100);
+                ctx.fillText('VIVA360  •  JOURNEY', W - pad, footerY);
 
-                // 6. Element Icon on Top Badge (Manual Draw simple shape for speed)
-                ctx.fillStyle = styling.color.replace('text-', '').replace('rose-500', '#f43f5e').replace('cyan-500', '#06b6d4').replace('emerald-500', '#10b981').replace('indigo-500', '#6366f1').replace('amber-500', '#f59e0b');
-                ctx.beginPath();
-                ctx.arc(W/2, pad, 10, 0, Math.PI * 2);
-                ctx.fill();
+                // --- FINAL GOLD FRAME AROUND ENTIRE CARD ---
+                ctx.lineWidth = 20;
+                ctx.strokeStyle = '#ffffff';
+                ctx.strokeRect(0, 0, W, H);
+                
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#d4af37'; // Gold hairline
+                ctx.strokeRect(20, 20, W-40, H-40);
+
+                // Force update the state to show the image if needed, 
+                // but usually we can just let the user see the canvas URL directly.
             };
         }
     }, [step, result]);
 
     const styling = result ? (MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo']) : MOOD_ELEMENTS['Calmo'];
+    
+    // Helper to get Canvas Data URL safely
+    const getPreviewUrl = () => {
+        if (!canvasRef.current) return result?.photoThumb;
+        return canvasRef.current.toDataURL('image/png');
+    };
+
     return (
         <PortalView 
             title="Card da Alma" 
@@ -298,45 +365,20 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 {/* STEP 4: THE SOUL CARD REVEAL */}
                 {step === 4 && result && (
                     <div className="flex-1 flex flex-col items-center animate-in zoom-in duration-1000">
-                        <canvas ref={canvasRef} style={{ display: 'none' }} />
+                        {/* Hidden Canvas - Source of Truth */}
+                        <canvas ref={canvasRef} className="hidden" />
 
-                        {/* Interactive Premium Card UI */}
-                        <div id="soul-card-preview" className={`relative aspect-square w-full max-w-[400px] rounded-[3.5rem] shadow-[20px_20px_60px_-15px_rgba(0,0,0,0.15)] overflow-hidden flex flex-col items-center ${styling.bg} p-6 border border-white/40`}>
-                            {/* Card Content (Mirroring Canvas) */}
-                            <div className="relative w-full aspect-square rounded-[2.5rem] overflow-hidden group shadow-inner">
-                                <img src={result.photoThumb} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105" />
-                                
-                                {/* Top Badge Overlay */}
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white/50 z-20">
-                                   <div className={`w-12 h-12 rounded-full ${styling.bg} flex items-center justify-center ${styling.color}`}>
-                                       {mood && MOODS.find(m => m.id === mood)?.icon && React.createElement(MOODS.find(m => m.id === mood)!.icon, { size: 24 })}
-                                   </div>
-                                </div>
-                                
-                                {/* Aura Light */}
-                                <div className={`absolute inset-0 bg-gradient-to-t ${styling.aura} to-transparent opacity-40 mix-blend-soft-light`}></div>
-                            </div>
-
-                            {/* Text Area */}
-                            <div className="flex-1 flex flex-col items-center justify-center text-center px-4 pt-4">
-                                <p className="text-xl font-serif italic text-nature-900 leading-tight">"{result.quote}"</p>
-                            </div>
-
-                            {/* Footer Wavemark */}
-                            <div className="w-full flex justify-between items-end pb-2 opacity-30 mt-auto">
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] font-black tracking-widest">{new Date().toLocaleDateString('pt-BR').toUpperCase()}</span>
-                                    <span className="text-[8px] font-black tracking-widest">SOUL CARD #128</span>
-                                </div>
-                                <span className="text-[10px] font-black tracking-[0.4em]">VIVA360</span>
-                            </div>
-
-                            {/* Shine Animation Overlay */}
-                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-transparent via-white/10 to-transparent translate-x-[-100%] animate-shine"></div>
+                        {/* LIVE PREVIEW - Uses the canvas data manually to show WYSIWYG */}
+                        <div className="relative w-full max-w-[350px] shadow-2xl rounded-[10px] overflow-hidden border-4 border-white">
+                             {/* We use a state sync or ref sync to show the image here. 
+                                 Since canvas drawing is async in useEffect, we might see a flash. 
+                                 For simplicity, we render the canvas output as an image if available, or just the canvas itself scaled down.
+                             */}
+                             <CanvasPreview canvasRef={canvasRef} trigger={result} />
                         </div>
 
                         {/* Premium Sharing Tray */}
-                        <div className="mt-12 w-full grid grid-cols-2 gap-4 px-4">
+                        <div className="mt-8 w-full grid grid-cols-2 gap-4 px-4">
                             <button onClick={shareCard} className="col-span-2 py-5 bg-nature-900 text-white rounded-[2rem] flex items-center justify-center gap-3 font-bold uppercase text-[10px] tracking-[0.3em] shadow-2xl active:scale-95 transition-all">
                                 <Share2 size={18} /> Viralizar Jornada
                             </button>
@@ -389,3 +431,21 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         </PortalView>
     );
 };
+
+// Sub-component to Handle Live Canvas Preview updates
+const CanvasPreview = ({ canvasRef, trigger }: any) => {
+    const [imgUrl, setImgUrl] = useState<string | null>(null);
+    useEffect(() => {
+        // Poll for canvas changes or wait for the parent to draw
+        const timer = setTimeout(() => {
+            if (canvasRef.current) {
+                setImgUrl(canvasRef.current.toDataURL());
+            }
+        }, 100); // Small delay to allow draw
+        return () => clearTimeout(timer);
+    }, [trigger]);
+
+    if (!imgUrl) return <div className="w-full aspect-square bg-nature-50 animate-pulse flex items-center justify-center text-xs text-nature-300">Renderizando...</div>;
+    return <img src={imgUrl} className="w-full h-full object-contain" />;
+};
+
