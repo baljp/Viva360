@@ -5,6 +5,7 @@ import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBl
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
+import { useClientDashboard } from '../../frontend/src/hooks/useClientDashboard';
 
 export const ClientDashboard: React.FC<{ 
     user: User, 
@@ -12,93 +13,30 @@ export const ClientDashboard: React.FC<{
     updateUser: (u: User) => void,
     data?: any 
 }> = React.memo(({ user, setView, updateUser, data }) => {
-    const { go } = useBuscadorFlow();
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
-    const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
-    const [inviteEmail, setInviteEmail] = useState("");
-    const [showNotifications, setShowNotifications] = useState(false);
-
-    // Mock Notifications
-    const [notifications, setNotifications] = useState([
-        { id: '1', title: 'Hora do Ritual', message: 'O sol nasceu. Hora de despertar.', type: 'ritual', read: false },
-        { id: '2', title: 'Pagamento Recebido', message: 'Sua sessão com Dr. Pedro foi confirmada.', type: 'finance', read: true },
-    ]);
-
-    const handleMarkAsRead = useCallback((id: string) => {
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    }, []);
-
-    const gardenStatus = gardenService.getPlantStatus(user);
-    const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', gardenStatus.status);
-
-    const handleWaterPlant = useCallback(async () => {
-        try {
-            const reward = gardenService.calculateWateringReward(user);
-            const updated = { 
-                ...user, 
-                lastWateredAt: new Date().toISOString(),
-                plantXp: (user.plantXp || 0) + reward.xp,
-                plantHealth: Math.min(100, (user.plantHealth || 0) + 10)
-            };
-            
-            updateUser(updated);
-            setToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
-            await api.users.update(updated as User);
-        } catch (e) {
-            console.error("Water Plant Error", e);
-            setToast({ title: "Erro na conexão", message: "Sua intenção foi registrada no éter." });
-        }
-    }, [user, updateUser]);
-
-    const handleDailyCheckIn = useCallback(async (reward: number) => {
-          const res = await api.users.checkIn(user.id, reward);
-          if (res && res.user) {
-              updateUser(res.user as User);
-              setToast({ title: "Sincronizado", message: `+${res.reward} Karma recebido.` });
-          }
-    }, [user, updateUser]);
-
-    const handleCapture = useCallback(async (image: string) => {
-          const newSnap: DailyRitualSnap = {
-              id: Date.now().toString(),
-              date: new Date().toISOString(),
-              image,
-              mood: 'SERENO', 
-              note: 'Registro de Metamorfose'
-          };
-          const updatedUser = { ...user, snaps: [newSnap, ...(user.snaps || [])] };
-          const res = await api.users.update(updatedUser);
-          updateUser(res);
-          setActiveModal(null);
-          setToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada." });
-    }, [user, updateUser]);
-
-    const handleInvite = useCallback(() => {
-        if (!inviteEmail) return;
-        setToast({ title: "Convite Enviado", message: `Chamado enviado para ${inviteEmail}` });
-        setInviteEmail("");
-        setActiveModal(null);
-    }, [inviteEmail]);
+    const { state, actions } = useClientDashboard(user, updateUser, setView);
+    const { go } = actions;
+    // Destructure state for easier access in JSX
+    const { toast, activeModal, inviteEmail, showNotifications, notifications, gardenStatus, plantVisuals } = state;
 
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-24">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+            {toast && <ZenToast toast={toast} onClose={() => actions.setToast(null)} />}
             <NotificationDrawer 
                 isOpen={showNotifications} 
-                onClose={() => setShowNotifications(false)} 
+                onClose={() => actions.setShowNotifications(false)} 
                 notifications={notifications as any} 
-                onMarkAsRead={handleMarkAsRead} 
+                onMarkAsRead={actions.handleMarkAsRead} 
                 onMarkAllRead={() => {}} 
             />
             
             {/* MODAIS */}
-            <BottomSheet isOpen={activeModal === 'camera'} onClose={() => setActiveModal(null)} title="Novo Registro">
+            <BottomSheet isOpen={activeModal === 'camera'} onClose={() => actions.setActiveModal(null)} title="Novo Registro">
                  <div className="h-[60vh] -mx-4">
-                     <CameraWidget onCapture={handleCapture} />
+                     <CameraWidget onCapture={actions.handleCapture} />
                  </div>
             </BottomSheet>
 
-            <BottomSheet isOpen={activeModal === 'invite'} onClose={() => setActiveModal(null)} title="Convidar para Tribo">
+            <BottomSheet isOpen={activeModal === 'invite'} onClose={() => actions.setActiveModal(null)} title="Convidar para Tribo">
                  <div className="space-y-6 pb-20">
                      <div className="text-center space-y-4">
                          <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-500"><Users size={40}/></div>
@@ -108,16 +46,16 @@ export const ClientDashboard: React.FC<{
                          <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">E-mail do Convidado</label>
                          <input 
                             value={inviteEmail} 
-                            onChange={e => setInviteEmail(e.target.value)} 
+                            onChange={e => actions.setInviteEmail(e.target.value)} 
                             placeholder="nome@email.com" 
                             className="w-full bg-nature-50 border border-nature-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100"
                          />
                      </div>
-                     <button onClick={handleInvite} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Enviar Chamado</button>
+                     <button onClick={actions.handleInvite} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Enviar Chamado</button>
                  </div>
             </BottomSheet>
 
-            <DailyBlessing user={user} onCheckIn={handleDailyCheckIn} />
+            <DailyBlessing user={user} onCheckIn={actions.handleDailyCheckIn} />
             
             <header className="flex items-center justify-between mt-8 mb-6 px-6 flex-none relative overflow-hidden">
 
@@ -130,7 +68,7 @@ export const ClientDashboard: React.FC<{
                 </div>
                 <div className="flex items-center gap-3">
                      <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><MessageCircle size={20}/></button>
-                     <button onClick={() => setShowNotifications(true)} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all relative">
+                     <button onClick={() => actions.setShowNotifications(true)} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all relative">
                          <Bell size={20}/>
                          {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>}
                      </button>
@@ -154,7 +92,7 @@ export const ClientDashboard: React.FC<{
                               <div className="flex justify-between items-end mb-2">
                                  <h3 className="text-3xl font-serif italic text-white drop-shadow-md">Semente da Essência</h3>
                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); handleWaterPlant(); }}
+                                    onClick={(e) => { e.stopPropagation(); actions.handleWaterPlant(); }}
                                     className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg"
                                     title="Regar Agora"
                                  >

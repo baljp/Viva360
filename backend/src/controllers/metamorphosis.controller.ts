@@ -48,6 +48,7 @@ export const getEvolution = asyncHandler(async (req: Request, res: Response) => 
     if (isMockMode()) {
         const userHistory = METAMORPHOSIS_DB[userId] || [];
         return res.json({
+            entries: userHistory,
             totalEntries: userHistory.length,
             lastMood: userHistory[userHistory.length-1]?.mood || 'Neutral',
             streak: 3, 
