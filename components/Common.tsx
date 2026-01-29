@@ -417,24 +417,35 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string, type?
 export const PortalView: React.FC<{ 
     title: string, 
     subtitle: string, 
-    onBack: () => void, 
+    onBack?: () => void, 
+    onClose?: () => void,
     children: React.ReactNode, 
     footer?: React.ReactNode,
     headerRight?: React.ReactNode,
     heroImage?: string
-}> = ({ title, subtitle, onBack, children, footer, headerRight, heroImage }) => (
+}> = ({ title, subtitle, onBack, onClose, children, footer, headerRight, heroImage }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-[100vw]">
         <header className={`flex-none flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 z-20 transition-colors ${heroImage ? 'bg-transparent text-white fixed top-0 w-full' : 'bg-white border-b border-nature-100 shadow-sm relative'}`}>
             <div className="flex items-center gap-4">
-                <button onClick={onBack} className={`p-3 rounded-2xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
-                    <ChevronRight className="rotate-180" size={22} />
-                </button>
+                {onBack && (
+                    <button onClick={onBack} className={`p-3 rounded-2xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
+                        <ChevronRight className="rotate-180" size={22} />
+                    </button>
+                )}
                 <div className="space-y-0.5">
                     <h2 className={`text-xl font-serif italic leading-none ${heroImage ? 'text-white drop-shadow-md' : 'text-nature-900'}`}>{title}</h2>
                     <p className={`text-[10px] uppercase tracking-[0.3em] font-bold ${heroImage ? 'text-white/80 drop-shadow-sm' : 'text-nature-400'}`}>{subtitle}</p>
                 </div>
             </div>
-            {headerRight}
+            
+            <div className="flex items-center gap-2">
+                {headerRight}
+                {onClose && (
+                    <button onClick={onClose} className={`p-3 rounded-2xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
+                        <X size={22} />
+                    </button>
+                )}
+            </div>
         </header>
         
         <div className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] overscroll-contain relative">

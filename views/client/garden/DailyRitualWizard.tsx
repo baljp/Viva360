@@ -20,7 +20,7 @@ const MOODS: { id: MoodType; label: string; icon: string; color: string }[] = [
     { id: 'GRATO', label: 'Grato', icon: '💚', color: 'bg-rose-100 text-rose-600' },
     { id: 'MELANCÓLICO', label: 'Triste', icon: '😔', color: 'bg-blue-100 text-blue-600' },
     { id: 'EXAUSTO', label: 'Cansado', icon: '😴', color: 'bg-purple-100 text-purple-600' },
-    { id: 'MELANCÓLICO', label: 'Ansioso', icon: '🌧', color: 'bg-gray-100 text-gray-600' }, // Mapping 'Ansioso' to MELANCOLICO for now, or could add new type
+    { id: 'ANSIOSO', label: 'Ansioso', icon: '🌧', color: 'bg-gray-100 text-gray-600' },
 ];
 
 export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onComplete, onClose }) => {
@@ -54,6 +54,171 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
         setStep('SHARE');
     };
 
+    // Canvas Logic for Sharing (Moved to top level)
+    const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+    // Map local moods to premium elemental styles (borrowed from Metamorphosis)
+    const getCanvasStyle = (currentMood: MoodType) => {
+        // Default style
+        let style = { element: 'Água', bg: '#f0f9ff', color: '#06b6d4' }; 
+        
+        if (currentMood === 'VIBRANTE') style = { element: 'Fogo', bg: '#fffbeb', color: '#f59e0b' }; // Amber
+        if (currentMood === 'FOCADO') style = { element: 'Fogo', bg: '#fff1f2', color: '#f43f5e' }; // Rose
+        if (currentMood === 'GRATO') style = { element: 'Terra', bg: '#f0fdf4', color: '#10b981' }; // Emerald
+        if (currentMood === 'EXAUSTO') style = { element: 'Terra', bg: '#f8fafc', color: '#64748b' }; // Slate
+        if (currentMood === 'ANSIOSO') style = { element: 'Água', bg: '#eff6ff', color: '#3b82f6' }; // Blue - Mapped ANSIOSO
+        if (currentMood === 'MELANCÓLICO') style = { element: 'Água', bg: '#eff6ff', color: '#3b82f6' }; // Blue
+        
+        return style;
+    };
+
+    const downloadCard = () => {
+        if (!canvasRef.current) return;
+        const link = document.createElement('a');
+        link.download = `viva360-ritual-${Date.now()}.png`;
+        link.href = canvasRef.current.toDataURL('image/png', 1.0);
+        link.click();
+    };
+
+    const shareCard = async () => {
+        if (!canvasRef.current) return;
+        try {
+            const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
+            const blob = await (await fetch(dataUrl)).blob();
+            const file = new File([blob], 'viva360-ritual.png', { type: 'image/png' });
+            
+            if (navigator.share) {
+                await navigator.share({
+                    title: 'Meu Ritual Diário • Viva360',
+                    text: `Hoje estou vibrando em ${data.mood}: "${data.intention}"`,
+                    files: [file]
+                });
+            } else {
+                downloadCard();
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+            downloadCard();
+        }
+    };
+
+    // Draw Canvas when entering Share step
+    React.useEffect(() => {
+        if ((step === 'CARD' || step === 'SHARE') && data.image && canvasRef.current) {
+            const canvas = canvasRef.current;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
+
+            const userImg = new Image();
+            userImg.crossOrigin = "anonymous";
+            userImg.src = data.image;
+
+            userImg.onload = () => {
+                const W = 1080;
+                const H = 1080;
+                canvas.width = W;
+                canvas.height = H;
+
+                const style = getCanvasStyle(data.mood);
+
+                // 1. Background
+                ctx.fillStyle = style.bg;
+                ctx.fillRect(0, 0, W, H);
+
+                // 2. Photo (Rounded Rect)
+                const pad = 80;
+                const photoSize = W - (pad * 2);
+                
+                ctx.save();
+                const radius = 60;
+                ctx.beginPath();
+                ctx.moveTo(pad + radius, pad);
+                ctx.lineTo(pad + photoSize - radius, pad);
+                ctx.quadraticCurveTo(pad + photoSize, pad, pad + photoSize, pad + radius);
+                ctx.lineTo(pad + photoSize, pad + photoSize - radius);
+                ctx.quadraticCurveTo(pad + photoSize, pad + photoSize, pad + photoSize - radius, pad + photoSize);
+                ctx.lineTo(pad + radius, pad + photoSize);
+                ctx.quadraticCurveTo(pad, pad + photoSize, pad, pad + photoSize - radius);
+                ctx.lineTo(pad, pad + radius);
+                ctx.quadraticCurveTo(pad, pad, pad + radius, pad);
+                ctx.closePath();
+                ctx.clip();
+
+                const scale = Math.max(photoSize / userImg.width, photoSize / userImg.height);
+                const x = pad + (photoSize / 2) - (userImg.width * scale) / 2;
+                const y = pad + (photoSize / 2) - (userImg.height * scale) / 2;
+                ctx.drawImage(userImg, x, y, userImg.width * scale, userImg.height * scale);
+                ctx.restore();
+
+                // 3. Badge
+                ctx.save();
+                ctx.shadowBlur = 30;
+                ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(W/2, pad, 50, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // 4. Element Icon (Simple Colored Dot for now to match)
+                ctx.fillStyle = style.color;
+                ctx.beginPath();
+                ctx.arc(W/2, pad, 15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 5. Text Content
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                // Intention/Quote
+                ctx.font = 'italic 500 48px serif';
+                ctx.fillStyle = '#1e293b'; 
+                
+                const text = data.intention || "Respire. Sinta. Agradeça.";
+                const words = text.split(' ');
+                let line = '';
+                let lineY = pad + photoSize + 100;
+                
+                for(let n = 0; n < words.length; n++) {
+                  const testLine = line + words[n] + ' ';
+                  if (ctx.measureText(testLine).width > 800 && n > 0) {
+                    ctx.fillText(line, W/2, lineY);
+                    line = words[n] + ' ';
+                    lineY += 60;
+                  } else {
+                    line = testLine;
+                  }
+                }
+                ctx.fillText(line, W/2, lineY);
+
+                // 6. Watermark
+                ctx.font = 'bold 24px sans-serif'; 
+                ctx.fillStyle = 'rgba(30, 41, 59, 0.4)';
+                
+                const dateText = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+                const spacedDate = dateText.split('').join('  ');
+                const spacedBrand = 'V I V A 3 6 0';
+
+                ctx.textAlign = 'left';
+                ctx.fillText(spacedDate, pad, H - 100);
+                
+                ctx.textAlign = 'right';
+                ctx.fillText(spacedBrand, W - pad, H - 100);
+            };
+        }
+    }, [step, data.image]);
+
+    // Cleanup redundant declaration from previous edit if any - this replacement covers lines 51-55 and moves the logic here
+    // But wait, replace_file_content replaces constraints. I have to target the top area to INSERT, and then delete the bottom.
+    // This tool call targets 51-55 to insert. I need another tool call to delete the bottom part.
+    // Or I can use multi_replace? NO, I should use replace_file_content carefully.
+    
+    // I will replace lines 51-55 with the block above.
+    // AND I need to clean up the bottom block in another step or rely on the user to ignore it (bad).
+    // I'll make this step ONLY insert at the top.
+    
+    // Actually, I can use multi_replace to do both at once!
+
     const handleNurtureStart = async () => {
         setStep('NURTURE');
          // Calculate rewards
@@ -67,6 +232,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
              mood: data.mood,
              note: data.intention // Storing intention as note
          };
+
+         console.log("Saving Snap to Soul Garden Time-Lapse:", newSnap); // Debug Log
 
          // Update User
          const updatedUser: User = {
@@ -147,8 +314,11 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
             <div className="fixed inset-0 z-[100] bg-black flex flex-col">
                 <div className="flex-1 relative">
                     <CameraWidget onCapture={handleCapture} />
-                     <div className="absolute top-8 left-8 z-20">
+                    <div className="absolute top-8 left-8 z-20">
                         <button onClick={() => setStep('MOOD')} className="bg-black/20 backdrop-blur-md p-3 rounded-full text-white"><ArrowRight className="rotate-180" size={20}/></button>
+                    </div>
+                    <div className="absolute top-8 right-8 z-20">
+                        <button onClick={onClose} className="bg-black/20 backdrop-blur-md p-3 rounded-full text-white"><X size={20}/></button>
                     </div>
                 </div>
                  <div className="bg-black p-8 text-center space-y-2 pb-12">
@@ -163,6 +333,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
         return (
              <div className="fixed inset-0 z-[100] bg-nature-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right">
                  <button onClick={() => setStep('CAPTURE')} className="mb-6 bg-white p-3 rounded-full w-min shadow-sm"><ArrowRight className="rotate-180 text-nature-900" size={20}/></button>
+                 <button onClick={onClose} className="absolute top-8 right-8 bg-white p-3 rounded-full shadow-sm text-nature-400"><X size={20}/></button>
                  <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Qual pequena ação hoje pode tornar seu dia melhor?</h2>
                  <textarea 
                     value={data.intention}
@@ -190,6 +361,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
         return (
              <div className="fixed inset-0 z-[100] bg-emerald-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right">
                  <button onClick={() => setStep('INTENTION')} className="mb-6 bg-white p-3 rounded-full w-min shadow-sm"><ArrowRight className="rotate-180 text-nature-900" size={20}/></button>
+                 <button onClick={onClose} className="absolute top-8 right-8 bg-white p-3 rounded-full shadow-sm text-emerald-600"><X size={20}/></button>
                  <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Pelo que você é grato agora?</h2>
                  <p className="text-nature-400 text-sm mb-6">A gratidão reprograma nossa vibração.</p>
                  <textarea 
@@ -207,6 +379,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
         );
     }
 
+
+
     if (step === 'CARD' || step === 'SHARE') {
         const snapStub: DailyRitualSnap = { 
             id: 'temp', 
@@ -218,6 +392,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
 
         return (
             <div className="fixed inset-0 z-[100] bg-nature-900 flex flex-col items-center justify-center p-8 animate-in zoom-in-95 duration-500">
+                <button onClick={onClose} className="absolute top-8 right-8 bg-white/10 p-3 rounded-full text-white"><X size={20}/></button>
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
                 <div className="w-full max-w-sm relative">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-12 text-white/50 text-xs font-bold uppercase tracking-[0.3em] whitespace-nowrap">Sua Essência de Hoje</div>
                     <SoulCard snap={snapStub} className="shadow-2xl skew-y-1 mb-8" />
@@ -229,8 +405,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
                     ) : (
                         <div className="space-y-3 animate-in slide-in-from-bottom fade-in duration-500">
                              <div className="grid grid-cols-2 gap-3">
-                                <button className="py-4 bg-pink-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2"><Instagram size={20}/> Stories</button>
-                                <button className="py-4 bg-white/10 text-white border border-white/20 rounded-2xl font-bold flex items-center justify-center gap-2"><Download size={20}/> Salvar</button>
+                                <button onClick={shareCard} className="py-4 bg-pink-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"><Instagram size={20}/> Stories</button>
+                                <button onClick={downloadCard} className="py-4 bg-white/10 text-white border border-white/20 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all"><Download size={20}/> Salvar</button>
                              </div>
                              <button onClick={handleNurtureStart} className="w-full py-5 bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-widest shadow-xl hover:bg-emerald-400 active:scale-95 transition-all flex items-center justify-center gap-2">
                                 <Droplet size={18} className="fill-white" /> Nutrir Jardim da Alma
