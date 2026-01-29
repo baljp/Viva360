@@ -4,17 +4,27 @@ import { ViewState, Appointment, Professional, User } from '../types';
 import { Video, Mic, MicOff, VideoOff, X, FileText, User as UserIcon, Clock, ChevronLeft, Heart, Sparkles, MessageSquare, ShieldCheck, Share2, Wind, Ticket, History, Calendar as CalendarIcon, Tag, Wallet, Timer, ArrowUpRight, PlayCircle } from 'lucide-react';
 import { api } from '../services/api';
 import { DynamicAvatar, OrganicSkeleton, Card, PortalView } from '../components/Common';
+import { useGuardiaoFlow } from '../src/flow/GuardiaoFlowContext'; 
 
 // Fix: Added missing VideoSessionView component for tele-health ritual sessions
-export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void }> = ({ appointment, onEnd }) => {
+export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void, flow?: any }> = ({ appointment, onEnd, flow }) => {
+  let contextApt = null;
+  try {
+      const guardiaoFlow = (useGuardiaoFlow as any)();
+      contextApt = guardiaoFlow?.state?.selectedAppointment;
+  } catch (e) {
+      // Not in Guardiao flow, ignore
+  }
+  
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
 
   // Mock Data if appointment is missing
   // Mock Data if appointment is missing (Logic for when accessed via go('VIDEO_SESSION') without props)
-  const activeAppointment = appointment || {
+  const activeAppointment: any = appointment || contextApt || flow?.state?.selectedAppointment || {
      serviceName: 'Sessão de Cura (Mock)',
+     clientName: 'Buscador de Luz',
      professionalName: 'Guardião da Luz',
      date: new Date().toISOString(),
      startTime: new Date().toISOString(), 
@@ -52,7 +62,7 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
              alt="Stream"
            />
            <div className="absolute bottom-6 left-6 flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
-              <span className="text-xs font-bold text-white">{appointment.professionalName || 'Guardião'}</span>
+              <span className="text-xs font-bold text-white">{activeAppointment.professionalName || 'Guardião'}</span>
            </div>
         </div>
 

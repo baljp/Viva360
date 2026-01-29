@@ -280,6 +280,17 @@ export const MockDB = {
         const all = MockDB._get<Record<string, any>>(STORAGE_KEYS.ORACLE_DRAWS, {});
         return all[key] || null;
     },
+    getOracleHistory: (userId: string) => {
+        const all = MockDB._get<Record<string, any>>(STORAGE_KEYS.ORACLE_DRAWS, {});
+        // Filter keys that start with userId
+        return Object.keys(all)
+            .filter(key => key.startsWith(userId))
+            .map(key => ({
+                date: key.split('_')[1],
+                card: all[key]
+            }))
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    },
 
     // Chat
     getChatRooms: (userId: string) => MockDB._get<ChatRoom[]>(STORAGE_KEYS.CHAT_ROOMS, SEED_CHAT_ROOMS).filter(r => r.participants.some(p => p.id === userId)),

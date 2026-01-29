@@ -31,6 +31,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const [isProcessing, setIsProcessing] = useState(false);
     const [cardPhrase, setCardPhrase] = useState('');
     const [isDrawing, setIsDrawing] = useState(false); // Lock share until ready
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     // Step 1: Mood Selection
@@ -273,6 +274,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 ctx.textAlign = 'center';
                 ctx.fillText('Card da Alma', centerX, 160);
 
+                setPreviewUrl(canvas.toDataURL('image/png'));
                 setIsDrawing(false);
             };
         }
@@ -365,12 +367,15 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                         <canvas ref={canvasRef} className="hidden" />
 
                         {/* LIVE PREVIEW - Uses the canvas data manually to show WYSIWYG */}
-                        <div className="relative w-full max-w-[350px] shadow-2xl rounded-[10px] overflow-hidden border-4 border-white">
-                             {/* We use a state sync or ref sync to show the image here. 
-                                 Since canvas drawing is async in useEffect, we might see a flash. 
-                                 For simplicity, we render the canvas output as an image if available, or just the canvas itself scaled down.
-                             */}
-                             <CanvasPreview canvasRef={canvasRef} trigger={result} />
+                        <div className="relative w-full max-w-[350px] shadow-2xl rounded-[10px] overflow-hidden border-4 border-white aspect-[9/16] bg-nature-50">
+                             {previewUrl ? (
+                                 <img src={previewUrl} className="w-full h-full object-contain animate-in fade-in duration-500" alt="Soul Card Preview" />
+                             ) : (
+                                 <div className="flex flex-col items-center justify-center h-full gap-4">
+                                     <Sparkles size={32} className="text-amber-400 animate-spin" />
+                                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Cristalizando...</p>
+                                 </div>
+                             )}
                         </div>
 
                         {/* Premium Sharing Tray */}
@@ -433,20 +438,5 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     );
 };
 
-// Sub-component to Handle Live Canvas Preview updates
-const CanvasPreview = ({ canvasRef, trigger }: any) => {
-    const [imgUrl, setImgUrl] = useState<string | null>(null);
-    useEffect(() => {
-        // Poll for canvas changes or wait for the parent to draw
-        const timer = setTimeout(() => {
-            if (canvasRef.current) {
-                setImgUrl(canvasRef.current.toDataURL());
-            }
-        }, 100); // Small delay to allow draw
-        return () => clearTimeout(timer);
-    }, [trigger]);
 
-    if (!imgUrl) return <div className="w-full aspect-square bg-nature-50 animate-pulse flex items-center justify-center text-xs text-nature-300">Renderizando...</div>;
-    return <img src={imgUrl} className="w-full h-full object-contain" />;
-};
 

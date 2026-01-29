@@ -14,13 +14,17 @@ export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
 
     React.useEffect(() => {
         api.metamorphosis.getEvolution().then(res => {
-            // Map legacy photoThumb to image if necessary for SoulCard compatibility
-            const mapped = res.entries.map((e: any) => ({
+            const entries = res.entries || [];
+            // Map common fields and ensure valid dates
+            const mapped = entries.map((e: any) => ({
                 ...e,
-                image: e.image || e.photoThumb,
-                date: e.timestamp || e.date
+                image: e.image || e.photoThumb || '',
+                date: e.timestamp || e.date || new Date().toISOString()
             }));
             setSnaps(mapped);
+            setIsLoading(false);
+        }).catch(err => {
+            console.error("Evolution History Error:", err);
             setIsLoading(false);
         });
     }, []);
@@ -46,8 +50,9 @@ export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
                     <div className="space-y-10 relative z-10">
                         {snaps.slice().reverse().map((snap, idx) => {
                             const date = new Date(snap.date);
-                            const day = date.getDate();
-                            const month = date.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase();
+                            const isValid = !isNaN(date.getTime());
+                            const day = isValid ? date.getDate() : '--';
+                            const month = isValid ? date.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase() : '---';
                             
                             return (
                                 <div key={snap.id} className="flex gap-6 group">
