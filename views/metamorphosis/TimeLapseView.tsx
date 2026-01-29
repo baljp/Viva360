@@ -14,15 +14,36 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     // Load Data
     useEffect(() => {
         api.metamorphosis.getEvolution().then(data => {
-            setEntries(data.entries);
+            // Sort by date to be sure
+            const sorted = [...data.entries].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            setEntries(sorted);
         });
     }, []);
 
-    // Story Logic
+    // STORYTELLING ENGINE
+    const getStorytellingText = (index: number, total: number, mood: string) => {
+        const progress = index / total;
+        if (index === 0) return "O início do despertar...";
+        if (index === total - 1) return "A metamorfose continua.";
+        
+        const narratives: Record<string, string[]> = {
+            'Sereno': ['Encontrando o centro.', 'Paz na jornada.', 'Equilíbrio interior.'],
+            'Vibrante': ['A energia flui.', 'Criação em expansão.', 'A luz que brilha.'],
+            'Melancólico': ['Ocupando o silêncio.', 'Acolhendo as sombras.', 'Profundidade da alma.'],
+            'Expansivo': ['Rompendo fronteiras.', 'Semeando intenções.', 'Crescimento sem limites.']
+        };
+        
+        const options = narratives[mood] || narratives['Sereno'];
+        return options[index % options.length];
+    };
+
+    // Story Logic (Optimized for 25s total)
     useEffect(() => {
         if (!entries.length || !isPlaying) return;
 
-        const DURATION = 3000; // 3s per slide
+        const TOTAL_STORY_DURATION = 25000; // 25s for Instagram/WhatsApp
+        // Calculate duration per slide to fit total goal
+        const SLIDE_DURATION = Math.max(500, TOTAL_STORY_DURATION / entries.length); 
         const TICK = 50;
         
         progressInterval.current = setInterval(() => {
@@ -36,7 +57,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                         return 100;
                     }
                 }
-                return prev + (100 / (DURATION / TICK));
+                return prev + (100 / (SLIDE_DURATION / TICK));
             });
         }, TICK);
 
@@ -111,6 +132,12 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                 }
             }
             ctx.fillText(line, W/2, lineY);
+
+            // Narrative Overlay (Storytelling)
+            const narrative = getStorytellingText(currentIndex, entries.length, activeEntry.mood);
+            ctx.fillStyle = '#fbbf24'; // Amber-400
+            ctx.font = 'bold 30px sans-serif';
+            ctx.fillText(narrative.toUpperCase(), W/2, lineY - 120);
 
             // Watermark
             ctx.font = 'bold 24px sans-serif';
@@ -204,6 +231,9 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
                 {/* Content Overlay */}
                 <div className="absolute bottom-0 inset-x-0 p-8 pt-32 bg-gradient-to-t from-black via-black/50 to-transparent z-10 pointer-events-none">
+                     <p className="text-amber-200 text-[10px] font-bold uppercase tracking-[0.4em] mb-3 animate-pulse">
+                         {getStorytellingText(currentIndex, entries.length, activeEntry.mood)}
+                     </p>
                      <h2 className="text-3xl font-serif italic mb-4 leading-relaxed">"{activeEntry.quote}"</h2>
                      <div className="flex items-center gap-2 mb-8">
                          <span className="px-3 py-1 bg-white/20 backdrop-blur rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10">{activeEntry.mood}</span>

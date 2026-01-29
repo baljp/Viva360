@@ -125,7 +125,7 @@ export const screenMap: any = {
         EVOLUTION_ANALYTICS: EvolutionAnalytics,
         EVOLUTION_ACHIEVEMENTS: AchievementsView,
         EVOLUTION_HISTORY: EmotionalHistory,
-        EVOLUTION_TIMELAPSE: TimeLapseExperience,
+        EVOLUTION_TIMELAPSE: TimeLapseView,
         SETTINGS: SettingsViews,
         MARKETPLACE: ClientMarketplace, 
         KARMA_WALLET: KarmaWallet,

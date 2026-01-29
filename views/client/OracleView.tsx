@@ -24,23 +24,25 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
 
     // Check for daily card on mount
     useEffect(() => {
-        const today = new Date().toISOString().split('T')[0];
-        const saved = localStorage.getItem(`viva360.oracle.${user.id}.${today}`);
-        if (saved) {
-            setDailyCard(JSON.parse(saved));
-        }
+        api.oracle.getToday().then(res => {
+            if (res && res.card) {
+                const card: OracleMessage = {
+                    id: 'today',
+                    text: res.card.insight,
+                    category: "inspiração",
+                    element: res.card.element,
+                    depth: 2
+                };
+                setDailyCard(card);
+            }
+        });
     }, [user.id]);
 
     const handleDraw = async () => {
         setIsLoading(true);
         try {
-            // Simulated API Delay
-            await new Promise(r => setTimeout(r, 1500));
-            
-            // Real Mock API Call
             const res = await api.oracle.draw('sereno');
             
-            // Map API response to Component Interface
             const newCard: OracleMessage = {
                 id: Date.now().toString(),
                 text: res.card.insight,
@@ -51,11 +53,6 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
             
             setDailyCard(newCard);
             setShowCard(true);
-            
-            // Persist
-            const today = new Date().toISOString().split('T')[0];
-            localStorage.setItem(`viva360.oracle.${user.id}.${today}`, JSON.stringify(newCard));
-            
         } catch (e) {
             console.error(e);
             setToast({ title: "Erro", message: "O oráculo está em silêncio agora." });

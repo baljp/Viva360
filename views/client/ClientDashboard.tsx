@@ -209,15 +209,15 @@ export const ClientDashboard: React.FC<{
                         <History size={14}/> Jornada & Evolução
                     </h4>
                     <div className="grid grid-cols-3 gap-3">
-                         <div onClick={() => setActiveModal('camera')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
+                         <div onClick={() => go('METAMORPHOSIS_CHECKIN')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
                              <div className="w-10 h-10 bg-nature-50 rounded-xl flex items-center justify-center text-nature-600 mb-1"><Zap size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Novo<br/>Registro</span>
                          </div>
-                         <div onClick={() => go('EVOLUTION_HISTORY')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
+                         <div onClick={() => go('EVOLUTION_HISTORY')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
                              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-1"><History size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Linha do<br/>Tempo</span>
                          </div>
-                         <div onClick={() => go('EVOLUTION_TIMELAPSE')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32">
+                         <div onClick={() => go('EVOLUTION_TIMELAPSE')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
                              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-1"><TrendingUp size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Time<br/>Lapse</span>
                          </div>
