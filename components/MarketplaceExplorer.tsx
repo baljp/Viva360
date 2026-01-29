@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Product } from '../types';
 import { Search, ShoppingBag, Package, Star, Filter, RefreshCw } from 'lucide-react';
 import { api } from '../services/api';
@@ -10,7 +10,7 @@ interface MarketplaceExplorerProps {
     baseFilter?: string; // Optional default filter
 }
 
-export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = ({ onPurchase, onTrade, baseFilter = 'all' }) => {
+export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = React.memo(({ onPurchase, onTrade, baseFilter = 'all' }) => {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
@@ -32,12 +32,12 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = ({ onPurc
         }
     };
 
-    const categories = ['all', ...Array.from(new Set(products.map(p => p.category)))];
+    const categories = useMemo(() => ['all', ...Array.from(new Set(products.map(p => p.category)))], [products]);
 
-    const filteredProducts = products.filter(p => 
+    const filteredProducts = useMemo(() => products.filter(p => 
         (activeFilter === 'all' || p.category.toLowerCase() === activeFilter.toLowerCase()) &&
         p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    ), [products, activeFilter, searchQuery]);
 
     return (
         <div className="space-y-6">
@@ -116,4 +116,4 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = ({ onPurc
             )}
         </div>
     );
-};
+});

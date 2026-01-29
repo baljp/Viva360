@@ -191,6 +191,7 @@ export interface Professional extends User {
   licenseNumber?: string;
   isAvailableForSwap?: boolean;
   needs?: string[];
+  reviews?: Review[];
 }
 
 export interface Product { 
@@ -248,6 +249,7 @@ export interface SpaceRoom {
   currentOccupant?: string;
   nextSession?: string;
   generatedRevenue?: number;
+  image?: string; // Added for mock visuals
 }
 
 // Add Transaction interface
@@ -319,6 +321,62 @@ export interface ChatRoom {
   isPact?: boolean;
   pactLabel?: string;
   typing?: string[]; // IDs of users typing
+}
+
+// Community / Tribe Types
+export interface TribePost {
+  id: string;
+  authorId: string;
+  authorName: string;
+  authorAvatar: string;
+  content: string;
+  image?: string;
+  likes: number;
+  comments: number;
+  timestamp: string;
+  isLiked?: boolean;
+  type: 'insight' | 'question' | 'celebration';
+}
+
+// Santuário Types
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  time: string;
+  duration: number; // minutes
+  facilitatorId: string;
+  facilitatorName: string;
+  price: number;
+  capacity: number;
+  enrolled: number;
+  location: string; // Room ID or 'Online'
+  image: string;
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  tags: string[];
+}
+
+export interface Proposal {
+  id: string;
+  title: string;
+  description: string;
+  proposerId: string;
+  proposerName: string;
+  type: 'financial' | 'rule' | 'expansion';
+  status: 'active' | 'approved' | 'rejected';
+  votesFor: number;
+  votesAgainst: number;
+  deadline: string;
+  myVote?: 'for' | 'against';
+}
+
+export interface SystemHealth {
+  status: 'healthy' | 'degraded' | 'maintenance';
+  uptime: number; // seconds
+  activeUsers: number;
+  serverLoad: number; // percentage
+  dbLatency: number; // ms
 }
 
 export interface ChatMessage {
