@@ -100,29 +100,31 @@ export const ClientDashboard: React.FC<{
                          <div>
                               <div className="flex justify-between items-end mb-2">
                                  <h3 className="text-3xl font-serif italic text-white drop-shadow-md">Semente da Essência</h3>
-                                 <button 
-                                    onClick={(e) => { 
-                                        e.stopPropagation(); 
-                                        actions.handleWaterPlant();
-                                        // Trigger Invite immediately after action (Optimistic UI)
-                                        actions.setActiveModal('invite'); 
-                                        actions.setToast({ title: "Jardim Nutrido", message: "Convide sua tribo para celebrar!" });
-                                    }}
-                                    className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg"
-                                    title="Regar Agora"
-                                 >
-                                    <div 
+                                 <div className="flex gap-2">
+                                     <button 
+                                        onClick={(e) => { 
+                                            e.stopPropagation(); 
+                                            actions.handleWaterPlant();
+                                            // Trigger Invite immediately after action (Optimistic UI)
+                                            actions.setActiveModal('invite'); 
+                                            actions.setToast({ title: "Jardim Nutrido", message: "Convide sua tribo para celebrar!" });
+                                        }}
+                                        className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg"
+                                        title="Regar Agora"
+                                     >
+                                        <Droplet size={20} fill="currentColor" />
+                                     </button>
+                                     <button 
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             actions.setActiveModal('invite');
                                         }}
-                                        className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg ml-2 cursor-pointer"
+                                        className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg shadow-rose-500/20"
                                         title="Compartilhar Energia"
-                                    >
-                                        <Heart size={20} fill="currentColor" />
-                                    </div>
-                                    <Droplet size={20} fill="currentColor" />
-                                 </button>
+                                     >
+                                        <Heart size={20} fill="currentColor" className="text-rose-300" />
+                                     </button>
+                                 </div>
                               </div>
                               <div className="w-full h-2 bg-white/30 rounded-full overflow-hidden backdrop-blur-sm">
                                 <div className={`h-full transition-all duration-1000 ${gardenStatus.health < 30 ? 'bg-rose-400' : 'bg-white'}`} style={{ width: `${gardenStatus.health}%` }}></div>
