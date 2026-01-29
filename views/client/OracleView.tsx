@@ -116,7 +116,10 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
                 </div>
 
                 <div className="p-8">
-                     <button className="w-full py-4 bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 text-nature-600 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white transition-colors">
+                     <button 
+                        onClick={() => go('ORACLE_HISTORY')}
+                        className="w-full py-4 bg-white/50 backdrop-blur-md rounded-2xl border border-white/60 text-nature-600 text-xs font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white transition-colors"
+                    >
                         <History size={16} /> Meu Histórico
                      </button>
                 </div>

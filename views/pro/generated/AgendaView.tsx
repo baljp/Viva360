@@ -7,9 +7,9 @@ export default function AgendaView() {
   const { go, back } = useGuardiaoFlow();
 
   const appointments = [
-      { id: 1, time: '14:00', client: 'Ana Silva', type: 'Reiki à Distância', status: 'confirmed' },
-      { id: 2, time: '15:30', client: 'Pedro Santos', type: 'Leitura de Aura', status: 'pending' },
-      { id: 3, time: '17:00', client: 'Maria Oliveira', type: 'Mentoria Espiritual', status: 'confirmed' }
+      { id: 1, time: '14:00', client: 'Ana Silva', clientName: 'Ana Silva', type: 'Reiki à Distância', serviceName: 'Reiki à Distância', status: 'confirmed' },
+      { id: 2, time: '15:30', client: 'Pedro Santos', clientName: 'Pedro Santos', type: 'Leitura de Aura', serviceName: 'Leitura de Aura', status: 'pending' },
+      { id: 3, time: '17:00', client: 'Maria Oliveira', clientName: 'Maria Oliveira', type: 'Mentoria Espiritual', serviceName: 'Mentoria Espiritual', status: 'confirmed' }
   ];
 
   return (
@@ -39,7 +39,15 @@ export default function AgendaView() {
                            </div>
                        </div>
                        {apt.status === 'confirmed' ? (
-                           <button onClick={(e) => { e.stopPropagation(); go('VIDEO_SESSION'); }} className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors">
+                           <button 
+                                onClick={(e) => { 
+                                    e.stopPropagation(); 
+                                    const flow = (useGuardiaoFlow as any)();
+                                    if (flow.selectAppointment) flow.selectAppointment(apt);
+                                    go('VIDEO_PREP'); 
+                                }} 
+                                className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors"
+                            >
                                <Video size={16}/>
                            </button>
                        ) : (
