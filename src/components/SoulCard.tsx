@@ -10,23 +10,19 @@ interface SoulCardProps {
 export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "" }) => {
     // Determine element based on mood or randomness if not specified
     const getElementIcon = () => {
-        const mood = snap.mood || 'SERENO';
-        switch (mood) {
-            case 'VIBRANTE': return <Flame size={120} className="text-amber-500" />;
-            case 'MELANCÓLICO': return <Droplet size={120} className="text-blue-500" />;
-            case 'FOCADO': return <Mountain size={120} className="text-emerald-500" />;
-            default: return <Wind size={120} className="text-slate-500" />;
-        }
+        const mood = (snap.mood || 'SERENO').toUpperCase();
+        if (mood.includes('VIBRANTE') || mood.includes('FELIZ') || mood.includes('MOTIVADO')) return <Flame size={120} className="text-amber-500" />;
+        if (mood.includes('MELANCÓLICO') || mood.includes('TRISTE') || mood.includes('CALMO')) return <Droplet size={120} className="text-blue-500" />;
+        if (mood.includes('FOCADO') || mood.includes('GRATO') || mood.includes('CANSADO')) return <Mountain size={120} className="text-emerald-500" />;
+        return <Wind size={120} className="text-slate-500" />;
     };
 
     const getElementLabel = () => {
-        const mood = snap.mood || 'SERENO';
-        switch (mood) {
-            case 'VIBRANTE': return 'FOGO';
-            case 'MELANCÓLICO': return 'ÁGUA';
-            case 'FOCADO': return 'TERRA';
-            default: return 'AR';
-        }
+        const mood = (snap.mood || 'SERENO').toUpperCase();
+        if (mood.includes('VIBRANTE') || mood.includes('FELIZ') || mood.includes('MOTIVADO')) return 'FOGO';
+        if (mood.includes('MELANCÓLICO') || mood.includes('TRISTE') || mood.includes('CALMO')) return 'ÁGUA';
+        if (mood.includes('FOCADO') || mood.includes('GRATO') || mood.includes('CANSADO')) return 'TERRA';
+        return 'AR';
     };
 
     return (
@@ -61,7 +57,9 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "" }) => {
             {/* Watermark Side Date */}
             <div className="absolute top-16 -right-8 rotate-90 origin-top-right opacity-30 z-20">
                 <span className="text-[9px] font-black uppercase tracking-[0.4em] text-nature-900 font-mono">
-                    {new Date(snap.date).toLocaleDateString()}
+                    {snap.date && !isNaN(new Date(snap.date).getTime()) 
+                        ? new Date(snap.date).toLocaleDateString() 
+                        : 'AGORA'}
                 </span>
             </div>
 

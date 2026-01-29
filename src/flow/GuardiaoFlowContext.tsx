@@ -19,7 +19,8 @@ interface GuardiaoContextState {
         vacancies: Vacancy[];
         myProducts: Product[];
         transactions: Transaction[];
-    }
+    };
+    selectedAppointment?: Appointment;
 }
 
 // Actions
@@ -31,7 +32,8 @@ type FlowAction =
     | { type: 'SET_LOADING'; payload: boolean }
     | { type: 'SET_DATA'; payload: { appointments: Appointment[]; vacancies: Vacancy[]; myProducts: Product[]; transactions: Transaction[] } }
     | { type: 'NOTIFY'; payload: { title: string; message: string; type: 'info' | 'success' | 'warning' } }
-    | { type: 'CLEAR_NOTIFICATION' };
+    | { type: 'CLEAR_NOTIFICATION' }
+    | { type: 'SELECT_APPOINTMENT'; payload: Appointment };
 
 // Initial State Factory
 const createInitialState = (): GuardiaoContextState => ({
@@ -89,10 +91,12 @@ const flowReducer = (state: GuardiaoContextState, action: FlowAction): GuardiaoC
             return { ...state, notification: action.payload };
         case 'CLEAR_NOTIFICATION':
             return { ...state, notification: null };
+        case 'SELECT_APPOINTMENT':
+            return { ...state, selectedAppointment: action.payload };
         default:
             return state;
     }
-};
+}
 
 const GuardiaoFlowContext = createContext<{
     state: GuardiaoContextState;
@@ -101,6 +105,7 @@ const GuardiaoFlowContext = createContext<{
     reset: () => void;
     refreshData: (userId: string) => Promise<void>;
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning') => void;
+    selectAppointment: (apt: Appointment) => void;
 } | undefined>(undefined);
 
 export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -158,8 +163,10 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         dispatch({ type: 'NOTIFY', payload: { title, message, type } });
     };
 
+    const selectAppointment = (apt: Appointment) => dispatch({ type: 'SELECT_APPOINTMENT', payload: apt });
+
     return (
-        <GuardiaoFlowContext.Provider value={{ state, go, back, reset, refreshData, notify }}>
+        <GuardiaoFlowContext.Provider value={{ state, go, back, reset, refreshData, notify, selectAppointment }}>
             {children}
         </GuardiaoFlowContext.Provider>
     );

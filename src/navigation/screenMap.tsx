@@ -43,6 +43,7 @@ const KarmaWallet = lazy(() => import('../../views/client/garden/KarmaWallet'));
 const AchievementsView = lazyNamed(() => import('../../views/client/garden/AchievementsView'), 'AchievementsView');
 const EmotionalHistory = lazyNamed(() => import('../../views/client/garden/EmotionalHistory'), 'EmotionalHistory');
 const TimeLapseExperience = lazyNamed(() => import('../../views/client/garden/TimeLapseExperience'), 'TimeLapseExperience');
+const OracleGrimoire = lazyNamed(() => import('../../views/client/garden/OracleGrimoire'), 'OracleGrimoire');
 
 // --- GUARDIAO SCREENS ---
 const ProDashboard = lazyNamed(() => import('../../views/pro/ProDashboard'), 'ProDashboard');
@@ -52,6 +53,7 @@ const ProMarketplace = lazyNamed(() => import('../../views/pro/ProMarketplace'),
 const AlquimiaCreateOffer = lazyNamed(() => import('../../views/pro/AlquimiaCreateOffer'), 'AlquimiaCreateOffer');
 const AlquimiaProposeTrade = lazyNamed(() => import('../../views/pro/AlquimiaProposeTrade'), 'AlquimiaProposeTrade');
 const VideoSessionView = lazyNamed(() => import('../../views/ServiceViews'), 'VideoSessionView');
+const VideoPrepScreen = lazyNamed(() => import('../../views/pro/VideoPrepScreen'), 'VideoPrepScreen');
 
 // --- GUARDIAO GENERATED ---
 const AgendaView = lazy(() => import('../../views/pro/generated/AgendaView'));
@@ -129,6 +131,7 @@ export const screenMap: any = {
         SETTINGS: SettingsViews,
         MARKETPLACE: ClientMarketplace, 
         KARMA_WALLET: KarmaWallet,
+        ORACLE_HISTORY: OracleGrimoire,
     },
     // GUARDIAO
     GUARDIAO: {
@@ -140,6 +143,7 @@ export const screenMap: any = {
         AGENDA_CONFIRM: AgendaView,
         PATIENTS_LIST: PatientsList,
         PATIENT_PROFILE: PatientProfile,
+        VIDEO_PREP: VideoPrepScreen,
         VIDEO_SESSION: VideoSessionView,
         PATIENT_RECORDS: PatientEvolutionView, 
         PATIENT_PLAN: PatientEvolutionView,
@@ -191,7 +195,7 @@ export const screenMap: any = {
         VAGAS_LIST: SpaceRecruitment,
         VAGA_CREATE: SpaceRecruitment,
         VAGA_CANDIDATES: SpaceRecruitment,
-        REPUTATION_OVERVIEW: SpaceDashboard,
+        REPUTATION_OVERVIEW: SpaceReputation,
         ANALYTICS_DASH: SpaceDashboard,
         GOVERNANCE: SpaceGovernance,
         CHAT_LIST: SpaceChatListScreen,

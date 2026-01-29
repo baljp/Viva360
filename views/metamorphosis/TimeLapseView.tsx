@@ -14,10 +14,16 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     // Load Data
     useEffect(() => {
         api.metamorphosis.getEvolution().then(data => {
-            // Sort by date to be sure
-            const sorted = [...data.entries].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            const list = data.entries || [];
+            // Standardize and Sort
+            const sorted = [...list].map(e => ({
+                ...e,
+                timestamp: e.timestamp || e.date || new Date().toISOString(),
+                photoThumb: e.photoThumb || e.image || ''
+            })).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            
             setEntries(sorted);
-        });
+        }).catch(err => console.error("TimeLapse Loading Error:", err));
     }, []);
 
     // STORYTELLING ENGINE

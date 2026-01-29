@@ -284,7 +284,11 @@ export const api = {
              const card = MockDB.getDailyOracle(user.id);
              return card ? { card } : null;
         },
-        history: async () => []
+        history: async () => {
+             const user = await api.auth.getCurrentSession();
+             if (!user) return [];
+             return MockDB.getOracleHistory(user.id);
+        }
     },
     chat: {
         listRooms: async () => {
@@ -337,20 +341,41 @@ export const api = {
     metamorphosis: {
         checkIn: async (mood: string, hash: string, thumb: string) => {
                  const user = await api.auth.getCurrentSession();
-                 // Create record logic consistent with MockDB
                  const entry = { 
                     id: Date.now(),
                     mood,
                     photoThumb: thumb,
+                    image: thumb,
                     quote: "A luz que você procura está dentro de você.",
                     ritual: ["Respire fundo 3 vezes"],
                     timestamp: new Date().toISOString(),
+                    date: new Date().toISOString(),
                     userId: user?.id
                 };
+                
+                // Sync with user snaps for garden logic
+                if (user) {
+                    const snap = {
+                        id: entry.id.toString(),
+                        image: thumb,
+                        date: entry.timestamp,
+                        mood: mood as any,
+                        note: entry.quote
+                    };
+                    const updatedUser = { ...user, snaps: [snap, ...(user.snaps || [])] };
+                    MockDB.updateUser(updatedUser);
+                    localStorage.setItem('viva360.mock_user', JSON.stringify(updatedUser));
+                }
+
                 return MockDB.addEvolutionEntry(entry);
         },
         getEvolution: async () => {
-             return { entries: MockDB.getEvolutionHistory() };
+             const user = await api.auth.getCurrentSession();
+             const history = MockDB.getEvolutionHistory();
+             
+             // If we have user-specific snaps, merge or prioritize them?
+             // For simplicity, we just return the full history, but we could filter by user.id
+             return { entries: history };
         }
     }
 };

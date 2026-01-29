@@ -150,9 +150,18 @@ export const ClientDashboard: React.FC<{
                             </div>
                             <span className="px-4 py-1.5 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold text-white uppercase tracking-widest border border-white/20">Saúde: {gardenStatus.health}%</span>
                         </div>
-                        <div>
-                             <h3 className="text-3xl font-serif italic text-white mb-2 drop-shadow-md">Semente da Essência</h3>
-                             <div className="w-full h-2 bg-white/30 rounded-full overflow-hidden backdrop-blur-sm">
+                         <div>
+                              <div className="flex justify-between items-end mb-2">
+                                 <h3 className="text-3xl font-serif italic text-white drop-shadow-md">Semente da Essência</h3>
+                                 <button 
+                                    onClick={(e) => { e.stopPropagation(); handleWaterPlant(); }}
+                                    className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg"
+                                    title="Regar Agora"
+                                 >
+                                    <Droplet size={20} fill="currentColor" />
+                                 </button>
+                              </div>
+                              <div className="w-full h-2 bg-white/30 rounded-full overflow-hidden backdrop-blur-sm">
                                 <div className={`h-full transition-all duration-1000 ${gardenStatus.health < 30 ? 'bg-rose-400' : 'bg-white'}`} style={{ width: `${gardenStatus.health}%` }}></div>
                              </div>
                              <p className="text-[10px] font-bold text-white/90 uppercase tracking-widest mt-3 flex items-center gap-2">

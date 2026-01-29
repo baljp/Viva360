@@ -68,9 +68,12 @@ export const gardenService = {
         
         // Positivity based on recent snaps mood
         const recentSnaps = user.snaps?.slice(-10) || [];
-        const positiveMoods = ['happy', 'grateful', 'peaceful', 'excited', '😄', '😊', '😌'];
+        const positiveMoods = ['happy', 'grateful', 'peaceful', 'excited', '😄', '😊', '😌', 'feliz', 'calmo', 'grato', 'motivado', 'vibrante', 'sereno', 'serena', 'focado', 'focada', 'grata'];
         const positivity = recentSnaps.length > 0
-            ? (recentSnaps.filter(s => positiveMoods.includes(s.mood?.toLowerCase())).length / recentSnaps.length) * 100
+            ? (recentSnaps.filter(s => {
+                const mood = String(s.mood || '').toLowerCase();
+                return positiveMoods.some(pm => mood.includes(pm));
+            }).length / recentSnaps.length) * 100
             : 50;
 
         const total = (constancy * 0.4) + (positivity * 0.2) + (rituals * 0.2) + (tribe * 0.1) + (curation * 0.1);

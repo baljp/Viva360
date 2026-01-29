@@ -20,9 +20,10 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
     const [searchTerm, setSearchTerm] = useState('');
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
 
-    const activeMestres = team.filter((p: any) => p.role === 'Mestre' || p.karma > 800).length;
-    const activeGuardioes = team.length - activeMestres;
-    const activeInSession = team.filter((p: any) => p.isOccupied).length;
+    const teamArray = Array.isArray(team) ? team : [];
+    const activeMestres = teamArray.filter((p: any) => p.role === 'Mestre' || p.karma > 800).length;
+    const activeGuardioes = teamArray.length - activeMestres;
+    const activeInSession = teamArray.filter((p: any) => p.isOccupied).length;
 
     const handleInvite = (type: string) => {
         setToast({ title: 'Link Gerado', message: `Convite para ${type} copiado.` });
@@ -80,9 +81,8 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                     </div>
                 </div>
 
-                {/* 3. LISTAGEM DO CÍRCULO */}
                 <div className="space-y-3">
-                    {team.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map((pro: any) => (
+                    {teamArray.filter(p => (p.name || '').toLowerCase().includes(searchTerm.toLowerCase())).map((pro: any) => (
                         <div key={pro.id} className="w-full bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer">
                             <div className="flex items-center gap-3">
                                 <div className="relative">
@@ -96,7 +96,9 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                                         <h4 className="font-bold text-nature-900 text-xs">{pro.name}</h4>
                                         {pro.karma > 800 && <Crown size={10} className="text-amber-500 fill-amber-500"/>}
                                     </div>
-                                    <p className="text-[9px] text-nature-400 font-bold uppercase mt-0.5">{pro.role === 'Mestre' ? 'Mestre' : 'Guardião'} · {pro.specialty[0]}</p>
+                                    <p className="text-[9px] text-nature-400 font-bold uppercase mt-0.5">
+                                        {pro.role === 'Mestre' ? 'Mestre' : 'Guardião'} · {pro.specialty && pro.specialty.length > 0 ? pro.specialty[0] : 'Iniciante'}
+                                    </p>
                                     <div className="flex items-center gap-1.5 mt-1.5">
                                         <span className={`w-1.5 h-1.5 rounded-full ${pro.isOccupied ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
                                         <span className={`text-[9px] font-bold ${pro.isOccupied ? 'text-rose-500' : 'text-emerald-600'}`}>
