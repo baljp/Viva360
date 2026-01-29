@@ -117,13 +117,13 @@ export const api = {
             localStorage.setItem('viva360.mock_user', JSON.stringify(user));
             return user;
         },
-        checkIn: async (uid: string) => {
+        checkIn: async (uid: string, reward: number = 50) => {
              // ... existing checkIn logic
              const user = MockDB.getUsers().find(u => u.id === uid);
              if (user) {
-                 const updated = { ...user, karma: (user.karma || 0) + 50, lastCheckIn: new Date().toISOString() };
+                 const updated = { ...user, karma: (user.karma || 0) + reward, lastCheckIn: new Date().toISOString() };
                  MockDB.updateUser(updated);
-                 return { user: updated, reward: 50 };
+                 return { user: updated, reward };
              }
              return { user: null, reward: 0 };
         }

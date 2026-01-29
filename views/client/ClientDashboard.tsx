@@ -39,8 +39,8 @@ export const ClientDashboard: React.FC<{
         }
     };
 
-    const handleDailyCheckIn = async () => {
-          const res = await api.users.checkIn(user.id);
+    const handleDailyCheckIn = async (reward: number) => {
+          const res = await api.users.checkIn(user.id, reward);
           if (res && res.user) {
               updateUser(res.user as User);
               setToast({ title: "Sincronizado", message: `+${res.reward} Karma recebido.` });

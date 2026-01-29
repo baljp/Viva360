@@ -105,8 +105,8 @@ const TransactionItem: React.FC<{ tx: Transaction }> = ({ tx }) => (
 // --- MODALS ---
 
 const ReinvestModal: React.FC<{ isOpen: boolean, onClose: () => void, balance: number, onConfirm: (type: string, amount: number) => void }> = ({ isOpen, onClose, balance, onConfirm }) => {
-    if (!isOpen) return null;
     const [amount, setAmount] = useState(50);
+    if (!isOpen) return null;
     return (
         <BottomSheet isOpen={isOpen} onClose={onClose} title="Semear o Futuro">
             <div className="space-y-6 pb-6">
@@ -135,7 +135,7 @@ const ReinvestModal: React.FC<{ isOpen: boolean, onClose: () => void, balance: n
 // --- MAIN SCREEN ---
 
 export default function WalletViewScreen({ user }: { user: Professional }) {
-    const { notify, back, state } = useGuardiaoFlow();
+    const { notify, back, go, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'services'>('overview');
     const [showReinvest, setShowReinvest] = useState(false);
     
@@ -163,7 +163,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
         <PortalView 
             title="Santuário Financeiro" 
             subtitle="GESTÃO CONSCIENTE" 
-            onBack={back}
+            onBack={() => go('DASHBOARD')}
             heroImage="https://images.unsplash.com/photo-1620022410313-1f1638234372?q=80&w=800"
             headerRight={
                 <button className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-all">

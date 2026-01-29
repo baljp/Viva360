@@ -45,7 +45,7 @@ const InterventionCard: React.FC<{ title: string, outcome: string, type: string 
 const Check = ({ size }: any) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
 
 export default function PatientEvolutionView() {
-    const { back, notify } = useGuardiaoFlow();
+    const { back, go, notify } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'timeline' | 'patterns' | 'interventions' | 'plan'>('timeline');
     const [records, setRecords] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -98,7 +98,7 @@ export default function PatientEvolutionView() {
         <PortalView 
             title="Prontuário Evolutivo" 
             subtitle="JORNADA DA ALMA" 
-            onBack={back}
+            onBack={() => go('PATIENT_PROFILE')}
             heroImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800"
             footer={
                 activeTab === 'timeline' ? (

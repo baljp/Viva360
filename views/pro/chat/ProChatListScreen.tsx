@@ -21,7 +21,7 @@ export default function ProChatListScreen() {
     }, []);
 
     return (
-        <PortalView title="Comunicação Sagrada" subtitle="PACIENTES & TRIBO" onBack={back}>
+        <PortalView title="Comunicação Sagrada" subtitle="PACIENTES & TRIBO" onBack={() => go('DASHBOARD')}>
             <div className="space-y-6">
                 {/* Pro Header: Filters */}
                 <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
