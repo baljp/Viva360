@@ -101,10 +101,26 @@ export const ClientDashboard: React.FC<{
                               <div className="flex justify-between items-end mb-2">
                                  <h3 className="text-3xl font-serif italic text-white drop-shadow-md">Semente da Essência</h3>
                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); actions.handleWaterPlant(); }}
+                                    onClick={(e) => { 
+                                        e.stopPropagation(); 
+                                        actions.handleWaterPlant();
+                                        // Trigger Invite immediately after action (Optimistic UI)
+                                        actions.setActiveModal('invite'); 
+                                        actions.setToast({ title: "Jardim Nutrido", message: "Convide sua tribo para celebrar!" });
+                                    }}
                                     className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg"
                                     title="Regar Agora"
                                  >
+                                    <div 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            actions.setActiveModal('invite');
+                                        }}
+                                        className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg ml-2 cursor-pointer"
+                                        title="Compartilhar Energia"
+                                    >
+                                        <Heart size={20} fill="currentColor" />
+                                    </div>
                                     <Droplet size={20} fill="currentColor" />
                                  </button>
                               </div>
