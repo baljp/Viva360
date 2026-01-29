@@ -45,6 +45,7 @@ export const ProDashboard: React.FC<{
                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em] mb-0.5">Bom Despertar,</p>
                     <h2 className="text-2xl font-serif italic text-nature-900 leading-none">Mestre {user.name.split(' ')[0]}</h2>
             </div>
+            </div>
             <div className="flex items-center gap-2">
                  <button onClick={() => go('CHAT_LIST')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><MessageCircle size={20}/></button>
                  <button onClick={() => setShowNotifications(true)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none relative">
