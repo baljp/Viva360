@@ -514,7 +514,7 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: numbe
                         onClick={() => onCheckIn(wisdom.reward)} 
                         className="px-6 py-2.5 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-black"
                     >
-                        Sintonizar
+                        Sintonizar Agora
                     </button>
                 </div>
             </div>
