@@ -224,6 +224,7 @@ export interface OracleCard {
   imageUrl: string;
   archetype: string;
   element?: string;
+  depth?: number;
 }
 
 export interface Product { 
