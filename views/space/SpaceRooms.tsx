@@ -180,9 +180,13 @@ export const SpaceRooms: React.FC = () => {
                     </div>
                 </div>
 
-                {/* 6. NOVO ALTAR */}
-                <button onClick={() => go('ROOM_CREATE')} className="w-full py-6 border-2 border-dashed border-nature-200 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest hover:border-nature-400 hover:text-nature-600 transition-all flex items-center justify-center gap-2">
-                    <Plus size={20} /> Novo Altar
+                {/* 6. CONSECRATE ALTAR */}
+                <button 
+                    onClick={() => go('ROOM_CREATE')} 
+                    className="w-full py-5 bg-gradient-to-r from-amber-200 to-amber-100 text-amber-900 rounded-[2.5rem] font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-sm border border-amber-200 active:scale-[0.98] transition-all"
+                >
+                     <div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center"><Plus size={16}/></div>
+                     Consagrar Novo Altar
                 </button>
             </div>
         </PortalView>

@@ -63,62 +63,67 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
         ctx.fillRect(0, 0, W, H);
 
         const img = new Image();
+        img.crossOrigin = "anonymous";
         img.src = entry.photoThumb;
-        // If image not loaded yet, we might skip a frame or use placeholder
-        // In a real engine, we'd preload images. For now we assume browser cache helps.
         
         // Dynamic Zoom Effect based on progress (Ken Burns)
         const zoom = 1 + (progress / 200); // 1.0 to 1.5
         
         // Draw Image (Centered & Cover)
-        if (img.complete) {
+        const draw = () => {
             const scale = Math.max(W / img.width, H / img.height) * zoom;
             const x = (W - img.width * scale) / 2;
             const y = (H - img.height * scale) / 2;
             ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-        }
+            
+            // Overlay Gradient (Apply after image)
+            const grad = ctx.createLinearGradient(0, H/2, 0, H);
+            grad.addColorStop(0, 'transparent');
+            grad.addColorStop(1, 'rgba(0,0,0,0.9)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
 
-        // Overlay Gradient
-        const grad = ctx.createLinearGradient(0, H/2, 0, H);
-        grad.addColorStop(0, 'transparent');
-        grad.addColorStop(1, 'rgba(0,0,0,0.9)');
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, W, H);
+            // Text Overlay
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#fff';
+            
+            // Mood Badge
+            ctx.font = 'bold 40px sans-serif';
+            ctx.fillText(entry.mood?.toUpperCase() || 'JORNADA', W/2, H - 500);
 
-        // Text Overlay
-        ctx.textAlign = 'center';
-        ctx.fillStyle = '#fff';
-        
-        // Mood Badge
-        ctx.font = 'bold 40px sans-serif';
-        ctx.fillText(entry.mood?.toUpperCase() || 'JORNADA', W/2, H - 500);
-
-        // Quote
-        ctx.font = 'italic 60px serif';
-        const words = (entry.quote || '').split(' ');
-        let line = '';
-        let lineY = H - 400;
-        for(let n = 0; n < words.length; n++) {
-            const testLine = line + words[n] + ' ';
-            if (ctx.measureText(testLine).width > 900 && n > 0) {
-                ctx.fillText(line, W/2, lineY);
-                line = words[n] + ' ';
-                lineY += 80;
-            } else {
-                line = testLine;
+            // Quote
+            ctx.font = 'italic 60px serif';
+            const words = (entry.quote || '').split(' ');
+            let line = '';
+            let lineY = H - 400;
+            for(let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                if (ctx.measureText(testLine).width > 900 && n > 0) {
+                    ctx.fillText(line, W/2, lineY);
+                    line = words[n] + ' ';
+                    lineY += 80;
+                } else {
+                    line = testLine;
+                }
             }
-        }
-        ctx.fillText(line, W/2, lineY);
+            ctx.fillText(line, W/2, lineY);
 
-        // Date
-        ctx.font = '30px monospace';
-        ctx.fillStyle = 'rgba(255,255,255,0.7)';
-        ctx.fillText(new Date(entry.timestamp).toLocaleDateString(), W/2, H - 150);
-        
-        // Brand
-        ctx.font = 'bold 30px sans-serif';
-        ctx.fillStyle = '#fbbf24'; // Amber
-        ctx.fillText('VIVA360', W/2, 100);
+            // Date
+            ctx.font = '30px monospace';
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.fillText(new Date(entry.timestamp).toLocaleDateString(), W/2, H - 150);
+            
+            // Brand
+            ctx.font = 'bold 30px sans-serif';
+            ctx.fillStyle = '#fbbf24'; // Amber
+            ctx.fillText('VIVA360', W/2, 100);
+        };
+
+        if (img.complete) {
+            draw();
+        } else {
+            img.onload = draw;
+        }
     };
 
     // Animation Loop
@@ -274,35 +279,70 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                         </div>
                     ))}
                 </div>
-                 <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center">
                     <h4 className="font-bold text-sm">Minha História</h4>
-                    <button onClick={() => flow.go('DASHBOARD')} className="p-2 hover:bg-white/10 rounded-full"><X size={24}/></button>
+                    <div className="flex gap-2">
+                        <button 
+                            onClick={async () => {
+                                if (!canvasRef.current) return;
+                                const blob = await new Promise<Blob | null>(res => canvasRef.current!.toBlob(res, 'image/png'));
+                                if (!blob) return;
+                                const file = new File([blob], 'viva360-snap.png', { type: 'image/png' });
+                                if (navigator.share) {
+                                    await navigator.share({
+                                        title: 'Um momento da minha jornada Viva360',
+                                        files: [file]
+                                    }).catch(() => {});
+                                } else {
+                                    const url = URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    a.download = 'viva360-snap.png';
+                                    a.click();
+                                }
+                            }}
+                            className="p-2 bg-white/10 hover:bg-white/20 rounded-full flex items-center gap-2 px-4 transition-all"
+                        >
+                            <Share2 size={18}/> <span className="text-[10px] font-bold uppercase tracking-widest">Snap</span>
+                        </button>
+                        <button onClick={() => flow.go('DASHBOARD')} className="p-2 hover:bg-white/10 rounded-full"><X size={24}/></button>
+                    </div>
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="p-8 bg-black flex justify-between items-center">
-                <button onClick={() => setIsPlaying(!isPlaying)} className="p-4 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
-                    {isPlaying ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
-                </button>
+            <div className="p-8 bg-black flex flex-col gap-6">
+                {isRecording && (
+                    <div className="flex items-center justify-center gap-2 text-rose-500 animate-pulse mb-2">
+                        <div className="w-2 h-2 bg-rose-600 rounded-full"></div>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Gravando Sua Jornada...</span>
+                    </div>
+                )}
                 
-                <button 
-                    onClick={startRecording}
-                    disabled={isRecording}
-                    className="flex-1 mx-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 rounded-full font-bold uppercase tracking-widest text-xs flex items-center justify-center gap-2 shadow-lg disabled:opacity-50"
-                >
-                    {isRecording ? (
-                        <>
-                           <div className="w-3 h-3 bg-red-600 rounded-full animate-pulse"></div>
-                           Gravando...
-                        </>
-                    ) : (
-                        <>
-                           <Share2 size={16} />
-                           Gerar Vídeo
-                        </>
-                    )}
-                </button>
+                <div className="flex justify-between items-center bg-white/5 p-4 rounded-[2rem] border border-white/10">
+                    <button onClick={() => setIsPlaying(!isPlaying)} className="p-4 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
+                        {isPlaying ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
+                    </button>
+                    
+                    <button 
+                        onClick={startRecording}
+                        disabled={isRecording}
+                        className="flex-1 mx-6 py-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 rounded-full font-bold uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 shadow-2xl shadow-orange-900/40 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
+                    >
+                        {isRecording ? (
+                            <Sparkles size={18} className="animate-spin" />
+                        ) : (
+                            <Share2 size={18} />
+                        )}
+                        {isRecording ? 'Processando...' : 'Fazer Vídeo da Jornada'}
+                    </button>
+                </div>
+                
+                {!isRecording && (
+                    <p className="text-center text-[9px] text-white/40 uppercase tracking-widest">
+                        Gere um vídeo épico para compartilhar sua evolução
+                    </p>
+                )}
             </div>
 
              {/* SHARE MODAL */}

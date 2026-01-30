@@ -91,10 +91,6 @@ const QuickStat = ({ label, value, icon: Icon, color }: any) => (
 
 const OperationsTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <button onClick={() => go('ROOM_CREATE')} className="w-full py-5 bg-gradient-to-r from-amber-200 to-amber-100 text-amber-900 rounded-[2.5rem] font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-sm border border-amber-200 hover:scale-[1.02] transition-transform">
-             <div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center"><Plus size={16}/></div>
-             Consagrar Novo Altar
-        </button>
         <div className="grid grid-cols-2 gap-4">
             <PortalCard 
                 id="portal-agenda"

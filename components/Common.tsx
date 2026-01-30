@@ -11,6 +11,7 @@ import { getDailyMessage } from '../src/utils/dailyWisdom';
 
 // --- LOGO COMPONENT ---
 export const Logo: React.FC<{ size?: 'sm' | 'md' | 'lg' | 'xl' | 'splash', className?: string, animated?: boolean }> = ({ size = 'md', className = "", animated = false }) => {
+  const [error, setError] = useState(false);
   const sizeMap = {
     sm: 'w-6 h-6',
     md: 'w-10 h-10',
@@ -24,11 +25,19 @@ export const Logo: React.FC<{ size?: 'sm' | 'md' | 'lg' | 'xl' | 'splash', class
       {animated && (
         <div className="absolute inset-0 bg-primary-400/20 rounded-full blur-3xl animate-breathe"></div>
       )}
-      <img 
-        src="/logo.png" 
-        alt="Viva360 Logo" 
-        className={`w-full h-full object-contain relative z-10 ${animated ? 'animate-breathe' : ''}`}
-      />
+      {!error ? (
+        <img 
+          src="/logo.png" 
+          alt="Viva360 Logo" 
+          crossOrigin="anonymous"
+          onError={() => setError(true)}
+          className={`w-full h-full object-contain relative z-10 ${animated ? 'animate-breathe' : ''}`}
+        />
+      ) : (
+        <div className="bg-nature-900 rounded-full w-full h-full flex items-center justify-center opacity-20">
+            <Sparkles size={size === 'sm' ? 12 : 24} className="text-white" />
+        </div>
+      )}
     </div>
   );
 };
@@ -68,7 +77,12 @@ export const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
     <div className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col gap-3">
         <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">
-                <img src={review.authorAvatar} className="w-10 h-10 rounded-full border border-nature-200 object-cover" />
+                <img 
+                    src={review.authorAvatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${review.authorName}`} 
+                    crossOrigin="anonymous"
+                    onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${review.authorName}`; }}
+                    className="w-10 h-10 rounded-full border border-nature-200 object-cover" 
+                />
                 <div>
                     <p className="text-xs font-bold text-nature-900">{review.authorName}</p>
                     <p className="text-[9px] text-nature-400 font-bold uppercase">{new Date(review.date).toLocaleDateString()}</p>
@@ -350,6 +364,7 @@ export const DynamicAvatar: React.FC<{ user: Partial<UserType>, size?: 'sm' | 'm
           <img 
             src={user.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.name || 'user'}`} 
             loading="lazy" 
+            crossOrigin="anonymous"
             className="w-full h-full object-cover" 
             alt={user.name} 
             onError={() => setImgError(true)}
@@ -466,7 +481,14 @@ export const PortalView: React.FC<{
         <div className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] overscroll-contain relative">
             {heroImage && (
                 <div className="w-full h-72 relative shrink-0">
-                    <img src={heroImage} className="w-full h-full object-cover" />
+                    <img 
+                        src={heroImage} 
+                        crossOrigin="anonymous"
+                        onError={(e) => { 
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800';
+                        }}
+                        className="w-full h-full object-cover" 
+                    />
                     <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-nature-50/20"></div>
                 </div>
             )}
@@ -484,7 +506,16 @@ export const PortalView: React.FC<{
 // --- PORTAL CARD ---
 export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string, icon: React.FC<any>, bgImage: string, onClick: () => void, delay?: number }> = ({ id, title, subtitle, icon: Icon, bgImage, onClick, delay = 0 }) => (
   <button id={id} onClick={onClick} style={{ animationDelay: `${delay}ms` }} className="relative aspect-square rounded-[2.5rem] overflow-hidden group shadow-lg hover:shadow-2xl transition-all duration-500 animate-in fade-in slide-up">
-    <img src={bgImage} loading="lazy" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={title} />
+    <img 
+        src={bgImage} 
+        loading="lazy" 
+        crossOrigin="anonymous"
+        onError={(e) => { 
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800';
+        }}
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+        alt={title} 
+    />
     <div className="absolute inset-0 bg-gradient-to-t from-nature-900/90 via-nature-900/40 to-transparent group-hover:from-primary-900/90 transition-colors"></div>
     <div className="absolute inset-0 p-6 flex flex-col justify-end text-left">
       <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white mb-3 group-hover:bg-white/20 transition-all"><Icon size={20} /></div>

@@ -53,7 +53,6 @@ export const ProDashboard: React.FC<{
                 onMarkAllRead={() => {}} 
         />
         <header className="flex items-center justify-between mt-4 mb-6 px-6 flex-none relative overflow-hidden">
-            <Logo size="xl" className="absolute -top-10 -left-10 opacity-[0.03] rotate-12 pointer-events-none" />
             <div className="flex items-center gap-4">
                 <button onClick={() => go('SETTINGS')} className="relative group">
                     <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl group-hover:scale-105 transition-transform" />
@@ -136,24 +135,6 @@ export const ProDashboard: React.FC<{
 
                     <div className="grid grid-cols-1 gap-4">
                         <PortalCard id="portal-patients" title="Meus Pacientes" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
-                        <div 
-                            onClick={() => {
-                                const text = encodeURIComponent(`Olá! Gostaria de convidar você para iniciar sua jornada terapêutica comigo no Viva360. 🌱`);
-                                window.open(`https://wa.me/?text=${text}`, '_blank');
-                            }}
-                            className="bg-[#25D366] text-white p-6 rounded-[2.5rem] shadow-lg flex items-center justify-between cursor-pointer active:scale-95 transition-all"
-                        >
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                                    <MessageCircle size={24} className="text-white" />
-                                </div>
-                                <div>
-                                    <h4 className="text-sm font-bold">Convidar Pacientes</h4>
-                                    <p className="text-[10px] uppercase tracking-wider opacity-90">Via WhatsApp</p>
-                                </div>
-                            </div>
-                            <ChevronRight size={20} className="opacity-80" />
-                        </div>
                     </div>
 
 
