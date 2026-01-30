@@ -101,7 +101,7 @@ const OperationsTab = ({ go }: any) => (
                 title="Agenda Viva" 
                 subtitle="FLUXO DIÁRIO" 
                 icon={Calendar} 
-                bgImage="https://images.unsplash.com/photo-1506784926709-b219a7501d2a?q=80&w=600"
+                bgImage="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600"
                 onClick={() => go('AGENDA_OVERVIEW')}
             />
             <PortalCard 

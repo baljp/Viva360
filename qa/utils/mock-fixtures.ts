@@ -64,9 +64,18 @@ export const test = base.extend<JourneyFixtures>({
 
       console.log(`[Journey] Logging in as ${role} (${email})...`);
       
-      // Disable Smart Tutorial for tests
+      // Disable Smart Tutorial for tests aggressively
       await page.addInitScript(() => {
           window.localStorage.setItem('viva360_smart_tutorial_seen', 'true');
+          // Also set user-specific keys if possible. 
+          // Since we don't know the exact ID yet, we set common ones and generic ones
+          for(let i=0; i<100; i++) {
+             window.localStorage.setItem(`viva360_tutorial_seen_${i}`, 'true');
+             window.localStorage.setItem(`viva360_tutorial_seen_pro-${i}`, 'true');
+             window.localStorage.setItem(`viva360_tutorial_seen_space-${i}`, 'true');
+             window.localStorage.setItem(`viva360_tutorial_seen_client-${i}`, 'true');
+          }
+          window.localStorage.setItem(`viva360_tutorial_seen_mock-user-id`, 'true');
       });
 
       await page.goto('/', { waitUntil: 'networkidle' });
