@@ -26,6 +26,7 @@ export enum ViewState {
   CLIENT_RITUAL_BUILDER = 'CLIENT_RITUAL_BUILDER',
   CLIENT_METAMORPHOSIS = 'CLIENT_METAMORPHOSIS',
   CLIENT_TIMELAPSE = 'CLIENT_TIMELAPSE',
+  CLIENT_JOURNAL = 'CLIENT_JOURNAL',
 
   // Space additions
   SPACE_CALENDAR = 'SPACE_CALENDAR',
@@ -69,6 +70,8 @@ export enum ViewState {
   ADMIN_LGPD = 'ADMIN_LGPD',
 }
 
+export type PresenceStatus = 'ONLINE' | 'OFFLINE' | 'BUSY';
+
 // Add Badge interface
 export interface Badge {
   id: string;
@@ -95,7 +98,21 @@ export interface DailyRitualSnap {
   date: string;
   mood?: MoodType;
   note?: string;
+  phrases?: [string, string];
+  location?: string;
   timeSlot?: 'morning' | 'afternoon' | 'night';
+}
+
+export interface DailyJournalEntry {
+  id: string;
+  userId: string;
+  date: string; // ISO
+  mood: MoodType;
+  actionIntent: string; 
+  gratitude: string;    
+  cardId?: string;      
+  createdAt: string;
+  generatedPhrases?: [string, string];
 }
 
 // Add ConstellationMember interface
@@ -192,6 +209,11 @@ export interface Professional extends User {
   isAvailableForSwap?: boolean;
   needs?: string[];
   reviews?: Review[];
+  presence?: {
+    status: PresenceStatus;
+    lastActivity: string;
+    expiresAt: string;
+  };
 }
 
 // Add OracleCard interface

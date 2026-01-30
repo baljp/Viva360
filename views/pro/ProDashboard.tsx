@@ -4,6 +4,7 @@ import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkle
 import { DynamicAvatar, PortalCard, ZenToast, Logo, NotificationDrawer } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { api } from '../../services/api';
+import { useGuardianPresence } from '../../src/hooks/useGuardianPresence';
 
 export const ProDashboard: React.FC<{ 
     user: Professional, 
@@ -14,6 +15,7 @@ export const ProDashboard: React.FC<{
     const { go, notify } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'consultorio' | 'expansao'>('consultorio');
     const [showNotifications, setShowNotifications] = useState(false);
+    const { status, toggleStatus, isOnline } = useGuardianPresence(user);
     
     // Mock Notifications
     const [notifications, setNotifications] = useState([
@@ -27,6 +29,22 @@ export const ProDashboard: React.FC<{
 
     return (
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-32">
+        {/* PRESENCE BANNER */}
+        <div className={`w-full px-6 py-3 flex items-center justify-between transition-colors ${isOnline ? 'bg-emerald-50 border-b border-emerald-100' : 'bg-slate-50 border-b border-slate-100'}`}>
+             <div className="flex items-center gap-2">
+                 <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
+                 <span className={`text-[10px] font-bold uppercase tracking-widest ${isOnline ? 'text-emerald-700' : 'text-slate-500'}`}>
+                     {isOnline ? 'Você está visível no Mapa' : 'Você está offline'}
+                 </span>
+             </div>
+             <button 
+                onClick={toggleStatus}
+                className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all ${isOnline ? 'bg-white text-emerald-600 border border-emerald-200 shadow-sm hover:bg-emerald-50' : 'bg-nature-900 text-white shadow-md hover:bg-black'}`}
+             >
+                 {isOnline ? 'Ficar Offline' : 'Ficar Disponível'}
+             </button>
+        </div>
+
         <NotificationDrawer 
                 isOpen={showNotifications} 
                 onClose={() => setShowNotifications(false)} 
@@ -34,7 +52,7 @@ export const ProDashboard: React.FC<{
                 onMarkAsRead={handleMarkAsRead} 
                 onMarkAllRead={() => {}} 
         />
-        <header className="flex items-center justify-between mt-8 mb-6 px-6 flex-none relative overflow-hidden">
+        <header className="flex items-center justify-between mt-4 mb-6 px-6 flex-none relative overflow-hidden">
             <Logo size="xl" className="absolute -top-10 -left-10 opacity-[0.03] rotate-12 pointer-events-none" />
             <div className="flex items-center gap-4">
                 <button onClick={() => go('SETTINGS')} className="relative group">
