@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../../../types';
 import { Sparkles, ArrowLeft, Calendar, BookOpen } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
+import { OracleCardPremium } from '../../../src/components/OracleCardPremium';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 
@@ -9,6 +10,7 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();
     const [history, setHistory] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedCard, setSelectedCard] = useState<any>(null);
 
     useEffect(() => {
         api.oracle.history().then(data => {
@@ -47,13 +49,17 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
                 ) : (
                     <div className="grid grid-cols-1 gap-6">
                         {history.map((item, idx) => (
-                            <div key={idx} className="bg-white rounded-[2rem] p-6 border border-nature-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50/50 rounded-bl-full -mr-10 -mt-10 group-hover:scale-110 transition-transform"></div>
+                            <button 
+                                key={idx} 
+                                onClick={() => setSelectedCard(item)}
+                                className="bg-white rounded-[2rem] p-6 border border-nature-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden group text-left"
+                            >
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50/20 rounded-bl-full -mr-10 -mt-10 group-hover:scale-110 transition-transform"></div>
                                 
                                 <div className="flex justify-between items-start mb-4 relative z-10">
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-nature-50 rounded-full border border-nature-100">
+                                    <div className="flex items-center gap-2 px-3 py-1 bg-nature-50/80 backdrop-blur-sm rounded-full border border-nature-100">
                                         <Calendar size={12} className="text-nature-400" />
-                                        <span className="text-[9px] font-bold text-nature-600 uppercase tracking-widest">
+                                        <span className="text-[10px] font-bold text-nature-600 uppercase tracking-widest">
                                             {(() => {
                                                 const [year, month, day] = item.date.split('-');
                                                 return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
@@ -66,16 +72,43 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
                                 </div>
 
                                 <h4 className="text-xl font-serif italic text-nature-900 mb-2 relative z-10">
-                                    {item.card.name}
+                                    {item.card.name || item.card.category}
                                 </h4>
-                                <p className="text-sm text-nature-600 leading-relaxed italic relative z-10">
-                                    "{item.card.insight}"
+                                <p className="text-sm text-nature-600 leading-relaxed italic relative z-10 line-clamp-2">
+                                    "{item.card.insight || item.card.text}"
                                 </p>
-                            </div>
+                            </button>
                         ))}
                     </div>
                 )}
             </div>
+
+            {selectedCard && (
+                <OracleCardPremium 
+                    card={{
+                        id: selectedCard.card.id,
+                        name: selectedCard.card.name || selectedCard.card.category,
+                        message: selectedCard.card.insight || selectedCard.card.text,
+                        archetype: selectedCard.card.name || selectedCard.card.category,
+                        element: selectedCard.card.element,
+                        imageUrl: (() => {
+                            const reliableImages = [
+                                "https://images.unsplash.com/photo-1620668612187-578f7318182b?q=80&w=800&auto=format&fit=crop",
+                                "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop",
+                                "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop",
+                                "https://images.unsplash.com/photo-1506318137071-a8bcbf6755dd?q=80&w=800&auto=format&fit=crop",
+                                "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=800&auto=format&fit=crop",
+                                "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=800&auto=format&fit=crop",
+                                "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800&auto=format&fit=crop"
+                            ];
+                            const seed = (selectedCard.card.id || 'id') + (selectedCard.card.name || 'name');
+                            const idx = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % reliableImages.length;
+                            return reliableImages[idx];
+                        })()
+                    }}
+                    onClose={() => setSelectedCard(null)}
+                />
+            )}
         </PortalView>
     );
 };

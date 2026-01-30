@@ -86,18 +86,20 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
                         message: dailyCard.text,
                         archetype: dailyCard.name,
                         element: dailyCard.element,
+                        depth: dailyCard.depth || 1,
                         imageUrl: (() => {
-                            const images = [
-                                "https://images.unsplash.com/photo-1620668612187-578f7318182b?q=80&w=600", // Mystic Pink
-                                "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600", // Nebula
-                                "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=600", // Stars
-                                "https://images.unsplash.com/photo-1506318137071-a8bcbf6755dd?q=80&w=600", // Aurora
-                                "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=600", // Galaxy Night
-                                "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=600", // Rain
-                                "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600"  // Nature
+                            const reliableImages = [
+                                "https://images.unsplash.com/photo-1620668612187-578f7318182b?q=80&w=800&auto=format&fit=crop", // Mystic Pink
+                                "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop", // Nebula
+                                "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=800&auto=format&fit=crop", // Stars
+                                "https://images.unsplash.com/photo-1506318137071-a8bcbf6755dd?q=80&w=800&auto=format&fit=crop", // Aurora
+                                "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=800&auto=format&fit=crop", // Galaxy Night
+                                "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=800&auto=format&fit=crop", // Rain
+                                "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800&auto=format&fit=crop"  // Nature
                             ];
-                            const idx = dailyCard.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % images.length;
-                            return images[idx];
+                            const seed = dailyCard.id + dailyCard.name;
+                            const idx = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % reliableImages.length;
+                            return reliableImages[idx];
                         })()
                     }} 
                     onClose={closeCard} 
