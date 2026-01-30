@@ -191,13 +191,13 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 // Photo Area
                 const photoPad = 30;
                 const photoW = cardW - (photoPad * 2);
-                const photoH = photoW * 1.25; // 4:5 Aspect Ratio
+                const photoH = photoW * 1.5; // Instagram Stories/Premium Aspect Ratio (was 1.25)
                 const photoX = margin + photoPad;
                 const photoY = cardY + photoPad;
 
                 ctx.save();
                 ctx.beginPath();
-                drawRoundRect(photoX, photoY, photoW, photoH, 20);
+                drawRoundRect(photoX, photoY, photoW, photoH, 30); // More rounded
                 ctx.clip();
                 
                 // Draw Image Cover
@@ -230,7 +230,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 ctx.font = 'bold 40px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(result.mood[0].toUpperCase(), centerX, badgeY);
+                ctx.fillText(result.mood[0].toUpperCase(), centerX, badgeY + 5); 
 
                 // Text Content
                 const textY = badgeY + 100;

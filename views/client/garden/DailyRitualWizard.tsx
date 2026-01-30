@@ -174,11 +174,11 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 ctx.restore();
 
                 // 2. Photo (Rounded Rect)
-                const pad = 120; // More padding for elegant look
+                const pad = 60; // Less padding to grow the image (was 120)
                 const photoSize = W - (pad * 2);
                 
                 ctx.save();
-                const radius = 80;
+                const radius = 100; // More pronounced
                 
                 // Shadow
                 ctx.shadowColor = "rgba(0,0,0,0.15)";
@@ -186,7 +186,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 ctx.shadowOffsetY = 20;
 
                 ctx.beginPath();
-                ctx.roundRect(pad, pad + 100, photoSize, photoSize, radius); // Shifted down a bit
+                ctx.roundRect(pad, pad + 60, photoSize, photoSize + 100, radius); // Larger and shifted
                 ctx.fillStyle = '#1e1b4b'; // Dark background behind image
                 ctx.fill();
                 ctx.shadowColor = "transparent"; // Reset shadow
@@ -195,15 +195,15 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
                 const scale = Math.max(photoSize / userImg.width, photoSize / userImg.height);
                 const x = pad + (photoSize / 2) - (userImg.width * scale) / 2;
-                const y = pad + 100 + (photoSize / 2) - (userImg.height * scale) / 2;
+                const y = pad + 60 + ((photoSize + 100) / 2) - (userImg.height * scale) / 2;
                 ctx.drawImage(userImg, x, y, userImg.width * scale, userImg.height * scale);
                 
                 // Vignette overlay on image
-                const grad = ctx.createLinearGradient(0, pad+100, 0, pad+100+photoSize);
+                const grad = ctx.createLinearGradient(0, pad+60, 0, pad+60 + photoSize + 100);
                 grad.addColorStop(0, 'transparent');
                 grad.addColorStop(1, 'rgba(0,0,0,0.4)');
                 ctx.fillStyle = grad;
-                ctx.fillRect(pad, pad+100, photoSize, photoSize);
+                ctx.fillRect(pad, pad+60, photoSize, photoSize + 100);
                 
                 ctx.restore();
 
@@ -213,7 +213,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 ctx.shadowColor = 'rgba(0,0,0,0.1)';
                 ctx.fillStyle = '#ffffff';
                 ctx.beginPath();
-                ctx.arc(W/2, pad + 100, 40, 0, Math.PI * 2); // Overlapping top edge of photo
+                ctx.arc(W/2, pad + 60, 40, 0, Math.PI * 2); // Overlapping top edge of photo
                 ctx.fill();
                 ctx.restore();
 
@@ -223,7 +223,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 const elIcon = style.pattern === 'rays' ? '🔥' : style.pattern === 'wave' ? '💧' : style.pattern === 'leaf' ? '🌱' : '🍃';
-                ctx.fillText(elIcon, W/2, pad + 102);
+                ctx.fillText(elIcon, W/2, pad + 62);
 
 
                 // 5. Text Content

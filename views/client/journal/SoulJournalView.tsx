@@ -44,24 +44,6 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                             <span className="text-2xl font-serif text-emerald-600">{user.streak || 0}</span>
                         </div>
                     </div>
-                    
-                    <div className="flex gap-2">
-                         <button 
-                            onClick={() => go('EVOLUTION_TIMELAPSE')}
-                            className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 hover:bg-indigo-100 transition-all flex items-center gap-2"
-                            title="Time-Lapse"
-                         >
-                            <Video size={18} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:block">Time-Lapse</span>
-                         </button>
-                         <button 
-                            onClick={() => go('METAMORPHOSIS_CHECKIN')}
-                            className="p-3 bg-nature-900 text-white rounded-2xl shadow-lg active:scale-95 transition-all flex items-center gap-2"
-                         >
-                            <Plus size={18} />
-                            <span className="text-[10px] font-bold uppercase tracking-widest">Gravar</span>
-                         </button>
-                    </div>
                 </div>
 
                 {/* Timeline */}

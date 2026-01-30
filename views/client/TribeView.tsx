@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
-import { Flame, Plus, Trophy } from 'lucide-react';
+import { Flame, Plus, Trophy, Heart } from 'lucide-react';
 import { PortalView, BottomSheet, DynamicAvatar } from '../../components/Common';
 import { ConstellationOrbit, GlobalMandala } from '../../components/SocialFeatures';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
@@ -64,7 +64,12 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> 
               {[1,2,3,4,5].map(i => <img key={i} src={`https://api.dicebear.com/7.x/notionists/svg?seed=tribo${i}`} className="w-14 h-14 rounded-full border-4 border-indigo-800 shadow-xl object-cover" />)}
            </div>
            <p className="text-xs text-indigo-200 italic px-4 relative z-10">"Sua tribo elevou a vibração coletiva em 14% este mês. Continuem brilhando."</p>
-           <button onClick={() => setActiveModal('leaderboard')} className="w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest relative z-10 hover:bg-white/20 transition-all">Ver evolução da tribo</button>
+           <div className="grid grid-cols-1 gap-4 relative z-10 px-4">
+                <button onClick={() => go('HEALING_CIRCLE')} className="w-full py-5 bg-white text-indigo-900 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                    <Heart size={16} fill="currentColor"/> Participar do Círculo de Cura
+                </button>
+                <button onClick={() => setActiveModal('leaderboard')} className="w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">Ver evolução da tribo</button>
+            </div>
         </div>
         
         <BottomSheet isOpen={activeModal === 'leaderboard'} onClose={() => setActiveModal(null)} title="Classificação Radiante">
