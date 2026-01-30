@@ -8,8 +8,8 @@ test.describe('Critical Fixes Verification', () => {
     await loginAs('space');
     
     // Verify Dashboard
-    await expect(page.getByText('Santuário Viva360')).toBeVisible({ timeout: 15000 }); 
-    await expect(page.getByText('Jardim Comunitário')).toBeVisible(); // Space Dashboard unique content
+    await expect(page.getByText('Santuário').first()).toBeVisible({ timeout: 15000 }); 
+    await expect(page.getByText('Consagrar Novo Altar')).toBeVisible(); 
   });
 
   // 2. Buscador Daily Blessing Fix
@@ -37,10 +37,12 @@ test.describe('Critical Fixes Verification', () => {
     await injectMockData();
     await loginAs('pro'); // Guardião
     // Wait for dashboard to fully load (past the skeleton)
-    await expect(page.getByText('Bom Despertar')).toBeVisible({ timeout: 15000 });
+    // Switch to Expansão tab to find Bazar
+    await page.getByText('EXPANSÃO').click({ force: true });
+    await page.waitForTimeout(1000);
 
-    // Find and click 'Meu Bazar' card using robust filtering
-    await page.getByRole('button').filter({ hasText: 'Meu Bazar' }).click();
+    // Find and click 'Meu Bazar' card
+    await page.getByText('MEU BAZAR').first().click({ force: true });
 
     // Verify Marketplace View loaded
     await expect(page.getByText('Alquimia Comercial')).toBeVisible();

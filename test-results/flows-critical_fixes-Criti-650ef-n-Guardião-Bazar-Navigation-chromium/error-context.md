@@ -1,0 +1,104 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: Viva360
+      - generic [ref=e8]: Ecosistema Holístico
+    - navigation [ref=e9]:
+      - button "Início" [ref=e10] [cursor=pointer]:
+        - img [ref=e11]
+        - generic [ref=e13]: Início
+      - button "Jardim" [ref=e14] [cursor=pointer]:
+        - img [ref=e15]
+        - generic [ref=e22]: Jardim
+      - button "Agenda" [ref=e23] [cursor=pointer]:
+        - img [ref=e24]
+        - generic [ref=e26]: Agenda
+      - button "Perfil" [ref=e27] [cursor=pointer]:
+        - img [ref=e28]
+        - generic [ref=e31]: Perfil
+    - generic [ref=e32]:
+      - button "Notificações 1" [ref=e33] [cursor=pointer]:
+        - img [ref=e34]
+        - generic [ref=e37]: Notificações
+        - generic [ref=e38]: "1"
+      - button "Sair" [ref=e39] [cursor=pointer]:
+        - img [ref=e40]
+        - generic [ref=e43]: Sair
+  - main [ref=e45]:
+    - generic [ref=e48]:
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e55]: Você está offline
+          - button "Ficar Disponível" [ref=e56] [cursor=pointer]
+        - generic [ref=e57]:
+          - generic:
+            - img "Viva360 Logo"
+          - generic [ref=e58]:
+            - button "Guardião Demo" [ref=e59] [cursor=pointer]:
+              - img "Guardião Demo" [ref=e61]
+              - generic:
+                - img
+            - generic [ref=e62]:
+              - paragraph [ref=e63]: Bom Despertar,
+              - heading "Mestre Guardião" [level=2] [ref=e64]
+          - generic [ref=e65]:
+            - button [ref=e66] [cursor=pointer]:
+              - img [ref=e67]
+            - button [ref=e69] [cursor=pointer]:
+              - img [ref=e70]
+            - button [ref=e74] [cursor=pointer]:
+              - img [ref=e75]
+        - generic [ref=e78]:
+          - generic [ref=e80]:
+            - img [ref=e82]
+            - generic [ref=e85]:
+              - paragraph [ref=e86]: Sessão Iminente • 14:00
+              - heading "Iniciando com Ana Silva" [level=4] [ref=e87]
+          - button "Entrar agora" [ref=e88] [cursor=pointer]
+        - generic [ref=e90]:
+          - button "Consultório" [ref=e91] [cursor=pointer]:
+            - img [ref=e92]
+            - text: Consultório
+          - button "Expansão" [active] [ref=e96] [cursor=pointer]:
+            - img [ref=e97]
+            - text: Expansão
+        - generic [ref=e102]:
+          - generic [ref=e105]:
+            - generic [ref=e106]:
+              - img [ref=e108]
+              - generic [ref=e111]:
+                - heading "Oportunidades" [level=4] [ref=e112]
+                - paragraph [ref=e113]: Santuários buscando Guardiões
+            - button "Explorar Vagas" [ref=e114] [cursor=pointer]
+          - generic [ref=e115]:
+            - button "Rede Viva COMUNIDADE Rede Viva" [ref=e116] [cursor=pointer]:
+              - img "Rede Viva" [ref=e117]
+              - generic [ref=e119]:
+                - img [ref=e121]
+                - paragraph [ref=e123]: COMUNIDADE
+                - heading "Rede Viva" [level=3] [ref=e124]
+            - button "Abundância FINANÇAS Abundância" [ref=e125] [cursor=pointer]:
+              - img "Abundância" [ref=e126]
+              - generic [ref=e128]:
+                - img [ref=e130]
+                - paragraph [ref=e133]: FINANÇAS
+                - heading "Abundância" [level=3] [ref=e134]
+          - button "Alquimia MEU BAZAR Alquimia":
+            - img "Alquimia"
+            - generic [ref=e135] [cursor=pointer]:
+              - img [ref=e137]
+              - paragraph: MEU BAZAR
+              - heading "Alquimia" [level=3]
+          - generic [ref=e140] [cursor=pointer]:
+            - generic [ref=e141]:
+              - img [ref=e143]
+              - generic [ref=e145]:
+                - heading "Abençoar Rede" [level=4] [ref=e146]
+                - paragraph [ref=e147]: Doe 50 Karma
+            - img [ref=e149]
+      - button "Abrir Bússola (Ajuda)" [ref=e150] [cursor=pointer]:
+        - img [ref=e151]
+```
