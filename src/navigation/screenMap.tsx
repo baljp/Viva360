@@ -46,6 +46,7 @@ const TimeLapseExperience = lazyNamed(() => import('../../views/client/garden/Ti
 const OracleGrimoire = lazyNamed(() => import('../../views/client/garden/OracleGrimoire'), 'OracleGrimoire');
 const CollectionGrimoire = lazyNamed(() => import('../../views/client/garden/CollectionGrimoire'), 'CollectionGrimoire');
 const SoulJournalView = lazyNamed(() => import('../../views/client/journal/SoulJournalView'), 'SoulJournalView');
+const HealingCircleEntry = lazyNamed(() => import('../../views/client/tribe/HealingCircleEntry'), 'HealingCircleEntry');
 
 // --- GUARDIAO SCREENS ---
 const ProDashboard = lazyNamed(() => import('../../views/pro/ProDashboard'), 'ProDashboard');
@@ -109,6 +110,7 @@ export const screenMap: any = {
         TRIBE_DASH: TribeView,
         TRIBE_INVITE: TribeInvite,
         TRIBE_INTERACTION: TribeInteraction,
+        HEALING_CIRCLE: HealingCircleEntry,
         CHAT_LIST: ChatListScreen,
         CHAT_ROOM: ChatRoomScreen,
         CHAT_SETTINGS: ChatRoomScreen,
@@ -130,6 +132,7 @@ export const screenMap: any = {
         EVOLUTION_ACHIEVEMENTS: AchievementsView,
         EVOLUTION_HISTORY: EmotionalHistory,
         EVOLUTION_TIMELAPSE: TimeLapseView,
+        TIME_LAPSE_EXPERIENCE: TimeLapseExperience,
         SETTINGS: SettingsViews,
         MARKETPLACE: ClientMarketplace, 
         KARMA_WALLET: KarmaWallet,
