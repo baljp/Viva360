@@ -194,6 +194,16 @@ export interface Professional extends User {
   reviews?: Review[];
 }
 
+// Add OracleCard interface
+export interface OracleCard {
+  id: string;
+  name: string;
+  message: string;
+  imageUrl: string;
+  archetype: string;
+  element?: string;
+}
+
 export interface Product { 
   id: string; 
   name: string; 
