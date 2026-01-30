@@ -150,7 +150,12 @@ export const SmartTutorial: React.FC<{ user: User | null }> = ({ user }) => {
     };
 
     if (!isActive) {
-        if (!user) return null; // Don't show help button on login/splash
+        if (!user) return null; 
+        
+        // Double check path to ensure hidden on public routes
+        const hiddenPaths = ['/', '/login', '/register', '/register/client', '/register/pro', '/register/space'];
+        if (hiddenPaths.includes(window.location.pathname)) return null;
+
         
         return (
             <button 
