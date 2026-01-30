@@ -707,7 +707,17 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
         canvasRef.current.width = vW; 
         canvasRef.current.height = vH;
         
+        // Apply Instagram-style filters to the canvas context
+        ctx.filter = 'contrast(1.06) saturate(1.15) brightness(1.02) sepia(0.02)';
         ctx.drawImage(videoRef.current, 0, 0, vW, vH); 
+        
+        // Add subtle vignette to capture
+        const vignette = ctx.createRadialGradient(vW/2, vH/2, 0, vW/2, vH/2, Math.sqrt(vW**2 + vH**2)/2);
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(0.8, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, 'rgba(0,0,0,0.15)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, vW, vH);
         
         // Stop stream immediately after capture
         const stream = videoRef.current.srcObject as MediaStream;
@@ -748,15 +758,25 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
                   playsInline 
                   muted
                   className="w-full h-full object-cover transform scale-x-[-1]" 
-                  style={{ filter: 'contrast(1.04) saturate(1.08) brightness(1.02) sepia(0.04)' }}
+                  style={{ filter: 'contrast(1.06) saturate(1.15) brightness(1.02) sepia(0.02)' }}
               />
           )}
           <canvas ref={canvasRef} className="hidden" />
-          {/* Overlay de Foco */}
+          
+          {/* Aesthetic Overlays (Instagram Mode) */}
           {!camError && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
-                  <div className="w-64 h-64 border-2 border-white/50 rounded-[2.5rem]"></div>
-              </div>
+              <>
+                {/* Vignette */}
+                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle,transparent_60%,rgba(0,0,0,0.2)_100%)]"></div>
+                
+                {/* Dreamy Glow */}
+                <div className="absolute inset-0 pointer-events-none bg-indigo-500/5 mix-blend-screen opacity-30"></div>
+                
+                {/* Focus indicator */}
+                <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-30">
+                    <div className="w-64 h-64 border-2 border-white/30 rounded-[2.5rem] shadow-[0_0_20px_rgba(255,255,255,0.1)]"></div>
+                </div>
+              </>
           )}
       </div>
       
