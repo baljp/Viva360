@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Calendar, Share2, Download, ChevronLeft, ChevronRight, X, Music } from 'lucide-react';
+import { Play, Pause, Calendar, Share2, Download, ChevronLeft, ChevronRight, X, Music, Sparkles } from 'lucide-react';
 import { PortalView } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
