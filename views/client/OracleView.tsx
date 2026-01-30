@@ -2,13 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
 import { Sparkles, History, Share2 } from 'lucide-react';
 import { PortalView, ZenToast } from '../../components/Common';
-import { OracleCard } from '../../src/components/OracleCard';
+import { OracleCardPremium } from '../../src/components/OracleCardPremium';
 import { api } from '../../services/api';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { useOracle, OracleMessage } from '../../frontend/src/hooks/useOracle';
-
-// Stub until backend typing is synced
-// OracleMessage now imported from hook
 
 export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
     const { go } = useBuscadorFlow();
@@ -78,12 +75,21 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
                         <History size={16} /> Meu Histórico
                      </button>
                 </div>
-
             </div>
 
-            {/* Render the Card Modal overlay */}
+            {/* Render the Premium Card Modal overlay */}
             {showCard && dailyCard && (
-                <OracleCard card={dailyCard} onClose={closeCard} />
+                <OracleCardPremium 
+                    card={{
+                        id: dailyCard.id,
+                        name: dailyCard.category.toUpperCase(), // e.g. "INSPIRAÇÃO"
+                        message: dailyCard.text,
+                        archetype: dailyCard.category,
+                        element: dailyCard.element,
+                        imageUrl: "https://images.unsplash.com/photo-1620668612187-578f7318182b?q=80&w=600" // Default mystic abstract image
+                    }} 
+                    onClose={closeCard} 
+                />
             )}
 
         </PortalView>
