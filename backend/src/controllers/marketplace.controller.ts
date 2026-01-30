@@ -34,3 +34,17 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response) =>
     const result = await marketplaceService.deleteProduct(id);
     return res.json(result);
 });
+
+export const purchaseProduct = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    const { product_id, amount, description } = req.body;
+
+    const transaction = await marketplaceService.purchaseProduct({
+        product_id,
+        amount,
+        description,
+        user_id: userId
+    });
+
+    return res.json(transaction);
+});

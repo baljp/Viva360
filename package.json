@@ -16,6 +16,7 @@
     "test:qa": "npx playwright test --config=playwright.qa.config.ts",
     "test:qa:visual": "npx playwright test --config=playwright.qa.config.ts --project=chromium --grep @visual",
     "test:qa:stress": "npx playwright test --config=playwright.qa.config.ts --grep @stress",
+    "test:endpoints": "npx ts-node backend/e2e_flow.ts",
     "test:buscador-flow": "npx playwright test --config=playwright.qa.config.ts qa/flows/buscador-flow.spec.ts",
     "test:guardiao-flow": "npx playwright test --config=playwright.qa.config.ts qa/flows/guardiao-flow.spec.ts",
     "test:santuario-flow": "npx playwright test --config=playwright.qa.config.ts qa/flows/santuario-flow.spec.ts",

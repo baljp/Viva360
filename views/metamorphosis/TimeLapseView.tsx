@@ -24,7 +24,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             const list = data.entries || [];
             // Mock data if empty for demo purposes (to satisfy "Google Photos" request if no real data)
             const demoData = list.length ? list : [
-                { id: 1, date: new Date().toISOString(), mood: 'Sereno', quote: 'O início de tudo...', image: 'https://images.unsplash.com/photo-1518173946687-a4c8892415f4?w=800' },
+                { id: 1, date: new Date().toISOString(), mood: 'Sereno', quote: 'O início de tudo...', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800' },
                 { id: 2, date: new Date().toISOString(), mood: 'Vibrante', quote: 'Cerscendo em luz.', image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800' },
                 { id: 3, date: new Date().toISOString(), mood: 'Expansivo', quote: 'A metamorfose é real.', image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=800' }
             ];

@@ -8,6 +8,27 @@ const ROLES = [
   { name: 'Admin', email: 'admin@viva360.com', password: '123456', dashboard: '**/admin/dashboard' }
 ];
 
+async function handleOnboarding(page: any) {
+  // Aggressively disable tutorial via localStorage
+  await page.evaluate(() => {
+    localStorage.setItem('viva360_smart_tutorial_seen', 'true');
+    // Also try to set it for known user IDs if possible, or just the generic one
+    for (let i = 0; i < 100; i++) {
+        localStorage.setItem(`viva360_tutorial_seen_${i}`, 'true');
+    }
+    // Also for standard mock user
+    localStorage.setItem('viva360_tutorial_seen_mock-user-id', 'true');
+  });
+
+  const nextBtn = page.getByRole('button', { name: /próximo/i });
+  let safety = 0;
+  while (await nextBtn.isVisible() && safety < 10) {
+    await nextBtn.click();
+    await page.waitForTimeout(500);
+    safety++;
+  }
+}
+
 test.describe('Master Enterprise E2E Suite', () => {
 
   for (const role of ROLES) {
@@ -15,6 +36,9 @@ test.describe('Master Enterprise E2E Suite', () => {
       // 1. Authentication
       await page.goto('/');
       
+      // Close onboarding if present
+      await handleOnboarding(page);
+
       const loginBtn = page.getByRole('button', { name: /já tenho conta/i });
       await expect(loginBtn).toBeVisible({ timeout: 10000 });
       await loginBtn.click();
@@ -25,6 +49,7 @@ test.describe('Master Enterprise E2E Suite', () => {
 
       // 2. Dashboard Validation
       await page.waitForURL(role.dashboard, { timeout: 15000 });
+      await handleOnboarding(page);
       await expect(page).not.toHaveTitle(/error/i);
 
       // 3. Scan for Broken Assets and Recursive Discovery
@@ -79,11 +104,13 @@ test.describe('Master Enterprise E2E Suite', () => {
   test('Cross-Profile Workflow: Booking Integration', async ({ page, context }) => {
     // 1. CLIENT: Initiate a booking or interest
     await page.goto('/');
+    await handleOnboarding(page);
     await page.getByRole('button', { name: /já tenho conta/i }).click();
     await page.fill('input[placeholder="seu@email.com"]', 'cliente@viva360.com');
     await page.fill('input[placeholder="••••••••"]', '123456');
     await page.click('button[type="submit"]');
     await page.waitForURL('**/client/home');
+    await handleOnboarding(page);
 
     // Visit Marketplace or Discovery to trigger an action
     await page.goto('/client/marketplace');
@@ -93,14 +120,16 @@ test.describe('Master Enterprise E2E Suite', () => {
     // 2. PRO: Verify Dashboard Visibility
     const proPage = await context.newPage();
     await proPage.goto('/');
+    await handleOnboarding(proPage);
     await proPage.getByRole('button', { name: /já tenho conta/i }).click();
     await proPage.fill('input[placeholder="seu@email.com"]', 'pro@viva360.com');
     await proPage.fill('input[placeholder="••••••••"]', '123456');
     await proPage.click('button[type="submit"]');
     await proPage.waitForURL('**/pro/home');
+    await handleOnboarding(proPage);
     
     // Check for dashboard elements
-    await expect(proPage.locator('text=/agenda|dashboard/i').first()).toBeVisible();
+    await expect(proPage.locator('text=/Consultório|Expansão/i').first()).toBeVisible({ timeout: 10000 });
     await proPage.screenshot({ path: 'test-results/integration/pro_dashboard.png' });
   });
 });

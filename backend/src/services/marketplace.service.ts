@@ -56,6 +56,18 @@ export class MarketplaceService {
         await marketplaceRepository.delete(id);
         return { success: true };
     }
+
+    async purchaseProduct(data: { product_id: string; amount: number; description: string; user_id: string }) {
+        if (isMockMode()) {
+            return {
+                id: 'tx-mock-' + Date.now(),
+                status: 'COMPLETED',
+                ...data
+            };
+        }
+        // In real mode, we would handle logic here (Prisma transaction for payment, etc.)
+        return { id: 'tx-real-placeholder', status: 'PENDING' };
+    }
 }
 
 export const marketplaceService = new MarketplaceService();
