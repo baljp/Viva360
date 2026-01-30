@@ -123,13 +123,13 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                         <div className="w-full h-full bg-nature-50 rounded-[2rem] shadow-2xl overflow-hidden relative border-[8px] border-white/50">
                             
                             {/* Premium Image Layer */}
-                            <div className="absolute inset-0 h-[65%]">
+                            <div className="absolute inset-0 h-[75%]">
                                 <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-nature-50" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-nature-50/80" />
                             </div>
 
                             {/* Content Layer */}
-                            <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-b from-nature-50/0 via-nature-50/80 to-nature-50 p-6 flex flex-col justify-end text-center backdrop-blur-sm">
+                            <div className="absolute bottom-0 left-0 right-0 h-[40%] bg-gradient-to-b from-nature-50/0 via-nature-50/95 to-nature-50 p-6 flex flex-col justify-end text-center backdrop-blur-[2px]">
                                 
                                 <motion.div 
                                     initial={{ opacity: 0, y: 20 }}
