@@ -9,7 +9,10 @@ async function testLogin() {
         const res = await fetch(`${API_URL}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: 'client0@viva360.com', password: '123' })
+            body: JSON.stringify({
+            email: 'client0@viva360.com',
+            password: '123456' 
+        })
         });
         
         const data: any = await res.json();

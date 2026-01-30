@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { User, UserRole, ViewState, Notification } from '../types';
-import { Home, Compass, ShoppingBag, User as UserIcon, LogOut, Activity, Building, Users, Wallet, Calendar, Sun, Settings, Heart, Flower, Bell, Briefcase, Zap, Sparkles } from 'lucide-react';
+import { Home, Compass, ShoppingBag, User as UserIcon, LogOut, Activity, Building, Users, Wallet, Calendar, Sun, Settings, Heart, Flower, Bell, Briefcase, Zap, Sparkles, Book } from 'lucide-react';
 import { AuroraBackground, NotificationDrawer } from './Common';
 import { api } from '../services/api';
 import { isDemoMode, isMockMode } from '../lib/supabase';
@@ -20,6 +20,7 @@ const navItemsDefinition = (user: User | null) => {
     switch(user.role) {
         case UserRole.CLIENT: return [
             { id: ViewState.CLIENT_HOME, label: 'Início', icon: Home },
+            { id: ViewState.CLIENT_JOURNAL, label: 'Diário', icon: Book },
             { id: ViewState.CLIENT_JOURNEY, label: 'Jornada', icon: Sun },
             { id: ViewState.CLIENT_EXPLORE, label: 'Explorar', icon: Compass },
             { id: ViewState.CLIENT_TRIBO, label: 'Tribo', icon: Heart },

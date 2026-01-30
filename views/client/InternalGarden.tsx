@@ -48,7 +48,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
         updateUser(updatedUser);
         await api.users.update(updatedUser);
         setActiveModal(null);
-        setToast({ title: 'Jornada Iniciada', message: `Sua semente de ${updatedUser.plantType} foi plantada.` });
+        setToast({ title: 'Jornada Iniciada', message: `Sua semente de ${gardenService.getPlantLabel(updatedUser.plantType || 'oak')} foi plantada.` });
     };
 
     // Helper text for Vitality
@@ -64,7 +64,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             {isRitualActive ? (
-                <DailyRitualWizard user={user} onComplete={handleRitualComplete} onClose={() => setIsRitualActive(false)} />
+                <DailyRitualWizard user={user} updateUser={handleRitualComplete} onClose={() => setIsRitualActive(false)} />
             ) : (
                 <>
                     <div className="flex flex-col h-full bg-gradient-to-b from-transparent to-nature-50/50 pb-32">
@@ -89,7 +89,9 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                                 <div>
                                     <p className="text-[9px] font-black text-nature-400 uppercase tracking-widest">Jornada</p>
                                     <span className="text-sm font-bold text-nature-900">
-                                        {user.plantStage?.toUpperCase() || 'SEMENTE'}
+                                        {user.plantStage === 'seed' && user.plantType 
+                                            ? `SEMENTE DE ${gardenService.getPlantLabel(user.plantType).toUpperCase()}`
+                                            : user.plantStage?.toUpperCase() || 'SEMENTE'}
                                     </span>
                                 </div>
                             </div>

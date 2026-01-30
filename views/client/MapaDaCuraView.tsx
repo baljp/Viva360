@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ViewState, Professional, User } from '../../types';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { PortalView, DynamicAvatar, ZenToast } from '../../components/Common';
 import { useJourneyEngine } from '../../src/hooks/useJourneyEngine';
 import { Play, Search, MapPin, Sparkle, Sun, Moon, Wind, Clock, Star, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { MicroJourneyModal } from './map/MicroJourneyModal';
+import { api } from '../../services/api';
 
 interface MapaDaCuraProps {
     pros?: Professional[];
@@ -19,22 +20,56 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
     const [searchQuery, setSearchQuery] = useState("");
     const [activeMicroJourney, setActiveMicroJourney] = useState<any>(null);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    
+    const [activeGuardians, setActiveGuardians] = useState<Record<string, any>>({});
+    const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
-    // Filter Pros Logic (Universal Search)
+    // Load Active Guardians
+    useEffect(() => {
+        const loadPresence = async () => {
+            const active = await api.presence.listActive();
+            setActiveGuardians(active);
+        };
+        loadPresence();
+        const interval = setInterval(loadPresence, 30000); // Poll every 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    // Filter Pros Logic (Universal Search + Presence)
     const filteredPros = useMemo(() => {
-        if (!searchQuery) return pros;
-        const q = searchQuery.toLowerCase();
-        return pros.filter(p => 
-            p.name.toLowerCase().includes(q) || 
-            p.specialty.some(s => s.toLowerCase().includes(q)) ||
-            (p.location && p.location.toLowerCase().includes(q))
-        );
-    }, [pros, searchQuery]);
+        let result = pros;
+
+        // 1. Search Query
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            result = result.filter(p => 
+                p.name.toLowerCase().includes(q) || 
+                p.specialty.some(s => s.toLowerCase().includes(q)) ||
+                (p.location && p.location.toLowerCase().includes(q))
+            );
+        }
+
+        // 2. Presence Filter
+        if (activeFilter === 'Disponível Agora') {
+            result = result.filter(p => !!activeGuardians[p.id]);
+        }
+
+        // 3. Sorting (Online First)
+        return [...result].sort((a, b) => {
+            const aOnline = !!activeGuardians[a.id];
+            const bOnline = !!activeGuardians[b.id];
+            if (aOnline && !bOnline) return -1;
+            if (!aOnline && bOnline) return 1;
+            return 0; // Keep original order otherwise
+        });
+    }, [pros, searchQuery, activeGuardians, activeFilter]);
 
     const handleStartJourney = (j: any) => {
-        // Here we could open the modal or start a specific flow
-        // For now using the existing MicroJourneyModal adapter
         setActiveMicroJourney(j.category); 
+    };
+
+    const toggleFilter = (f: string) => {
+        setActiveFilter(prev => prev === f ? null : f);
     };
 
     return (
@@ -150,7 +185,11 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
                     {/* Living Filters */}
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
                         {['Disponível Agora', 'Perto de mim', 'Melhor Avaliados', 'Alta Conexão'].map(filter => (
-                            <button key={filter} className="whitespace-nowrap px-4 py-2 bg-white border border-nature-100 rounded-xl text-[10px] font-bold uppercase tracking-widest text-nature-500 hover:bg-nature-50 active:scale-95 transition-all">
+                            <button 
+                                key={filter} 
+                                onClick={() => toggleFilter(filter)}
+                                className={`whitespace-nowrap px-4 py-2 bg-white border rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-nature-50 active:scale-95 transition-all ${activeFilter === filter ? 'border-primary-500 text-primary-600 bg-primary-50 ring-2 ring-primary-100' : 'border-nature-100 text-nature-500'}`}
+                            >
                                 {filter}
                             </button>
                         ))}
@@ -167,24 +206,29 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
                         </div>
                     ) : (
                         <div className="grid gap-3">
-                            {filteredPros.map(pro => (
-                                <div key={pro.id} className="bg-white p-4 rounded-[2rem] border border-nature-50 shadow-sm flex items-center gap-4 hover:shadow-md transition-all cursor-pointer" onClick={() => { selectProfessional(pro.id); go('BOOKING_SELECT'); }}>
-                                    <div className="relative">
-                                        <DynamicAvatar user={pro} size="md" />
-                                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></div>
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between">
-                                            <h4 className="font-bold text-nature-900 text-sm truncate">{pro.name}</h4>
-                                            <div className="flex items-center gap-1"><Star size={10} className="fill-amber-400 text-amber-400"/><span className="text-[10px] font-bold text-nature-600">{pro.rating}</span></div>
+                            {filteredPros.map(pro => {
+                                const isOnline = !!activeGuardians[pro.id];
+                                return (
+                                    <div key={pro.id} className="bg-white p-4 rounded-[2rem] border border-nature-50 shadow-sm flex items-center gap-4 hover:shadow-md transition-all cursor-pointer" onClick={() => { selectProfessional(pro.id); go('BOOKING_SELECT'); }}>
+                                        <div className="relative">
+                                            <DynamicAvatar user={pro} size="md" />
+                                            <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
                                         </div>
-                                        <p className="text-[10px] text-nature-400 uppercase font-bold tracking-wider truncate mb-1">{(pro.specialty || []).slice(0,2).join(' • ')}</p>
-                                        <div className="flex items-center gap-2 text-nature-300">
-                                            <MapPin size={10} /> <span className="text-[9px] font-bold uppercase tracking-widest">{pro.location || 'Online'}</span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between">
+                                                <h4 className="font-bold text-nature-900 text-sm truncate">{pro.name}</h4>
+                                                <div className="flex items-center gap-1"><Star size={10} className="fill-amber-400 text-amber-400"/><span className="text-[10px] font-bold text-nature-600">{pro.rating}</span></div>
+                                            </div>
+                                            <p className="text-[10px] text-nature-400 uppercase font-bold tracking-wider truncate mb-1">{(pro.specialty || []).slice(0,2).join(' • ')}</p>
+                                            <div className="flex items-center gap-2 text-nature-300">
+                                                <MapPin size={10} /> <span className="text-[9px] font-bold uppercase tracking-widest">
+                                                    {isOnline ? 'Online Agora' : (pro.location || 'Offline')}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>

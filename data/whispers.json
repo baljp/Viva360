@@ -1,0 +1,119 @@
+{
+  "templates": [
+    {
+      "id": "sereno_morning_1",
+      "mood": "SERENO",
+      "time": "morning",
+      "format": "A calma que buscas em {intention} nasce com o sol."
+    },
+    {
+      "id": "sereno_morning_2",
+      "mood": "SERENO",
+      "time": "morning",
+      "format": "Respire. Este amanhecer confirma: {gratitude} é teu porto seguro."
+    },
+    {
+      "id": "sereno_night_1",
+      "mood": "SERENO",
+      "time": "night",
+      "format": "Sob as estrelas, tua busca por {intention} encontra silêncio e paz."
+    },
+    {
+      "id": "sereno_night_2",
+      "mood": "SERENO",
+      "time": "night",
+      "format": "O dia silencia para que ouças a gratidão por {gratitude}."
+    },
+    {
+      "id": "vibrante_any_1",
+      "mood": "VIBRANTE",
+      "time": "any",
+      "format": "Tua energia hoje transforma {intention} em pura realidade."
+    },
+    {
+      "id": "vibrante_any_2",
+      "mood": "VIBRANTE",
+      "time": "any",
+      "format": "O universo celebra tua gratidão por {gratitude} com movimento e luz."
+    },
+    {
+      "id": "melancolico_morning_1",
+      "mood": "MELANCÓLICO",
+      "time": "morning",
+      "format": "Mesmo na neblina, a semente de {intention} começa a brotar."
+    },
+    {
+      "id": "melancolico_night_1",
+      "mood": "MELANCÓLICO",
+      "time": "night",
+      "format": "Permita-se sentir. A gratidão por {gratitude} é o abraço que te acolhe agora."
+    },
+    {
+      "id": "ansioso_any_1",
+      "mood": "ANSIOSO",
+      "time": "any",
+      "format": "Solte o peso. O controle sobre {intention} virá com a leveza do ser."
+    },
+    {
+      "id": "ansioso_any_2",
+      "mood": "ANSIOSO",
+      "time": "any",
+      "format": "Olhe ao redor. A âncora de {gratitude} te mantém firme no agora."
+    },
+    {
+      "id": "focado_any_1",
+      "mood": "FOCADO",
+      "time": "any",
+      "format": "Teu olhar afiado enxerga {intention} antes mesmo de acontecer."
+    },
+    {
+      "id": "focado_any_2",
+      "mood": "FOCADO",
+      "time": "any",
+      "format": "Construindo degrau por degrau, honras a base de {gratitude}."
+    },
+    {
+      "id": "exausto_night_1",
+      "mood": "EXAUSTO",
+      "time": "night",
+      "format": "Descanse, guerreiro. {intention} esperará renovada pelo amanhã."
+    },
+    {
+      "id": "exausto_any_1",
+      "mood": "EXAUSTO",
+      "time": "any",
+      "format": "Seu esforço é sagrado. Que a gratidão por {gratitude} seja teu repouso."
+    },
+    {
+      "id": "grato_any_1",
+      "mood": "GRATO",
+      "time": "any",
+      "format": "Coração transbordando: {intention} flui fácil quando há gratidão."
+    },
+    {
+      "id": "grato_any_2",
+      "mood": "GRATO",
+      "time": "any",
+      "format": "A magia da vida se revela no simples ato de agradecer por {gratitude}."
+    },
+    {
+      "id": "generic_1",
+      "mood": "ANY",
+      "time": "any",
+      "format": "Que a luz de {intention} guie teus passos."
+    },
+    {
+      "id": "generic_2",
+      "mood": "ANY",
+      "time": "any",
+      "format": "Um momento eterno: a gratidão por {gratitude} em tua alma."
+    }
+  ],
+  "stopwords": [
+    "o", "a", "os", "as", "um", "uma", "uns", "umas",
+    "de", "do", "da", "dos", "das", "em", "no", "na",
+    "que", "e", "é", "por", "para", "com", "sem", "ter", "ser",
+    "estar", "fazer", "quero", "gostaria", "desejo", "agradeço",
+    "grato", "pela", "pelo", "meu", "minha", "hoje"
+  ]
+}

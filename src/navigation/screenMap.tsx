@@ -45,6 +45,7 @@ const EmotionalHistory = lazyNamed(() => import('../../views/client/garden/Emoti
 const TimeLapseExperience = lazyNamed(() => import('../../views/client/garden/TimeLapseExperience'), 'TimeLapseExperience');
 const OracleGrimoire = lazyNamed(() => import('../../views/client/garden/OracleGrimoire'), 'OracleGrimoire');
 const CollectionGrimoire = lazyNamed(() => import('../../views/client/garden/CollectionGrimoire'), 'CollectionGrimoire');
+const SoulJournalView = lazyNamed(() => import('../../views/client/journal/SoulJournalView'), 'SoulJournalView');
 
 // --- GUARDIAO SCREENS ---
 const ProDashboard = lazyNamed(() => import('../../views/pro/ProDashboard'), 'ProDashboard');
@@ -134,6 +135,7 @@ export const screenMap: any = {
         KARMA_WALLET: KarmaWallet,
         ORACLE_HISTORY: OracleGrimoire,
         EVO_GRIMOIRE: CollectionGrimoire,
+        CLIENT_JOURNAL: SoulJournalView,
     },
     // GUARDIAO
     GUARDIAO: {
