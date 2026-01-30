@@ -308,17 +308,7 @@ export const api = {
             // Updated to fallback to a Seeded default but essentially just check localStorage/DB
             // For now, simpler to leave the default list OR move it to DB. 
             // Let's keep the existing logic but recognize it's "MockDB compatible" 
-            const defaults = period === 'morning' ? [
-                { id: 'm1', title: 'Água com Limão', duration: 2, icon: 'Droplet', completed: false },
-                { id: 'm2', title: 'Meditação Solar', duration: 10, icon: 'Sun', completed: false },
-                { id: 'm3', title: 'Yoga Flow', duration: 15, icon: 'Activity', completed: false },
-                { id: 'm4', title: 'Leitura Inspiradora', duration: 10, icon: 'BookOpen', completed: false }
-            ] : [
-                { id: 'n1', title: 'Desconexão Digital', duration: 5, icon: 'WifiOff', completed: false },
-                { id: 'n2', title: 'Chá Calmante', duration: 10, icon: 'Coffee', completed: false },
-                { id: 'n3', title: 'Gratidão do Dia', duration: 5, icon: 'Heart', completed: false },
-                { id: 'n4', title: 'Leitura Leve', duration: 20, icon: 'Moon', completed: false }
-            ];
+            const defaults: any[] = [];
             
             const key = `viva360.rituals.${period}`;
             const saved = localStorage.getItem(key);

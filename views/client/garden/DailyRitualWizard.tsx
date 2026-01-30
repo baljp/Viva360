@@ -292,6 +292,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
     
     // Actually, I can use multi_replace to do both at once!
 
+    // State to hold updated user for completion
+    const [finalUser, setFinalUser] = useState<User | null>(null);
+
     const handleNurtureStart = async () => {
         setStep('NURTURE');
          // Calculate rewards
@@ -318,45 +321,10 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
              snaps: [newSnap, ...(user.snaps || [])]
          };
          
+         setFinalUser(updatedUser);
+
          // API Call
          await api.users.update(updatedUser);
-         
-         // API Call
-         await api.users.update(updatedUser);
-         
-         // No auto-navigation timeout anymore. User must click "Continuar".
-         // This prevents race conditions if the user closes/navigates away.
-    };
-
-    const handleTribeAction = (action: 'BLESS' | 'UNION' | 'PACT' | 'SKIP') => {
-        // In a real app we would use the updated user from previous step, but for now assuming onComplete handles the refresh
-        // For 'UNION' and 'PACT' we navigate
-        
-        // We construct the updated user object again essentially or query it, 
-        // strictly for the onComplete callback to maintain state accuracy.
-        // For simplicity reusing 'user' but modified:
-        const reward = gardenService.calculateWateringReward(user); // Re-calc not ideal but harmless for mock
-        const updatedUser: User = {
-            ...user,
-            lastWateredAt: new Date().toISOString(),
-            plantHealth: Math.min(100, (user.plantHealth || 0) + 15),
-            plantXp: (user.plantXp || 0) + reward.xp,
-            karma: (user.karma || 0) + reward.karma
-        };
-
-        if (action === 'UNION') {
-             onComplete(updatedUser);
-             go('TRIBE_INTERACTION');
-             return;
-        }
-        if (action === 'PACT') {
-             onComplete(updatedUser);
-             go('TRIBE_DASH');
-             return;
-        }
-        
-        // For Bless or Skip, just close
-        onComplete(updatedUser);
     };
 
     // --- RENDER STEPS ---
@@ -514,40 +482,17 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
                     </div>
 
                     <button 
-                        onClick={() => setStep('TRIBE')}
+                        onClick={() => {
+                            if (finalUser) onComplete(finalUser);
+                            else onComplete(user);
+                            onClose();
+                        }}
                         className="mt-8 px-12 py-4 bg-white text-emerald-900 rounded-full font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all animate-in fade-in delay-1000 duration-1000"
                     >
-                        Continuar Jornada
+                        Concluir
                     </button>
                  </div>
             </div>
-        );
-    }
-
-    if (step === 'TRIBE') {
-        return (
-             <div className="fixed inset-0 z-[100] bg-indigo-900/90 backdrop-blur-xl flex flex-col items-center justify-center p-8 animate-in fade-in">
-                 <div className="w-full max-w-sm space-y-8 text-center">
-                     <div className="w-20 h-20 bg-indigo-500/30 rounded-full flex items-center justify-center mx-auto border border-indigo-400/30 shadow-[0_0_40px_rgba(99,102,241,0.3)]">
-                         <Share2 size={32} className="text-indigo-200" />
-                     </div>
-                     <div className="space-y-3">
-                         <h3 className="text-2xl font-serif italic text-white">Deseja compartilhar sua energia?</h3>
-                         <p className="text-indigo-100/60 text-sm">Sua vibração influencia o crescimento da tribo.</p>
-                     </div>
-                     <div className="space-y-3">
-                         <button onClick={() => handleTribeAction('BLESS')} className="w-full py-4 bg-white text-indigo-900 rounded-2xl font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">
-                             ✨ Enviar Bênção
-                         </button>
-                         <button onClick={() => handleTribeAction('UNION')} className="w-full py-4 bg-indigo-800 text-white border border-indigo-700/50 rounded-2xl font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
-                             🤝 Pedir Apoio
-                         </button>
-                         <button onClick={() => handleTribeAction('SKIP')} className="w-full py-4 text-indigo-300 font-bold uppercase tracking-widest text-[10px] hover:text-white transition-colors">
-                             Pular
-                         </button>
-                     </div>
-                 </div>
-             </div>
         );
     }
 
