@@ -3,7 +3,7 @@ import { User, DailyJournalEntry, MoodType } from '../../../types';
 import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { Book, Lock, TrendingUp, Calendar, Heart, ArrowRight } from 'lucide-react';
+import { Book, Lock, TrendingUp, Calendar, Heart, ArrowRight, Video, Plus, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
@@ -39,14 +39,28 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                             <span className="text-2xl font-serif text-nature-900">{stats?.total || 0}</span>
                         </div>
                         <div className="w-px h-10 bg-nature-100" />
-                         <div className="flex flex-col items-center">
+                        <div className="flex flex-col items-center">
                             <span className="text-xs font-bold uppercase tracking-widest text-nature-400">Streak</span>
                             <span className="text-2xl font-serif text-emerald-600">{user.streak || 0}</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 text-nature-300 text-[10px] uppercase tracking-widest">
-                        <Lock size={12} />
-                        Privado & Seguro
+                    
+                    <div className="flex gap-2">
+                         <button 
+                            onClick={() => go('EVOLUTION_TIMELAPSE')}
+                            className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl border border-indigo-100 hover:bg-indigo-100 transition-all flex items-center gap-2"
+                            title="Time-Lapse"
+                         >
+                            <Video size={18} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest hidden sm:block">Time-Lapse</span>
+                         </button>
+                         <button 
+                            onClick={() => go('METAMORPHOSIS_CHECKIN')}
+                            className="p-3 bg-nature-900 text-white rounded-2xl shadow-lg active:scale-95 transition-all flex items-center gap-2"
+                         >
+                            <Plus size={18} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Gravar</span>
+                         </button>
                     </div>
                 </div>
 
@@ -85,8 +99,25 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                                                 {new Date(entry.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                                             </span>
                                         </div>
-                                        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${getMoodColor(entry.mood)}`}>
-                                            {entry.mood}
+                                        <div className="flex items-center gap-2">
+                                            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${getMoodColor(entry.mood)}`}>
+                                                {entry.mood}
+                                            </div>
+                                            <button 
+                                                onClick={() => {
+                                                    const text = `Espelho da Essência - ${new Date(entry.createdAt).toLocaleDateString()}\n\nIntenção: ${entry.generatedPhrases?.[0] || entry.actionIntent}\nGratidão: ${entry.generatedPhrases?.[1] || entry.gratitude}\n\nSentindo-me ${entry.mood} 🌿 #Viva360`;
+                                                    if (navigator.share) {
+                                                        navigator.share({ title: 'Diário da Alma', text }).catch(() => {});
+                                                    } else {
+                                                        // Fallback for simple copy or alert
+                                                        navigator.clipboard.writeText(text);
+                                                        alert("Copiado para a área de transferência!");
+                                                    }
+                                                }}
+                                                className="p-2 text-nature-300 hover:text-nature-600 transition-colors"
+                                            >
+                                                <Share2 size={14} />
+                                            </button>
                                         </div>
                                     </div>
 
