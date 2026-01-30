@@ -665,10 +665,19 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
 
   useEffect(() => { 
       let mediaStream: MediaStream | null = null;
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'user' } } })
+      navigator.mediaDevices.getUserMedia({ 
+        video: { 
+            facingMode: { ideal: 'user' },
+            width: { ideal: 1920, min: 1280 },
+            height: { ideal: 1080, min: 720 }
+        } 
+      })
         .then(stream => { 
             mediaStream = stream;
-            if (videoRef.current) videoRef.current.srcObject = stream; 
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.setAttribute('playsinline', 'true');
+            }
             setCamError(null);
         })
         .catch(err => {
@@ -685,11 +694,20 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
 
   const capture = () => {
     if (videoRef.current && canvasRef.current) {
-      const ctx = canvasRef.current.getContext('2d');
+      const ctx = canvasRef.current.getContext('2d', { alpha: false });
       if (ctx) {
-        canvasRef.current.width = videoRef.current.videoWidth; 
-        canvasRef.current.height = videoRef.current.videoHeight;
-        ctx.drawImage(videoRef.current, 0, 0); 
+        // High Quality Settings
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // Match UI aspect ratio or video resolution?
+        // Let's use video resolution but ensure it's high
+        const vW = videoRef.current.videoWidth;
+        const vH = videoRef.current.videoHeight;
+        canvasRef.current.width = vW; 
+        canvasRef.current.height = vH;
+        
+        ctx.drawImage(videoRef.current, 0, 0, vW, vH); 
         
         // Stop stream immediately after capture
         const stream = videoRef.current.srcObject as MediaStream;
@@ -697,7 +715,8 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
             stream.getTracks().forEach(track => track.stop());
         }
         
-        onCapture(canvasRef.current.toDataURL('image/jpeg'));
+        // Premium Quality JPEG
+        onCapture(canvasRef.current.toDataURL('image/jpeg', 0.95));
       }
     }
   };
@@ -723,7 +742,14 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
                   <p className="text-sm text-nature-200">{camError}</p>
               </div>
           ) : (
-              <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover transform scale-x-[-1]" />
+              <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted
+                  className="w-full h-full object-cover transform scale-x-[-1]" 
+                  style={{ filter: 'contrast(1.04) saturate(1.08) brightness(1.02) sepia(0.04)' }}
+              />
           )}
           <canvas ref={canvasRef} className="hidden" />
           {/* Overlay de Foco */}
