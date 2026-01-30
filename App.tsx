@@ -266,9 +266,15 @@ const App: React.FC = () => {
     };
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
-        setCurrentUser(null);
-        navigate('/login');
+        try {
+            await api.auth.logout();
+            await supabase.auth.signOut();
+        } catch (e) {
+            console.error("Logout error", e);
+        } finally {
+            setCurrentUser(null);
+            navigate('/login');
+        }
     };
 
     if (isLoading) return <Splash />;
@@ -304,9 +310,17 @@ const App: React.FC = () => {
                     {/* Client Routes */}
                     <Route path="/client/*" element={(String(currentUser?.role).toUpperCase() === 'CLIENT') ? (
                         <BuscadorFlowProvider>
-                            <ClientViews user={currentUser!} view={currentView} setView={setView} updateUser={handleUpdateUser} onAddToCart={addToCart} />
+                            <ClientViews 
+                                user={currentUser!} 
+                                view={currentView} 
+                                setView={setView} 
+                                updateUser={handleUpdateUser} 
+                                onAddToCart={addToCart} 
+                                onLogout={handleLogout}
+                            />
                         </BuscadorFlowProvider>
                     ) : <Navigate to="/login" />} />
+
                     <Route path="/checkout" element={<CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} items={cart} onSuccess={processCheckout} onCancel={() => navigate(-1)} />} />
                     <Route path="/checkout/success" element={<SuccessScreen onHome={() => navigate('/client/home')} />} />
                     <Route path="/client/orders" element={<OrdersListView user={currentUser!} onBack={() => navigate('/client/home')} setView={setView} />} />
