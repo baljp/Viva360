@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 import { PortalView, ZenToast, DynamicAvatar } from '../../../components/Common';
-import { Search, Filter, Heart, Sparkles, TrendingUp, Calendar, Shield, MapPin, ChevronRight, UserPlus } from 'lucide-react';
+import { Search, Filter, Heart, Sparkles, TrendingUp, Calendar, Shield, MapPin, ChevronRight, UserPlus, MessageCircle } from 'lucide-react';
 
 const SpacePatients: React.FC = () => {
   const { go } = useSantuarioFlow();
@@ -91,6 +91,17 @@ const SpacePatients: React.FC = () => {
                                 <span className="block text-xs font-bold text-nature-900">{patient.karma} Karma</span>
                                 <span className="text-[9px] text-nature-400 font-bold uppercase">Último: {patient.lastVisit}</span>
                             </div>
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const text = encodeURIComponent(`Olá ${patient.name}, entrando em contato via Santuário Viva360. 🌱`);
+                                    window.open(`https://wa.me/?text=${text}`, '_blank');
+                                }}
+                                className="w-8 h-8 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition-all"
+                                title="Contatar via WhatsApp"
+                            >
+                                <MessageCircle size={14} /> 
+                            </button>
                             <ChevronRight size={18} className="text-nature-200 group-hover:text-indigo-500 transition-colors" />
                         </div>
                     </div>
