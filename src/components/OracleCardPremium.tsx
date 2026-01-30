@@ -224,14 +224,19 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                                                     };
                                                     
                                                     if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                                                        try { await navigator.share(shareData); } catch (e) {
+                                                        try { 
+                                                            await navigator.share(shareData); 
+                                                            handleMouseLeave(); // Reset position after share
+                                                        } catch (e) {
                                                             // Fallback to separate share
                                                             const url = `https://wa.me/?text=${encodeURIComponent(shareData.text)}`;
                                                             window.open(url, '_blank');
+                                                            handleMouseLeave();
                                                         }
                                                     } else {
                                                         const url = `https://wa.me/?text=${encodeURIComponent(shareData.text)}`;
                                                         window.open(url, '_blank');
+                                                        handleMouseLeave();
                                                     }
                                                 });
                                             }}

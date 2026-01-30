@@ -235,7 +235,18 @@ export const api = {
                 type
             });
         },
-        likePost: async (id: string) => true // Mock action
+        likePost: async (id: string) => true, // Mock action
+        syncVibration: async (userId: string) => {
+            const user = MockDB.getUsers().find(u => u.id === userId);
+            if (user) {
+                const reward = 10;
+                const updated = { ...user, karma: (user.karma || 0) + reward };
+                MockDB.updateUser(updated);
+                localStorage.setItem('viva360.mock_user', JSON.stringify(updated));
+                return { success: true, reward, globalVibration: 0.85 };
+            }
+            return { success: false };
+        }
     },
     spaces: {
         getRooms: async (uid?: string) => MockDB.getRooms(),

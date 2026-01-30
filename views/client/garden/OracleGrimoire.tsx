@@ -54,7 +54,10 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
                                     <div className="flex items-center gap-2 px-3 py-1 bg-nature-50 rounded-full border border-nature-100">
                                         <Calendar size={12} className="text-nature-400" />
                                         <span className="text-[9px] font-bold text-nature-600 uppercase tracking-widest">
-                                            {new Date(item.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' })}
+                                            {(() => {
+                                                const [year, month, day] = item.date.split('-');
+                                                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+                                            })()}
                                         </span>
                                     </div>
                                     <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-tighter rounded-full border border-amber-200">

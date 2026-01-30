@@ -5,6 +5,7 @@ import { api } from '../../../services/api';
 export interface OracleMessage {
     id: string;
     text: string;
+    name: string;
     category: string;
     element: string;
     depth: number;
@@ -28,6 +29,7 @@ export const useOracle = (userId: string) => {
                     const card: OracleMessage = {
                         id: 'today',
                         text: res.card.insight,
+                        name: res.card.name || "Iniciação",
                         category: "inspiração",
                         element: res.card.element,
                         depth: 2
@@ -53,6 +55,7 @@ export const useOracle = (userId: string) => {
             const newCard: OracleMessage = {
                 id: Date.now().toString(),
                 text: res.card.insight || "O silêncio também é uma resposta.",
+                name: res.card.name || "Revelação",
                 category: "inspiração",
                 element: res.card.element || "ether",
                 depth: Math.floor(Math.random() * 3) + 1

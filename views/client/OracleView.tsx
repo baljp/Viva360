@@ -82,9 +82,9 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
                 <OracleCardPremium 
                     card={{
                         id: dailyCard.id,
-                        name: dailyCard.category.toUpperCase(), 
+                        name: dailyCard.name, 
                         message: dailyCard.text,
-                        archetype: dailyCard.category,
+                        archetype: dailyCard.name,
                         element: dailyCard.element,
                         imageUrl: (() => {
                             const images = [
