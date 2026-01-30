@@ -25,9 +25,7 @@ export const ClientViews: React.FC<{
        };
        const target = map[view];
        if (target && flowState.currentState !== target) {
-           if (flowState.currentState === 'START' || flowState.currentState === 'DASHBOARD') {
-              go(target);
-           }
+           go(target);
        }
    }, [view]);
 
