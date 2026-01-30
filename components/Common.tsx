@@ -339,11 +339,26 @@ const PlusIcon = ({ size }: { size: number }) => (
 );
 
 // --- DYNAMIC AVATAR ---
+// --- DYNAMIC AVATAR ---
 export const DynamicAvatar: React.FC<{ user: Partial<UserType>, size?: 'sm' | 'md' | 'lg' | 'xl', className?: string }> = ({ user, size = 'md', className = "" }) => {
+  const [imgError, setImgError] = useState(false);
   const sizeClasses = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-20 h-20', xl: 'w-32 h-32' };
+  
   return (
-    <div className={`${sizeClasses[size]} ${className} rounded-full overflow-hidden border-2 border-white shadow-sm bg-nature-100 flex-none relative`}>
-      <img src={user.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.name || 'user'}`} loading="lazy" className="w-full h-full object-cover" alt={user.name} />
+    <div className={`${sizeClasses[size]} ${className} rounded-full overflow-hidden border-2 border-white shadow-sm bg-nature-100 flex-none relative flex items-center justify-center`}>
+      {!imgError ? (
+          <img 
+            src={user.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${user.name || 'user'}`} 
+            loading="lazy" 
+            className="w-full h-full object-cover" 
+            alt={user.name} 
+            onError={() => setImgError(true)}
+          />
+      ) : (
+          <div className="w-full h-full bg-nature-200 flex items-center justify-center text-nature-400">
+             <span className="font-serif italic font-bold text-lg">{user.name?.charAt(0) || 'U'}</span>
+          </div>
+      )}
     </div>
   );
 };
@@ -618,8 +633,10 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
   const [camError, setCamError] = useState<string | null>(null);
 
   useEffect(() => { 
+      let mediaStream: MediaStream | null = null;
       navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'user' } } })
         .then(stream => { 
+            mediaStream = stream;
             if (videoRef.current) videoRef.current.srcObject = stream; 
             setCamError(null);
         })
@@ -627,6 +644,12 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
             console.error("Camera error:", err);
             setCamError("Não foi possível acessar a câmera. Verifique as permissões ou use o upload.");
         }); 
+
+      return () => {
+          if (mediaStream) {
+              mediaStream.getTracks().forEach(track => track.stop());
+          }
+      };
   }, []);
 
   const capture = () => {
@@ -636,6 +659,13 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
         canvasRef.current.width = videoRef.current.videoWidth; 
         canvasRef.current.height = videoRef.current.videoHeight;
         ctx.drawImage(videoRef.current, 0, 0); 
+        
+        // Stop stream immediately after capture
+        const stream = videoRef.current.srcObject as MediaStream;
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+        }
+        
         onCapture(canvasRef.current.toDataURL('image/jpeg'));
       }
     }

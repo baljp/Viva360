@@ -118,6 +118,7 @@ const SantuarioFlowContext = createContext<{
     back: () => void;
     reset: () => void;
     refreshData: (userId: string) => Promise<void>;
+    notify: (title: string, message: string, type?: 'info' | 'success' | 'warning') => void;
 } | undefined>(undefined);
 
 export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -175,8 +176,13 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     const back = () => dispatch({ type: 'BACK' });
     const reset = () => dispatch({ type: 'RESET' });
 
+    const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' = 'info') => {
+        dispatch({ type: 'NOTIFY', payload: { title, message, type } });
+        setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 3000);
+    };
+
     return (
-        <SantuarioFlowContext.Provider value={{ state, go, back, reset, refreshData }}>
+        <SantuarioFlowContext.Provider value={{ state, go, back, reset, refreshData, notify }}>
             {children}
         </SantuarioFlowContext.Provider>
     );

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform } from 'framer-motion';
-import { Sparkles, Moon, Sun, Stars, Cloud } from 'lucide-react';
+import { Sparkles, Moon, Sun, Stars, Cloud, Share2 } from 'lucide-react';
 import { OracleCard as OracleCardType } from '../../types';
 
 interface OracleCardPremiumProps {
@@ -150,15 +150,40 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                                         "{card.message}"
                                     </p>
 
-                                    {/* Action Button */}
-                                    <div className="pt-4">
+                                    {/* Action Buttons */}
+                                    <div className="pt-4 flex gap-2">
+                                         <button 
+                                            onClick={() => {
+                                                const shareText = `🔮 *Oráculo Viva360* 🔮\n\nMinha carta de hoje: *${card.name}*\n_"${card.message}"_\n\nDescubra sua jornada em Viva360.`;
+                                                const url = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+                                                window.open(url, '_blank');
+                                            }}
+                                            className="flex-1 py-4 bg-[#25D366] text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+                                         >
+                                            <Share2 size={14} /> WhatsApp
+                                         </button>
                                          <button 
                                             onClick={onClose}
-                                            className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all"
+                                            className="flex-1 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all"
                                          >
-                                            Receber Bênção
+                                            Receber
                                          </button>
                                     </div>
+                                    
+                                    <button 
+                                        onClick={() => {
+                                            if (navigator.share) {
+                                                navigator.share({
+                                                    title: 'Oráculo Viva360',
+                                                    text: `Minha carta: ${card.name} - "${card.message}"`,
+                                                    url: window.location.href
+                                                }).catch(() => {});
+                                            }
+                                        }}
+                                        className="w-full mt-2 py-2 text-nature-400 text-[9px] font-bold uppercase tracking-widest hover:text-nature-600 transition-colors"
+                                    >
+                                        Outras Opções
+                                    </button>
                                 </motion.div>
                             </div>
 

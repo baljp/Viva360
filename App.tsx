@@ -67,6 +67,7 @@ const App: React.FC = () => {
         
         // Client Routes
         if (path === '/client/home') return ViewState.CLIENT_HOME;
+        if (path === '/client/journal') return ViewState.CLIENT_JOURNAL;
         if (path === '/client/journey') return ViewState.CLIENT_JOURNEY;
         if (path === '/client/explore') return ViewState.CLIENT_EXPLORE;
         if (path === '/client/tribe') return ViewState.CLIENT_TRIBO;

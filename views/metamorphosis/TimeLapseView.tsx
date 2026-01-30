@@ -161,31 +161,55 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     const startRecording = () => {
         if (!canvasRef.current) return;
         
-        setIsRecording(true);
-        setCurrentIndex(0);
-        setProgress(0);
-        setIsPlaying(true);
-        chunksRef.current = [];
+        try {
+            setIsRecording(true);
+            setCurrentIndex(0);
+            setProgress(0);
+            setIsPlaying(true);
+            chunksRef.current = [];
 
-        const stream = canvasRef.current.captureStream(30); 
-        const recorder = new MediaRecorder(stream, { 
-            mimeType: 'video/webm;codecs=vp9',
-            videoBitsPerSecond: 2500000 // 2.5 Mbps
-        });
-        
-        recorder.ondataavailable = (e) => {
-            if (e.data.size > 0) chunksRef.current.push(e.data);
-        };
+            const stream = canvasRef.current.captureStream(30); 
+            
+            // Detect Supported MimeType
+            const mimeTypes = [
+                'video/webm;codecs=vp9',
+                'video/webm',
+                'video/mp4'
+            ];
+            const selectedMime = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
 
-        recorder.onstop = () => {
-            const blob = new Blob(chunksRef.current, { type: 'video/webm' });
-            setRecordedBlob(blob);
+             if (!selectedMime) {
+                console.warn("Nenhum formato de vídeo suportado encontrado. Tentando default.");
+            }
+
+            const options = selectedMime ? { mimeType: selectedMime, videoBitsPerSecond: 2500000 } : { videoBitsPerSecond: 2500000 };
+
+            const recorder = new MediaRecorder(stream, options);
+            
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunksRef.current.push(e.data);
+            };
+
+            recorder.onstop = () => {
+                const blob = new Blob(chunksRef.current, { type: selectedMime || 'video/webm' });
+                setRecordedBlob(blob);
+                setIsRecording(false);
+                setActiveModal('share_video'); 
+            };
+            
+            recorder.onerror = (e) => {
+                console.error("Recording Error:", e);
+                setIsRecording(false);
+                alert("Erro durante a gravação. Tente novamente.");
+            };
+
+            mediaRecorderRef.current = recorder;
+            recorder.start();
+        } catch (err) {
+            console.error("Failed to start recording:", err);
             setIsRecording(false);
-            setActiveModal('share_video'); 
-        };
-
-        mediaRecorderRef.current = recorder;
-        recorder.start();
+            alert("Não foi possível iniciar a gravação neste dispositivo.");
+        }
     };
 
     const stopRecording = () => {

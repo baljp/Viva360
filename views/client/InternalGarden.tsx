@@ -171,7 +171,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                                         { id: 'mental', label: 'Clareza', plant: 'Girassol', icon: '🌻', color: 'bg-amber-50 text-amber-600' },
                                         { id: 'forca', label: 'Força', plant: 'Carvalho', icon: '🌳', color: 'bg-emerald-50 text-emerald-600' },
                                         { id: 'espiritual', label: 'Paz', plant: 'Lavanda', icon: '🪻', color: 'bg-purple-50 text-purple-600' },
-                                        { id: 'transforma', label: 'Metamorfose', plant: 'Borboleta', icon: '🦋', color: 'bg-blue-50 text-blue-600' }
+                                        { id: 'transforma', label: 'Metamorfose', plant: 'Orquídea', icon: '🌸', color: 'bg-purple-50 text-purple-600' }
                                     ].map(j => (
                                         <button 
                                             key={j.id} 

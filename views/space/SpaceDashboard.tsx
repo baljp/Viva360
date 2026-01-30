@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus
 } from 'lucide-react';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
@@ -91,6 +91,10 @@ const QuickStat = ({ label, value, icon: Icon, color }: any) => (
 
 const OperationsTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <button onClick={() => go('ROOM_CREATE')} className="w-full py-5 bg-gradient-to-r from-amber-200 to-amber-100 text-amber-900 rounded-[2.5rem] font-bold uppercase tracking-widest flex items-center justify-center gap-3 shadow-sm border border-amber-200 hover:scale-[1.02] transition-transform">
+             <div className="w-8 h-8 rounded-full bg-white/50 flex items-center justify-center"><Plus size={16}/></div>
+             Consagrar Novo Altar
+        </button>
         <div className="grid grid-cols-2 gap-4">
             <PortalCard 
                 id="portal-agenda"
@@ -148,25 +152,33 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
             </div>
         </div>
 
-        <div onClick={() => go('GOVERNANCE')} className="bg-nature-900 text-white p-6 rounded-[2.5rem] shadow-lg flex justify-between items-center cursor-pointer relative overflow-hidden">
-             <div className="relative z-10 flex items-center gap-4">
-                 <Shield size={24} className="text-indigo-300"/>
-                 <div>
-                     <h4 className="font-bold text-lg">Governança</h4>
-                     <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-widest">Contratos & Compliance</p>
-                 </div>
+        <div className="grid grid-cols-2 gap-4">
+             <div onClick={() => go('GOVERNANCE')} className="bg-nature-900 text-white p-6 rounded-[2.5rem] shadow-lg flex flex-col justify-between cursor-pointer relative overflow-hidden group">
+                  <div className="relative z-10">
+                      <Shield size={24} className="text-indigo-300 mb-4"/>
+                      <h4 className="font-bold text-lg leading-tight">Governança</h4>
+                      <p className="text-[9px] text-indigo-300 font-bold uppercase tracking-widest mt-1">Compliance</p>
+                  </div>
+                  <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
              </div>
-             <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
+             <div onClick={() => go('TEAM_SUMMON')} className="bg-rose-50 text-rose-900 p-6 rounded-[2.5rem] border border-rose-100 shadow-sm flex flex-col justify-between cursor-pointer relative overflow-hidden hover:bg-rose-100 transition-all">
+                  <div className="relative z-10">
+                      <Zap size={24} className="text-rose-500 mb-4"/>
+                      <h4 className="font-bold text-lg leading-tight">Convocar</h4>
+                      <p className="text-[9px] text-rose-400 font-bold uppercase tracking-widest mt-1">Alerta Círculo</p>
+                  </div>
+             </div>
         </div>
     </div>
 );
 
 const GrowthTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="bg-gradient-to-r from-amber-100 to-orange-50 p-6 rounded-[2.5rem] border border-amber-200 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-amber-100 to-orange-50 p-6 rounded-[2.5rem] border border-amber-200 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all" onClick={() => go('TEAM_INVITE')}>
             <div>
                  <h4 className="font-serif italic text-2xl text-amber-900">Expandir Egrégora</h4>
                  <p className="text-xs text-amber-700 mt-1 max-w-[200px]">Atraia novos guardiões e impulsione a vibração do espaço.</p>
+                 <button className="mt-3 px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest">Convidar Guardião</button>
             </div>
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
                 <Globe size={32} className="text-amber-500" />
@@ -250,12 +262,12 @@ export const SpaceDashboard: React.FC<{
                      </div>
                  </div>
                  <div className="flex items-center gap-2">
-                    <button className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all"><MessageCircle size={18}/></button>
+                    <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all outline-none"><MessageCircle size={18}/></button>
                     <button onClick={() => setShowNotifications(true)} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all relative">
                         <Bell size={18}/>
                         {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white"></span>}
                     </button>
-                    <button className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all"><Settings size={18}/></button>
+                    <button onClick={() => go('GOVERNANCE')} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all outline-none"><Settings size={18}/></button>
                  </div>
             </header>
 
