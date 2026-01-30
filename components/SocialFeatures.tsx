@@ -309,21 +309,46 @@ export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) 
 };
 
 // --- GLOBAL MANDALA (SYNC) ---
-export const GlobalMandala: React.FC = () => {
+export const GlobalMandala: React.FC<{ user: User, onUpdateUser: (u: User) => void }> = ({ user, onUpdateUser }) => {
     const [liveUsers] = useState(432 + Math.floor(Math.random() * 50));
     const [isBreathing, setIsBreathing] = useState(false);
+    const [hasSynced, setHasSynced] = useState(false);
+
+    const handleSync = async () => {
+        if (hasSynced) return;
+        setIsBreathing(true);
+        try {
+            const res = await api.tribe.syncVibration(user.id);
+            if (res.success) {
+                onUpdateUser({ ...user, karma: (user.karma || 0) + res.reward });
+                setHasSynced(true);
+                if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const stopSync = () => {
+        setIsBreathing(false);
+    };
+
     return (
         <div className="flex flex-col items-center gap-6 py-10">
             <button 
-                onMouseDown={() => setIsBreathing(true)} 
-                onMouseUp={() => setIsBreathing(false)} 
-                onTouchStart={() => setIsBreathing(true)}
-                onTouchEnd={() => setIsBreathing(false)}
-                className="relative w-48 h-48 flex items-center justify-center transition-transform active:scale-95 touch-none"
+                onMouseDown={handleSync} 
+                onMouseUp={stopSync} 
+                onTouchStart={handleSync}
+                onTouchEnd={stopSync}
+                disabled={hasSynced}
+                className={`relative w-48 h-48 flex items-center justify-center transition-transform active:scale-95 touch-none ${hasSynced ? 'opacity-80' : ''}`}
             >
-                <div className={`absolute inset-0 bg-primary-200/40 rounded-full ${isBreathing ? 'animate-breathe' : 'animate-ping-slow'}`}></div>
-                <div className="absolute inset-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-2xl border border-white/50 z-10"><Sparkles size={40} className="text-primary-500" /></div>
-                {isBreathing && <div className="absolute -top-12 bg-nature-900 text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest animate-bounce">Sincronizando Respiro...</div>}
+                <div className={`absolute inset-0 rounded-full transition-all duration-1000 ${hasSynced ? 'bg-emerald-200/40' : (isBreathing ? 'bg-primary-300/60 animate-breathe' : 'bg-primary-200/40 animate-ping-slow')}`}></div>
+                <div className={`absolute inset-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-2xl border ${hasSynced ? 'border-emerald-200' : 'border-white/50'} z-10`}>
+                    {hasSynced ? <Heart size={40} className="text-emerald-500 fill-current" /> : <Sparkles size={40} className="text-primary-500" />}
+                </div>
+                {isBreathing && !hasSynced && <div className="absolute -top-12 bg-nature-900 text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest animate-bounce">Sincronizando Respiro...</div>}
+                {hasSynced && <div className="absolute -top-12 bg-emerald-600 text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest animate-in fade-in zoom-in">Sincronizado! +10 Karma</div>}
             </button>
             <div className="text-center space-y-1">
                  <p className="text-[10px] font-bold text-nature-500 uppercase tracking-[0.3em]">{liveUsers} ALMAS EM SINTONIA AGORA</p>
