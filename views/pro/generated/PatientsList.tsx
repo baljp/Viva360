@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { ChevronLeft, Search, Filter, Flower, ChevronRight, Activity, Zap, Sprout } from 'lucide-react';
+import { ChevronLeft, Search, Filter, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 
 export default function PatientsList() {
@@ -103,7 +103,20 @@ export default function PatientsList() {
                    </div>
                </div>
            ))}
-       </div>
+        </div>
+
+        {/* INVITE BUTTON */}
+        <div className="px-2 mt-4 pb-32">
+            <button 
+                onClick={() => {
+                    const text = encodeURIComponent(`Olá! Gostaria de convidar você para iniciar sua jornada terapêutica comigo no Viva360. 🌱`);
+                    window.open(`https://wa.me/?text=${text}`, '_blank');
+                }}
+                className="w-full bg-[#25D366] text-white py-5 rounded-[2rem] shadow-lg flex items-center justify-center gap-3 active:scale-95 transition-all font-bold uppercase tracking-widest text-[10px]"
+            >
+                <MessageCircle size={18}/> Convidar Almas (WhatsApp)
+            </button>
+        </div>
     </PortalView>
   );
 }

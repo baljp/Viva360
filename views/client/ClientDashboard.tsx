@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { ViewState, User, DailyRitualSnap } from '../../types';
-import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle, TrendingUp } from 'lucide-react';
+import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle, TrendingUp, Book } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
@@ -161,7 +161,7 @@ export const ClientDashboard: React.FC<{
                     <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
                         <History size={14}/> Jornada & Evolução
                     </h4>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                          <div onClick={() => go('METAMORPHOSIS_CHECKIN')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
                              <div className="w-10 h-10 bg-nature-50 rounded-xl flex items-center justify-center text-nature-600 mb-1"><Zap size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Novo<br/>Registro</span>
@@ -169,6 +169,14 @@ export const ClientDashboard: React.FC<{
                          <div onClick={() => go('EVOLUTION_TIMELAPSE')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
                              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 mb-1"><TrendingUp size={20}/></div>
                              <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Time<br/>Lapse</span>
+                         </div>
+                         <div onClick={() => go('CLIENT_JOURNAL')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
+                             <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 mb-1"><Book size={20}/></div>
+                             <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Diário da<br/>Alma</span>
+                         </div>
+                         <div onClick={() => go('EVOLUTION')} className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col items-center justify-center gap-2 active:scale-95 transition-all text-center h-32 cursor-pointer hover:bg-nature-50">
+                             <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600 mb-1"><Sparkles size={20}/></div>
+                             <span className="text-[9px] font-bold uppercase text-nature-600 tracking-wider">Minha<br/>Evolução</span>
                          </div>
                     </div>
                 </div>

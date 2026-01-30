@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, ViewState } from '../../types';
-import { Droplet, Heart, Users, Sparkles, TrendingUp, History, Info, Leaf } from 'lucide-react';
+import { Droplet, Heart, Users, Sparkles, TrendingUp, History, Info, Leaf, Share2 } from 'lucide-react';
 import { PortalView, ZenToast } from '../../components/Common';
 import { gardenService, GardenStatus } from '../../services/gardenService';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
@@ -151,6 +151,88 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                                     <span className="text-xs font-bold uppercase tracking-[0.25em]">Regar com Intenção</span>
                                 </div>
                                 <p className="relative z-10 text-[9px] text-white/50 uppercase tracking-widest mt-1">Ritual Diário • 1 min</p>
+                            </button>
+
+                            <button 
+                                onClick={async () => {
+                                    const canvas = document.createElement('canvas');
+                                    const ctx = canvas.getContext('2d');
+                                    if (!ctx) return;
+                                    
+                                    canvas.width = 1080;
+                                    canvas.height = 1920;
+                                    
+                                    // Background Gradient
+                                    const bgGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                                    bgGrad.addColorStop(0, '#f0f4f2');
+                                    bgGrad.addColorStop(1, '#dfe7e3');
+                                    ctx.fillStyle = bgGrad;
+                                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                    
+                                    // Decorative Elements
+                                    ctx.fillStyle = 'rgba(16, 185, 129, 0.05)';
+                                    ctx.beginPath();
+                                    ctx.arc(canvas.width / 2, canvas.height / 2, 600, 0, Math.PI * 2);
+                                    ctx.fill();
+                                    
+                                    // Draw Plant
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.font = '500px sans-serif';
+                                    ctx.shadowBlur = 40;
+                                    ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                                    ctx.fillText(plantVisuals.icon, canvas.width / 2, canvas.height / 2 - 100);
+                                    ctx.shadowBlur = 0;
+                                    
+                                    // Header
+                                    ctx.fillStyle = '#1a1a1a';
+                                    ctx.font = 'italic 80px serif';
+                                    ctx.fillText('Meu Jardim da Alma', canvas.width / 2, 250);
+                                    
+                                    // Health Indicator
+                                    ctx.font = 'bold 30px sans-serif';
+                                    ctx.fillStyle = '#666';
+                                    ctx.fillText(`VITALIDADE: ${status.health}%`, canvas.width / 2, 350);
+                                    
+                                    // Experience & Stage
+                                    ctx.font = '40px sans-serif';
+                                    ctx.fillStyle = '#1a1a1a';
+                                    ctx.fillText(`${user.plantStage?.toUpperCase() || 'SEMENTE'} DE ${gardenService.getPlantLabel(user.plantType || 'oak').toUpperCase()}`, canvas.width / 2, canvas.height / 2 + 300);
+                                    
+                                    // Quote/Status
+                                    ctx.font = 'italic 45px serif';
+                                    ctx.fillStyle = '#444';
+                                    ctx.fillText(`"${evolutionState.label}"`, canvas.width / 2, canvas.height / 2 + 420);
+                                    
+                                    // Footer / Branding
+                                    ctx.font = 'bold 35px sans-serif';
+                                    ctx.fillStyle = '#263732';
+                                    ctx.fillText('VIVA360', canvas.width / 2, canvas.height - 150);
+                                    ctx.font = '30px sans-serif';
+                                    ctx.fillStyle = '#888';
+                                    ctx.fillText(new Date().toLocaleDateString('pt-BR'), canvas.width / 2, canvas.height - 100);
+
+                                    canvas.toBlob(async (blob) => {
+                                        if (!blob) return;
+                                        const file = new File([blob], 'meu-jardim.png', { type: 'image/png' });
+                                        const shareData = {
+                                            title: 'Meu Jardim Viva360',
+                                            text: `🌿 Veja como está florescendo meu jardim da alma! Vitalidade: ${status.health}%`,
+                                            files: [file]
+                                        };
+                                        
+                                        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                                            try { await navigator.share(shareData); } catch (e) {
+                                                alert("Seu navegador não suporta compartilhamento de arquivos.");
+                                            }
+                                        } else {
+                                            alert("Compartilhamento não disponível neste dispositivo.");
+                                        }
+                                    });
+                                }}
+                                className="w-full py-5 rounded-2xl bg-white border border-nature-200 text-nature-600 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-nature-50 transition-colors shadow-sm"
+                            >
+                                <Share2 size={16} /> Compartilhar meu Jardim
                             </button>
                         </div>
                     </div>
