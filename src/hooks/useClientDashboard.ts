@@ -41,11 +41,9 @@ export const useClientDashboard = (
             updateUser(updated);
             setToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
             await api.users.update(updated as User);
-            // Feature: User requested "Call Tribe" after nurturing
-            setTimeout(() => {
-                setActiveModal('invite'); 
-                setToast({ title: "Ecoar Energia?", message: "Sua vibração está alta. Compartilhe com a tribo." });
-            }, 1000);
+            updateUser(updated);
+            setToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
+            await api.users.update(updated as User);
         } catch (e) {
             console.error("Water Plant Error", e);
             setToast({ title: "Erro na conexão", message: "Sua intenção foi registrada no éter." });
