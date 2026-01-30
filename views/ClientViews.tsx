@@ -7,13 +7,30 @@ import { BuscadorState } from '../src/flow/types';
 import { ZenToast } from '../components/Common';
 
 export const ClientViews: React.FC<{ 
-  user: User, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onAddToCart: (p: Product) => void
-}> = ({ user, view, setView, updateUser, onAddToCart }) => {
+  user: User, 
+  view: ViewState, 
+  setView: (v: ViewState) => void, 
+  updateUser: (u: User) => void, 
+  onAddToCart: (p: Product) => void,
+  onLogout: () => void
+}> = ({ user, view, setView, updateUser, onAddToCart, onLogout }) => {
   const { state: flowState, go, back, reset, refreshData } = useBuscadorFlow();
 
    // Sync Router View -> Flow State (Deep Linking Support)
    useEffect(() => {
-       const map: Record<string, BuscadorState> = {
+       // Define State Clusters: If already in a sub-state of the target tab, don't force reset
+       const clusters: Record<string, BuscadorState[]> = {
+           [ViewState.CLIENT_HOME]: ['DASHBOARD', 'SETTINGS', 'MARKETPLACE', 'PAYMENT_HISTORY', 'KARMA_WALLET'],
+           [ViewState.CLIENT_JOURNAL]: ['CLIENT_JOURNAL'],
+           [ViewState.CLIENT_ORACLE]: ['ORACLE_PORTAL', 'ORACLE_SHUFFLE', 'ORACLE_REVEAL', 'ORACLE_HISTORY'],
+           [ViewState.CLIENT_JOURNEY]: ['EVOLUTION', 'EVOLUTION_ANALYTICS', 'EVOLUTION_ACHIEVEMENTS', 'EVOLUTION_HISTORY', 'EVOLUTION_TIMELAPSE', 'TIME_LAPSE_EXPERIENCE', 'GARDEN_VIEW'], 
+           [ViewState.CLIENT_METAMORPHOSIS]: ['METAMORPHOSIS_CHECKIN', 'METAMORPHOSIS_CAMERA', 'METAMORPHOSIS_MESSAGE', 'METAMORPHOSIS_RITUAL', 'METAMORPHOSIS_FEEDBACK'], 
+           [ViewState.CLIENT_TRIBO]: ['TRIBE_DASH', 'TRIBE_INVITE', 'TRIBE_INTERACTION', 'TRIBE_VIEW', 'HEALING_CIRCLE', 'CHAT_LIST', 'CHAT_ROOM'],
+           [ViewState.CLIENT_EXPLORE]: ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM'],
+           [ViewState.CLIENT_PRO_DETAILS]: ['BOOKING_SELECT'],
+       };
+
+       const defaultStates: Record<string, BuscadorState> = {
            [ViewState.CLIENT_HOME]: 'DASHBOARD',
            [ViewState.CLIENT_JOURNAL]: 'CLIENT_JOURNAL',
            [ViewState.CLIENT_ORACLE]: 'ORACLE_PORTAL',
@@ -23,9 +40,15 @@ export const ClientViews: React.FC<{
            [ViewState.CLIENT_EXPLORE]: 'BOOKING_SEARCH',
            [ViewState.CLIENT_PRO_DETAILS]: 'BOOKING_SELECT',
        };
-       const target = map[view];
-       if (target && flowState.currentState !== target) {
-           go(target);
+
+       const allowedStates = clusters[view];
+       const isAlreadyInCluster = allowedStates?.includes(flowState.currentState);
+
+       if (!isAlreadyInCluster) {
+           const target = defaultStates[view];
+           if (target && flowState.currentState !== target) {
+               go(target);
+           }
        }
    }, [view]);
 
@@ -34,8 +57,10 @@ export const ClientViews: React.FC<{
       products: flowState.data.products,
       isLoading: flowState.isLoading,
       onAddToCart,
+      onLogout, // Pass down to settings
       refreshData
   };
+
 
   return (
     <div className="w-full h-full bg-[#f8faf9]">
