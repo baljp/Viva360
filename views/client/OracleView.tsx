@@ -82,11 +82,23 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
                 <OracleCardPremium 
                     card={{
                         id: dailyCard.id,
-                        name: dailyCard.category.toUpperCase(), // e.g. "INSPIRAÇÃO"
+                        name: dailyCard.category.toUpperCase(), 
                         message: dailyCard.text,
                         archetype: dailyCard.category,
                         element: dailyCard.element,
-                        imageUrl: "https://images.unsplash.com/photo-1620668612187-578f7318182b?q=80&w=600" // Default mystic abstract image
+                        imageUrl: (() => {
+                            const images = [
+                                "https://images.unsplash.com/photo-1620668612187-578f7318182b?q=80&w=600", // Mystic Pink
+                                "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=600", // Nebula
+                                "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=600", // Stars
+                                "https://images.unsplash.com/photo-1506318137071-a8bcbf6755dd?q=80&w=600", // Aurora
+                                "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?q=80&w=600", // Galaxy Night
+                                "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?q=80&w=600", // Rain
+                                "https://images.unsplash.com/photo-1518173946687-a4c8892415f4?q=80&w=600"  // Nature
+                            ];
+                            const idx = dailyCard.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % images.length;
+                            return images[idx];
+                        })()
                     }} 
                     onClose={closeCard} 
                 />

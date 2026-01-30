@@ -15,6 +15,7 @@ export const ClientViews: React.FC<{
    useEffect(() => {
        const map: Record<string, BuscadorState> = {
            [ViewState.CLIENT_HOME]: 'DASHBOARD',
+           [ViewState.CLIENT_JOURNAL]: 'CLIENT_JOURNAL',
            [ViewState.CLIENT_ORACLE]: 'ORACLE_PORTAL',
            [ViewState.CLIENT_JOURNEY]: 'EVOLUTION', 
            [ViewState.CLIENT_METAMORPHOSIS]: 'METAMORPHOSIS_CHECKIN', 
