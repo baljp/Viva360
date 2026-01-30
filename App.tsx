@@ -71,6 +71,9 @@ const App: React.FC = () => {
         if (path === '/client/journey') return ViewState.CLIENT_JOURNEY;
         if (path === '/client/explore') return ViewState.CLIENT_EXPLORE;
         if (path === '/client/tribe') return ViewState.CLIENT_TRIBO;
+        if (path === '/client/oracle') return ViewState.CLIENT_ORACLE;
+        if (path === '/client/metamorphosis') return ViewState.CLIENT_METAMORPHOSIS;
+        if (path === '/client/timelapse') return ViewState.CLIENT_TIMELAPSE;
         if (path === '/client/orders') return ViewState.CLIENT_ORDERS;
         if (path === '/checkout') return ViewState.CLIENT_CHECKOUT;
         if (path === '/checkout/success') return ViewState.CLIENT_CHECKOUT_SUCCESS;
@@ -123,8 +126,12 @@ const App: React.FC = () => {
         case ViewState.REGISTER_SPACE: navigate('/register/space'); break;
             case ViewState.CLIENT_HOME: navigate('/client/home'); break;
             case ViewState.CLIENT_JOURNEY: navigate('/client/journey'); break;
+            case ViewState.CLIENT_JOURNAL: navigate('/client/journal'); break;
             case ViewState.CLIENT_EXPLORE: navigate('/client/explore'); break;
             case ViewState.CLIENT_TRIBO: navigate('/client/tribe'); break;
+            case ViewState.CLIENT_ORACLE: navigate('/client/oracle'); break;
+            case ViewState.CLIENT_METAMORPHOSIS: navigate('/client/metamorphosis'); break;
+            case ViewState.CLIENT_TIMELAPSE: navigate('/client/timelapse'); break;
             case ViewState.CLIENT_ORDERS: navigate('/client/orders'); break;
             case ViewState.CLIENT_CHECKOUT: navigate('/checkout'); break;
             case ViewState.CLIENT_CHECKOUT_SUCCESS: navigate('/checkout/success'); break;
