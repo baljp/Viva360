@@ -56,7 +56,7 @@ export default defineConfig({
         manualChunks: {
           core: ['react', 'react-dom', 'react-router-dom'],
           ui: ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
-          utils: ['axios', 'zod', 'date-fns'] // Assuming date-fns might be used or just standard utils
+          utils: ['axios', 'zod'] 
         },
       },
     },
