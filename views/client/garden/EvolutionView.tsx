@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
-import { ChevronRight, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { ChevronRight, TrendingUp, TrendingDown, Minus, Plus } from 'lucide-react';
 import { useEvolution } from '../../../frontend/src/hooks/useEvolution';
 
 export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
@@ -19,9 +19,18 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
         <PortalView title="Evolução" subtitle="SUA JORNADA VIVA" onBack={() => go('GARDEN_VIEW')} heroImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=800">
             <div className="flex flex-col h-full bg-nature-50/30">
                 
-                <div className="px-6 pt-8 text-center">
-                    <h3 className="text-4xl font-serif italic text-nature-900 mb-2">🌳 Sua Jornada</h3>
-                    <p className="text-xs text-nature-500 uppercase tracking-[0.2em] font-bold">Estado Evolutivo da Consciência</p>
+                <div className="px-6 pt-8 flex justify-between items-center">
+                    <div className="text-left">
+                        <h3 className="text-4xl font-serif italic text-nature-900 mb-2">🌳 Sua Jornada</h3>
+                        <p className="text-xs text-nature-500 uppercase tracking-[0.2em] font-bold">Estado Evolutivo</p>
+                    </div>
+                    <button 
+                        onClick={() => go('METAMORPHOSIS_CHECKIN')}
+                        className="bg-nature-900 text-white p-4 rounded-2xl shadow-xl active:scale-95 transition-all flex flex-col items-center gap-1"
+                    >
+                        <Plus size={16} />
+                        <span className="text-[8px] font-black uppercase tracking-tighter">Novo Registro</span>
+                    </button>
                 </div>
 
                 {/* Cards Scroll Horizontal */}
