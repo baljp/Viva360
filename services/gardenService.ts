@@ -138,7 +138,26 @@ export const gardenService = {
         const opacity = status === 'withered' ? '0.4' : status === 'thirsty' ? '0.7' : '1';
         const filter = status === 'glowing' ? 'drop-shadow(0 0 15px #10b981)' : 'none';
 
-        return { ...config, opacity, filter, color: variety === 'lotus' ? 'text-rose-400' : 'text-emerald-500' };
+        // Color Logic
+        let color = 'text-emerald-500';
+        if (variety === 'lotus') color = 'text-rose-400';
+        if (variety === 'orchid') color = 'text-fuchsia-500';
+        if (variety === 'lavender') color = 'text-violet-400';
+        if (variety === 'sunflower') color = 'text-amber-400';
+
+        return { ...config, opacity, filter, color };
+    },
+
+    getPlantLabel: (variety: string): string => {
+        const labels: Record<string, string> = {
+            'oak': 'Carvalho',
+            'lotus': 'Lótus',
+            'sunflower': 'Girassol',
+            'lavender': 'Lavanda',
+            'orchid': 'Orquídea',
+            'butterfly': 'Orquídea' // Legacy handling
+        };
+        return labels[variety] || variety;
     },
 
     getVarietyByJourney: (journey: string): string => {
@@ -147,7 +166,7 @@ export const gardenService = {
             'mental': 'sunflower',
             'forca': 'oak',
             'espiritual': 'lavender',
-            'transforma': 'butterfly'
+            'transforma': 'orchid'
         };
         return mapping[journey] || 'oak';
     }

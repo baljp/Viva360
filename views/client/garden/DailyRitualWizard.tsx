@@ -9,7 +9,7 @@ import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 
 interface DailyRitualWizardProps {
     user: User;
-    onComplete: (user: User) => void;
+    updateUser: (user: User) => void;
     onClose: () => void;
 }
 
@@ -23,7 +23,9 @@ const MOODS: { id: MoodType; label: string; icon: string; color: string }[] = [
     { id: 'ANSIOSO', label: 'Ansioso', icon: '🌧', color: 'bg-gray-100 text-gray-600' },
 ];
 
-export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onComplete, onClose }) => {
+import { phraseGenerator } from '../../../services/phraseGenerator';
+
+export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, updateUser, onClose }) => {
     const { go } = useBuscadorFlow();
     const [step, setStep] = useState<'MOOD' | 'CAPTURE' | 'INTENTION' | 'GRATITUDE' | 'CARD' | 'SHARE' | 'NURTURE' | 'TRIBE'>('MOOD');
     const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({ 
@@ -281,35 +283,45 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
         }
     }, [step, data.image]);
 
-    // Cleanup redundant declaration from previous edit if any - this replacement covers lines 51-55 and moves the logic here
-    // But wait, replace_file_content replaces constraints. I have to target the top area to INSERT, and then delete the bottom.
-    // This tool call targets 51-55 to insert. I need another tool call to delete the bottom part.
-    // Or I can use multi_replace? NO, I should use replace_file_content carefully.
-    
-    // I will replace lines 51-55 with the block above.
-    // AND I need to clean up the bottom block in another step or rely on the user to ignore it (bad).
-    // I'll make this step ONLY insert at the top.
-    
-    // Actually, I can use multi_replace to do both at once!
-
     // State to hold updated user for completion
     const [finalUser, setFinalUser] = useState<User | null>(null);
 
     const handleNurtureStart = async () => {
         setStep('NURTURE');
+         
+         // 1. Auto-Save to Soul Journal (Invisible)
+         try {
+             await api.journal.create({
+                 date: new Date().toISOString().split('T')[0],
+                 mood: data.mood,
+                 actionIntent: data.intention,
+                 gratitude: data.gratitude
+             });
+         } catch (e) {
+             console.error("Failed to auto-save journal", e);
+         }
+
          // Calculate rewards
          const reward = gardenService.calculateWateringReward(user);
             
+         // Generate Phrases
+         const phrases = phraseGenerator.generate({
+             mood: data.mood,
+             intention: data.intention,
+             gratitude: data.gratitude
+         });
+
          // Create Snap
          const newSnap: DailyRitualSnap = {
              id: Date.now().toString(),
              date: new Date().toISOString(),
              image: data.image,
              mood: data.mood,
-             note: data.intention // Storing intention as note
+             note: data.intention, // Storing intention as note
+             phrases: phrases 
          };
 
-         console.log("Saving Snap to Soul Garden Time-Lapse:", newSnap); // Debug Log
+         console.log("Saving Snap with Whispers:", newSnap); // Debug Log
 
          // Update User
          const updatedUser: User = {
@@ -483,8 +495,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, onCo
 
                     <button 
                         onClick={() => {
-                            if (finalUser) onComplete(finalUser);
-                            else onComplete(user);
+                            if (finalUser) updateUser(finalUser);
+                            else updateUser(user);
                             onClose();
                         }}
                         className="mt-8 px-12 py-4 bg-white text-emerald-900 rounded-full font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all animate-in fade-in delay-1000 duration-1000"

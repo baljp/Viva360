@@ -1,4 +1,4 @@
-import { User, Professional, UserRole, Appointment, Product, Notification, SpaceRoom, Vacancy, Transaction, RecordAccess, Review } from '../types';
+import { User, Professional, UserRole, Appointment, Product, Notification, SpaceRoom, Vacancy, Transaction, RecordAccess, Review, DailyJournalEntry } from '../types';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -369,6 +369,92 @@ export const api = {
              // If we have user-specific snaps, merge or prioritize them?
              // For simplicity, we just return the full history, but we could filter by user.id
              return { entries: history };
+        }
+    },
+    journal: {
+        create: async (entry: Omit<DailyJournalEntry, 'id' | 'createdAt' | 'userId'>) => {
+            const user = await api.auth.getCurrentSession();
+            if (!user) throw new Error('Unauthorized');
+            
+            const newEntry: DailyJournalEntry = {
+                id: `jnl_${Date.now()}`,
+                userId: user.id,
+                createdAt: new Date().toISOString(),
+                ...entry
+            };
+
+            // Persist to LocalStorage (Mock)
+            const key = `viva360.journal.${user.id}`;
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            const updated = [newEntry, ...existing];
+            localStorage.setItem(key, JSON.stringify(updated));
+
+            return newEntry;
+        },
+        list: async () => {
+             const user = await api.auth.getCurrentSession();
+             if (!user) return [];
+             const key = `viva360.journal.${user.id}`;
+             return JSON.parse(localStorage.getItem(key) || '[]') as DailyJournalEntry[];
+        },
+        getStats: async () => {
+             const user = await api.auth.getCurrentSession();
+             if (!user) return null;
+             const key = `viva360.journal.${user.id}`;
+             const entries = JSON.parse(localStorage.getItem(key) || '[]') as DailyJournalEntry[];
+             
+             // Simple Stats
+             return {
+                 totalEntries: entries.length,
+                 streak: 0, // Todo: calc streak
+                 commonWords: [] // Todo: NLP
+             };
+        }
+    },
+    presence: {
+        goOnline: async () => {
+             const user = await api.auth.getCurrentSession();
+             if (!user || user.role !== 'PROFESSIONAL') return;
+             
+             const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+             const list = JSON.parse(localStorage.getItem('viva360.presence') || '{}');
+             list[user.id] = { status: 'ONLINE', lastActivity: new Date().toISOString(), expiresAt };
+             
+             localStorage.setItem('viva360.presence', JSON.stringify(list));
+             
+             // Update User Object in Session too
+             const updatedUser = { ...user, presence: { status: 'ONLINE', lastActivity: new Date().toISOString(), expiresAt } };
+             localStorage.setItem('viva360.mock_user', JSON.stringify(updatedUser)); // Sync
+             return list[user.id];
+        },
+        goOffline: async () => {
+             const user = await api.auth.getCurrentSession();
+             if (!user) return;
+             
+             const list = JSON.parse(localStorage.getItem('viva360.presence') || '{}');
+             if (list[user.id]) {
+                 list[user.id].status = 'OFFLINE';
+                 localStorage.setItem('viva360.presence', JSON.stringify(list));
+                 
+                 const updatedUser = { ...user, presence: { status: 'OFFLINE', lastActivity: new Date().toISOString(), expiresAt: new Date().toISOString() } };
+                 localStorage.setItem('viva360.mock_user', JSON.stringify(updatedUser));
+             }
+        },
+        ping: async () => {
+             // Extending session
+             return api.presence.goOnline();
+        },
+        listActive: async () => {
+             const list = JSON.parse(localStorage.getItem('viva360.presence') || '{}');
+             const now = new Date().getTime();
+             const active: Record<string, any> = {};
+             
+             Object.entries(list).forEach(([id, data]: [string, any]) => {
+                 if (data.status === 'ONLINE' && new Date(data.expiresAt).getTime() > now) {
+                     active[id] = data;
+                 }
+             });
+             return active;
         }
     }
 };
