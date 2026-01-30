@@ -13,7 +13,7 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> 
     <PortalView title="Minha Tribo" subtitle="SINCRO-ESTELAR" onBack={() => go('DASHBOARD')}>
       <div className="space-y-10">
         <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm">
-           <GlobalMandala />
+           <GlobalMandala user={user} onUpdateUser={updateUser} />
         </div>
         
         <div className="relative">
