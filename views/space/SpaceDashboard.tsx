@@ -46,15 +46,15 @@ const RadianceDetailsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: (
                     <button onClick={onClose} className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
                         <X size={20} />
                     </button>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300 mb-2">Breakdown do Score</p>
-                    <h3 className="text-3xl font-serif italic">Radiance Vitality</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-indigo-300 mb-2">Harmonia das Energias</p>
+                    <h3 className="text-3xl font-serif italic">Radiância Vital</h3>
                 </div>
                 <div className="p-8 space-y-6">
                     {[
-                        { label: 'Ocupação de Altares', value: 88, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                        { label: 'Faturamento vs Meta', value: 92, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-                        { label: 'Harmonia da Equipe', value: 95, color: 'text-amber-500', bg: 'bg-amber-50' },
-                        { label: 'Satisfação das Almas', value: 98, color: 'text-rose-500', bg: 'bg-rose-50' },
+                        { label: 'Altares em Fluxo', value: 88, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                        { label: 'Abundância Manifestada', value: 92, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+                        { label: 'União dos Guardiões', value: 95, color: 'text-amber-500', bg: 'bg-amber-50' },
+                        { label: 'Ecos de Gratidão', value: 98, color: 'text-rose-500', bg: 'bg-rose-50' },
                     ].map((m, i) => (
                         <div key={i} className="flex items-center justify-between p-4 rounded-3xl border border-nature-50">
                             <div>
@@ -95,15 +95,15 @@ const OperationsTab = ({ go }: any) => (
             <PortalCard 
                 id="portal-agenda"
                 title="Agenda Viva" 
-                subtitle="FLUXO DIÁRIO" 
+                subtitle="RITMOS DO TEMPLO" 
                 icon={Calendar} 
                 bgImage="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600"
                 onClick={() => go('AGENDA_OVERVIEW')}
             />
             <PortalCard 
                 id="portal-rooms"
-                title="Salas" 
-                subtitle="ESPAÇOS FÍSICOS" 
+                title="Altares" 
+                subtitle="GEOMETRIA SAGRADA" 
                 icon={DoorOpen} 
                 bgImage="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600"
                 onClick={() => go('ROOMS_STATUS')}
@@ -114,8 +114,8 @@ const OperationsTab = ({ go }: any) => (
              <div className="flex items-center gap-4">
                  <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><Heart size={24}/></div>
                  <div>
-                     <h4 className="font-bold text-nature-900 text-lg">Pacientes</h4>
-                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Base de Dados Viva</p>
+                     <h4 className="font-bold text-nature-900 text-lg">Buscadores</h4>
+                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Portal de Almas</p>
                  </div>
              </div>
              <div className="text-right">
@@ -129,14 +129,14 @@ const OperationsTab = ({ go }: any) => (
 
 const ManagementTab = ({ go, revenue, teamSize }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <QuickStat label="Faturamento (Mês)" value={`R$ ${revenue}`} icon={TrendingUp} color="bg-emerald-500" />
+        <QuickStat label="Abundância (Mês)" value={`R$ ${revenue}`} icon={TrendingUp} color="bg-emerald-500" />
         
         <div className="grid grid-cols-2 gap-4">
              <div onClick={() => go('FINANCE_OVERVIEW')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-emerald-200 transition-all">
                 <Wallet size={32} className="text-emerald-500" />
                 <div>
-                    <h4 className="font-bold text-nature-900">Finanças</h4>
-                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Fluxo de Caixa</p>
+                    <h4 className="font-bold text-nature-900">Tesouro</h4>
+                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Fluxo da Egrégora</p>
                 </div>
             </div>
             <div onClick={() => go('PROS_LIST')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-indigo-200 transition-all">
@@ -152,7 +152,7 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
              <div onClick={() => go('AUDIT_LOG')} className="bg-nature-900 text-white p-6 rounded-[2.5rem] shadow-lg flex flex-col justify-between cursor-pointer relative overflow-hidden group">
                   <div className="relative z-10">
                       <Shield size={24} className="text-indigo-300 mb-4"/>
-                      <h4 className="font-bold text-lg leading-tight">Segurança</h4>
+                      <h4 className="font-bold text-lg leading-tight">Proteção</h4>
                       <p className="text-[9px] text-indigo-300 font-bold uppercase tracking-widest mt-1">Audit Trail</p>
                   </div>
                   <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
@@ -177,8 +177,8 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
              <div className="flex items-center gap-4">
                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"><FileText size={20}/></div>
                  <div>
-                     <h4 className="font-bold text-nature-900">Relatório de Fechamento</h4>
-                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Contabilidade (CSV)</p>
+                     <h4 className="font-bold text-nature-900">Encerramento de Ciclo</h4>
+                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Suma da Abundância (CSV)</p>
                  </div>
              </div>
              <button className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase tracking-widest">Exportar</button>
@@ -190,7 +190,7 @@ const GrowthTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="bg-gradient-to-r from-amber-100 to-orange-50 p-6 rounded-[2.5rem] border border-amber-200 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all shadow-sm" onClick={() => go('TEAM_INVITE')}>
             <div>
-                 <h4 className="font-serif italic text-2xl text-amber-900">Expandir Egrégora</h4>
+                 <h4 className="font-serif italic text-2xl text-amber-900">Ampliar Chamado</h4>
                  <p className="text-xs text-amber-700 mt-1 max-w-[200px]">Atraia novos guardiões e impulsione a vibração do espaço.</p>
                  <button className="mt-3 px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest">Convidar Guardião</button>
             </div>
@@ -201,7 +201,7 @@ const GrowthTab = ({ go }: any) => (
 
         <div className="bg-gradient-to-r from-indigo-100 to-blue-50 p-6 rounded-[2.5rem] border border-indigo-200 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all shadow-sm" onClick={() => go('ROOM_CREATE')}>
             <div>
-                 <h4 className="font-serif italic text-2xl text-indigo-900">Novo Altar</h4>
+                 <h4 className="font-serif italic text-2xl text-indigo-900">Consagrar Altar</h4>
                  <p className="text-xs text-indigo-700 mt-1 max-w-[200px]">Consagre um novo espaço físico para atendimentos e rituais.</p>
                  <button className="mt-3 px-4 py-2 bg-indigo-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest">Consagrar Altar</button>
             </div>
@@ -230,8 +230,8 @@ const GrowthTab = ({ go }: any) => (
         <div onClick={() => go('PREDICTIVE_OCCUPANCY')} className="bg-indigo-900 p-6 rounded-[2.5rem] shadow-xl flex items-center gap-4 cursor-pointer hover:bg-black transition-all group">
              <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white"><Zap size={22} className="animate-pulse"/></div>
              <div className="flex-1">
-                 <h4 className="font-bold text-white">Ocupação Preditiva</h4>
-                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">Otimização IA Phoenix</p>
+                 <h4 className="font-bold text-white">Sintonização Espacial</h4>
+                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">Visão do Futuro (IA Phoenix)</p>
              </div>
              <ChevronRight size={20} className="text-white opacity-40 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all"/>
         </div>
@@ -315,19 +315,19 @@ export const SpaceDashboard: React.FC<{
                         onClick={() => setActiveTab('ops')}
                         className={`flex-1 py-3 rounded-3xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'ops' ? 'bg-nature-900 text-white shadow-md' : 'text-nature-400 hover:bg-nature-50'}`}
                     >
-                        Operações
+                        Ritmos do Templo
                     </button>
                     <button 
                         onClick={() => setActiveTab('admin')}
                         className={`flex-1 py-3 rounded-3xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'admin' ? 'bg-nature-900 text-white shadow-md' : 'text-nature-400 hover:bg-nature-50'}`}
                     >
-                        Gestão
+                        Abundância & Zelo
                     </button>
                     <button 
                         onClick={() => setActiveTab('growth')}
                         className={`flex-1 py-3 rounded-3xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'growth' ? 'bg-nature-900 text-white shadow-md' : 'text-nature-400 hover:bg-nature-50'}`}
                     >
-                        Expansão
+                        Emanação Coletiva
                     </button>
                 </div>
 

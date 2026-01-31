@@ -127,7 +127,7 @@ const ClientForm: React.FC<any> = ({ setView, onRegister }) => {
             </header>
             <div className="space-y-6">
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
-                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Credenciais</p>
+                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Elo de Identidade</p>
                     <GoogleButton onClick={handleGoogleRegister} />
                     <Divider />
                     <InputField icon={<UserIcon size={18}/>} type="text" placeholder="Nome Completo" value={formData.name} onChange={(e:any) => setFormData(p => ({...p, name: e.target.value}))} />
@@ -136,8 +136,8 @@ const ClientForm: React.FC<any> = ({ setView, onRegister }) => {
                 </div>
                 
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-6">
-                    <CheckboxGroup title="O que você busca curar?" options={['Reduzir estresse', 'Aliviar dores', 'Clareza mental', 'Mais energia', 'Autoconhecimento']} selected={formData.goals} onChange={handleGoalChange} />
-                    <RadioGroup title="Abordagem preferida" options={['Corporal (Massagem, Yoga)', 'Energética (Reiki, Barras)', 'Mental (Terapia, Meditação)']} selected={formData.therapyPreferences} onChange={val => setFormData(p => ({...p, therapyPreferences: val}))} />
+                    <CheckboxGroup title="Quais sementes deseja despertar?" options={['Reduzir estresse', 'Aliviar dores', 'Clareza mental', 'Mais energia', 'Autoconhecimento']} selected={formData.goals} onChange={handleGoalChange} />
+                    <RadioGroup title="Linguagem da sua Alma" options={['Corporal (Massagem, Yoga)', 'Energética (Reiki, Barras)', 'Mental (Terapia, Meditação)']} selected={formData.therapyPreferences} onChange={val => setFormData(p => ({...p, therapyPreferences: val}))} />
                 </div>
 
                 <button 
@@ -145,7 +145,7 @@ const ClientForm: React.FC<any> = ({ setView, onRegister }) => {
                     disabled={isLoading}
                     className="w-full bg-primary-900 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all hover:bg-primary-800 flex items-center justify-center gap-2"
                 >
-                    {isLoading ? <><Loader2 size={16} className="animate-spin" /> Sincronizando...</> : 'Criar Perfil'}
+                    {isLoading ? <><Loader2 size={16} className="animate-spin" /> Sintonizando com o Universo...</> : 'Consagrar Perfil'}
                 </button>
             </div>
         </div>
@@ -201,7 +201,7 @@ const ProForm: React.FC<any> = ({ setView, onRegister }) => {
                     disabled={isLoading}
                     className="w-full bg-amber-700 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all hover:bg-amber-800 flex items-center justify-center gap-2"
                 >
-                    {isLoading ? <><Loader2 size={16} className="animate-spin" /> Finalizando...</> : 'Finalizar Cadastro'}
+                    {isLoading ? <><Loader2 size={16} className="animate-spin" /> Confirmando Chamado...</> : 'Consagrar Chamado'}
                 </button>
             </div>
         </div>

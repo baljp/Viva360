@@ -17,7 +17,7 @@ const SpacePatients: React.FC = () => {
   return (
     <PortalView 
         title="Jardim do Santuário" 
-        subtitle="GESTÃO DE PACIENTES" 
+        subtitle="ZELO PELAS ALMAS" 
         onClose={() => go('EXEC_DASHBOARD')}
         heroImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=800"
     >
@@ -63,7 +63,7 @@ const SpacePatients: React.FC = () => {
                         type="text" 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Buscar por nome ou diagnóstico..." 
+                        placeholder="Buscar por sintonização ou alma..." 
                         className="flex-1 bg-transparent border-none outline-none text-nature-900 placeholder:text-nature-300 text-sm font-medium" 
                     />
                 </div>
@@ -111,7 +111,7 @@ const SpacePatients: React.FC = () => {
             {/* 4. ACTIONS */}
             <div className="bg-indigo-50 p-6 rounded-[2.5rem] border border-indigo-100 flex items-center justify-between">
                 <div className="flex-1">
-                    <h4 className="font-bold text-indigo-900 text-sm">Exportar Relatórios</h4>
+                    <h4 className="font-bold text-indigo-900 text-sm">Sintetizar Trajetórias</h4>
                     <p className="text-xs text-indigo-700/70">Gere métricas de evolução coletiva.</p>
                 </div>
                 <button className="px-5 py-3 bg-white text-indigo-600 rounded-2xl text-[10px] font-bold uppercase tracking-widest border border-indigo-100 shadow-sm hover:shadow-md active:scale-95 transition-all">

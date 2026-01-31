@@ -51,6 +51,30 @@ export const AuroraBackground: React.FC = () => (
   </div>
 );
 
+// --- ZEN SKELETON ---
+export const ZenSkeleton: React.FC<{ className?: string, variant?: 'card' | 'avatar' | 'text' | 'hero' }> = ({ className = "", variant = 'card' }) => {
+    const variants = {
+        card: "aspect-square rounded-[2rem] bg-nature-100",
+        avatar: "w-12 h-12 rounded-full bg-nature-100",
+        text: "h-4 rounded-lg bg-nature-100 w-full",
+        hero: "h-64 rounded-[3.5rem] bg-nature-100"
+    };
+    return <div className={`${variants[variant]} animate-pulse ${className}`}></div>;
+};
+
+// --- ZEN EMPTY STATE ---
+export const ZenEmptyState: React.FC<{ title: string, message: string, icon?: any }> = ({ title, message, icon: Icon = Sparkles }) => (
+    <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 animate-in fade-in zoom-in duration-500">
+        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-nature-100 flex items-center justify-center text-nature-200">
+            <Icon size={32} />
+        </div>
+        <div className="space-y-1">
+            <h4 className="font-serif italic text-xl text-nature-900">{title}</h4>
+            <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest max-w-[200px] leading-relaxed">{message}</p>
+        </div>
+    </div>
+);
+
 // --- STAR RATING ---
 export const StarRating: React.FC<{ rating: number, onRate?: (r: number) => void, size?: number, interactive?: boolean }> = ({ rating, onRate, size = 16, interactive = false }) => {
     return (
@@ -133,11 +157,11 @@ export const ReviewFormModal: React.FC<{ isOpen: boolean, onClose: () => void, t
                     <div className="flex justify-center py-4">
                         <StarRating rating={rating} onRate={setRating} size={40} interactive />
                     </div>
-                    {rating > 0 && <p className="text-xs font-bold text-amber-500 uppercase tracking-widest animate-in fade-in">{rating === 5 ? 'Experiência Divina' : rating >= 4 ? 'Muito Bom' : rating === 3 ? 'Equilibrado' : 'Pode Melhorar'}</p>}
+                    {rating > 0 && <p className="text-xs font-bold text-amber-500 uppercase tracking-widest animate-in fade-in">{rating === 5 ? 'Conexão Sublime' : rating >= 4 ? 'Harmonioso' : rating === 3 ? 'Equilibrado' : 'Sopro de Ajuste'}</p>}
                 </div>
 
                 <div className="space-y-3 text-left">
-                    <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2 flex items-center gap-2"><Tag size={12}/> O que mais marcou?</label>
+                    <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2 flex items-center gap-2"><Tag size={12}/> Quais frequências você sentiu?</label>
                     <div className="flex flex-wrap gap-2">
                         {availableTags.map(tag => (
                             <button 
@@ -257,7 +281,7 @@ export const ProductFormModal: React.FC<{ isOpen: boolean, onClose: () => void, 
                     </div>
                 </div>
 
-                <button onClick={handleSubmit} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Lançar no Ecossistema</button>
+                <button onClick={handleSubmit} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Ofertar ao Universo</button>
             </div>
         </BottomSheet>
     );
@@ -571,7 +595,7 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: numbe
                         onClick={() => onCheckIn(wisdom.reward)} 
                         className="px-6 py-2.5 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-black"
                     >
-                        Sintonizar Agora
+                        Receber Benção
                     </button>
                 </div>
             </div>
@@ -875,7 +899,7 @@ export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void
           {filteredNotifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center space-y-4 opacity-50">
                   <Bell size={40} className="text-nature-300" />
-                  <p className="text-xs text-nature-400 font-medium italic">O silêncio também é uma resposta.<br/>Nenhuma notificação por aqui.</p>
+                  <p className="text-xs text-nature-400 font-medium italic">O universo aguarda em silêncio.<br/>Nenhuma notificação por aqui.</p>
               </div>
           ) : (
              filteredNotifications.map(n => {

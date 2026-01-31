@@ -39,20 +39,20 @@ export const ClientDashboard: React.FC<{
             />
             
             {/* MODAIS */}
-            <BottomSheet isOpen={activeModal === 'camera'} onClose={() => actions.setActiveModal(null)} title="Novo Registro">
+            <BottomSheet isOpen={activeModal === 'camera'} onClose={() => actions.setActiveModal(null)} title="Novo Rito de Passagem">
                  <div className="h-[60vh] -mx-4">
                      <CameraWidget onCapture={actions.handleCapture} />
                  </div>
             </BottomSheet>
 
-            <BottomSheet isOpen={activeModal === 'invite'} onClose={() => actions.setActiveModal(null)} title="Convidar para Tribo">
+            <BottomSheet isOpen={activeModal === 'invite'} onClose={() => actions.setActiveModal(null)} title="Chamado para a Tribo">
                  <div className="space-y-6 pb-20">
                      <div className="text-center space-y-4">
                          <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-500"><Users size={40}/></div>
                          <p className="text-sm text-nature-600">Convide uma alma afim para caminhar junto. <br/>Vocês compartilharão Karma e evolução.</p>
                      </div>
                      <div className="space-y-2">
-                         <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">E-mail do Convidado</label>
+                         <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Elo de Contato da Alma</label>
                          <input 
                             value={inviteEmail} 
                             onChange={e => actions.setInviteEmail(e.target.value)} 
@@ -60,7 +60,7 @@ export const ClientDashboard: React.FC<{
                             className="w-full bg-nature-50 border border-nature-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100"
                          />
                      </div>
-                     <button onClick={actions.handleInvite} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Enviar Chamado</button>
+                     <button onClick={actions.handleInvite} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Manifestar Convite</button>
                  </div>
             </BottomSheet>
 
@@ -73,7 +73,7 @@ export const ClientDashboard: React.FC<{
                         <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl relative z-10 cursor-pointer group-hover:scale-105 transition-transform" />
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full flex items-center justify-center z-20 pointer-events-none shadow-md animate-pulse"><Zap size={10} className="text-white fill-white" /></div>
                     </div>
-                    <div><p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">Boa Jornada,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1 max-w-[180px] truncate">{user.name.split(' ')[0]}</h2></div>
+                    <div><p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">Sua Jornada até aqui,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1 max-w-[180px] truncate">{user.name.split(' ')[0]}</h2></div>
                 </div>
                 <div className="flex items-center gap-3">
                      <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><MessageCircle size={20}/></button>
@@ -106,10 +106,10 @@ export const ClientDashboard: React.FC<{
                                              e.stopPropagation(); 
                                              actions.handleWaterPlant();
                                              // Optimistic UI for immediate feedback
-                                             actions.setToast({ title: "Jardim Nutrido", message: "Sua semente absorveu a essência." });
+                                             actions.setToast({ title: "Essência Harmonizada", message: "Sua essência floresceu com o toque da alma." });
                                          }}
                                          className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg w-full flex items-center justify-center gap-2"
-                                         title="Regar Agora"
+                                         title="Nutrir Agora"
                                       >
                                          <Droplet size={20} fill="currentColor" />
                                          <span className="text-[10px] uppercase font-bold tracking-widest">Nutrir</span>
@@ -217,7 +217,7 @@ export const ClientDashboard: React.FC<{
                         <PortalCard 
                             id="portal-abundance"
                             title="Abundância" 
-                            subtitle="MINHAS TROCAS" 
+                            subtitle="CICLOS DE TROCA" 
                             icon={Wallet} 
                             bgImage="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=600" 
                             onClick={() => go('PAYMENT_HISTORY')} 
@@ -225,8 +225,8 @@ export const ClientDashboard: React.FC<{
                         />
                          <PortalCard 
                             id="portal-marketplace"
-                            title="Bazar Natural" 
-                            subtitle="FARMÁCIA DA ALMA" 
+                            title="Santuário de Ofertas" 
+                            subtitle="RECURSOS DE CURA" 
                             icon={ShoppingBag} 
                             bgImage="https://images.unsplash.com/photo-1601314167099-232775b3d6fd?q=80&w=800" 
                             onClick={() => go('MARKETPLACE')} 

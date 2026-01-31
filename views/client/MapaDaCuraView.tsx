@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ViewState, Professional, User } from '../../types';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
-import { PortalView, DynamicAvatar, ZenToast } from '../../components/Common';
+import { PortalView, DynamicAvatar, ZenToast, ZenSkeleton, ZenEmptyState } from '../../components/Common';
 import { useJourneyEngine } from '../../src/hooks/useJourneyEngine';
 import { Play, Search, MapPin, Sparkle, Sun, Moon, Wind, Clock, Star, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { MicroJourneyModal } from './map/MicroJourneyModal';
@@ -201,9 +201,24 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
                     <h3 className="text-lg font-serif italic text-nature-900 px-2">Guardiões Disponíveis</h3>
                     
                     {isLoading ? (
-                        <div className="space-y-4">
-                            {[1,2,3].map(i => <div key={i} className="h-24 bg-white rounded-3xl animate-pulse"></div>)}
+                        <div className="space-y-4 px-2">
+                            <ZenSkeleton variant="text" className="w-1/3 mb-4" />
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="bg-white p-4 rounded-[2rem] border border-nature-50 flex items-center gap-4 animate-pulse">
+                                    <ZenSkeleton variant="avatar" />
+                                    <div className="flex-1 space-y-2">
+                                        <ZenSkeleton variant="text" className="w-1/2" />
+                                        <ZenSkeleton variant="text" className="w-1/4" />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
+                    ) : filteredPros.length === 0 ? (
+                        <ZenEmptyState 
+                            title="Frequência não encontrada" 
+                            message="Não encontramos guardiões para esta busca. Tente outras palavras ou limpe os filtros." 
+                            icon={Search}
+                        />
                     ) : (
                         <div className="grid gap-3">
                             {filteredPros.map(pro => {

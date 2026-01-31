@@ -19,12 +19,9 @@ export class NotificationService {
     }
 
     async sendPushSimulation(userId: string, title: string, message: string) {
-        if (isMockMode()) {
-             console.log(`[MOCK PUSH] To: ${userId} | "${title}: ${message}"`);
-             return;
-        }
-
-        // 1. Store in DB
+        const { notificationQueue } = await import('../lib/queue');
+        
+        // 1. Store in DB (Sync for immediate history view)
         await prisma.notification.create({
             data: {
               user_id: userId,
@@ -34,8 +31,8 @@ export class NotificationService {
             }
         });
 
-        // 2. Simulate Push
-        console.log(`[MOBILE PUSH] To: ${userId} | "${title}: ${message}"`);
+        // 2. Offload External Integration to Queue
+        await notificationQueue.add('send_push', { userId, title, message });
     }
 }
 

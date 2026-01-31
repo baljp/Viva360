@@ -2,7 +2,7 @@
 import React from 'react';
 import { Professional } from '../../types';
 import { MessageCircle, Star } from 'lucide-react';
-import { DynamicAvatar, PortalView } from '../../components/Common';
+import { DynamicAvatar, PortalView, ZenSkeleton } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 
 export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }) => {
@@ -13,8 +13,19 @@ export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }
     const pro = contextPro || (Array.isArray(pros) ? pros[0] : null);
 
     if (!pro) return (
-        <PortalView title="Guardião" subtitle="DETALHES" onBack={() => go('BOOKING_SEARCH')}>
-            <div className="text-center p-10 opacity-50">Carregando...</div>
+        <PortalView title="Guardião" subtitle="BUSCANDO..." onBack={() => go('BOOKING_SEARCH')}>
+            <div className="flex flex-col items-center space-y-8 animate-in fade-in duration-700">
+                <ZenSkeleton variant="avatar" className="w-32 h-32" />
+                <div className="w-full space-y-4">
+                    <ZenSkeleton variant="text" className="h-8 w-1/2 mx-auto" />
+                    <ZenSkeleton variant="text" className="h-4 w-1/4 mx-auto" />
+                    <div className="flex gap-4 justify-center pt-4">
+                        <ZenSkeleton variant="card" className="w-32 h-12" />
+                        <ZenSkeleton variant="card" className="w-12 h-12" />
+                    </div>
+                    <ZenSkeleton variant="hero" className="h-40 mt-8" />
+                </div>
+            </div>
         </PortalView>
     );
 

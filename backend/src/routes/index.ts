@@ -19,7 +19,9 @@ import marketplaceRoutes from './marketplace.routes';
 import recordsRoutes from './records.routes';
 
 import { rateLimiter } from '../middleware/rateLimiter';
+import { swrMiddleware } from '../middleware/swr.middleware';
 import adminRoutes from './admin.routes';
+import executiveRoutes from './executive.routes';
 
 const router = Router();
 router.use(rateLimiter); // Upgrade 9.5: Global Rate Limit
@@ -43,14 +45,15 @@ router.use('/notifications', authenticateUser, notificationsRoutes);
 router.use('/checkout', authenticateUser, checkoutRoutes);
 router.use('/chat', authenticateUser, chatRoutes);
 router.use('/calendar', authenticateUser, calendarRoutes);
-router.use('/tribe', authenticateUser, tribeRoutes);
+router.use('/tribe', authenticateUser, swrMiddleware(1, 59), tribeRoutes);
 router.use('/alchemy', authenticateUser, alchemyRoutes);
-router.use('/marketplace', authenticateUser, marketplaceRoutes);
+router.use('/marketplace', authenticateUser, swrMiddleware(1, 59), marketplaceRoutes);
 router.use('/oracle', authenticateUser, oracleRoutes);
 router.use('/records', authenticateUser, recordsRoutes);
 
 // Admin
-router.use('/admin', adminRoutes);
+router.use('/admin', authenticateUser, adminRoutes);
+router.use('/admin/executive', authenticateUser, executiveRoutes);
 
 import metamorphosisRoutes from './metamorphosis.routes';
 

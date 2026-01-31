@@ -25,7 +25,8 @@ const CheckoutScreen = lazy(() => import('./components/Checkout').then(module =>
 const SuccessScreen = lazy(() => import('./components/Checkout').then(module => ({ default: module.SuccessScreen })));
 const OrdersListView = lazy(() => import('./views/ServiceViews').then(module => ({ default: module.OrdersListView })));
 const AdminViews = lazy(() => import('./views/AdminViews').then(module => ({ default: module.AdminViews })));
-const OnboardingNarrative = lazy(() => import('./views/onboarding/OnboardingNarrative').then(module => ({ default: module.OnboardingNarrative })));
+import { NotFoundScreen } from './src/navigation/NotFoundScreen';
+import { preloadRoleViews } from './src/utils/loaderUtils';
 
 // Loading Component
 const PageLoader = () => (
@@ -53,7 +54,6 @@ const App: React.FC = () => {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
-    const [showOnboarding, setShowOnboarding] = useState(false);
     const [zenMode, setZenMode] = useState(() => localStorage.getItem('viva360.zen_mode') === 'true');
     
     const navigate = useNavigate();
@@ -124,7 +124,7 @@ const App: React.FC = () => {
        
         return ViewState.SPLASH; 
 
- 
+
     };
 
     const currentView = getCurrentViewFromPath();
@@ -184,16 +184,11 @@ const App: React.FC = () => {
                         standardizedUser.role = (standardizedUser.role as string).toUpperCase() as any;
                     }
                     setCurrentUser(standardizedUser);
+                    preloadRoleViews(standardizedUser.role);
                     
                     if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register') {
                         const role = String(standardizedUser.role).toUpperCase();
                         const homePath = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : (role === 'SPACE' ? '/space/home' : '/admin/dashboard'));
-                        
-                        // Show onboarding for first-time clients
-                        if (role === 'CLIENT' && !localStorage.getItem('viva360.onboarded')) {
-                            setShowOnboarding(true);
-                        }
-
                         navigate(homePath);
                     }
                 } else {
@@ -214,6 +209,7 @@ const App: React.FC = () => {
         if (!u) return;
         handleUpdateUser(u);
         const role = String(u.role).toUpperCase();
+        preloadRoleViews(role);
         console.log("DEBUG: handleLogin Role:", role);
         const homePath = role === 'CLIENT' ? '/client/home' : 
                         (role === 'PROFESSIONAL' ? '/pro/home' : 
@@ -303,10 +299,6 @@ const App: React.FC = () => {
     return (
       <NotificationProvider>
         <Layout user={currentUser} currentView={currentView} setView={setView} onLogout={handleLogout} shouldHideNav={shouldHideNav}>
-            {showOnboarding && <Suspense fallback={<PageLoader />}><OnboardingNarrative onComplete={() => {
-                setShowOnboarding(false);
-                localStorage.setItem('viva360.onboarded', 'true');
-            }} /></Suspense>}
             <Suspense fallback={<PageLoader />}>
                 <Routes>
                     <Route path="/" element={<Navigate to="/login" replace />} />
@@ -366,10 +358,9 @@ const App: React.FC = () => {
                     {/* Admin Routes */}
                      <Route path="/admin/*" element={(String(currentUser?.role).toUpperCase() === 'ADMIN') ? <AdminViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
 
-                    {/* Shared Routes */}
                     <Route path="/settings/*" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} zenMode={zenMode} onToggleZenMode={() => setZenMode(!zenMode)} />} />
                     
-                    <Route path="*" element={<Navigate to="/" />} />
+                    <Route path="*" element={<NotFoundScreen />} />
                 </Routes>
             </Suspense>
 

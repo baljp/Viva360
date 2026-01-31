@@ -45,3 +45,21 @@ export const getHistory = asyncHandler(async (req: Request, res: Response) => {
      // Mock return for now
      return res.json([]);
 });
+
+export const getToday = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId || 'mock-user-id';
+    const card = await oracleService.getToday(userId);
+    
+    if (!card) {
+        return res.status(404).json({ error: 'Nenhuma carta revelada hoje ainda.' });
+    }
+
+    return res.json({
+        card: {
+            id: card.id,
+            name: 'Guia Diário',
+            insight: (card as any).text || (card as any).message,
+            element: card.element
+        }
+    });
+});

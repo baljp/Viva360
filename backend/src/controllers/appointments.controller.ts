@@ -54,13 +54,24 @@ export const createAppointment = asyncHandler(async (req: Request, res: Response
 
     const payload = createAppointmentSchema.parse(req.body);
 
+    // Date and Time Synchronization Logic
+    const requestedDateTime = new Date(`${payload.date}T${payload.time}`);
+    const now = new Date();
+
+    if (requestedDateTime < now) {
+        return res.status(400).json({ 
+            error: 'Sincronização Falhou', 
+            message: 'O tempo flui apenas para frente. Escolha um momento no futuro.' 
+        });
+    }
+
     if (isMockMode()) {
       return res.json({
-        id: 'mock-new-appt',
+        id: `mock-appt-${Date.now()}`,
         ...payload,
         client_id: user.id,
         status: 'pending',
-        created_at: new Date().toISOString(),
+        created_at: now.toISOString(),
       });
     }
 
@@ -69,6 +80,7 @@ export const createAppointment = asyncHandler(async (req: Request, res: Response
       .insert({
         ...payload,
         client_id: user.id,
+        status: 'pending'
       })
       .select()
       .single();
