@@ -82,9 +82,15 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
                                         <span className="font-bold text-nature-900 text-sm">{member.name}</span>
                                     </button>
                                 ))}
-                                <button className="bg-nature-100 p-6 rounded-[2.5rem] border border-dashed border-nature-300 flex flex-col items-center justify-center gap-2 opacity-60">
-                                    <Plus size={24} className="text-nature-400" />
-                                    <span className="text-[9px] font-bold uppercase tracking-widest text-nature-500 text-center leading-tight">Buscar Outros<br/>Membros</span>
+                                <button 
+                                    onClick={() => {
+                                        const text = encodeURIComponent("🌿 Venha pactuar comigo no Viva360! Vamos trilhar um caminho de luz juntos. 🌱");
+                                        window.open(`https://wa.me/?text=${text}`, '_blank');
+                                    }}
+                                    className="bg-indigo-50 p-6 rounded-[2.5rem] border border-dashed border-indigo-300 flex flex-col items-center justify-center gap-2 hover:bg-indigo-100 transition-all"
+                                >
+                                    <Plus size={24} className="text-indigo-500" />
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-indigo-700 text-center leading-tight">Convidar para<br/>Viva360</span>
                                 </button>
                             </div>
                         </motion.div>
@@ -196,17 +202,26 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
                                 </p>
                             </div>
 
-                            <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm w-full max-w-sm">
-                                <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mb-3">Recompensa Estimada</p>
+                             <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm w-full max-w-sm">
+                                <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mb-3">Recompensa • Loop de Luz</p>
                                 <div className="flex justify-center items-center gap-4">
                                     <div className="flex flex-col items-center">
-                                        <span className="text-lg font-black text-amber-500">+15</span>
-                                        <span className="text-[9px] font-black uppercase text-nature-400">Karma/Dia</span>
+                                        <span className="text-lg font-black text-emerald-500">+25</span>
+                                        <span className="text-[9px] font-black uppercase text-nature-400">Karma Viral</span>
                                     </div>
                                     <div className="w-px h-8 bg-nature-100" />
                                     <div className="flex flex-col items-center">
-                                        <span className="text-lg font-black text-indigo-500">+10%</span>
-                                        <span className="text-[9px] font-black uppercase text-nature-400">Sincronia</span>
+                                        <span className="text-lg font-black text-indigo-500">+5</span>
+                                        <span className="text-[9px] font-black uppercase text-nature-400">Elo Pacto</span>
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-nature-50">
+                                    <div className="flex justify-between text-[8px] font-bold uppercase text-nature-400 mb-1">
+                                        <span>Progresso da Tribo</span>
+                                        <span>32%</span>
+                                    </div>
+                                    <div className="w-full h-1 bg-nature-100 rounded-full overflow-hidden">
+                                        <div className="w-[32%] h-full bg-emerald-400" />
                                     </div>
                                 </div>
                             </div>

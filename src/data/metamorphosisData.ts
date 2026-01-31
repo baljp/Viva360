@@ -1,60 +1,131 @@
-export const METAMORPHOSIS_PHRASES: Record<string, string[]> = {
-  'Feliz': [
-    "Minha alegria é sagrada.",
-    "Vibrando em luz alta.",
-    "O sol nasce dentro de mim.",
-    "Felicidade é minha natureza.",
-    "Hoje eu transbordei vida."
-  ],
-  'Calmo': [
-    "Respirei e permaneci.",
-    "A calma também é força.",
-    "Meu silêncio é portal.",
-    "Em paz com o agora.",
-    "Nada perturba meu centro."
-  ],
-  'Grato': [
-    "Agradeço pela jornada.",
-    "Tudo é dádiva.",
-    "Coração em oração.",
-    "Grato pelo que sou.",
-    "A abundância me habita."
-  ],
-  'Motivado': [
-    "Eu sou o movimento.",
-    "Minha vontade cria mundos.",
-    "Coragem em cada passo.",
-    "Manifestando meu destino.",
-    "Inspirado pela visão."
-  ],
-  'Cansado': [
-    "Descanso é ritual.",
-    "Honro meu silêncio.",
-    "Recarregando minha luz.",
-    "Pausa para florescer.",
-    "Acolho meu limite."
-  ],
-  'Ansioso': [
-    "Volto para casa: o agora.",
-    "Seguro no fluxo da vida.",
-    "Respiro e aterro.",
-    "Um passo por vez.",
-    "Minha alma está em paz."
-  ],
-  'Triste': [
-    "Acolho minha sombra.",
-    "Cura através do sentir.",
-    "Limpando o terreno.",
-    "Vulnerável e forte.",
-    "Amanhã o sol volta."
-  ],
-  'Sobrecarregado': [
-    "Solto o que não é meu.",
-    "Priorizo minha essência.",
-    "Leveza é o caminho.",
-    "Simplifico para existir.",
-    "Hoje eu me escolhi."
-  ]
+export const METAMORPHOSIS_PHRASES: Record<string, { JARDIM: string[], CARD: string[] }> = {
+  'Feliz': {
+    JARDIM: [
+      "A alegria floresce no silêncio.",
+      "Luz suave preenche os cantos.",
+      "Há um brilho calmo crescendo aqui.",
+      "O calor da alma nutre o jardim.",
+      "Sinta o pulsar leve da vida."
+    ],
+    CARD: [
+      "Hoje eu transbordei vida.",
+      "Minha alegria é sagrada.",
+      "Vibrando em luz alta.",
+      "O sol nasceu dentro de mim.",
+      "Felicidade é minha natureza hoje."
+    ]
+  },
+  'Calmo': {
+    JARDIM: [
+      "O silêncio é o solo da paz.",
+      "Respire o frescor do agora.",
+      "As águas internas estão paradas.",
+      "A quietude é o adubo da alma.",
+      "Deixe a serenidade repousar."
+    ],
+    CARD: [
+      "Respirei e permaneci.",
+      "A calma também é força.",
+      "Meu silêncio foi meu portal hoje.",
+      "Em paz com o agora vivido."
+    ]
+  },
+  'Grato': {
+    JARDIM: [
+      "A gratidão é a raiz de tudo.",
+      "Onde há agradecimento, há vida.",
+      "Sinta a abundância invisível.",
+      "Cada folha é um motivo para agradecer.",
+      "A alma se expande no reconhecimento."
+    ],
+    CARD: [
+      "Agradeço pela jornada de hoje.",
+      "Tudo foi dádiva neste dia.",
+      "Coração em oração profunda.",
+      "Hoje eu fui grato pelo que sou.",
+      "A abundância me habitou hoje."
+    ]
+  },
+  'Motivado': {
+    JARDIM: [
+      "A energia se move por dentro.",
+      "Há um impulso pronto para brotar.",
+      "A força vital circula sem pressa.",
+      "O fogo interno aquece a terra.",
+      "Crescimento silencioso e potente."
+    ],
+    CARD: [
+      "Eu fui o movimento hoje.",
+      "Minha vontade criou novos mundos.",
+      "Coragem em cada passo que dei.",
+      "Manifestando meu destino agora.",
+      "Inspirado pela visão do futuro."
+    ]
+  },
+  'Cansado': {
+    JARDIM: [
+      "A terra também precisa descansar.",
+      "Honre a pausa das raízes.",
+      "O silêncio do solo recupera a luz.",
+      "Acolha o recolhimento das flores.",
+      "O repouso é a semente do amanhã."
+    ],
+    CARD: [
+      "Descanso foi meu ritual hoje.",
+      "Honrei meu silêncio necessário.",
+      "Recarregando minha luz interior.",
+      "Fiz uma pausa para florescer depois.",
+      "Acolhi meu limite com amor."
+    ]
+  },
+  'Ansioso': {
+    JARDIM: [
+      "Mesmo inquieto, algo aqui permanece inteiro.",
+      "Nem toda agitação precisa de resposta.",
+      "A terra aceita a chuva forte sem medo.",
+      "Respire sob a superfície do vento.",
+      "O centro do jardim está sempre em paz."
+    ],
+    CARD: [
+      "Voltei para casa: o agora.",
+      "Seguro no fluxo, apesar do vento.",
+      "Hoje eu precisei respirar e aterrar.",
+      "Um passo por vez foi o suficiente.",
+      "Minha alma buscou paz na tormenta."
+    ]
+  },
+  'Triste': {
+    JARDIM: [
+      "A umidade da alma limpa o solo.",
+      "As sombras também fazem parte da luz.",
+      "O recolhimento precede a floração.",
+      "Sinta o acolhimento da terra úmida.",
+      "Há beleza na pausa das cores."
+    ],
+    CARD: [
+      "Acolhi minha sombra neste dia.",
+      "Cura através do sentir verdadeiro.",
+      "Limpando o terreno para o novo.",
+      "Vulnerável, mas escolhi ser forte.",
+      "Amanhã o sol volta a brilhar."
+    ]
+  },
+  'Sobrecarregado': {
+    JARDIM: [
+      "Solte o peso que não pertence ao solo.",
+      "Simplifique a vista. Foque na raiz.",
+      "A natureza não se apressa, mas tudo faz.",
+      "Encontre o vazio fértil entre as folhas.",
+      "Leveza é a regra deste espaço."
+    ],
+    CARD: [
+      "Soltei o que não era meu hoje.",
+      "Priorizei minha essência vital.",
+      "Leveza foi o meu caminho escolhido.",
+      "Simplifiquei para poder existir.",
+      "Hoje eu me escolhi acima de tudo."
+    ]
+  }
 };
 
 export const MOOD_ELEMENTS = {
@@ -68,7 +139,16 @@ export const MOOD_ELEMENTS = {
     'Sobrecarregado': { element: 'Ar', color: 'text-violet-500', glow: 'bg-violet-400', bg: 'bg-[#f5f3ff]', border: 'border-violet-200', aura: 'from-violet-100/30' }
 };
 
-export const getRandomPhrase = (mood: string) => {
-    const list = METAMORPHOSIS_PHRASES[mood] || METAMORPHOSIS_PHRASES['Calmo'];
+export const getRandomPhrase = (mood: string, context: 'JARDIM' | 'CARD' = 'CARD') => {
+    const entry = METAMORPHOSIS_PHRASES[mood] || METAMORPHOSIS_PHRASES['Calmo'];
+    const list = entry[context];
     return list[Math.floor(Math.random() * list.length)];
+};
+
+export const getRandomPhrases = (mood: string, context: 'JARDIM' | 'CARD' = 'CARD'): [string, string] => {
+    const entry = METAMORPHOSIS_PHRASES[mood] || METAMORPHOSIS_PHRASES['Calmo'];
+    const list = [...entry[context]];
+    const p1 = list.splice(Math.floor(Math.random() * list.length), 1)[0];
+    const p2 = list[Math.floor(Math.random() * list.length)] || p1;
+    return [p1, p2];
 };

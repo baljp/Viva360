@@ -3,6 +3,7 @@ import { User, DailyRitualSnap, MoodType } from '../../../types';
 import { Camera, ArrowRight, Heart, Sparkles, Droplet, Check, Share2, X, Sun, Download, Instagram } from 'lucide-react';
 import { CameraWidget, ZenToast } from '../../../components/Common';
 import { SoulCard } from '../../../src/components/SoulCard';
+import { phraseService } from '../../../services/phraseService';
 import { gardenService } from '../../../services/gardenService';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
@@ -101,8 +102,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             
             if (navigator.share) {
                 await navigator.share({
-                    title: 'Meu Ritual Diário • Viva360',
-                    text: `Hoje estou vibrando em ${data.mood}: "${data.intention}"`,
+                    title: 'Meu Jardim Interior • Viva360',
+                    text: `Hoje eu cuidei do meu jardim interior. 🌿 Viva360`,
                     files: [file]
                 });
             } else {
@@ -172,23 +173,55 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
                 const rx = photoX + (photoW - userImg.width * scale) / 2;
                 const ry = photoY + (photoH - userImg.height * scale) / 2;
+
+                // --- IG QUALITY PIPELINE (SOUL GARDEN - ATMOSPHERIC) ---
+                // 1. Base Image with Emotional Blur & Color Correction
+                ctx.filter = `blur(10px) saturate(0.7) contrast(0.95)`; // Gaussian 8-12, Sat -30%, Contrast -5%
                 ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
-                
-                // 1. Light Correction Overlay
+                ctx.filter = 'none';
+
+                // 2. Light Correction Overlay (Soft Light for atmosphere)
                 ctx.globalCompositeOperation = 'soft-light';
-                ctx.fillStyle = `${style.color}33`;
+                ctx.fillStyle = `${style.color}44`; // Elemental tint
                 ctx.fillRect(photoX, photoY, photoW, photoH);
                 
-                // 2. Vignette
-                ctx.globalCompositeOperation = 'multiply';
+                // 3. Overlay Gradient (45-60% as requested for depth)
+                ctx.globalCompositeOperation = 'source-over';
+                const gradPhoto = ctx.createLinearGradient(photoX, photoY + photoH * 0.4, photoX, photoY + photoH);
+                gradPhoto.addColorStop(0, 'transparent');
+                gradPhoto.addColorStop(1, 'rgba(0,0,0,0.5)'); // ~50%
+                ctx.fillStyle = gradPhoto;
+                ctx.fillRect(photoX, photoY, photoW, photoH);
+
+                // 4. Grain/Noise Effect (2-4% organic)
+                const grainCanvas = document.createElement('canvas');
+                grainCanvas.width = 128;
+                grainCanvas.height = 128;
+                const gCtx = grainCanvas.getContext('2d')!;
+                const gData = gCtx.createImageData(128, 128);
+                for (let i = 0; i < gData.data.length; i += 4) {
+                    const val = Math.random() * 255;
+                    gData.data[i] = val;
+                    gData.data[i+1] = val;
+                    gData.data[i+2] = val;
+                    gData.data[i+3] = 12; // ~4% opacity
+                }
+                gCtx.putImageData(gData, 0, 0);
+                ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat')!;
+                ctx.globalAlpha = 0.04;
+                ctx.fillRect(photoX, photoY, photoW, photoH);
+                ctx.globalAlpha = 1.0;
+
+                // 5. Vignette (Suave)
                 const vignette = ctx.createRadialGradient(
                     photoX + photoW/2, photoY + photoH/2, 200,
                     photoX + photoW/2, photoY + photoH/2, 800
                 );
                 vignette.addColorStop(0, 'transparent');
-                vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
+                vignette.addColorStop(1, 'rgba(0,0,0,0.4)');
                 ctx.fillStyle = vignette;
                 ctx.fillRect(photoX, photoY, photoW, photoH);
+
                 ctx.restore();
 
                 // --- LAYER 3: GLASSMORPHISM BACKDROP FOR QUOTE ---
@@ -287,13 +320,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
          // Calculate rewards
          const reward = gardenService.calculateWateringReward(user);
-            
-         // Generate Phrases
-         const phrases = phraseGenerator.generate({
-             mood: data.mood,
-             intention: data.intention,
-             gratitude: data.gratitude
-         });
+                     // Generate Phrases
+          const phrases = phraseService.getPhrases(data.mood, 'JARDIM');
 
          // Create Snap
          const newSnap: DailyRitualSnap = {
@@ -358,8 +386,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                     </div>
                 </div>
                  <div className="bg-black p-8 text-center space-y-2 pb-12">
-                     <h3 className="text-white font-serif italic text-xl">Registre sua essência de hoje</h3>
-                     <p className="text-white/50 text-xs">Este momento fará parte da sua jornada de transformação.</p>
+                     <h3 className="text-white font-serif italic text-xl">Esse momento é só seu.</h3>
+                     <p className="text-white/50 text-xs font-bold uppercase tracking-widest">Não precisa sorrir, nem posar. Apenas esteja.</p>
                  </div>
             </div>
         );
@@ -468,8 +496,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                     </div>
                     
                     <div className="space-y-2 text-center">
-                         <h2 className="text-4xl font-serif italic text-white">Jardim Nutrido</h2>
-                         <p className="text-emerald-200 text-xs font-bold uppercase tracking-[0.2em]">Sua intenção virou vitalidade</p>
+                         <h2 className="text-4xl font-serif italic text-white">Seu jardim recebeu cuidado hoje.</h2>
+                         <p className="text-emerald-200 text-[10px] font-bold uppercase tracking-[0.2em]">Sintonização Completa</p>
                     </div>
 
                     <div className="flex gap-4 justify-center pt-4">
