@@ -1,4 +1,4 @@
-
+import './lib/env'; // Load ENV first
 import cluster from 'cluster';
 import os from 'os';
 import app from './app';

@@ -25,6 +25,12 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     return res.status(401).json({ error: 'Invalid Authorization header format' });
   }
 
+  // Support for E2E Mock Token in MOCK mode
+  if (process.env.APP_MODE === 'MOCK' && token === 'admin-excellence-2026') {
+    req.user = { id: 'admin_master', role: 'ADMIN', email: 'admin@viva360.ai' };
+    return next();
+  }
+
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;

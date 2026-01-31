@@ -5,14 +5,12 @@ import { BuscadorFlowEngine } from './BuscadorFlowEngine';
 import { isMockMode } from '../../lib/supabase';
 import { Professional, Product } from '../../types';
 import { api } from '../../services/api';
+import { RitualCompletionCard } from '../components/RitualCompletionCard';
+import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 
 // Define Context State
-interface FlowContextState {
-    currentState: BuscadorState;
-    history: BuscadorState[];
+interface FlowContextState extends BaseFlowState<BuscadorState> {
     engine: BuscadorFlowEngine;
-    isLoading: boolean;
-    error: string | null;
     toast: { title: string; message: string } | null;
     data: {
         pros: Professional[];
@@ -23,16 +21,11 @@ interface FlowContextState {
 
 // Actions
 type FlowAction =
-    | { type: 'TRANSITION'; payload: BuscadorState }
-    | { type: 'BACK' }
-    | { type: 'RESET' }
-    | { type: 'SET_ERROR'; payload: string }
-    | { type: 'SET_LOADING'; payload: boolean }
+    | BaseFlowAction<BuscadorState>
     | { type: 'SET_DATA'; payload: { pros: Professional[]; products: Product[] } }
     | { type: 'SHOW_TOAST'; payload: { title: string; message: string } }
     | { type: 'CLEAR_TOAST' }
-    | { type: 'SELECT_PROFESSIONAL'; payload: string | null }
-    | { type: 'JUMP'; payload: BuscadorState };
+    | { type: 'SELECT_PROFESSIONAL'; payload: string | null };
 
 // Initial State Factory
 const createInitialState = (): FlowContextState => ({
@@ -46,15 +39,17 @@ const createInitialState = (): FlowContextState => ({
         pros: [],
         products: [],
     },
-    selectedProfessionalId: null
+    selectedProfessionalId: null,
+    ritualCompletion: null
 });
 
 // Reducer
+const baseReducer = createFlowReducer<BuscadorState>();
 const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextState => {
     switch (action.type) {
         case 'TRANSITION': {
             const tempEngine = new BuscadorFlowEngine(state.currentState, [...state.history]);
-            const success = tempEngine.transition(action.payload);
+            const success = tempEngine.transition(action.payload as any); // payload is handled by base if needed, but here we need engine
             if (success) {
                 return {
                     ...state,
@@ -63,17 +58,12 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
                     engine: tempEngine,
                     error: null,
                 };
-            } else {
-                return {
-                    ...state,
-                    error: `Invalid transition from ${state.currentState} to ${action.payload}`,
-                };
             }
+            return state;
         }
         case 'BACK': {
             const tempEngine = new BuscadorFlowEngine(state.currentState, [...state.history]);
-            const canBack = tempEngine.back();
-            if (canBack) {
+            if (tempEngine.back()) {
                 return {
                     ...state,
                     currentState: tempEngine.currentState,
@@ -84,12 +74,6 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
             }
             return state;
         }
-        case 'RESET':
-            return createInitialState();
-        case 'SET_ERROR':
-            return { ...state, error: action.payload };
-        case 'SET_LOADING':
-            return { ...state, isLoading: action.payload };
         case 'SET_DATA':
             return { ...state, data: action.payload };
         case 'SHOW_TOAST':
@@ -98,15 +82,8 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
             return { ...state, toast: null };
         case 'SELECT_PROFESSIONAL':
             return { ...state, selectedProfessionalId: action.payload };
-        case 'JUMP':
-            return {
-                ...state,
-                currentState: action.payload,
-                history: [...state.history, state.currentState],
-                error: null
-            };
         default:
-            return state;
+            return baseReducer(state, action as any) as FlowContextState;
     }
 };
 
@@ -150,13 +127,13 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         
         // Immediate visual feedback for gamification
         if (target === 'METAMORPHOSIS_FEEDBACK') {
-            dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +10', message: 'Evolução registrada.' }});
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Karma +10', message: 'Evolução registrada.' }});
         }
         if (target === 'ORACLE_REVEAL') {
-            dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +2', message: 'Sabedoria adquirida.' }});
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Sabedoria Adquirida', message: 'O Oráculo revelou novos véus.' }});
         }
         if (target === 'PAYMENT_SUCCESS') {
-            dispatch({ type: 'SHOW_TOAST', payload: { title: 'Karma +5', message: 'Troca energética realizada.' }});
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Troca Energética', message: 'O fluxo foi concluído com honra.' }});
         }
 
         dispatch({ type: 'TRANSITION', payload: target });
@@ -171,6 +148,13 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     return (
         <BuscadorFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectProfessional }}>
             {children}
+            {state.ritualCompletion && (
+                <RitualCompletionCard 
+                    title={state.ritualCompletion.title} 
+                    message={state.ritualCompletion.message} 
+                    onClose={() => dispatch({ type: 'CLEAR_RITUAL' })} 
+                />
+            )}
         </BuscadorFlowContext.Provider>
     );
 };

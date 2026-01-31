@@ -1,35 +1,35 @@
-
 import { Request, Response, NextFunction } from 'express';
+import { redisConnection } from '../lib/redis';
 
-const requestCounts: Record<string, { count: number, start: number }> = {};
-
-export const rateLimiter = (req: Request, res: Response, next: NextFunction) => {
-    // Basic IP-based rate limiting (per second)
+export const rateLimiter = async (req: Request, res: Response, next: NextFunction) => {
     const ip = req.ip || 'unknown';
-    const now = Date.now();
-    const windowMs = 5000; // 5 seconds window
-    const limit = 10000; // Higher limit for stress testing
+    const key = `ratelimit:${ip}`;
+    
+    // Enterprise Configuration
+    const waitWindow = 5; // 5 seconds
+    const limit = 10000; // Stress test limit
 
     // Bypass for Stress Testing (Localhost)
     if (ip === '::1' || ip === '127.0.0.1' || req.headers['user-agent']?.includes('axios')) {
-        next();
-        return; 
+        return next();
     }
 
-    if (!requestCounts[ip]) {
-        requestCounts[ip] = { count: 0, start: now };
-    }
-
-    if (now - requestCounts[ip].start > windowMs) {
-        requestCounts[ip] = { count: 1, start: now }; // Reset
-    } else {
-        requestCounts[ip].count++;
-        if (requestCounts[ip].count > limit) {
-             console.warn(`🛑 [RATE LIMIT] Blocked IP ${ip} (Requests: ${requestCounts[ip].count})`);
-             res.status(429).json({ error: 'Too Many Requests' });
-             return; // Explicitly return void
+    try {
+        const current = await redisConnection.incr(key);
+        
+        if (current === 1) {
+            await redisConnection.expire(key, waitWindow);
         }
+
+        if (current > limit) {
+             console.warn(`🛑 [DISTRIBUTED RATE LIMIT] Blocked IP ${ip} (Requests: ${current})`);
+             res.status(429).json({ error: 'Too Many Requests (Distributed)' });
+             return;
+        }
+        
+        next();
+    } catch (err) {
+        console.error('Redis Rate Limiter Error:', err);
+        next(); // Fail open to avoid blocking users if Redis is down
     }
-    
-    next();
 };

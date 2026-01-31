@@ -41,9 +41,6 @@ export const useClientDashboard = (
             updateUser(updated);
             setToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
             await api.users.update(updated as User);
-            updateUser(updated);
-            setToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
-            await api.users.update(updated as User);
         } catch (e) {
             console.error("Water Plant Error", e);
             setToast({ title: "Erro na conexão", message: "Sua intenção foi registrada no éter." });

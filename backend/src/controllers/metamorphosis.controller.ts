@@ -3,6 +3,7 @@ import { DeterministicEngine, Mood } from '../lib/determinism';
 import { logsQueue } from '../queue';
 import { isMockMode } from '../services/supabase.service';
 import prisma from '../lib/prisma';
+import { CloudinaryService } from '../services/cloudinary.service';
 import { asyncHandler } from '../middleware/async.middleware';
 
 // In-memory mock DB
@@ -13,6 +14,9 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     const { mood, photoHash, photoThumb } = req.body;
 
     if (!mood) return res.status(400).json({ error: 'Mood is required' });
+
+    // Asset Optimization: Upload to CDN
+    const optimizedPhotoUrl = photoThumb ? await CloudinaryService.uploadImage(photoThumb) : null;
 
     // 1. Retrieve History
     const userHistory = METAMORPHOSIS_DB[userId] || [];
@@ -28,7 +32,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         timestamp: new Date().toISOString(),
         mood,
         photoHash,
-        photoThumb,
+        photoThumb: optimizedPhotoUrl,
         ...recommendation
     };
 

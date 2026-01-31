@@ -170,8 +170,8 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
             onSubmit(user);
         } catch (err: any) {
             console.error(err);
-            let msg = err.message || 'Erro ao entrar.';
-            if (msg.includes('Invalid login')) msg = 'E-mail ou senha incorretos.';
+            let msg = err.message || 'Erro ao sintonizar.';
+            if (msg.includes('Invalid login')) msg = 'A harmonia falhou. Verifique seu e-mail e senha.';
             setError(msg);
             setLoading(false);
         }
@@ -195,9 +195,9 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                 <header className="flex justify-between items-center mb-6">
                     <div>
                         <div className="flex items-center gap-3 mb-1">
-                            <h3 className="text-2xl font-serif italic text-nature-900">Login</h3>
+                            <h3 className="text-2xl font-serif italic text-nature-900">Entrar no Fluxo</h3>
                         </div>
-                        {(isMockMode || isDemoMode) && <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Ambiente Seguro Ativo</p>}
+                        {(isMockMode || isDemoMode) && <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Círculo de Proteção Ativo</p>}
                     </div>
                     <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20}/></button>
                 </header>
@@ -208,7 +208,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                         <div className="p-4 bg-primary-500/10 border border-primary-500/30 rounded-2xl flex items-center gap-3 animate-pulse">
                             <Zap size={20} className="text-primary-500 shrink-0" />
                             <div>
-                                <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest leading-none mb-1">Modo Demo Ativo</p>
+                                <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest leading-none mb-1">Fluxo de Demonstração Ativado</p>
                                 <p className="text-[10px] text-nature-600 font-medium">Plataforma em modo de apresentação segura.</p>
                             </div>
                         </div>
@@ -226,7 +226,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                             }}
                             className="w-full bg-primary-500 text-white py-4 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg active:scale-95 transition-all hover:bg-primary-600 flex items-center justify-center gap-3 border-none"
                         >
-                            <Sparkles size={16} fill="currentColor" /> Acesso Instantâneo (Admin Demo)
+                            <Sparkles size={16} fill="currentColor" /> Portal do Guardião (Demo)
                         </button>
                     </div>
                 )}
@@ -282,13 +282,13 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                         disabled={loading}
                         className="w-full bg-nature-900 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all hover:bg-black disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2 mt-4"
                     >
-                        {loading ? <span className="animate-pulse">Sincronizando...</span> : <>Entrar no Fluxo <LogIn size={16}/></>}
+                        {loading ? <span className="animate-pulse">Sintonizando...</span> : <>Entrar no Fluxo <LogIn size={16}/></>}
                     </button>
                     
                     {!isMockMode && (
                         <div className="text-center pt-2">
                             <button type="button" onClick={() => setShowForgot(true)} className="text-xs text-primary-600 font-bold hover:underline">
-                                Esqueceu sua senha? Recuperar
+                                Perdeu o elo de acesso? Recuperar Harmonia
                             </button>
                         </div>
                     )}
@@ -317,14 +317,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
                         onClick={() => setShowLogin(true)}
                         className="w-full bg-white text-nature-900 py-5 rounded-[2rem] font-bold uppercase tracking-widest text-xs shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95 transition-all hover:bg-nature-50 flex items-center justify-center gap-3"
                     >
-                        Já tenho conta <ArrowRight size={16} />
+                        Já Iniciei a Jornada <ArrowRight size={16} />
                     </button>
                     
                     <button 
                         onClick={() => setView(ViewState.REGISTER)}
                         className="w-full bg-white/10 backdrop-blur-md border border-white/20 text-white py-5 rounded-[2rem] font-bold uppercase tracking-widest text-xs hover:bg-white/20 active:scale-95 transition-all"
                     >
-                        Iniciar Jornada (Cadastro)
+                        Dar o Primeiro Passo (Cadastro)
                     </button>
                 </div>
                 
