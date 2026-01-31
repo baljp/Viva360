@@ -31,6 +31,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const [mood, setMood] = useState('');
     const [photo, setPhoto] = useState<string | null>(null);
     const [result, setResult] = useState<any>(null);
+    const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
     const [isProcessing, setIsProcessing] = useState(false);
     const [cardPhrase, setCardPhrase] = useState('');
     const [isDrawing, setIsDrawing] = useState(false); // Lock share until ready
@@ -142,7 +143,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
             userImg.onload = () => {
                 const W = 1080; 
-                const H = 1920; 
+                const H = format === 'STORY' ? 1920 : 1350; 
                 canvas.width = W;
                 canvas.height = H;
 
@@ -169,10 +170,10 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 ctx.globalAlpha = 1.0;
 
                 // --- LAYER 2: PHOTO (Protagonist) ---
-                const photoW = 900;
-                const photoH = 1200;
+                const photoW = format === 'STORY' ? 900 : 1000;
+                const photoH = format === 'STORY' ? 1200 : 800;
                 const photoX = (W - photoW) / 2;
-                const photoY = 250;
+                const photoY = format === 'STORY' ? 250 : 200;
 
                 ctx.save();
                 // Rounded clip for photo
@@ -303,7 +304,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 setIsDrawing(false);
             };
         }
-    }, [step, result]);
+    }, [step, result, format]);
 
     const styling = result ? (MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo']) : MOOD_ELEMENTS['Calmo'];
     
@@ -403,7 +404,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                         <canvas ref={canvasRef} className="hidden" />
 
                         {/* LIVE PREVIEW - Uses the canvas data manually to show WYSIWYG */}
-                        <div className="relative w-full max-w-[350px] shadow-2xl rounded-[10px] overflow-hidden border-4 border-white aspect-[9/16] bg-nature-50">
+                        <div className="relative w-full max-w-[350px] shadow-2xl rounded-[10px] overflow-hidden border-4 border-white" style={{ aspectRatio: format === 'STORY' ? '9 / 16' : '4 / 5' }}>
                              {previewUrl ? (
                                  <img src={previewUrl} className="w-full h-full object-contain animate-in fade-in duration-500" alt="Soul Card Preview" />
                              ) : (
@@ -414,8 +415,21 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                              )}
                         </div>
 
+                        {/* Aspect Ratio Toggle */}
+                        <div className="flex gap-2 mt-8 mb-6 w-full px-4">
+                            {(['STORY', 'POST'] as const).map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFormat(f)}
+                                    className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${format === f ? 'bg-indigo-900 text-white' : 'bg-white text-indigo-400'}`}
+                                >
+                                    {f === 'STORY' ? '9:16 Story' : '4:5 Feed'}
+                                </button>
+                            ))}
+                        </div>
+
                         {/* Premium Sharing Tray */}
-                        <div className="mt-8 w-full grid grid-cols-2 gap-4 px-4">
+                        <div className="w-full grid grid-cols-2 gap-4 px-4">
                             <button 
                                 onClick={shareCard} 
                                 disabled={isDrawing}

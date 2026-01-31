@@ -20,6 +20,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     const [gardenSnaps, setGardenSnaps] = useState<any[]>([]);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [volume, setVolume] = useState(0.5);
+    const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
 
     // Load Data
     useEffect(() => {
@@ -56,7 +57,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
         if (!ctx) return;
 
         const W = 1080;
-        const H = 1920;
+        const H = format === 'STORY' ? 1920 : 1350;
         
         // Ensure standard size
         if (canvas.width !== W) canvas.width = W;
@@ -99,10 +100,10 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             }
 
             // --- LAYER 1: SOUL CARD (FOREGROUND NARRATIVE) ---
-            const cardW = 900;
-            const cardH = 1200;
+            const cardW = format === 'STORY' ? 900 : 1000;
+            const cardH = format === 'STORY' ? 1200 : 800;
             const cardX = (W - cardW) / 2;
-            const cardY = (H - cardH) / 2 - 100;
+            const cardY = (H - cardH) / 2 - (format === 'STORY' ? 100 : 50);
 
             const scale = Math.max(cardW / imgCard.width, cardH / imgCard.height) * (zoom * 0.95);
             const x = cardX + (cardW - imgCard.width * scale) / 2;
@@ -363,8 +364,21 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                         </div>
                     ))}
                 </div>
-                <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-sm">Minha História</h4>
+                <div className="flex justify-between items-center bg-black/40 backdrop-blur-sm p-4 rounded-3xl border border-white/10">
+                    <div className="flex flex-col">
+                        <h4 className="font-bold text-sm text-white">Minha História</h4>
+                        <div className="flex gap-2 mt-2">
+                             {(['STORY', 'POST'] as const).map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFormat(f)}
+                                    className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest transition-all ${format === f ? 'bg-white text-black' : 'bg-white/10 text-white/40'}`}
+                                >
+                                    {f === 'STORY' ? '9:16' : '4:5'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                     <div className="flex gap-2">
                         <button 
                             onClick={async () => {
