@@ -39,8 +39,23 @@ export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }
                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">{(pro.specialty || []).join(' • ')}</p>
                 </div>
                 <div className="flex gap-4">
-                    <button onClick={() => go('BOOKING_CONFIRM')} className="px-6 py-3 bg-nature-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">Agendar Ritual</button>
-                    <button className="p-3 bg-nature-50 text-nature-600 rounded-2xl border border-nature-100 hover:bg-white transition-all"><MessageCircle size={20}/></button>
+                    <button 
+                        onClick={() => go('BOOKING_CONFIRM')} 
+                        className="btn-primary flex-1"
+                    >
+                        Agendar Ritual
+                    </button>
+                    <button 
+                        onClick={() => {
+                            // Simple mock behavior for messaging
+                            const msg = `Olá ${pro.name}, gostaria de saber mais sobre o seu trabalho.`;
+                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                        }}
+                        className="p-3 bg-nature-50 text-nature-600 rounded-2xl border border-nature-100 hover:bg-white transition-all active:scale-95 shadow-sm"
+                        title="Enviar Mensagem"
+                    >
+                        <MessageCircle size={20}/>
+                    </button>
                 </div>
             </div>
 

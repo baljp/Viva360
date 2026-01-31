@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { PortalView, ZenToast } from '../../components/Common';
+import { MicroInteraction } from '../../components/MicroInteraction';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
-import { Sun, Moon, CheckCircle2, Circle } from 'lucide-react';
+import { Sun, Moon, CheckCircle2, Circle, Sparkles } from 'lucide-react';
 
 interface RoutineStep {
     id: string;
@@ -18,6 +19,7 @@ export const RitualsView: React.FC = () => {
     const [nightRoutine, setNightRoutine] = useState<RoutineStep[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const [microInteraction, setMicroInteraction] = useState<{ title: string, message: string } | null>(null);
 
     useEffect(() => {
         loadRoutines();
@@ -39,19 +41,21 @@ export const RitualsView: React.FC = () => {
     const handleToggle = async (period: 'morning' | 'night', id: string) => {
         const updater = period === 'morning' ? setMorningRoutine : setNightRoutine;
         const current = period === 'morning' ? morningRoutine : nightRoutine;
-        const routineName = period === 'morning' ? 'Despertar Solar' : 'Recolhimento Lunar';
         
         // Optimistic update
         const updatedList = current.map(step => {
              if (step.id === id) {
                  const newState = !step.completed;
                  if (newState) {
-                     setToast({ title: "Hábito Cristalizado", message: `+10 XP. ${step.title} concluído.` });
+                     setMicroInteraction({ 
+                        title: "Hábito Cristalizado", 
+                        message: `Sua essência brilha com a conclusão de: ${step.title}. +10 XP` 
+                     });
                  }
                  return { ...step, completed: newState };
              }
              return step;
-        });
+         });
         updater(updatedList);
 
         // API Call
@@ -105,8 +109,8 @@ export const RitualsView: React.FC = () => {
                                  <div className={`w-6 h-6 rounded-full flex items-center justify-center border transition-colors ${step.completed ? 'bg-white/20 border-transparent' : 'bg-white border-nature-200'}`}>
                                      {step.completed && <CheckCircle2 size={12} className="text-white" />}
                                  </div>
-                                 <div>
-                                     <h4 className={`font-bold text-sm ${step.completed ? 'text-white' : 'text-nature-700'}`}>{step.title}</h4>
+                                 <div className="min-w-0 flex-1">
+                                     <h4 className={`font-bold text-sm truncate ${step.completed ? 'text-white' : 'text-nature-700'}`}>{step.title}</h4>
                                      <div className="flex items-center gap-2 mt-0.5">
                                         <span className={`text-[9px] uppercase tracking-widest font-bold ${step.completed ? 'text-white/60' : 'text-nature-400'}`}>{step.duration} min</span>
                                      </div>
@@ -131,6 +135,16 @@ export const RitualsView: React.FC = () => {
             heroImage="https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=800"
         >
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
+            
+            {microInteraction && (
+                <div className="fixed inset-0 z-[600] flex items-center justify-center pointer-events-none">
+                    <MicroInteraction 
+                        title={microInteraction.title} 
+                        message={microInteraction.message} 
+                        onClose={() => setMicroInteraction(null)} 
+                    />
+                </div>
+            )}
             
             <div className="space-y-6 pb-20 px-1">
                 {/* Progress Header */}
