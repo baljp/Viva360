@@ -170,7 +170,7 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
 
 const GrowthTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="bg-gradient-to-r from-amber-100 to-orange-50 p-6 rounded-[2.5rem] border border-amber-200 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all" onClick={() => go('TEAM_INVITE')}>
+        <div className="bg-gradient-to-r from-amber-100 to-orange-50 p-6 rounded-[2.5rem] border border-amber-200 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all shadow-sm" onClick={() => go('TEAM_INVITE')}>
             <div>
                  <h4 className="font-serif italic text-2xl text-amber-900">Expandir Egrégora</h4>
                  <p className="text-xs text-amber-700 mt-1 max-w-[200px]">Atraia novos guardiões e impulsione a vibração do espaço.</p>
@@ -178,6 +178,17 @@ const GrowthTab = ({ go }: any) => (
             </div>
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
                 <Globe size={32} className="text-amber-500" />
+            </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-indigo-100 to-blue-50 p-6 rounded-[2.5rem] border border-indigo-200 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all shadow-sm" onClick={() => go('ROOM_CREATE')}>
+            <div>
+                 <h4 className="font-serif italic text-2xl text-indigo-900">Novo Altar</h4>
+                 <p className="text-xs text-indigo-700 mt-1 max-w-[200px]">Consagre um novo espaço físico para atendimentos e rituais.</p>
+                 <button className="mt-3 px-4 py-2 bg-indigo-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest">Consagrar Altar</button>
+            </div>
+            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
+                <Plus size={32} className="text-indigo-500" />
             </div>
         </div>
 
