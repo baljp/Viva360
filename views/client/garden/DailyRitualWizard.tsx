@@ -127,158 +127,142 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
             userImg.onload = () => {
                 const W = 1080;
-                const H = 1080;
+                const H = 1920; // Changed to Story Format for consistency
                 canvas.width = W;
                 canvas.height = H;
 
                 const style = getCanvasStyle(data.mood);
-
-                // 1. Background
-                ctx.fillStyle = style.bg;
+                
+                // --- LAYER 1: BACKGROUND (Deep & Atmospheric) ---
+                const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
+                bgGradient.addColorStop(0, '#0f172a'); // Deep Slate
+                bgGradient.addColorStop(0.5, '#111827');
+                bgGradient.addColorStop(1, '#020617');
+                ctx.fillStyle = bgGradient;
                 ctx.fillRect(0, 0, W, H);
 
-                // 1.1 Patterns
-                ctx.save();
-                ctx.strokeStyle = style.accent;
-                ctx.lineWidth = 2;
-                if (style.pattern === 'rays') {
-                    for(let i=0; i<360; i+=10) {
-                        ctx.beginPath();
-                        ctx.moveTo(W/2, H/2);
-                        ctx.lineTo(W/2 + Math.cos(i*Math.PI/180)*W, H/2 + Math.sin(i*Math.PI/180)*W);
-                        ctx.stroke();
-                    }
-                } else if (style.pattern === 'wave') {
-                    for(let y=0; y<H; y+=40) {
-                        ctx.beginPath();
-                         ctx.moveTo(0, y);
-                         ctx.bezierCurveTo(W/3, y+30, 2*W/3, y-30, W, y);
-                         ctx.stroke();
-                    }
-                } else if (style.pattern === 'leaf') {
-                     for(let x=0; x<W; x+=100) {
-                        for(let y=0; y<H; y+=100) {
-                            ctx.beginPath();
-                            ctx.arc(x, y, 20, 0, Math.PI*2);
-                            ctx.stroke();
-                        }
-                    }
-                } else {
-                     ctx.globalAlpha = 0.3;
-                     for(let i=0; i<20; i++) {
-                         ctx.beginPath();
-                         ctx.arc(Math.random()*W, Math.random()*H, Math.random()*100, 0, Math.PI*2);
-                         ctx.stroke();
-                     }
+                // Subtle texture/noise
+                ctx.globalAlpha = 0.03;
+                for (let i = 0; i < 5000; i++) {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
                 }
+                ctx.globalAlpha = 1.0;
+
+                // --- LAYER 2: PHOTO (Protagonist) ---
+                const photoW = 900;
+                const photoH = 1200;
+                const photoX = (W - photoW) / 2;
+                const photoY = 250;
+
+                ctx.save();
+                // Rounded clip for photo
+                const drawRoundRect = (x: number, y: number, w: number, h: number, r: number) => {
+                    ctx.beginPath();
+                    ctx.moveTo(x + r, y);
+                    ctx.arcTo(x + w, y, x + w, y + h, r);
+                    ctx.arcTo(x + w, y + h, x, y + h, r);
+                    ctx.arcTo(x, y + h, x, y, r);
+                    ctx.arcTo(x, y, x+w, y, r);
+                    ctx.closePath();
+                };
+                drawRoundRect(photoX, photoY, photoW, photoH, 40);
+                ctx.clip();
+                
+                const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
+                const rx = photoX + (photoW - userImg.width * scale) / 2;
+                const ry = photoY + (photoH - userImg.height * scale) / 2;
+                ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
+                
+                // 1. Light Correction Overlay
+                ctx.globalCompositeOperation = 'soft-light';
+                ctx.fillStyle = `${style.color}33`;
+                ctx.fillRect(photoX, photoY, photoW, photoH);
+                
+                // 2. Vignette
+                ctx.globalCompositeOperation = 'multiply';
+                const vignette = ctx.createRadialGradient(
+                    photoX + photoW/2, photoY + photoH/2, 200,
+                    photoX + photoW/2, photoY + photoH/2, 800
+                );
+                vignette.addColorStop(0, 'transparent');
+                vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
+                ctx.fillStyle = vignette;
+                ctx.fillRect(photoX, photoY, photoW, photoH);
                 ctx.restore();
 
-                // 2. Photo (Rounded Rect)
-                const pad = 60; // Less padding to grow the image (was 120)
-                const photoSize = W - (pad * 2);
+                // --- LAYER 3: GLASSMORPHISM BACKDROP FOR QUOTE ---
+                const quoteH = 400;
+                const quoteY = photoY + photoH - 150;
                 
                 ctx.save();
-                const radius = 100; // More pronounced
-                
-                // Shadow
-                ctx.shadowColor = "rgba(0,0,0,0.15)";
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
                 ctx.shadowBlur = 40;
-                ctx.shadowOffsetY = 20;
-
-                ctx.beginPath();
-                ctx.roundRect(pad, pad + 60, photoSize, photoSize + 100, radius); // Larger and shifted
-                ctx.fillStyle = '#1e1b4b'; // Dark background behind image
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                drawRoundRect(photoX + 50, quoteY, photoW - 100, quoteH, 50);
                 ctx.fill();
-                ctx.shadowColor = "transparent"; // Reset shadow
                 
-                ctx.clip(); // Clip to the rect
-
-                const scale = Math.max(photoSize / userImg.width, photoSize / userImg.height);
-                const x = pad + (photoSize / 2) - (userImg.width * scale) / 2;
-                const y = pad + 60 + ((photoSize + 100) / 2) - (userImg.height * scale) / 2;
-                ctx.drawImage(userImg, x, y, userImg.width * scale, userImg.height * scale);
-                
-                // Vignette overlay on image
-                const grad = ctx.createLinearGradient(0, pad+60, 0, pad+60 + photoSize + 100);
-                grad.addColorStop(0, 'transparent');
-                grad.addColorStop(1, 'rgba(0,0,0,0.4)');
-                ctx.fillStyle = grad;
-                ctx.fillRect(pad, pad+60, photoSize, photoSize + 100);
-                
-                ctx.restore();
-
-                // 3. Element Badge (Top Center)
-                ctx.save();
-                ctx.shadowBlur = 20;
-                ctx.shadowColor = 'rgba(0,0,0,0.1)';
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(W/2, pad + 60, 40, 0, Math.PI * 2); // Overlapping top edge of photo
-                ctx.fill();
-                ctx.restore();
-
-                // Element Icon
-                ctx.fillStyle = style.color;
-                ctx.font = '40px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const elIcon = style.pattern === 'rays' ? '🔥' : style.pattern === 'wave' ? '💧' : style.pattern === 'leaf' ? '🌱' : '🍃';
-                ctx.fillText(elIcon, W/2, pad + 62);
-
-
-                // 5. Text Content
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                // Divider
-                ctx.strokeStyle = style.color;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
                 ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(W/2 - 50, pad + 100 + photoSize + 60);
-                ctx.lineTo(W/2 + 50, pad + 100 + photoSize + 60);
                 ctx.stroke();
+                ctx.restore();
 
-                // Intention/Quote
-                ctx.font = 'italic 400 56px "Times New Roman", serif'; // Larger font
-                ctx.fillStyle = '#1e293b'; 
+                // --- LAYER 4: SYMBOLS & TEXT ---
+                const centerX = W / 2;
+
+                // 1. Ritual Symbol (Above quote)
+                ctx.globalAlpha = 0.6;
+                ctx.strokeStyle = style.color;
+                ctx.lineWidth = 3;
+                const symY = quoteY + 60;
+                ctx.beginPath();
+                ctx.arc(centerX, symY, 30, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(centerX - 10, symY - 10);
+                ctx.lineTo(centerX + 10, symY + 10);
+                ctx.moveTo(centerX + 10, symY - 10);
+                ctx.lineTo(centerX - 10, symY + 10);
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+
+                // 2. The Master Phrase (Quote)
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'italic 52px serif';
                 
-                const text = data.intention || "Respire. Sinta. Agradeça.";
-                const words = text.split(' ');
+                const quote = data.intention || "Respire. Sinta. Agradeça.";
+                const words = quote.split(' ');
                 let line = '';
-                let lineY = pad + 100 + photoSize + 120;
-                const lineHeight = 70;
-                
+                let lineY = quoteY + 180;
+                const lineHeight = 75;
+
                 for(let n = 0; n < words.length; n++) {
                   const testLine = line + words[n] + ' ';
-                  if (ctx.measureText(testLine).width > 800 && n > 0) {
-                    ctx.fillText(line, W/2, lineY);
+                  if (ctx.measureText(testLine).width > (photoW - 200) && n > 0) {
+                    ctx.fillText(line.trim(), centerX, lineY);
                     line = words[n] + ' ';
                     lineY += lineHeight;
                   } else {
                     line = testLine;
                   }
                 }
-                ctx.fillText(line, W/2, lineY);
+                ctx.fillText(line.trim(), centerX, lineY);
 
-                // Mood Label
-                lineY += 80;
-                ctx.fillStyle = style.color;
-                ctx.font = 'bold 30px sans-serif';
-                ctx.fillText(`— ESTADO ${data.mood.replace('MELANCÓLICO', 'REFLEXIVO')} —`, W/2, lineY);
-
-
-                // 6. Watermark Footer
-                const footerY = H - 80;
-                ctx.font = 'bold 28px sans-serif'; 
-                ctx.fillStyle = 'rgba(30, 41, 59, 0.5)';
+                // 3. Metadata (Contextual & Discrete)
+                const metaY = H - 180;
+                ctx.font = 'bold 24px sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                const dateStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
+                ctx.fillText(dateStr, centerX, metaY);
                 
-                const dateText = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
-                
-                ctx.textAlign = 'left';
-                ctx.fillText(dateText, pad, footerY);
-                
-                ctx.textAlign = 'right';
-                ctx.fillText("VIVA360", W - pad, footerY);
+                // 4. Ritual Seal (Signature)
+                const sealY = H - 100;
+                ctx.font = 'bold 20px sans-serif';
+                ctx.fillStyle = '#d4af37';
+                (ctx as any).letterSpacing = '6px';
+                ctx.fillText('VIVA360 • RITUAL DIÁRIO', centerX, sealY);
             };
         }
     }, [step, data.image]);

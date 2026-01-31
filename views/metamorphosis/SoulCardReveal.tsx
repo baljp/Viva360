@@ -5,6 +5,7 @@ import { Sparkles, ShieldCheck, Share2, Download, CheckCircle, Heart } from 'luc
 import { useSoulCards } from '../../src/hooks/useSoulCards';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { SoulCard } from '../../src/data/mockSoulCards';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SoulCardRevealProps {
     card: SoulCard;
@@ -51,35 +52,101 @@ export const SoulCardReveal: React.FC<SoulCardRevealProps> = ({ card, userPhoto,
 
             {/* STAGE 2: REVEAL */}
             {revealStage === 2 && (
-                <div className="flex flex-col items-center animate-in zoom-in duration-700">
-                    <div className="text-center mb-6">
-                        <p className="text-amber-400 text-xs font-bold uppercase tracking-[0.3em] mb-2">Carta da Alma Desbloqueada</p>
-                        <h2 className="text-3xl font-serif italic text-white">{card.archetype}</h2>
-                        <span className={`inline-block mt-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-${card.visualTheme}-500 text-white`}>
-                            {card.rarity} {card.element}
-                        </span>
+                <div className="flex flex-col items-center animate-in zoom-in duration-1000 w-full max-w-lg">
+                    {/* TOP HEADER - Contextual metadata */}
+                    <div className="text-center mb-8">
+                        <motion.p 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-amber-400/80 text-[10px] font-bold uppercase tracking-[0.4em] mb-3"
+                        >
+                            Frequência Cristalizada
+                        </motion.p>
+                        <motion.h2 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                            className="text-4xl font-serif italic text-white mb-3"
+                        >
+                            {card.archetype}
+                        </motion.h2>
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6 }}
+                            className="flex items-center justify-center gap-3"
+                        >
+                            <span className={`px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/20 text-white/60 bg-white/5`}>
+                                {card.rarity}
+                            </span>
+                            <span className="w-1 h-1 bg-white/20 rounded-full" />
+                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">
+                                Elemento {card.element}
+                            </span>
+                        </motion.div>
                     </div>
 
-                    {/* THE CARD */}
-                    <div className={`relative w-full max-w-sm aspect-[3/4] rounded-[2rem] border-4 border-${card.visualTheme}-400 overflow-hidden shadow-2xl mb-8 group`}>
-                         <img src={userPhoto} className="absolute inset-0 w-full h-full object-cover opacity-80 mix-blend-overlay" />
-                         <div className={`absolute inset-0 bg-gradient-to-t from-${card.visualTheme}-900 via-transparent to-${card.visualTheme}-900/50`}></div>
+                    {/* THE PREMIUM CARD */}
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        transition={{ delay: 0.8, duration: 0.8 }}
+                        className={`relative w-full aspect-[9/16] rounded-[2.5rem] border border-white/10 overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] group`}
+                    >
+                         {/* THE PROTO (User Image) */}
+                         <div className="absolute inset-0 bg-[#0f172a]">
+                            <img src={userPhoto} className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" style={{ filter: 'contrast(1.1) brightness(0.9) saturate(1.1)' }} />
+                            {/* Inner Vignette / Shadow Overlay */}
+                            <div className="absolute inset-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.8)]"></div>
+                         </div>
                          
-                         <div className="absolute bottom-0 left-0 right-0 p-8 text-center">
-                            <p className="text-white font-serif italic text-lg leading-relaxed drop-shadow-md">
-                                "{card.message}"
-                            </p>
+                         {/* Ethereal Glow based on theme */}
+                         <div className={`absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40`}></div>
+                         
+                         {/* Content Overlay */}
+                         <div className="absolute inset-0 p-8 flex flex-col justify-end items-center text-center pb-16">
+                            
+                            {/* Sacred Symbol */}
+                            <motion.div 
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ opacity: 0.6, scale: 1 }}
+                                transition={{ delay: 1.5 }}
+                                className="w-12 h-12 border-2 border-white/50 rounded-full flex items-center justify-center mb-6"
+                            >
+                                <Sparkles size={20} className="text-white" />
+                            </motion.div>
+
+                            {/* Glassmorphism Quote Box */}
+                            <div className="relative w-full bg-white/10 backdrop-blur-xl rounded-[2rem] p-8 border border-white/20 shadow-2xl overflow-hidden">
+                                {/* Subtle internal shine */}
+                                <div className="absolute -top-full -left-full w-[300%] h-[300%] bg-gradient-to-br from-white/10 via-transparent to-transparent rotate-45 pointer-events-none"></div>
+                                
+                                <p className="text-white font-serif italic text-xl leading-relaxed drop-shadow-sm">
+                                    "{card.message}"
+                                </p>
+                            </div>
+
+                            {/* Seal (Initial/Stamp) */}
+                            <div className="mt-8 opacity-40">
+                                <p className="text-[10px] font-black text-white uppercase tracking-[0.5em]">Viva360 Ritual</p>
+                            </div>
                          </div>
 
-                         {/* Holographic Effect */}
-                         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-                    </div>
+                         {/* Holographic Sweep Animation */}
+                         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[2s] pointer-events-none"></div>
+                    </motion.div>
 
-                    <div className="flex gap-4">
-                        <button onClick={onClose} className="px-8 py-4 bg-white text-indigo-900 rounded-full font-bold uppercase text-xs tracking-widest hover:scale-105 transition-transform">
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 2 }}
+                        className="mt-10"
+                    >
+                        <button onClick={onClose} className="px-12 py-5 bg-white text-slate-900 rounded-[2rem] font-bold uppercase text-[10px] tracking-[0.3em] shadow-2xl hover:scale-105 active:scale-95 transition-all">
                             Guardar no Grimório
                         </button>
-                    </div>
+                    </motion.div>
                 </div>
             )}
         </div>
