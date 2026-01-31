@@ -7,7 +7,20 @@ import {
 } from 'lucide-react';
 import { User as UserType, UserRole, PlantStage, MoodType, DailyQuest, Notification, Badge, Appointment, Review, Product } from '../types';
 import { api } from '../services/api';
-import { getDailyMessage } from '../src/utils/dailyWisdom';
+// --- CONSTANTS ---
+export const ICON_SIZE = {
+    SM: 16,
+    MD: 20,
+    LG: 24,
+    XL: 32,
+    NAV: 22
+};
+
+export const SPACING = {
+    BASE: 'p-4', // 16px
+    SECTION: 'gap-6', // 24px
+    INTERNAL: 'p-5' // 20px
+};
 
 // --- LOGO COMPONENT ---
 export const Logo: React.FC<{ size?: 'sm' | 'md' | 'lg' | 'xl' | 'splash', className?: string, animated?: boolean }> = ({ size = 'md', className = "", animated = false }) => {
@@ -15,9 +28,9 @@ export const Logo: React.FC<{ size?: 'sm' | 'md' | 'lg' | 'xl' | 'splash', class
   const sizeMap = {
     sm: 'w-6 h-6',
     md: 'w-10 h-10',
-    lg: 'w-20 h-20',
-    xl: 'w-32 h-32',
-    splash: 'w-48 h-48'
+    lg: 'w-16 h-16',
+    xl: 'w-24 h-24',
+    splash: 'w-40 h-40'
   };
 
   return (
@@ -54,22 +67,22 @@ export const AuroraBackground: React.FC = () => (
 // --- ZEN SKELETON ---
 export const ZenSkeleton: React.FC<{ className?: string, variant?: 'card' | 'avatar' | 'text' | 'hero' }> = ({ className = "", variant = 'card' }) => {
     const variants = {
-        card: "aspect-square rounded-[2rem] bg-nature-100",
-        avatar: "w-12 h-12 rounded-full bg-nature-100",
-        text: "h-4 rounded-lg bg-nature-100 w-full",
-        hero: "h-64 rounded-[3.5rem] bg-nature-100"
+        card: `aspect-square rounded-[var(--radius-md)] bg-nature-100`,
+        avatar: "w-10 h-10 rounded-full bg-nature-100",
+        text: "h-3.5 rounded-lg bg-nature-100 w-full",
+        hero: `h-56 rounded-[var(--radius-lg)] bg-nature-100`
     };
     return <div className={`${variants[variant]} animate-pulse ${className}`}></div>;
 };
 
 // --- ZEN EMPTY STATE ---
-export const ZenEmptyState: React.FC<{ title: string, message: string, icon?: any }> = ({ title, message, icon: Icon = Sparkles }) => (
-    <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 animate-in fade-in zoom-in duration-500">
-        <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-nature-100 flex items-center justify-center text-nature-200">
-            <Icon size={32} />
+export const ZenEmptyState: React.FC<{ title: string, message: string, icon: any }> = ({ title, message, icon: Icon }) => (
+    <div className="flex flex-col items-center justify-center p-8 text-center space-y-4 animate-in fade-in zoom-in duration-500">
+        <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-nature-100 flex items-center justify-center text-nature-200">
+            <Icon size={ICON_SIZE.MD} />
         </div>
         <div className="space-y-1">
-            <h4 className="font-serif italic text-xl text-nature-900">{title}</h4>
+            <h4 className="font-serif italic text-lg text-nature-900">{title}</h4>
             <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest max-w-[200px] leading-relaxed">{message}</p>
         </div>
     </div>
@@ -83,11 +96,11 @@ export const StarRating: React.FC<{ rating: number, onRate?: (r: number) => void
                 <button 
                     key={star} 
                     onClick={() => interactive && onRate && onRate(star)}
-                    className={`${interactive ? 'cursor-pointer active:scale-110 transition-transform' : 'cursor-default'}`}
+                    className={`${interactive ? 'w-10 h-10 flex items-center justify-center cursor-pointer active:scale-110 transition-transform' : 'cursor-default'}`}
                     disabled={!interactive}
                 >
                     <Star 
-                        size={size} 
+                        size={interactive ? ICON_SIZE.LG : size} 
                         className={`${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-nature-200 fill-nature-100'}`} 
                     />
                 </button>
@@ -98,7 +111,7 @@ export const StarRating: React.FC<{ rating: number, onRate?: (r: number) => void
 
 // --- REVIEW CARD ---
 export const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
-    <div className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex flex-col gap-3">
+    <div className="card-functional flex flex-col gap-3">
         <div className="flex justify-between items-start">
             <div className="flex items-center gap-3">
                 <img 
@@ -188,7 +201,7 @@ export const ReviewFormModal: React.FC<{ isOpen: boolean, onClose: () => void, t
                 <button 
                     onClick={handleSubmit}
                     disabled={rating === 0}
-                    className="w-full py-5 bg-primary-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
+                    className="btn-primary w-full"
                 >
                     Enviar Avaliação
                 </button>
@@ -281,7 +294,7 @@ export const ProductFormModal: React.FC<{ isOpen: boolean, onClose: () => void, 
                     </div>
                 </div>
 
-                <button onClick={handleSubmit} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Ofertar ao Universo</button>
+                <button onClick={handleSubmit} className="btn-cta w-full">Ofertar ao Universo</button>
             </div>
         </BottomSheet>
     );
@@ -362,7 +375,7 @@ export const VacancyFormModal: React.FC<{ isOpen: boolean, onClose: () => void, 
                 <button 
                     onClick={handleSubmit}
                     disabled={!title || !description}
-                    className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all disabled:opacity-50"
+                    className="btn-primary w-full"
                 >
                     Publicar Vaga
                 </button>
@@ -376,11 +389,9 @@ const PlusIcon = ({ size }: { size: number }) => (
     <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
 );
 
-// --- DYNAMIC AVATAR ---
-// --- DYNAMIC AVATAR ---
 export const DynamicAvatar: React.FC<{ user: Partial<UserType>, size?: 'sm' | 'md' | 'lg' | 'xl', className?: string }> = ({ user, size = 'md', className = "" }) => {
   const [imgError, setImgError] = useState(false);
-  const sizeClasses = { sm: 'w-8 h-8', md: 'w-12 h-12', lg: 'w-20 h-20', xl: 'w-32 h-32' };
+  const sizeClasses = { sm: 'w-8 h-8', md: 'w-10 h-10', lg: 'w-20 h-20', xl: 'w-32 h-32' };
   
   return (
     <div className={`${sizeClasses[size]} ${className} rounded-full overflow-hidden border-2 border-white shadow-sm bg-nature-100 flex-none relative flex items-center justify-center`}>
@@ -402,41 +413,117 @@ export const DynamicAvatar: React.FC<{ user: Partial<UserType>, size?: 'sm' | 'm
   );
 };
 
-// --- MOOD TRACKER (NOVO) ---
+// --- CARD TYPOLOGY ---
+export const HeroCard: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => (
+    <div className={`card-hero bg-gradient-to-br from-primary-600 to-primary-900 text-white ${className}`}>
+        {children}
+    </div>
+);
+
+export const FunctionalCard: React.FC<{ children: React.ReactNode, className?: string, onClick?: () => void }> = ({ children, className = "", onClick }) => {
+    const Comp = onClick ? 'button' : 'div';
+    return (
+        <Comp 
+            onClick={onClick} 
+            className={`card-functional text-left w-full ${className} ${onClick ? 'active:scale-[0.98] cursor-pointer' : ''}`}
+        >
+            {children}
+        </Comp>
+    );
+};
+
+export const RitualCard: React.FC<{ children: React.ReactNode, color?: 'green' | 'purple' | 'gold', className?: string, onClick?: () => void }> = ({ children, color = 'green', className = "", onClick }) => {
+    const colors = {
+        green: 'bg-[#E7F3ED] text-[#3F8F6B]',
+        purple: 'bg-[#ECE9FA] text-[#5A4CA8]',
+        gold: 'bg-[#FBF3D9] text-[#C8A34A]'
+    };
+    const Comp = onClick ? 'button' : 'div';
+    return (
+        <Comp 
+            onClick={onClick} 
+            className={`card-ritual text-left w-full ${colors[color]} ${className} ${onClick ? 'active:scale-[0.98] cursor-pointer' : ''}`}
+        >
+            {children}
+        </Comp>
+    );
+};
+
+// --- MOOD TRACKER ---
 export const MoodTracker: React.FC<{ currentMood?: MoodType, onSelect: (m: MoodType) => void }> = ({ currentMood, onSelect }) => {
     const moods: { type: MoodType, icon: any, color: string }[] = [
-        { type: 'SERENO', icon: Wind, color: 'bg-emerald-100 text-emerald-600' },
-        { type: 'VIBRANTE', icon: Sun, color: 'bg-amber-100 text-amber-600' },
-        { type: 'FOCADO', icon: Zap, color: 'bg-indigo-100 text-indigo-600' },
-        { type: 'MELANCÓLICO', icon: CloudRain, color: 'bg-blue-100 text-blue-600' },
-        { type: 'EXAUSTO', icon: Frown, color: 'bg-stone-100 text-stone-600' },
-        { type: 'ANSIOSO', icon: Activity, color: 'bg-rose-100 text-rose-600' },
+        { type: 'SERENO', icon: Wind, color: 'bg-emerald-50 text-emerald-600' },
+        { type: 'VIBRANTE', icon: Sun, color: 'bg-amber-50 text-amber-600' },
+        { type: 'FOCADO', icon: Zap, color: 'bg-indigo-50 text-indigo-600' },
+        { type: 'MELANCÓLICO', icon: CloudRain, color: 'bg-blue-50 text-blue-600' },
+        { type: 'EXAUSTO', icon: Frown, color: 'bg-stone-50 text-stone-600' },
+        { type: 'ANSIOSO', icon: Activity, color: 'bg-rose-50 text-rose-600' },
     ];
 
     return (
-        <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
-            <h4 className="font-bold text-nature-900 text-xs uppercase tracking-widest mb-4 flex items-center gap-2">
-                <Activity size={14} className="text-primary-500" /> Como está sua energia?
+        <FunctionalCard className="p-5">
+            <h4 className="font-bold text-nature-900 text-[10px] uppercase tracking-widest mb-4 flex items-center gap-2">
+                <Activity size={ICON_SIZE.MD} className="text-primary-500" /> Como está sua energia?
             </h4>
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
                 {moods.map(m => (
                     <button 
                         key={m.type}
                         onClick={() => onSelect(m.type)}
-                        className={`flex flex-col items-center gap-2 p-2 rounded-2xl transition-all min-w-[70px] ${currentMood === m.type ? 'scale-110 ring-2 ring-primary-200 bg-nature-50' : 'opacity-70 hover:opacity-100'}`}
+                        className={`flex flex-col items-center gap-2 p-1 transition-all min-w-[64px] ${currentMood === m.type ? 'scale-110' : 'opacity-60 hover:opacity-100'}`}
                     >
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${m.color}`}>
-                            <m.icon size={24} />
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${m.color} ${currentMood === m.type ? 'ring-2 ring-offset-2 ring-primary-100' : ''}`}>
+                            <m.icon size={ICON_SIZE.MD} />
                         </div>
                         <span className="text-[8px] font-bold uppercase tracking-widest text-nature-400">{m.type}</span>
                     </button>
                 ))}
             </div>
+        </FunctionalCard>
+    );
+};
+
+// --- RITUAL COMPLETION CARD ---
+export const RitualCompletionCard: React.FC<{ 
+    isOpen: boolean, 
+    onClose: () => void, 
+    title: string, 
+    message: string,
+    mood?: MoodType
+}> = ({ isOpen, onClose, title, message, mood = 'SERENO' }) => {
+    useEffect(() => { 
+        if (isOpen) {
+            const timer = setTimeout(onClose, 2500); 
+            return () => clearTimeout(timer); 
+        }
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
+    const moodGradients: Record<MoodType, string> = {
+        'SERENO': 'from-emerald-400/80 to-teal-600/80',
+        'VIBRANTE': 'from-amber-400/80 to-orange-600/80',
+        'FOCADO': 'from-indigo-400/80 to-purple-600/80',
+        'MELANCÓLICO': 'from-blue-400/80 to-cyan-600/80',
+        'EXAUSTO': 'from-stone-400/80 to-neutral-600/80',
+        'ANSIOSO': 'from-rose-400/80 to-red-600/80',
+    };
+
+    return (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-[280px] animate-in slide-in-from-bottom-8 fade-in duration-500">
+            <div className={`bg-gradient-to-br ${moodGradients[mood]} backdrop-blur-xl p-5 rounded-[1.5rem] shadow-2xl border border-white/20 flex flex-col items-center text-center gap-2`}>
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]">
+                    {title.toLowerCase().includes('nutri') || title.toLowerCase().includes('rega') ? <Droplets size={16} /> : <Sparkles size={16} />}
+                </div>
+                <div className="space-y-0.5">
+                    <h4 className="text-white font-serif italic text-base leading-tight">{title}</h4>
+                    <p className="text-white/80 text-[10px] font-medium tracking-wide">{message}</p>
+                </div>
+            </div>
         </div>
     );
 };
 
-// --- ZEN TOAST ---
 // --- ZEN TOAST ---
 export const ZenToast: React.FC<{ toast: { title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning' }, onClose: () => void }> = ({ toast, onClose }) => {
   useEffect(() => { const timer = setTimeout(onClose, 4000); return () => clearTimeout(timer); }, [onClose]);
@@ -479,24 +566,24 @@ export const PortalView: React.FC<{
     heroImage?: string
 }> = ({ title, subtitle, onBack, onClose, children, footer, headerRight, heroImage }) => (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-[100vw]">
-        <header className={`flex-none flex items-center justify-between px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 z-20 transition-colors ${heroImage ? 'bg-transparent text-white fixed top-0 w-full' : 'bg-white border-b border-nature-100 shadow-sm relative'}`}>
+        <header className={`flex-none flex items-center justify-between px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 z-20 transition-colors ${heroImage ? 'bg-transparent text-white fixed top-0 w-full' : 'bg-white border-b border-nature-100 shadow-sm relative'}`}>
             <div className="flex items-center gap-4">
                 {onBack && (
-                    <button onClick={onBack} className={`p-3 rounded-2xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
-                        <ChevronRight className="rotate-180" size={22} />
+                    <button onClick={onBack} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
+                        <ChevronRight className="rotate-180" size={ICON_SIZE.MD} />
                     </button>
                 )}
                 <div className="space-y-0.5">
-                    <h2 className={`text-xl font-serif italic leading-none ${heroImage ? 'text-white drop-shadow-md' : 'text-nature-900'}`}>{title}</h2>
-                    <p className={`text-[10px] uppercase tracking-[0.3em] font-bold ${heroImage ? 'text-white/80 drop-shadow-sm' : 'text-nature-400'}`}>{subtitle}</p>
+                    <h2 className={`text-lg font-serif italic leading-none ${heroImage ? 'text-white drop-shadow-md' : 'text-nature-900'}`}>{title}</h2>
+                    <p className={`text-[9px] uppercase tracking-[0.3em] font-bold ${heroImage ? 'text-white/80 drop-shadow-sm' : 'text-nature-400'}`}>{subtitle}</p>
                 </div>
             </div>
             
             <div className="flex items-center gap-2">
                 {headerRight}
                 {onClose && (
-                    <button onClick={onClose} className={`p-3 rounded-2xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
-                        <X size={22} />
+                    <button onClick={onClose} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
+                        <X size={ICON_SIZE.MD} />
                     </button>
                 )}
             </div>
@@ -529,7 +616,7 @@ export const PortalView: React.FC<{
 
 // --- PORTAL CARD ---
 export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string, icon: React.FC<any>, bgImage: string, onClick: () => void, delay?: number }> = ({ id, title, subtitle, icon: Icon, bgImage, onClick, delay = 0 }) => (
-  <button id={id} onClick={onClick} style={{ animationDelay: `${delay}ms` }} className="relative aspect-square rounded-[2.5rem] overflow-hidden group shadow-lg hover:shadow-2xl transition-all duration-500 animate-in fade-in slide-up">
+  <button id={id} onClick={onClick} style={{ animationDelay: `${delay}ms` }} className="relative aspect-square rounded-2xl overflow-hidden group shadow-lg hover:shadow-2xl transition-all duration-500 animate-in fade-in slide-up">
     <img 
         src={bgImage} 
         loading="lazy" 
@@ -541,10 +628,10 @@ export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string
         alt={title} 
     />
     <div className="absolute inset-0 bg-gradient-to-t from-nature-900/90 via-nature-900/40 to-transparent group-hover:from-primary-900/90 transition-colors"></div>
-    <div className="absolute inset-0 p-6 flex flex-col justify-end text-left">
-      <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white mb-3 group-hover:bg-white/20 transition-all"><Icon size={20} /></div>
+    <div className="absolute inset-0 p-5 flex flex-col justify-end text-left">
+      <div className="w-8 h-8 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white mb-2 group-hover:bg-white/20 transition-all"><Icon size={ICON_SIZE.MD} /></div>
       <p className="text-[8px] font-bold text-white/60 uppercase tracking-[0.3em] mb-1">{subtitle}</p>
-      <h3 className="text-lg font-serif italic text-white leading-tight">{title}</h3>
+      <h3 className="text-base font-serif italic text-white leading-tight">{title}</h3>
     </div>
   </button>
 );
@@ -609,26 +696,26 @@ export const SoulGarden: React.FC<{ user: UserType, onWater: () => void }> = ({ 
   const stageLabels = { seed: 'Semente', sprout: 'Brotar', bud: 'Botão', flower: 'Florescer', tree: 'Árvore', withered: 'Renascimento' };
 
   return (
-    <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[3.5rem] border border-nature-100 shadow-xl flex flex-col items-center text-center gap-6 relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-100/30 rounded-bl-[120px] transition-transform group-hover:scale-110"></div>
+    <div className="bg-white/80 backdrop-blur-xl p-6 rounded-[2rem] border border-nature-100 shadow-xl flex flex-col items-center text-center gap-5 relative overflow-hidden group">
+      <div className="absolute top-0 right-0 w-24 h-24 bg-primary-100/30 rounded-bl-[80px] transition-transform group-hover:scale-110"></div>
       <div className="relative">
           <div className="absolute inset-0 bg-primary-400/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
-          <div className="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center text-primary-600 relative z-10 border border-primary-100 shadow-inner group-hover:rotate-12 transition-transform duration-700">
-            <Icon size={40} />
+          <div className="w-16 h-16 bg-primary-50 rounded-full flex items-center justify-center text-primary-600 relative z-10 border border-primary-100 shadow-inner group-hover:rotate-12 transition-transform duration-700">
+            <Icon size={ICON_SIZE.XL} />
           </div>
       </div>
       <div className="space-y-1 relative z-10">
-          <h3 className="text-xl font-serif italic text-nature-900">Jardim da Alma</h3>
+          <h3 className="text-lg font-serif italic text-nature-900">Jardim da Alma</h3>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-[9px] font-bold text-primary-700 uppercase tracking-widest">{stageLabels[user.plantStage || 'seed']}</span>
+            <span className="text-[8px] font-bold text-primary-700 uppercase tracking-widest">{stageLabels[user.plantStage || 'seed']}</span>
             <span className="w-1 h-1 bg-nature-200 rounded-full"></span>
-            <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Nível {Math.floor((user.plantXp || 0) / 20) + 1}</span>
+            <span className="text-[8px] font-bold text-nature-400 uppercase tracking-widest">Nível {Math.floor((user.plantXp || 0) / 20) + 1}</span>
           </div>
       </div>
-      <div className="w-full max-w-[160px] h-2 bg-nature-100 rounded-full overflow-hidden border border-nature-200 shadow-inner">
+      <div className="w-full max-w-[140px] h-1.5 bg-nature-100 rounded-full overflow-hidden border border-nature-50 shadow-inner">
         <div className="h-full bg-gradient-to-r from-primary-400 to-primary-600 transition-all duration-[2000ms]" style={{ width: `${(user.plantXp || 0) % 100}%` }}></div>
       </div>
-      <button onClick={onWater} className="px-6 py-3 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-[0.3em] flex items-center gap-2 hover:bg-black transition-all active:scale-95 shadow-lg group">
+      <button onClick={onWater} className="btn-primary w-full max-w-[180px] gap-2">
         <Droplets size={14} className="group-hover:animate-bounce" /> Regar Essência
       </button>
     </div>
@@ -666,11 +753,11 @@ export const BottomSheet: React.FC<{ isOpen: boolean, onClose: () => void, title
   return (
     <div className="fixed inset-0 z-[200] flex items-end justify-center">
       <div className="absolute inset-0 bg-nature-900/40 backdrop-blur-sm" onClick={onClose}></div>
-      <div className="relative w-full max-w-lg bg-white rounded-t-[3.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom duration-500 max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col">
-        <div className="w-12 h-1.5 bg-nature-100 rounded-full mx-auto mb-6 flex-none"></div>
-        <div className="flex justify-between items-center mb-8 flex-none">
-          <h3 className="text-2xl font-serif italic text-nature-900">{title}</h3>
-          <button onClick={onClose} className="p-3 bg-nature-50 rounded-2xl text-nature-300"><X size={20}/></button>
+      <div className="relative w-full max-w-lg bg-white rounded-t-[1.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom duration-500 max-h-[90vh] overflow-y-auto no-scrollbar flex flex-col">
+        <div className="w-10 h-1 bg-nature-100 rounded-full mx-auto mb-6 flex-none"></div>
+        <div className="flex justify-between items-center mb-6 flex-none">
+          <h3 className="text-lg font-serif italic text-nature-900">{title}</h3>
+          <button onClick={onClose} className="p-2 bg-nature-50 rounded-xl text-nature-300"><X size={ICON_SIZE.MD}/></button>
         </div>
         <div className="flex-1 overflow-y-auto no-scrollbar">
             {children}

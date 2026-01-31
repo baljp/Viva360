@@ -10,7 +10,8 @@ export const useClientDashboard = (
     setView: (v: ViewState) => void
 ) => {
     const { go } = useBuscadorFlow();
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning'} | null>(null);
+    const [ritualToast, setRitualToast] = useState<{title: string, message: string} | null>(null);
     const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
     const [inviteEmail, setInviteEmail] = useState("");
     const [showNotifications, setShowNotifications] = useState(false);
@@ -39,7 +40,7 @@ export const useClientDashboard = (
             };
             
             updateUser(updated);
-            setToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
+            setRitualToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
             await api.users.update(updated as User);
         } catch (e) {
             console.error("Water Plant Error", e);
@@ -51,7 +52,7 @@ export const useClientDashboard = (
           const res = await api.users.checkIn(user.id, reward);
           if (res && res.user) {
               updateUser(res.user as User);
-              setToast({ title: "Sincronizado", message: `+${res.reward} Karma recebido.` });
+              setRitualToast({ title: "Benção Recebida", message: `Sua jornada foi harmonizada com ${res.reward} Karma.` });
           }
     }, [user, updateUser]);
 
@@ -67,7 +68,7 @@ export const useClientDashboard = (
           const res = await api.users.update(updatedUser);
           updateUser(res);
           setActiveModal(null);
-          setToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada." });
+          setRitualToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada no Akasha." });
     }, [user, updateUser]);
 
     const handleInvite = useCallback(() => {
@@ -80,6 +81,7 @@ export const useClientDashboard = (
     return {
         state: {
             toast,
+            ritualToast,
             activeModal,
             inviteEmail,
             showNotifications,
@@ -89,6 +91,7 @@ export const useClientDashboard = (
         },
         actions: {
             setToast,
+            setRitualToast,
             setActiveModal,
             setInviteEmail,
             setShowNotifications,
