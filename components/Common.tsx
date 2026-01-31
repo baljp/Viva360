@@ -507,6 +507,7 @@ export const RitualCompletionCard: React.FC<{
         'MELANCÓLICO': 'from-blue-400/80 to-cyan-600/80',
         'EXAUSTO': 'from-stone-400/80 to-neutral-600/80',
         'ANSIOSO': 'from-rose-400/80 to-red-600/80',
+        'GRATO': 'from-amber-300/80 to-yellow-500/80',
     };
 
     return (
