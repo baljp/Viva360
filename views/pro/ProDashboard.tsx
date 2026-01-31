@@ -13,7 +13,7 @@ export const ProDashboard: React.FC<{
     data?: any
 }> = ({ user, setView, updateUser, data }) => {
     const { go, notify } = useGuardiaoFlow();
-    const [activeTab, setActiveTab] = useState<'consultorio' | 'expansao'>('consultorio');
+    const [activeTab, setActiveTab] = useState<'consultorio' | 'financeiro' | 'comunidade'>('consultorio');
     const [showNotifications, setShowNotifications] = useState(false);
     const { status, toggleStatus, isOnline } = useGuardianPresence(user);
     
@@ -73,7 +73,7 @@ export const ProDashboard: React.FC<{
             </div>
         </header>
 
-        {/* MENSAGEM DE SESSÃO IMINENTE (NOVO) */}
+        {/* MENSAGEM DE SESSÃO IMINENTE */}
         <div className="px-6 mb-6 animate-in slide-in-from-top-2 duration-500">
             <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 rounded-3xl text-white shadow-lg flex items-center justify-between group overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
@@ -100,15 +100,21 @@ export const ProDashboard: React.FC<{
             <div className="flex p-1 bg-nature-50 rounded-2xl">
                 <button 
                     onClick={() => setActiveTab('consultorio')} 
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'consultorio' ? 'bg-white shadow-sm text-nature-900' : 'text-nature-400 hover:text-nature-600'}`}
+                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'consultorio' ? 'bg-white shadow-sm text-nature-900 font-black' : 'text-nature-400 hover:text-nature-600'}`}
                 >
                     <Stethoscope size={14}/> Consultório
                 </button>
                 <button 
-                    onClick={() => setActiveTab('expansao')} 
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'expansao' ? 'bg-white shadow-sm text-nature-900' : 'text-nature-400 hover:text-nature-600'}`}
+                    onClick={() => setActiveTab('financeiro')} 
+                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'financeiro' ? 'bg-white shadow-sm text-nature-900 font-black' : 'text-nature-400 hover:text-nature-600'}`}
                 >
-                    <Layers size={14}/> Expansão
+                    <Wallet size={14}/> Abundância
+                </button>
+                <button 
+                    onClick={() => setActiveTab('comunidade')} 
+                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'comunidade' ? 'bg-white shadow-sm text-nature-900 font-black' : 'text-nature-400 hover:text-nature-600'}`}
+                >
+                    <Zap size={14}/> Egrégora
                 </button>
             </div>
         </div>
@@ -137,44 +143,67 @@ export const ProDashboard: React.FC<{
                         <PortalCard id="portal-patients" title="Meus Pacientes" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
                     </div>
 
-
+                    <div className="bg-gradient-to-br from-nature-50 to-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition-all group" onClick={() => go('CUSTOM_INTERVENTION')}>
+                        <div>
+                             <h4 className="font-serif italic text-2xl text-nature-900">Novas Práticas</h4>
+                             <p className="text-xs text-nature-500 mt-1">Crie rituais e intervenções personalizadas para sua egrégora.</p>
+                             <button className="mt-4 px-6 py-2 bg-nature-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">Criar Intervenção</button>
+                        </div>
+                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-nature-50 group-hover:scale-110 transition-transform">
+                            <Plus size={32} className="text-nature-900" />
+                        </div>
+                    </div>
                 </div>
             )}
 
-            {/* VIEW: EXPANSÃO */}
-            {activeTab === 'expansao' && (
+            {/* VIEW: ABUNDÂNCIA (FINANCEIRO) */}
+            {activeTab === 'financeiro' && (
+                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                    <div className="bg-gradient-to-br from-emerald-600 to-teal-800 rounded-[3.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
+                         <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+                         <div className="relative z-10">
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md"><Wallet size={20}/></div>
+                                <div>
+                                    <h4 className="text-lg font-serif italic text-white">Abundância</h4>
+                                    <p className="text-[9px] font-bold uppercase opacity-70 tracking-widest text-emerald-100">Gestão de Fluxo e Prosperidade</p>
+                                </div>
+                            </div>
+                            <button onClick={() => go('FINANCIAL_DASHBOARD')} className="bg-white text-emerald-900 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                                Ver Extrato Detalhado
+                            </button>
+                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <PortalCard id="portal-finance-overview" title="Resumo Mensal" subtitle="FINANÇAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1565514020175-8501da23d5a3?q=80&w=600" onClick={() => go('FINANCE_OVERVIEW')} />
+                    </div>
+                </div>
+            )}
+
+            {/* VIEW: EGRÉGORA (COMUNIDADE) */}
+            {activeTab === 'comunidade' && (
                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                     <div className="bg-gradient-to-br from-indigo-900 to-primary-900 rounded-[3.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
                          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                          <div className="relative z-10">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md"><Briefcase size={20}/></div>
+                                <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md"><Zap size={20}/></div>
                                 <div>
-                                    <h4 className="text-lg font-serif italic">Oportunidades</h4>
-                                    <p className="text-[9px] font-bold uppercase opacity-70 tracking-widest">Santuários buscando Guardiões</p>
+                                    <h4 className="text-lg font-serif italic text-white">Rede Viva</h4>
+                                    <p className="text-[9px] font-bold uppercase opacity-70 tracking-widest text-indigo-100">Terapia Compartilhada e Escambo</p>
                                 </div>
                             </div>
-                            <button onClick={() => go('VAGAS_LIST')} className="bg-white text-indigo-900 px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
-                                Explorar Vagas
+                            <button onClick={() => go('TRIBE_PRO')} className="bg-white text-indigo-900 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                                Entrar na Comunidade
                             </button>
                          </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <PortalCard id="portal-network" title="Rede Viva" subtitle="COMUNIDADE" icon={Zap} bgImage="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=600" onClick={() => go('TRIBE_PRO')} />
-                        <PortalCard id="portal-finance" title="Abundância" subtitle="FINANÇAS" icon={Wallet} bgImage="https://images.unsplash.com/photo-1565514020175-8501da23d5a3?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} />
+                        <PortalCard id="portal-marketplace" title="Alquimia" subtitle="BAZAR" icon={ShoppingBag} bgImage="https://images.unsplash.com/photo-1512418490979-92798cec1380?q=80&w=600" onClick={() => go('ESCAMBO_MARKET')} />
+                        <PortalCard id="portal-jobs" title="Oportunidades" subtitle="VAGAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=600" onClick={() => go('VAGAS_LIST')} />
                     </div>
-
-                    <PortalCard 
-                        id="portal-marketplace"
-                        title="Alquimia" 
-                        subtitle="MEU BAZAR" 
-                        icon={ShoppingBag} 
-                        bgImage="https://images.unsplash.com/photo-1512418490979-92798cec1380?q=80&w=600" 
-                        onClick={() => go('ESCAMBO_MARKET')} 
-                    />
-
-
 
                     <div className="bg-emerald-50 rounded-[2.5rem] p-6 text-emerald-900 border border-emerald-100 flex items-center justify-between cursor-pointer active:scale-95 transition-all" onClick={async () => {
                         const updatedUser = { ...user, karma: (user.karma || 0) + 50 };

@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight
 } from 'lucide-react';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 
 // --- COMPONENTS ---
 
-const RadianceHero = ({ score, trend, onClick }: { score: number, trend: number, onClick: () => void }) => (
-    <button onClick={onClick} className="w-full text-left bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group mb-8 active:scale-95 transition-all outline-none">
+const RadianceHero = ({ score, trend, go }: { score: number, trend: number, go: (s: string) => void }) => (
+    <button onClick={() => go('RADIANCE_DRILLDOWN')} className="w-full text-left bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group mb-8 active:scale-95 transition-all outline-none">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl -translate-y-12 translate-x-12 animate-pulse-slow"></div>
         <div className="relative z-10 flex justify-between items-end">
              <div>
@@ -149,11 +149,11 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-             <div onClick={() => go('GOVERNANCE')} className="bg-nature-900 text-white p-6 rounded-[2.5rem] shadow-lg flex flex-col justify-between cursor-pointer relative overflow-hidden group">
+             <div onClick={() => go('AUDIT_LOG')} className="bg-nature-900 text-white p-6 rounded-[2.5rem] shadow-lg flex flex-col justify-between cursor-pointer relative overflow-hidden group">
                   <div className="relative z-10">
                       <Shield size={24} className="text-indigo-300 mb-4"/>
-                      <h4 className="font-bold text-lg leading-tight">Governança</h4>
-                      <p className="text-[9px] text-indigo-300 font-bold uppercase tracking-widest mt-1">Compliance</p>
+                      <h4 className="font-bold text-lg leading-tight">Segurança</h4>
+                      <p className="text-[9px] text-indigo-300 font-bold uppercase tracking-widest mt-1">Audit Trail</p>
                   </div>
                   <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
              </div>
@@ -164,6 +164,24 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
                       <p className="text-[9px] text-rose-400 font-bold uppercase tracking-widest mt-1">Alerta Círculo</p>
                   </div>
              </div>
+        </div>
+
+        <div onClick={() => {
+            const blob = new Blob(['Mock Financial Data Export'], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fechamento_viva360_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        }} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-200 transition-all group">
+             <div className="flex items-center gap-4">
+                 <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"><FileText size={20}/></div>
+                 <div>
+                     <h4 className="font-bold text-nature-900">Relatório de Fechamento</h4>
+                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Contabilidade (CSV)</p>
+                 </div>
+             </div>
+             <button className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase tracking-widest">Exportar</button>
         </div>
     </div>
 );
@@ -207,6 +225,15 @@ const GrowthTab = ({ go }: any) => (
                  <h4 className="font-bold text-nature-900">Bazar do Santuário</h4>
                  <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Produtos & Serviços</p>
              </div>
+        </div>
+
+        <div onClick={() => go('PREDICTIVE_OCCUPANCY')} className="bg-indigo-900 p-6 rounded-[2.5rem] shadow-xl flex items-center gap-4 cursor-pointer hover:bg-black transition-all group">
+             <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white"><Zap size={22} className="animate-pulse"/></div>
+             <div className="flex-1">
+                 <h4 className="font-bold text-white">Ocupação Preditiva</h4>
+                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">Otimização IA Phoenix</p>
+             </div>
+             <ChevronRight size={20} className="text-white opacity-40 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all"/>
         </div>
 
         <div onClick={() => go('REPUTATION_OVERVIEW')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition-all">
@@ -279,7 +306,7 @@ export const SpaceDashboard: React.FC<{
             </header>
 
             <div className="px-4">
-                <RadianceHero score={94} trend={3.2} onClick={() => setIsRadianceModalOpen(true)} />
+                <RadianceHero score={94} trend={3.2} go={go} />
                 <RadianceDetailsModal isOpen={isRadianceModalOpen} onClose={() => setIsRadianceModalOpen(false)} />
 
                 {/* TABS NAVIGATION */}

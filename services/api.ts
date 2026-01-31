@@ -467,5 +467,28 @@ export const api = {
              });
              return active;
         }
+    },
+    clinical: {
+        saveIntervention: async (data: any) => {
+            const key = 'viva360.interventions';
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            const updated = [{ ...data, id: Date.now() }, ...existing];
+            localStorage.setItem(key, JSON.stringify(updated));
+            return updated[0];
+        },
+        listInterventions: async () => {
+            const key = 'viva360.interventions';
+            return JSON.parse(localStorage.getItem(key) || '[]');
+        }
+    },
+    audit: {
+        listLogs: async () => {
+             // Mock logs for space
+             return [
+                { id: 1, action: 'Edição de Contrato', user: 'Admin Santuário', target: 'Mestre Carlos', date: 'Hoje, 10:24', type: 'contract', severity: 'medium' },
+                { id: 2, action: 'Criação de Altar', user: 'Gestor Espaço', target: 'Sala Gaia', date: 'Hoje, 09:15', type: 'room', severity: 'low' },
+                { id: 3, action: 'Alteração de Repasse', user: 'Financeiro', target: 'Taxa de Manutenção', date: 'Ontem, 16:45', type: 'finance', severity: 'high' }
+             ];
+        }
     }
 };

@@ -3,7 +3,8 @@ import { Camera, Heart, Activity, Coffee, Moon, Sun, ArrowRight, CheckCircle, Sm
 import { PortalView, CameraWidget } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
-import { getRandomPhrase, MOOD_ELEMENTS } from '../../src/data/metamorphosisData';
+import { MOOD_ELEMENTS } from '../../src/data/metamorphosisData';
+import { phraseService } from '../../services/phraseService';
 import { useSoulCards } from '../../src/hooks/useSoulCards';
 import { SoulCardReveal } from './SoulCardReveal';
 
@@ -42,7 +43,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     // Step 1: Mood Selection
     const handleMoodSelect = (m: string) => {
         setMood(m);
-        setCardPhrase(getRandomPhrase(m));
+        setCardPhrase(phraseService.getPhrase(m, 'CARD'));
         setStep(2);
     };
 
@@ -103,7 +104,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             if (navigator.share) {
                 await navigator.share({
                     title: 'Meu Card da Alma • Viva360',
-                    text: `"${cardPhrase}" #Viva360 #SoulGarden`,
+                    text: `Esse foi um dia importante para mim. ✨ Viva360`,
                     files: [file]
                 });
             } else {
@@ -181,14 +182,18 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
                 const rx = photoX + (photoW - userImg.width * scale) / 2;
                 const ry = photoY + (photoH - userImg.height * scale) / 2;
+                // --- IG QUALITY PIPELINE (SOUL CARD - NARRATIVE SHARP) ---
+                // 1. Base Image with Narrative Contrast
+                ctx.filter = `brightness(1.05) contrast(1.1) saturate(1.1)`; 
                 ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
-                
-                // 1. Light Correction Overlay (Warmth)
+                ctx.filter = 'none';
+
+                // 2. Light Correction Overlay (Warmth)
                 ctx.globalCompositeOperation = 'soft-light';
                 ctx.fillStyle = `${elementColor}33`;
                 ctx.fillRect(photoX, photoY, photoW, photoH);
                 
-                // 2. Vignette (Premium Feel)
+                // 3. Vignette (Premium Feel)
                 ctx.globalCompositeOperation = 'multiply';
                 const vignette = ctx.createRadialGradient(
                     photoX + photoW/2, photoY + photoH/2, 200,
@@ -198,6 +203,27 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
                 ctx.fillStyle = vignette;
                 ctx.fillRect(photoX, photoY, photoW, photoH);
+                ctx.globalCompositeOperation = 'source-over';
+
+                // 4. Subtle Grain (Organic Narrative)
+                const grainCanvas = document.createElement('canvas');
+                grainCanvas.width = 128;
+                grainCanvas.height = 128;
+                const gCtx = grainCanvas.getContext('2d')!;
+                const gData = gCtx.createImageData(128, 128);
+                for (let i = 0; i < gData.data.length; i += 4) {
+                    const val = Math.random() * 255;
+                    gData.data[i] = val;
+                    gData.data[i+1] = val;
+                    gData.data[i+2] = val;
+                    gData.data[i+3] = 10; // Extra subtle for Card
+                }
+                gCtx.putImageData(gData, 0, 0);
+                ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat')!;
+                ctx.globalAlpha = 0.03;
+                ctx.fillRect(photoX, photoY, photoW, photoH);
+                ctx.globalAlpha = 1.0;
+                
                 ctx.restore();
 
                 // --- LAYER 3: GLASSMORPHISM BACKDROP FOR QUOTE ---
@@ -339,8 +365,8 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 {step === 2 && (
                     <div className="flex-1 flex flex-col items-center animate-in fade-in slide-in-from-right duration-500">
                         <div className="text-center mb-8">
-                            <h2 className="text-2xl font-serif italic text-nature-900">Capture este instante</h2>
-                            <p className="text-[10px] text-nature-400 uppercase tracking-widest font-bold mt-2">A alma do seu card</p>
+                            <h2 className="text-2xl font-serif italic text-nature-900">Agora registre esse dia.</h2>
+                            <p className="text-[10px] text-nature-400 uppercase tracking-widest font-bold mt-2">Ele fez parte da sua história.</p>
                         </div>
                         <div className="w-full aspect-square bg-black rounded-[3rem] relative overflow-hidden shadow-2xl border-2 border-white mb-8">
                             <CameraWidget onCapture={handleCapture} />
@@ -417,8 +443,8 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                                  <Sparkles size={16} />
                              </div>
                         </div>
-                        <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Registro Cristalizado</h2>
-                        <p className="text-nature-500 leading-relaxed mb-12">Sua frequência elemental foi integrada ao Jardim e sua evolução diária avançou.</p>
+                        <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Esse dia foi guardado.</h2>
+                        <p className="text-nature-500 leading-relaxed mb-12">Sua travessia foi registrada com verdade. Sua história continua.</p>
                         
                         <div className="flex flex-col w-full gap-4">
                             <button onClick={() => flow.go('HISTORY')} className="w-full py-5 bg-nature-900 text-white rounded-3xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl">

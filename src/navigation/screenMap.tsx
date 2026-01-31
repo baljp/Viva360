@@ -48,6 +48,7 @@ const CollectionGrimoire = lazyNamed(() => import('../../views/client/garden/Col
 const SoulJournalView = lazyNamed(() => import('../../views/client/journal/SoulJournalView'), 'SoulJournalView');
 const HealingCircleEntry = lazyNamed(() => import('../../views/client/tribe/HealingCircleEntry'), 'HealingCircleEntry');
 const SoulPactInteraction = lazyNamed(() => import('../../views/client/tribe/SoulPactInteraction'), 'SoulPactInteraction');
+const OfflineRetreat = lazyNamed(() => import('../../views/client/tribe/OfflineRetreat'), 'OfflineRetreat');
 
 // --- GUARDIAO SCREENS ---
 const ProDashboard = lazyNamed(() => import('../../views/pro/ProDashboard'), 'ProDashboard');
@@ -58,6 +59,7 @@ const AlquimiaCreateOffer = lazyNamed(() => import('../../views/pro/AlquimiaCrea
 const AlquimiaProposeTrade = lazyNamed(() => import('../../views/pro/AlquimiaProposeTrade'), 'AlquimiaProposeTrade');
 const VideoSessionView = lazyNamed(() => import('../../views/ServiceViews'), 'VideoSessionView');
 const VideoPrepScreen = lazyNamed(() => import('../../views/pro/VideoPrepScreen'), 'VideoPrepScreen');
+const CustomInterventionWizard = lazyNamed(() => import('../../views/pro/CustomInterventionWizard'), 'CustomInterventionWizard');
 
 // --- GUARDIAO GENERATED ---
 const AgendaView = lazy(() => import('../../views/pro/generated/AgendaView'));
@@ -93,6 +95,9 @@ const SpaceReputation = lazy(() => import('../../views/space/generated/SpaceRepu
 const ServiceEvaluation = lazy(() => import('../../views/space/generated/ServiceEvaluation'));
 const SpaceChatListScreen = lazy(() => import('../../views/space/chat/SpaceChatListScreen'));
 const SpaceChatRoomScreen = lazy(() => import('../../views/space/chat/SpaceChatRoomScreen'));
+const PredictiveOccupancy = lazyNamed(() => import('../../views/space/PredictiveOccupancy'), 'PredictiveOccupancy');
+const SpaceAuditLog = lazyNamed(() => import('../../views/space/SpaceAuditLog'), 'SpaceAuditLog');
+const RadianceDrilldown = lazyNamed(() => import('../../views/space/RadianceDrilldown'), 'RadianceDrilldown');
 
 export const screenMap: any = {
     // BUSCADOR
@@ -173,6 +178,7 @@ export const screenMap: any = {
         SANTUARIO_PROFILE: ProDashboard,
         SANTUARIO_CONTRACT: ProDashboard,
         SETTINGS: SettingsViews,
+        CUSTOM_INTERVENTION: CustomInterventionWizard,
     },
     // SANTUARIO
     SANTUARIO: {
@@ -209,5 +215,8 @@ export const screenMap: any = {
         GOVERNANCE: SpaceGovernance,
         CHAT_LIST: SpaceChatListScreen,
         CHAT_ROOM: SpaceChatRoomScreen,
+        PREDICTIVE_OCCUPANCY: PredictiveOccupancy,
+        AUDIT_LOG: SpaceAuditLog,
+        RADIANCE_DRILLDOWN: RadianceDrilldown,
     }
 }
