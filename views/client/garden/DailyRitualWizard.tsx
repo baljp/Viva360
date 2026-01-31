@@ -32,6 +32,10 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({ 
         mood: 'SERENO', image: '', intention: '', gratitude: ''
     });
+    const [canvasRef] = useState(() => React.createRef<HTMLCanvasElement>());
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -60,7 +64,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     };
 
     // Canvas Logic for Sharing (Moved to top level)
-    const canvasRef = React.useRef<HTMLCanvasElement>(null);
+    // const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
     // Map local moods to premium elemental styles (borrowed from Metamorphosis)
     // Map local moods to premium elemental styles (borrowed from Metamorphosis)
@@ -226,56 +230,33 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
                 ctx.restore();
 
-                // --- LAYER 3: GLASSMORPHISM BACKDROP FOR QUOTE ---
-                const quoteH = format === 'STORY' ? 400 : 250;
-                const quoteY = photoY + photoH - (format === 'STORY' ? 150 : 80);
-                
-                ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.shadowBlur = 40;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-                drawRoundRect(photoX + 50, quoteY, photoW - 100, quoteH, 50);
-                ctx.fill();
-                
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.restore();
-
-                // --- LAYER 4: SYMBOLS & TEXT ---
+                // --- LAYER 3: PREMIUM TYPOGRAPHY AREA (NO POLLUTION) ---
+                const quoteAreaY = photoY + photoH + 40;
                 const centerX = W / 2;
-
-                // 1. Ritual Symbol (Above quote)
-                ctx.globalAlpha = 0.6;
-                ctx.strokeStyle = style.color;
-                ctx.lineWidth = 3;
-                const symY = quoteY + 60;
+                
+                // 1. Divider Line (Subtle)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.arc(centerX, symY, 30, 0, Math.PI * 2);
+                ctx.moveTo(photoX + 100, quoteAreaY);
+                ctx.lineTo(photoX + photoW - 100, quoteAreaY);
                 ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(centerX - 10, symY - 10);
-                ctx.lineTo(centerX + 10, symY + 10);
-                ctx.moveTo(centerX + 10, symY - 10);
-                ctx.lineTo(centerX - 10, symY + 10);
-                ctx.stroke();
-                ctx.globalAlpha = 1.0;
 
-                // 2. The Master Phrase (Quote)
+                // 2. The Master Phrase (Quote) - Elegant & Clean
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
+                ctx.textBaseline = 'top';
                 ctx.fillStyle = '#f8fafc';
-                ctx.font = 'italic 52px serif';
+                ctx.font = 'italic 48px serif';
                 
                 const quote = data.intention || "Respire. Sinta. Agradeça.";
                 const words = quote.split(' ');
                 let line = '';
-                let lineY = quoteY + 180;
-                const lineHeight = 75;
+                let lineY = quoteAreaY + 60;
+                const lineHeight = 65;
 
                 for(let n = 0; n < words.length; n++) {
                   const testLine = line + words[n] + ' ';
-                  if (ctx.measureText(testLine).width > (photoW - 200) && n > 0) {
+                  if (ctx.measureText(testLine).width > (photoW - 150) && n > 0) {
                     ctx.fillText(line.trim(), centerX, lineY);
                     line = words[n] + ' ';
                     lineY += lineHeight;
@@ -285,19 +266,23 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 }
                 ctx.fillText(line.trim(), centerX, lineY);
 
-                // 3. Metadata (Contextual & Discrete)
-                const metaY = H - 180;
-                ctx.font = 'bold 24px sans-serif';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                const dateStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
-                ctx.fillText(dateStr, centerX, metaY);
+                // --- LAYER 4: METADATA & SIGNATURE ---
+                const footerY = H - 120;
                 
-                // 4. Ritual Seal (Signature)
-                const sealY = H - 100;
+                // Date (Discrete)
                 ctx.font = 'bold 20px sans-serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                (ctx as any).letterSpacing = '4px';
+                const dateStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }).toUpperCase();
+                ctx.fillText(dateStr, centerX, footerY - 40);
+                
+                // Signature (Golden Luxury)
+                ctx.font = 'bold 22px sans-serif';
                 ctx.fillStyle = '#d4af37';
-                (ctx as any).letterSpacing = '6px';
-                ctx.fillText('VIVA360 • RITUAL DIÁRIO', centerX, sealY);
+                (ctx as any).letterSpacing = '8px';
+                ctx.fillText('VIVA360 • RITUAL DIÁRIO', centerX, footerY);
+
+                setPreviewUrl(canvas.toDataURL('image/png'));
             };
         }
     }, [step, data.image, format]);
@@ -363,6 +348,21 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                     <h2 className="text-3xl font-serif italic text-nature-900 mb-2">Como você se sente neste momento?</h2>
                     <p className="text-sm text-nature-400">Não existe resposta certa. Apenas seja verdadeiro consigo.</p>
                 </div>
+                <div className="flex-1 flex flex-col items-center justify-center p-8">
+                    <div className="relative w-full max-w-[350px] aspect-[4/5] bg-nature-900 rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 group">
+                        {previewUrl ? (
+                            <img src={previewUrl} className="w-full h-full object-contain" alt="Seu Card da Alma" />
+                        ) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+                                <Sparkles className="text-primary-400 animate-pulse" size={48} />
+                                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">Tecendo seu Card...</p>
+                            </div>
+                        )}
+                        
+                        {/* Atmospheric Overlays */}
+                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-white/5 to-transparent mix-blend-overlay"></div>
+                    </div>
+                </div>
                 <div className="flex-1 px-8 grid grid-cols-2 gap-4 content-start overflow-y-auto pb-12">
                     {MOODS.map(m => (
                         <button key={m.id} onClick={() => handleMoodSelect(m.id)} className={`p-6 rounded-[2rem] text-left transition-all hover:scale-105 active:scale-95 ${m.color}`}>
@@ -377,20 +377,26 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'CAPTURE') {
         return (
-            <div className="fixed inset-0 z-[100] bg-black flex flex-col">
-                <div className="flex-1 relative">
-                    <CameraWidget onCapture={handleCapture} />
-                    <div className="absolute top-8 left-8 z-20">
-                        <button onClick={() => setStep('MOOD')} className="bg-black/20 backdrop-blur-md p-3 rounded-full text-white"><ArrowRight className="rotate-180" size={20}/></button>
-                    </div>
-                    <div className="absolute top-8 right-8 z-20">
-                        <button onClick={onClose} className="bg-black/20 backdrop-blur-md p-3 rounded-full text-white"><X size={20}/></button>
+            <div className="fixed inset-0 z-[100] bg-nature-900 flex flex-col animate-in fade-in">
+                {/* Header controls outside camera area */}
+                <div className="h-[10%] flex items-center justify-between px-8 bg-black">
+                     <button onClick={() => setStep('MOOD')} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><ArrowRight className="rotate-180" size={20}/></button>
+                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-400">Presença Viva</p>
+                     <button onClick={onClose} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><X size={20}/></button>
+                </div>
+
+                <div className="h-[70%] relative overflow-hidden bg-black flex items-center justify-center">
+                    <div className="w-full h-full max-w-md relative">
+                        <CameraWidget onCapture={handleCapture} />
+                        {/* Premium Crop Guide */}
+                        <div className="absolute inset-0 border-[2px] border-white/10 m-8 rounded-[2rem] pointer-events-none"></div>
                     </div>
                 </div>
-                 <div className="bg-black p-8 text-center space-y-2 pb-12">
-                     <h3 className="text-white font-serif italic text-xl">Esse momento é só seu.</h3>
-                     <p className="text-white/50 text-xs font-bold uppercase tracking-widest">Não precisa sorrir, nem posar. Apenas esteja.</p>
-                 </div>
+
+                <div className="h-[20%] bg-black p-8 text-center flex flex-col items-center justify-center">
+                     <p className="text-white/40 text-[9px] font-bold uppercase tracking-[0.3em] mb-4">Mantenha a alma em foco</p>
+                     <h3 className="text-white font-serif italic text-lg leading-tight">Este momento é portal para sua cura.</h3>
+                </div>
             </div>
         );
     }

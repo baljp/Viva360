@@ -1,81 +1,126 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { CreditCard, Lock, ShieldCheck, Wallet, Loader2, CheckCircle } from 'lucide-react';
+import { CreditCard, Lock, ShieldCheck, Wallet, Loader2, CheckCircle, Smartphone, MessageCircle, ArrowRight, QrCode } from 'lucide-react';
 import { PaymentServiceMock } from '../../../services/mock/paymentMock';
+import { PortalView } from '../../../components/Common';
 
 export default function CheckoutScreen() {
-  const { go, back } = useBuscadorFlow();
-  const [method, setMethod] = useState<'card' | 'pix'>('card');
+  const { go, back, reset } = useBuscadorFlow();
+  const [method, setMethod] = useState<'card' | 'pix' | 'direct'>('card');
   const [loading, setLoading] = useState(false);
+  const [showPixQR, setShowPixQR] = useState(false);
 
   const handlePayment = async () => {
+    if (method === 'pix' && !showPixQR) {
+        setShowPixQR(true);
+        return;
+    }
+
     setLoading(true);
     try {
+        // Mocking a slight delay for ritualistic feel
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
         await PaymentServiceMock.processPayment(
             150.00, 
-            'Sessão de Reiki - Viva360', 
-            'user_current', // Mock user ID
-            'pro_001' // Mock provider ID
+            'Troca Energética - Viva360', 
+            'user_current', 
+            'pro_001'
         );
         go('PAYMENT_SUCCESS');
     } catch (error) {
         console.error("Payment failed", error);
-        // Handle error (mock doesn't fail yet)
     } finally {
         setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfdfc] flex flex-col items-center justify-center p-6 animate-in fade-in duration-500">
-       <div className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden relative">
-          
-          <div className="p-8 pb-4">
-             <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mb-2">Pagamento Seguro</p>
-             <h1 className="text-3xl font-serif italic text-slate-900">Energia de Troca</h1>
-             <p className="text-3xl font-bold text-emerald-600 mt-4">R$ 150,00</p>
-          </div>
+    <PortalView 
+        title="Energia de Troca" 
+        subtitle="FINALIZAR OFERENDA" 
+        onBack={back}
+        onClose={reset}
+    >
+      <div className="flex flex-col animate-in fade-in duration-500 pb-20">
+         <div className="text-center py-6 mb-4">
+            <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-2">Total a Integralizar</p>
+            <h2 className="text-5xl font-serif italic text-nature-900 group">
+                <span className="text-2xl text-nature-400 not-italic mr-1">R$</span>150,00
+            </h2>
+         </div>
 
-          <div className="px-8 space-y-4 mb-8">
-              <div 
-                onClick={() => setMethod('card')}
-                className={`flex items-center gap-4 p-5 rounded-3xl border transition-all cursor-pointer ${method === 'card' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 hover:border-emerald-200'}`}
-              >
-                  <CreditCard className={method === 'card' ? 'text-emerald-600' : 'text-slate-400'} size={24} />
-                  <div className="flex-1">
-                      <p className="font-bold text-slate-900 text-sm">Cartão de Crédito</p>
-                      <p className="text-[10px] text-slate-400">Até 3x sem juros</p>
-                  </div>
-                  {method === 'card' && <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>}
-              </div>
+         {!showPixQR ? (
+            <div className="space-y-4 px-2">
+                {[
+                    { id: 'card', icon: CreditCard, label: 'Cartão de Crédito', sub: 'Até 3x sem juros', color: 'bg-emerald-50 text-emerald-600', border: 'border-emerald-100' },
+                    { id: 'pix', icon: Smartphone, label: 'PIX Instantâneo', sub: 'Liberação imediata', color: 'bg-indigo-50 text-indigo-600', border: 'border-indigo-100' },
+                    { id: 'direct', icon: MessageCircle, label: 'Direto com Guardião', sub: 'Combinar via Voucher', color: 'bg-amber-50 text-amber-600', border: 'border-amber-100' }
+                ].map((m: any) => (
+                    <div 
+                        key={m.id}
+                        onClick={() => setMethod(m.id)}
+                        className={`flex items-center gap-4 p-5 rounded-[2rem] border-2 transition-all cursor-pointer group ${method === m.id ? 'border-nature-900 bg-white shadow-xl scale-[1.02]' : 'border-nature-50 bg-nature-50/30 grayscale hover:grayscale-0'}`}
+                    >
+                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${m.color}`}>
+                            <m.icon size={28} />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-bold text-nature-900 text-sm tracking-tight">{m.label}</p>
+                            <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">{m.sub}</p>
+                        </div>
+                        {method === m.id && (
+                            <div className="w-8 h-8 bg-nature-900 rounded-full flex items-center justify-center text-white animate-in zoom-in duration-300">
+                                <CheckCircle size={16} />
+                            </div>
+                        )}
+                    </div>
+                ))}
 
-              <div 
-                onClick={() => setMethod('pix')}
-                className={`flex items-center gap-4 p-5 rounded-3xl border transition-all cursor-pointer ${method === 'pix' ? 'border-emerald-500 bg-emerald-50' : 'border-slate-100 hover:border-emerald-200'}`}
-              >
-                  <Wallet className={method === 'pix' ? 'text-emerald-600' : 'text-slate-400'} size={24} />
-                  <div className="flex-1">
-                      <p className="font-bold text-slate-900 text-sm">PIX</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase text-emerald-600">-5% de Desconto</p>
-                  </div>
-                  {method === 'pix' && <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>}
-              </div>
-          </div>
+                {method === 'card' && (
+                    <div className="mt-6 p-6 bg-white rounded-3xl border border-nature-100 shadow-sm animate-in slide-in-from-top duration-500">
+                        <div className="space-y-4">
+                            <div className="h-12 bg-nature-50 rounded-xl border border-nature-100 flex items-center px-4 text-xs text-nature-400">•••• •••• •••• ••••</div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="h-12 bg-nature-50 rounded-xl border border-nature-100 flex items-center px-4 text-xs text-nature-400">MM/AA</div>
+                                <div className="h-12 bg-nature-50 rounded-xl border border-nature-100 flex items-center px-4 text-xs text-nature-400">CVV</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+         ) : (
+            <div className="px-4 py-8 flex flex-col items-center text-center animate-in zoom-in duration-500">
+                <div className="w-64 h-64 bg-white p-4 rounded-[2rem] shadow-2xl border-4 border-nature-900 mb-8 relative group">
+                    <QrCode size={224} className="text-nature-900" />
+                    <div className="absolute inset-0 bg-nature-900/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[1.5rem]">
+                        <p className="text-[10px] font-black text-nature-900 uppercase tracking-widest bg-white px-4 py-2 rounded-full border border-nature-200">Copiar Código</p>
+                    </div>
+                </div>
+                <h3 className="text-xl font-serif italic text-nature-900 mb-2">Escaneie para Vibrar</h3>
+                <p className="text-xs text-nature-500 max-w-xs leading-relaxed">O Pix é processado instantaneamente e sua semente será plantada agora.</p>
+                <button onClick={() => setShowPixQR(false)} className="mt-8 text-[10px] font-black text-nature-400 uppercase tracking-widest hover:text-nature-600 transition-colors">Voltar aos Métodos</button>
+            </div>
+         )}
 
-          <div className="px-8 mb-6 flex items-center justify-center gap-2 text-slate-400">
-             <ShieldCheck size={14} />
-             <span className="text-[10px] font-bold uppercase tracking-widest">Ambiente Criptografado</span>
-          </div>
+         <div className="mt-12 px-2">
+            <div className="flex items-center justify-center gap-3 text-nature-300 mb-8">
+                <ShieldCheck size={16} />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Fluxo Criptografado & Seguro</span>
+            </div>
 
-          <div className="p-6 bg-slate-50 border-t border-slate-100 flex gap-4">
-             <button onClick={back} disabled={loading} className="flex-1 py-4 rounded-xl text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:bg-white transition-all disabled:opacity-50">Cancelar</button>
-             <button onClick={handlePayment} disabled={loading} className="flex-[2] py-4 bg-slate-900 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-black transition-all shadow-xl flex items-center justify-center gap-2 disabled:opacity-70">
-                {loading ? <Loader2 size={14} className="animate-spin"/> : <Lock size={14}/>} 
-                {loading ? 'Processando...' : 'Finalizar'}
-             </button>
-          </div>
-       </div>
-    </div>
+            <button 
+                onClick={handlePayment} 
+                disabled={loading} 
+                className="w-full py-6 bg-nature-900 text-white rounded-[2.5rem] font-bold uppercase text-[10px] tracking-[0.4em] flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all disabled:opacity-70 disabled:grayscale"
+            >
+                {loading ? <Loader2 size={20} className="animate-spin text-primary-400"/> : <Lock size={18} className="text-primary-400"/>} 
+                {loading ? 'Sincronizando...' : method === 'direct' ? 'Gerar Voucher' : showPixQR ? 'Já Realizei o Pix' : 'Concluir Oferenda'}
+            </button>
+            <p className="text-center text-[9px] text-nature-400 uppercase tracking-widest mt-6 cursor-pointer hover:text-nature-600 transition-colors" onClick={back}>Mudar de ideia</p>
+         </div>
+      </div>
+    </PortalView>
   );
 }
