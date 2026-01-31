@@ -31,7 +31,8 @@ type FlowAction =
     | { type: 'SET_DATA'; payload: { pros: Professional[]; products: Product[] } }
     | { type: 'SHOW_TOAST'; payload: { title: string; message: string } }
     | { type: 'CLEAR_TOAST' }
-    | { type: 'SELECT_PROFESSIONAL'; payload: string | null };
+    | { type: 'SELECT_PROFESSIONAL'; payload: string | null }
+    | { type: 'JUMP'; payload: BuscadorState };
 
 // Initial State Factory
 const createInitialState = (): FlowContextState => ({
@@ -97,6 +98,13 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
             return { ...state, toast: null };
         case 'SELECT_PROFESSIONAL':
             return { ...state, selectedProfessionalId: action.payload };
+        case 'JUMP':
+            return {
+                ...state,
+                currentState: action.payload,
+                history: [...state.history, state.currentState],
+                error: null
+            };
         default:
             return state;
     }
@@ -106,6 +114,7 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
 const BuscadorFlowContext = createContext<{
     state: FlowContextState;
     go: (target: BuscadorState) => void;
+    jump: (target: BuscadorState) => void;
     back: () => void;
     reset: () => void;
     refreshData: () => Promise<void>;
@@ -154,12 +163,13 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         dispatch({ type: 'SET_LOADING', payload: false });
     };
 
+    const jump = (target: BuscadorState) => dispatch({ type: 'JUMP', payload: target });
     const back = () => dispatch({ type: 'BACK' });
     const reset = () => dispatch({ type: 'RESET' });
     const selectProfessional = (id: string | null) => dispatch({ type: 'SELECT_PROFESSIONAL', payload: id });
 
     return (
-        <BuscadorFlowContext.Provider value={{ state, go, back, reset, refreshData, selectProfessional }}>
+        <BuscadorFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectProfessional }}>
             {children}
         </BuscadorFlowContext.Provider>
     );

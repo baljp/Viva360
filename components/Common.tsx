@@ -428,7 +428,7 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string, type?
   const Icon = config.icon;
 
   return (
-    <div className="fixed top-12 left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-sm animate-in slide-in-from-top duration-500">
+    <div className="fixed top-[15vh] left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-sm animate-in slide-in-from-top duration-500">
       <div className={`${config.bg} backdrop-blur-xl border p-6 rounded-[2rem] shadow-2xl flex items-start gap-4`}>
         <div className={`w-10 h-10 ${config.iconBg} rounded-2xl flex items-center justify-center shrink-0`}>
              <Icon size={20} className="animate-pulse" />
