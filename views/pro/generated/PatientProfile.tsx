@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { ChevronLeft, FileText, Activity, Calendar, MoreVertical, Shield } from 'lucide-react';
+import { ChevronLeft, FileText, Activity, Calendar, MoreVertical, Shield, MessageCircle } from 'lucide-react';
 
 export default function PatientProfile() {
   const { go } = useGuardiaoFlow();
@@ -68,6 +68,22 @@ export default function PatientProfile() {
                        <p className="text-[10px] text-nature-400 font-bold uppercase">Ver Metas</p>
                    </div>
                </button>
+
+               <button 
+                    onClick={() => {
+                        const text = encodeURIComponent(`Olá Ana! Sou seu Guardião do Viva360. Como você está se sentindo hoje? 🌱`);
+                        window.open(`https://wa.me/5511999999999?text=${text}`, '_blank');
+                    }}
+                    className="w-full p-5 bg-[#25D366] text-white rounded-[2rem] flex items-center gap-4 hover:opacity-90 transition-all shadow-md group text-left"
+                >
+                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center">
+                        <MessageCircle size={20} />
+                    </div>
+                    <div>
+                        <h4 className="font-bold">Falar no WhatsApp</h4>
+                        <p className="text-[10px] font-bold uppercase opacity-80">Contato Direto</p>
+                    </div>
+                </button>
            </div>
        </div>
     </div>
