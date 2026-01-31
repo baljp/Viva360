@@ -6,7 +6,8 @@ interface MicroInteractionProps {
     title: string;
     message: string;
     icon?: React.ReactNode;
-    onClose: () => void;
+    onClose?: () => void;
+    onComplete?: () => void;
     duration?: number;
 }
 
@@ -15,12 +16,15 @@ export const MicroInteraction: React.FC<MicroInteractionProps> = ({
     message, 
     icon = <Sparkles size={24} />, 
     onClose, 
+    onComplete,
     duration = 4000 
 }) => {
     useEffect(() => {
-        const timer = setTimeout(onClose, duration);
+        const callback = onComplete || onClose;
+        if (!callback) return;
+        const timer = setTimeout(callback, duration);
         return () => clearTimeout(timer);
-    }, [onClose, duration]);
+    }, [onClose, onComplete, duration]);
 
     return (
         <div className="micro-interaction-container flex flex-col items-center justify-center text-center gap-4 border-white/50 animate-in slide-in-from-bottom-10 pointer-events-auto">

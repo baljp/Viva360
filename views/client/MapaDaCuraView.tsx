@@ -12,9 +12,10 @@ interface MapaDaCuraProps {
     isLoading?: boolean;
     user: User;
     updateUser: (u: User) => void;
+    onClose?: () => void;
 }
 
-export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading, user, updateUser }) => {
+export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading, user, updateUser, onClose }) => {
     const { go, selectProfessional } = useBuscadorFlow();
     const { journey, context: journeyContext } = useJourneyEngine(user);
     const [searchQuery, setSearchQuery] = useState("");
@@ -73,7 +74,12 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
     };
 
     return (
-        <PortalView title="Mapa da Cura" subtitle="SISTEMA OPERACIONAL DA ALMA" onBack={() => go('DASHBOARD')}>
+        <PortalView 
+            title="Mapa da Cura" 
+            subtitle="SISTEMA OPERACIONAL DA ALMA" 
+            onBack={() => go('DASHBOARD')}
+            onClose={onClose || (() => go('DASHBOARD'))}
+        >
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             {activeMicroJourney && (
