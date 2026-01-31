@@ -84,13 +84,19 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
                                 ))}
                                 <button 
                                     onClick={() => {
-                                        const text = encodeURIComponent("🌿 Venha pactuar comigo no Viva360! Vamos trilhar um caminho de luz juntos. 🌱");
+                                        const url = window.location.origin;
+                                        const text = encodeURIComponent(`🌿 Olá! Sinto um chamado para que você faça parte da minha Tribo no Viva360. Vamos trilhar um caminho de luz e sintonização juntos? 🌱\n\nAcesse aqui: ${url}`);
                                         window.open(`https://wa.me/?text=${text}`, '_blank');
                                     }}
-                                    className="bg-indigo-50 p-6 rounded-[2.5rem] border border-dashed border-indigo-300 flex flex-col items-center justify-center gap-2 hover:bg-indigo-100 transition-all"
+                                    className="col-span-2 bg-gradient-to-br from-indigo-50 to-white p-8 rounded-[3rem] border border-indigo-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-lg transition-all active:scale-[0.98] group"
                                 >
-                                    <Plus size={24} className="text-indigo-500" />
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-indigo-700 text-center leading-tight">Convidar para<br/>Viva360</span>
+                                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-md border border-indigo-50 group-hover:scale-110 transition-transform">
+                                        <Plus size={32} className="text-indigo-500" />
+                                    </div>
+                                    <div className="text-center">
+                                        <span className="text-sm font-bold text-indigo-900 block mb-1">Ampliar o Chamado</span>
+                                        <span className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Convidar novos membros para a tribo</span>
+                                    </div>
                                 </button>
                             </div>
                         </motion.div>

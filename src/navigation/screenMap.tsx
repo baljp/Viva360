@@ -181,11 +181,13 @@ export const screenMap: any = {
         SANTUARIO_CONTRACT: ProDashboard,
         SETTINGS: SettingsViews,
         CUSTOM_INTERVENTION: CustomInterventionWizard,
+        PRO_HOME: ProDashboard,
     },
     // SANTUARIO
     SANTUARIO: {
         START: SpaceDashboard,
         EXEC_DASHBOARD: SpaceDashboard,
+        SPACE_HOME: SpaceDashboard,
         PROS_LIST: SpaceTeam,
         PRO_PROFILE: SpaceProDetails,
         PRO_PERFORMANCE: SpaceTeam,

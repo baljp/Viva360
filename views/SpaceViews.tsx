@@ -6,11 +6,12 @@ import { SantuarioState } from '../src/flow/santuarioTypes';
 import { ZenToast } from '../components/Common';
 
 export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void }> = ({ user, view, setView }) => {
-    const { state: flowState, go, refreshData } = useSantuarioFlow();
+    const { state: flowState, go, back, reset, refreshData } = useSantuarioFlow();
 
     // Sync Deep Linking
     useEffect(() => {
         const map: Record<string, SantuarioState> = {
+            [ViewState.SPACE_HOME]: 'EXEC_DASHBOARD',
             [ViewState.SPACE_DASHBOARD]: 'EXEC_DASHBOARD',
             [ViewState.SPACE_CALENDAR]: 'AGENDA_OVERVIEW',
             [ViewState.SPACE_FINANCE]: 'FINANCE_OVERVIEW',
@@ -57,7 +58,8 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 profile="SANTUARIO" 
                 user={user} 
                 setView={setView} 
-                flow={{ state: flowState, go }}
+                flow={{ state: flowState, go, back, reset }}
+                onClose={reset}
                 {...globalData}
             />
         </div>

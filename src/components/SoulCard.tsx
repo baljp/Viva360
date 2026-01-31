@@ -93,21 +93,26 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
             <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[80%] rounded-full blur-[100px] animate-pulse-slow ${visuals.aura} opacity-40`} />
             
             {/* 3. PHOTO (PROTAGONIST) */}
-            <div className={`absolute inset-0 z-0 p-4`}>
-                <div className="relative w-full h-full rounded-[2rem] overflow-hidden border border-white/5">
+            <div className={`absolute inset-0 z-0`}>
+                <div className="relative w-full h-full overflow-hidden">
                     {snap.image ? (
-                        <img src={snap.image} className="w-full h-full object-cover grayscale-[20%] contrast-[1.1] brightness-[0.8]" style={{ transform: "translateZ(10px)" }} />
+                        <img 
+                            src={snap.image} 
+                            crossOrigin="anonymous"
+                            className="w-full h-full object-cover" 
+                            style={{ transform: "translateZ(10px)" }} 
+                        />
                     ) : (
                         <div className="w-full h-full bg-slate-900 flex items-center justify-center">
                             <Sparkles size={48} className="text-white/5" />
                         </div>
                     )}
                     
-                    {/* Inner Vignette */}
-                    <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.7)]" />
+                    {/* Inner Vignette / Bottom Fade */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
                     
-                    {/* Subtle Tint */}
-                    <div className="absolute inset-0 opacity-10" style={{ backgroundColor: visuals.color }} />
+                    {/* Subtle Mood Tint */}
+                    <div className="absolute inset-0 opacity-20 mix-blend-soft-light" style={{ backgroundColor: visuals.color }} />
                 </div>
             </div>
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform } from 'framer-motion';
 import { Sparkles, Moon, Sun, Stars, Cloud, Share2 } from 'lucide-react';
 import { OracleCard as OracleCardType } from '../../types';
+import { generateShareCanvas, shareToSocial } from '../utils/sharing';
 
 interface OracleCardPremiumProps {
     card: OracleCardType;
@@ -124,7 +125,15 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                             
                             {/* Premium Image Layer */}
                             <div className="absolute inset-0 h-[75%]">
-                                <img src={card.imageUrl} alt={card.name} crossOrigin="anonymous" className="w-full h-full object-cover" />
+                                <img 
+                                    src={card.imageUrl} 
+                                    alt={card.name} 
+                                    crossOrigin="anonymous" 
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.currentTarget.src = "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800";
+                                    }}
+                                />
                                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-nature-50/80" />
                             </div>
 
@@ -154,91 +163,19 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                                     <div className="pt-4 flex flex-col gap-2">
                                          <button 
                                             onClick={async () => {
-                                                const canvas = document.createElement('canvas');
-                                                const ctx = canvas.getContext('2d');
-                                                if (!ctx) return;
-                                                
-                                                canvas.width = 600;
-                                                canvas.height = 1000;
-                                                
-                                                // Background
-                                                ctx.fillStyle = '#f8faf9';
-                                                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                                                
-                                                // Load Image
-                                                const img = new Image();
-                                                img.crossOrigin = "anonymous";
-                                                img.src = card.imageUrl;
-                                                
-                                                await new Promise((resolve) => {
-                                                    img.onload = () => {
-                                                        const scale = Math.max(canvas.width / img.width, (canvas.height * 0.6) / img.height);
-                                                        const x = (canvas.width - img.width * scale) / 2;
-                                                        ctx.drawImage(img, x, 0, img.width * scale, img.height * scale);
-                                                        resolve(null);
-                                                    };
-                                                    img.onerror = () => resolve(null); // Fallback to no image
+                                                const blob = await generateShareCanvas({
+                                                    title: card.name,
+                                                    subtitle: card.archetype,
+                                                    message: card.message,
+                                                    imageUrl: card.imageUrl,
+                                                    accentColor: '#fbbf24', // Amber/Gold for Oracle
+                                                    footer: 'VESTÍGIO VIVA360'
                                                 });
                                                 
-                                                // Gradient overlay
-                                                const grad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
-                                                grad.addColorStop(0, 'rgba(248, 250, 249, 0)');
-                                                grad.addColorStop(0.6, 'rgba(248, 250, 249, 1)');
-                                                ctx.fillStyle = grad;
-                                                ctx.fillRect(0, canvas.height * 0.4, canvas.width, canvas.height * 0.6);
-                                                
-                                                // Text
-                                                ctx.textAlign = 'center';
-                                                ctx.fillStyle = '#1a1a1a';
-                                                ctx.font = 'italic 40px serif';
-                                                ctx.fillText(card.name, canvas.width / 2, canvas.height - 250);
-                                                
-                                                ctx.font = '24px sans-serif';
-                                                ctx.fillStyle = '#666';
-                                                const words = card.message.split(' ');
-                                                let line = '';
-                                                let y = canvas.height - 180;
-                                                for(let n = 0; n < words.length; n++) {
-                                                    const testLine = line + words[n] + ' ';
-                                                    if (ctx.measureText(testLine).width > 500 && n > 0) {
-                                                        ctx.fillText(line, canvas.width / 2, y);
-                                                        line = words[n] + ' ';
-                                                        y += 35;
-                                                    } else {
-                                                        line = testLine;
-                                                    }
+                                                if (blob) {
+                                                    await shareToSocial(blob, `🔮 Minha revelação do dia: ${card.name} - "${card.message}"`);
+                                                    handleMouseLeave();
                                                 }
-                                                ctx.fillText(line, canvas.width / 2, y);
-                                                
-                                                ctx.font = 'bold 20px sans-serif';
-                                                ctx.fillStyle = '#fbbf24';
-                                                ctx.fillText('VIVA360', canvas.width / 2, canvas.height - 50);
-
-                                                canvas.toBlob(async (blob) => {
-                                                    if (!blob) return;
-                                                    const file = new File([blob], 'oracle-card.png', { type: 'image/png' });
-                                                    const shareData = {
-                                                        title: 'Oráculo Viva360',
-                                                        text: `🔮 Minha carta: ${card.name} - "${card.message}"`,
-                                                        files: [file]
-                                                    };
-                                                    
-                                                    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                                                        try { 
-                                                            await navigator.share(shareData); 
-                                                            handleMouseLeave(); // Reset position after share
-                                                        } catch (e) {
-                                                            // Fallback to separate share
-                                                            const url = `https://wa.me/?text=${encodeURIComponent(shareData.text)}`;
-                                                            window.open(url, '_blank');
-                                                            handleMouseLeave();
-                                                        }
-                                                    } else {
-                                                        const url = `https://wa.me/?text=${encodeURIComponent(shareData.text)}`;
-                                                        window.open(url, '_blank');
-                                                        handleMouseLeave();
-                                                    }
-                                                });
                                             }}
                                             className="w-full py-4 bg-[#25D366] text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
                                          >

@@ -6,14 +6,51 @@
 
 @layer base {
   :root {
+    /* Neutros */
+    --bg-base: #FAFAF8;
+    --bg-surface: #FFFFFF;
+    --bg-elevated: #F2F3EF;
+    --text-primary: #1E1F1D;
+    --text-secondary: #6B6E68;
+    --text-muted: #9DA09A;
+
+    /* Espirituais */
+    --green-viva: #3F8F6B;
+    --green-soft: #E7F3ED;
+    --purple-viva: #5A4CA8;
+    --purple-soft: #ECE9FA;
+    --gold-viva: #C8A34A;
+    --gold-soft: #FBF3D9;
+
+    /* Estados */
+    --success: #4CAF7D;
+    --warning: #E6A23C;
+    --danger: #E25C5C;
+
+    /* Espaçamento (8px system) */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-7: 32px;
+
+    /* Tipografia */
     --font-primary: "Outfit", sans-serif;
     --font-serif: "Playfair Display", serif;
+
+    /* Bordas e Sombras */
+    --radius-sm: 12px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --shadow-soft: 0 6px 20px rgba(0,0,0,0.08);
   }
 
   body {
     font-family: var(--font-primary);
-    background-color: #f8faf9; /* nature-50 */
-    color: #1c1917; /* nature-900 */
+    background-color: var(--bg-base);
+    color: var(--text-primary);
     -webkit-font-smoothing: antialiased;
   }
 
@@ -42,16 +79,46 @@
 
   /* BUTTONS */
   .btn-primary {
-    @apply px-6 py-3 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all hover:bg-black hover:shadow-xl;
+    @apply flex items-center justify-center px-6 bg-nature-900 text-white font-bold uppercase tracking-widest text-[13px] shadow-lg active:scale-95 transition-all hover:bg-black hover:shadow-xl;
+    height: 40px;
+    border-radius: var(--radius-sm);
   }
 
   .btn-secondary {
-    @apply px-6 py-3 bg-white text-nature-900 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-sm border border-nature-100 hover:border-nature-300 active:scale-95 transition-all;
+    @apply flex items-center justify-center px-6 bg-white text-nature-900 font-bold uppercase tracking-widest text-[11px] shadow-sm border border-nature-100 hover:border-nature-300 active:scale-95 transition-all;
+    height: 36px;
+    border-radius: var(--radius-sm);
+  }
+
+  .btn-cta {
+    @apply flex items-center justify-center px-8 bg-nature-900 text-white font-bold uppercase tracking-widest text-sm shadow-xl active:scale-95 transition-all hover:bg-black;
+    height: 44px;
+    border-radius: var(--radius-md);
   }
 
   /* INPUTS */
   .input-field {
-    @apply w-full bg-nature-50 border border-nature-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-primary-100 transition-shadow;
+    @apply w-full bg-nature-50 border border-nature-100 p-4 text-sm outline-none focus:ring-2 focus:ring-primary-100 transition-shadow;
+    border-radius: var(--radius-md);
+  }
+
+  /* CARDS */
+  .card-hero {
+    @apply relative overflow-hidden shadow-xl border border-white/20;
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+  }
+
+  .card-functional {
+    @apply bg-white border border-nature-100 shadow-soft transition-all;
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+
+  .card-ritual {
+    @apply border border-transparent transition-all;
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
   }
 }
 

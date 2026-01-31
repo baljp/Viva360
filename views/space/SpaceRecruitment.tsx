@@ -44,13 +44,23 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                 </div>
         
                 <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm text-center space-y-1">
-                        <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Candidatos Ativos</p>
-                        <h4 className="text-2xl font-serif italic text-nature-900">28</h4>
-                    </div>
-                    <div className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm text-center space-y-1">
-                        <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Vagas Abertas</p>
-                        <h4 className="text-2xl font-serif italic text-indigo-600">{vacancies.length}</h4>
+                    <button 
+                        onClick={() => {
+                            const url = window.location.origin;
+                            const text = encodeURIComponent(`🌿 Olá! Convido você a ser um Guardião no Viva360. Vamos expandir a cura juntos? 🌱\n\nAcesse aqui: ${url}`);
+                            window.open(`https://wa.me/?text=${text}`, '_blank');
+                        }}
+                        className="bg-amber-50 p-6 rounded-[2.5rem] border border-amber-100 shadow-sm flex flex-col items-center justify-center gap-3 hover:bg-amber-100 transition-all group"
+                    >
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-amber-500 group-hover:scale-110 transition-transform"><Plus size={24}/></div>
+                        <div className="text-center">
+                            <span className="text-[11px] font-bold text-amber-900 block">Ampliar Chamado</span>
+                            <span className="text-[8px] text-amber-600 font-bold uppercase tracking-widest">Convite Direto</span>
+                        </div>
+                    </button>
+                    <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm text-center flex flex-col items-center justify-center gap-1">
+                        <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Guardiões Ativos</p>
+                        <h4 className="text-2xl font-serif italic text-nature-900">12</h4>
                     </div>
                 </div>
         
