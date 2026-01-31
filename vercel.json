@@ -47,12 +47,6 @@
     "api/index.ts": {
       "memory": 1024,
       "maxDuration": 10
-    },
-    "api/auth/register.ts": {
-      "runtime": "edge"
-    },
-    "api/auth/login.ts": {
-      "runtime": "edge"
     }
   }
 }
