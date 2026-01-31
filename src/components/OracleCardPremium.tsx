@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useAnimation, useMotionValue, useTransform } from 'framer-motion';
-import { Sparkles, Moon, Sun, Stars, Cloud, Share2 } from 'lucide-react';
+import { Sparkles, Moon, Sun, Stars, Cloud, Share2, X } from 'lucide-react';
 import { OracleCard as OracleCardType } from '../../types';
 import { generateShareCanvas, shareToSocial } from '../utils/sharing';
 
@@ -42,6 +42,9 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
+        // Only track on mouse move, not touch
+        if ('ontouchstart' in window) return;
+
         const rect = e.currentTarget.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
@@ -115,11 +118,19 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                         initial={{ opacity: 0, rotateY: 180, scale: 0.5 }}
                         animate={{ opacity: 1, rotateY: 0, scale: 1 }}
                         transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-                        style={{ x, y, rotateX, rotateY, perspective: 1000 }}
+                        style={{ rotateX, rotateY, perspective: 1000 }}
                         onMouseMove={handleMouseMove}
                         onMouseLeave={handleMouseLeave}
-                        className="relative w-full max-w-sm aspect-[9/16] max-h-[80vh]"
+                        className="relative w-full max-w-sm aspect-[9/16] max-h-[90vh] z-20"
                     >
+                         {/* Global Close Button for safety */}
+                        <button 
+                            onClick={onClose}
+                            className="absolute -top-12 right-0 p-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 transition-all z-30"
+                        >
+                            <X size={24} />
+                        </button>
+
                          {/* Card Container */}
                         <div className="w-full h-full bg-nature-50 rounded-[2rem] shadow-2xl overflow-hidden relative border-[8px] border-white/50">
                             

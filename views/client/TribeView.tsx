@@ -5,12 +5,17 @@ import { PortalView, BottomSheet, DynamicAvatar } from '../../components/Common'
 import { ConstellationOrbit, GlobalMandala } from '../../components/SocialFeatures';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 
-export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
-    const { go } = useBuscadorFlow();
+export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
+    const { go, back } = useBuscadorFlow();
     const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
 
     return (
-    <PortalView title="Minha Tribo" subtitle="SINCRO-ESTELAR" onBack={() => go('DASHBOARD')}>
+    <PortalView 
+        title="Minha Tribo" 
+        subtitle="SINCRO-ESTELAR" 
+        onBack={back}
+        onClose={onClose || back}
+    >
       <div className="space-y-10">
         <div className="bg-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm">
            <GlobalMandala user={user} onUpdateUser={updateUser} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, ViewState } from '../../types';
-import { Droplet, Heart, Users, Sparkles, TrendingUp, History, Info, Leaf, Share2 } from 'lucide-react';
+import { Droplet, Heart, Users, Sparkles, TrendingUp, History, Info, Leaf, Share2, X } from 'lucide-react';
 import { PortalView, ZenToast } from '../../components/Common';
 import { gardenService, GardenStatus } from '../../services/gardenService';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
@@ -188,6 +188,13 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                         <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-12 sm:items-center sm:p-0">
                             <div className="fixed inset-0 bg-nature-900/60 backdrop-blur-md transition-opacity" />
                             <div className="relative bg-white rounded-[3rem] p-8 w-full max-w-lg shadow-2xl animate-in slide-in-from-bottom duration-500">
+                                <button 
+                                    onClick={() => setActiveModal(null)}
+                                    className="absolute top-8 right-8 p-3 bg-nature-50 text-nature-400 rounded-2xl hover:bg-nature-100 transition-colors z- relative"
+                                >
+                                    <X size={20} />
+                                </button>
+                                
                                 <div className="text-center space-y-4 mb-8">
                                     <h3 className="text-3xl font-serif italic text-nature-900">Escolha seu Caminho</h3>
                                     <p className="text-xs text-nature-500 leading-relaxed px-8">Qual semente você deseja plantar em sua alma hoje?</p>
