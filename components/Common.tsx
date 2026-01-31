@@ -540,16 +540,17 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string, type?
   const Icon = config.icon;
 
   return (
-    <div className="fixed top-[15vh] left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-sm animate-in slide-in-from-top duration-500">
-      <div className={`${config.bg} backdrop-blur-xl border p-6 rounded-[2rem] shadow-2xl flex items-start gap-4`}>
-        <div className={`w-10 h-10 ${config.iconBg} rounded-2xl flex items-center justify-center shrink-0`}>
-             <Icon size={20} className="animate-pulse" />
+    <div className="fixed top-[15vh] left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-[320px] h-[25vh] animate-in slide-in-from-top-10 duration-700 pointer-events-none">
+      <div className={`${config.bg} backdrop-blur-3xl border p-8 rounded-[2.5rem] shadow-elegant flex flex-col items-center justify-center text-center gap-4 h-full pointer-events-auto border-white/50 relative overflow-hidden group`}>
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+        <div className={`w-14 h-14 ${config.iconBg} rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform`}>
+             <Icon size={24} className="animate-pulse" />
         </div>
-        <div className="flex-1">
-          <h4 className="font-serif italic text-nature-900 leading-tight">{toast.title}</h4>
-          <p className="text-xs text-nature-500 mt-1">{toast.message}</p>
+        <div>
+          <h4 className="font-serif italic text-lg text-nature-900 leading-tight mb-1">{toast.title}</h4>
+          <p className="text-[10px] font-bold text-nature-500 uppercase tracking-widest leading-relaxed px-4">{toast.message}</p>
         </div>
-        <button onClick={onClose} className="text-nature-300 p-1"><X size={16}/></button>
+        <button onClick={onClose} className="absolute top-4 right-4 text-nature-300 hover:text-nature-900 transition-colors"><X size={16}/></button>
       </div>
     </div>
   );
@@ -566,52 +567,54 @@ export const PortalView: React.FC<{
     headerRight?: React.ReactNode,
     heroImage?: string
 }> = ({ title, subtitle, onBack, onClose, children, footer, headerRight, heroImage }) => (
-    <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-[100vw]">
-        <header className={`flex-none flex items-center justify-between px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 z-20 transition-colors ${heroImage ? 'bg-transparent text-white fixed top-0 w-full' : 'bg-white border-b border-nature-100 shadow-sm relative'}`}>
-            <div className="flex items-center gap-4">
-                {onBack && (
-                    <button onClick={onBack} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
-                        <ChevronRight className="rotate-180" size={ICON_SIZE.MD} />
-                    </button>
+    <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-full lg:items-center lg:justify-center lg:bg-nature-900/40 lg:backdrop-blur-sm">
+        <div className="flex flex-col h-full w-full lg:max-w-xl lg:h-[90vh] lg:rounded-[3rem] lg:shadow-elegant lg:overflow-hidden lg:bg-nature-50 relative">
+            <header className={`flex-none flex items-center justify-between px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 z-20 transition-colors ${heroImage ? 'bg-transparent text-white absolute top-0 w-full' : 'bg-white border-b border-nature-100 shadow-sm relative'}`}>
+                <div className="flex items-center gap-4">
+                    {onBack && (
+                        <button onClick={onBack} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
+                            <ChevronRight className="rotate-180" size={ICON_SIZE.MD} />
+                        </button>
+                    )}
+                    <div className="space-y-0.5">
+                        <h2 className={`text-lg font-serif italic leading-none ${heroImage ? 'text-white drop-shadow-md' : 'text-nature-900'}`}>{title}</h2>
+                        <p className={`text-[9px] uppercase tracking-[0.3em] font-bold ${heroImage ? 'text-white/80 drop-shadow-sm' : 'text-nature-400'}`}>{subtitle}</p>
+                    </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                    {headerRight}
+                    {onClose && (
+                        <button onClick={onClose} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
+                            <X size={ICON_SIZE.MD} />
+                        </button>
+                    )}
+                </div>
+            </header>
+            
+            <div className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] overscroll-contain relative lg:pb-12">
+                {heroImage && (
+                    <div className="w-full h-72 relative shrink-0">
+                        <img 
+                            src={heroImage} 
+                            crossOrigin="anonymous"
+                            onError={(e) => { 
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800';
+                            }}
+                            className="w-full h-full object-cover" 
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-nature-50/20"></div>
+                    </div>
                 )}
-                <div className="space-y-0.5">
-                    <h2 className={`text-lg font-serif italic leading-none ${heroImage ? 'text-white drop-shadow-md' : 'text-nature-900'}`}>{title}</h2>
-                    <p className={`text-[9px] uppercase tracking-[0.3em] font-bold ${heroImage ? 'text-white/80 drop-shadow-sm' : 'text-nature-400'}`}>{subtitle}</p>
+                <div className={`flex flex-col ${heroImage ? '-mt-12 relative z-10 bg-nature-50 rounded-t-[2.5rem] min-h-[50vh] p-6 shadow-2xl border-t border-white/20' : 'p-6'}`}>
+                    {children}
                 </div>
             </div>
             
-            <div className="flex items-center gap-2">
-                {headerRight}
-                {onClose && (
-                    <button onClick={onClose} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
-                        <X size={ICON_SIZE.MD} />
-                    </button>
-                )}
-            </div>
-        </header>
-        
-        <div className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] overscroll-contain relative">
-            {heroImage && (
-                <div className="w-full h-72 relative shrink-0">
-                    <img 
-                        src={heroImage} 
-                        crossOrigin="anonymous"
-                        onError={(e) => { 
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800';
-                        }}
-                        className="w-full h-full object-cover" 
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-nature-50/20"></div>
-                </div>
-            )}
-            <div className={`flex flex-col ${heroImage ? '-mt-12 relative z-10 bg-nature-50 rounded-t-[2.5rem] min-h-[50vh] p-6 shadow-2xl border-t border-white/20' : 'p-6'}`}>
-                {children}
-            </div>
+            {footer && <div className="flex-none bg-white border-t border-nature-100 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] relative z-30 lg:rounded-b-[3rem]">
+                {footer}
+            </div>}
         </div>
-        
-        {footer && <div className="flex-none bg-white border-t border-nature-100 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] relative z-30">
-            {footer}
-        </div>}
     </div>
 );
 
