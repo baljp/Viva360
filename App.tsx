@@ -139,13 +139,16 @@ const App: React.FC = () => {
         case ViewState.REGISTER_CLIENT: navigate('/register/client'); break;
         case ViewState.REGISTER_PRO: navigate('/register/pro'); break;
         case ViewState.REGISTER_SPACE: navigate('/register/space'); break;
-            case ViewState.CLIENT_HOME: 
-                if (location.pathname.startsWith('/client/')) {
-                    // Stay on current sub-path if already in client home cluster
-                    break;
-                }
-                navigate('/client/home'); 
-                break;
+            case ViewState.CLIENT_HOME: navigate('/client/home'); break;
+            case ViewState.CLIENT_JOURNAL: navigate('/client/journal'); break;
+            case ViewState.CLIENT_JOURNEY: navigate('/client/journey'); break;
+            case ViewState.CLIENT_EXPLORE: navigate('/client/explore'); break;
+            case ViewState.CLIENT_TRIBO: navigate('/client/tribe'); break;
+            case ViewState.CLIENT_ORACLE: navigate('/client/oracle'); break;
+            case ViewState.CLIENT_MARKETPLACE: navigate('/client/marketplace'); break;
+            case ViewState.CLIENT_METAMORPHOSIS: navigate('/client/metamorphosis'); break;
+            case ViewState.CLIENT_TIMELAPSE: navigate('/client/timelapse'); break;
+            case ViewState.CLIENT_ORDERS: navigate('/client/orders'); break;
             case ViewState.CLIENT_CHECKOUT: navigate('/checkout'); break;
             case ViewState.CLIENT_CHECKOUT_SUCCESS: navigate('/checkout/success'); break;
             case ViewState.PRO_HOME: navigate('/pro/home'); break;

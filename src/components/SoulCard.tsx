@@ -116,60 +116,61 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
                 </div>
             </div>
 
-            {/* 4. OVERLAYS & CONTENT (The "Floating" feeling) */}
-            <div className="absolute inset-0 z-10 p-10 flex flex-col justify-between">
-                
-                {/* Header (Discrete) */}
-                <div className="flex justify-between items-start" style={{ transform: "translateZ(50px)" }}>
-                    <div className="space-y-1">
-                        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Frequência</p>
-                        <p className="text-xs font-serif italic text-white/80">{visuals.element}</p>
-                    </div>
-                    <div className="text-right">
-                        <p className="text-[9px] font-mono text-white/30 tracking-widest uppercase">
-                            {snap.date ? new Date(snap.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : 'ESTE INSTANTE'}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Central Quote (Premium Glassmorphism) */}
-                <div className="space-y-6 text-center" style={{ transform: "translateZ(80px)" }}>
+                {/* 4. OVERLAYS & CONTENT (The "Floating" feeling) */}
+                <div className="absolute inset-0 z-10 p-10 flex flex-col justify-between pointer-events-none">
                     
-                    {/* Glass Box */}
-                    <div className="relative bg-white/5 backdrop-blur-xl rounded-[2rem] p-8 border border-white/10 shadow-2xl overflow-hidden group">
-                        {/* Sacred Symbol (Subtle) */}
-                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 opacity-20">
-                            <Sparkles size={40} className="text-white" />
+                    {/* Header (Discrete) */}
+                    <div className="flex justify-between items-start" style={{ transform: "translateZ(50px)" }}>
+                        <div className="space-y-1">
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Frequência</p>
+                            <p className="text-xs font-serif italic text-white/80">{visuals.element}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[9px] font-mono text-white/30 tracking-widest uppercase">
+                                {snap.date ? new Date(snap.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : 'ESTE INSTANTE'}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Bottom Content Area (Clean & Photogenic) */}
+                    <div className="space-y-6 text-center" style={{ transform: "translateZ(80px)" }}>
+                        
+                        {/* Elegant Quote at the Bottom */}
+                        <div className="px-4">
+                            <p className="text-white font-serif italic text-2xl leading-tight drop-shadow-xl">
+                                "{snap.note || 'O silêncio é o portal para a transformação.'}"
+                            </p>
                         </div>
 
-                        <p className="text-white font-serif italic text-xl leading-relaxed drop-shadow-sm transition-transform duration-500 group-hover:scale-[1.02]">
-                            "{snap.note || 'O silêncio é o portal para a transformação.'}"
-                        </p>
-                    </div>
+                        {/* Signature Seal */}
+                        <div className="flex flex-col items-center gap-3">
+                            <div className="w-16 h-[1px] bg-white/20"></div>
+                            <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.4em] bg-white/5 border border-white/10 text-white/60`}>
+                                {snap.mood || 'SERENO'}
+                            </span>
+                        </div>
 
-                    {/* Mood Badge */}
-                    <div className="flex justify-center">
-                        <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.4em] bg-white/5 border border-white/10 text-white/60`}>
-                            {snap.mood || 'SERENO'}
-                        </span>
+                        {/* Footer (Ritual Stamp) */}
+                        <div className="flex justify-center opacity-30">
+                            <p className="text-[10px] font-bold text-white uppercase tracking-[0.6em]">VIVA360</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Footer (Ritual Stamp) */}
-                <div className="flex justify-center opacity-30" style={{ transform: "translateZ(30px)" }}>
-                    <p className="text-[10px] font-bold text-white uppercase tracking-[0.6em]">VIVA360</p>
-                </div>
-            </div>
-
-            {/* 5. INTERACTIVE EFFECTS */}
-            {/* Holographic Sweep */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[2s] pointer-events-none mix-blend-overlay z-30" />
-            
-            {onClose && (
-                <button onClick={onClose} className="absolute top-6 right-6 z-50 p-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-white hover:bg-white/10 transition-all shadow-xl">
-                    <X size={20} />
-                </button>
-            )}
+                {/* 5. INTERACTIVE EFFECTS */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[2s] pointer-events-none mix-blend-overlay z-30" />
+                
+                {onClose && (
+                    <button 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onClose();
+                        }} 
+                        className="absolute top-6 right-6 z-50 p-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-white hover:bg-white/10 transition-all shadow-xl pointer-events-auto"
+                    >
+                        <X size={20} />
+                    </button>
+                )}
         </motion.div>
     );
 };

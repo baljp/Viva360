@@ -61,7 +61,13 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
     };
 
     return (
-        <PortalView title="Jardim da Alma" subtitle="NÚCLEO VIVO" onBack={() => go('DASHBOARD')} onClose={onClose} heroImage="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800">
+        <PortalView 
+            title="Jardim da Alma" 
+            subtitle="NÚCLEO VIVO" 
+            onBack={() => go('DASHBOARD')} 
+            onClose={onClose || (() => go('DASHBOARD'))} 
+            heroImage="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800"
+        >
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             {isRitualActive ? (
