@@ -82,7 +82,7 @@ define(['./workbox-5a5d9309'], (function (workbox) { 'use strict';
     "revision": "1872c500de691dce40960bb85481de07"
   }, {
     "url": "index.html",
-    "revision": "34169d10ae910ce74734bf52f2d154f5"
+    "revision": "d054d56c0279666e7d5994814cb66a2b"
   }, {
     "url": "assets/utils-l0sNRNKZ.js",
     "revision": null
@@ -90,16 +90,19 @@ define(['./workbox-5a5d9309'], (function (workbox) { 'use strict';
     "url": "assets/useSoulCards-tH7iON3s.js",
     "revision": null
   }, {
-    "url": "assets/ui-B5ZlBfss.js",
+    "url": "assets/ui-k9t5OULl.js",
+    "revision": null
+  }, {
+    "url": "assets/phraseService-1V-GDPik.js",
     "revision": null
   }, {
     "url": "assets/paymentMock-D4WmpuvJ.js",
     "revision": null
   }, {
-    "url": "assets/index-BCQyMlXm.js",
+    "url": "assets/index-DQ82mYS8.css",
     "revision": null
   }, {
-    "url": "assets/index-BAtWe9iT.css",
+    "url": "assets/index-CscbBkkJ.js",
     "revision": null
   }, {
     "url": "assets/gardenService-CDsGg8mD.js",
@@ -111,232 +114,256 @@ define(['./workbox-5a5d9309'], (function (workbox) { 'use strict';
     "url": "assets/chatMock-C-gJQrm7.js",
     "revision": null
   }, {
-    "url": "assets/WalletViewScreen-Cf0KrYJW.js",
+    "url": "assets/WalletViewScreen-DmIP6G-r.js",
     "revision": null
   }, {
-    "url": "assets/VideoPrepScreen-DeNq7b-z.js",
+    "url": "assets/VideoPrepScreen-CP1lACks.js",
     "revision": null
   }, {
-    "url": "assets/VagasList-BALip2bI.js",
+    "url": "assets/VagasList-DnLMP3cU.js",
     "revision": null
   }, {
-    "url": "assets/TribeView-0Ovo-srl.js",
+    "url": "assets/TribeView-e3M2jYEX.js",
     "revision": null
   }, {
-    "url": "assets/TribeInvite-CzzN0IyT.js",
+    "url": "assets/TribeInvite-CLfiB_Nz.js",
     "revision": null
   }, {
-    "url": "assets/TribeInteraction-CeNynz02.js",
+    "url": "assets/TribeInteraction-BQl17ewQ.js",
     "revision": null
   }, {
-    "url": "assets/TimeLapseView-D6d6yJQM.js",
+    "url": "assets/TimeLapseView-DGmOpT9v.js",
     "revision": null
   }, {
-    "url": "assets/TimeLapseExperience-jNgS9ZQ9.js",
+    "url": "assets/TimeLapseExperience-4YyezMNM.js",
     "revision": null
   }, {
-    "url": "assets/SpaceViews-Lzz_P8kn.js",
+    "url": "assets/SpaceViews-BLNE28MI.js",
     "revision": null
   }, {
-    "url": "assets/SpaceTeam-CY0J7Zs7.js",
+    "url": "assets/SpaceTeam-vgbNLpV2.js",
     "revision": null
   }, {
-    "url": "assets/SpaceSummon-gWrRAzes.js",
+    "url": "assets/SpaceSummon-DdR34zTg.js",
     "revision": null
   }, {
-    "url": "assets/SpaceRooms-CnsP8mgz.js",
+    "url": "assets/SpaceRooms-CoRbInqb.js",
     "revision": null
   }, {
-    "url": "assets/SpaceRoomEdit-3GZ0IcoN.js",
+    "url": "assets/SpaceRoomEdit-BWmI6mb8.js",
     "revision": null
   }, {
-    "url": "assets/SpaceRoomCreate-Dyky5bol.js",
+    "url": "assets/SpaceRoomCreate-CQzr-X22.js",
     "revision": null
   }, {
-    "url": "assets/SpaceRoomAgenda-BwM_V7FH.js",
+    "url": "assets/SpaceRoomAgenda-2ik4fjfa.js",
     "revision": null
   }, {
-    "url": "assets/SpaceRetreatsManager-D0AFKMbd.js",
+    "url": "assets/SpaceRetreatsManager-CHCU-JPM.js",
     "revision": null
   }, {
-    "url": "assets/SpaceReputation-vZDPHowA.js",
+    "url": "assets/SpaceReputation-B2S-RB8R.js",
     "revision": null
   }, {
-    "url": "assets/SpaceRecruitment-Br6BGQ6T.js",
+    "url": "assets/SpaceRecruitment-BsmG_ZJN.js",
     "revision": null
   }, {
-    "url": "assets/SpaceProDetails-CkZqrTtQ.js",
+    "url": "assets/SpaceProDetails-D9o70u7g.js",
     "revision": null
   }, {
-    "url": "assets/SpacePatients-Bv_gH_dq.js",
+    "url": "assets/SpacePatients-CFonJflh.js",
     "revision": null
   }, {
-    "url": "assets/SpaceMarketplace-DriQO870.js",
+    "url": "assets/SpaceMarketplace-xXT_mQGc.js",
     "revision": null
   }, {
-    "url": "assets/SpaceInvite-DEJ6hQ75.js",
+    "url": "assets/SpaceInvite-BKxe7TXh.js",
     "revision": null
   }, {
-    "url": "assets/SpaceGovernance-B8rO6N6-.js",
+    "url": "assets/SpaceGovernance-BwlswcBT.js",
     "revision": null
   }, {
-    "url": "assets/SpaceFinance-Dextftdk.js",
+    "url": "assets/SpaceFinance-CtNTZWbq.js",
     "revision": null
   }, {
-    "url": "assets/SpaceEventCreate-vS88P_Lq.js",
+    "url": "assets/SpaceEventCreate-Bd-gT_Pm.js",
     "revision": null
   }, {
-    "url": "assets/SpaceDashboard-CHudRt-Y.js",
+    "url": "assets/SpaceDashboard-gCS59BhC.js",
     "revision": null
   }, {
-    "url": "assets/SpaceChatRoomScreen-BbGMqHUk.js",
+    "url": "assets/SpaceChatRoomScreen-DqQh13Br.js",
     "revision": null
   }, {
-    "url": "assets/SpaceChatListScreen-Bps39BvI.js",
+    "url": "assets/SpaceChatListScreen-BOl26gG8.js",
     "revision": null
   }, {
-    "url": "assets/SpaceCalendar-DXy1ljpo.js",
+    "url": "assets/SpaceCalendar-BXjrTFZ5.js",
     "revision": null
   }, {
-    "url": "assets/SoulJournalView-BW1vBUUN.js",
+    "url": "assets/SpaceAuditLog-joNIX5zo.js",
     "revision": null
   }, {
-    "url": "assets/SoulCard-BDop78lJ.js",
+    "url": "assets/SoulPactInteraction-BbLS9Yie.js",
     "revision": null
   }, {
-    "url": "assets/SettingsViews-D-2qOTef.js",
+    "url": "assets/SoulJournalView-eCscJYQJ.js",
     "revision": null
   }, {
-    "url": "assets/ServiceViews-CEPr2ReC.js",
+    "url": "assets/SoulCard-CpPwGl5o.js",
     "revision": null
   }, {
-    "url": "assets/ServiceEvaluation-CYqfLC4r.js",
+    "url": "assets/SettingsViews-DaFOuRjG.js",
     "revision": null
   }, {
-    "url": "assets/ScreenConnector-BW3MLPuO.js",
+    "url": "assets/ServiceViews-CYfnY8lt.js",
     "revision": null
   }, {
-    "url": "assets/RitualsView-CYPno-Nn.js",
+    "url": "assets/ServiceEvaluation-CkM6ycyB.js",
     "revision": null
   }, {
-    "url": "assets/ResetPassword-YNDcbWBt.js",
+    "url": "assets/ScreenConnector-C_kfIahj.js",
     "revision": null
   }, {
-    "url": "assets/Registration-Bb3Bkh3F.js",
+    "url": "assets/RitualsView-B6r2_FJt.js",
     "revision": null
   }, {
-    "url": "assets/ProViews-DpFqx4HR.js",
+    "url": "assets/ResetPassword-DQG1l9sn.js",
     "revision": null
   }, {
-    "url": "assets/ProTribe-BpNUitj8.js",
+    "url": "assets/Registration-CQSF1ZUK.js",
     "revision": null
   }, {
-    "url": "assets/ProMarketplace-Cjz6hxW7.js",
+    "url": "assets/RadianceDrilldown-DUgKQ5Fr.js",
     "revision": null
   }, {
-    "url": "assets/ProFinance-C1R6JLoQ.js",
+    "url": "assets/ProViews-BWnbfeHn.js",
     "revision": null
   }, {
-    "url": "assets/ProDashboard-ByLA9Dig.js",
+    "url": "assets/ProTribe-CKOLvedy.js",
     "revision": null
   }, {
-    "url": "assets/ProChatRoomScreen-D_kfzb9H.js",
+    "url": "assets/ProMarketplace-BTtzWNzB.js",
     "revision": null
   }, {
-    "url": "assets/ProChatListScreen-C-mPOUdh.js",
+    "url": "assets/ProFinance-DtIfKqaY.js",
     "revision": null
   }, {
-    "url": "assets/PaymentSuccess-BvAVenRB.js",
+    "url": "assets/ProDashboard-Cf-2nrrt.js",
     "revision": null
   }, {
-    "url": "assets/PaymentHistoryScreen-BF23V1yh.js",
+    "url": "assets/ProChatRoomScreen-DISKzEN5.js",
     "revision": null
   }, {
-    "url": "assets/PatientsList-DHOdn-TW.js",
+    "url": "assets/ProChatListScreen-DI2R0UhK.js",
     "revision": null
   }, {
-    "url": "assets/PatientProfile-DokiBrkD.js",
+    "url": "assets/PredictiveOccupancy-CS6I_xFv.js",
     "revision": null
   }, {
-    "url": "assets/PatientEvolutionView-DzS1ZLS0.js",
+    "url": "assets/PaymentSuccess-B2O88ivi.js",
     "revision": null
   }, {
-    "url": "assets/OracleView-BvYEmDEQ.js",
+    "url": "assets/PaymentHistoryScreen-WzpxZwGm.js",
     "revision": null
   }, {
-    "url": "assets/OracleGrimoire-BzMK2UER.js",
+    "url": "assets/PatientsList-CAasRb3k.js",
     "revision": null
   }, {
-    "url": "assets/MetamorphosisWizard-CResjvlF.js",
+    "url": "assets/PatientProfile-D0O6CatO.js",
     "revision": null
   }, {
-    "url": "assets/MarketplaceExplorer-D7w26H_L.js",
+    "url": "assets/PatientEvolutionView-BaD4qGkW.js",
     "revision": null
   }, {
-    "url": "assets/MapaDaCuraView-D5XMhuU_.js",
+    "url": "assets/OracleView-bw-E6fKn.js",
     "revision": null
   }, {
-    "url": "assets/KarmaWallet-Cf-wKxLI.js",
+    "url": "assets/OracleGrimoire-kT8fDoZ1.js",
     "revision": null
   }, {
-    "url": "assets/InternalGarden-CZHNgP_1.js",
+    "url": "assets/OracleCardPremium-CEPiLane.js",
     "revision": null
   }, {
-    "url": "assets/EvolutionView-Dc270kRj.js",
+    "url": "assets/OfflineRetreat-DKHvKzOc.js",
     "revision": null
   }, {
-    "url": "assets/EvolutionAnalytics-CZsq1hrV.js",
+    "url": "assets/MetamorphosisWizard-DCFl3sHX.js",
     "revision": null
   }, {
-    "url": "assets/EmotionalHistory-kqDd-ur3.js",
+    "url": "assets/MarketplaceExplorer-BpjSyj_g.js",
     "revision": null
   }, {
-    "url": "assets/CollectionGrimoire-pEeaVmfD.js",
+    "url": "assets/MapaDaCuraView-Bfd1CFgg.js",
     "revision": null
   }, {
-    "url": "assets/ClientViews-AXrp55ii.js",
+    "url": "assets/KarmaWallet-i3x4oJtx.js",
     "revision": null
   }, {
-    "url": "assets/ClientMarketplace-7j2H_yxh.js",
+    "url": "assets/InternalGarden-BVcMnJLN.js",
     "revision": null
   }, {
-    "url": "assets/ClientDashboard-TrdTAzJD.js",
+    "url": "assets/HealingCircleEntry-D5LuLI5E.js",
     "revision": null
   }, {
-    "url": "assets/CheckoutScreen-3JrIHOFr.js",
+    "url": "assets/EvolutionView-CbN3ThR3.js",
     "revision": null
   }, {
-    "url": "assets/Checkout-ghtkyd2V.js",
+    "url": "assets/EvolutionAnalytics-Ca_NbgyX.js",
     "revision": null
   }, {
-    "url": "assets/ChatRoomScreen-D4skJcvE.js",
+    "url": "assets/EmotionalHistory-Bd3ieJpQ.js",
     "revision": null
   }, {
-    "url": "assets/ChatListScreen-C4lDIEa8.js",
+    "url": "assets/CustomInterventionWizard-Dn7emSVf.js",
     "revision": null
   }, {
-    "url": "assets/BookingSelect-BbpGe4ri.js",
+    "url": "assets/CollectionGrimoire-C643ddSi.js",
     "revision": null
   }, {
-    "url": "assets/BookingConfirm-ByI93AWt.js",
+    "url": "assets/ClientViews-DwcFLcZU.js",
     "revision": null
   }, {
-    "url": "assets/Auth-CHqaPprc.js",
+    "url": "assets/ClientMarketplace-3Kf4Ivmd.js",
     "revision": null
   }, {
-    "url": "assets/AlquimiaProposeTrade-D48dL2Hb.js",
+    "url": "assets/ClientDashboard-CMMogXJR.js",
     "revision": null
   }, {
-    "url": "assets/AlquimiaCreateOffer-DGUhkKbu.js",
+    "url": "assets/CheckoutScreen-DvodT9wM.js",
     "revision": null
   }, {
-    "url": "assets/AgendaView-BD_qNrPb.js",
+    "url": "assets/Checkout-BlR8UlZ6.js",
     "revision": null
   }, {
-    "url": "assets/AdminViews-l8XYuq_E.js",
+    "url": "assets/ChatRoomScreen-LGsYL7Ns.js",
     "revision": null
   }, {
-    "url": "assets/AchievementsView-C4JF44lp.js",
+    "url": "assets/ChatListScreen-BT-FcKFD.js",
+    "revision": null
+  }, {
+    "url": "assets/BookingSelect-yNUxwt-5.js",
+    "revision": null
+  }, {
+    "url": "assets/BookingConfirm-Bk-5efIy.js",
+    "revision": null
+  }, {
+    "url": "assets/Auth-CHSIk38U.js",
+    "revision": null
+  }, {
+    "url": "assets/AlquimiaProposeTrade-D4afmgzK.js",
+    "revision": null
+  }, {
+    "url": "assets/AlquimiaCreateOffer-CNSVw2Pn.js",
+    "revision": null
+  }, {
+    "url": "assets/AgendaView-BGN2TucT.js",
+    "revision": null
+  }, {
+    "url": "assets/AdminViews-g21MlQbq.js",
+    "revision": null
+  }, {
+    "url": "assets/AchievementsView-n0VQFOeM.js",
     "revision": null
   }, {
     "url": "manifest.webmanifest",
