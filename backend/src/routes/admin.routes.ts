@@ -1,18 +1,10 @@
-
 import { Router } from 'express';
 import * as AdminController from '../controllers/admin.controller';
+import { adminOnlyMiddleware } from '../middleware/admin.middleware';
 
 const router = Router();
 
-// Middleware to inject adminId for mock (Verification later)
-const mockAdminMiddleware = (req: any, res: any, next: any) => {
-    // In real implementation this checks the JWT role.
-    // For now we assume if the route is hit with 'admin-token', it works.
-    req.body.adminId = 'admin_master';
-    next();
-};
-
-router.use(mockAdminMiddleware);
+router.use(adminOnlyMiddleware);
 
 router.get('/dashboard', AdminController.getDashboard);
 router.get('/users', AdminController.listUsers);

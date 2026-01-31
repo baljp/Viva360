@@ -146,6 +146,8 @@ export const screenMap: any = {
         EVO_GRIMOIRE: CollectionGrimoire,
         CLIENT_JOURNAL: SoulJournalView,
         SOUL_PACT: SoulPactInteraction,
+        OFFLINE_RETREAT: OfflineRetreat,
+        END: ClientDashboard,
     },
     // GUARDIAO
     GUARDIAO: {

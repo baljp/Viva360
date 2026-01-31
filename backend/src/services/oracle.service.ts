@@ -97,6 +97,30 @@ export class OracleService {
         return winner;
     }
 
+    async getToday(userId: string) {
+        if (isMockMode()) {
+            return this.getRandomFallback();
+        }
+
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        const lastDraw = await prismaRead.oracleHistory.findFirst({
+            where: {
+                user_id: userId,
+                drawn_at: { gte: startOfDay }
+            },
+            include: {
+                message: true
+            },
+            orderBy: {
+                drawn_at: 'desc'
+            }
+        });
+
+        return lastDraw?.message || null;
+    }
+
     private getElementForMood(mood: string): string {
         switch (mood) {
             case 'ansioso': return 'Agua'; // Water calms

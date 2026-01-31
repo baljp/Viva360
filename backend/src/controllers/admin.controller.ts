@@ -11,6 +11,11 @@ export const getDashboard = asyncHandler(async (req: Request, res: Response) => 
         newUsersToday: 45,
         activeEvents: 12,
         revenueToday: 12500.50,
+        scaling: {
+            readiness: "78%",
+            status: "Scalable with Adjustments",
+            target: "50,000 Users"
+        },
         alerts: [{ level: 'warn', msg: 'API Latency > 200ms' }]
     });
 });

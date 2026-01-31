@@ -124,10 +124,10 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black uppercase tracking-widest leading-none text-emerald-400">
-                                {isDemoMode ? 'Modo Demo' : 'Modo Mock'}
+                                {isDemoMode ? 'Fluxo Demo' : 'Fluxo Mock'}
                             </span>
                             <span className="text-[8px] font-medium opacity-60 leading-tight">
-                                Dados Fictícios • Seguro
+                                Sementes Fictícias • Seguro
                             </span>
                         </div>
                     </div>

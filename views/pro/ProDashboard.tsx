@@ -19,7 +19,7 @@ export const ProDashboard: React.FC<{
     
     // Mock Notifications
     const [notifications, setNotifications] = useState([
-        { id: '1', title: 'Paciente Check-in', message: 'Ana Silva completou o ritual diário.', type: 'ritual', read: false },
+        { id: '1', title: 'Início de Ritual', message: 'Ana Silva completou o ritual diário.', type: 'ritual', read: false },
         { id: '2', title: 'Proposta de Troca', message: 'Nova oferta no Escambo Rede Viva.', type: 'alert', read: false },
     ]);
 
@@ -34,14 +34,14 @@ export const ProDashboard: React.FC<{
              <div className="flex items-center gap-2">
                  <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
                  <span className={`text-[10px] font-bold uppercase tracking-widest ${isOnline ? 'text-emerald-700' : 'text-slate-500'}`}>
-                     {isOnline ? 'Você está visível no Mapa' : 'Você está offline'}
+                     {isOnline ? 'Sua Luz brilha no Mapa' : 'Sua frequência está oculta'}
                  </span>
              </div>
              <button 
                 onClick={toggleStatus}
                 className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all ${isOnline ? 'bg-white text-emerald-600 border border-emerald-200 shadow-sm hover:bg-emerald-50' : 'bg-nature-900 text-white shadow-md hover:bg-black'}`}
              >
-                 {isOnline ? 'Ficar Offline' : 'Ficar Disponível'}
+                 {isOnline ? 'Recolher Presença' : 'Irradiar Presença'}
              </button>
         </div>
 
@@ -59,8 +59,8 @@ export const ProDashboard: React.FC<{
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full flex items-center justify-center z-20 pointer-events-none shadow-md animate-pulse"><Zap size={10} className="text-white fill-white" /></div>
                 </button>
                 <div>
-                    <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em] mb-0.5">Bom Despertar,</p>
-                    <h2 className="text-2xl font-serif italic text-nature-900 leading-none">Mestre {user.name.split(' ')[0]}</h2>
+                    <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em] mb-0.5">Luz no Caminho,</p>
+                    <h2 className="text-2xl font-serif italic text-nature-900 leading-none">Guardião {user.name.split(' ')[0]}</h2>
             </div>
             </div>
             <div className="flex items-center gap-2">
@@ -82,8 +82,8 @@ export const ProDashboard: React.FC<{
                         <Video size={20} className="text-white animate-pulse" />
                     </div>
                     <div>
-                        <p className="text-[8px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Sessão Iminente • 14:00</p>
-                        <h4 className="text-sm font-bold">Iniciando com Ana Silva</h4>
+                        <p className="text-[8px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Conexão Próxima • 14:00</p>
+                        <h4 className="text-sm font-bold">Sintonizando com {user.name.split(' ')[0]}</h4>
                     </div>
                 </div>
                 <button 
@@ -102,13 +102,13 @@ export const ProDashboard: React.FC<{
                     onClick={() => setActiveTab('consultorio')} 
                     className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'consultorio' ? 'bg-white shadow-sm text-nature-900 font-black' : 'text-nature-400 hover:text-nature-600'}`}
                 >
-                    <Stethoscope size={14}/> Consultório
+                    <Stethoscope size={14}/> Portal de Cura
                 </button>
                 <button 
                     onClick={() => setActiveTab('financeiro')} 
                     className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'financeiro' ? 'bg-white shadow-sm text-nature-900 font-black' : 'text-nature-400 hover:text-nature-600'}`}
                 >
-                    <Wallet size={14}/> Abundância
+                    <Wallet size={14}/> Prosperidade
                 </button>
                 <button 
                     onClick={() => setActiveTab('comunidade')} 
@@ -140,7 +140,7 @@ export const ProDashboard: React.FC<{
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
-                        <PortalCard id="portal-patients" title="Meus Pacientes" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
+                        <PortalCard id="portal-patients" title="Almas em Cuidado" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
                     </div>
 
                     <div className="bg-gradient-to-br from-nature-50 to-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition-all group" onClick={() => go('CUSTOM_INTERVENTION')}>
@@ -202,7 +202,7 @@ export const ProDashboard: React.FC<{
 
                     <div className="grid grid-cols-2 gap-4">
                         <PortalCard id="portal-marketplace" title="Alquimia" subtitle="BAZAR" icon={ShoppingBag} bgImage="https://images.unsplash.com/photo-1512418490979-92798cec1380?q=80&w=600" onClick={() => go('ESCAMBO_MARKET')} />
-                        <PortalCard id="portal-jobs" title="Oportunidades" subtitle="VAGAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=600" onClick={() => go('VAGAS_LIST')} />
+                        <PortalCard id="portal-jobs" title="Chamados" subtitle="VAGAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=600" onClick={() => go('VAGAS_LIST')} />
                     </div>
 
                     <div className="bg-emerald-50 rounded-[2.5rem] p-6 text-emerald-900 border border-emerald-100 flex items-center justify-between cursor-pointer active:scale-95 transition-all" onClick={async () => {

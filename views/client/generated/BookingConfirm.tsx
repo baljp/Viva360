@@ -45,7 +45,7 @@ export default function BookingConfirm() {
 
           <div className="p-6 bg-white/50 backdrop-blur-sm border-t border-emerald-50 flex gap-4">
              <button onClick={back} className="flex-1 py-4 rounded-xl text-emerald-400 font-bold uppercase text-[10px] tracking-widest hover:bg-emerald-50 transition-all">Revisar</button>
-             <button onClick={() => go('CHECKOUT')} className="flex-[2] py-4 bg-emerald-600 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200">Ir para Pagamento</button>
+             <button onClick={() => go('CHECKOUT')} className="flex-[2] py-4 bg-emerald-600 text-white rounded-xl font-bold uppercase text-[10px] tracking-widest hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200">Seguir com Oferenda</button>
           </div>
        </div>
     </div>

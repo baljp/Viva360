@@ -8,13 +8,13 @@ import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { useOracle, OracleMessage } from '../../frontend/src/hooks/useOracle';
 
 export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
-    const { go } = useBuscadorFlow();
+    const { go, back } = useBuscadorFlow();
     const { state, actions } = useOracle(user.id);
     const { isLoading, dailyCard, showCard, toast } = state;
     const { handleDraw, setShowCard, closeCard, clearToast } = actions;
 
     return (
-        <PortalView title="Oráculo Viva360" subtitle="GUIA SIMBÓLICO" onBack={() => go('DASHBOARD')}>
+        <PortalView title="Oráculo Viva360" subtitle="GUIA SIMBÓLICO" onBack={back}>
             {toast && <ZenToast toast={toast} onClose={clearToast} />}
             
             <div className="flex flex-col h-full relative">

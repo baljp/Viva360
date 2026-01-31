@@ -14,6 +14,14 @@ export const checkoutQueue = isMock ?
     connection: redisConnection,
   });
 
+export const notificationQueue = isMock ?
+  {
+    add: async (name: string, data: any) => ({ id: `mock_notif_${Date.now()}`, data })
+  } as any :
+  new Queue('notification-queue', {
+    connection: redisConnection,
+  });
+
 if (!isMock) {
     // Setup Worker
     const worker = new Worker(QUEUE_NAME, async (job) => {
@@ -50,6 +58,17 @@ if (!isMock) {
     worker.on('failed', (job, err) => {
     console.log(`${job?.id} has failed with ${err.message}`);
     });
+
+    // Setup Notification Worker
+    const notifWorker = new Worker('notification-queue', async (job) => {
+      console.log(`Processing Notification ${job.id}:`, job.data);
+      // Simulate external provider latency
+      await new Promise(r => setTimeout(r, 500));
+      return { success: true };
+    }, {
+      connection: redisConnection,
+      concurrency: 100
+    });
 } else {
-    console.log('⚠️  Queue Worker skipped in MOCK MODE');
+    console.log('⚠️  Queue Workers skipped in MOCK MODE');
 }

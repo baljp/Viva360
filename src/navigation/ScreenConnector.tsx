@@ -5,6 +5,7 @@ import { useGuardiaoFlow } from '../flow/GuardiaoFlowContext';
 import { useSantuarioFlow } from '../flow/SantuarioFlowContext';
 import { screenMap } from './screenMap';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Compass } from 'lucide-react';
 
 interface ConnectorProps {
     profile: 'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO';
@@ -25,12 +26,21 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
 
     if (!ScreenComponent) {
         return (
-            <div className="flex items-center justify-center h-screen bg-gray-50">
-                <div className="text-center opacity-50">
-                    <h3 className="text-xl font-bold">Estado Desconhecido: {currentState}</h3>
-                    <p>Nenhuma tela mapeada para este fluxo.</p>
-                    <button onClick={() => flow.reset()} className="mt-4 px-4 py-2 bg-gray-200 rounded">Resetar Fluxo</button>
+            <div className="flex flex-col items-center justify-center h-screen bg-nature-50 p-8 text-center">
+                <div className="w-24 h-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center text-nature-300 mb-8 animate-pulse">
+                    <Compass size={48} />
                 </div>
+                <h3 className="text-2xl font-serif italic text-nature-900 mb-4">Sintonização Necessária</h3>
+                <p className="text-sm text-nature-500 max-w-xs leading-relaxed mb-8">
+                    Seu fluxo de energia encontrou um ponto de quietude. <br/>
+                    Vamos voltar ao centro para retomar sua jornada.
+                </p>
+                <button 
+                    onClick={() => flow.reset()} 
+                    className="px-8 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all"
+                >
+                    Voltar ao Centro
+                </button>
             </div>
         );
     }
