@@ -14,7 +14,9 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
 
     useEffect(() => {
         api.oracle.history().then(data => {
-            setHistory(data);
+            // Sort by date newest first
+            const sorted = (data || []).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setHistory(sorted);
             setIsLoading(false);
         }).catch(err => {
             console.error("Failed to load oracles", err);
@@ -23,7 +25,12 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
     }, []);
 
     return (
-        <PortalView title="Grimório de Luz" subtitle="HISTÓRICO ARQUETÍPICO" onBack={() => go('ORACLE_PORTAL')}>
+        <PortalView 
+            title="Grimório de Luz" 
+            subtitle="HISTÓRICO ARQUETÍPICO" 
+            onBack={() => go('ORACLE_PORTAL')}
+            onClose={() => go('DASHBOARD')}
+        >
             <div className="flex flex-col h-full bg-[#fcfdfd] px-6 py-8 pb-32">
                 
                 <div className="flex items-center gap-4 mb-10">
@@ -61,8 +68,14 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
                                         <Calendar size={12} className="text-nature-400" />
                                         <span className="text-[10px] font-bold text-nature-600 uppercase tracking-widest">
                                             {(() => {
-                                                const [year, month, day] = item.date.split('-');
-                                                return new Date(parseInt(year), parseInt(month) - 1, parseInt(day)).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' });
+                                                if (!item.date) return 'REVELADO';
+                                                try {
+                                                    const date = new Date(item.date);
+                                                    if (isNaN(date.getTime())) return 'REVELADO';
+                                                    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+                                                } catch (e) {
+                                                    return 'REVELADO';
+                                                }
                                             })()}
                                         </span>
                                     </div>

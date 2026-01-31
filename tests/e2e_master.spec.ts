@@ -39,7 +39,7 @@ test.describe('Master Enterprise E2E Suite', () => {
       // Close onboarding if present
       await handleOnboarding(page);
 
-      const loginBtn = page.getByRole('button', { name: /já tenho conta/i });
+      const loginBtn = page.getByRole('button', { name: /já iniciei a jornada/i });
       await expect(loginBtn).toBeVisible({ timeout: 10000 });
       await loginBtn.click();
 
@@ -101,11 +101,14 @@ test.describe('Master Enterprise E2E Suite', () => {
     });
   }
 
-  test('Cross-Profile Workflow: Booking Integration', async ({ page, context }) => {
+  test('Cross-Profile Workflow: Booking Integration', async ({ browser }) => {
     // 1. CLIENT: Initiate a booking or interest
+    const clientContext = await browser.newContext();
+    const page = await clientContext.newPage();
+    
     await page.goto('/');
     await handleOnboarding(page);
-    await page.getByRole('button', { name: /já tenho conta/i }).click();
+    await page.getByRole('button', { name: /já iniciei a jornada/i }).click();
     await page.fill('input[placeholder="seu@email.com"]', 'cliente@viva360.com');
     await page.fill('input[placeholder="••••••••"]', '123456');
     await page.click('button[type="submit"]');
@@ -117,11 +120,13 @@ test.describe('Master Enterprise E2E Suite', () => {
     await page.waitForTimeout(1000); // Wait for animations
     await page.screenshot({ path: 'test-results/integration/client_view.png' });
 
-    // 2. PRO: Verify Dashboard Visibility
-    const proPage = await context.newPage();
+    // 2. PRO: Verify Dashboard Visibility in ISOLATED context
+    const proContext = await browser.newContext();
+    const proPage = await proContext.newPage();
+    
     await proPage.goto('/');
     await handleOnboarding(proPage);
-    await proPage.getByRole('button', { name: /já tenho conta/i }).click();
+    await proPage.getByRole('button', { name: /já iniciei a jornada/i }).click();
     await proPage.fill('input[placeholder="seu@email.com"]', 'pro@viva360.com');
     await proPage.fill('input[placeholder="••••••••"]', '123456');
     await proPage.click('button[type="submit"]');
@@ -129,7 +134,10 @@ test.describe('Master Enterprise E2E Suite', () => {
     await handleOnboarding(proPage);
     
     // Check for dashboard elements
-    await expect(proPage.locator('text=/Consultório|Expansão/i').first()).toBeVisible({ timeout: 10000 });
+    await expect(proPage.locator('text=/Portal de Cura|Egrégora/i').first()).toBeVisible({ timeout: 10000 });
     await proPage.screenshot({ path: 'test-results/integration/pro_dashboard.png' });
+    
+    await clientContext.close();
+    await proContext.close();
   });
 });

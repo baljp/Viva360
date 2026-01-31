@@ -27,7 +27,7 @@ const navItemsDefinition = (user: User | null) => {
             { id: ViewState.SETTINGS, label: 'Perfil', icon: UserIcon },
         ];
         case UserRole.PROFESSIONAL: return [
-            { id: ViewState.PRO_HOME, label: 'Início', icon: Activity },
+            { id: ViewState.PRO_HOME, label: 'Início', icon: Home },
             { id: ViewState.PRO_PATIENTS, label: 'Jardim', icon: Flower }, 
             { id: ViewState.PRO_AGENDA, label: 'Agenda', icon: Calendar },
             { id: ViewState.SETTINGS, label: 'Perfil', icon: UserIcon },
@@ -78,16 +78,16 @@ const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, o
 const BottomNav: React.FC<Omit<LayoutProps, 'children'>> = ({ user, currentView, setView }) => {
     const navItems = navItemsDefinition(user);
     return (
-        <div className="lg:hidden fixed bottom-0 left-0 w-full px-4 z-[100] pb-[calc(1.5rem+env(safe-area-inset-bottom,20px))] pt-4 pointer-events-none">
-            <nav className="mx-auto bg-white/95 backdrop-blur-2xl border border-nature-100 shadow-[0_10px_60px_rgba(0,0,0,0.15)] rounded-[2.8rem] flex justify-between items-center px-2 h-[4.8rem] pointer-events-auto max-w-md relative ring-1 ring-white/50">
+        <div className="lg:hidden fixed bottom-6 left-0 w-full px-6 z-[100] pb-[env(safe-area-inset-bottom,20px)] pointer-events-none">
+            <nav className="mx-auto bg-white/95 backdrop-blur-2xl border border-nature-100 shadow-[0_10px_60px_rgba(0,0,0,0.15)] rounded-full flex justify-between items-center px-2 h-14 pointer-events-auto max-w-md relative ring-1 ring-white/50">
                 {navItems.map(item => {
                     const active = currentView === item.id;
                     return (
                         <button key={item.id} onClick={() => setView(item.id)} className="flex-1 flex flex-col items-center justify-center h-full relative group outline-none">
-                            <div className={`p-3.5 rounded-[1.4rem] transition-all duration-500 ease-out ${active ? 'bg-nature-900 text-white -translate-y-8 shadow-[0_15px_30px_rgba(0,0,0,0.2)] scale-110' : 'text-nature-400'}`}>
+                            <div className={`p-2.5 rounded-2xl transition-all duration-500 ease-out ${active ? 'bg-nature-900 text-white -translate-y-6 shadow-[0_15px_30px_rgba(0,0,0,0.2)] scale-110' : 'text-nature-400'}`}>
                                 <item.icon size={22} />
                             </div>
-                            <span className={`absolute bottom-2.5 text-[9px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${active ? 'opacity-100 translate-y-0 text-nature-900' : 'opacity-0 translate-y-2'}`}>{item.label}</span>
+                            <span className={`absolute bottom-1.5 text-[8px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${active ? 'opacity-100 translate-y-0 text-nature-900' : 'opacity-0 translate-y-2'}`}>{item.label}</span>
                         </button>
                     );
                 })}

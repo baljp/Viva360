@@ -28,17 +28,19 @@ export const ClientViews: React.FC<{
            [ViewState.CLIENT_TRIBO]: ['TRIBE_DASH', 'TRIBE_INVITE', 'TRIBE_INTERACTION', 'TRIBE_VIEW', 'HEALING_CIRCLE', 'CHAT_LIST', 'CHAT_ROOM', 'SOUL_PACT'],
            [ViewState.CLIENT_EXPLORE]: ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM'],
            [ViewState.CLIENT_PRO_DETAILS]: ['BOOKING_SELECT'],
+           [ViewState.CLIENT_MARKETPLACE]: ['MARKETPLACE'], // Specific cluster for marketplace
        };
 
        const defaultStates: Record<string, BuscadorState> = {
            [ViewState.CLIENT_HOME]: 'DASHBOARD',
            [ViewState.CLIENT_JOURNAL]: 'CLIENT_JOURNAL',
            [ViewState.CLIENT_ORACLE]: 'ORACLE_PORTAL',
-           [ViewState.CLIENT_JOURNEY]: 'EVOLUTION', 
+           [ViewState.CLIENT_JOURNEY]: 'GARDEN_VIEW', // Deep link to garden
            [ViewState.CLIENT_METAMORPHOSIS]: 'METAMORPHOSIS_CHECKIN', 
            [ViewState.CLIENT_TRIBO]: 'TRIBE_DASH',
            [ViewState.CLIENT_EXPLORE]: 'BOOKING_SEARCH',
            [ViewState.CLIENT_PRO_DETAILS]: 'BOOKING_SELECT',
+           [ViewState.CLIENT_MARKETPLACE]: 'MARKETPLACE',
        };
 
        const allowedStates = clusters[view];

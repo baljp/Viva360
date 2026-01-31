@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { ViewState, User, DailyRitualSnap } from '../../types';
 import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle, TrendingUp, Book } from 'lucide-react';
-import { DynamicAvatar, PortalCard, ZenToast, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
+import { DynamicAvatar, PortalCard, ZenToast, RitualCompletionCard, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
@@ -16,7 +16,7 @@ export const ClientDashboard: React.FC<{
     const { state, actions } = useClientDashboard(user, updateUser, setView);
     const { go } = actions;
     // Destructure state for easier access in JSX
-    const { toast, activeModal, inviteEmail, showNotifications, notifications, gardenStatus, plantVisuals } = state;
+    const { toast, ritualToast, activeModal, inviteEmail, showNotifications, notifications, gardenStatus, plantVisuals } = state;
 
     // Feature: Karma Synchronization Visual Feedback
     React.useEffect(() => {
@@ -30,6 +30,15 @@ export const ClientDashboard: React.FC<{
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-24">
             {toast && <ZenToast toast={toast} onClose={() => actions.setToast(null)} />}
+            {ritualToast && (
+                <RitualCompletionCard 
+                    isOpen={!!ritualToast} 
+                    onClose={() => actions.setRitualToast(null)} 
+                    title={ritualToast.title}
+                    message={ritualToast.message}
+                    mood={user.lastMood || 'SERENO'}
+                />
+            )}
             <NotificationDrawer 
                 isOpen={showNotifications} 
                 onClose={() => actions.setShowNotifications(false)} 
@@ -105,8 +114,6 @@ export const ClientDashboard: React.FC<{
                                          onClick={(e) => { 
                                              e.stopPropagation(); 
                                              actions.handleWaterPlant();
-                                             // Optimistic UI for immediate feedback
-                                             actions.setToast({ title: "Essência Harmonizada", message: "Sua essência floresceu com o toque da alma." });
                                          }}
                                          className="p-3 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 text-white hover:bg-white/40 active:scale-90 transition-all shadow-lg w-full flex items-center justify-center gap-2"
                                          title="Nutrir Agora"

@@ -188,43 +188,23 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
 
 const GrowthTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <div className="bg-gradient-to-r from-amber-100 to-orange-50 p-6 rounded-[2.5rem] border border-amber-200 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all shadow-sm" onClick={() => go('TEAM_INVITE')}>
-            <div>
-                 <h4 className="font-serif italic text-2xl text-amber-900">Ampliar Chamado</h4>
-                 <p className="text-xs text-amber-700 mt-1 max-w-[200px]">Atraia novos guardiões e impulsione a vibração do espaço.</p>
-                 <button className="mt-3 px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest">Convidar Guardião</button>
-            </div>
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
-                <Globe size={32} className="text-amber-500" />
-            </div>
-        </div>
-
-        <div className="bg-gradient-to-r from-indigo-100 to-blue-50 p-6 rounded-[2.5rem] border border-indigo-200 flex items-center justify-between cursor-pointer hover:shadow-lg transition-all shadow-sm" onClick={() => go('ROOM_CREATE')}>
-            <div>
-                 <h4 className="font-serif italic text-2xl text-indigo-900">Consagrar Altar</h4>
-                 <p className="text-xs text-indigo-700 mt-1 max-w-[200px]">Consagre um novo espaço físico para atendimentos e rituais.</p>
-                 <button className="mt-3 px-4 py-2 bg-indigo-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest">Consagrar Altar</button>
-            </div>
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm">
-                <Plus size={32} className="text-indigo-500" />
-            </div>
-        </div>
-
-        <div onClick={() => go('VAGAS_LIST')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition-all">
-             <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600"><Briefcase size={22}/></div>
-             <div className="flex-1">
-                 <h4 className="font-bold text-nature-900">Mural de Vagas</h4>
-                 <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Recrutamento</p>
+        <div onClick={() => go('VAGAS_LIST')} className="bg-indigo-900 p-8 rounded-[3.5rem] shadow-xl flex items-center gap-6 cursor-pointer hover:bg-black transition-all group relative overflow-hidden">
+             <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
+             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-white"><Briefcase size={32}/></div>
+             <div className="flex-1 relative z-10">
+                 <h4 className="text-2xl font-serif italic text-white leading-tight">Mural de Vagas</h4>
+                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mt-1">Expansão de Guardiões</p>
              </div>
-             <div className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-[10px] font-bold">3 Abertas</div>
+             <div className="px-4 py-2 bg-white text-indigo-900 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-indigo-400 group-hover:text-white transition-colors">Ver Mural</div>
         </div>
 
         <div onClick={() => go('MARKETPLACE_MANAGE')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition-all">
              <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600"><ShoppingBag size={22}/></div>
              <div className="flex-1">
-                 <h4 className="font-bold text-nature-900">Bazar do Santuário</h4>
+                 <h4 className="font-bold text-nature-900 text-lg">Bazar do Santuário</h4>
                  <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Produtos & Serviços</p>
              </div>
+             <ChevronRight size={16} className="text-nature-300"/>
         </div>
 
         <div onClick={() => go('PREDICTIVE_OCCUPANCY')} className="bg-indigo-900 p-6 rounded-[2.5rem] shadow-xl flex items-center gap-4 cursor-pointer hover:bg-black transition-all group">
