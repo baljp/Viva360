@@ -146,7 +146,7 @@ export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolea
 
                                 <div className="relative">
                                     <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-primary-50 shadow-md relative z-10">
-                                        <img src={pro.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${pro.name}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={pro.name} />
+                                        <img src={pro.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${pro.name}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={pro.name} />
                                     </div>
                                     {pro.isVerified && (
                                         <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1.5 rounded-lg shadow-lg z-20 border-2 border-white">
