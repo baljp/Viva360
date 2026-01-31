@@ -32,6 +32,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({ 
         mood: 'SERENO', image: '', intention: '', gratitude: ''
     });
+    const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
+    const [isSaving, setIsSaving] = useState(false);
 
     const handleMoodSelect = (mood: MoodType) => {
         setData({ ...data, mood });
@@ -128,7 +130,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
             userImg.onload = () => {
                 const W = 1080;
-                const H = 1920; // Changed to Story Format for consistency
+                const H = format === 'STORY' ? 1920 : 1350; // Story (9:16) or Post (4:5)
                 canvas.width = W;
                 canvas.height = H;
 
@@ -151,10 +153,10 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 ctx.globalAlpha = 1.0;
 
                 // --- LAYER 2: PHOTO (Protagonist) ---
-                const photoW = 900;
-                const photoH = 1200;
+                const photoW = format === 'STORY' ? 900 : 1000;
+                const photoH = format === 'STORY' ? 1200 : 800;
                 const photoX = (W - photoW) / 2;
-                const photoY = 250;
+                const photoY = format === 'STORY' ? 250 : 200;
 
                 ctx.save();
                 // Rounded clip for photo
@@ -225,8 +227,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 ctx.restore();
 
                 // --- LAYER 3: GLASSMORPHISM BACKDROP FOR QUOTE ---
-                const quoteH = 400;
-                const quoteY = photoY + photoH - 150;
+                const quoteH = format === 'STORY' ? 400 : 250;
+                const quoteY = photoY + photoH - (format === 'STORY' ? 150 : 80);
                 
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.3)';
@@ -298,7 +300,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 ctx.fillText('VIVA360 • RITUAL DIÁRIO', centerX, sealY);
             };
         }
-    }, [step, data.image]);
+    }, [step, data.image, format]);
 
     // State to hold updated user for completion
     const [finalUser, setFinalUser] = useState<User | null>(null);
@@ -468,10 +470,23 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                         </button>
                     ) : (
                         <div className="space-y-3 animate-in slide-in-from-bottom fade-in duration-500">
-                             <div className="grid grid-cols-2 gap-3">
-                                <button onClick={shareCard} className="py-4 bg-pink-600 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"><Instagram size={20}/> Stories</button>
-                                <button onClick={downloadCard} className="py-4 bg-white/10 text-white border border-white/20 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-white/20 active:scale-95 transition-all"><Download size={20}/> Salvar</button>
-                             </div>
+                             {/* Aspect Ratio Toggle */}
+                        <div className="flex gap-2 mb-6">
+                            {(['STORY', 'POST'] as const).map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFormat(f)}
+                                    className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${format === f ? 'bg-nature-900 text-white' : 'bg-nature-50 text-nature-400'}`}
+                                >
+                                    {f === 'STORY' ? '9:16 Story' : '4:5 Feed'}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex gap-3 mb-4">
+                            <button onClick={shareCard} className="flex-1 py-5 bg-nature-900 text-white rounded-3xl font-bold uppercase tracking-widest text-xs shadow-2xl active:scale-95 transition-all">Compartilhar</button>
+                            <button onClick={downloadCard} className="p-5 bg-nature-50 text-nature-900 rounded-3xl active:scale-95 transition-all"><Download size={20}/></button>
+                        </div>
                              <button onClick={handleNurtureStart} className="w-full py-5 bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-widest shadow-xl hover:bg-emerald-400 active:scale-95 transition-all flex items-center justify-center gap-2">
                                 <Droplet size={18} className="fill-white" /> Nutrir Jardim da Alma
                              </button>
