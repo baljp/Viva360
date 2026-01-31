@@ -124,7 +124,7 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                             
                             {/* Premium Image Layer */}
                             <div className="absolute inset-0 h-[75%]">
-                                <img src={card.imageUrl} alt={card.name} className="w-full h-full object-cover" />
+                                <img src={card.imageUrl} alt={card.name} crossOrigin="anonymous" className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-nature-50/80" />
                             </div>
 
