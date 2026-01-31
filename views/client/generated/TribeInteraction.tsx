@@ -70,7 +70,7 @@ export default function TribeInteraction() {
                <h1 className="font-bold text-slate-900">Círculo de Cura</h1>
                <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> 12 Guardiões Online</p>
            </div>
-           <button onClick={() => alert('Pactos Individuais em breve!')} className="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center hover:bg-amber-100 transition-colors" title="Pactos">
+           <button onClick={() => go('SOUL_PACT')} className="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center hover:bg-amber-100 transition-colors" title="Pactos">
               <Handshake size={20} />
            </button>
        </header>

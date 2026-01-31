@@ -47,6 +47,7 @@ const OracleGrimoire = lazyNamed(() => import('../../views/client/garden/OracleG
 const CollectionGrimoire = lazyNamed(() => import('../../views/client/garden/CollectionGrimoire'), 'CollectionGrimoire');
 const SoulJournalView = lazyNamed(() => import('../../views/client/journal/SoulJournalView'), 'SoulJournalView');
 const HealingCircleEntry = lazyNamed(() => import('../../views/client/tribe/HealingCircleEntry'), 'HealingCircleEntry');
+const SoulPactInteraction = lazyNamed(() => import('../../views/client/tribe/SoulPactInteraction'), 'SoulPactInteraction');
 
 // --- GUARDIAO SCREENS ---
 const ProDashboard = lazyNamed(() => import('../../views/pro/ProDashboard'), 'ProDashboard');
@@ -139,6 +140,7 @@ export const screenMap: any = {
         ORACLE_HISTORY: OracleGrimoire,
         EVO_GRIMOIRE: CollectionGrimoire,
         CLIENT_JOURNAL: SoulJournalView,
+        SOUL_PACT: SoulPactInteraction,
     },
     // GUARDIAO
     GUARDIAO: {

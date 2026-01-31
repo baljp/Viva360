@@ -14,7 +14,7 @@ export const ClientViews: React.FC<{
   onAddToCart: (p: Product) => void,
   onLogout: () => void
 }> = ({ user, view, setView, updateUser, onAddToCart, onLogout }) => {
-  const { state: flowState, go, back, reset, refreshData } = useBuscadorFlow();
+  const { state: flowState, go, jump, back, reset, refreshData } = useBuscadorFlow();
 
    // Sync Router View -> Flow State (Deep Linking Support)
    useEffect(() => {
@@ -25,7 +25,7 @@ export const ClientViews: React.FC<{
            [ViewState.CLIENT_ORACLE]: ['ORACLE_PORTAL', 'ORACLE_SHUFFLE', 'ORACLE_REVEAL', 'ORACLE_HISTORY'],
            [ViewState.CLIENT_JOURNEY]: ['EVOLUTION', 'EVOLUTION_ANALYTICS', 'EVOLUTION_ACHIEVEMENTS', 'EVOLUTION_HISTORY', 'EVOLUTION_TIMELAPSE', 'TIME_LAPSE_EXPERIENCE', 'GARDEN_VIEW'], 
            [ViewState.CLIENT_METAMORPHOSIS]: ['METAMORPHOSIS_CHECKIN', 'METAMORPHOSIS_CAMERA', 'METAMORPHOSIS_MESSAGE', 'METAMORPHOSIS_RITUAL', 'METAMORPHOSIS_FEEDBACK'], 
-           [ViewState.CLIENT_TRIBO]: ['TRIBE_DASH', 'TRIBE_INVITE', 'TRIBE_INTERACTION', 'TRIBE_VIEW', 'HEALING_CIRCLE', 'CHAT_LIST', 'CHAT_ROOM'],
+           [ViewState.CLIENT_TRIBO]: ['TRIBE_DASH', 'TRIBE_INVITE', 'TRIBE_INTERACTION', 'TRIBE_VIEW', 'HEALING_CIRCLE', 'CHAT_LIST', 'CHAT_ROOM', 'SOUL_PACT'],
            [ViewState.CLIENT_EXPLORE]: ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM'],
            [ViewState.CLIENT_PRO_DETAILS]: ['BOOKING_SELECT'],
        };
@@ -47,7 +47,7 @@ export const ClientViews: React.FC<{
        if (!isAlreadyInCluster) {
            const target = defaultStates[view];
            if (target && flowState.currentState !== target) {
-               go(target);
+               jump(target); // Force synchronization when switching tabs
            }
        }
    }, [view]);
@@ -65,7 +65,7 @@ export const ClientViews: React.FC<{
   return (
     <div className="w-full h-full bg-[#f8faf9]">
         {flowState.error && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[500] bg-rose-50 border border-rose-100 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-500">
+            <div className="fixed top-[15vh] left-1/2 -translate-x-1/2 z-[500] bg-rose-50 border border-rose-100 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-500">
                 <p className="text-rose-900 text-xs font-bold uppercase tracking-widest">{flowState.error}</p>
                 <button onClick={() => refreshData()} className="p-2 bg-rose-100 rounded-lg text-rose-600 hover:bg-rose-200 transition-colors uppercase text-[9px] font-bold">Tentar Novamente</button>
             </div>
@@ -76,10 +76,11 @@ export const ClientViews: React.FC<{
             user={user} 
             updateUser={updateUser}
             setView={setView} 
-            flow={{ state: flowState, go, back, reset }}
+            flow={{ state: flowState, go, jump, back, reset }}
             onClose={reset}
             {...globalData}
         />
     </div>
   );
+
 };

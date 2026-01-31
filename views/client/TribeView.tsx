@@ -39,7 +39,7 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> 
                </div>
             </div>
 
-           <div className="bg-white p-6 rounded-[3rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all" onClick={() => go('TRIBE_INTERACTION')}>
+           <div className="bg-white p-6 rounded-[3rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all" onClick={() => go('SOUL_PACT')}>
               <div className="flex items-center gap-5">
                  <div className="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform"><Flame size={28}/></div>
                  <div>
