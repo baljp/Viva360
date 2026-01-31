@@ -251,10 +251,16 @@ export const SpaceDashboard: React.FC<{
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     };
     
-    // Calculated Revenue
+    // Dynamic Radiance Score Calculation
     const revenue = Transactions
         .filter(t => t.type === 'income')
         .reduce((acc, t) => acc + t.amount, 0);
+
+    const teamEffect = Math.min(30, team.length * 5); // Up to 30 points for team
+    const revenueEffect = Math.min(40, (revenue / 1000) * 10); // Up to 40 points for revenue
+    const baseline = 30; // Baseline harmony
+    const radianceScore = Math.floor(baseline + teamEffect + revenueEffect);
+    const trend = 2.4 + (team.length * 0.1); // Dynamic trend
 
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-32">
@@ -286,7 +292,7 @@ export const SpaceDashboard: React.FC<{
             </header>
 
             <div className="px-4">
-                <RadianceHero score={94} trend={3.2} go={go} />
+                <RadianceHero score={radianceScore} trend={trend} go={go} />
                 <RadianceDetailsModal isOpen={isRadianceModalOpen} onClose={() => setIsRadianceModalOpen(false)} />
 
                 {/* TABS NAVIGATION */}

@@ -227,56 +227,32 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 
                 ctx.restore();
 
-                // --- LAYER 3: GLASSMORPHISM BACKDROP FOR QUOTE ---
-                const quoteH = 400;
-                const quoteY = photoY + photoH - 150; // Overlaps bottom of photo
-                
-                ctx.save();
-                ctx.shadowColor = 'rgba(0,0,0,0.3)';
-                ctx.shadowBlur = 40;
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
-                drawRoundRect(photoX + 50, quoteY, photoW - 100, quoteH, 50);
-                ctx.fill();
-                
-                // Glass border
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.restore();
-
-                // --- LAYER 4: SYMBOLS & TEXT ---
+                // --- LAYER 3: PREMIUM SIGNATURE AREA (NO POLLUTION) ---
+                const quoteAreaY = photoY + photoH + 40;
                 const centerX = W / 2;
 
-                // 1. Sacred Symbol (Above quote)
-                ctx.globalAlpha = 0.6;
-                ctx.strokeStyle = elementColor;
-                ctx.lineWidth = 3;
-                const symY = quoteY + 60;
+                // 1. Divider Line (Subtle)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.arc(centerX, symY, 30, 0, Math.PI * 2);
+                ctx.moveTo(photoX + 100, quoteAreaY);
+                ctx.lineTo(photoX + photoW - 100, quoteAreaY);
                 ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(centerX - 15, symY);
-                ctx.lineTo(centerX + 15, symY);
-                ctx.moveTo(centerX, symY - 15);
-                ctx.lineTo(centerX, symY + 15);
-                ctx.stroke();
-                ctx.globalAlpha = 1.0;
 
-                // 2. The Master Phrase (Quote)
+                // 2. The Soul Archetype (Quote) - Elegant & Focused
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#f8fafc'; // Off-white (Sky 50)
-                ctx.font = 'italic 52px serif'; // Elegant Serif
+                ctx.textBaseline = 'top';
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'italic 48px serif';
                 
                 const words = result.quote.split(' ');
                 let line = '';
-                let lineY = quoteY + 180;
-                const lineHeight = 75;
+                let lineY = quoteAreaY + 60;
+                const lineHeight = 65;
 
                 for(let n = 0; n < words.length; n++) {
                   const testLine = line + words[n] + ' ';
-                  if (ctx.measureText(testLine).width > (photoW - 200) && n > 0) {
+                  if (ctx.measureText(testLine).width > (photoW - 150) && n > 0) {
                     ctx.fillText(line.trim(), centerX, lineY);
                     line = words[n] + ' ';
                     lineY += lineHeight;
@@ -286,19 +262,21 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 }
                 ctx.fillText(line.trim(), centerX, lineY);
 
-                // 3. Metadata (Contextual & Discrete)
-                const metaY = H - 180;
-                ctx.font = 'bold 24px sans-serif';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                const dateStr = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
-                ctx.fillText(dateStr, centerX, metaY);
+                // --- LAYER 4: METADATA & ARQUETYPE SEAL ---
+                const footerY = H - 120;
                 
-                // 4. Ritual Seal (Signature)
-                const sealY = H - 100;
+                // Date (Discrete)
                 ctx.font = 'bold 20px sans-serif';
-                ctx.fillStyle = '#d4af37'; // Golden
-                (ctx as any).letterSpacing = '6px';
-                ctx.fillText('VIVA360 • ARQUÉTIPO DA ALMA', centerX, sealY);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                (ctx as any).letterSpacing = '4px';
+                const dateStr = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }).toUpperCase();
+                ctx.fillText(dateStr, centerX, footerY - 40);
+                
+                // Signature (Golden Mastery)
+                ctx.font = 'bold 22px sans-serif';
+                ctx.fillStyle = '#d4af37';
+                (ctx as any).letterSpacing = '8px';
+                ctx.fillText(`VIVA360 • ESSÊNCIA & EVOLUÇÃO`, centerX, footerY);
 
                 setPreviewUrl(canvas.toDataURL('image/png'));
                 setIsDrawing(false);
@@ -364,21 +342,29 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
                 {/* STEP 2: PREMIUM CAMERA */}
                 {step === 2 && (
-                    <div className="flex-1 flex flex-col items-center animate-in fade-in slide-in-from-right duration-500">
-                        <div className="text-center mb-8">
-                            <h2 className="text-2xl font-serif italic text-nature-900">Agora registre esse dia.</h2>
-                            <p className="text-[10px] text-nature-400 uppercase tracking-widest font-bold mt-2">Ele fez parte da sua história.</p>
+                    <div className="flex-1 flex flex-col items-center animate-in fade-in slide-in-from-right duration-500 bg-black">
+                        <div className="h-[10%] flex items-center justify-between w-full px-8 pt-4">
+                             <button onClick={() => setStep(1)} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><ArrowRight className="rotate-180" size={20}/></button>
+                             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400">Metamorfose</p>
+                             <button onClick={onClose || (() => flow.reset())} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><X size={20}/></button>
                         </div>
-                        <div className="w-full aspect-square bg-black rounded-[3rem] relative overflow-hidden shadow-2xl border-2 border-white mb-8">
-                            <CameraWidget onCapture={handleCapture} />
-                            {/* Premium Viewport Overlay */}
-                            <div className="absolute inset-0 pointer-events-none border-[1.5rem] border-black/10 flex items-center justify-center">
-                                <div className="w-full h-full border border-white/20 rounded-[2rem]"></div>
+                        
+                        <div className="h-[70%] w-full relative overflow-hidden bg-black flex items-center justify-center">
+                            <div className="w-full h-full max-w-md relative">
+                                <CameraWidget onCapture={handleCapture} />
+                                {/* Premium Viewport Overlay */}
+                                <div className="absolute inset-0 pointer-events-none border-[1.5rem] border-black/10 flex items-center justify-center">
+                                    <div className="w-full h-full border border-white/20 rounded-[2rem]"></div>
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2 text-nature-400">
-                            <ShieldCheck size={14} />
-                            <span className="text-[9px] font-bold uppercase tracking-widest">Enclave de Privacidade Ativo</span>
+
+                        <div className="h-[20%] w-full bg-black p-8 text-center flex flex-col items-center justify-center">
+                            <div className="flex items-center gap-2 text-nature-400 mb-2">
+                                <ShieldCheck size={14} />
+                                <span className="text-[9px] font-bold uppercase tracking-widest">Presença Registrada</span>
+                            </div>
+                            <h3 className="text-white font-serif italic text-lg leading-tight">Sintonizando sua forma atual.</h3>
                         </div>
                     </div>
                 )}

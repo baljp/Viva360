@@ -17,6 +17,7 @@ interface FlowContextState extends BaseFlowState<BuscadorState> {
         products: Product[];
     };
     selectedProfessionalId: string | null;
+    selectedDate: Date | null;
 }
 
 // Actions
@@ -25,7 +26,8 @@ type FlowAction =
     | { type: 'SET_DATA'; payload: { pros: Professional[]; products: Product[] } }
     | { type: 'SHOW_TOAST'; payload: { title: string; message: string } }
     | { type: 'CLEAR_TOAST' }
-    | { type: 'SELECT_PROFESSIONAL'; payload: string | null };
+    | { type: 'SELECT_PROFESSIONAL'; payload: string | null }
+    | { type: 'SELECT_DATE'; payload: Date | null };
 
 // Initial State Factory
 const createInitialState = (): FlowContextState => ({
@@ -40,6 +42,7 @@ const createInitialState = (): FlowContextState => ({
         products: [],
     },
     selectedProfessionalId: null,
+    selectedDate: new Date(),
     ritualCompletion: null
 });
 
@@ -82,6 +85,8 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
             return { ...state, toast: null };
         case 'SELECT_PROFESSIONAL':
             return { ...state, selectedProfessionalId: action.payload };
+        case 'SELECT_DATE':
+            return { ...state, selectedDate: action.payload };
         default:
             return baseReducer(state, action as any) as FlowContextState;
     }
@@ -96,6 +101,7 @@ const BuscadorFlowContext = createContext<{
     reset: () => void;
     refreshData: () => Promise<void>;
     selectProfessional: (id: string | null) => void;
+    selectDate: (date: Date | null) => void;
 } | undefined>(undefined);
 
 // Provider Component
@@ -144,9 +150,10 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const back = () => dispatch({ type: 'BACK' });
     const reset = () => dispatch({ type: 'RESET' });
     const selectProfessional = (id: string | null) => dispatch({ type: 'SELECT_PROFESSIONAL', payload: id });
+    const selectDate = (date: Date | null) => dispatch({ type: 'SELECT_DATE', payload: date });
 
     return (
-        <BuscadorFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectProfessional }}>
+        <BuscadorFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectProfessional, selectDate }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard 

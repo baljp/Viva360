@@ -6,7 +6,7 @@ import { DynamicAvatar, PortalView, ZenSkeleton } from '../../components/Common'
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 
 export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }) => {
-    const { go, state } = useBuscadorFlow();
+    const { go, state, selectDate } = useBuscadorFlow();
     
     // Find selected pro from context state or props
     const contextPro = state.data.pros.find(p => p.id === state.selectedProfessionalId);
@@ -43,6 +43,32 @@ export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }
                     <button className="p-3 bg-nature-50 text-nature-600 rounded-2xl border border-nature-100 hover:bg-white transition-all"><MessageCircle size={20}/></button>
                 </div>
             </div>
+
+            {/* Quick Date Selection */}
+            <div className="px-2 space-y-4">
+                <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Janela de Atendimento</h4>
+                <div className="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+                    {[0, 1, 2].map(days => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + days);
+                        const isSelected = state.selectedDate?.toDateString() === d.toDateString();
+                        return (
+                            <div 
+                                key={days}
+                                onClick={() => selectDate(d)}
+                                className={`flex-shrink-0 w-24 p-4 rounded-3xl border-2 transition-all cursor-pointer text-center ${isSelected ? 'border-nature-900 bg-white shadow-md' : 'border-nature-50 bg-nature-50/50'}`}
+                            >
+                                <p className="text-[8px] font-black text-nature-400 uppercase tracking-tighter mb-1">
+                                    {days === 0 ? 'Hoje' : days === 1 ? 'Amanhã' : d.toLocaleDateString('pt-BR', { weekday: 'short' })}
+                                </p>
+                                <p className="text-lg font-serif italic text-nature-900">{d.getDate()}</p>
+                                <p className="text-[8px] font-bold text-nature-400 uppercase">{d.toLocaleDateString('pt-BR', { month: 'short' })}</p>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
             <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
                 <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Biografia</h4>
                 <p className="text-sm text-nature-600 italic leading-relaxed px-2">"{pro.bio || 'Dedicado à cura integral e ao despertar da consciência através de práticas ancestrais e modernas.'}"</p>

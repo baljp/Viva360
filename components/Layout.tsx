@@ -20,7 +20,6 @@ const navItemsDefinition = (user: User | null) => {
     switch(user.role) {
         case UserRole.CLIENT: return [
             { id: ViewState.CLIENT_HOME, label: 'Início', icon: Home },
-            { id: ViewState.CLIENT_JOURNAL, label: 'Diário', icon: Book },
             { id: ViewState.CLIENT_JOURNEY, label: 'Jornada', icon: Sun },
             { id: ViewState.CLIENT_EXPLORE, label: 'Explorar', icon: Compass },
             { id: ViewState.CLIENT_TRIBO, label: 'Tribo', icon: Heart },
