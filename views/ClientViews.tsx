@@ -79,7 +79,7 @@ export const ClientViews: React.FC<{
             updateUser={updateUser}
             setView={setView} 
             flow={{ state: flowState, go, jump, back, reset }}
-            onClose={reset}
+            onClose={() => { reset(); setView(ViewState.CLIENT_HOME); }}
             {...globalData}
         />
     </div>

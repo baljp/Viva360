@@ -169,6 +169,14 @@ export const gardenService = {
             'transforma': 'orchid'
         };
         return mapping[journey] || 'oak';
+    },
+
+    calculateRitualReward: (user: User) => {
+        return {
+            xp: 10,
+            karma: 10,
+            health: 5
+        };
     }
 };
 
