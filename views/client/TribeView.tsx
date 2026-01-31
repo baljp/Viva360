@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
-import { Flame, Plus, Trophy, Heart } from 'lucide-react';
+import { Flame, Plus, Trophy, Heart, Moon } from 'lucide-react';
 import { PortalView, BottomSheet, DynamicAvatar } from '../../components/Common';
 import { ConstellationOrbit, GlobalMandala } from '../../components/SocialFeatures';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
@@ -55,7 +55,21 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void }> 
                  <span className="absolute text-[10px] font-black text-amber-600">57%</span>
               </div>
            </div>
-        </div>
+
+            {/* Offline Retreat Entry */}
+            <div onClick={() => go('OFFLINE_RETREAT')} className="bg-nature-900 rounded-[2.5rem] p-6 text-white flex items-center justify-between cursor-pointer hover:bg-black transition-all group">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-indigo-300 group-hover:scale-110 transition-transform">
+                        <Moon size={24} />
+                    </div>
+                    <div>
+                        <h5 className="text-sm font-bold">Retiro Offline</h5>
+                        <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mt-0.5">Silenciar notificações</p>
+                    </div>
+                </div>
+                <div className="px-3 py-1 bg-white/10 rounded-full text-[8px] font-black text-white/60 tracking-widest uppercase">Ativar</div>
+            </div>
+         </div>
 
         <div className="bg-indigo-900 rounded-[3.5rem] p-10 text-white text-center space-y-6 relative overflow-hidden">
            <Trophy size={160} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />

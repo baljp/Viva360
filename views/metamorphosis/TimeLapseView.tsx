@@ -17,6 +17,9 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
     const [loading, setLoading] = useState(true);
+    const [gardenSnaps, setGardenSnaps] = useState<any[]>([]);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const [volume, setVolume] = useState(0.5);
 
     // Load Data
     useEffect(() => {
@@ -45,8 +48,9 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     }, []);
 
     // CANVAS DRAWING (The Engine)
-    const drawFrame = (entry: any, progress: number) => {
+    const drawFrame = (allEntries: any[], index: number, progress: number) => {
         const canvas = canvasRef.current;
+        const entry = allEntries[index];
         if (!canvas || !entry) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
@@ -60,28 +64,98 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
         // Clean
         ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(0, 0, W, H);
+        const garden = gardenSnaps.find(s => 
+            new Date(s.date).toDateString() === new Date(entry.timestamp).toDateString()
+        );
 
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = entry.photoThumb;
+        const imgCard = new Image();
+        imgCard.crossOrigin = "anonymous";
+        imgCard.src = entry.photoThumb;
+
+        const imgGarden = new Image();
+        if (garden) {
+            imgGarden.crossOrigin = "anonymous";
+            imgGarden.src = garden.image;
+        }
         
         // Dynamic Zoom Effect based on progress (Ken Burns)
-        const zoom = 1 + (progress / 200); // 1.0 to 1.5
+        const zoom = 1 + (progress / 200); 
         
-        // Draw Image (Centered & Cover)
         const draw = () => {
-            const scale = Math.max(W / img.width, H / img.height) * zoom;
-            const x = (W - img.width * scale) / 2;
-            const y = (H - img.height * scale) / 2;
-            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            // --- LAYER 0: JARDIM (BACKGROUND STATE) ---
+            if (garden && imgGarden.complete) {
+                const gScale = Math.max(W / imgGarden.width, H / imgGarden.height) * zoom;
+                const gx = (W - imgGarden.width * gScale) / 2;
+                const gy = (H - imgGarden.height * gScale) / 2;
+                
+                ctx.save();
+                ctx.filter = 'blur(20px) saturate(0.5) brightness(0.6)'; // Contemplative / Subtle
+                ctx.drawImage(imgGarden, gx, gy, imgGarden.width * gScale, imgGarden.height * gScale);
+                ctx.restore();
+            } else {
+                // Background Fallback
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, W, H);
+            }
+
+            // --- LAYER 1: SOUL CARD (FOREGROUND NARRATIVE) ---
+            const cardW = 900;
+            const cardH = 1200;
+            const cardX = (W - cardW) / 2;
+            const cardY = (H - cardH) / 2 - 100;
+
+            const scale = Math.max(cardW / imgCard.width, cardH / imgCard.height) * (zoom * 0.95);
+            const x = cardX + (cardW - imgCard.width * scale) / 2;
+            const y = cardY + (cardH - imgCard.height * scale) / 2;
+
+            // --- IG QUALITY PIPELINE (SOUL CARD) ---
+            ctx.save();
             
-            // Overlay Gradient (Apply after image)
-            const grad = ctx.createLinearGradient(0, H/2, 0, H);
+            // Rounded Clip for Card
+            const r = 40;
+            ctx.beginPath();
+            ctx.moveTo(cardX + r, cardY);
+            ctx.arcTo(cardX + cardW, cardY, cardX + cardW, cardY + cardH, r);
+            ctx.arcTo(cardX + cardW, cardY + cardH, cardX, cardY + cardH, r);
+            ctx.arcTo(cardX, cardY + cardH, cardX, cardY, r);
+            ctx.arcTo(cardX, cardY, cardX + cardW, cardY, r);
+            ctx.closePath();
+            ctx.clip();
+
+            // Card Image
+            ctx.filter = `brightness(1.05) contrast(1.1) saturate(1.1)`;
+            ctx.drawImage(imgCard, x, y, imgCard.width * scale, imgCard.height * scale);
+            ctx.filter = 'none';
+
+            // Card Overlay
+            const grad = ctx.createLinearGradient(0, cardY + cardH * 0.4, 0, cardY + cardH);
             grad.addColorStop(0, 'transparent');
-            grad.addColorStop(1, 'rgba(0,0,0,0.9)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.6)');
             ctx.fillStyle = grad;
+            ctx.fillRect(cardX, cardY, cardW, cardH);
+
+            ctx.restore();
+
+            // --- LAYER 2: OVERLAY & TEXT ---
+            
+            // Grain/Noise
+            const grainCanvas = document.createElement('canvas');
+            grainCanvas.width = 128;
+            grainCanvas.height = 128;
+            const gCtx = grainCanvas.getContext('2d')!;
+            const gData = gCtx.createImageData(128, 128);
+            for (let i = 0; i < gData.data.length; i += 4) {
+                const val = Math.random() * 255;
+                gData.data[i] = val;
+                gData.data[i+1] = val;
+                gData.data[i+2] = val;
+                gData.data[i+3] = 15;
+            }
+            gCtx.putImageData(gData, 0, 0);
+            ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat')!;
+            ctx.globalAlpha = 0.04;
             ctx.fillRect(0, 0, W, H);
+            ctx.globalAlpha = 1.0;
 
             // Text Overlay
             ctx.textAlign = 'center';
@@ -89,10 +163,12 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             
             // Mood Badge
             ctx.font = 'bold 40px sans-serif';
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 10;
             ctx.fillText(entry.mood?.toUpperCase() || 'JORNADA', W/2, H - 500);
 
-            // Quote
-            ctx.font = 'italic 60px serif';
+            // Quote - Premium Serif
+            ctx.font = 'italic 58px "Playfair Display", serif';
             const words = (entry.quote || '').split(' ');
             let line = '';
             let lineY = H - 400;
@@ -107,6 +183,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                 }
             }
             ctx.fillText(line, W/2, lineY);
+            ctx.shadowBlur = 0;
 
             // Date
             ctx.font = '30px monospace';
@@ -115,14 +192,21 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             
             // Brand
             ctx.font = 'bold 30px sans-serif';
-            ctx.fillStyle = '#fbbf24'; // Amber
+            ctx.fillStyle = '#fbbf24'; 
             ctx.fillText('VIVA360', W/2, 100);
         };
 
-        if (img.complete) {
+        imgCard.onload = () => {
+            if (!garden || imgGarden.complete) draw();
+        };
+        if (garden) {
+            imgGarden.onload = () => {
+                if (imgCard.complete) draw();
+            };
+        }
+        // If no garden image or both are already complete, draw immediately
+        if (imgCard.complete && (!garden || imgGarden.complete)) {
             draw();
-        } else {
-            img.onload = draw;
         }
     };
 
@@ -130,14 +214,14 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     useEffect(() => {
         if (!entries.length || !isPlaying) return;
 
-        const SLIDE_DURATION = 3000; // 3s per slide
         const TICK = 30; // ~30fps update
         
         progressInterval.current = setInterval(() => {
+            const slideDuration = Math.max(2000, Math.min(4000, 30000 / entries.length));
             setProgress(prev => {
-                const newProgress = prev + (100 / (SLIDE_DURATION / TICK));
+                const newProgress = prev + (100 / (slideDuration / TICK));
                 // Draw triggers on every tick for smooth video
-                drawFrame(entries[currentIndex], newProgress);
+                drawFrame(entries, currentIndex, newProgress);
 
                 if (newProgress >= 100) {
                     if (currentIndex < entries.length - 1) {
@@ -154,12 +238,12 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
         }, TICK);
 
         return () => clearInterval(progressInterval.current);
-    }, [currentIndex, isPlaying, entries.length, isRecording]);
+    }, [currentIndex, isPlaying, entries.length, isRecording, gardenSnaps]); // Added gardenSnaps to dependencies
 
     // Initial Draw Force
     useEffect(() => {
-        if(entries[currentIndex]) drawFrame(entries[currentIndex], 0);
-    }, [currentIndex, entries]);
+        if(entries[currentIndex]) drawFrame(entries, currentIndex, 0);
+    }, [currentIndex, entries, gardenSnaps]); // Added gardenSnaps to dependencies
 
 
     // RECORDER
@@ -312,15 +396,48 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
             {/* Controls */}
             <div className="p-8 bg-black flex flex-col gap-6">
+                <audio 
+                    ref={audioRef}
+                    src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" 
+                    loop
+                    autoPlay
+                />
+                
                 {isRecording && (
                     <div className="flex items-center justify-center gap-2 text-rose-500 animate-pulse mb-2">
                         <div className="w-2 h-2 bg-rose-600 rounded-full"></div>
-                        <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Gravando Sua Jornada...</span>
+                        <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Sincronizando Áudio & Alma...</span>
                     </div>
                 )}
                 
+                <div className="flex items-center justify-between mb-2">
+                     <div className="flex items-center gap-3">
+                         <Music size={16} className="text-white/40" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Zen Soundtrack • 432Hz</span>
+                     </div>
+                     <input 
+                        type="range" 
+                        min="0" 
+                        max="1" 
+                        step="0.01" 
+                        value={volume} 
+                        onChange={(e) => {
+                            const v = parseFloat(e.target.value);
+                            setVolume(v);
+                            if (audioRef.current) audioRef.current.volume = v;
+                        }}
+                        className="w-24 accent-white"
+                     />
+                </div>
+
                 <div className="flex justify-between items-center bg-white/5 p-4 rounded-[2rem] border border-white/10">
-                    <button onClick={() => setIsPlaying(!isPlaying)} className="p-4 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
+                    <button onClick={() => {
+                        setIsPlaying(!isPlaying);
+                        if (audioRef.current) {
+                            if (isPlaying) audioRef.current.pause();
+                            else audioRef.current.play();
+                        }
+                    }} className="p-4 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
                         {isPlaying ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
                     </button>
                     
