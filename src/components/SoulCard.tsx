@@ -47,36 +47,28 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
         if (mood.includes('VIBRANTE') || mood.includes('FOCADO') || mood.includes('FELIZ')) {
              return { 
                  element: 'FOGO', 
-                 icon: <Flame size={120} className="text-amber-500" />,
-                 bg: 'from-amber-50 to-orange-100',
-                 accent: 'text-amber-600',
-                 aura: 'bg-amber-500'
+                 color: '#f43f5e', // Rose 500
+                 aura: 'bg-rose-500/20'
              };
         }
         if (mood.includes('MELANCÓLICO') || mood.includes('ANSIOSO') || mood.includes('TRISTE') || mood.includes('EXAUSTO')) {
              return { 
                  element: 'ÁGUA', 
-                 icon: <Droplet size={120} className="text-blue-500" />,
-                 bg: 'from-blue-50 to-cyan-100',
-                 accent: 'text-blue-600',
-                 aura: 'bg-blue-500'
+                 color: '#06b6d4', // Cyan 500
+                 aura: 'bg-cyan-500/20'
              };
         }
         if (mood.includes('GRATO') || mood.includes('SERENO') || mood.includes('CALMO')) {
              return { 
                  element: 'TERRA', 
-                 icon: <Mountain size={120} className="text-emerald-500" />,
-                 bg: 'from-emerald-50 to-green-100',
-                 accent: 'text-emerald-600',
-                 aura: 'bg-emerald-500'
+                 color: '#10b981', // Emerald 500
+                 aura: 'bg-emerald-500/20'
              };
         }
         return { 
             element: 'AR', 
-            icon: <Wind size={120} className="text-slate-500" />,
-            bg: 'from-slate-50 to-gray-100',
-            accent: 'text-slate-600',
-            aura: 'bg-slate-400'
+            color: '#6366f1', // Indigo 500
+            aura: 'bg-indigo-500/20'
         };
     };
 
@@ -91,71 +83,88 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`relative rounded-[2rem] overflow-hidden shadow-2xl ${isStoriesMode ? 'w-full h-full max-w-md aspect-[9/16]' : 'aspect-[3/4]'} bg-gradient-to-br ${visuals.bg} border-[8px] border-white/40 ${className}`}
+            className={`relative rounded-[2.5rem] overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)] ${isStoriesMode ? 'w-full h-full max-w-md aspect-[9/16]' : 'aspect-[3/4]'} bg-[#0f172a] border border-white/10 ${className}`}
         >
             
-            {/* Dynamic Aura Background */}
-            <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] h-[150%] rounded-full opacity-20 blur-[80px] animate-pulse-slow ${visuals.aura}`} />
+            {/* 1. ATMOSPHERIC BASE (Deep Gradients) */}
+            <div className={`absolute inset-0 bg-gradient-to-b from-[#1e293b] via-[#0f172a] to-[#020617]`} />
             
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-
-            {/* Header Element */}
-            <div className="absolute top-6 left-0 right-0 flex justify-center z-20">
-                 <div className="px-4 py-1 bg-white/30 backdrop-blur-md rounded-full border border-white/40 text-[10px] font-black tracking-[0.3em] text-nature-900 shadow-sm uppercase flex items-center gap-2">
-                    <Sparkles size={10} className={visuals.accent} />
-                    {visuals.element}
-                 </div>
+            {/* 2. DYNAMIC ELEMENTAL GLOW */}
+            <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[80%] rounded-full blur-[100px] animate-pulse-slow ${visuals.aura} opacity-40`} />
+            
+            {/* 3. PHOTO (PROTAGONIST) */}
+            <div className={`absolute inset-0 z-0 p-4`}>
+                <div className="relative w-full h-full rounded-[2rem] overflow-hidden border border-white/5">
+                    {snap.image ? (
+                        <img src={snap.image} className="w-full h-full object-cover grayscale-[20%] contrast-[1.1] brightness-[0.8]" style={{ transform: "translateZ(10px)" }} />
+                    ) : (
+                        <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                            <Sparkles size={48} className="text-white/5" />
+                        </div>
+                    )}
+                    
+                    {/* Inner Vignette */}
+                    <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(0,0,0,0.7)]" />
+                    
+                    {/* Subtle Tint */}
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundColor: visuals.color }} />
+                </div>
             </div>
 
-            {isStoriesMode && onClose && (
-                <button onClick={onClose} className="absolute top-6 right-6 z-50 p-2 bg-black/10 rounded-full hover:bg-black/20 transition-colors text-nature-900">
+            {/* 4. OVERLAYS & CONTENT (The "Floating" feeling) */}
+            <div className="absolute inset-0 z-10 p-10 flex flex-col justify-between">
+                
+                {/* Header (Discrete) */}
+                <div className="flex justify-between items-start" style={{ transform: "translateZ(50px)" }}>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Frequência</p>
+                        <p className="text-xs font-serif italic text-white/80">{visuals.element}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[9px] font-mono text-white/30 tracking-widest uppercase">
+                            {snap.date ? new Date(snap.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : 'ESTE INSTANTE'}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Central Quote (Premium Glassmorphism) */}
+                <div className="space-y-6 text-center" style={{ transform: "translateZ(80px)" }}>
+                    
+                    {/* Glass Box */}
+                    <div className="relative bg-white/5 backdrop-blur-xl rounded-[2rem] p-8 border border-white/10 shadow-2xl overflow-hidden group">
+                        {/* Sacred Symbol (Subtle) */}
+                        <div className="absolute -top-4 left-1/2 -translate-x-1/2 opacity-20">
+                            <Sparkles size={40} className="text-white" />
+                        </div>
+
+                        <p className="text-white font-serif italic text-xl leading-relaxed drop-shadow-sm transition-transform duration-500 group-hover:scale-[1.02]">
+                            "{snap.note || 'O silêncio é o portal para a transformação.'}"
+                        </p>
+                    </div>
+
+                    {/* Mood Badge */}
+                    <div className="flex justify-center">
+                        <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.4em] bg-white/5 border border-white/10 text-white/60`}>
+                            {snap.mood || 'SERENO'}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Footer (Ritual Stamp) */}
+                <div className="flex justify-center opacity-30" style={{ transform: "translateZ(30px)" }}>
+                    <p className="text-[10px] font-bold text-white uppercase tracking-[0.6em]">VIVA360</p>
+                </div>
+            </div>
+
+            {/* 5. INTERACTIVE EFFECTS */}
+            {/* Holographic Sweep */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[2s] pointer-events-none mix-blend-overlay z-30" />
+            
+            {onClose && (
+                <button onClick={onClose} className="absolute top-6 right-6 z-50 p-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-white hover:bg-white/10 transition-all shadow-xl">
                     <X size={20} />
                 </button>
             )}
-
-            {/* Image Layer */}
-            <div className={`absolute left-4 right-4 rounded-3xl overflow-hidden z-10 shadow-inner border-4 border-white/20 ${isStoriesMode ? 'top-20 bottom-32' : 'top-16 bottom-24'}`}>
-                {snap.image ? (
-                    <img src={snap.image} className="w-full h-full object-cover transition-transform duration-[2s] hover:scale-110" style={{ transform: "translateZ(20px)" }} />
-                ) : (
-                    <div className="w-full h-full bg-nature-900 flex items-center justify-center text-white/20">
-                        <Sparkles size={48} />
-                    </div>
-                )}
-                
-                {/* Photo Filter Overlay */}
-                <div className={`absolute inset-0 mix-blend-overlay opacity-30 bg-${visuals.aura.replace('bg-', '')}`} />
-            </div>
-
-            {/* Bottom Content */}
-            <div className="absolute bottom-0 left-0 w-full p-8 z-20 text-center space-y-3" style={{ transform: "translateZ(40px)" }}>
-                
-                <p className="text-nature-900 text-sm font-serif italic leading-relaxed px-4 drop-shadow-sm">
-                    "{snap.note || 'O silêncio é a resposta.'}"
-                </p>
-
-                <div className="flex justify-center items-center gap-3">
-                     <span className={`text-[9px] font-bold ${visuals.accent} uppercase tracking-widest border border-current px-3 py-1 rounded-full`}>
-                        {snap.mood || 'Sereno'}
-                    </span>
-                    <span className="text-[9px] font-mono opacity-50 uppercase tracking-widest">
-                         {snap.date && !isNaN(new Date(snap.date).getTime()) 
-                        ? new Date(snap.date).toLocaleDateString() 
-                        : 'HOJE'}
-                    </span>
-                </div>
-
-                {/* Interaction Hint for Stories Mode */}
-                {isStoriesMode && (
-                    <div className="pt-4 opacity-50 animate-bounce">
-                        <ChevronUp size={20} className="mx-auto text-nature-900" />
-                    </div>
-                )}
-            </div>
-            
-            {/* Holographic Shine Effect */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/30 to-transparent skew-x-12 translate-x-[-200%] transition-transform duration-[1.5s] hover:translate-x-[200%] z-30 pointer-events-none mix-blend-soft-light" />
         </motion.div>
     );
 };

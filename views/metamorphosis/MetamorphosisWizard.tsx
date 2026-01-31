@@ -146,141 +146,132 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 canvas.height = H;
 
                 const styling = MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo'];
-                
-                // --- LAYER 1: BACKGROUND (Dark/Premium) ---
-                const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
-                bgGradient.addColorStop(0, '#1a1c20'); 
-                bgGradient.addColorStop(1, '#0f172a');
-                ctx.fillStyle = bgGradient;
-                ctx.fillRect(0, 0, W, H);
-
-                // --- LAYER 2: Ethereal Glow ---
                 const elementColor = styling.color.includes('rose') ? '#f43f5e' : 
                                      styling.color.includes('cyan') ? '#06b6d4' : 
                                      styling.color.includes('emerald') ? '#10b981' : 
                                      styling.color.includes('indigo') ? '#6366f1' : '#f59e0b';
                 
-                const radGrad = ctx.createRadialGradient(W/2, H/3, 100, W/2, H/3, 800);
-                radGrad.addColorStop(0, `${elementColor}40`); 
-                radGrad.addColorStop(1, 'transparent');
-                ctx.fillStyle = radGrad;
+                // --- LAYER 1: BACKGROUND (Deep & Atmospheric) ---
+                const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
+                bgGradient.addColorStop(0, '#0f172a'); // Deep Slate
+                bgGradient.addColorStop(0.5, '#111827');
+                bgGradient.addColorStop(1, '#020617'); // Darker bottom
+                ctx.fillStyle = bgGradient;
                 ctx.fillRect(0, 0, W, H);
 
-                // --- LAYER 3: FRAME & PHOTO ---
-                const margin = 80;
-                const cardW = W - (margin * 2);
-                const cardH = 1400; 
-                const cardY = 260;
+                // Add subtle texture/noise (simulated)
+                ctx.globalAlpha = 0.03;
+                for (let i = 0; i < 5000; i++) {
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
+                }
+                ctx.globalAlpha = 1.0;
 
-                // Card Background (Paper/Texture)
-                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                ctx.shadowBlur = 60;
-                ctx.shadowOffsetY = 30;
-                ctx.fillStyle = '#ffffff';
-                drawRoundRect(margin, cardY, cardW, cardH, 40);
-                ctx.fill();
-
-                // Reset Shadow
-                ctx.shadowColor = 'transparent';
-
-                // Golden Border
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = '#d4af37'; 
-                ctx.stroke();
-
-                // Photo Area
-                const photoPad = 30;
-                const photoW = cardW - (photoPad * 2);
-                const photoH = photoW * 1.5; // Instagram Stories/Premium Aspect Ratio (was 1.25)
-                const photoX = margin + photoPad;
-                const photoY = cardY + photoPad;
+                // --- LAYER 2: PHOTO (Protagonist) ---
+                const photoW = 900;
+                const photoH = 1200;
+                const photoX = (W - photoW) / 2;
+                const photoY = 250;
 
                 ctx.save();
-                ctx.beginPath();
-                drawRoundRect(photoX, photoY, photoW, photoH, 30); // More rounded
+                // Rounded clip for photo
+                drawRoundRect(photoX, photoY, photoW, photoH, 40);
                 ctx.clip();
                 
-                // Draw Image Cover
                 const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
                 const rx = photoX + (photoW - userImg.width * scale) / 2;
                 const ry = photoY + (photoH - userImg.height * scale) / 2;
                 ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
                 
-                // Subtle Overlay
-                ctx.fillStyle = `${elementColor}15`;
+                // 1. Light Correction Overlay (Warmth)
+                ctx.globalCompositeOperation = 'soft-light';
+                ctx.fillStyle = `${elementColor}33`;
+                ctx.fillRect(photoX, photoY, photoW, photoH);
+                
+                // 2. Vignette (Premium Feel)
+                ctx.globalCompositeOperation = 'multiply';
+                const vignette = ctx.createRadialGradient(
+                    photoX + photoW/2, photoY + photoH/2, 200,
+                    photoX + photoW/2, photoY + photoH/2, 800
+                );
+                vignette.addColorStop(0, 'transparent');
+                vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
+                ctx.fillStyle = vignette;
                 ctx.fillRect(photoX, photoY, photoW, photoH);
                 ctx.restore();
 
-                // --- LAYER 4: CONTENT ---
+                // --- LAYER 3: GLASSMORPHISM BACKDROP FOR QUOTE ---
+                const quoteH = 400;
+                const quoteY = photoY + photoH - 150; // Overlaps bottom of photo
+                
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 40;
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                drawRoundRect(photoX + 50, quoteY, photoW - 100, quoteH, 50);
+                ctx.fill();
+                
+                // Glass border
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+
+                // --- LAYER 4: SYMBOLS & TEXT ---
                 const centerX = W / 2;
-                
-                // Mood Badge (Overlapping photo bottom)
-                const badgeY = photoY + photoH;
+
+                // 1. Sacred Symbol (Above quote)
+                ctx.globalAlpha = 0.6;
+                ctx.strokeStyle = elementColor;
+                ctx.lineWidth = 3;
+                const symY = quoteY + 60;
                 ctx.beginPath();
-                ctx.arc(centerX, badgeY, 60, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffffff';
-                ctx.fill();
+                ctx.arc(centerX, symY, 30, 0, Math.PI * 2);
+                ctx.stroke();
                 ctx.beginPath();
-                ctx.arc(centerX, badgeY, 55, 0, Math.PI * 2);
-                ctx.fillStyle = elementColor;
-                ctx.fill();
-                
-                // Icon placeholder (Circle) - In real canvas we'd draw SVG paths or an icon image
-                ctx.fillStyle = '#fff';
-                ctx.font = 'bold 40px sans-serif';
+                ctx.moveTo(centerX - 15, symY);
+                ctx.lineTo(centerX + 15, symY);
+                ctx.moveTo(centerX, symY - 15);
+                ctx.lineTo(centerX, symY + 15);
+                ctx.stroke();
+                ctx.globalAlpha = 1.0;
+
+                // 2. The Master Phrase (Quote)
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(result.mood[0].toUpperCase(), centerX, badgeY + 5); 
-
-                // Text Content
-                const textY = badgeY + 100;
+                ctx.fillStyle = '#f8fafc'; // Off-white (Sky 50)
+                ctx.font = 'italic 52px serif'; // Elegant Serif
                 
-                // Quote
-                ctx.fillStyle = '#1e293b';
-                ctx.font = 'italic 500 48px "Times New Roman", serif';
                 const words = result.quote.split(' ');
                 let line = '';
-                let lineY = textY;
-                const lineHeight = 65;
+                let lineY = quoteY + 180;
+                const lineHeight = 75;
 
                 for(let n = 0; n < words.length; n++) {
                   const testLine = line + words[n] + ' ';
-                  if (ctx.measureText(testLine).width > (cardW - 100) && n > 0) {
-                    ctx.fillText(line, centerX, lineY);
+                  if (ctx.measureText(testLine).width > (photoW - 200) && n > 0) {
+                    ctx.fillText(line.trim(), centerX, lineY);
                     line = words[n] + ' ';
                     lineY += lineHeight;
                   } else {
                     line = testLine;
                   }
                 }
-                ctx.fillText(line, centerX, lineY);
+                ctx.fillText(line.trim(), centerX, lineY);
 
-                // Divider
-                const dividerY = cardY + cardH - 140;
-                ctx.beginPath();
-                ctx.moveTo(centerX - 50, dividerY);
-                ctx.lineTo(centerX + 50, dividerY);
-                ctx.strokeStyle = '#e2e8f0';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // Date & Branding
+                // 3. Metadata (Contextual & Discrete)
+                const metaY = H - 180;
                 ctx.font = 'bold 24px sans-serif';
-                ctx.fillStyle = '#94a3b8';
-                (ctx as any).letterSpacing = '4px';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                const dateStr = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
+                ctx.fillText(dateStr, centerX, metaY);
                 
-                const dateStr = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
-                ctx.fillText(dateStr, centerX, dividerY + 50);
-                
+                // 4. Ritual Seal (Signature)
+                const sealY = H - 100;
                 ctx.font = 'bold 20px sans-serif';
-                ctx.fillStyle = '#d4af37';
-                ctx.fillText('VIVA360 JORNADA', centerX, dividerY + 90);
-
-                // --- TOP LOGO AREA ---
-                ctx.font = 'bold 60px "Times New Roman", serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.fillText('Card da Alma', centerX, 160);
+                ctx.fillStyle = '#d4af37'; // Golden
+                (ctx as any).letterSpacing = '6px';
+                ctx.fillText('VIVA360 • ARQUÉTIPO DA ALMA', centerX, sealY);
 
                 setPreviewUrl(canvas.toDataURL('image/png'));
                 setIsDrawing(false);
