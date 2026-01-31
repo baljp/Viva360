@@ -6,7 +6,7 @@ import {
     Heart, Sparkles, Lock, Bell, LogOut, Check, Mail, MapPin, 
     Briefcase, Smartphone, Sun, DoorOpen, DollarSign, List, Activity,
     Building, CreditCard, Wallet, Shield, MessageSquare, Megaphone, Smartphone as PhoneIcon,
-    Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save
+    Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon
 } from 'lucide-react';
 import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit } from '../components/Common';
 import { api } from '../services/api';
@@ -17,6 +17,8 @@ interface SettingsProps {
     setView: (v: ViewState) => void; 
     updateUser: (u: User) => void;
     onLogout?: () => void;
+    zenMode?: boolean;
+    onToggleZenMode?: () => void;
 }
 
 // Layout Flexível para as telas de configuração
@@ -38,7 +40,9 @@ const Toggle: React.FC<{ active: boolean, onToggle: () => void }> = ({ active, o
     </button>
 );
 
-export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({ user, view, setView, updateUser, onLogout, flow }) => {
+export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({ 
+    user, view, setView, updateUser, onLogout, flow, zenMode, onToggleZenMode 
+}) => {
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     const [showPass, setShowPass] = useState(false);
     const [privacyState, setPrivacyState] = useState({ tribe: true, patterns: false, history: true });
@@ -234,6 +238,22 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({ user, 
                                 <Toggle active={(privacyState as any)[item.key]} onToggle={() => setPrivacyState(s => ({...s, [item.key]: !(s as any)[item.key]}))} />
                             </div>
                         ))}
+
+                        <div className="bg-nature-950 p-6 rounded-[2.5rem] flex items-center justify-between border border-white/10 shadow-2xl relative overflow-hidden group">
+                           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                           <div className="flex items-center gap-4 relative z-10">
+                              <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center text-indigo-300">
+                                 <Moon size={24} />
+                              </div>
+                              <div>
+                                 <h4 className="text-sm font-bold text-white">Modo Zen</h4>
+                                 <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mt-0.5">Visão Noturna e Descanso</p>
+                              </div>
+                           </div>
+                           <div className="relative z-10">
+                              <Toggle active={zenMode || false} onToggle={onToggleZenMode || (() => {})} />
+                           </div>
+                        </div>
                         
                         <button 
                             onClick={handleSaveSecurity}
