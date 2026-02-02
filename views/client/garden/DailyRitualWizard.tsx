@@ -28,7 +28,7 @@ import { phraseGenerator } from '../../../services/phraseGenerator';
 
 export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, updateUser, onClose }) => {
     const { go } = useBuscadorFlow();
-    const [step, setStep] = useState<'MOOD' | 'CAPTURE' | 'INTENTION' | 'GRATITUDE' | 'CARD' | 'SHARE' | 'NURTURE' | 'TRIBE'>('MOOD');
+    const [step, setStep] = useState<'MOOD' | 'CAPTURE' | 'INTENTION' | 'GRATITUDE' | 'CARD' | 'SHARE' | 'NURTURE' | 'TRIBE'>('CAPTURE');
     const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({ 
         mood: 'SERENO', image: '', intention: '', gratitude: ''
     });
@@ -41,12 +41,12 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     const handleMoodSelect = (mood: MoodType) => {
         setData({ ...data, mood });
-        setStep('CAPTURE');
+        setStep('INTENTION');
     };
 
     const handleCapture = (image: string) => {
         setData({ ...data, image });
-        setStep('INTENTION');
+        setStep('MOOD');
     };
 
     const handleIntentionSubmit = () => {
@@ -342,9 +342,11 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'MOOD') {
         return (
-            <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in">
-                <div className="p-8 pt-12">
-                     <button onClick={onClose} className="mb-6 bg-nature-50 p-3 rounded-full"><X size={20} className="text-nature-400"/></button>
+            <div className="fixed inset-0 z-[200] bg-white flex flex-col animate-in fade-in">
+                <div className="p-8 pt-12 relative z-10">
+                     <button onClick={onClose} className="mb-6 bg-nature-50 p-4 rounded-full active:scale-95 transition-all shadow-sm relative z-50">
+                        <X size={24} className="text-nature-400"/>
+                     </button>
                     <h2 className="text-3xl font-serif italic text-nature-900 mb-2">Como você se sente neste momento?</h2>
                     <p className="text-sm text-nature-400">Não existe resposta certa. Apenas seja verdadeiro consigo.</p>
                 </div>
@@ -377,12 +379,12 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'CAPTURE') {
         return (
-            <div className="fixed inset-0 z-[100] bg-nature-900 flex flex-col animate-in fade-in">
+            <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col animate-in fade-in">
                 {/* Header controls outside camera area */}
-                <div className="h-[10%] flex items-center justify-between px-8 bg-black">
-                     <button onClick={() => setStep('MOOD')} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><ArrowRight className="rotate-180" size={20}/></button>
+                <div className="h-[10%] flex items-center justify-between px-8 bg-black relative z-50">
+                     <div className="w-10"></div>
                      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-400">Presença Viva</p>
-                     <button onClick={onClose} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><X size={20}/></button>
+                     <button onClick={onClose} className="p-4 rounded-full text-white/60 hover:text-white transition-colors active:scale-90 relative z-50"><X size={24}/></button>
                 </div>
 
                 <div className="h-[70%] relative overflow-hidden bg-black flex items-center justify-center">
@@ -403,9 +405,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'INTENTION') {
         return (
-             <div className="fixed inset-0 z-[100] bg-nature-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right">
-                 <button onClick={() => setStep('CAPTURE')} className="mb-6 bg-white p-3 rounded-full w-min shadow-sm"><ArrowRight className="rotate-180 text-nature-900" size={20}/></button>
-                 <button onClick={onClose} className="absolute top-8 right-8 bg-white p-3 rounded-full shadow-sm text-nature-400"><X size={20}/></button>
+             <div className="fixed inset-0 z-[200] bg-nature-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right">
+                 <button onClick={() => setStep('CAPTURE')} className="mb-6 bg-white p-4 rounded-full w-min shadow-sm active:scale-95 transition-all"><ArrowRight className="rotate-180 text-nature-900" size={20}/></button>
+                 <button onClick={onClose} className="absolute top-8 right-8 bg-white p-4 rounded-full shadow-sm text-nature-400 z-50 active:scale-90 transition-all"><X size={24}/></button>
                  <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Qual pequena ação hoje pode tornar seu dia melhor?</h2>
                  <textarea 
                     value={data.intention}
@@ -431,9 +433,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'GRATITUDE') {
         return (
-             <div className="fixed inset-0 z-[100] bg-emerald-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right">
-                 <button onClick={() => setStep('INTENTION')} className="mb-6 bg-white p-3 rounded-full w-min shadow-sm"><ArrowRight className="rotate-180 text-nature-900" size={20}/></button>
-                 <button onClick={onClose} className="absolute top-8 right-8 bg-white p-3 rounded-full shadow-sm text-emerald-600"><X size={20}/></button>
+             <div className="fixed inset-0 z-[200] bg-emerald-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right">
+                 <button onClick={() => setStep('INTENTION')} className="mb-6 bg-white p-4 rounded-full w-min shadow-sm active:scale-95 transition-all"><ArrowRight className="rotate-180 text-nature-900" size={20}/></button>
+                 <button onClick={onClose} className="absolute top-8 right-8 bg-white p-4 rounded-full shadow-sm text-emerald-600 z-50 active:scale-90 transition-all"><X size={24}/></button>
                  <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Pelo que você é grato agora?</h2>
                  <p className="text-nature-400 text-sm mb-6">A gratidão reprograma nossa vibração.</p>
                  <textarea 
@@ -463,8 +465,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
         };
 
         return (
-            <div className="fixed inset-0 z-[100] bg-nature-900 flex flex-col items-center justify-center p-8 animate-in zoom-in-95 duration-500">
-                <button onClick={onClose} className="absolute top-8 right-8 bg-white/10 p-3 rounded-full text-white"><X size={20}/></button>
+            <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col items-center justify-center p-8 animate-in zoom-in-95 duration-500">
+                <button onClick={onClose} className="absolute top-8 right-8 bg-white/10 p-4 rounded-full text-white z-50 active:scale-90 transition-all"><X size={24}/></button>
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 <div className="w-full max-w-sm relative">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-12 text-white/50 text-xs font-bold uppercase tracking-[0.3em] whitespace-nowrap">Sua Essência de Hoje</div>
@@ -506,7 +508,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'NURTURE') {
         return (
-            <div className="fixed inset-0 z-[100] bg-emerald-900 flex flex-col items-center justify-center relative overflow-hidden">
+            <div className="fixed inset-0 z-[200] bg-emerald-900 flex flex-col items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 animate-pulse"></div>
                 
                 {/* Micro animation: Water falling, Sprout growing */}
