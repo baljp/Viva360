@@ -352,12 +352,12 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 </div>
                 <div className="flex-1 flex flex-col items-center justify-center p-8">
                     <div className="relative w-full max-w-[350px] aspect-[4/5] bg-nature-900 rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 group">
-                        {previewUrl ? (
-                            <img src={previewUrl} className="w-full h-full object-contain" alt="Seu Card da Alma" />
+                        {data.image ? (
+                            <img src={data.image} className="w-full h-full object-cover" alt="Sua Essência" />
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center gap-4">
                                 <Sparkles className="text-primary-400 animate-pulse" size={48} />
-                                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">Tecendo seu Card...</p>
+                                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">Aguardando Presença...</p>
                             </div>
                         )}
                         
