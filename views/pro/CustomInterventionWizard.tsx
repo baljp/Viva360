@@ -212,7 +212,7 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
             </div>
 
             {/* Bottom Actions */}
-            <div className="p-6 bg-white border-t border-nature-100 z-20 fixed bottom-0 left-0 right-0">
+            <div className="p-6 bg-white border-t border-nature-100 z-20 fixed bottom-0 left-0 right-0 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
                 <div className="flex gap-4">
                     {step > 1 && (
                         <button 
