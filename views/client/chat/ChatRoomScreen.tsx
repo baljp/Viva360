@@ -5,6 +5,8 @@ import { ChatServiceMock } from '../../../services/mock/chatMock';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Send, Phone, Video, MoreVertical, Paperclip, Check, CheckCheck } from 'lucide-react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useChat } from '../../../src/contexts/ChatContext';
+import { api } from '../../../services/api';
 
 export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Logic to get roomId via props from Connector
     const { back, state } = useBuscadorFlow();
@@ -13,23 +15,40 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Log
     // Let's assume passed via props or we use a fixed one for testing if undefined.
     const activeRoomId = roomId || 'chat_001'; 
     
+    const { messages: allMessages, sendMessage, markAsRead, getMessagesWith } = useChat();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
     const scrollRef = useRef<HTMLDivElement>(null);
+    
+    // In a real app we'd get the current user ID properly
+    const [myId, setMyId] = useState<string>('');
 
-    // Mock "Self" ID
-    const MY_ID = 'user_001'; 
+    useEffect(() => {
+        api.auth.getCurrentSession().then(u => u && setMyId(u.id));
+    }, []);
 
     useEffect(() => {
         if(activeRoomId) {
-            ChatServiceMock.getMessages(activeRoomId).then(msgs => {
-                setMessages(msgs);
-                setLoading(false);
-                scrollToBottom();
-            });
+             // Realtime filter
+             const roomMsgs = getMessagesWith(activeRoomId);
+             // Sort by time
+            const sorted = [...roomMsgs].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            
+            // Map to local Message type if needed, or update type
+            setMessages(sorted.map(m => ({
+                id: m.id,
+                content: m.content,
+                senderId: m.sender_id,
+                timestamp: m.created_at,
+                read: m.read,
+                type: 'text'
+            })));
+            
+            setLoading(false);
+            scrollToBottom();
         }
-    }, [activeRoomId]);
+    }, [activeRoomId, allMessages]); // Update when global messages change
 
     const scrollToBottom = () => {
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -37,8 +56,7 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Log
 
     const handleSend = async () => {
         if (!input.trim()) return;
-        const tempMsg = await ChatServiceMock.sendMessage(activeRoomId, input, MY_ID);
-        setMessages([...messages, tempMsg]);
+        await sendMessage(activeRoomId, input);
         setInput('');
         scrollToBottom();
     };
@@ -69,8 +87,9 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Log
              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#efe7dd] bg-opacity-50">
                  {loading && <div className="text-center text-xs text-gray-400 mt-4">Carregando mensagens antigas...</div>}
                  
+                 
                  {messages.map(msg => {
-                     const isMe = msg.senderId === MY_ID;
+                     const isMe = msg.senderId === myId || msg.senderId === 'me' || (myId && msg.senderId === myId);
                      return (
                          <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                               <div className={`max-w-[80%] rounded-lg p-3 shadow-sm relative text-sm ${isMe ? 'bg-[#d9fdd3] text-gray-800 rounded-tr-none' : 'bg-white text-gray-800 rounded-tl-none'}`}>

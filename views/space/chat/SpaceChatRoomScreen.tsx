@@ -5,14 +5,19 @@ import { ChatServiceMock } from '../../../services/mock/chatMock';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Send, MoreVertical, Phone, Video } from 'lucide-react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { useChat } from '../../../src/contexts/ChatContext';
+import { api } from '../../../services/api';
 
 export default function SpaceChatRoomScreen() {
     const { back } = useSantuarioFlow();
+    const { messages: allMessages, sendMessage, markAsRead, getMessagesWith } = useChat();
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState("");
     const [loading, setLoading] = useState(true);
+    const [myId, setMyId] = useState<string>('');
 
     // Mock active room data
+    const activeRoomId = 'space_room_1';
     const activeRoom = {
         name: "Guardião Miguel",
         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Miguel",
@@ -20,35 +25,27 @@ export default function SpaceChatRoomScreen() {
     };
 
     useEffect(() => {
-        ChatServiceMock.getMessages('room_1').then(data => {
-            setMessages(data);
-            setLoading(false);
-        });
+        api.auth.getCurrentSession().then(u => u && setMyId(u.id));
     }, []);
 
-    const handleSend = () => {
+    useEffect(() => {
+        const roomMsgs = getMessagesWith(activeRoomId);
+        const sorted = [...roomMsgs].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+        setMessages(sorted.map(m => ({
+                id: m.id,
+                content: m.content,
+                senderId: m.sender_id,
+                timestamp: m.created_at,
+                read: m.read,
+                type: 'text' // Add type to match Message interface
+        })));
+        setLoading(false);
+    }, [allMessages]);
+
+    const handleSend = async () => {
         if (!inputText.trim()) return;
-        const newMsg: Message = {
-            id: Date.now().toString(),
-            senderId: 'me',
-            content: inputText,
-            timestamp: new Date().toISOString(),
-            read: true
-        };
-        setMessages(prev => [...prev, newMsg]);
+        await sendMessage(activeRoomId, inputText);
         setInputText("");
-        
-        // Simulate reply
-        setTimeout(() => {
-            const reply: Message = {
-                id: (Date.now() + 1).toString(),
-                senderId: 'other',
-                content: 'Recebido. Vamos ajustar os detalhes.',
-                timestamp: new Date().toISOString(),
-                read: false
-            };
-            setMessages(prev => [...prev, reply]);
-        }, 1500);
     };
 
     const HeaderRight = () => (
@@ -74,7 +71,7 @@ export default function SpaceChatRoomScreen() {
                         <div className="flex justify-center p-8"><span className="animate-spin rounded-full h-8 w-8 border-b-2 border-nature-900"></span></div>
                     ) : (
                         messages.map((msg, i) => {
-                            const isMe = msg.senderId === 'me';
+                            const isMe = msg.senderId === myId || msg.senderId === 'me' || (myId && msg.senderId === myId);
                             return (
                                 <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                     <div className={`max-w-[80%] p-4 rounded-2xl text-sm ${isMe ? 'bg-nature-900 text-white rounded-tr-none' : 'bg-white border border-nature-200 text-nature-800 rounded-tl-none shadow-sm'}`}>

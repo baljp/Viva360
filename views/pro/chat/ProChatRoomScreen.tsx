@@ -5,6 +5,8 @@ import { ChatServiceMock } from '../../../services/mock/chatMock';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Send, Phone, Video, MoreVertical, Paperclip, Check, CheckCheck, FileText, ClipboardList, Shield } from 'lucide-react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
+import { useChat } from '../../../src/contexts/ChatContext';
+import { api } from '../../../services/api';
 
 export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
     const { go } = useGuardiaoFlow();
@@ -16,17 +18,32 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Mock "Self" ID for PRO (In real app, get from AuthContext)
-    const MY_ID = 'pro_001'; 
+    // Mock "Self" ID for PRO (In real app, get from AuthContext)
+    // const MY_ID = 'pro_001'; 
+    
+    const { messages: allMessages, sendMessage, markAsRead, getMessagesWith } = useChat();
+    const [myId, setMyId] = useState<string>('');
+    
+    useEffect(() => {
+        api.auth.getCurrentSession().then(u => u && setMyId(u.id));
+    }, []);
 
     useEffect(() => {
         if(activeRoomId) {
-            ChatServiceMock.getMessages(activeRoomId).then(msgs => {
-                setMessages(msgs);
-                setLoading(false);
-                scrollToBottom();
-            });
+            const roomMsgs = getMessagesWith(activeRoomId);
+            const sorted = [...roomMsgs].sort((a,b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+            setMessages(sorted.map(m => ({
+                id: m.id,
+                content: m.content,
+                senderId: m.sender_id,
+                timestamp: m.created_at,
+                read: m.read,
+                type: 'text'
+            })));
+            setLoading(false);
+            scrollToBottom();
         }
-    }, [activeRoomId]);
+    }, [activeRoomId, allMessages]);
 
     const scrollToBottom = () => {
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
@@ -34,8 +51,7 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
 
     const handleSend = async () => {
         if (!input.trim()) return;
-        const tempMsg = await ChatServiceMock.sendMessage(activeRoomId, input, MY_ID);
-        setMessages([...messages, tempMsg]);
+        await sendMessage(activeRoomId, input);
         setInput('');
         scrollToBottom();
     };
@@ -77,7 +93,7 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
                  {loading && <div className="text-center text-xs text-gray-400 mt-4">Carregando histórico clínico...</div>}
                  
                  {messages.map(msg => {
-                     const isMe = msg.senderId === MY_ID;
+                     const isMe = msg.senderId === myId || msg.senderId === 'me' || (myId && msg.senderId === myId);
                      return (
                          <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                               <div className={`max-w-[75%] rounded-2xl p-3 shadow-sm relative text-sm ${isMe ? 'bg-indigo-600 text-white rounded-br-none' : 'bg-white text-slate-700 rounded-bl-none border border-slate-100'}`}>

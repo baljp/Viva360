@@ -22,7 +22,10 @@
     "test:santuario-flow": "npx playwright test --config=playwright.qa.config.ts qa/flows/santuario-flow.spec.ts",
     "test:debug": "npx playwright test --config=playwright.qa.config.ts qa/flows/debug-guardiao.spec.ts",
     "deploy:auto": "bash scripts/setup_vercel.sh && npx vercel --prod",
-    "db:sync": "bash scripts/db_sync.sh"
+    "db:sync": "bash scripts/db_sync.sh",
+    "supabase:setup": "npx tsx scripts/setup_db.ts",
+    "supabase:verify": "npx tsx scripts/verify_supabase.ts",
+    "supabase:test": "npx tsx scripts/test_realtime_flow.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",

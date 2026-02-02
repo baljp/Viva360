@@ -5,19 +5,16 @@ import { ChatServiceMock } from '../../../services/mock/chatMock';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Search, Shield, Stethoscope, Users, MessageCircle } from 'lucide-react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext'; 
+import { useChat } from '../../../src/contexts/ChatContext';
 
 export default function SpaceChatListScreen() {
     const { go, back } = useSantuarioFlow(); 
-    const [rooms, setRooms] = useState<ChatRoom[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        // Fetch Space rooms (Team, Patients, etc)
-        ChatServiceMock.getRooms().then(data => {
-            setRooms(data); 
-            setLoading(false);
-        });
-    }, []);
+    const { messages, getMessagesWith } = useChat();
+    // Placeholder logic similar to Pro/Client
+    const rooms = React.useMemo(() => [
+          { id: '4', participants: [{name: 'Dra. Ana', avatar: ''}], lastMessage: getMessagesWith('4').pop(), unreadCount: 0 }
+    ] as any[], [messages]);
+    const loading = false;
 
     return (
         <PortalView title="Egrégora Digital" subtitle="COMUNICAÇÃO INTERNA" onBack={() => go('EXEC_DASHBOARD')}>
