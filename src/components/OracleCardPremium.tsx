@@ -59,6 +59,13 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-nature-900/90 backdrop-blur-xl p-4">
+            {/* Global Close Button for safety/exit */}
+            <button 
+                onClick={onClose}
+                className="absolute top-8 right-8 p-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 transition-all z-[110]"
+            >
+                <X size={24} />
+            </button>
             
             {/* Dynamic Background Aura */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -123,13 +130,6 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                         onMouseLeave={handleMouseLeave}
                         className="relative w-full max-w-sm aspect-[9/16] max-h-[90vh] z-20"
                     >
-                         {/* Global Close Button for safety */}
-                        <button 
-                            onClick={onClose}
-                            className="absolute -top-12 right-0 p-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 transition-all z-30"
-                        >
-                            <X size={24} />
-                        </button>
 
                          {/* Card Container */}
                         <div className="w-full h-full bg-nature-50 rounded-[2rem] shadow-2xl overflow-hidden relative border-[8px] border-white/50">
