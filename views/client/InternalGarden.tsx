@@ -78,30 +78,31 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                         
                         {/* Living Status Bar */}
                         <div className="px-6 mt-6 grid grid-cols-2 gap-4">
-                            <div className="bg-white/80 backdrop-blur-md p-5 rounded-[2rem] border border-white shadow-sm flex items-center gap-4">
-                                <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center ${status.health > 50 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
+                             <div className="bg-white/85 backdrop-blur-md p-5 rounded-[2rem] border border-black/5 shadow-[0_12px_30px_rgba(0,0,0,0.08)] flex items-center gap-4">
+                                <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center shadow-inner ${status.health > 50 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
                                     <Heart size={24} fill="currentColor" className="animate-pulse" />
                                 </div>
-                                <div>
+                                <div className="min-h-[40px] flex flex-col justify-center">
                                     <p className="text-[9px] font-black text-nature-400 uppercase tracking-widest">Vitalidade</p>
-                                    <span className={`text-sm font-bold ${status.health > 50 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                                    <span className={`text-sm font-bold truncate leading-tight ${status.health > 50 ? 'text-emerald-700' : 'text-rose-600'}`}>
                                         {getVitalityText(status.health)}
                                     </span>
                                 </div>
                             </div>
-                            <div className="bg-white/80 backdrop-blur-md p-5 rounded-[2rem] border border-white shadow-sm flex items-center gap-4">
-                                <div className="w-12 h-12 shrink-0 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600">
+                            <div className="bg-white/85 backdrop-blur-md p-5 rounded-[2rem] border border-black/5 shadow-[0_12px_30px_rgba(0,0,0,0.08)] flex items-center gap-4">
+                                <div className="w-12 h-12 shrink-0 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
                                     <Leaf size={24} />
                                 </div>
-                                <div>
+                                <div className="min-h-[40px] flex flex-col justify-center">
                                     <p className="text-[9px] font-black text-nature-400 uppercase tracking-widest">Jornada</p>
-                                    <span className="text-sm font-bold text-nature-900">
+                                    <span className="text-sm font-bold text-nature-900 truncate leading-tight line-clamp-2">
                                         {user.plantStage === 'seed' && user.plantType 
                                             ? `SEMENTE DE ${gardenService.getPlantLabel(user.plantType).toUpperCase()}`
                                             : user.plantStage?.toUpperCase() || 'SEMENTE'}
                                     </span>
                                 </div>
                             </div>
+
                         </div>
 
                         {/* Evolution Quick Indicators */}
@@ -148,17 +149,18 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
 
                         {/* Actions Footer */}
                         <div className="px-6 space-y-4">
-                            <button 
+                             <button 
                                 onClick={() => setIsRitualActive(true)}
-                                className="w-full py-6 rounded-[2.5rem] bg-nature-900 text-white shadow-2xl shadow-primary-900/20 active:scale-95 transition-all relative overflow-hidden group border border-white/10"
+                                className="w-full py-6 rounded-[2.5rem] bg-[#1f2f2a] text-[#f5f5f2] shadow-[0_18px_40px_rgba(0,0,0,0.25)] active:scale-95 transition-all relative overflow-hidden group border border-white/10"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-primary-800 to-nature-900 group-hover:scale-105 transition-transform duration-1000"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-[#1f2f2a] to-[#2a3f39] group-hover:scale-105 transition-transform duration-1000"></div>
                                 <div className="relative z-10 flex items-center justify-center gap-3">
-                                    <Droplet size={20} className="fill-white animate-bounce" />
+                                    <Droplet size={20} className="fill-[#f5f5f2] animate-bounce" />
                                     <span className="text-xs font-bold uppercase tracking-[0.25em]">Regar com Intenção</span>
                                 </div>
-                                <p className="relative z-10 text-[9px] text-white/50 uppercase tracking-widest mt-1">Ritual Diário • 1 min</p>
+                                <p className="relative z-10 text-[9px] text-[#f5f5f2]/50 uppercase tracking-widest mt-1">Ritual Diário • 1 min</p>
                             </button>
+
 
                             <button 
                                 onClick={async () => {
