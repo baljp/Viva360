@@ -8,8 +8,10 @@ import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 
 // --- COMPONENTS ---
 
-const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: number, onOpenModal: () => void }) => (
-    <button onClick={onOpenModal} className="w-full text-left bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group mb-8 active:scale-95 transition-all outline-none">
+const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: number, onOpenModal: () => void }) => {
+    const { go } = useSantuarioFlow();
+    return (
+        <button onClick={() => go('RADIANCE_DRILLDOWN')} className="w-full text-left bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group mb-8 active:scale-95 transition-all outline-none">
         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl -translate-y-12 translate-x-12 animate-pulse-slow"></div>
         <div className="relative z-10 flex justify-between items-end">
              <div>
@@ -34,7 +36,8 @@ const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: num
              </div>
         </div>
     </button>
-);
+    );
+};
 
 const RadianceDetailsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
     if (!isOpen) return null;
@@ -330,4 +333,4 @@ export const SpaceDashboard: React.FC<{
             </div>
         </div>
     );
-} 
+}

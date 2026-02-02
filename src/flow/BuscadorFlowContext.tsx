@@ -27,7 +27,9 @@ type FlowAction =
     | { type: 'SHOW_TOAST'; payload: { title: string; message: string } }
     | { type: 'CLEAR_TOAST' }
     | { type: 'SELECT_PROFESSIONAL'; payload: string | null }
-    | { type: 'SELECT_DATE'; payload: Date | null };
+    | { type: 'SELECT_DATE'; payload: Date | null }
+    | { type: 'SHOW_RITUAL'; payload: { title: string; message: string; type?: 'success' | 'info' | 'error' } }
+    | { type: 'CLEAR_RITUAL' };
 
 // Initial State Factory
 const createInitialState = (): FlowContextState => ({
@@ -102,6 +104,7 @@ const BuscadorFlowContext = createContext<{
     refreshData: () => Promise<void>;
     selectProfessional: (id: string | null) => void;
     selectDate: (date: Date | null) => void;
+    notify: (title: string, message: string, type?: 'success' | 'info' | 'error') => void;
 } | undefined>(undefined);
 
 // Provider Component
@@ -151,9 +154,13 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const reset = () => dispatch({ type: 'RESET' });
     const selectProfessional = (id: string | null) => dispatch({ type: 'SELECT_PROFESSIONAL', payload: id });
     const selectDate = (date: Date | null) => dispatch({ type: 'SELECT_DATE', payload: date });
+    const notify = (title: string, message: string, type: 'success' | 'info' | 'error' = 'success') => 
+        dispatch({ type: 'SHOW_RITUAL', payload: { title, message, type } });
 
     return (
-        <BuscadorFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectProfessional, selectDate }}>
+        <BuscadorFlowContext.Provider value={{ 
+            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, notify 
+        }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard 

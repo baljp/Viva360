@@ -8,7 +8,7 @@ export default function TribeInvite() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [inviteImage, setInviteImage] = useState<string | null>(null);
 
-  const INVITE_LINK = 'viva360.app/tribe/u/joao-luz';
+  const INVITE_LINK = `${window.location.host}/invite/u/joao-luz`;
   const INVITE_TEXT = "Olá! Estou te convidando para fazer parte da minha Tribo de Evolução no Viva360. Vamos expandir nossa consciência juntos. 🌿✨";
 
   // Generate Invite Card
@@ -194,7 +194,7 @@ export default function TribeInvite() {
                    <Share2 size={18} /> Outros
                </button>
                <button onClick={() => { 
-                   navigator.clipboard.writeText(`https://${INVITE_LINK}`); 
+                   navigator.clipboard.writeText(`${window.location.protocol}//${INVITE_LINK}`); 
                    alert('✨ Link copiado! Espalhe a luz.'); // Enhanced feedback (Mock toast)
                 }} className="py-4 bg-indigo-900/50 border border-indigo-500/30 text-indigo-200 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest active:scale-95 transition-all w-full">
                    <Copy size={18} /> Copiar

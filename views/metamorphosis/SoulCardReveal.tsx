@@ -33,7 +33,7 @@ export const SoulCardReveal: React.FC<SoulCardRevealProps> = ({ card, userPhoto,
             {/* Global Close Button for exit during animation */}
             <button 
                 onClick={onClose}
-                className="absolute top-8 right-8 p-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 transition-all z-[60]"
+                className="absolute top-12 right-6 p-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 transition-all z-[60]"
             >
                 <X size={24} />
             </button>
