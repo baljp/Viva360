@@ -47,10 +47,10 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
 
     return (
         <div className="w-full h-full bg-[#fcfdfc]">
-             {flowState.error && (
-                <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[500] bg-rose-50 border border-rose-100 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-500">
-                    <p className="text-rose-900 text-xs font-bold uppercase tracking-widest">{flowState.error}</p>
-                    <button onClick={() => refreshData(user.id)} className="p-2 bg-rose-100 rounded-lg text-rose-600 hover:bg-rose-200 transition-colors uppercase text-[9px] font-bold">Tentar Novamente</button>
+            {flowState.error && (
+                <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[1000] bg-rose-50/95 backdrop-blur-md border border-rose-100 p-4 rounded-[2rem] shadow-2xl flex items-center gap-3 animate-in slide-in-from-bottom duration-500 w-[90%] max-w-sm">
+                    <p className="text-rose-900 text-[10px] font-bold uppercase tracking-widest flex-1">{flowState.error}</p>
+                    <button onClick={() => refreshData(user.id)} className="px-4 py-2 bg-rose-600 rounded-xl text-white hover:bg-rose-700 transition-colors uppercase text-[9px] font-black tracking-widest shadow-lg">Tentar</button>
                 </div>
             )}
             {flowState.notification && <ZenToast toast={flowState.notification} onClose={() => {}} />} 

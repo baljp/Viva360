@@ -83,8 +83,8 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = React.mem
                                     </div>
                                 </div>
                                 <div className="px-1">
-                                    <h4 className="font-bold text-nature-900 text-sm leading-tight line-clamp-2">{product.name}</h4>
-                                    <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest mt-1">{product.category}</p>
+                                    <h4 className="font-bold text-nature-900 text-[11px] leading-tight line-clamp-2 break-words h-8">{product.name}</h4>
+                                    <p className="text-[8px] text-nature-400 font-bold uppercase tracking-widest mt-1 truncate">{product.category}</p>
                                 </div>
                             </div>
                             <div className="mt-4 flex items-center justify-between px-1">

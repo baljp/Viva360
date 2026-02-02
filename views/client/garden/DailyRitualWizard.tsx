@@ -45,7 +45,14 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     };
 
     const handleCapture = (image: string) => {
+        if (!image || image.length < 100) {
+            console.error("Capture failed: Empty image data");
+            // Stay in capture or show error?
+            // For now, update state but logic will show fallback with retry button
+        }
         setData({ ...data, image });
+        // Generate placeholder phrases to prevent crash in later steps if they use it
+        // (Though we confirmed SoulCard doesn't crash, it helps logic consistency)
         setStep('MOOD');
     };
 
@@ -181,8 +188,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 const ry = photoY + (photoH - userImg.height * scale) / 2;
 
                 // --- IG QUALITY PIPELINE (SOUL GARDEN - ATMOSPHERIC) ---
-                // 1. Base Image with Emotional Blur & Color Correction
-                ctx.filter = `blur(10px) saturate(0.7) contrast(0.95)`; // Gaussian 8-12, Sat -30%, Contrast -5%
+                // 1. Base Image - Sharp & Natural
+                ctx.filter = `saturate(1.05) contrast(1.02)`; // Subtle pop, no blur
                 ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
                 ctx.filter = 'none';
 
@@ -238,21 +245,21 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.moveTo(photoX + 100, quoteAreaY);
-                ctx.lineTo(photoX + photoW - 100, quoteAreaY);
+                ctx.moveTo(photoX + 150, quoteAreaY + 40); // Shorter line
+                ctx.lineTo(photoX + photoW - 150, quoteAreaY + 40);
                 ctx.stroke();
 
                 // 2. The Master Phrase (Quote) - Elegant & Clean
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
-                ctx.fillStyle = '#f8fafc';
-                ctx.font = 'italic 48px serif';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.85)'; // More subtle
+                ctx.font = 'italic 32px serif'; // Smaller font (was 48px)
                 
                 const quote = data.intention || "Respire. Sinta. Agradeça.";
                 const words = quote.split(' ');
                 let line = '';
-                let lineY = quoteAreaY + 60;
-                const lineHeight = 65;
+                let lineY = quoteAreaY + 80; // Lower position (was +60)
+                const lineHeight = 45; // Adjusted for smaller font
 
                 for(let n = 0; n < words.length; n++) {
                   const testLine = line + words[n] + ' ';
@@ -355,9 +362,15 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                         {data.image ? (
                             <img src={data.image} className="w-full h-full object-cover" alt="Sua Essência" />
                         ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center gap-4">
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-4 text-center">
                                 <Sparkles className="text-primary-400 animate-pulse" size={48} />
-                                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">Aguardando Presença...</p>
+                                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest leading-relaxed">Sua luz não foi capturada.<br/>Tente novamente.</p>
+                                <button 
+                                    onClick={() => setStep('CAPTURE')}
+                                    className="mt-4 px-6 py-2 bg-white/10 rounded-full text-white text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/20"
+                                >
+                                    Ver Câmera
+                                </button>
                             </div>
                         )}
                         

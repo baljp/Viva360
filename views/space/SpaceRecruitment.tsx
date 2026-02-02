@@ -103,7 +103,12 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                     <Award size={40} className="mx-auto text-amber-500" />
                     <h4 className="font-serif italic text-lg text-amber-900">Impulsione seu Santuário</h4>
                     <p className="text-xs text-amber-700 italic px-4 leading-relaxed">Destaque suas vagas no topo do Mapa da Cura de todos os Guardiões do Viva360.</p>
-                    <button className="px-6 py-3 bg-amber-500 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">Ativar Selo de Destaque</button>
+                    <button 
+                        onClick={() => setToast({ title: "Selo de Destaque", message: "Suas vagas agora brilham no topo do Mapa da Cura!" })}
+                        className="px-6 py-3 bg-amber-500 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all"
+                    >
+                        Ativar Selo de Destaque
+                    </button>
                 </div>
               </div>
               <VacancyFormModal isOpen={showAddVacancy} onClose={() => setShowAddVacancy(false)} onSubmit={(title, desc, specs) => {

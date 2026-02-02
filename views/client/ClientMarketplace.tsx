@@ -5,22 +5,16 @@ import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { MarketplaceExplorer } from '../../components/MarketplaceExplorer';
 
-export const ClientMarketplace: React.FC = () => {
+export const ClientMarketplace: React.FC<{ onAddToCart: (p: Product) => void }> = ({ onAddToCart }) => {
     const { state, go, back } = useBuscadorFlow();
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
 
-    const handlePurchase = async (product: Product) => {
-        try {
-            const result = await api.payment.checkout(product.price, `Compra: ${product.name}`);
-            if (result.success) {
-                setToast({ 
-                    title: "Compra Realizada", 
-                    message: `Você adquiriu ${product.name} com sucesso!` 
-                });
-            }
-        } catch (error) {
-            setToast({ title: "Erro na Compra", message: "Não foi possível processar o pagamento." });
-        }
+    const handlePurchase = (product: Product) => {
+        onAddToCart(product);
+        setToast({ 
+            title: "Item Escolhido", 
+            message: `${product.name} foi adicionado à sua sacola.` 
+        });
     };
 
     return (

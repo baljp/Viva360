@@ -19,6 +19,7 @@ interface SantuarioContextState extends BaseFlowState<SantuarioState> {
         transactions: Transaction[];
         myProducts: Product[];
     };
+    selectedProId: string | null;
     // Mock Data for Admin Dashboard (standardized)
     adminStats: {
         activePros: number;
@@ -32,6 +33,7 @@ type FlowAction =
     | BaseFlowAction<SantuarioState>
     | { type: 'SET_DATA'; payload: { rooms: SpaceRoom[]; team: Professional[]; vacancies: Vacancy[]; transactions: Transaction[]; myProducts: Product[] } }
     | { type: 'NOTIFY'; payload: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' } }
+    | { type: 'SELECT_PRO'; payload: string | null }
     | { type: 'CLEAR_NOTIFICATION' };
 
 const createInitialState = (): SantuarioContextState => ({
@@ -48,6 +50,7 @@ const createInitialState = (): SantuarioContextState => ({
         transactions: [],
         myProducts: []
     },
+    selectedProId: null,
     adminStats: {
         activePros: 12,
         totalPatients: 450,
@@ -93,6 +96,8 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
             return { ...state, data: action.payload };
         case 'NOTIFY':
             return { ...state, notification: action.payload };
+        case 'SELECT_PRO':
+            return { ...state, selectedProId: action.payload };
         case 'CLEAR_NOTIFICATION':
             return { ...state, notification: null };
         default:
@@ -106,6 +111,7 @@ const SantuarioFlowContext = createContext<{
     back: () => void;
     reset: () => void;
     refreshData: (userId: string) => Promise<void>;
+    selectPro: (proId: string | null) => void;
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 } | undefined>(undefined);
 
@@ -164,13 +170,17 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     const back = () => dispatch({ type: 'BACK' });
     const reset = () => dispatch({ type: 'RESET' });
 
+    const selectPro = (proId: string | null) => {
+        dispatch({ type: 'SELECT_PRO', payload: proId });
+    };
+
     const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
         dispatch({ type: 'NOTIFY', payload: { title, message, type } });
         setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);
     };
 
     return (
-        <SantuarioFlowContext.Provider value={{ state, go, back, reset, refreshData, notify }}>
+        <SantuarioFlowContext.Provider value={{ state, go, back, reset, refreshData, selectPro, notify }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard 
