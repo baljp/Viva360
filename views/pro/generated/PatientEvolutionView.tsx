@@ -28,6 +28,60 @@ const TimelineCard: React.FC<{ event: any }> = ({ event }) => (
     </div>
 );
 
+
+
+const RecordModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (data: any) => void }> = ({ isOpen, onClose, onSave }) => {
+    const [title, setTitle] = useState('');
+    const [mood, setMood] = useState('Vibrante');
+    const [content, setContent] = useState('');
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-300">
+            <div className="absolute inset-0 bg-nature-900/60 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="bg-white w-full max-w-md rounded-[3rem] overflow-hidden shadow-2xl relative z-10 animate-in slide-in-from-bottom-10 duration-500 max-h-[90vh] flex flex-col">
+                <div className="bg-nature-900 p-8 text-white">
+                    <h3 className="text-2xl font-serif italic">Novo Registro Evolutivo</h3>
+                    <p className="text-[10px] text-nature-300 font-bold uppercase mt-1">Sintonizando Jornada</p>
+                </div>
+                <div className="p-8 space-y-6 overflow-y-auto no-scrollbar">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase text-nature-400 px-2 tracking-widest">Título da Sessão</label>
+                        <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Sessão de Alinhamento" className="w-full p-4 bg-nature-50 rounded-2xl border-none text-sm font-bold text-nature-900 focus:ring-2 focus:ring-emerald-500 outline-none" />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase text-nature-400 px-2 tracking-widest">Frequência/Humor</label>
+                        <select value={mood} onChange={e => setMood(e.target.value)} className="w-full p-4 bg-nature-50 rounded-2xl border-none text-sm font-bold text-nature-900 focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option>Vibrante</option>
+                            <option>Sereno</option>
+                            <option>Meditativo</option>
+                            <option>Ansioso</option>
+                            <option>Melancólico</option>
+                        </select>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold uppercase text-nature-400 px-2 tracking-widest">Insights & Evolução</label>
+                        <textarea rows={4} value={content} onChange={e => setContent(e.target.value)} placeholder="O que o espírito revelou hoje?" className="w-full p-4 bg-nature-50 rounded-2xl border-none text-sm font-bold text-nature-900 focus:ring-2 focus:ring-emerald-500 outline-none resize-none" />
+                    </div>
+                    <div className="flex gap-4 pt-4">
+                        <button onClick={onClose} className="flex-1 py-4 bg-nature-100 text-nature-600 rounded-2xl font-bold uppercase tracking-widest text-xs">Cancelar</button>
+                        <button 
+                            disabled={!title}
+                            onClick={() => onSave({ title, mood, content, date: new Date().toISOString(), type: 'session' })} 
+                            className="flex-[2] py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg disabled:opacity-50"
+                        >
+                            Gravar Evolução
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const Check = ({ size }: any) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+
 const InterventionCard: React.FC<{ title: string, outcome: string, type: string }> = ({ title, outcome, type }) => (
     <div className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm mb-3">
         <div className="flex gap-4 items-center">
@@ -42,11 +96,10 @@ const InterventionCard: React.FC<{ title: string, outcome: string, type: string 
     </div>
 );
 
-const Check = ({ size }: any) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
-
 export default function PatientEvolutionView() {
     const { back, go, notify, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'timeline' | 'patterns' | 'interventions' | 'plan'>('timeline');
+    const [isModalOpen, setIsModalOpen] = useState(false);
     
     useEffect(() => {
         if (state.currentState === 'PATIENT_PLAN') {
@@ -86,18 +139,15 @@ export default function PatientEvolutionView() {
         fetchRecords();
     }, []);
 
-    const handleAddEvent = async () => {
-        // Simple interaction for demo verification
+    const handleAddEvent = async (data: any) => {
         const newEvent = {
+            ...data,
             id: Date.now(),
-            type: 'session',
-            title: 'Sessão Evolutiva (Nova)',
-            date: new Date().toISOString(),
-            mood: 'Elevado',
             patientId: PATIENT_ID
         };
         await api.records.create(newEvent);
         setRecords(prev => [newEvent, ...prev]);
+        setIsModalOpen(false);
         notify('Evento Registrado', 'A linha da vida foi atualizada.', 'success');
     };
 
@@ -109,12 +159,13 @@ export default function PatientEvolutionView() {
             heroImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800"
             footer={
                 activeTab === 'timeline' ? (
-                    <button onClick={handleAddEvent} className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all">
+                    <button onClick={() => setIsModalOpen(true)} className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-all">
                         <Plus size={16} /> Adicionar Sessão
                     </button>
                 ) : undefined
             }
         >
+            <RecordModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleAddEvent} />
             <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar -mx-2 px-2">
                 {[
                     { id: 'timeline', label: 'Linha da Vida', icon: Clock },

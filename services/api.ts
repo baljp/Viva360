@@ -92,6 +92,19 @@ export const api = {
     // ... auth ...
     auth: {
         loginWithPassword: async (email: string, password: string): Promise<User> => {
+             if (!isSupabaseMock) {
+                 const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                 if (error) throw error;
+                 if (data.session) {
+                     // Check if profile exists, if not maybe create? 
+                     // For now, assume trigger handles profile or we fetch it.
+                     const user = await api.auth.getCurrentSession();
+                     if (!user) throw new Error('Session created but user not found.');
+                     return user;
+                 }
+                 throw new Error('Login failed');
+             }
+
              const user = createMockUser(email); 
              MockDB.updateUser(user);
              localStorage.setItem('viva360.mock_user', JSON.stringify(user));
@@ -108,6 +121,9 @@ export const api = {
                              access_type: 'offline',
                              prompt: 'consent',
                          },
+                         data: {
+                             role: role // Pass the requested role to metadata
+                         }
                      }
                  });
                  if (error) throw error;
@@ -121,6 +137,49 @@ export const api = {
              return user;
         },
         register: async (data: any): Promise<User> => {
+             if (!isSupabaseMock) {
+                 const { data: authData, error } = await supabase.auth.signUp({
+                     email: data.email,
+                     password: data.password,
+                     options: {
+                         data: {
+                             full_name: data.name,
+                             role: data.role
+                         }
+                     }
+                 });
+                 
+                 if (error) throw error;
+                 
+                 // If auto-confirm is on, we might be logged in. 
+                 // If email confirm is required, this might return session null.
+                 if (authData.user && !authData.session) {
+                     // Email confirmation required logic could go here or just notify user
+                     // For now, we return a temp user object or throw info
+                 }
+                 
+                 const user = await api.auth.getCurrentSession();
+                 if (!user) {
+                     // Fallback for immediate UI update if session isn't immediate (e.g. email confirm)
+                     return {
+                         id: authData.user?.id || 'temp',
+                         email: data.email,
+                         name: data.name,
+                         role: data.role,
+                         avatar: '',
+                         karma: 0,
+                         streak: 0,
+                         multiplier: 1,
+                         personalBalance: 0,
+                         corporateBalance: 0,
+                         plantStage: 'seed',
+                         plantXp: 0,
+                         snaps: []
+                     };
+                 }
+                 return user;
+             }
+
              const user = createMockUser(data.email, data.name, data.role);
              MockDB.updateUser(user); // Persist new user
              return user;

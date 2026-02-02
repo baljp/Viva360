@@ -300,6 +300,7 @@ const App: React.FC = () => {
                     <Route path="/" element={<Navigate to="/login" replace />} />
                     <Route path="/login" element={<Auth onLogin={handleLogin} setView={setView} />} />
                     <Route path="/reset-password" element={<ResetPasswordView />} />
+                    <Route path="/invite/*" element={<Navigate to="/register/client?ref=invite" replace />} />
 
                     <Route path="/register" element={<RegistrationViews view={ViewState.REGISTER} setView={setView} onRegister={async (u) => { 
                         const user = await api.auth.register(u); 

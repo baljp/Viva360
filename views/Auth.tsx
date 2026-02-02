@@ -201,7 +201,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
     if (showForgot) return <ForgotPasswordForm onBack={() => setShowForgot(false)} />;
 
     return (
-        <div className="bg-[#f4f7f5] rounded-t-[3rem] w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col h-[85vh]">
+        <div className="bg-[#f4f7f5] rounded-t-[3rem] w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col h-[85dvh] max-h-[85dvh]">
             
             <div className="flex-none p-8 pb-4">
                 <div className="w-12 h-1.5 bg-nature-200 rounded-full mx-auto opacity-50 mb-6"></div>
