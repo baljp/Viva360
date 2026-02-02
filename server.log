@@ -1,0 +1,728 @@
+(node:45437) ExperimentalWarning: CommonJS module /opt/homebrew/lib/node_modules/npm/node_modules/debug/src/node.js is loading ES Module /opt/homebrew/lib/node_modules/npm/node_modules/supports-color/index.js using require().
+Support for loading ES Module in require() is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+⚠️  Redis in MOCK MODE
+🚀 queues initialized
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+📡 OpenTelemetry initialized
+🔥 Master 45456 is running
+🚀 Forking 8 workers for Performance 10/10...
+(node:45456) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+🌍 [ENV] Environment loaded. APP_MODE: MOCK
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...
+✅ Enterprise Dataset Ready: 50 Seekers, 20 Guardians, 10 Sanctuaries.
+⚠️  Redis in MOCK MODE
+⚠️  Redis in MOCK MODE
+⚠️  Redis in MOCK MODE
+⚠️  Redis in MOCK MODE
+⚠️  Redis in MOCK MODE
+⚠️  Redis in MOCK MODE
+⚠️  Redis in MOCK MODE
+⚠️  Redis in MOCK MODE
+🚀 queues initialized
+🚀 queues initialized
+🚀 queues initialized
+🚀 queues initialized
+🚀 queues initialized
+🚀 queues initialized
+🚀 queues initialized
+🚀 queues initialized
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-express Module express has been loaded before @opentelemetry/instrumentation-express so it might not work, please initialize it before requiring express
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+@opentelemetry/instrumentation-ioredis Module ioredis has been loaded before @opentelemetry/instrumentation-ioredis so it might not work, please initialize it before requiring ioredis
+📡 OpenTelemetry initialized
+📡 OpenTelemetry initialized
+📡 OpenTelemetry initialized
+📡 OpenTelemetry initialized
+📡 OpenTelemetry initialized
+📡 OpenTelemetry initialized
+📡 OpenTelemetry initialized
+(node:45469) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+📡 OpenTelemetry initialized
+🚀 Server running on port 3000 (PID: 45469)
+(node:45475) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:45472) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:45473) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+🚀 Server running on port 3000 (PID: 45472)
+(node:45476) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:45470) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+🚀 Server running on port 3000 (PID: 45473)
+(node:45471) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+🚀 Server running on port 3000 (PID: 45475)
+(node:45474) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+🚀 Server running on port 3000 (PID: 45470)
+🚀 Server running on port 3000 (PID: 45476)
+🚀 Server running on port 3000 (PID: 45474)
+🚀 Server running on port 3000 (PID: 45471)
+Redis Rate Limiter Error: TypeError: import_redis.redisConnection.incr is not a function
+    at rateLimiter (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/middleware/rateLimiter.ts:18:47)
+    at Layer.handle [as handle_request] (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/index.js:328:13)
+    at /Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/index.js:346:12)
+    at next (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/index.js:280:10)
+    at Function.handle (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/index.js:175:3)
+    at router (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/index.js:47:12)
+    at Layer.handle [as handle_request] (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/layer.js:95:5)
+    at trim_prefix (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/express/lib/router/index.js:328:13)
+GET /api/health 200 66 - 5.333 ms
+POST /api/auth/register 201 396 - 6.842 ms
+POST /api/metamorphosis/checkin 200 423 - 2.817 ms
+POST /api/metamorphosis/checkin 200 404 - 1.408 ms
+POST /api/metamorphosis/checkin 200 423 - 5.085 ms
+POST /api/metamorphosis/checkin 200 403 - 7.449 ms
+POST /api/metamorphosis/checkin 200 401 - 9.441 ms
+POST /api/metamorphosis/checkin 200 411 - 9.929 ms
+POST /api/metamorphosis/checkin 200 406 - 10.548 ms
+POST /api/metamorphosis/checkin 200 400 - 6.881 ms
+POST /api/metamorphosis/checkin 200 411 - 7.312 ms
+POST /api/metamorphosis/checkin 200 401 - 1.141 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 3785.622 ms
+GET /api/metamorphosis/evolution 200 494 - 1.643 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 3801.890 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 3830.376 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 3806.015 ms
+POST /api/oracle/draw 200 249 - 3815.137 ms
+POST /api/oracle/draw 200 249 - 3801.359 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 3805.112 ms
+GET /api/metamorphosis/evolution 200 497 - 1.695 ms
+GET /api/metamorphosis/evolution 200 897 - 3.476 ms
+GET /api/metamorphosis/evolution 200 518 - 0.904 ms
+GET /api/metamorphosis/evolution 200 872 - 1.465 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+GET /api/metamorphosis/evolution 200 504 - 0.999 ms
+POST /api/oracle/draw 200 249 - 3816.161 ms
+GET /api/metamorphosis/evolution 200 504 - 1.491 ms
+GET /api/metamorphosis/evolution 200 499 - 0.992 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 4511.214 ms
+POST /api/oracle/draw 200 249 - 4475.584 ms
+GET /api/metamorphosis/evolution 200 897 - 0.625 ms
+GET /api/metamorphosis/evolution 200 872 - 0.603 ms
+POST /api/metamorphosis/checkin 200 413 - 0.499 ms
+POST /api/metamorphosis/checkin 200 407 - 0.465 ms
+POST /api/metamorphosis/checkin 200 422 - 0.737 ms
+POST /api/metamorphosis/checkin 200 423 - 0.345 ms
+POST /api/metamorphosis/checkin 200 406 - 1.278 ms
+POST /api/metamorphosis/checkin 200 413 - 0.867 ms
+POST /api/metamorphosis/checkin 200 403 - 1.456 ms
+POST /api/metamorphosis/checkin 200 407 - 1.254 ms
+POST /api/metamorphosis/checkin 200 409 - 1.071 ms
+POST /api/metamorphosis/checkin 200 404 - 0.817 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1923.648 ms
+POST /api/oracle/draw 200 249 - 1926.093 ms
+POST /api/oracle/draw 200 249 - 1925.250 ms
+POST /api/oracle/draw 200 249 - 1926.496 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1924.769 ms
+POST /api/oracle/draw 200 249 - 1923.608 ms
+GET /api/metamorphosis/evolution 200 884 - 0.703 ms
+GET /api/metamorphosis/evolution 200 896 - 0.984 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1930.506 ms
+POST /api/oracle/draw 200 249 - 1931.587 ms
+GET /api/metamorphosis/evolution 200 - - 0.584 ms
+GET /api/metamorphosis/evolution 200 - - 0.702 ms
+GET /api/metamorphosis/evolution 200 - - 1.250 ms
+GET /api/metamorphosis/evolution 200 - - 0.533 ms
+GET /api/metamorphosis/evolution 200 887 - 0.714 ms
+GET /api/metamorphosis/evolution 200 905 - 0.659 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1938.843 ms
+POST /api/oracle/draw 200 249 - 1941.365 ms
+GET /api/metamorphosis/evolution 200 874 - 0.759 ms
+GET /api/metamorphosis/evolution 200 882 - 0.688 ms
+POST /api/metamorphosis/checkin 200 403 - 0.582 ms
+POST /api/metamorphosis/checkin 200 400 - 0.593 ms
+POST /api/metamorphosis/checkin 200 403 - 0.844 ms
+POST /api/metamorphosis/checkin 200 421 - 0.615 ms
+POST /api/metamorphosis/checkin 200 409 - 0.792 ms
+POST /api/metamorphosis/checkin 200 422 - 1.136 ms
+POST /api/metamorphosis/checkin 200 401 - 1.540 ms
+POST /api/metamorphosis/checkin 200 401 - 0.960 ms
+POST /api/metamorphosis/checkin 200 421 - 0.460 ms
+POST /api/metamorphosis/checkin 200 413 - 0.884 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1924.439 ms
+POST /api/oracle/draw 200 249 - 1925.453 ms
+POST /api/oracle/draw 200 249 - 1924.721 ms
+POST /api/oracle/draw 200 249 - 1927.001 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1926.848 ms
+POST /api/oracle/draw 200 249 - 1925.778 ms
+GET /api/metamorphosis/evolution 200 - - 0.460 ms
+GET /api/metamorphosis/evolution 200 - - 0.536 ms
+GET /api/metamorphosis/evolution 200 - - 0.382 ms
+GET /api/metamorphosis/evolution 200 - - 0.412 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1931.911 ms
+POST /api/oracle/draw 200 249 - 1931.902 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1935.252 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+GET /api/metamorphosis/evolution 200 - - 1.764 ms
+GET /api/metamorphosis/evolution 200 - - 1.770 ms
+POST /api/oracle/draw 200 249 - 1936.891 ms
+GET /api/metamorphosis/evolution 200 - - 1.605 ms
+GET /api/metamorphosis/evolution 200 - - 1.814 ms
+GET /api/metamorphosis/evolution 200 - - 1.730 ms
+GET /api/metamorphosis/evolution 200 - - 1.744 ms
+POST /api/metamorphosis/checkin 200 421 - 0.685 ms
+POST /api/metamorphosis/checkin 200 405 - 0.687 ms
+POST /api/metamorphosis/checkin 200 421 - 0.679 ms
+POST /api/metamorphosis/checkin 200 408 - 1.114 ms
+POST /api/metamorphosis/checkin 200 415 - 0.487 ms
+POST /api/metamorphosis/checkin 200 408 - 1.009 ms
+POST /api/metamorphosis/checkin 200 411 - 1.232 ms
+POST /api/metamorphosis/checkin 200 406 - 0.551 ms
+POST /api/metamorphosis/checkin 200 400 - 0.731 ms
+POST /api/metamorphosis/checkin 200 413 - 0.615 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1928.134 ms
+POST /api/oracle/draw 200 249 - 1929.597 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1932.634 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1931.439 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+GET /api/metamorphosis/evolution 200 - - 0.521 ms
+POST /api/oracle/draw 200 249 - 1933.271 ms
+POST /api/oracle/draw 200 249 - 1931.421 ms
+GET /api/metamorphosis/evolution 200 - - 0.617 ms
+GET /api/metamorphosis/evolution 200 - - 0.452 ms
+GET /api/metamorphosis/evolution 200 - - 0.444 ms
+GET /api/metamorphosis/evolution 200 - - 0.377 ms
+GET /api/metamorphosis/evolution 200 - - 0.546 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1939.003 ms
+POST /api/oracle/draw 200 249 - 1936.945 ms
+POST /api/oracle/draw 200 249 - 1935.823 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1939.130 ms
+GET /api/metamorphosis/evolution 200 - - 0.482 ms
+GET /api/metamorphosis/evolution 200 - - 0.637 ms
+GET /api/metamorphosis/evolution 200 - - 0.796 ms
+GET /api/metamorphosis/evolution 200 - - 1.088 ms
+POST /api/metamorphosis/checkin 200 402 - 0.475 ms
+POST /api/metamorphosis/checkin 200 406 - 0.564 ms
+POST /api/metamorphosis/checkin 200 407 - 0.543 ms
+POST /api/metamorphosis/checkin 200 407 - 0.390 ms
+POST /api/metamorphosis/checkin 200 411 - 0.918 ms
+POST /api/metamorphosis/checkin 200 403 - 0.912 ms
+POST /api/metamorphosis/checkin 200 421 - 0.919 ms
+POST /api/metamorphosis/checkin 200 406 - 0.564 ms
+POST /api/metamorphosis/checkin 200 412 - 1.467 ms
+POST /api/metamorphosis/checkin 200 413 - 0.843 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1928.861 ms
+POST /api/oracle/draw 200 249 - 1929.576 ms
+POST /api/oracle/draw 200 249 - 1932.903 ms
+POST /api/oracle/draw 200 249 - 1929.653 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1933.684 ms
+POST /api/oracle/draw 200 249 - 1929.164 ms
+POST /api/oracle/draw 200 249 - 1933.340 ms
+POST /api/oracle/draw 200 249 - 1934.170 ms
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+prisma:error 
+Invalid `prismaRead.oracleMessage.count()` invocation in
+/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/src/services/oracle.service.ts:136:58
+
+  133 
+  134 private async getRandomFallback() {
+  135     try {
+→ 136         const count = await prismaRead.oracleMessage.count(
+The table `public.oracle_messages` does not exist in the current database.
+POST /api/oracle/draw 200 249 - 1935.359 ms
+POST /api/oracle/draw 200 249 - 1934.658 ms
+GET /api/metamorphosis/evolution 200 - - 0.837 ms
+GET /api/metamorphosis/evolution 200 - - 1.433 ms
+GET /api/metamorphosis/evolution 200 - - 1.083 ms
+GET /api/metamorphosis/evolution 200 - - 0.682 ms
+GET /api/metamorphosis/evolution 200 - - 0.955 ms
+GET /api/metamorphosis/evolution 200 - - 1.260 ms
+GET /api/metamorphosis/evolution 200 - - 0.848 ms
+GET /api/metamorphosis/evolution 200 - - 0.751 ms
+GET /api/metamorphosis/evolution 200 - - 1.071 ms
+GET /api/metamorphosis/evolution 200 - - 0.869 ms
+Export retry time 4426ms exceeds remaining timeout 2132ms, not retrying further.
+{"stack":"Error: PeriodicExportingMetricReader: metrics export failed (error AggregateError)\n    at PeriodicExportingMetricReader._doRun (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/@opentelemetry/sdk-metrics/src/export/PeriodicExportingMetricReader.ts:146:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at async PeriodicExportingMetricReader._runOnce (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/@opentelemetry/sdk-metrics/src/export/PeriodicExportingMetricReader.ts:105:7)\n    at async PeriodicExportingMetricReader.onForceFlush (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/@opentelemetry/sdk-metrics/src/export/PeriodicExportingMetricReader.ts:166:5)\n    at async PeriodicExportingMetricReader.onShutdown (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/@opentelemetry/sdk-metrics/src/export/PeriodicExportingMetricReader.ts:174:5)\n    at async PeriodicExportingMetricReader.shutdown (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/@opentelemetry/sdk-metrics/src/export/MetricReader.ts:260:7)\n    at async MetricCollector.shutdown (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/@opentelemetry/sdk-metrics/src/state/MetricCollector.ts:92:5)\n    at async Promise.all (index 0)\n    at async MeterProvider.shutdown (/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/node_modules/@opentelemetry/sdk-metrics/src/MeterProvider.ts:98:5)\n    at async Promise.all (index 2)","message":"PeriodicExportingMetricReader: metrics export failed (error AggregateError)","name":"Error"}
+Tracing terminated

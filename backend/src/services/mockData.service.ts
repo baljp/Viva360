@@ -43,8 +43,8 @@ class MockDataService {
             avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200'
         });
 
-        // 2. 4000 Seekers (Buscadores)
-        for (let i = 0; i < 4000; i++) {
+        // 2. 50 Seekers (Buscadores)
+        for (let i = 0; i < 50; i++) {
             this.seekers.push({
                 id: `seeker-${i}`,
                 name: `Buscador ${i}`, // Optimization: avoid faker full name for 4k call loop
@@ -54,9 +54,9 @@ class MockDataService {
             });
         }
 
-        // 3. 900 Guardians (Guardiões)
+        // 3. 20 Guardians (Guardiões)
         const specialtiesList = ['Yoga', 'Reiki', 'Psicologia', 'Massoterapia', 'Acupuntura', 'Meditação'];
-        for (let i = 0; i < 900; i++) {
+        for (let i = 0; i < 20; i++) {
             this.guardians.push({
                 id: `guardian-${i}`,
                 name: `Guardião ${i}`,
@@ -73,8 +73,8 @@ class MockDataService {
             });
         }
 
-        // 4. 100 Sanctuaries (Santuários)
-        for (let i = 0; i < 100; i++) {
+        // 4. 10 Sanctuaries (Santuários)
+        for (let i = 0; i < 10; i++) {
             this.sanctuaries.push({
                 id: `space-${i}`,
                 name: `Santuário ${i}`,
