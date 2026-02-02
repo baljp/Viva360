@@ -1,5 +1,5 @@
 
-import { PrismaClient } from '../backend/node_modules/@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
