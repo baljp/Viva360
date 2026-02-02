@@ -1,7 +1,8 @@
 
 import React, { useEffect } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { Sparkles, CalendarCheck, Home, History, CheckCircle2 } from 'lucide-react';
+import { Sparkles, CalendarCheck, Home, History, CheckCircle2, X } from 'lucide-react';
+
 import confetti from 'canvas-confetti';
 
 export default function PaymentSuccess() {
@@ -21,9 +22,20 @@ export default function PaymentSuccess() {
 
   return (
     <div className="min-h-screen bg-nature-950 flex flex-col items-center justify-center p-6 animate-in fade-in duration-700 relative overflow-hidden">
-       {/* Background Atmosphere */}
-       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[150%] h-[50%] bg-emerald-500/20 rounded-full blur-[120px] animate-pulse"></div>
-       <div className="absolute inset-0 bg-black/25 z-0"></div>
+       {/* Background Atmosphere - Stronger for better contrast */}
+       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[150%] h-[50%] bg-emerald-900/40 rounded-full blur-[120px] animate-pulse"></div>
+       <div className="absolute inset-0 bg-black/60 z-0"></div>
+
+       {/* Close Button */}
+       <button 
+         onClick={() => {
+             reset();
+             go('DASHBOARD');
+         }}
+         className="absolute top-8 right-8 p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-white/60 hover:text-white hover:bg-white/20 active:scale-90 transition-all z-50 shadow-xl"
+       >
+          <X size={24} />
+       </button>
 
 
        <div className="relative z-10 text-white text-center space-y-10 max-w-md w-full">
@@ -32,25 +44,27 @@ export default function PaymentSuccess() {
           </div>
           
           <div className="space-y-2">
-              <h1 className="text-5xl font-serif italic text-white/90 leading-tight">Troca Honrada.</h1>
-              <p className="text-emerald-300/80 font-bold uppercase tracking-[0.3em] text-[10px]">Portal de Cura Ativado</p>
+              <h1 className="text-5xl font-serif italic text-white leading-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">Troca Honrada.</h1>
+              <p className="text-emerald-400 font-bold uppercase tracking-[0.3em] text-[10px] drop-shadow-md">Portal de Cura Ativado</p>
           </div>
 
 
-          <div className="bg-white/85 backdrop-blur-md p-8 rounded-[2.5rem] border border-black/5 border-top-[3px] border-t-emerald-500 text-left space-y-4 shadow-[0_12px_30px_rgba(0,0,0,0.08)]">
+
+          <div className="bg-white/90 backdrop-blur-xl p-8 rounded-[2.5rem] border border-black/10 border-top-[4px] border-t-emerald-500 text-left space-y-4 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
               <div className="flex items-center gap-4 mb-2">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-600">
-                      <CalendarCheck size={24} />
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-700 shadow-inner">
+                      <CalendarCheck size={28} />
                   </div>
                   <div>
                       <p className="text-[10px] font-black text-nature-900/60 uppercase tracking-widest">Ritual Agendado</p>
-                      <h4 className="font-bold text-nature-900 text-lg capitalize">{dateStr}</h4>
+                      <h4 className="font-bold text-nature-900 text-xl capitalize">{dateStr}</h4>
                   </div>
               </div>
-              <p className="text-nature-900/85 text-[11px] font-medium italic leading-relaxed line-clamp-3">
+              <p className="text-nature-900/90 text-sm font-medium italic leading-relaxed line-clamp-3">
                   "Seu compromisso com o despertar foi registrado na trama do tempo. Prepare-se com presença."
               </p>
           </div>
+
 
 
           <div className="flex flex-col gap-4 w-full pt-4">
@@ -59,17 +73,18 @@ export default function PaymentSuccess() {
                     reset();
                     go('DASHBOARD');
                 }} 
-                className="w-full py-5 bg-white text-nature-950 rounded-[2rem] font-bold uppercase text-[10px] tracking-[0.3em] shadow-2xl flex items-center justify-center gap-3 active:scale-95 transition-all"
+                className="w-full py-5 bg-white text-nature-950 rounded-[2rem] font-bold uppercase text-[10px] tracking-[0.3em] shadow-[0_15px_30px_rgba(0,0,0,0.3)] flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-nature-50"
               >
                  <Home size={18} /> Voltar ao Core
               </button>
               <button 
                 onClick={() => go('PAYMENT_HISTORY')} 
-                className="w-full py-5 bg-white/10 text-white rounded-[2rem] border border-white/10 font-bold uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all backdrop-blur-sm"
+                className="w-full py-5 bg-white/10 text-white rounded-[2rem] border border-white/20 font-bold uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all backdrop-blur-md shadow-xl hover:bg-white/20"
               >
                  <History size={18} /> Ver Meus Rituais
               </button>
           </div>
+
        </div>
     </div>
   );
