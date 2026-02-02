@@ -126,7 +126,7 @@ export const SpaceRooms: React.FC = () => {
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
                     <div className="flex justify-between items-center mb-4">
                         <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2"><Calendar size={14}/> Agenda Hoje</h4>
-                        <button onClick={() => handleAction('Ver Agenda Semanal')} className="text-[10px] font-bold text-indigo-600 hover:underline">Ver Semanal</button>
+                        <button onClick={() => go('AGENDA_OVERVIEW')} className="text-[10px] font-bold text-indigo-600 hover:underline">Ver Semanal</button>
                     </div>
                     <div className="space-y-3">
                         {timeline.map((item, i) => (
@@ -171,10 +171,10 @@ export const SpaceRooms: React.FC = () => {
                     <h4 className="text-[10px] font-bold text-indigo-200 uppercase tracking-widest mb-2 flex items-center gap-2 relative z-10"><Users size={14}/> Eventos Coletivos</h4>
                     <p className="text-xs text-indigo-100 mb-4 opacity-80 relative z-10">Crie retiros, aulas em grupo e rituais coletivos.</p>
                     <div className="flex gap-2 relative z-10">
-                        <button onClick={() => handleAction('Criar Evento')} className="flex-1 py-3 bg-white text-indigo-900 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg hover:bg-indigo-50 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <button onClick={() => go('EVENT_CREATE')} className="flex-1 py-3 bg-white text-indigo-900 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg hover:bg-indigo-50 transition-all active:scale-95 flex items-center justify-center gap-2">
                              <Plus size={14}/> Criar Evento
                         </button>
-                         <button onClick={() => handleAction('Programar Retiro')} className="px-4 py-3 bg-indigo-800 text-indigo-100 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all border border-indigo-700">
+                         <button onClick={() => go('RETREATS_MANAGE')} className="px-4 py-3 bg-indigo-800 text-indigo-100 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all border border-indigo-700">
                              Retiros
                         </button>
                     </div>

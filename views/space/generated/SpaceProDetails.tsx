@@ -4,26 +4,31 @@ import { PortalView } from '../../../components/Common';
 import { Star, Award, Calendar, Shield, Crown, MessageCircle, MapPin } from 'lucide-react';
 
 export default function SpaceProDetails() {
-    const { back, go } = useSantuarioFlow();
+    const { state, back, go } = useSantuarioFlow();
     
     const navigateToEvaluation = () => {
         go('SERVICE_EVALUATION');
     };
 
-    // Mock Data
-    const pro = {
-        name: 'Mestra Ana Luz',
-        role: 'Mestre',
-        specialties: ['Reiki', 'Cristaloterapia', 'Leitura de Aura'],
-        karma: 950,
-        joined: 'Desde 2022',
-        bio: 'Terapeuta holística com mais de 10 anos de experiência. Dedicada à cura através da energia sutil e dos cristais.',
-        image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400',
-        stats: {
-            sessions: 1240,
-            rating: 4.9,
-            students: 45
-        }
+    // Find real professional data
+    const pro = state.data.team.find(p => p.id === state.selectedProId) || {
+        name: 'Guardião não encontrado',
+        role: 'Desconhecido',
+        specialties: [],
+        karma: 0,
+        joined: '---',
+        bio: 'Informações não disponíveis.',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400',
+        totalHealingHours: 0,
+        rating: 0,
+        reviewCount: 0
+    };
+
+    // Performance metrics derived from real data
+    const stats = {
+        sessions: (pro as any).totalHealingHours || 0,
+        rating: pro.rating || 0,
+        reviews: (pro as any).reviewCount || 0
     };
 
     return (
@@ -36,8 +41,8 @@ export default function SpaceProDetails() {
             <div className="px-4 pb-24 -mt-12 relative z-10">
                 {/* Profile Card */}
                 <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-nature-100 text-center relative overflow-hidden mb-6">
-                    <div className="w-24 h-24 rounded-[2rem] bg-nature-100 mx-auto mb-4 relative overflow-hidden border-4 border-white shadow-lg">
-                        <img src={pro.image} className="w-full h-full object-cover" />
+                    <div className="w-24 h-24 rounded-[2rem] mx-auto mb-4 relative overflow-hidden border-4 border-white shadow-lg">
+                        <img src={(pro as any).avatar || (pro as any).image} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-1">
                         <h2 className="font-serif italic text-2xl text-nature-900">{pro.name}</h2>
@@ -46,23 +51,23 @@ export default function SpaceProDetails() {
                     <p className="text-xs font-bold uppercase tracking-widest text-nature-400 mb-4">{pro.role}</p>
                     
                     <div className="flex flex-wrap justify-center gap-2 mb-6">
-                        {pro.specialties.map(s => (
+                        {((pro as any).specialty || (pro as any).specialties || []).map((s: string) => (
                             <span key={s} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-bold uppercase tracking-wider">{s}</span>
                         ))}
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 border-t border-nature-50 pt-6">
                         <div>
-                            <p className="text-lg font-bold text-nature-900">{pro.stats.sessions}</p>
-                            <p className="text-[8px] text-nature-400 uppercase font-bold">Sessões</p>
+                            <p className="text-lg font-bold text-nature-900">{stats.sessions}</p>
+                            <p className="text-[8px] text-nature-400 uppercase font-bold">Horas de Cura</p>
                         </div>
                         <div>
-                            <p className="text-lg font-bold text-nature-900 flex items-center justify-center gap-1">{pro.stats.rating} <Star size={10} className="fill-amber-400 text-amber-400"/></p>
-                            <p className="text-[8px] text-nature-400 uppercase font-bold">Avaliação</p>
+                            <p className="text-lg font-bold text-nature-900 flex items-center justify-center gap-1">{stats.rating} <Star size={10} className="fill-amber-400 text-amber-400"/></p>
+                            <p className="text-[8px] text-nature-400 uppercase font-bold">Karma</p>
                         </div>
                         <div>
-                            <p className="text-lg font-bold text-nature-900">{pro.stats.students}</p>
-                            <p className="text-[8px] text-nature-400 uppercase font-bold">Alunos</p>
+                            <p className="text-lg font-bold text-nature-900">{stats.reviews}</p>
+                            <p className="text-[8px] text-nature-400 uppercase font-bold">Avaliações</p>
                         </div>
                     </div>
                 </div>

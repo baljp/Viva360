@@ -83,7 +83,14 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
 
                 <div className="space-y-3">
                     {teamArray.filter(p => (p.name || '').toLowerCase().includes(searchTerm.toLowerCase())).map((pro: any) => (
-                        <div key={pro.id} className="w-full bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer">
+                        <div 
+                            key={pro.id} 
+                            onClick={() => {
+                                flow.selectPro(pro.id);
+                                flow.go('PRO_PROFILE');
+                            }}
+                            className="w-full bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-[0.98] transition-all cursor-pointer"
+                        >
                             <div className="flex items-center gap-3">
                                 <div className="relative">
                                     <DynamicAvatar user={pro} size="md" className="border-2 border-white shadow-sm" />

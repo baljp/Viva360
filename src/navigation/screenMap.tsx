@@ -125,7 +125,7 @@ export const screenMap: any = {
         BOOKING_SELECT: BookingSelect,
         BOOKING_CONFIRM: BookingConfirm,
         CHECKOUT: CheckoutScreen,
-        PAYMENT_SUCCESS: CheckoutSuccessScreen,
+        PAYMENT_SUCCESS: PaymentSuccess,
         PAYMENT_HISTORY: PaymentHistoryScreen,
         CLIENT_EXPLORE: MapaDaCuraView,
         CLIENT_MARKETPLACE: ClientMarketplace, 
@@ -181,6 +181,7 @@ export const screenMap: any = {
         SANTUARIO_CONTRACT: ProDashboard,
         SETTINGS: SettingsViews,
         CUSTOM_INTERVENTION: CustomInterventionWizard,
+        ALQUIMIA_CREATE: AlquimiaCreateOffer,
         PRO_HOME: ProDashboard,
     },
     // SANTUARIO

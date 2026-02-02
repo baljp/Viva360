@@ -4,7 +4,7 @@ import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Check, Calendar, Clock, MapPin, Sparkles, Smartphone, Loader2 } from 'lucide-react';
 import { PortalView, DynamicAvatar, ZenToast } from '../../../components/Common';
 
-export default function BookingConfirm() {
+export default function BookingConfirm({ onClose }: { onClose?: () => void }) {
   const { state, go, back, reset } = useBuscadorFlow();
   const [isSyncing, setIsSyncing] = useState(false);
   const [toast, setToast] = useState<{title: string, message: string} | null>(null);
@@ -24,16 +24,45 @@ export default function BookingConfirm() {
     }, 2000);
   };
 
+  const handleGoToCheckout = () => {
+    // We don't reset here yet because checkout is part of the flow
+    go('CHECKOUT');
+  };
+
+  const handleClose = () => {
+    if (onClose) {
+        onClose();
+    } else {
+        reset();
+    }
+  };
+
   return (
     <PortalView 
         title="Confirmar Agendamento" 
         subtitle="REVISAR DETALHES" 
         onBack={back} 
-        onClose={reset}
+        onClose={handleClose}
+        footer={(
+          <div className="flex flex-col gap-3">
+              <button 
+                onClick={handleGoToCheckout} 
+                className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all"
+              >
+                <Check size={18} /> Seguir com Oferenda
+              </button>
+              <button 
+                onClick={back} 
+                className="w-full py-3 text-nature-400 font-bold uppercase text-[9px] tracking-widest transition-all hover:text-nature-600"
+              >
+                Revisar Horário
+              </button>
+          </div>
+        )}
     >
       {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
 
-      <div className="flex flex-col items-center animate-in fade-in duration-500 pb-12">
+      <div className="flex flex-col items-center animate-in fade-in duration-500 pb-8">
          {/* Guardian Preview */}
          <div className="w-full flex flex-col items-center mb-8">
             <DynamicAvatar user={pro} size="lg" className="border-4 border-white shadow-lg mb-4" />
@@ -79,28 +108,13 @@ export default function BookingConfirm() {
                 </div>
             </div>
 
-            <div className="p-6 bg-nature-900/5 rounded-[2rem] border border-nature-900/10 mt-6">
+            <div className="p-6 bg-nature-900/5 rounded-[2rem] border border-nature-900/10 mt-6 mb-4">
                 <div className="flex items-center gap-2 mb-2 text-nature-800">
                     <Sparkles size={14} className="text-amber-500" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Sincronização Viva</span>
                 </div>
                 <p className="text-xs text-nature-500 leading-relaxed italic">"Ao confirmar, este portal de cura será aberto em sua realidade e sincronizado com seu calendário pessoal."</p>
             </div>
-         </div>
-
-         <div className="fixed bottom-10 left-6 right-6 flex flex-col gap-4">
-             <button 
-                onClick={() => go('CHECKOUT')} 
-                className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-4 shadow-2xl active:scale-95 transition-all"
-             >
-                <Check size={18} /> Seguir com Oferenda
-             </button>
-             <button 
-                onClick={back} 
-                className="w-full py-4 text-nature-400 font-bold uppercase text-[9px] tracking-widest transition-all"
-             >
-                Revisar Horário
-             </button>
          </div>
       </div>
     </PortalView>
