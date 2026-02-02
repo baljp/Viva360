@@ -58,8 +58,7 @@ const App: React.FC = () => {
     });
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
-    const [zenMode, setZenMode] = useState(() => localStorage.getItem('viva360.zen_mode') === 'true');
-    
+
     // Persist Cart
     useEffect(() => {
         localStorage.setItem('viva360.cart', JSON.stringify(cart));
@@ -67,16 +66,6 @@ const App: React.FC = () => {
 
     const navigate = useNavigate();
     const location = useLocation();
-
-    // Apply Zen Mode class to body
-    useEffect(() => {
-        if (zenMode) {
-            document.body.classList.add('zen-mode');
-        } else {
-            document.body.classList.remove('zen-mode');
-        }
-        localStorage.setItem('viva360.zen_mode', String(zenMode));
-    }, [zenMode]);
 
     // Mapping URL path to ViewState for backwards compatibility
     const getCurrentViewFromPath = (): ViewState => {
@@ -355,7 +344,7 @@ const App: React.FC = () => {
                     {/* Admin Routes */}
                      <Route path="/admin/*" element={(String(currentUser?.role).toUpperCase() === 'ADMIN') ? <AdminViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
 
-                    <Route path="/settings/*" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} zenMode={zenMode} onToggleZenMode={() => setZenMode(!zenMode)} />} />
+                    <Route path="/settings/*" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} />} />
                     
                     <Route path="*" element={<NotFoundScreen />} />
                 </Routes>

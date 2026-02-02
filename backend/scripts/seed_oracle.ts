@@ -1,119 +1,57 @@
-
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const MESSAGES = [
-    // --- Cura Emocional (Agua) ---
+async function seed() {
+  console.log('🌱 Seeding Oracle Messages...');
+  
+  const messages = [
     {
-        text: "Respire. Você já atravessou dias mais difíceis do que este.",
-        category: "cura_emocional",
-        element: "Agua",
-        moods: ["ansioso", "triste"],
-        phases: ["germinacao", "crescimento"],
-        depth: 2
+      text: 'Respire fundo. A clareza vem no silêncio entre os pensamentos.',
+      category: 'consciencia',
+      element: 'Ar',
+      moods: ['ansioso', 'focado', 'confuso'],
+      phases: ['inicio', 'germinacao'],
+      weight: 1.2
     },
     {
-        text: "Acolher sua dor também é um ato de coragem.",
-        category: "cura_emocional",
-        element: "Agua",
-        moods: ["triste", "cansado"],
-        phases: ["florescimento"],
-        depth: 3
+      text: 'Água que flui não apodrece. Deixe suas emoções seguirem seu curso natural.',
+      category: 'cura_emocional',
+      element: 'Agua',
+      moods: ['triste', 'ansioso', 'cansado'],
+      phases: ['florescimento'],
+      weight: 1.0
     },
     {
-        text: "Não se apresse. O rio não corre, ele apenas flui.",
-        category: "cura_emocional",
-        element: "Agua",
-        moods: ["ansioso"],
-        phases: ["expansao"],
-        depth: 1
-    },
-
-    // --- Consciência (Ar) ---
-    {
-        text: "Nem tudo precisa ser resolvido hoje. Algumas respostas amadurecem no silêncio.",
-        category: "consciencia",
-        element: "Ar",
-        moods: ["confuso", "ansioso"],
-        phases: ["crescimento"],
-        depth: 2
+      text: 'Suas raízes são fortes. A terra sustenta seu crescimento, mesmo no escuro.',
+      category: 'foco',
+      element: 'Terra',
+      moods: ['inseguro', 'cansado'],
+      phases: ['germinacao', 'raizes'],
+      weight: 1.1
     },
     {
-        text: "Observe seus pensamentos como nuvens. Eles passam, o céu da sua mente permanece.",
-        category: "consciencia",
-        element: "Ar",
-        moods: ["ansioso", "focado"],
-        phases: ["consciencia_plena"],
-        depth: 2
-    },
-
-    // --- Ação & Foco (Fogo/Terra) ---
-    {
-        text: "Um pequeno passo hoje vale mais do que mil intenções adiadas.",
-        category: "acao_foco",
-        element: "Fogo",
-        moods: ["desmotivado", "cansado"],
-        phases: ["semente"],
-        depth: 1
-    },
-    {
-        text: "Sua estabilidade vem de dentro. Firme suas raízes.",
-        category: "acao_foco",
-        element: "Terra",
-        moods: ["ansioso", "focado"],
-        phases: ["crescimento"],
-        depth: 2
-    },
-
-    // --- Espiritualidade ---
-    {
-        text: "Existe uma ordem invisível guiando seus caminhos. Confie.",
-        category: "espiritualidade",
-        element: "Eter",
-        moods: ["confuso", "triste"],
-        phases: ["semente", "expansao"],
-        depth: 3
-    },
-    {
-        text: "O universo respira com você. Você nunca está só.",
-        category: "espiritualidade",
-        element: "Ar",
-        moods: ["solitario"],
-        phases: ["florescimento"],
-        depth: 2
+      text: 'O fogo da transformação queima o que não serve mais. Brilhe.',
+      category: 'transmutacao',
+      element: 'Fogo',
+      moods: ['estagnado', 'triste'],
+      phases: ['metamorfose'],
+      weight: 1.3
     }
-];
+  ];
 
-async function main() {
-    console.log("🌱 Seeding Oracle Messages...");
-    
-    // Clear existing? Maybe for dev.
-    // await prisma.oracleMessage.deleteMany({});
+  for (const msg of messages) {
+    await prisma.oracleMessage.upsert({
+      where: { id: `seed-${msg.category}` }, // Not stable but for a simple seed it works if we use a unique field or just create
+      // Actually id is UUID. Let's just create.
+      create: msg as any,
+      update: msg as any
+    });
+  }
 
-    for (const msg of MESSAGES) {
-        await prisma.oracleMessage.create({
-            data: {
-                text: msg.text,
-                category: msg.category,
-                element: msg.element,
-                moods: msg.moods,
-                phases: msg.phases,
-                depth: msg.depth,
-                weight: 1.0,
-                rarity: "common"
-            }
-        });
-    }
-
-    console.log(`✅ Seeded ${MESSAGES.length} messages.`);
+  console.log('✅ Oracle Messages Seeded!');
 }
 
-main()
-    .catch(e => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+seed()
+  .catch(e => console.error(e))
+  .finally(async () => await prisma.$disconnect());

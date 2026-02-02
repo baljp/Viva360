@@ -1,7 +1,7 @@
 import { User, Professional, UserRole, Appointment, Product, Notification, SpaceRoom, Vacancy, Transaction, RecordAccess, Review, DailyJournalEntry } from '../types';
 import { supabase, isMockMode as isSupabaseMock } from '../lib/supabase';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const getHeader = () => {
     const token = localStorage.getItem('supabase.auth.token');
