@@ -59,7 +59,7 @@ export default function PatientProfile() {
                    </div>
                </button>
 
-               <button className="w-full p-5 bg-white rounded-[2rem] border border-nature-100 flex items-center gap-4 hover:border-emerald-200 transition-all shadow-sm group text-left">
+               <button onClick={() => go('PATIENT_PLAN')} className="w-full p-5 bg-white rounded-[2rem] border border-nature-100 flex items-center gap-4 hover:border-emerald-200 transition-all shadow-sm group text-left">
                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                        <Activity size={20} />
                    </div>

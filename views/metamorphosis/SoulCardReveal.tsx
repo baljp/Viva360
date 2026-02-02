@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ViewState } from '../../types';
 import { PortalView, DynamicAvatar } from '../../components/Common';
-import { Sparkles, ShieldCheck, Share2, Download, CheckCircle, Heart } from 'lucide-react';
+import { Sparkles, ShieldCheck, Share2, Download, CheckCircle, Heart, X } from 'lucide-react';
 import { useSoulCards } from '../../src/hooks/useSoulCards';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { SoulCard } from '../../src/data/mockSoulCards';
@@ -30,6 +30,13 @@ export const SoulCardReveal: React.FC<SoulCardRevealProps> = ({ card, userPhoto,
 
     return (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-6">
+            {/* Global Close Button for exit during animation */}
+            <button 
+                onClick={onClose}
+                className="absolute top-8 right-8 p-3 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-white hover:bg-white/20 transition-all z-[60]"
+            >
+                <X size={24} />
+            </button>
             
             {/* STAGE 0: MYSTERY */}
             {revealStage === 0 && (
