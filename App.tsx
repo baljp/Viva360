@@ -11,7 +11,8 @@ import { ZenToast } from './components/Common';
 import { BuscadorFlowProvider } from './src/flow/BuscadorFlowContext';
 import { GuardiaoFlowProvider } from './src/flow/GuardiaoFlowContext';
 import { SantuarioFlowProvider } from './src/flow/SantuarioFlowContext';
-import { NotificationProvider } from './src/context/NotificationContext';
+import { NotificationProvider } from './src/contexts/NotificationContext';
+import { ChatProvider } from './src/contexts/ChatContext';
 
 // Lazy Load Views
 const Auth = lazy(() => import('./views/Auth'));
@@ -292,6 +293,7 @@ const App: React.FC = () => {
 
     return (
       <NotificationProvider>
+        <ChatProvider>
         <Layout user={currentUser} currentView={currentView} setView={setView} onLogout={handleLogout} shouldHideNav={shouldHideNav}>
             <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -362,6 +364,7 @@ const App: React.FC = () => {
             <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={removeFromCart} onProceed={() => {setIsCartOpen(false); navigate('/checkout');}} />
             <SmartTutorial user={currentUser} />
         </Layout>
+        </ChatProvider>
       </NotificationProvider>
     );
 };

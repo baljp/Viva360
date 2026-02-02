@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState, User } from '../types';
 import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { api, request } from '../services/api';
-import { isMockMode, isDemoMode } from '../lib/supabase';
+import { supabase, isMockMode, isDemoMode } from '../lib/supabase';
 // Logo import removed
 
 interface AuthProps {
@@ -184,6 +184,20 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         setPassword('123456');
     };
 
+    const handleGoogleLogin = async () => {
+        setLoading(true);
+        setError('');
+        try {
+            await api.auth.loginWithGoogle();
+        } catch (err: any) {
+            if (err.message !== 'REDIRECTING_TO_GOOGLE') {
+               console.error(err);
+               setError('Falha na conexão com Google. Tente novamente.');
+               setLoading(false);
+            }
+        }
+    };
+
     if (showForgot) return <ForgotPasswordForm onBack={() => setShowForgot(false)} />;
 
     return (
@@ -234,6 +248,24 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
 
             <div className="flex-1 overflow-y-auto px-8 pb-12 no-scrollbar">
                 <form onSubmit={handleSubmit} className="space-y-6 pt-2">
+                    
+                    {!isMockMode && (
+                        <button 
+                            type="button"
+                            onClick={handleGoogleLogin}
+                            className="w-full bg-white border border-nature-200 text-nature-900 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-sm active:scale-95 transition-all hover:bg-nature-50 flex items-center justify-center gap-3"
+                        >
+                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                            Continuar com Google
+                        </button>
+                    )}
+
+                    <div className="relative flex py-2 items-center">
+                        <div className="flex-grow border-t border-nature-100"></div>
+                        <span className="flex-shrink-0 mx-4 text-nature-300 text-[10px] font-bold uppercase">Ou com e-mail</span>
+                        <div className="flex-grow border-t border-nature-100"></div>
+                    </div>
+
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-nature-500 uppercase tracking-wider ml-2">E-mail</label>
                         <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all">
@@ -302,6 +334,20 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
 
 const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
     const [showLogin, setShowLogin] = useState(false);
+
+    // OAuth Callback Check
+    useEffect(() => {
+        const checkSession = async () => {
+            if (!isMockMode) {
+                const { data } = await supabase.auth.getSession();
+                if (data.session) {
+                    const user = await api.auth.getCurrentSession();
+                    if (user) onLogin(user);
+                }
+            }
+        };
+        checkSession();
+    }, []);
 
     return (
         <div className="relative h-screen w-full bg-[#1a211d] overflow-hidden flex flex-col justify-end">

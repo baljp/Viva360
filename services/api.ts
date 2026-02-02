@@ -1,4 +1,5 @@
 import { User, Professional, UserRole, Appointment, Product, Notification, SpaceRoom, Vacancy, Transaction, RecordAccess, Review, DailyJournalEntry } from '../types';
+import { supabase, isMockMode as isSupabaseMock } from '../lib/supabase';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -98,6 +99,22 @@ export const api = {
         },
         // ...
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
+             if (!isSupabaseMock) {
+                 const { error } = await supabase.auth.signInWithOAuth({
+                     provider: 'google',
+                     options: {
+                         redirectTo: window.location.origin,
+                         queryParams: {
+                             access_type: 'offline',
+                             prompt: 'consent',
+                         },
+                     }
+                 });
+                 if (error) throw error;
+                 // Will redirect, throw special error to handle UI state if needed
+                 throw new Error('REDIRECTING_TO_GOOGLE');
+             }
+
              const user = createMockUser(`google_${Date.now()}@gmail.com`, 'Usuário Google', role);
              MockDB.updateUser(user);
              localStorage.setItem('viva360.mock_user', JSON.stringify(user));
@@ -109,12 +126,37 @@ export const api = {
              return user;
         },
         getCurrentSession: async (): Promise<User | null> => {
-            // ... existing login logic (can store ID in localStorage and fetch from MockDB)
+            if (!isSupabaseMock) {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session) return null;
+                
+                // Return mapped user
+                return {
+                    id: session.user.id,
+                    email: session.user.email || '',
+                    name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Viajante',
+                    role: (session.user.user_metadata.role as UserRole) || UserRole.CLIENT,
+                    avatar: session.user.user_metadata.avatar_url || '',
+                    karma: 0,
+                    streak: 0,
+                    multiplier: 1,
+                    personalBalance: 0,
+                    corporateBalance: 0,
+                    plantStage: 'seed',
+                    plantXp: 0,
+                    snaps: []
+                };
+            }
+
+            // Mock Session Logic
             const savedUser = localStorage.getItem('viva360.mock_user');
             if (savedUser) return JSON.parse(savedUser);
             return null;
         },
         logout: async () => {
+            if (!isSupabaseMock) {
+                await supabase.auth.signOut();
+            }
             localStorage.removeItem('supabase.auth.token');
             localStorage.removeItem('viva360.mock_user');
         }
