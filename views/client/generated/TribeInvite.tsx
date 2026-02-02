@@ -1,12 +1,14 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Users, Share2, Copy, Crown, Star, Sparkles, Send } from 'lucide-react';
+import { ZenToast } from '../../../components/Common';
 
 export default function TribeInvite() {
   const { go, back } = useBuscadorFlow();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [inviteImage, setInviteImage] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
   const INVITE_LINK = `${window.location.host}/invite/u/joao-luz`;
   const INVITE_TEXT = "Olá! Estou te convidando para fazer parte da minha Tribo de Evolução no Viva360. Vamos expandir nossa consciência juntos. 🌿✨";
@@ -146,12 +148,14 @@ export default function TribeInvite() {
           }
       } catch (e) {
           console.error(e);
-          alert('Erro ao compartilhar. Tente copiar o link.');
+          setToast({ title: "Erro no Compartilhamento", message: "Tente copiar o link manualmente.", type: "error" });
       }
   };
 
+  /* Actions */
   return (
     <div className="min-h-screen bg-indigo-950 flex flex-col items-center p-6 relative overflow-hidden">
+       {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
        {/* Background Effects */}
        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[40%] bg-indigo-600/20 blur-[100px] rounded-full"></div>
@@ -195,7 +199,7 @@ export default function TribeInvite() {
                </button>
                <button onClick={() => { 
                    navigator.clipboard.writeText(`${window.location.protocol}//${INVITE_LINK}`); 
-                   alert('✨ Link copiado! Espalhe a luz.'); // Enhanced feedback (Mock toast)
+                   setToast({ title: "Link Copiado", message: "Espalhe a luz com sua tribo.", type: "success" });
                 }} className="py-4 bg-indigo-900/50 border border-indigo-500/30 text-indigo-200 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest active:scale-95 transition-all w-full">
                    <Copy size={18} /> Copiar
                </button>
