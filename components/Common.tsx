@@ -511,8 +511,8 @@ export const RitualCompletionCard: React.FC<{
     };
 
     return (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-[280px] animate-in slide-in-from-bottom-8 fade-in duration-500">
-            <div className={`bg-gradient-to-br ${moodGradients[mood]} backdrop-blur-xl p-5 rounded-[1.5rem] shadow-2xl border border-white/20 flex flex-col items-center text-center gap-2`}>
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-[280px] animate-in slide-in-from-bottom-8 fade-in duration-500 pointer-events-none">
+            <div className={`bg-gradient-to-br ${moodGradients[mood]} backdrop-blur-xl p-5 rounded-[1.5rem] shadow-2xl border border-white/20 flex flex-col items-center text-center gap-2 pointer-events-auto`}>
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]">
                     {title.toLowerCase().includes('nutri') || title.toLowerCase().includes('rega') ? <Droplets size={16} /> : <Sparkles size={16} />}
                 </div>
@@ -540,17 +540,20 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string, type?
   const Icon = config.icon;
 
   return (
-    <div className="fixed top-[15vh] left-1/2 -translate-x-1/2 z-[300] w-[90%] max-w-[320px] h-[25vh] animate-in slide-in-from-top-10 duration-700 pointer-events-none">
-      <div className={`${config.bg} backdrop-blur-3xl border p-8 rounded-[2.5rem] shadow-elegant flex flex-col items-center justify-center text-center gap-4 h-full pointer-events-auto border-white/50 relative overflow-hidden group`}>
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className={`w-14 h-14 ${config.iconBg} rounded-2xl flex items-center justify-center shrink-0 shadow-inner group-hover:scale-110 transition-transform`}>
-             <Icon size={24} className="animate-pulse" />
+    <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-[350px] animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
+      <div className={`${config.bg} backdrop-blur-xl border p-4 rounded-[2rem] shadow-2xl flex items-center text-left gap-4 pointer-events-auto border-white/50 relative overflow-hidden group min-h-[80px]`}>
+        <div className="absolute top-0 right-0 w-24 h-24 bg-white/30 rounded-full blur-2xl -translate-y-1/3 translate-x-1/3"></div>
+        
+        <div className={`w-10 h-10 ${config.iconBg} rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform`}>
+             <Icon size={20} className="animate-pulse" />
         </div>
-        <div>
-          <h4 className="font-serif italic text-lg text-nature-900 leading-tight mb-1">{toast.title}</h4>
-          <p className="text-[10px] font-bold text-nature-500 uppercase tracking-widest leading-relaxed px-4">{toast.message}</p>
+        
+        <div className="flex-1 min-w-0 pr-6">
+          <h4 className="font-serif italic text-sm text-nature-900 leading-tight mb-0.5">{toast.title}</h4>
+          <p className="text-[10px] font-bold text-nature-500 uppercase tracking-wide leading-tight line-clamp-2">{toast.message}</p>
         </div>
-        <button onClick={onClose} className="absolute top-4 right-4 text-nature-300 hover:text-nature-900 transition-colors"><X size={16}/></button>
+
+        <button onClick={onClose} className="absolute top-3 right-3 text-nature-300 hover:text-nature-900 transition-colors p-1 bg-white/20 rounded-full hover:bg-white/40"><X size={14}/></button>
       </div>
     </div>
   );

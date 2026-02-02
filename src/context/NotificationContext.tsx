@@ -52,12 +52,11 @@ export const NotificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             {children}
             {/* Global Notification Toast Overlay */}
             {toast && (
-                <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
-                    <div className="bg-white/90 backdrop-blur-md border border-indigo-100 p-4 rounded-2xl shadow-xl flex gap-3 max-w-sm cursor-pointer hover:scale-105 transition-transform" 
+                <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[1000] animate-in slide-in-from-bottom-4 duration-300 w-[90%] max-w-sm pointer-events-none">
+                    <div className="bg-white/95 backdrop-blur-md border border-indigo-100 p-4 rounded-[2rem] shadow-2xl flex gap-3 cursor-pointer hover:scale-105 transition-transform pointer-events-auto" 
                          onClick={() => {
                              markAsRead(toast.id);
                              setToast(null);
-                             // If actionUrl, logic to navigate using current Flow Context would go here
                          }}
                     >
                         <div className={`p-3 rounded-full ${toast.priority === 'high' ? 'bg-amber-100 text-amber-600' : 'bg-indigo-50 text-indigo-600'} flex items-center justify-center`}>

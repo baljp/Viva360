@@ -146,17 +146,6 @@ export const ProDashboard: React.FC<{
                     <div className="grid grid-cols-1 gap-4">
                         <PortalCard id="portal-patients" title="Almas em Cuidado" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />
                     </div>
-
-                    <div className="bg-gradient-to-br from-nature-50 to-white p-8 rounded-[3.5rem] border border-nature-100 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition-all group" onClick={() => go('CUSTOM_INTERVENTION')}>
-                        <div>
-                             <h4 className="font-serif italic text-2xl text-nature-900">Novas Práticas</h4>
-                             <p className="text-xs text-nature-500 mt-1">Crie rituais e intervenções personalizadas para sua egrégora.</p>
-                             <button className="mt-4 px-6 py-2 bg-nature-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg">Criar Intervenção</button>
-                        </div>
-                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm border border-nature-50 group-hover:scale-110 transition-transform">
-                            <Plus size={32} className="text-nature-900" />
-                        </div>
-                    </div>
                 </div>
             )}
 
