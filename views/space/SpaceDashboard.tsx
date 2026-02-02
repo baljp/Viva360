@@ -250,6 +250,10 @@ export const SpaceDashboard: React.FC<{
     const handleMarkAsRead = (id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     };
+
+    const handleMarkAllRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    };
     
     // Dynamic Radiance Score Calculation
     const revenue = Transactions
@@ -269,7 +273,7 @@ export const SpaceDashboard: React.FC<{
                 onClose={() => setShowNotifications(false)} 
                 notifications={notifications as any} 
                 onMarkAsRead={handleMarkAsRead} 
-                onMarkAllRead={() => {}} 
+                onMarkAllRead={handleMarkAllRead} 
             />
             
             {/* Header */}

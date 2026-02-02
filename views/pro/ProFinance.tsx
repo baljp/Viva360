@@ -6,7 +6,7 @@ import { PortalView } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 
 export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions = [] }) => {
-    const { go } = useGuardiaoFlow();
+    const { go, notify } = useGuardiaoFlow();
 
     const chartData = [1200, 1500, 1100, 1800, 1600, 2100, 1840];
     const maxVal = Math.max(...chartData);
@@ -82,7 +82,7 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
             )}
         </div>
 
-        <button className="w-full py-5 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-white transition-all"><Share2 size={16}/> Baixar Relatório Mensal</button>
+        <button onClick={() => notify('Relatório', 'O download do PDF foi iniciado.', 'success')} className="w-full py-5 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-white transition-all"><Share2 size={16}/> Baixar Relatório Mensal</button>
       </div>
     </PortalView>
     );

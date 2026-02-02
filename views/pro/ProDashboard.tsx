@@ -27,6 +27,10 @@ export const ProDashboard: React.FC<{
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     };
 
+    const handleMarkAllRead = () => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    };
+
     return (
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-32">
         {/* PRESENCE BANNER */}
@@ -50,7 +54,7 @@ export const ProDashboard: React.FC<{
                 onClose={() => setShowNotifications(false)} 
                 notifications={notifications as any} 
                 onMarkAsRead={handleMarkAsRead} 
-                onMarkAllRead={() => {}} 
+                onMarkAllRead={handleMarkAllRead} 
         />
         <header className="flex items-center justify-between mt-4 mb-6 px-6 flex-none relative overflow-hidden">
             <div className="flex items-center gap-4">
@@ -176,7 +180,7 @@ export const ProDashboard: React.FC<{
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
-                        <PortalCard id="portal-finance-overview" title="Resumo Mensal" subtitle="FINANÇAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1565514020175-8501da23d5a3?q=80&w=600" onClick={() => go('FINANCE_OVERVIEW')} />
+                        <PortalCard id="portal-finance-overview" title="Resumo Mensal" subtitle="FINANÇAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1565514020175-8501da23d5a3?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} />
                     </div>
                 </div>
             )}

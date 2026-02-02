@@ -230,6 +230,12 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                         <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-12 sm:items-center sm:p-0">
                              <div className="fixed inset-0 bg-indigo-900/60 backdrop-blur-md transition-opacity" onClick={() => setActiveModal(null)} />
                              <div className="relative bg-white rounded-[3rem] p-8 w-full max-w-lg shadow-2xl animate-in slide-in-from-bottom duration-500 space-y-6">
+                                <button 
+                                    onClick={() => setActiveModal(null)}
+                                    className="absolute top-8 right-8 p-3 bg-nature-50 text-nature-400 rounded-2xl hover:bg-nature-100 transition-colors z-20"
+                                >
+                                    <X size={20} />
+                                </button>
                                 <div className="text-center">
                                      <h3 className="text-2xl font-serif italic text-nature-900 mb-2">Peça apoio à sua Tribo</h3>
                                      <p className="text-sm text-nature-500">Sua energia influencia o crescimento do seu jardim.</p>
