@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useFlowSync } from '../src/hooks/useFlowSync';
 import { User, ViewState } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
 import { useSantuarioFlow } from '../src/flow/SantuarioFlowContext';
@@ -9,24 +10,17 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
     const { state: flowState, go, back, reset, refreshData } = useSantuarioFlow();
 
     // Sync Deep Linking
-    useEffect(() => {
-        const map: Record<string, SantuarioState> = {
-            [ViewState.SPACE_HOME]: 'EXEC_DASHBOARD',
-            [ViewState.SPACE_DASHBOARD]: 'EXEC_DASHBOARD',
-            [ViewState.SPACE_CALENDAR]: 'AGENDA_OVERVIEW',
-            [ViewState.SPACE_FINANCE]: 'FINANCE_OVERVIEW',
-            [ViewState.SPACE_RECRUITMENT]: 'VAGAS_LIST',
-            [ViewState.SPACE_MARKETPLACE]: 'MARKETPLACE_MANAGE',
-            [ViewState.SPACE_ROOMS]: 'ROOMS_STATUS',
-            [ViewState.SPACE_TEAM]: 'PROS_LIST',
-        };
-        const target = map[view];
-        if (target && flowState.currentState !== target) {
-             if (flowState.currentState === 'START' || flowState.currentState === 'EXEC_DASHBOARD') {
-                go(target);
-             }
-        }
-    }, [view]);
+    const map: Record<string, SantuarioState> = {
+        [ViewState.SPACE_HOME]: 'EXEC_DASHBOARD',
+        [ViewState.SPACE_DASHBOARD]: 'EXEC_DASHBOARD',
+        [ViewState.SPACE_CALENDAR]: 'AGENDA_OVERVIEW',
+        [ViewState.SPACE_FINANCE]: 'FINANCE_OVERVIEW',
+        [ViewState.SPACE_RECRUITMENT]: 'VAGAS_LIST',
+        [ViewState.SPACE_MARKETPLACE]: 'MARKETPLACE_MANAGE',
+        [ViewState.SPACE_ROOMS]: 'ROOMS_STATUS',
+        [ViewState.SPACE_TEAM]: 'PROS_LIST',
+    };
+    useFlowSync({ state: flowState, go }, view, '/space', map);
 
      // Initial Data Fetch
      useEffect(() => {

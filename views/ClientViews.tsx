@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { useFlowSync } from '../src/hooks/useFlowSync';
 import { ViewState, Product, User } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
 import { useBuscadorFlow } from '../src/flow/BuscadorFlowContext';
@@ -17,42 +18,31 @@ export const ClientViews: React.FC<{
   const { state: flowState, go, jump, back, reset, refreshData } = useBuscadorFlow();
 
    // Sync Router View -> Flow State (Deep Linking Support)
-   useEffect(() => {
-       // Define State Clusters: If already in a sub-state of the target tab, don't force reset
-       const clusters: Record<string, BuscadorState[]> = {
-           [ViewState.CLIENT_HOME]: ['DASHBOARD', 'SETTINGS', 'MARKETPLACE', 'PAYMENT_HISTORY', 'KARMA_WALLET'],
-           [ViewState.CLIENT_JOURNAL]: ['CLIENT_JOURNAL'],
-           [ViewState.CLIENT_ORACLE]: ['ORACLE_PORTAL', 'ORACLE_SHUFFLE', 'ORACLE_REVEAL', 'ORACLE_HISTORY'],
-           [ViewState.CLIENT_JOURNEY]: ['EVOLUTION', 'EVOLUTION_ANALYTICS', 'EVOLUTION_ACHIEVEMENTS', 'EVOLUTION_HISTORY', 'EVOLUTION_TIMELAPSE', 'TIME_LAPSE_EXPERIENCE', 'GARDEN_VIEW'], 
-           [ViewState.CLIENT_METAMORPHOSIS]: ['METAMORPHOSIS_CHECKIN', 'METAMORPHOSIS_CAMERA', 'METAMORPHOSIS_MESSAGE', 'METAMORPHOSIS_RITUAL', 'METAMORPHOSIS_FEEDBACK'], 
-           [ViewState.CLIENT_TRIBO]: ['TRIBE_DASH', 'TRIBE_INVITE', 'TRIBE_INTERACTION', 'TRIBE_VIEW', 'HEALING_CIRCLE', 'CHAT_LIST', 'CHAT_ROOM', 'SOUL_PACT'],
-           [ViewState.CLIENT_EXPLORE]: ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM'],
-           [ViewState.CLIENT_PRO_DETAILS]: ['BOOKING_SELECT'],
-           [ViewState.CLIENT_MARKETPLACE]: ['MARKETPLACE'], // Specific cluster for marketplace
-       };
+   const clusters: Record<string, BuscadorState[]> = {
+       [ViewState.CLIENT_HOME]: ['DASHBOARD', 'SETTINGS', 'MARKETPLACE', 'PAYMENT_HISTORY', 'KARMA_WALLET'],
+       [ViewState.CLIENT_JOURNAL]: ['CLIENT_JOURNAL'],
+       [ViewState.CLIENT_ORACLE]: ['ORACLE_PORTAL', 'ORACLE_SHUFFLE', 'ORACLE_REVEAL', 'ORACLE_HISTORY'],
+       [ViewState.CLIENT_JOURNEY]: ['EVOLUTION', 'EVOLUTION_ANALYTICS', 'EVOLUTION_ACHIEVEMENTS', 'EVOLUTION_HISTORY', 'EVOLUTION_TIMELAPSE', 'TIME_LAPSE_EXPERIENCE', 'GARDEN_VIEW'], 
+       [ViewState.CLIENT_METAMORPHOSIS]: ['METAMORPHOSIS_CHECKIN', 'METAMORPHOSIS_CAMERA', 'METAMORPHOSIS_MESSAGE', 'METAMORPHOSIS_RITUAL', 'METAMORPHOSIS_FEEDBACK'], 
+       [ViewState.CLIENT_TRIBO]: ['TRIBE_DASH', 'TRIBE_INVITE', 'TRIBE_INTERACTION', 'TRIBE_VIEW', 'HEALING_CIRCLE', 'CHAT_LIST', 'CHAT_ROOM', 'SOUL_PACT'],
+       [ViewState.CLIENT_EXPLORE]: ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM'],
+       [ViewState.CLIENT_PRO_DETAILS]: ['BOOKING_SELECT'],
+       [ViewState.CLIENT_MARKETPLACE]: ['MARKETPLACE'], // Specific cluster for marketplace
+   };
 
-       const defaultStates: Record<string, BuscadorState> = {
-           [ViewState.CLIENT_HOME]: 'DASHBOARD',
-           [ViewState.CLIENT_JOURNAL]: 'CLIENT_JOURNAL',
-           [ViewState.CLIENT_ORACLE]: 'ORACLE_PORTAL',
-           [ViewState.CLIENT_JOURNEY]: 'GARDEN_VIEW', // Deep link to garden
-           [ViewState.CLIENT_METAMORPHOSIS]: 'METAMORPHOSIS_CHECKIN', 
-           [ViewState.CLIENT_TRIBO]: 'TRIBE_DASH',
-           [ViewState.CLIENT_EXPLORE]: 'BOOKING_SEARCH',
-           [ViewState.CLIENT_PRO_DETAILS]: 'BOOKING_SELECT',
-           [ViewState.CLIENT_MARKETPLACE]: 'MARKETPLACE',
-       };
+   const defaultStates: Record<string, BuscadorState> = {
+       [ViewState.CLIENT_HOME]: 'DASHBOARD',
+       [ViewState.CLIENT_JOURNAL]: 'CLIENT_JOURNAL',
+       [ViewState.CLIENT_ORACLE]: 'ORACLE_PORTAL',
+       [ViewState.CLIENT_JOURNEY]: 'GARDEN_VIEW', // Deep link to garden
+       [ViewState.CLIENT_METAMORPHOSIS]: 'METAMORPHOSIS_CHECKIN', 
+       [ViewState.CLIENT_TRIBO]: 'TRIBE_DASH',
+       [ViewState.CLIENT_EXPLORE]: 'BOOKING_SEARCH',
+       [ViewState.CLIENT_PRO_DETAILS]: 'BOOKING_SELECT',
+       [ViewState.CLIENT_MARKETPLACE]: 'MARKETPLACE',
+   };
 
-       const allowedStates = clusters[view];
-       const isAlreadyInCluster = allowedStates?.includes(flowState.currentState);
-
-       if (!isAlreadyInCluster) {
-           const target = defaultStates[view];
-           if (target && flowState.currentState !== target) {
-               jump(target); // Force synchronization when switching tabs
-           }
-       }
-   }, [view]);
+   useFlowSync({ state: flowState, jump, go }, view, '/client', defaultStates, clusters);
 
   const globalData = {
       pros: flowState.data.pros,
