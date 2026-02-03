@@ -2,7 +2,6 @@ import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { SantuarioState } from './santuarioTypes';
 import { SantuarioFlowEngine } from './SantuarioFlowEngine';
-import { isMockMode } from '../../lib/supabase';
 import { api } from '../../services/api';
 import { SpaceRoom, Professional, Vacancy, Transaction, Product } from '../../types';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';
@@ -152,19 +151,15 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         console.log(`[SantuarioFlow] go('${target}') called. Current: ${state.currentState}`);
         dispatch({ type: 'SET_LOADING', payload: true });
         
-        const delay = isMockMode ? 500 : 0;
-        
-        setTimeout(() => {
-            if (target === 'FINANCE_REPASSES') {
-                dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Fluxo Calculado', message: 'Os repasses do santuário foram harmonizados.' } });
-            }
-            if (target === 'VAGA_CREATE') {
-                dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Nova Semente', message: 'Uma oportunidade de expansão foi lançada.' } });
-            }
+        if (target === 'FINANCE_REPASSES') {
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Fluxo Calculado', message: 'Os repasses do santuário foram harmonizados.' } });
+        }
+        if (target === 'VAGA_CREATE') {
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Nova Semente', message: 'Uma oportunidade de expansão foi lançada.' } });
+        }
 
-            dispatch({ type: 'TRANSITION', payload: target });
-            dispatch({ type: 'SET_LOADING', payload: false });
-        }, delay);
+        dispatch({ type: 'TRANSITION', payload: target });
+        dispatch({ type: 'SET_LOADING', payload: false });
     };
 
     const back = () => dispatch({ type: 'BACK' });

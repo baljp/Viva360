@@ -32,7 +32,11 @@ export class NotificationService {
         });
 
         // 2. Offload External Integration to Queue
-        await notificationQueue.add('send_push', { userId, title, message });
+        try {
+            await notificationQueue.add('send_push', { userId, title, message });
+        } catch (e) {
+            console.error(`❌ [NOTIF] queue failed:`, e);
+        }
     }
 }
 

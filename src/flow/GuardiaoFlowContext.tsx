@@ -3,7 +3,6 @@ import React, { createContext, useContext, useReducer, ReactNode, useEffect } fr
 import { Sparkles, X } from 'lucide-react';
 import { GuardiaoState } from './guardiaoTypes';
 import { GuardiaoFlowEngine } from './GuardiaoFlowEngine';
-import { isMockMode } from '../../lib/supabase'; 
 import { Appointment, Vacancy, Product, Transaction, Professional, UserRole } from '../../types';
 import { api } from '../../services/api';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';

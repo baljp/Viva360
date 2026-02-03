@@ -15,7 +15,7 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string, type?
   const Icon = config.icon;
 
   return (
-    <div className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] lg:bottom-12 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-[350px] animate-in slide-in-from-bottom-10 fade-in duration-500 pointer-events-none">
+    <div className="fixed top-[calc(env(safe-area-inset-top)+1rem)] left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-[350px] animate-in slide-in-from-top-10 fade-in duration-500 pointer-events-none">
       <div className={`${config.bg} backdrop-blur-xl border p-4 rounded-[2rem] shadow-2xl flex items-center text-left gap-4 pointer-events-auto border-white/50 relative overflow-hidden group min-h-[80px]`}>
         <div className="absolute top-0 right-0 w-24 h-24 bg-white/30 rounded-full blur-2xl -translate-y-1/3 translate-x-1/3"></div>
         
