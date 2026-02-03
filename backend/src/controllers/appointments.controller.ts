@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { supabaseAdmin, isMockMode } from '../services/supabase.service';
+import { supabaseAdmin } from '../services/supabase.service';
 import { z } from 'zod';
 import { asyncHandler } from '../middleware/async.middleware';
 
@@ -15,28 +15,6 @@ export const listAppointments = asyncHandler(async (req: Request, res: Response)
     const user = req.user;
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-    if (isMockMode()) {
-      return res.json([
-        {
-          id: 'mock-appt-1',
-          service_name: 'Psicoterapia',
-          professional_name: 'Dra. Ana Silva',
-          date: new Date().toISOString(),
-          time: '14:00',
-          price: 150.0,
-          status: 'confirmed',
-        },
-        {
-           id: 'mock-appt-2',
-           service_name: 'Yoga Class',
-           professional_name: 'Studio Zen',
-           date: new Date(Date.now() + 86400000).toISOString(),
-           time: '10:00',
-           price: 50.0,
-           status: 'pending',
-        }
-      ]);
-    }
 
     const { data, error } = await supabaseAdmin
       .from('appointments')
@@ -65,15 +43,6 @@ export const createAppointment = asyncHandler(async (req: Request, res: Response
         });
     }
 
-    if (isMockMode()) {
-      return res.json({
-        id: `mock-appt-${Date.now()}`,
-        ...payload,
-        client_id: user.id,
-        status: 'pending',
-        created_at: now.toISOString(),
-      });
-    }
 
     const { data, error } = await supabaseAdmin
       .from('appointments')

@@ -37,7 +37,8 @@ export const PortalView: React.FC<{
                 </div>
             </header>
             
-            <div className="flex-1 overflow-y-auto no-scrollbar pb-[calc(6rem+env(safe-area-inset-bottom))] overscroll-contain relative lg:pb-12">
+            
+            <div className="flex-1 overflow-y-auto no-scrollbar pb-[calc(8rem+env(safe-area-inset-bottom))] overscroll-contain relative lg:pb-12">
                 {heroImage && (
                     <div className="w-full h-72 relative shrink-0">
                         <img 

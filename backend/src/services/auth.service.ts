@@ -9,10 +9,6 @@ export class AuthService {
   
   // Register new user (creates Auth User + Profile via Trigger or manual)
   static async register(email: string, password: string, name: string, role: string = 'CLIENT') {
-    const { isMockMode } = await import('./supabase.service');
-    if (isMockMode()) {
-        return { user: { id: 'mock-' + Date.now(), email }, profile: { name, role } };
-    }
 
     // Check if user exists
     const existing = await prisma.user.findUnique({ where: { email } });
@@ -58,10 +54,6 @@ export class AuthService {
 
   // Login
   static async login(email: string, password: string) {
-    const { isMockMode } = await import('./supabase.service');
-    if (isMockMode()) {
-        return AuthService.generateSession({ id: 'mock-session-id', email });
-    }
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !user.encrypted_password) {

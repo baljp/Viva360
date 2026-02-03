@@ -10,23 +10,22 @@ const supabaseUrl = env.VITE_SUPABASE_URL;
 const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
 
 // Export flag para a API saber se deve usar dados reais ou simulados
-export const isMockMode = APP_MODE === 'MOCK' || APP_MODE === 'DEMO' || !supabaseUrl;
-export const isDemoMode = APP_MODE === 'DEMO';
+export const isMockMode = false;
+export const isDemoMode = false;
 
 // Cria o cliente apenas se configurado, senão cria um cliente dummy
 // Usamos try/catch para garantir que o createClient não quebre a aplicação se a URL for inválida
 let client;
 try {
-    client = !isMockMode 
-        ? createClient(supabaseUrl, supabaseAnonKey)
-        : createClient('https://mock.supabase.co', 'mock-key-for-demo-mode-only');
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.error("❌ Viva360: SUPABASE_URL ou SUPABASE_ANON_KEY não configurados! A aplicação irá falhar.");
+    }
+    client = createClient(supabaseUrl || '', supabaseAnonKey || '');
 } catch (error) {
-    console.error("Erro ao inicializar Supabase, forçando modo demo:", error);
-    client = createClient('https://mock.supabase.co', 'mock-key-fallback');
+    console.error("Erro fatal ao inicializar Supabase:", error);
+    throw error;
 }
 
 export const supabase = client;
 
-if (isMockMode) {
-    console.warn("⚠️ Viva360: Rodando em MODO DEMONSTRAÇÃO (Dados locais).");
-}
+// Mock warning removed

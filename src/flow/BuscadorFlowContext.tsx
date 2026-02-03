@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
 import { BuscadorState } from './types';
 import { BuscadorFlowEngine } from './BuscadorFlowEngine';
-import { isMockMode } from '../../lib/supabase';
 import { Professional, Product } from '../../types';
 import { api } from '../../services/api';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';

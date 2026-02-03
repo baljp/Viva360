@@ -8,7 +8,7 @@ import {
     Building, CreditCard, Wallet, Shield, MessageSquare, Megaphone, Smartphone as PhoneIcon,
     Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon
 } from 'lucide-react';
-import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit } from '../components/Common';
+import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit, PortalView } from '../components/Common';
 import { api } from '../services/api';
 
     interface SettingsProps { 
@@ -18,19 +18,6 @@ import { api } from '../services/api';
         updateUser: (u: User) => void;
         onLogout?: () => void;
     }
-    
-    // Layout Flexível para as telas de configuração
-    const SettingsLayout: React.FC<{ title: string, onBack: () => void, children: React.ReactNode }> = ({ title, onBack, children }) => (
-        <div className="fixed inset-0 z-[200] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 w-full h-full">
-            <header className="flex-none flex items-center gap-4 px-6 pt-[calc(1.5rem+env(safe-area-inset-top))] pb-4 bg-white border-b border-nature-100 shadow-sm z-50">
-                <button onClick={onBack} className="p-3 bg-nature-50 rounded-2xl text-nature-600 active:scale-90 transition-all shadow-sm"><ChevronLeft size={22}/></button>
-                <h2 className="text-xl font-serif italic text-nature-900 leading-none">{title}</h2>
-            </header>
-            <div className="flex-1 overflow-y-auto no-scrollbar p-6 pb-[calc(6rem+env(safe-area-inset-bottom))]">
-                {children}
-            </div>
-        </div>
-    );
     
     const Toggle: React.FC<{ active: boolean, onToggle: () => void }> = ({ active, onToggle }) => (
         <button onClick={onToggle} className={`w-12 h-6 rounded-full relative transition-colors ${active ? 'bg-primary-600' : 'bg-nature-200'}`}>
@@ -67,11 +54,7 @@ import { api } from '../services/api';
                 reader.onload = async (ev) => {
                     if (ev.target?.result) {
                         const newAvatar = ev.target.result as string;
-                        // Atualiza localmente para feedback imediato
                         setEditingUser(prev => ({ ...prev, avatar: newAvatar })); 
-                        // Em um app real, faríamos o upload para storage aqui. 
-                        // Como é um update de user, vamos salvar no estado para o "Ancorar Alterações" persistir ou podemos persistir agora.
-                        // Vamos atualizar o estado editingUser para que quando ele salvar, vá a nova foto.
                     }
                 };
                 reader.readAsDataURL(file);
@@ -90,7 +73,7 @@ import { api } from '../services/api';
     
         if (view === ViewState.SETTINGS_PROFILE) {
           return (
-            <SettingsLayout title="Manifesto Visual" onBack={() => setView(ViewState.SETTINGS)}>
+            <PortalView title="Manifesto Visual" subtitle="IDENTIDADE" onBack={() => setView(ViewState.SETTINGS)}>
                 <div className="space-y-8">
                     <div className="flex flex-col items-center gap-6">
                       <div className="relative group">
@@ -155,13 +138,13 @@ import { api } from '../services/api';
                       <Save size={16} /> Ancorar Alterações
                     </button>
                 </div>
-            </SettingsLayout>
+            </PortalView>
           );
         }
     
         if (view === ViewState.SETTINGS_WALLET) {
           return (
-            <SettingsLayout title="Minha Abundância" onBack={() => setView(ViewState.SETTINGS)}>
+            <PortalView title="Minha Abundância" subtitle="KARMA & SALDO" onBack={() => setView(ViewState.SETTINGS)}>
                 <div className="space-y-10">
                     <WalletSplit personal={user.personalBalance} corporate={user.corporateBalance} />
                     
@@ -204,13 +187,13 @@ import { api } from '../services/api';
                       </div>
                     </div>
                 </div>
-            </SettingsLayout>
+            </PortalView>
           );
         }
     
         if (view === ViewState.SETTINGS_SECURITY) {
             return (
-                <SettingsLayout title="Selos de Proteção" onBack={() => setView(ViewState.SETTINGS)}>
+                <PortalView title="Selos de Proteção" subtitle="SEGURANÇA" onBack={() => setView(ViewState.SETTINGS)}>
                     <div className="space-y-8">
                         <Card className="space-y-6">
                             <div className="flex items-center gap-4 border-b border-nature-50 pb-6">
@@ -245,38 +228,38 @@ import { api } from '../services/api';
                             </button>
                         </div>
                     </div>
-                </SettingsLayout>
+                </PortalView>
             );
         }
 
-    if (view === ViewState.SETTINGS_NOTIFICATIONS) {
-        return (
-            <SettingsLayout title="Sinais e Avisos" onBack={() => setView(ViewState.SETTINGS)}>
-                <div className="space-y-4">
-                    {[
-                        { label: 'Alertas de Ritual', sub: 'Lembretes de sessões agendadas', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
-                        { label: 'Mensagens da Tribo', sub: 'Novas conexões e vibes enviadas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
-                        { label: 'Fluxo de Abundância', sub: 'Confirmações de trocas éticas', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
-                    ].map((item, i) => (
-                        <div key={i} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex justify-between items-center shadow-sm">
-                            <div className="flex items-center gap-5">
-                                <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20}/></div>
-                                <div><h4 className="font-bold text-nature-900 text-sm leading-tight">{item.label}</h4><p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">{item.sub}</p></div>
+        if (view === ViewState.SETTINGS_NOTIFICATIONS) {
+            return (
+                <PortalView title="Sinais e Avisos" subtitle="NOTIFICAÇÕES" onBack={() => setView(ViewState.SETTINGS)}>
+                    <div className="space-y-4">
+                        {[
+                            { label: 'Alertas de Ritual', sub: 'Lembretes de sessões agendadas', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
+                            { label: 'Mensagens da Tribo', sub: 'Novas conexões e vibes enviadas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
+                            { label: 'Fluxo de Abundância', sub: 'Confirmações de trocas éticas', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
+                        ].map((item, i) => (
+                            <div key={i} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex justify-between items-center shadow-sm">
+                                <div className="flex items-center gap-5">
+                                    <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20}/></div>
+                                    <div><h4 className="font-bold text-nature-900 text-sm leading-tight">{item.label}</h4><p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">{item.sub}</p></div>
+                                </div>
+                                <Toggle active={true} onToggle={() => {}} />
                             </div>
-                            <Toggle active={true} onToggle={() => {}} />
-                        </div>
-                    ))}
-
-                    <button 
-                        onClick={handleSaveNotifications}
-                        className="w-full py-4 bg-primary-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
-                    >
-                        <Check size={16} /> Atualizar Alertas
-                    </button>
-                </div>
-            </SettingsLayout>
-        );
-    }
+                        ))}
+    
+                        <button 
+                            onClick={handleSaveNotifications}
+                            className="w-full py-4 bg-primary-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
+                        >
+                            <Check size={16} /> Atualizar Alertas
+                        </button>
+                    </div>
+                </PortalView>
+            );
+        }
 
     return (
         <div className="flex flex-col animate-in fade-in min-h-full w-full">

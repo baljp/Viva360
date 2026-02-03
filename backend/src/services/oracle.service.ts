@@ -1,7 +1,5 @@
 import prisma, { prismaRead } from '../lib/prisma';
-import { isMockMode } from './supabase.service';
-import { User } from '@prisma/client'; // Assuming types match or using direct DB types
-import { Profile } from '@prisma/client';
+import { OracleMessage } from '@prisma/client';
 
 interface OracleContext {
     mood: string;
@@ -12,13 +10,9 @@ interface OracleContext {
 export class OracleService {
     
     // Core Algorithm: Select the best card based on context
-    async drawCard(userId: string, context: OracleContext) {
-        if (isMockMode()) {
-            return this.getRandomFallback();
-        }
+    async drawCard(userId: string, context: OracleContext): Promise<OracleMessage | null> {
 
         // 1. Fetch Candidate Messages (Filtered by basic rules)
-        // - No repeats last 60 days
         const sixtyDaysAgo = new Date();
         sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 
@@ -31,26 +25,22 @@ export class OracleService {
         });
 
         const recentMessageIds = recentHistory.map(h => h.message_id);
+        const normalizedMood = this.normalizeMood(context.mood);
 
-        // Fetch candidates (could benefit from vector search later, but for 3000 items, standard query is fine)
-        // We fetch a pool of candidates that MATCH at least one criterion to optimize scoring
         const candidates = await prismaRead.oracleMessage.findMany({
             where: {
                 id: { notIn: recentMessageIds },
-                // Ideally we filter by at least one matching tag to reduce pool, 
-                // but for "serendipity" we might want to score all available or a random subset.
-                // For performance, let's fetch those that match mood OR phase OR generic
                  OR: [
+                    { moods: { has: normalizedMood } },
                     { moods: { has: context.mood } },
                     { phases: { has: context.metamorphosisPhase } },
-                    { category: 'consciencia' }, // Always include general conscious messages
-                    { element: this.getElementForMood(context.mood) }
+                    { category: 'consciencia' },
+                    { element: this.getElementForMood(normalizedMood) }
                  ]
             }
-        }).catch(() => []); // Fallback for Mock Mode/DB Error
+        });
 
         if (candidates.length === 0) {
-            // Fallback if user has exhausted all specific content (unlikely)
             return this.getRandomFallback();
         }
 
@@ -59,11 +49,9 @@ export class OracleService {
             let score = 0;
             
             // A. Mood Match (30%)
-            if (card.moods.includes(context.mood)) score += 30;
+            if (card.moods.includes(normalizedMood) || card.moods.includes(context.mood)) score += 30;
             
             // B. Garden/Element Match (25%)
-            // If garden needs water -> Water element
-            // If garden is healthy -> Earth/Fire
             const targetElement = context.gardenStatus.waterNeeded ? 'Agua' : 'Terra';
             if (card.element === targetElement) score += 25;
 
@@ -71,10 +59,9 @@ export class OracleService {
             if (card.phases.includes(context.metamorphosisPhase)) score += 20;
 
             // D. Weight/Rarity Adjustment
-            // We want slightly higher weight items to appear more often if they match
             score *= Number(card.weight);
 
-            // E. Random noise for variety (Validation against rigid repetition)
+            // E. Random noise for variety
             score += Math.random() * 10; 
 
             return { card, score };
@@ -85,12 +72,11 @@ export class OracleService {
         const winner = scoredCandidates[0].card;
 
         // 4. Record History
-        // Sync write (fire and forget or await depending on criticality)
         await prisma.oracleHistory.create({
             data: {
                 user_id: userId,
                 message_id: winner.id,
-                context: context as any // JSON
+                context: context as any
             }
         });
 
@@ -98,10 +84,6 @@ export class OracleService {
     }
 
     async getToday(userId: string) {
-        if (isMockMode()) {
-            return this.getRandomFallback();
-        }
-
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
 
@@ -121,34 +103,38 @@ export class OracleService {
         return lastDraw?.message || null;
     }
 
+    private normalizeMood(mood: string): string {
+        const mapping: Record<string, string> = {
+            'anxious': 'ansioso',
+            'sad': 'triste',
+            'tired': 'cansado',
+            'focused': 'focado',
+            'happy': 'feliz',
+            'motivated': 'motivado'
+        };
+        return mapping[mood?.toLowerCase()] || mood?.toLowerCase() || 'neutral';
+    }
+
     private getElementForMood(mood: string): string {
         switch (mood) {
-            case 'ansioso': return 'Agua'; // Water calms
-            case 'triste': return 'Fogo'; // Fire warms/ignites
-            case 'cansado': return 'Terra'; // Earth grounds/rests
-            case 'focado': return 'Ar'; // Air clarifies
+            case 'ansioso': return 'Agua';
+            case 'triste': return 'Fogo';
+            case 'cansado': return 'Terra';
+            case 'focado': return 'Ar';
             default: return 'Ar';
         }
     }
 
-    private async getRandomFallback() {
+    private async getRandomFallback(): Promise<OracleMessage | null> {
         try {
             const count = await prismaRead.oracleMessage.count();
+            if (count === 0) return null;
             const skip = Math.floor(Math.random() * count);
             const [card] = await prismaRead.oracleMessage.findMany({ take: 1, skip });
-            return card;
+            return card || null;
         } catch (e) {
-            // Mock Fallback
-            return {
-                id: 'mock-oracle-1',
-                message: 'O universo conspira a seu favor.',
-                author: 'Viva360',
-                moods: ['feliz'],
-                phases: ['inicio'],
-                element: 'Ar',
-                weight: 1,
-                category: 'consciencia'
-            };
+            console.error('Fallback error:', e);
+            return null;
         }
     }
 }
