@@ -14,16 +14,19 @@ export const isMockMode = false;
 export const isDemoMode = false;
 
 // Cria o cliente apenas se configurado, senão cria um cliente dummy
-// Usamos try/catch para garantir que o createClient não quebre a aplicação se a URL for inválida
 let client;
 try {
+    const finalUrl = supabaseUrl || 'https://placeholder.supabase.co';
+    const finalKey = supabaseAnonKey || 'dummy-anon-key';
+    
     if (!supabaseUrl || !supabaseAnonKey) {
-        console.error("❌ Viva360: SUPABASE_URL ou SUPABASE_ANON_KEY não configurados! A aplicação irá falhar.");
+        console.warn("⚠️ Viva360: SUPABASE_URL ou SUPABASE_ANON_KEY não configurados! Usando placeholders para evitar travamento.");
     }
-    client = createClient(supabaseUrl || '', supabaseAnonKey || '');
+    client = createClient(finalUrl, finalKey);
 } catch (error) {
-    console.error("Erro fatal ao inicializar Supabase:", error);
-    throw error;
+    console.error("Erro ao inicializar Supabase (Non-blocking):", error);
+    // Return a proxy or basic object to prevent app-wide crash
+    client = {} as any;
 }
 
 export const supabase = client;
