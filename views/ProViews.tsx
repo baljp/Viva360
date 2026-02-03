@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { useFlowSync } from '../src/hooks/useFlowSync';
 import { ViewState, Professional, User } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
 import { useGuardiaoFlow } from '../src/flow/GuardiaoFlowContext';
@@ -12,24 +13,17 @@ export const ProViews: React.FC<{
     const { state: flowState, go, back, reset, refreshData } = useGuardiaoFlow();
 
     // Sync Router View -> Flow State (Deep Linking Support)
-    useEffect(() => {
-         const map: Record<string, GuardiaoState> = {
-             [ViewState.PRO_HOME]: 'DASHBOARD',
-             [ViewState.PRO_FINANCE]: 'FINANCE_OVERVIEW',
-             [ViewState.PRO_OPPORTUNITIES]: 'VAGAS_LIST',
-             [ViewState.PRO_PATIENTS]: 'PATIENTS_LIST',
-             [ViewState.PRO_PATIENT_DETAILS]: 'PATIENT_PROFILE',
-             [ViewState.PRO_MARKETPLACE]: 'ESCAMBO_MARKET',
-             [ViewState.PRO_AGENDA]: 'AGENDA_VIEW',
-             [ViewState.PRO_NETWORK]: 'TRIBE_PRO',
-         };
-         const target = map[view];
-         if (target && flowState.currentState !== target) {
-             if (flowState.currentState === 'START' || flowState.currentState === 'DASHBOARD') {
-                go(target);
-             }
-         }
-    }, [view]);
+    const map: Record<string, GuardiaoState> = {
+        [ViewState.PRO_HOME]: 'DASHBOARD',
+        [ViewState.PRO_FINANCE]: 'FINANCE_OVERVIEW',
+        [ViewState.PRO_OPPORTUNITIES]: 'VAGAS_LIST',
+        [ViewState.PRO_PATIENTS]: 'PATIENTS_LIST',
+        [ViewState.PRO_PATIENT_DETAILS]: 'PATIENT_PROFILE',
+        [ViewState.PRO_MARKETPLACE]: 'ESCAMBO_MARKET',
+        [ViewState.PRO_AGENDA]: 'AGENDA_VIEW',
+        [ViewState.PRO_NETWORK]: 'TRIBE_PRO',
+    };
+    useFlowSync({ state: flowState, go }, view, '/pro', map);
 
     // Initial load and re-fetch when user.id changes
     useEffect(() => {
