@@ -154,8 +154,8 @@ const ForgotPasswordForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
 // --- LOGIN FORM COMPONENT ---
 const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> = ({ onBack, onSubmit }) => {
-    const [email, setEmail] = useState(isMockMode ? 'client0@viva360.com' : '');
-    const [password, setPassword] = useState(isMockMode ? '123456' : '');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [showForgot, setShowForgot] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -211,45 +211,18 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                         <div className="flex items-center gap-3 mb-1">
                             <h3 className="text-2xl font-serif italic text-nature-900">Entrar no Fluxo</h3>
                         </div>
-                        {(isMockMode || isDemoMode) && <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1">Círculo de Proteção Ativo</p>}
+                        {/* Mock mode indicator removed */}
                     </div>
                     <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20}/></button>
                 </header>
 
 
-                {isDemoMode && (
-                    <div className="space-y-3">
-                        <div className="p-4 bg-primary-500/10 border border-primary-500/30 rounded-2xl flex items-center gap-3 animate-pulse">
-                            <Zap size={20} className="text-primary-500 shrink-0" />
-                            <div>
-                                <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest leading-none mb-1">Fluxo de Demonstração Ativado</p>
-                                <p className="text-[10px] text-nature-600 font-medium">Plataforma em modo de apresentação segura.</p>
-                            </div>
-                        </div>
-                        
-                        <button 
-                            type="button" 
-                            onClick={async () => { 
-                                setEmail('admin@viva360.com'); 
-                                setPassword('123456'); 
-                                // Submit next tick
-                                setTimeout(() => {
-                                   const submitBtn = document.querySelector('button[type="submit"]') as HTMLButtonElement;
-                                   if (submitBtn) submitBtn.click();
-                                }, 100);
-                            }}
-                            className="w-full bg-primary-500 text-white py-4 rounded-2xl font-bold uppercase tracking-[0.2em] text-[10px] shadow-lg active:scale-95 transition-all hover:bg-primary-600 flex items-center justify-center gap-3 border-none"
-                        >
-                            <Sparkles size={16} fill="currentColor" /> Portal do Guardião (Demo)
-                        </button>
-                    </div>
-                )}
+                {/* Demo mode interactive section removed */}
             </div>
 
             <div className="flex-1 overflow-y-auto px-8 pb-12 no-scrollbar">
                 <form onSubmit={handleSubmit} className="space-y-6 pt-2">
                     
-                    {!isMockMode && (
                         <button 
                             type="button"
                             onClick={handleGoogleLogin}
@@ -258,7 +231,6 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
                             Continuar com Google
                         </button>
-                    )}
 
                     <div className="relative flex py-2 items-center">
                         <div className="flex-grow border-t border-nature-100"></div>
@@ -272,7 +244,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                             <Mail size={18} className="text-nature-400 shrink-0"/>
                             <input 
                                 type="email" 
-                                required={!isMockMode}
+                                required={true}
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
                                 className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm" 
@@ -286,7 +258,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                             <Lock size={18} className="text-nature-400 shrink-0"/>
                             <input 
                                 type={showPassword ? "text" : "password"} 
-                                required={!isMockMode}
+                                required={true}
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm" 
@@ -317,13 +289,11 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                         {loading ? <span className="animate-pulse">Sintonizando...</span> : <>Entrar no Fluxo <LogIn size={16}/></>}
                     </button>
                     
-                    {!isMockMode && (
                         <div className="text-center pt-2">
                             <button type="button" onClick={() => setShowForgot(true)} className="text-xs text-primary-600 font-bold hover:underline">
                                 Perdeu o elo de acesso? Recuperar Harmonia
                             </button>
                         </div>
-                    )}
                     
                     <div className="h-12"></div>
                 </form>
@@ -337,15 +307,13 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
 
     // OAuth Callback Check
     useEffect(() => {
-        const checkSession = async () => {
-            if (!isMockMode) {
-                const { data } = await supabase.auth.getSession();
-                if (data.session) {
-                    const user = await api.auth.getCurrentSession();
-                    if (user) onLogin(user);
-                }
-            }
-        };
+                const checkSession = async () => {
+                    const { data } = await supabase.auth.getSession();
+                    if (data.session) {
+                        const user = await api.auth.getCurrentSession();
+                        if (user) onLogin(user);
+                    }
+                };
         checkSession();
     }, []);
 

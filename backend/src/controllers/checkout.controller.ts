@@ -53,9 +53,7 @@ export const processPayment = asyncHandler(async (req: Request, res: Response) =
           where: { id: receiverId },
           data: { personal_balance: { increment: amount } }
         });
-        
-        // Notify Receiver
-        await sendPushSimulation(receiverId, 'Payment Received', `You received ${amount} coins.`);
+        // Debiting and Crediting done in transaction
       }
 
       // 4. Create Transaction Record
@@ -68,6 +66,12 @@ export const processPayment = asyncHandler(async (req: Request, res: Response) =
         }
       });
     });
+
+    // 5. Post-Commit Actions (Notifications)
+    if (receiverId) {
+      // Notify Receiver (Async/Fire-and-forget or awaited outside tx)
+      await sendPushSimulation(receiverId, 'Payment Received', `You received ${amount} coins.`);
+    }
 
     // Notify Sender
     await sendPushSimulation(userId, 'Payment Successful', `Spent ${amount} coins.`);

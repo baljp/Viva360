@@ -25,6 +25,10 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
     const context = await getUserContext(userId, mood);
     const card = await oracleService.drawCard(userId, context);
 
+    if (!card) {
+        return res.status(503).json({ error: 'Oráculo temporariamente indisponível.' });
+    }
+
     return res.json({
         drawId: Date.now().toString(),
         card: {

@@ -5,6 +5,7 @@ import { isMockMode } from '../services/supabase.service';
 import prisma from '../lib/prisma';
 import { CloudinaryService } from '../services/cloudinary.service';
 import { asyncHandler } from '../middleware/async.middleware';
+import { oracleService } from '../services/oracle.service';
 
 // In-memory mock DB
 const METAMORPHOSIS_DB: Record<string, any[]> = {};
@@ -39,6 +40,36 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     if (!METAMORPHOSIS_DB[userId]) METAMORPHOSIS_DB[userId] = [];
     METAMORPHOSIS_DB[userId].push(entry);
 
+    // PERSISTENCE (Non-Mock)
+    if (!isMockMode()) {
+        await prisma.$transaction(async (tx) => {
+            // 1. Create Event
+            await tx.event.create({
+                data: {
+                    stream_id: userId,
+                    type: 'MOOD_LOGGED',
+                    payload: entry as any
+                }
+            });
+
+            // 2. Upsert Projection
+            await tx.metamorphosisProjection.upsert({
+                where: { user_id: userId },
+                create: {
+                    user_id: userId,
+                    total_checkins: 1,
+                    last_mood: mood,
+                    evolution_score: 10
+                },
+                update: {
+                    total_checkins: { increment: 1 },
+                    last_mood: mood,
+                    evolution_score: { increment: 10 }
+                }
+            });
+        });
+    }
+
     // ASYNC
     logsQueue.add('emotional_log', entry).catch(err => console.error('Queue Error:', err));
 
@@ -61,11 +92,18 @@ export const getEvolution = asyncHandler(async (req: Request, res: Response) => 
         });
     }
 
-    const projection = await prisma.metamorphosisProjection.findUnique({
-        where: { user_id: userId }
-    });
+    const [projection, events] = await Promise.all([
+        prisma.metamorphosisProjection.findUnique({
+            where: { user_id: userId }
+        }),
+        prisma.event.findMany({
+            where: { stream_id: userId, type: 'MOOD_LOGGED' },
+            orderBy: { created_at: 'desc' },
+            take: 20
+        })
+    ]);
 
-    if (!projection) {
+    if (!projection && events.length === 0) {
         return res.json({
             entries: [],
             totalEntries: 0,
@@ -74,11 +112,21 @@ export const getEvolution = asyncHandler(async (req: Request, res: Response) => 
         });
     }
 
+    const entries = events.map(e => ({
+        id: e.id,
+        timestamp: e.created_at,
+        mood: (e.payload as any).mood,
+        quote: (e.payload as any).quote,
+        reflection: (e.payload as any).reflection,
+        photoThumb: (e.payload as any).photoThumb
+    }));
+
     return res.json({
-        totalEntries: projection.total_checkins,
-        lastMood: projection.last_mood,
-        streak: projection.streak_days,
-        evolutionScore: projection.evolution_score,
-        readFrom: 'MetamorphosisProjection (Materialized View)'
+        entries,
+        totalEntries: projection?.total_checkins || entries.length,
+        lastMood: projection?.last_mood || entries[0]?.mood,
+        streak: projection?.streak_days || 1,
+        evolutionScore: projection?.evolution_score || 0,
+        readFrom: 'DB (Events + Projection)'
     });
 });

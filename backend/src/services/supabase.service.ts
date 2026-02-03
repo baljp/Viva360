@@ -7,25 +7,26 @@ const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const APP_MODE = process.env.APP_MODE || (SUPABASE_URL ? 'PROD' : 'MOCK');
 
-// Flag for Mock/Demo Mode (Backend uses mock logic for both to ensure safety)
-const IS_MOCK_MODE = APP_MODE === 'MOCK' || APP_MODE === 'DEMO' || !SUPABASE_URL;
-const IS_DEMO_MODE = APP_MODE === 'DEMO';
+// Flag for Mock/Demo Mode (Disabled)
+const IS_MOCK_MODE = false;
+const IS_DEMO_MODE = false;
 
 // Admin client with Service Role (bypass RLS for admin tasks)
 let adminClient: SupabaseClient;
 
+const effectiveKey = SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'dummy-key-for-initialization';
+
 try {
-  if (IS_MOCK_MODE) {
-      console.warn('⚠️  Backend Running in MOCK MODE (Supabase credentials missing or mock flag set).');
-      adminClient = createClient('https://mock.supabase.co', 'mock-key', { auth: { persistSession: false } });
-  } else {
-      adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-        auth: { autoRefreshToken: false, persistSession: false },
-      });
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('⚠️  Backend: SUPABASE_SERVICE_ROLE_KEY missing. Admin tasks (like registration) will fail RLS.');
   }
+  
+  adminClient = createClient(SUPABASE_URL || 'https://placeholder.supabase.co', effectiveKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 } catch (e) {
   console.error("Failed to init Supabase Admin:", e);
-  adminClient = createClient('https://mock.supabase.co', 'fallback-key');
+  // We don't throw here to allow the server to boot if other services are healthy
 }
 
 export const supabaseAdmin = adminClient;
