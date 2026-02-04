@@ -111,7 +111,44 @@ SELECT USING (true);
 CREATE POLICY "Public read audit_events" ON public.audit_events FOR
 SELECT USING (true);
 
--- Enable Realtime for chat_messages
-ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
+-- Enable Realtime for new tables (skip if already added)
+DO $$
+BEGIN
+  -- Only add chat_messages if not already a member
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'chat_messages'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.notifications;
+END IF;
+
+-- Only add notifications if not already a member
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE
+        pubname = 'supabase_realtime'
+        AND tablename = 'notifications'
+) THEN
+ALTER PUBLICATION supabase_realtime
+ADD
+TABLE public.notifications;
+
+END IF;
+
+-- Add new chats table to realtime
+IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_tables
+    WHERE
+        pubname = 'supabase_realtime'
+        AND tablename = 'chats'
+) THEN
+ALTER PUBLICATION supabase_realtime
+ADD
+TABLE public.chats;
+
+END IF;
+
+END $$;
