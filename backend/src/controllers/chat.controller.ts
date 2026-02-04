@@ -17,7 +17,9 @@ export const getHistory = asyncHandler(async (req: Request, res: Response) => {
 
   if (typeof otherUserId !== 'string') return res.status(400).json({error: 'Missing otherUserId'});
 
-  const messages = await chatService.getHistory(userId, otherUserId);
+  // Support both old direct messages and new chat rooms
+  // For backwards compatibility, we create/find a chat between the two users
+  const messages = await chatService.getChatHistory(otherUserId);
 
   return res.json(messages);
 });

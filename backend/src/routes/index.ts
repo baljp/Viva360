@@ -56,8 +56,13 @@ router.use('/admin', authenticateUser, adminRoutes);
 router.use('/admin/executive', authenticateUser, executiveRoutes);
 
 import metamorphosisRoutes from './metamorphosis.routes';
+import profileLinksRoutes from './profileLinks.routes';
+import presenceRoutes from './presence.routes';
 
 // ... (other imports)
 
 router.use('/metamorphosis', authenticateUser, metamorphosisRoutes);
+router.use('/links', authenticateUser, profileLinksRoutes);
+router.use('/presence', presenceRoutes); // Presence can be partially public
+
 export default router;
