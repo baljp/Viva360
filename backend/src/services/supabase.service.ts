@@ -3,25 +3,30 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 const APP_MODE = process.env.APP_MODE || (SUPABASE_URL ? 'PROD' : 'MOCK');
 
-// Flag for Mock/Demo Mode (Disabled)
-const IS_MOCK_MODE = false;
-const IS_DEMO_MODE = false;
+// Flag for Mock/Demo Mode
+const IS_MOCK_MODE = APP_MODE === 'MOCK';
+const IS_DEMO_MODE = APP_MODE === 'DEMO';
 
 // Admin client with Service Role (bypass RLS for admin tasks)
 let adminClient: SupabaseClient | null = null;
 
-const effectiveKey = SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'dummy-key-for-initialization';
+const effectiveKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY || 'dummy-key-for-initialization';
 
 try {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!SUPABASE_URL) {
+      console.warn('⚠️  Backend: SUPABASE_URL missing. Falling back to mock URL.');
+  }
+  
+  if (!SUPABASE_SERVICE_ROLE_KEY) {
       console.warn('⚠️  Backend: SUPABASE_SERVICE_ROLE_KEY missing. Admin tasks (like registration) will fail RLS.');
   }
   
-  adminClient = createClient(SUPABASE_URL || 'https://placeholder.supabase.co', effectiveKey, {
+  adminClient = createClient(SUPABASE_URL || 'https://viva360-mock.supabase.co', effectiveKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 } catch (e) {
