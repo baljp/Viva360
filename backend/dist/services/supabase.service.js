@@ -1,0 +1,51 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.isDemoMode = exports.isMockMode = exports.createSupabaseUserClient = exports.supabaseAdmin = void 0;
+const supabase_js_1 = require("@supabase/supabase-js");
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const APP_MODE = process.env.APP_MODE || (SUPABASE_URL ? 'PROD' : 'MOCK');
+// Flag for Mock/Demo Mode (Disabled)
+const IS_MOCK_MODE = false;
+const IS_DEMO_MODE = false;
+// Admin client with Service Role (bypass RLS for admin tasks)
+let adminClient = null;
+const effectiveKey = SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'dummy-key-for-initialization';
+try {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+        console.warn('⚠️  Backend: SUPABASE_SERVICE_ROLE_KEY missing. Admin tasks (like registration) will fail RLS.');
+    }
+    adminClient = (0, supabase_js_1.createClient)(SUPABASE_URL || 'https://placeholder.supabase.co', effectiveKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+    });
+}
+catch (e) {
+    console.error("Failed to init Supabase Admin:", e);
+    // We don't throw here to allow the server to boot if other services are healthy
+}
+exports.supabaseAdmin = adminClient;
+/**
+ * Helper to create a client on behalf of a user (respects RLS)
+ * @param accessToken JWT token from frontend
+ */
+const createSupabaseUserClient = (accessToken) => {
+    // If in mock mode, we could return a proxy or just the admin client (dangerous in prod, ok for mock structure)
+    // For now, we return standard client, assuming service layer handles mock data logic if IS_MOCK_MODE is true.
+    return (0, supabase_js_1.createClient)(SUPABASE_URL, process.env.SUPABASE_ANON_KEY || '', {
+        global: {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+            },
+        },
+    });
+};
+exports.createSupabaseUserClient = createSupabaseUserClient;
+const isMockMode = () => IS_MOCK_MODE;
+exports.isMockMode = isMockMode;
+const isDemoMode = () => IS_DEMO_MODE;
+exports.isDemoMode = isDemoMode;

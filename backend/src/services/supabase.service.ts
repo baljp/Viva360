@@ -12,7 +12,7 @@ const IS_MOCK_MODE = false;
 const IS_DEMO_MODE = false;
 
 // Admin client with Service Role (bypass RLS for admin tasks)
-let adminClient: SupabaseClient;
+let adminClient: SupabaseClient | null = null;
 
 const effectiveKey = SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'dummy-key-for-initialization';
 
@@ -29,7 +29,7 @@ try {
   // We don't throw here to allow the server to boot if other services are healthy
 }
 
-export const supabaseAdmin = adminClient;
+export const supabaseAdmin = adminClient!;
 
 /**
  * Helper to create a client on behalf of a user (respects RLS)

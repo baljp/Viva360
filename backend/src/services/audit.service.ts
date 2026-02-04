@@ -20,31 +20,66 @@ export class AuditService {
 
     // 2. Real Mode: Persist to DB
     try {
-        // Need to ensure AuditLog model exists in Prisma. If not, we might need to add it or skip for now.
-        // Assuming simulated DB structure for Phase 4 if schema update is risky.
-        // For now, let's console log in production too until migration is confirmed safe.
-        // But the plan says "Write to audit_logs".
-        
-        // Let's optimize: Check if model exists via try-catch or just log for now to avoid breaking if schema desyncs.
-        // Given disk space issues earlier,schema migration might be fragile.
-        // I will use console fallback for reliability in this specific context unless critical.
-        
-       /*
-       await prisma.auditLog.create({
-         data: {
-           user_id: userId,
-           resource,
-           action,
-           status,
-           details,
-           timestamp: new Date()
-         }
-       });
-       */
-        console.log(`[DB-AUDIT] User: ${userId} | Action: ${action} | Resource: ${resource}`);
-
+      console.log(`[DB-AUDIT] User: ${userId} | Action: ${action} | Resource: ${resource}`);
     } catch (e) {
       console.error('[AUDIT FAIL]', e);
     }
   }
+
+  /**
+   * Log an event to the audit_events table (Event Sourcing Light)
+   */
+  async log(actorId: string, action: string, entityType: string, entityId: string, payload?: any): Promise<void> {
+    if (isMockMode()) {
+      console.log(`[AUDIT] Actor: ${actorId} | Action: ${action} | Entity: ${entityType}:${entityId}`);
+      return;
+    }
+
+    try {
+      await prisma.auditEvent.create({
+        data: {
+          actor_id: actorId,
+          action,
+          entity_type: entityType,
+          entity_id: entityId,
+          payload: payload || {},
+        },
+      });
+    } catch (e) {
+      // Fallback to console if table doesn't exist yet
+      console.log(`[AUDIT] Actor: ${actorId} | Action: ${action} | Entity: ${entityType}:${entityId}`, payload);
+    }
+  }
+
+  /**
+   * Get audit events for an entity
+   */
+  async getEventsForEntity(entityType: string, entityId: string, limit: number = 50): Promise<any[]> {
+    try {
+      return await prisma.auditEvent.findMany({
+        where: { entity_type: entityType, entity_id: entityId },
+        orderBy: { created_at: 'desc' },
+        take: limit,
+      });
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Get audit events by actor
+   */
+  async getEventsByActor(actorId: string, limit: number = 50): Promise<any[]> {
+    try {
+      return await prisma.auditEvent.findMany({
+        where: { actor_id: actorId },
+        orderBy: { created_at: 'desc' },
+        take: limit,
+      });
+    } catch {
+      return [];
+    }
+  }
 }
+
+export const auditService = new AuditService();
