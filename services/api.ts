@@ -291,33 +291,88 @@ export const api = {
     },
     appointments: {
         list: async (uid: string, role: UserRole) => {
-            const all = MockDB.getAppointments();
-            if (role === UserRole.PROFESSIONAL) return all.filter(a => a.professionalId === uid);
-            return all.filter(a => a.clientId === uid);
+            try {
+                const all = await request('/appointments');
+                if (role === UserRole.PROFESSIONAL) return all.filter((a: Appointment) => a.professionalId === uid);
+                return all.filter((a: Appointment) => a.clientId === uid);
+            } catch {
+                return []; // Empty state instead of mock
+            }
         },
-        create: async (apt: Appointment) => MockDB.addAppointment(apt)
+        create: async (apt: Appointment) => {
+            try {
+                return await request('/appointments', {
+                    method: 'POST',
+                    body: JSON.stringify(apt)
+                });
+            } catch {
+                return apt; // Return the input as fallback
+            }
+        }
     },
     reviews: {
         list: async () => [],
         create: async (r: any) => r
     },
     marketplace: {
-        listAll: async (): Promise<Product[]> => MockDB.getProducts(),
-        listByOwner: async (oid: string) => MockDB.getProducts().filter(p => p.ownerId === oid),
-        create: async (p: any) => MockDB.addProduct({ ...p, id: `prod_${Date.now()}` }),
-        delete: async (id: string) => { MockDB.deleteProduct(id); return true; }
+        listAll: async (): Promise<Product[]> => {
+            try {
+                return await request('/marketplace/products');
+            } catch {
+                return []; // Empty marketplace
+            }
+        },
+        listByOwner: async (oid: string) => {
+            try {
+                return await request(`/marketplace/products?owner=${oid}`);
+            } catch {
+                return [];
+            }
+        },
+        create: async (p: any) => {
+            try {
+                return await request('/marketplace/products', {
+                    method: 'POST',
+                    body: JSON.stringify(p)
+                });
+            } catch {
+                return { ...p, id: `prod_${Date.now()}` };
+            }
+        },
+        delete: async (id: string) => {
+            try {
+                await request(`/marketplace/products/${id}`, { method: 'DELETE' });
+                return true;
+            } catch {
+                return false;
+            }
+        }
     },
 
     notifications: {
         list: async (uid?: string) => {
-             // Mock notifications based on role
-             const baseNotes: Notification[] = [
-                 { id: 'n1', userId: uid || '', type: 'alert', title: 'Sessão Iniciando', message: 'Sua sessão de Reiki começa em 15 min.', timestamp: new Date().toISOString(), read: false, priority: 'high' }
-             ];
-             return baseNotes;
+            try {
+                return await request('/notifications');
+            } catch {
+                return []; // Empty notifications
+            }
         },
-        markAsRead: async (id: string) => true,
-        markAllAsRead: async (uid?: string) => true
+        markAsRead: async (id: string) => {
+            try {
+                await request(`/notifications/${id}/read`, { method: 'POST' });
+                return true;
+            } catch {
+                return false;
+            }
+        },
+        markAllAsRead: async (uid?: string) => {
+            try {
+                await request('/notifications/read-all', { method: 'POST' });
+                return true;
+            } catch {
+                return false;
+            }
+        }
     },
     tribe: {
         listPosts: async () => MockDB.getPosts(),
@@ -405,14 +460,108 @@ export const api = {
              return MockDB.getOracleHistory(user.id);
         }
     },
+    links: {
+        create: async (targetId: string, type: 'tribo' | 'paciente' | 'escambo' | 'equipe' | 'bazar') => {
+            try {
+                return await request('/links', {
+                    method: 'POST',
+                    body: JSON.stringify({ targetId, type })
+                });
+            } catch (e: any) {
+                throw new Error(e.message || 'Failed to create link');
+            }
+        },
+        accept: async (linkId: string) => {
+            try {
+                return await request(`/links/${linkId}/accept`, { method: 'POST' });
+            } catch (e: any) {
+                throw new Error(e.message || 'Failed to accept link');
+            }
+        },
+        getMyLinks: async () => {
+            try {
+                return await request('/links/me');
+            } catch {
+                return [];
+            }
+        },
+        getPendingRequests: async () => {
+            try {
+                return await request('/links/pending');
+            } catch {
+                return [];
+            }
+        },
+        checkLink: async (targetId: string, type?: string) => {
+            try {
+                const params = type ? `?type=${type}` : '';
+                const result = await request(`/links/check/${targetId}${params}`);
+                return result.hasLink || false;
+            } catch {
+                return false;
+            }
+        },
+        remove: async (linkId: string) => {
+            try {
+                await request(`/links/${linkId}`, { method: 'DELETE' });
+                return true;
+            } catch {
+                return false;
+            }
+        }
+    },
     chat: {
         listRooms: async () => {
-             const user = await api.auth.getCurrentSession();
-             if (!user) return [];
-             return MockDB.getChatRooms(user.id);
+            try {
+                return await request('/chat/rooms');
+            } catch {
+                // Fallback to empty array
+                return [];
+            }
         },
-        getMessages: async (roomId: string) => [], // Mock messages for now, could expand to SEED_MESSAGES
-        sendMessage: async (roomId: string, content: string) => true
+        getMessages: async (roomId: string) => {
+            try {
+                return await request(`/chat/${roomId}/messages`);
+            } catch {
+                return [];
+            }
+        },
+        sendMessage: async (roomId: string, content: string) => {
+            try {
+                return await request(`/chat/${roomId}/messages`, {
+                    method: 'POST',
+                    body: JSON.stringify({ content })
+                });
+            } catch {
+                return false;
+            }
+        },
+        getOrCreate: async (targetProfileId: string, type: 'private' | 'escambo' | 'agendamento' | 'bazar' = 'private') => {
+            try {
+                return await request('/chat/rooms', {
+                    method: 'POST',
+                    body: JSON.stringify({ targetProfileId, type })
+                });
+            } catch {
+                return null;
+            }
+        },
+        markAsRead: async (chatId: string) => {
+            try {
+                await request(`/chat/${chatId}/read`, { method: 'POST' });
+                return true;
+            } catch {
+                return false;
+            }
+        },
+        getUnreadCount: async () => {
+            try {
+                const result = await request('/chat/unread-count');
+                return result.count || 0;
+            } catch {
+                return 0;
+            }
+        }
     },
     rituals: {
         save: async (period: string, data: any) => true,
@@ -525,48 +674,57 @@ export const api = {
     },
     presence: {
         goOnline: async () => {
-             const user = await api.auth.getCurrentSession();
-             if (!user || user.role !== 'PROFESSIONAL') return;
-             
-             const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-             const list = JSON.parse(localStorage.getItem('viva360.presence') || '{}');
-             list[user.id] = { status: 'ONLINE', lastActivity: new Date().toISOString(), expiresAt };
-             
-             localStorage.setItem('viva360.presence', JSON.stringify(list));
-             
-             // Update User Object in Session too
-             const updatedUser = { ...user, presence: { status: 'ONLINE', lastActivity: new Date().toISOString(), expiresAt } };
-             localStorage.setItem('viva360.mock_user', JSON.stringify(updatedUser)); // Sync
-             return list[user.id];
+            try {
+                return await request('/presence/online', { method: 'POST' });
+            } catch {
+                // Local fallback
+                const user = await api.auth.getCurrentSession();
+                if (!user || user.role !== 'PROFESSIONAL') return;
+                const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+                return { status: 'ONLINE', lastActivity: new Date().toISOString(), expiresAt };
+            }
         },
         goOffline: async () => {
-             const user = await api.auth.getCurrentSession();
-             if (!user) return;
-             
-             const list = JSON.parse(localStorage.getItem('viva360.presence') || '{}');
-             if (list[user.id]) {
-                 list[user.id].status = 'OFFLINE';
-                 localStorage.setItem('viva360.presence', JSON.stringify(list));
-                 
-                 const updatedUser = { ...user, presence: { status: 'OFFLINE', lastActivity: new Date().toISOString(), expiresAt: new Date().toISOString() } };
-                 localStorage.setItem('viva360.mock_user', JSON.stringify(updatedUser));
-             }
+            try {
+                return await request('/presence/offline', { method: 'POST' });
+            } catch {
+                return { status: 'OFFLINE' };
+            }
         },
         ping: async () => {
-             // Extending session
-             return api.presence.goOnline();
+            try {
+                return await request('/presence/ping', { method: 'POST' });
+            } catch {
+                return api.presence.goOnline();
+            }
         },
         listActive: async () => {
-             const list = JSON.parse(localStorage.getItem('viva360.presence') || '{}');
-             const now = new Date().getTime();
-             const active: Record<string, any> = {};
-             
-             Object.entries(list).forEach(([id, data]: [string, any]) => {
-                 if (data.status === 'ONLINE' && new Date(data.expiresAt).getTime() > now) {
-                     active[id] = data;
-                 }
-             });
-             return active;
+            try {
+                const result = await request('/presence');
+                return result.online || [];
+            } catch {
+                return [];
+            }
+        },
+        getStatus: async (guardianId: string) => {
+            try {
+                const result = await request(`/presence/${guardianId}`);
+                return result.status || 'OFFLINE';
+            } catch {
+                return 'OFFLINE';
+            }
+        },
+        getBatch: async (guardianIds: string[]) => {
+            try {
+                return await request('/presence/batch', {
+                    method: 'POST',
+                    body: JSON.stringify({ guardianIds })
+                });
+            } catch {
+                const result: Record<string, string> = {};
+                guardianIds.forEach(id => { result[id] = 'OFFLINE'; });
+                return result;
+            }
         }
     },
     clinical: {

@@ -80,6 +80,21 @@ model Profile {
   oracleHistories      OracleHistory[]
   guardianPresences    GuardianPresence[]
 
+  // Profile Links Relations
+  source_links ProfileLink[] @relation("SourceLinks")
+  target_links ProfileLink[] @relation("TargetLinks")
+
+  // Chat Participants
+  chat_participations ChatParticipant[]
+
+  // Marketplace Orders
+  buyer_orders  MarketplaceOrder[] @relation("BuyerOrders")
+  seller_orders MarketplaceOrder[] @relation("SellerOrders")
+
+  // Escambo Proposals
+  proposer_escambos EscamboProposal[] @relation("ProposerEscambo")
+  receiver_escambos EscamboProposal[] @relation("ReceiverEscambo")
+
   @@map("profiles")
   @@schema("public") // Prisma default is public but explicit is better
 }
@@ -115,7 +130,8 @@ model Product {
   owner_id    String?  @db.Uuid
   created_at  DateTime @default(now()) @db.Timestamptz(6)
 
-  owner Profile? @relation(fields: [owner_id], references: [id])
+  owner             Profile?           @relation(fields: [owner_id], references: [id])
+  marketplaceOrders MarketplaceOrder[]
 
   @@map("products")
   @@schema("public")
@@ -167,12 +183,14 @@ model Room {
 
 model ChatMessage {
   id          String   @id @default(uuid()) @db.Uuid
+  chat_id     String?  @db.Uuid
   sender_id   String   @db.Uuid
   receiver_id String   @db.Uuid
   content     String
   read        Boolean  @default(false)
   created_at  DateTime @default(now()) @db.Timestamptz(6)
 
+  chat     Chat?   @relation(fields: [chat_id], references: [id])
   sender   Profile @relation("SentMessages", fields: [sender_id], references: [id])
   receiver Profile @relation("ReceivedMessages", fields: [receiver_id], references: [id])
 
@@ -327,5 +345,118 @@ model GuardianPresence {
   guardian Profile @relation(fields: [guardian_id], references: [id], onDelete: Cascade)
 
   @@map("guardian_presence")
+  @@schema("public")
+}
+
+// --------------------------------------------------------
+// Profile Linking System (Vínculos)
+// --------------------------------------------------------
+
+model ProfileLink {
+  id         String   @id @default(uuid()) @db.Uuid
+  source_id  String   @db.Uuid
+  target_id  String   @db.Uuid
+  type       String // 'tribo' | 'paciente' | 'escambo' | 'equipe' | 'bazar'
+  status     String   @default("pending") // 'pending' | 'accepted' | 'active'
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  source Profile @relation("SourceLinks", fields: [source_id], references: [id])
+  target Profile @relation("TargetLinks", fields: [target_id], references: [id])
+
+  @@unique([source_id, target_id, type])
+  @@map("profile_links")
+  @@schema("public")
+}
+
+// --------------------------------------------------------
+// Chat Rooms (Context-aware)
+// --------------------------------------------------------
+
+model Chat {
+  id         String   @id @default(uuid()) @db.Uuid
+  type       String // 'private' | 'escambo' | 'agendamento' | 'bazar'
+  context_id String?  @db.Uuid // Reference to escambo/appointment/order
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  participants ChatParticipant[]
+  messages     ChatMessage[]
+
+  @@map("chats")
+  @@schema("public")
+}
+
+model ChatParticipant {
+  id           String   @id @default(uuid()) @db.Uuid
+  chat_id      String   @db.Uuid
+  profile_id   String   @db.Uuid
+  unread_count Int      @default(0)
+  joined_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  chat    Chat    @relation(fields: [chat_id], references: [id], onDelete: Cascade)
+  profile Profile @relation(fields: [profile_id], references: [id])
+
+  @@unique([chat_id, profile_id])
+  @@map("chat_participants")
+  @@schema("public")
+}
+
+// --------------------------------------------------------
+// Marketplace Orders
+// --------------------------------------------------------
+
+model MarketplaceOrder {
+  id          String   @id @default(uuid()) @db.Uuid
+  buyer_id    String   @db.Uuid
+  seller_id   String   @db.Uuid
+  product_id  String   @db.Uuid
+  quantity    Int      @default(1)
+  total_price Decimal
+  status      String   @default("pending") // 'pending' | 'paid' | 'shipped' | 'completed'
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  buyer   Profile @relation("BuyerOrders", fields: [buyer_id], references: [id])
+  seller  Profile @relation("SellerOrders", fields: [seller_id], references: [id])
+  product Product @relation(fields: [product_id], references: [id])
+
+  @@map("marketplace_orders")
+  @@schema("public")
+}
+
+// --------------------------------------------------------
+// Escambo Proposals (Swap System)
+// --------------------------------------------------------
+
+model EscamboProposal {
+  id          String   @id @default(uuid()) @db.Uuid
+  proposer_id String   @db.Uuid
+  receiver_id String   @db.Uuid
+  offer       String // What proposer offers
+  request     String // What proposer wants
+  status      String   @default("pending") // 'pending' | 'accepted' | 'rejected' | 'completed'
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  proposer Profile @relation("ProposerEscambo", fields: [proposer_id], references: [id])
+  receiver Profile @relation("ReceiverEscambo", fields: [receiver_id], references: [id])
+
+  @@map("escambo_proposals")
+  @@schema("public")
+}
+
+// --------------------------------------------------------
+// Audit Events (Event Sourcing Light)
+// --------------------------------------------------------
+
+model AuditEvent {
+  id          String   @id @default(uuid()) @db.Uuid
+  actor_id    String   @db.Uuid
+  action      String // 'link.created' | 'chat.sent' | 'appointment.created' etc.
+  entity_type String // 'profile_link' | 'chat' | 'appointment'
+  entity_id   String   @db.Uuid
+  payload     Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([actor_id])
+  @@index([entity_type, entity_id])
+  @@map("audit_events")
   @@schema("public")
 }
