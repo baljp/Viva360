@@ -81,9 +81,12 @@ export const MicroJourneyModal: React.FC<MicroJourneyModalProps> = ({ type, user
 
     if (isCompleted) {
         return (
-            <div className="fixed inset-0 z-[100] bg-nature-900/40 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
+            <div 
+                onClick={() => onComplete(user)}
+                className="fixed inset-0 z-[100] bg-nature-900/40 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in cursor-pointer"
+            >
                 <div className="bg-white rounded-[2.5rem] p-8 w-full max-w-sm text-center space-y-6 shadow-2xl relative overflow-hidden">
-                    <div className="absolute inset-0 bg-nature-50/50" />
+                    <div className="absolute inset-0 bg-nature-50/50 pointer-events-none" />
                     <div className="relative z-10 flex flex-col items-center gap-4">
                         <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center animate-bounce">
                              <Sparkle size={32} className="text-emerald-500" />
@@ -96,6 +99,7 @@ export const MicroJourneyModal: React.FC<MicroJourneyModalProps> = ({ type, user
                             <span className="px-4 py-1.5 bg-nature-100 rounded-full text-[10px] font-bold uppercase text-nature-500">+10 Vitalidade</span>
                             <span className="px-4 py-1.5 bg-nature-100 rounded-full text-[10px] font-bold uppercase text-nature-500">+10 Karma</span>
                         </div>
+                        <p className="text-[9px] text-nature-300 uppercase mt-4 animate-pulse">Toque para continuar</p>
                     </div>
                 </div>
             </div>
