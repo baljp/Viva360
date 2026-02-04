@@ -12,7 +12,8 @@ test.describe('Integração Inter-Perfil', () => {
     // --- CLIENT FLOW ---
     console.log('[Integration] Client arranging booking...');
     await clientPage.goto('/');
-    await clientPage.getByRole('button', { name: /já tenho conta/i }).click();
+    const clientLoginBtn = clientPage.getByRole('button', { name: /já iniciei a jornada|já tenho conta/i });
+    if (await clientLoginBtn.isVisible()) await clientLoginBtn.click();
     await clientPage.fill('input[placeholder="seu@email.com"]', 'cliente_0@viva360.com'); // Determined by seed
     await clientPage.fill('input[placeholder="••••••••"]', '123456');
     await clientPage.click('button[type="submit"]');
@@ -44,7 +45,8 @@ test.describe('Integração Inter-Perfil', () => {
     const proPage = await proContext.newPage();
     
     await proPage.goto('/');
-    await proPage.getByRole('button', { name: /já tenho conta/i }).click();
+    const proLoginBtn = proPage.getByRole('button', { name: /já iniciei a jornada|já tenho conta/i });
+    if (await proLoginBtn.isVisible()) await proLoginBtn.click();
     await proPage.fill('input[placeholder="seu@email.com"]', 'pro_0@viva360.com'); // Corresponds to Mestre Sol in seed? 
     // Need to match seed logic. checking seedEngine: 
     // pro_0 name is likely "Ana Silva" (random). 
@@ -80,7 +82,8 @@ test.describe('Integração Inter-Perfil', () => {
     const spacePage = await spaceContext.newPage();
     
     await spacePage.goto('/');
-    await spacePage.getByRole('button', { name: /já tenho conta/i }).click();
+    const spaceLoginBtn = spacePage.getByRole('button', { name: /já iniciei a jornada|já tenho conta/i });
+    if (await spaceLoginBtn.isVisible()) await spaceLoginBtn.click();
     await spacePage.fill('input[placeholder="seu@email.com"]', 'contato.hub0@viva360.com'); 
     await spacePage.fill('input[placeholder="••••••••"]', '123456');
     await spacePage.click('button[type="submit"]');
@@ -101,7 +104,8 @@ test.describe('Integração Inter-Perfil', () => {
     const proPage = await proContext.newPage();
     
     await proPage.goto('/');
-    await proPage.getByRole('button', { name: /já tenho conta/i }).click();
+    const proLoginBtn2 = proPage.getByRole('button', { name: /já iniciei a jornada|já tenho conta/i });
+    if (await proLoginBtn2.isVisible()) await proLoginBtn2.click();
     await proPage.fill('input[placeholder="seu@email.com"]', 'pro_1@viva360.com');
     await proPage.fill('input[placeholder="••••••••"]', '123456');
     await proPage.click('button[type="submit"]');

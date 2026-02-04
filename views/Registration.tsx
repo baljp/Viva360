@@ -14,7 +14,15 @@ interface RegistrationProps {
 // --- Componentes de UI Auxiliares ---
 import { Eye, EyeOff } from 'lucide-react';
 
-const InputField: React.FC<any> = ({ icon, type = "text", ...props }) => {
+interface InputFieldProps {
+    icon: React.ReactNode;
+    type?: string;
+    placeholder?: string;
+    value?: string;
+    onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+const InputField: React.FC<InputFieldProps> = ({ icon, type = "text", ...props }) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPassword = type === 'password';
     
@@ -93,7 +101,12 @@ const RadioGroup: React.FC<{ options: string[], selected: string, onChange: (val
 );
 
 // --- Formulários ---
-const ClientForm: React.FC<any> = ({ setView, onRegister }) => {
+interface FormProps {
+    setView: (v: ViewState) => void;
+    onRegister: (data: Partial<User | Professional>) => Promise<void> | void;
+}
+
+const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', goals: [], therapyPreferences: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
@@ -130,9 +143,9 @@ const ClientForm: React.FC<any> = ({ setView, onRegister }) => {
                      <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Elo de Identidade</p>
                     <GoogleButton onClick={handleGoogleRegister} />
                     <Divider />
-                    <InputField icon={<UserIcon size={18}/>} type="text" placeholder="Nome Completo" value={formData.name} onChange={(e:any) => setFormData(p => ({...p, name: e.target.value}))} />
-                    <InputField icon={<Mail size={18}/>} type="email" placeholder="Seu melhor e-mail" value={formData.email} onChange={(e:any) => setFormData(p => ({...p, email: e.target.value}))} />
-                    <InputField icon={<Lock size={18}/>} type="password" placeholder="Crie uma senha segura" value={formData.password} onChange={(e:any) => setFormData(p => ({...p, password: e.target.value}))} />
+                    <InputField icon={<UserIcon size={18}/>} type="text" placeholder="Nome Completo" value={formData.name} onChange={(e) => setFormData(p => ({...p, name: e.target.value}))} />
+                    <InputField icon={<Mail size={18}/>} type="email" placeholder="Seu melhor e-mail" value={formData.email} onChange={(e) => setFormData(p => ({...p, email: e.target.value}))} />
+                    <InputField icon={<Lock size={18}/>} type="password" placeholder="Crie uma senha segura" value={formData.password} onChange={(e) => setFormData(p => ({...p, password: e.target.value}))} />
                 </div>
                 
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-6">
@@ -152,7 +165,7 @@ const ClientForm: React.FC<any> = ({ setView, onRegister }) => {
     );
 };
 
-const ProForm: React.FC<any> = ({ setView, onRegister }) => {
+const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', specialty: [], pricePerSession: 150, location: '', bio: '', approach: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
@@ -185,14 +198,14 @@ const ProForm: React.FC<any> = ({ setView, onRegister }) => {
                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Dados Profissionais</p>
                     <GoogleButton onClick={handleGoogleRegister} />
                     <Divider />
-                    <InputField icon={<UserIcon size={18}/>} type="text" placeholder="Nome Profissional" value={formData.name} onChange={(e:any) => setFormData(p => ({...p, name: e.target.value}))} />
-                    <InputField icon={<Mail size={18}/>} type="email" placeholder="E-mail de Contato" value={formData.email} onChange={(e:any) => setFormData(p => ({...p, email: e.target.value}))} />
-                    <InputField icon={<Lock size={18}/>} type="password" placeholder="Senha de Acesso" value={formData.password} onChange={(e:any) => setFormData(p => ({...p, password: e.target.value}))} />
+                    <InputField icon={<UserIcon size={18}/>} type="text" placeholder="Nome Profissional" value={formData.name} onChange={(e) => setFormData(p => ({...p, name: e.target.value}))} />
+                    <InputField icon={<Mail size={18}/>} type="email" placeholder="E-mail de Contato" value={formData.email} onChange={(e) => setFormData(p => ({...p, email: e.target.value}))} />
+                    <InputField icon={<Lock size={18}/>} type="password" placeholder="Senha de Acesso" value={formData.password} onChange={(e) => setFormData(p => ({...p, password: e.target.value}))} />
                 </div>
 
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-6">
-                    <InputField icon={<Sparkles size={18}/>} type="text" placeholder="Especialidades (Ex: Reiki, Yoga)" onChange={(e:any) => setFormData(p => ({...p, specialty: e.target.value.split(',')}))} />
-                    <InputField icon={<MapPin size={18}/>} type="text" placeholder="Bairro de Atendimento" value={formData.location} onChange={(e:any) => setFormData(p => ({...p, location: e.target.value}))} />
+                    <InputField icon={<Sparkles size={18}/>} type="text" placeholder="Especialidades (Ex: Reiki, Yoga)" onChange={(e) => setFormData(p => ({...p, specialty: e.target.value.split(',')}))} />
+                    <InputField icon={<MapPin size={18}/>} type="text" placeholder="Bairro de Atendimento" value={formData.location} onChange={(e) => setFormData(p => ({...p, location: e.target.value}))} />
                     <RadioGroup title="Sua abordagem principal" options={['Corporal', 'Energética', 'Mental/Emocional']} selected={formData.approach} onChange={val => setFormData(p => ({...p, approach: val}))} />
                 </div>
                 
@@ -208,7 +221,7 @@ const ProForm: React.FC<any> = ({ setView, onRegister }) => {
     );
 };
 
-const SpaceForm: React.FC<any> = ({ setView, onRegister }) => {
+const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', address: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
@@ -241,13 +254,13 @@ const SpaceForm: React.FC<any> = ({ setView, onRegister }) => {
                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Gestão do Hub</p>
                     <GoogleButton onClick={handleGoogleRegister} />
                     <Divider />
-                    <InputField icon={<Home size={18}/>} type="text" placeholder="Nome do Espaço" value={formData.name} onChange={(e:any) => setFormData(p => ({...p, name: e.target.value}))} />
-                    <InputField icon={<Mail size={18}/>} type="email" placeholder="E-mail Administrativo" value={formData.email} onChange={(e:any) => setFormData(p => ({...p, email: e.target.value}))} />
-                    <InputField icon={<Lock size={18}/>} type="password" placeholder="Senha Mestra" value={formData.password} onChange={(e:any) => setFormData(p => ({...p, password: e.target.value}))} />
+                    <InputField icon={<Home size={18}/>} type="text" placeholder="Nome do Espaço" value={formData.name} onChange={(e) => setFormData(p => ({...p, name: e.target.value}))} />
+                    <InputField icon={<Mail size={18}/>} type="email" placeholder="E-mail Administrativo" value={formData.email} onChange={(e) => setFormData(p => ({...p, email: e.target.value}))} />
+                    <InputField icon={<Lock size={18}/>} type="password" placeholder="Senha Mestra" value={formData.password} onChange={(e) => setFormData(p => ({...p, password: e.target.value}))} />
                 </div>
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
                      <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-1">Localização</p>
-                    <InputField icon={<MapPin size={18}/>} type="text" placeholder="Endereço Completo" value={formData.address} onChange={(e:any) => setFormData(p => ({...p, address: e.target.value}))} />
+                    <InputField icon={<MapPin size={18}/>} type="text" placeholder="Endereço Completo" value={formData.address} onChange={(e) => setFormData(p => ({...p, address: e.target.value}))} />
                 </div>
 
                  <button 

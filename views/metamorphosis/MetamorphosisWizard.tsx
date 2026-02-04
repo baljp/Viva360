@@ -459,17 +459,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
             </div>
             
-            <style dangerouslySetInnerHTML={{ __html: `
-                @keyframes shine {
-                    100% { transform: translateX(100%); }
-                }
-                .animate-shine {
-                    animation: shine 3s infinite ease-in-out;
-                }
-                .animate-spin-slow {
-                    animation: spin 8s linear infinite;
-                }
-            `}} />
+            {/* Animations moved to src/index.css for security */}
         </PortalView>
     );
 };

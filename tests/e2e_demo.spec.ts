@@ -9,7 +9,7 @@ test.describe('Demo Journey: Seeker Smoke Test', () => {
     console.log('🔹 Step 1: Login');
     await page.goto('/');
     
-    const loginBtn = page.getByRole('button', { name: /já tenho conta/i });
+    const loginBtn = page.getByRole('button', { name: /já iniciei a jornada|já tenho conta/i });
     if (await loginBtn.isVisible()) {
         await loginBtn.click();
     }
