@@ -1,15 +1,16 @@
 
-import React, { useState, useRef } from 'react';
-import { ViewState, User, UserRole, Professional } from '../types';
+import React, { useState, useRef, useEffect } from 'react';
+import { ViewState, User, UserRole, Professional, Transaction } from '../types';
 import { 
     ChevronLeft, ShieldCheck, User as UserIcon, Camera, ChevronRight, 
     Heart, Sparkles, Lock, Bell, LogOut, Check, Mail, MapPin, 
     Briefcase, Smartphone, Sun, DoorOpen, DollarSign, List, Activity,
     Building, CreditCard, Wallet, Shield, MessageSquare, Megaphone, Smartphone as PhoneIcon,
-    Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon
+    Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2
 } from 'lucide-react';
 import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit, PortalView } from '../components/Common';
 import { api } from '../services/api';
+import { supabase } from '../lib/supabase';
 
     interface SettingsProps { 
         user: User; 
@@ -37,9 +38,25 @@ import { api } from '../services/api';
           bio: user.bio || '',
           intention: user.intention || ''
         });
+        const [transactions, setTransactions] = useState<Transaction[]>([]);
+        const [txLoading, setTxLoading] = useState(false);
+        const [newPassword, setNewPassword] = useState('');
+        const [passwordLoading, setPasswordLoading] = useState(false);
     
         // Ref para o input de arquivo (foto de perfil)
         const fileInputRef = useRef<HTMLInputElement>(null);
+
+        // Fetch real transactions on mount
+        useEffect(() => {
+            if (view === ViewState.SETTINGS_WALLET) {
+                setTxLoading(true);
+                api.professionals.getFinanceSummary(user.id).then(summary => {
+                    setTransactions(summary.transactions || []);
+                }).catch(() => {
+                    setTransactions([]);
+                }).finally(() => setTxLoading(false));
+            }
+        }, [view, user.id]);
     
         const handleSaveProfile = async () => {
           const updated = { ...user, ...editingUser };
@@ -62,14 +79,42 @@ import { api } from '../services/api';
             }
         };
     
-        const handleSaveSecurity = () => {
-            // Simulação de salvamento de preferências
-            setToast({ title: "Proteção Ativa", message: "Suas configurações de privacidade foram salvas." });
+        const handleSaveSecurity = async () => {
+            // Save privacy preferences to user profile
+            try {
+                await api.users.update({ ...user, privacySettings: privacyState } as any);
+                setToast({ title: "Proteção Ativa", message: "Suas configurações de privacidade foram salvas." });
+            } catch {
+                setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
+            }
+        };
+
+        const handlePasswordChange = async () => {
+            if (!newPassword || newPassword.length < 6) {
+                setToast({ title: "Senha Inválida", message: "A senha deve ter pelo menos 6 caracteres." });
+                return;
+            }
+            setPasswordLoading(true);
+            try {
+                const { error } = await supabase.auth.updateUser({ password: newPassword });
+                if (error) throw error;
+                setNewPassword('');
+                setToast({ title: "Senha Transmutada", message: "Sua nova chave de acesso foi configurada." });
+            } catch (err: any) {
+                setToast({ title: "Erro", message: err?.message || "Não foi possível alterar a senha." });
+            } finally {
+                setPasswordLoading(false);
+            }
         };
     
-        const handleSaveNotifications = () => {
-            // Simulação de salvamento de notificações
-            setToast({ title: "Sinais Sincronizados", message: "Preferências de alerta atualizadas com sucesso." });
+        const handleSaveNotifications = async () => {
+            // Persist notification preferences to user profile
+            try {
+                await api.users.update({ ...user, notificationPrefs: notifPrefs } as any);
+                setToast({ title: "Sinais Sincronizados", message: "Preferências de alerta atualizadas com sucesso." });
+            } catch {
+                setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
+            }
         };
     
         if (view === ViewState.SETTINGS_PROFILE) {
@@ -165,26 +210,30 @@ import { api } from '../services/api';
                         <button className="text-[10px] font-bold text-primary-600 uppercase">Ver Tudo</button>
                       </div>
                       <div className="space-y-3">
-                        {[
-                          { label: 'Ritual de Reiki', date: 'Hoje', val: -150, type: 'expense' },
-                          { label: 'Indicação de Buscador', date: 'Ontem', val: 50, type: 'income' },
-                          { label: 'Cashback Bazar', date: '3 dias atrás', val: 12.5, type: 'income' }
-                        ].map((tx, i) => (
-                          <div key={i} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex justify-between items-center shadow-sm">
-                            <div className="flex items-center gap-4">
-                               <div className={`p-3 rounded-xl ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
-                                 {tx.type === 'income' ? <ArrowUpRight size={18}/> : <ArrowDownRight size={18}/>}
-                               </div>
-                               <div>
-                                 <p className="text-xs font-bold text-nature-900">{tx.label}</p>
-                                 <p className="text-[9px] text-nature-400 font-bold uppercase">{tx.date}</p>
-                               </div>
-                            </div>
-                            <span className={`text-sm font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
-                              {tx.type === 'income' ? '+' : '-'} R$ {Math.abs(tx.val).toFixed(2)}
-                            </span>
+                        {txLoading ? (
+                          <div className="p-8 text-center text-nature-400 flex items-center justify-center gap-2">
+                            <Loader2 size={16} className="animate-spin" /> Carregando...
                           </div>
-                        ))}
+                        ) : transactions.length === 0 ? (
+                          <div className="p-8 text-center text-nature-400 italic">Nenhuma movimentação registrada.</div>
+                        ) : (
+                          transactions.slice(0, 5).map((tx, i) => (
+                            <div key={tx.id || i} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex justify-between items-center shadow-sm">
+                              <div className="flex items-center gap-4">
+                                 <div className={`p-3 rounded-xl ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
+                                   {tx.type === 'income' ? <ArrowUpRight size={18}/> : <ArrowDownRight size={18}/>}
+                                 </div>
+                                 <div>
+                                   <p className="text-xs font-bold text-nature-900">{tx.description}</p>
+                                   <p className="text-[9px] text-nature-400 font-bold uppercase">{new Date(tx.date).toLocaleDateString()}</p>
+                                 </div>
+                              </div>
+                              <span className={`text-sm font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                {tx.type === 'income' ? '+' : '-'} R$ {Math.abs(tx.amount).toFixed(2)}
+                              </span>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                 </div>
@@ -199,13 +248,26 @@ import { api } from '../services/api';
                         <Card className="space-y-6">
                             <div className="flex items-center gap-4 border-b border-nature-50 pb-6">
                                 <div className="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center"><Lock size={24}/></div>
-                                <div><h4 className="font-bold text-nature-900 text-sm">Chave de Acesso</h4><p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Senha Criada em Julho</p></div>
+                                <div><h4 className="font-bold text-nature-900 text-sm">Chave de Acesso</h4><p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Alterar senha</p></div>
                             </div>
                             <div className="relative">
-                                <input type={showPass ? "text" : "password"} value="senha_protegida_viva" readOnly className="w-full bg-nature-50 border border-nature-100 p-4 rounded-xl text-sm font-mono" />
+                                <input 
+                                    type={showPass ? "text" : "password"} 
+                                    value={newPassword} 
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Digite a nova senha"
+                                    className="w-full bg-nature-50 border border-nature-100 p-4 rounded-xl text-sm" 
+                                />
                                 <button onClick={() => setShowPass(!showPass)} className="absolute right-4 top-1/2 -translate-y-1/2 text-nature-300">{showPass ? <EyeOff size={18}/> : <Eye size={18}/>}</button>
                             </div>
-                            <button className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all">Transmutar Senha</button>
+                            <button 
+                                onClick={handlePasswordChange}
+                                disabled={passwordLoading || !newPassword}
+                                className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold text-[10px] uppercase tracking-widest shadow-lg active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            >
+                                {passwordLoading ? <Loader2 size={16} className="animate-spin" /> : null}
+                                Transmutar Senha
+                            </button>
                         </Card>
     
                         <div className="space-y-4">
