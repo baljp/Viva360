@@ -327,7 +327,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
              phrases: phrases 
          };
 
-         console.log("Saving Snap with Whispers:", newSnap); // Debug Log
+         // Snap saved with whispers
 
          // Update User
          const updatedUser: User = {

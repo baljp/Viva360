@@ -206,3 +206,12 @@
 }
 
 /* Dark Mode Eliminated per User Request */
+
+/* Animations moved from inline styles for security */
+@keyframes shine {
+  100% { transform: translateX(100%); }
+}
+
+.animate-shine {
+  animation: shine 3s infinite ease-in-out;
+}

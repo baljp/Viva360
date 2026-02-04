@@ -22,7 +22,7 @@ export class PhraseGenerator {
         
         // 1. Tokenize and clean
         const words = text.toLowerCase()
-            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"")
+            .replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"")
             .split(/\s+/);
 
         // 2. Filter stopwords and short words
