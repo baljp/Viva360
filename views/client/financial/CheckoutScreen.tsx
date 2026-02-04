@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { CreditCard, Lock, ShieldCheck, Wallet, Loader2, CheckCircle, Smartphone, MessageCircle, ArrowRight, QrCode, Sparkles } from 'lucide-react';
-import { PaymentServiceMock } from '../../../services/mock/paymentMock';
+import { api } from '../../../services/api';
 import { PortalView } from '../../../components/Common';
 import { MicroInteraction } from '../../../components/MicroInteraction';
 
@@ -24,10 +24,9 @@ export default function CheckoutScreen() {
         // Mocking a slight delay for ritualistic feel
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        await PaymentServiceMock.processPayment(
+        await api.payment.checkout(
             150.00, 
             'Troca Energética - Viva360', 
-            'user_current', 
             'pro_001'
         );
         

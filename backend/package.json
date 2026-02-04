@@ -13,7 +13,7 @@
     "dev:worker": "ts-node-dev -r dotenv/config --respawn --transpile-only src/worker.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "lint": "eslint . --ext .ts",
+    "lint": "eslint .",
     "test": "jest"
   },
   "dependencies": {

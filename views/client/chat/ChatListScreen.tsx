@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { ViewState, ChatRoom } from '../../../types';
-import { ChatServiceMock } from '../../../services/mock/chatMock';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { MessageCircle, Search, Flame } from 'lucide-react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext'; 

@@ -1,6 +1,6 @@
 import './lib/env'; // Load ENV first
 import express from 'express';
-import cors from 'cors';
+import cors, { type CorsOptions } from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import routes from './routes';
@@ -26,7 +26,23 @@ app.use(compression());
 app.use(helmet({
   contentSecurityPolicy: false, // For easier dev, can be tightened
 })); 
-app.use(cors()); 
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.length === 0) {
+      return callback(null, process.env.NODE_ENV !== 'production');
+    }
+    return callback(null, allowedOrigins.includes(origin));
+  },
+  credentials: true,
+};
+
+app.use(cors(corsOptions)); 
 app.use(express.json());
 app.use(securityHardening); // Excellence Layer: WAF & Headers
 if (process.env.NODE_ENV !== 'production') app.use(morgan('tiny'));
@@ -48,6 +64,16 @@ app.use((req, res, next) => {
 
 // Metrics Endpoint
 app.get('/metrics', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        const token = (process.env.METRICS_TOKEN || '').trim();
+        if (!token) {
+            return res.status(503).json({ error: 'Metrics disabled' });
+        }
+        const auth = req.headers.authorization || '';
+        if (auth !== `Bearer ${token}`) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+    }
     res.setHeader('Content-Type', register.contentType);
     res.send(await register.metrics());
 });
