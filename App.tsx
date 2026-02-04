@@ -193,7 +193,9 @@ const App: React.FC = () => {
                         navigate(homePath);
                     }
                 } else {
-                    if (location.pathname !== '/register') {
+                    // Block entry without login - redirect to login for all protected routes
+                    const publicPaths = ['/login', '/register', '/register/client', '/register/pro', '/register/space', '/reset-password'];
+                    if (!publicPaths.includes(location.pathname)) {
                         navigate('/login');
                     }
                 }
@@ -205,6 +207,31 @@ const App: React.FC = () => {
         };
         init();
     }, []);
+
+    // Global OAuth Listener - Detects Google login callbacks from any route
+    useEffect(() => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            console.log('🔐 Auth State Changed:', event);
+            if (event === 'SIGNED_IN' && session) {
+                try {
+                    const user = await api.auth.getCurrentSession();
+                    if (user) {
+                        handleLogin(user);
+                    }
+                } catch (err) {
+                    console.error('OAuth callback error:', err);
+                }
+            } else if (event === 'SIGNED_OUT') {
+                setCurrentUser(null);
+                navigate('/login');
+            }
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, []);
+
 
     const handleLogin = (u: any) => {
         if (!u) return;

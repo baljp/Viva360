@@ -2,8 +2,7 @@ import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
+import { JWT_SECRET } from '../lib/secrets';
 
 export class AuthService {
   

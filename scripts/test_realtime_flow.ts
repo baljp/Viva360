@@ -58,7 +58,7 @@ async function testLiveFlow() {
         const received = new Promise<{msg: any, notif: any}>((resolve, reject) => {
             let chatReceived = false;
             let notifReceived = false;
-            let receivedData = { msg: null, notif: null };
+            const receivedData = { msg: null, notif: null };
 
             const checkDone = () => {
                 if(chatReceived && notifReceived) resolve(receivedData);

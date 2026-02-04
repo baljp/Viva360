@@ -5,8 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { isMockMode } from '../services/supabase.service';
 import { mockData } from '../services/mockData.service';
 import { asyncHandler } from '../middleware/async.middleware';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
+import { JWT_SECRET } from '../lib/secrets';
 
 const loginSchema = z.object({
   email: z.string().email(),
