@@ -171,7 +171,16 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         } catch (err: any) {
             console.error(err);
             let msg = err.message || 'Erro ao sintonizar.';
-            if (msg.includes('Invalid login')) msg = 'A harmonia falhou. Verifique seu e-mail e senha.';
+            
+            // Detect specific error types
+            if (msg.includes('Invalid login') || msg.includes('Invalid credentials')) {
+                msg = '🔐 A harmonia falhou. Verifique seu e-mail e senha.';
+            } else if (msg.includes('DNS') || msg.includes('NXDOMAIN') || msg.includes('network') || msg.includes('fetch')) {
+                msg = '⚠️ Erro de conexão. Verifique sua internet e as configurações do Supabase.';
+            } else if (msg.includes('not confirmed')) {
+                msg = '📧 Email não confirmado. Verifique sua caixa de entrada.';
+            }
+            
             setError(msg);
             setLoading(false);
         }
@@ -192,7 +201,18 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         } catch (err: any) {
             if (err.message !== 'REDIRECTING_TO_GOOGLE') {
                console.error(err);
-               setError('Falha na conexão com Google. Tente novamente.');
+               
+               // Detect DNS/network errors
+               if (err.message?.includes('DNS') || 
+                   err.message?.includes('NXDOMAIN') || 
+                   err.message?.includes('network') ||
+                   err.message?.includes('fetch')) {
+                   setError('⚠️ Erro de rede detectado. Verifique se as URLs de redirect estão configuradas no painel do Supabase (Authentication → URL Configuration). Desenvolvimento: http://localhost:5173');
+               } else if (err.message?.includes('redirect')) {
+                   setError('🔒 Erro de redirect. Certifique-se de que sua URL está autorizada no Supabase Dashboard.');
+               } else {
+                   setError('Falha na conexão com Google. Tente novamente ou use e-mail/senha.');
+               }
                setLoading(false);
             }
         }
