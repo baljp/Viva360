@@ -38,21 +38,36 @@ export const api = {
             throw new Error('Login failed');
         },
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: {
-                    redirectTo: window.location.origin,
-                    queryParams: {
-                        access_type: 'offline',
-                        prompt: 'consent',
-                    },
-                    data: {
-                        role: role
+            const attemptLogin = async (retries = 3, delay = 1000) => {
+                try {
+                    const { error } = await supabase.auth.signInWithOAuth({
+                        provider: 'google',
+                        options: {
+                            redirectTo: window.location.origin,
+                            queryParams: {
+                                access_type: 'offline',
+                                prompt: 'consent',
+                            },
+                            data: {
+                                role: role
+                            }
+                        }
+                    });
+                    if (error) throw error;
+                    throw new Error('REDIRECTING_TO_GOOGLE');
+                } catch (err: any) {
+                    if (err.message === 'REDIRECTING_TO_GOOGLE') throw err;
+                    
+                    if (retries > 0 && (err.message?.includes('fetch') || err.message?.includes('network') || err.message?.includes('DNS'))) {
+                        console.warn(`Google login attempt failed. Retrying in ${delay}ms...`, err);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return attemptLogin(retries - 1, delay * 2);
                     }
+                    throw err;
                 }
-            });
-            if (error) throw error;
-            throw new Error('REDIRECTING_TO_GOOGLE');
+            };
+
+            return attemptLogin();
         },
         register: async (data: any): Promise<User> => {
             const { data: authData, error } = await supabase.auth.signUp({
