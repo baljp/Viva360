@@ -2,9 +2,9 @@ import { Request, Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { emailService } from '../services/email.service';
 import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../lib/secrets';
 import { asyncHandler } from '../middleware/async.middleware';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
 
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
     const { email } = req.body;

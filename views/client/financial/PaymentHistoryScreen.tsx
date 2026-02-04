@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { PortalView } from '../../../components/Common';
 import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
-import { PaymentServiceMock } from '../../../services/mock/paymentMock';
+import { api } from '../../../services/api';
 import { Transaction } from '../../../types';
 
 export default function PaymentHistoryScreen() {
@@ -12,8 +12,15 @@ export default function PaymentHistoryScreen() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        PaymentServiceMock.getHistory('user_current').then(data => {
-            setTransactions(data);
+        api.auth.getCurrentSession().then(async user => {
+            if (user) {
+                try {
+                    const summary = await api.professionals.getFinanceSummary(user.id);
+                    setTransactions(summary.transactions || []);
+                } catch {
+                    setTransactions([]);
+                }
+            }
             setLoading(false);
         });
     }, []);
@@ -45,6 +52,8 @@ export default function PaymentHistoryScreen() {
                     
                     {loading ? (
                         <div className="p-8 text-center text-slate-400">Carregando...</div>
+                    ) : transactions.length === 0 ? (
+                        <div className="p-8 text-center text-slate-400">Nenhuma transação encontrada.</div>
                     ) : (
                         transactions.map(tx => (
                             <div key={tx.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-50 flex items-center gap-4">

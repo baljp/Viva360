@@ -3,8 +3,47 @@
  * Deployment Target: Cloudflare Workers / Vercel Edge
  */
 
-// Mock secret - in production usage env.JWT_SECRET
-const JWT_SECRET = 'mock-secret'; 
+const encoder = new TextEncoder();
+
+const base64UrlToBytes = (input: string): Uint8Array => {
+    const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = normalized + '==='.slice((normalized.length + 3) % 4);
+    const raw = atob(padded);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    return bytes;
+};
+
+const decodeJson = (segment: string) => {
+    const bytes = base64UrlToBytes(segment);
+    return JSON.parse(new TextDecoder().decode(bytes));
+};
+
+const verifyJwtHS256 = async (token: string, secret: string) => {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [headerB64, payloadB64, signatureB64] = parts;
+    const header = decodeJson(headerB64);
+    if (header.alg !== 'HS256') return null;
+
+    const key = await crypto.subtle.importKey(
+        'raw',
+        encoder.encode(secret),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['verify']
+    );
+
+    const data = encoder.encode(`${headerB64}.${payloadB64}`);
+    const signature = base64UrlToBytes(signatureB64);
+    const valid = await crypto.subtle.verify('HMAC', key, signature, data);
+    if (!valid) return null;
+
+    const payload = decodeJson(payloadB64);
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && now > payload.exp) return null;
+    return payload;
+};
 
 export default {
     async fetch(request: Request, env: any, ctx: any) {
@@ -19,6 +58,14 @@ export default {
                  return fetch(request);
             }
 
+            const secret = env?.JWT_SECRET;
+            if (!secret) {
+                return new Response(JSON.stringify({ error: 'JWT_SECRET missing on edge' }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            }
+
             // 3. Fast Edge Validation
             if (!authHeader || !authHeader.startsWith('Bearer ')) {
                 return new Response(JSON.stringify({ error: 'Unauthorized (Edge Rejection)' }), {
@@ -27,11 +74,10 @@ export default {
                 });
             }
 
-            // In a real Edge Worker, we would verify JWT signature here using crypto.subtle
-            // For this mock, we assume existence means validity if it contains 'mock' or 'ey'
             const token = authHeader.split(' ')[1];
-            if (!token.includes('mock') && token.length < 10) {
-                 return new Response(JSON.stringify({ error: 'Invalid Token (Edge Rejection)' }), {
+            const payload = await verifyJwtHS256(token, secret);
+            if (!payload) {
+                return new Response(JSON.stringify({ error: 'Invalid Token (Edge Rejection)' }), {
                     status: 403,
                     headers: { 'Content-Type': 'application/json' }
                 });

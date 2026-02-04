@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Message } from '../../../types';
-import { ChatServiceMock } from '../../../services/mock/chatMock';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Send, MoreVertical, Phone, Video } from 'lucide-react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
