@@ -108,8 +108,8 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                                 </div>
                             </div>
                             <div className="flex gap-2">
-                                <button className="p-3 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900"><Eye size={16}/></button>
-                                <button className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100"><Ban size={16}/></button>
+                                <button onClick={() => setToast({ title: "Visualizando", message: `Detalhes de ${u.name}` })} className="p-3 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900"><Eye size={16}/></button>
+                                <button onClick={() => setToast({ title: "Usuário Bloqueado", message: `${u.name} foi bloqueado.` })} className="p-3 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-100"><Ban size={16}/></button>
                             </div>
                         </div>
                     ))}

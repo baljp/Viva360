@@ -23,7 +23,7 @@ export const ClientDashboard: React.FC<{
         // Simple animation trigger or toast when karma changes significantly
         // This ensures the user feels the update even if the UI refresh is subtle
         if (user.karma > 0) {
-             console.log(`[Karma Sync] Updated: ${user.karma}`);
+             // Karma sync completed
         }
     }, [user.karma]);
 
@@ -44,7 +44,7 @@ export const ClientDashboard: React.FC<{
                 onClose={() => actions.setShowNotifications(false)} 
                 notifications={notifications as any} 
                 onMarkAsRead={actions.handleMarkAsRead} 
-                onMarkAllRead={() => {}} 
+                onMarkAllRead={actions.handleMarkAllRead} 
             />
             
             {/* MODAIS */}

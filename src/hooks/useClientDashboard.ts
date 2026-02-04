@@ -26,6 +26,11 @@ export const useClientDashboard = (
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
     }, []);
 
+    const handleMarkAllRead = useCallback(() => {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        api.notifications.markAllAsRead();
+    }, []);
+
     const gardenStatus = gardenService.getPlantStatus(user);
     const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', gardenStatus.status);
 
@@ -96,6 +101,7 @@ export const useClientDashboard = (
             setInviteEmail,
             setShowNotifications,
             handleMarkAsRead,
+            handleMarkAllRead,
             handleWaterPlant,
             handleDailyCheckIn,
             handleCapture,

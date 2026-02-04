@@ -31,6 +31,7 @@ import { api } from '../services/api';
         const [toast, setToast] = useState<{title: string, message: string} | null>(null);
         const [showPass, setShowPass] = useState(false);
         const [privacyState, setPrivacyState] = useState({ tribe: true, patterns: false, history: true });
+        const [notifPrefs, setNotifPrefs] = useState({ rituals: true, tribe: true, finance: true });
         const [editingUser, setEditingUser] = useState<Partial<User>>({
           name: user.name,
           bio: user.bio || '',
@@ -237,16 +238,16 @@ import { api } from '../services/api';
                 <PortalView title="Sinais e Avisos" subtitle="NOTIFICAÇÕES" onBack={() => setView(ViewState.SETTINGS)}>
                     <div className="space-y-4">
                         {[
-                            { label: 'Alertas de Ritual', sub: 'Lembretes de sessões agendadas', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
-                            { label: 'Mensagens da Tribo', sub: 'Novas conexões e vibes enviadas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
-                            { label: 'Fluxo de Abundância', sub: 'Confirmações de trocas éticas', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
-                        ].map((item, i) => (
-                            <div key={i} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex justify-between items-center shadow-sm">
+                            { key: 'rituals', label: 'Alertas de Ritual', sub: 'Lembretes de sessões agendadas', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
+                            { key: 'tribe', label: 'Mensagens da Tribo', sub: 'Novas conexões e vibes enviadas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
+                            { key: 'finance', label: 'Fluxo de Abundância', sub: 'Confirmações de trocas éticas', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
+                        ].map((item) => (
+                            <div key={item.key} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex justify-between items-center shadow-sm">
                                 <div className="flex items-center gap-5">
                                     <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20}/></div>
                                     <div><h4 className="font-bold text-nature-900 text-sm leading-tight">{item.label}</h4><p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">{item.sub}</p></div>
                                 </div>
-                                <Toggle active={true} onToggle={() => {}} />
+                                <Toggle active={(notifPrefs as any)[item.key]} onToggle={() => setNotifPrefs(s => ({...s, [item.key]: !(s as any)[item.key]}))} />
                             </div>
                         ))}
     

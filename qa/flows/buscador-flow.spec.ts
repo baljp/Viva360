@@ -8,30 +8,29 @@ test.describe('Buscador Flow Stabilization', () => {
     
     // Handle Daily Blessing if it appears
     try {
-        const sintonizarBtn = page.getByText('Sintonizar Agora');
-        await sintonizarBtn.waitFor({ state: 'visible', timeout: 5000 });
-        await sintonizarBtn.click();
+        const blessingBtn = page.getByText('Receber Benção');
+        await blessingBtn.waitFor({ state: 'visible', timeout: 5000 });
+        await blessingBtn.click();
         console.log('[Test] Daily Blessing dismissed');
     } catch (e) {
         console.log('[Test] Daily Blessing did not appear or timed out');
     }
 
-    await expect(page.getByText('Boa Jornada,')).toBeVisible();
+    await expect(page.getByText('Sua Jornada até aqui,')).toBeVisible();
 
     const portals = [
         { name: 'Jardim', expected: 'Jardim da Alma', id: '#hero-garden' },
-        { name: 'Metamorfose', expected: 'RITUAL DIÁRIO', id: '#portal-metamorphosis' },
-        { name: 'Mapa da Cura', expected: 'Onde você precisa de luz hoje?', id: '#portal-map' },
+        { name: 'Mapa da Cura', expected: 'Mapa da Cura', id: '#portal-map' },
         { name: 'Minha Tribo', expected: 'Minha Tribo', id: '#portal-tribe' },
-        { name: 'Bazar', expected: 'Marketplace', id: '#portal-marketplace' },
-        { name: 'Oráculo', expected: 'MENSAGEM DO DIA', id: '#portal-oracle' }
+        { name: 'Financeiro', expected: 'Financeiro', id: '#portal-abundance' },
+        { name: 'Bazar', expected: 'Bazar da Tribo', id: '#portal-marketplace' }
     ];
 
     for (const portal of portals) {
         console.log(`[Test] Navigating to ${portal.name}...`);
         const card = page.locator(portal.id);
         
-        await expect(page.getByText('Boa Jornada,')).toBeVisible();
+        await expect(page.getByText('Sua Jornada até aqui,')).toBeVisible();
         await card.scrollIntoViewIfNeeded();
         await page.waitForTimeout(300);
 
@@ -69,7 +68,7 @@ test.describe('Buscador Flow Stabilization', () => {
             console.log(`[Test] Back button click failed for ${portal.name}, using force...`);
             await backBtn.click({ force: true });
         }
-        await expect(page.getByText('Boa Jornada,')).toBeVisible();
+        await expect(page.getByText('Sua Jornada até aqui,')).toBeVisible();
         await page.waitForTimeout(300);
     }
 
@@ -77,7 +76,7 @@ test.describe('Buscador Flow Stabilization', () => {
     console.log('[Test] Navigating to Settings...');
     const avatar = page.locator('.relative.group').first();
     await avatar.click({ force: true });
-    await expect(page.getByText('Boa Jornada,')).not.toBeVisible();
+    await expect(page.getByText('Sua Jornada até aqui,')).not.toBeVisible();
     console.log('[Test] Settings reached');
   });
 });

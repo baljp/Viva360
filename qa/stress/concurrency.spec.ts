@@ -18,7 +18,8 @@ test.describe('Stress / Concurrency @stress', () => {
             
             // Simple Login Flow
             await page.goto('/');
-            await page.getByRole('button', { name: /já tenho conta/i }).click();
+            const loginBtn = page.getByRole('button', { name: /já iniciei a jornada|já tenho conta/i });
+            if (await loginBtn.isVisible()) await loginBtn.click();
             
             // Distributed logins to avoid rate limits if real, but here we hit local
             await page.fill('input[placeholder="seu@email.com"]', `client_${i}@viva360.com`);

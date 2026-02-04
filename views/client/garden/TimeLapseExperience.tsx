@@ -75,7 +75,7 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
             mimeType = 'video/webm;codecs=h264';
         }
 
-        console.log(`Starting recording with mimeType: ${mimeType}`);
+        // Recording started
         const recorder = new MediaRecorder(stream, { mimeType });
         
         recorder.ondataavailable = (e) => {
