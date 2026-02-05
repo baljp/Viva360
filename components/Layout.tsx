@@ -68,7 +68,7 @@ const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, o
                             <span className="font-bold text-sm">{item.label}</span>
                         </button>
                     );
-                    );
+
                 })}
             </nav>
             <div className="p-8 border-t border-nature-50 space-y-3">
