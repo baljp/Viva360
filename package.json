@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "export DATABASE_URL=${DATABASE_URL:-$POSTGRES_PRISMA_URL} && npm run prisma:generate && tsc && vite build",
-    "vercel-build": "npm run build",
+    "build": "npm run prisma:generate && tsc && vite build",
+    "vercel-build": "npm run prisma:generate && tsc && vite build",
     "test:audit": "npx playwright test tests/audit.spec.ts",
     "test:e2e": "npx playwright test tests/e2e_master.spec.ts",
     "test:report": "npx playwright show-report",
