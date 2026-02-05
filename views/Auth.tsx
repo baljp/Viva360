@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { ViewState, User } from '../types';
 import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { api, request } from '../services/api';
-import { supabase, isMockMode, isDemoMode } from '../lib/supabase';
+import { supabase, isMockMode, isDemoMode, envStatus } from '../lib/supabase';
 // Logo import removed
 
 interface AuthProps {
@@ -226,15 +226,22 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
             <div className="flex-none p-8 pb-4">
                 <div className="w-12 h-1.5 bg-nature-200 rounded-full mx-auto opacity-50 mb-6"></div>
                 
-                <header className="flex justify-between items-center mb-6">
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <h3 className="text-2xl font-serif italic text-nature-900">Entrar no Fluxo</h3>
+                    <header className="flex justify-between items-center mb-6">
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h3 className="text-2xl font-serif italic text-nature-900">Entrar no Fluxo</h3>
+                            </div>
+                            {isMockMode && (
+                                <div className="bg-amber-100 border border-amber-300 rounded p-2 text-[10px] text-amber-800 max-w-xs mt-2">
+                                    <p className="font-bold">⚠️ MODO MOCK ATIVO (Sem Backend)</p>
+                                    <p>URL Supabase: {envStatus.hasUrl ? '✅ OK' : '❌ NÃO DEFINIDA'}</p>
+                                    <p>Anon Key: {envStatus.hasKey ? '✅ OK' : '❌ NÃO DEFINIDA'}</p>
+                                    <p className="opacity-50 mt-1">Isso impede login real. Configure Vercel Vars.</p>
+                                </div>
+                            )}
                         </div>
-                        {/* Mock mode indicator removed */}
-                    </div>
-                    <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20}/></button>
-                </header>
+                        <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20}/></button>
+                    </header>
 
 
                 {/* Demo mode interactive section removed */}
