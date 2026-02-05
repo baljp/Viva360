@@ -14,6 +14,14 @@ export const APP_MODE = appMode || (isTest ? 'MOCK' : (supabaseUrl ? 'PROD' : 'M
 export const isMockMode = APP_MODE === 'MOCK';
 export const isDemoMode = APP_MODE === 'DEMO';
 
+// Diagnóstico para o Frontend verificar o que foi injetado pelo Vite
+export const envStatus = {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseAnonKey,
+    mode: APP_MODE,
+    urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 8) + '...' : 'undefined'
+};
+
 // Cria o cliente apenas se configurado, senão cria um cliente dummy
 let client;
 try {
