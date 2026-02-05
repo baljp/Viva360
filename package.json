@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run prisma:generate && tsc && vite build",
-    "vercel-build": "npm run prisma:generate && tsc && vite build",
+    "vercel-build": "npm run prisma:generate && vite build",
     "test:audit": "npx playwright test tests/audit.spec.ts",
     "test:e2e": "npx playwright test tests/e2e_master.spec.ts",
     "test:report": "npx playwright show-report",
@@ -37,6 +37,7 @@
     "@types/canvas-confetti": "^1.9.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",
+    "bullmq": "^5.67.2",
     "canvas-confetti": "^1.9.4",
     "cloudinary": "^2.9.0",
     "clsx": "^2.1.1",
