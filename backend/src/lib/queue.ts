@@ -1,10 +1,16 @@
 import { Queue, Worker } from 'bullmq';
-import { redisConnection } from './redis';
+import { redisConnection, isRedisEnabled } from './redis';
 import { supabaseAdmin } from '../services/supabase.service';
 
 const QUEUE_NAME = 'checkout-queue';
 
-const isMock = process.env.MOCK_MODE === 'true';
+// Auto-detect serverless environment
+const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+const isMock = process.env.MOCK_MODE === 'true' || isServerless || !isRedisEnabled;
+
+if (isServerless) {
+    console.log('⚡ Running in serverless mode - Queue workers disabled');
+}
 
 export const checkoutQueue = isMock ? 
   { 
@@ -22,15 +28,13 @@ export const notificationQueue = isMock ?
     connection: redisConnection,
   });
 
-if (!isMock) {
-    // Setup Worker
+if (!isMock && isRedisEnabled) {
+    // Setup Worker - only in non-serverless environments
     const worker = new Worker(QUEUE_NAME, async (job) => {
     console.log(`Job ${job.id} started:`, job.data);
     
     const { amount, description, user_id, receiver_id } = job.data;
 
-    // Simulate heavy processing / database transaction
-    // In a real app, this would use the PG connection pool to execute the RPC
     try {
         const { data, error } = await supabaseAdmin.rpc('process_payment', {
             amount,
@@ -48,7 +52,7 @@ if (!isMock) {
     }
     }, {
     connection: redisConnection,
-    concurrency: 50 // High concurrency for scaling
+    concurrency: 50
     });
 
     worker.on('completed', job => {
@@ -62,7 +66,6 @@ if (!isMock) {
     // Setup Notification Worker
     const notifWorker = new Worker('notification-queue', async (job) => {
       console.log(`Processing Notification ${job.id}:`, job.data);
-      // Simulate external provider latency
       await new Promise(r => setTimeout(r, 500));
       return { success: true };
     }, {
@@ -70,5 +73,5 @@ if (!isMock) {
       concurrency: 100
     });
 } else {
-    console.log('⚠️  Queue Workers skipped in MOCK MODE');
+    console.log('⚠️  Queue Workers skipped (serverless/mock mode)');
 }
