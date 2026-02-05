@@ -1,5 +1,5 @@
-// Pure JavaScript debug endpoint - no TypeScript
-module.exports = function handler(req, res) {
+// Pure JavaScript debug endpoint - using ESM syntax for Vercel + "type": "module"
+export default function handler(req, res) {
   res.status(200).json({
     ok: true,
     timestamp: new Date().toISOString(),
@@ -9,6 +9,9 @@ module.exports = function handler(req, res) {
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       nodeEnv: process.env.NODE_ENV,
       vercel: process.env.VERCEL,
+      // Check crucial backend keys
+      hasServiceRole: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      jwtSecretSet: !!process.env.JWT_SECRET
     }
   });
-};
+}
