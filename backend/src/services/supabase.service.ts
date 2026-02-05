@@ -16,17 +16,20 @@ const IS_DEMO_MODE = APP_MODE === 'DEMO';
 let adminClient: SupabaseClient | null = null;
 
 const effectiveKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY || 'dummy-key-for-initialization';
+const effectiveUrl = SUPABASE_URL || 'https://placeholder.supabase.co';
 
 try {
   if (!SUPABASE_URL) {
-      console.warn('⚠️  Backend: SUPABASE_URL missing. Falling back to mock URL.');
+      console.error('🚨 Backend: SUPABASE_URL missing. Auth operations will fail.');
   }
   
-  if (!SUPABASE_SERVICE_ROLE_KEY) {
+  if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) {
+      console.error('🚨 Backend: No Supabase keys configured. Auth operations will fail.');
+  } else if (!SUPABASE_SERVICE_ROLE_KEY) {
       console.warn('⚠️  Backend: SUPABASE_SERVICE_ROLE_KEY missing. Admin tasks (like registration) will fail RLS.');
   }
   
-  adminClient = createClient(SUPABASE_URL || 'https://viva360-mock.supabase.co', effectiveKey, {
+  adminClient = createClient(effectiveUrl, effectiveKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 } catch (e) {
@@ -43,7 +46,7 @@ export const supabaseAdmin = adminClient!;
 export const createSupabaseUserClient = (accessToken: string): SupabaseClient => {
   // If in mock mode, we could return a proxy or just the admin client (dangerous in prod, ok for mock structure)
   // For now, we return standard client, assuming service layer handles mock data logic if IS_MOCK_MODE is true.
-  return createClient(SUPABASE_URL, process.env.SUPABASE_ANON_KEY || '', {
+  return createClient(effectiveUrl, SUPABASE_ANON_KEY || effectiveKey, {
     global: {
       headers: {
         Authorization: `Bearer ${accessToken}`,
