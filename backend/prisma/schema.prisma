@@ -13,9 +13,16 @@ datasource db {
 // Auth Schema (Vanilla Postgres Simulation for Supabase)
 // --------------------------------------------------------
 model User {
-  id                 String  @id @default(uuid()) @db.Uuid
-  email              String? @unique
+  instance_id        String?   @db.Uuid
+  id                 String    @id @default(uuid()) @db.Uuid
+  email              String?   @unique
   encrypted_password String?
+  aud                String?
+  role               String?
+  email_confirmed_at DateTime? @db.Timestamptz(6)
+  last_sign_in_at    DateTime? @db.Timestamptz(6)
+  raw_app_meta_data  Json?
+  raw_user_meta_data Json?
 
   // Relations
   profile Profile?
