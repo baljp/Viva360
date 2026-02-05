@@ -4,6 +4,10 @@
   "trailingSlash": false,
   "rewrites": [
     {
+      "source": "/api/debug",
+      "destination": "/api/debug"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api"
     },
@@ -47,6 +51,10 @@
     "api/index.ts": {
       "memory": 1024,
       "maxDuration": 10
+    },
+    "api/debug.ts": {
+      "memory": 128,
+      "maxDuration": 5
     }
   }
 }
