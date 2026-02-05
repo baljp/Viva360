@@ -55,10 +55,19 @@ const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, o
                 {navItems.map(item => {
                     const active = currentView === item.id;
                     return (
-                        <button key={item.id} onClick={() => setView(item.id)} className={`flex items-center gap-4 p-5 rounded-[1.8rem] w-full text-left transition-all ${active ? 'bg-nature-900 text-white shadow-2xl' : 'text-nature-400 hover:bg-nature-50'}`}>
+
+                        <button 
+                            key={item.id} 
+                            onClick={() => {
+                                setView(item.id);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }} 
+                            className={`flex items-center gap-4 p-5 rounded-[1.8rem] w-full text-left transition-all ${active ? 'bg-nature-900 text-white shadow-2xl' : 'text-nature-400 hover:bg-nature-50'}`}
+                        >
                             <item.icon size={20} />
                             <span className="font-bold text-sm">{item.label}</span>
                         </button>
+                    );
                     );
                 })}
             </nav>
@@ -82,7 +91,14 @@ const BottomNav: React.FC<Omit<LayoutProps, 'children'>> = ({ user, currentView,
                 {navItems.map(item => {
                     const active = currentView === item.id;
                     return (
-                        <button key={item.id} onClick={() => setView(item.id)} className="flex-1 flex flex-col items-center justify-center h-full relative group outline-none">
+                        <button 
+                            key={item.id} 
+                            onClick={() => {
+                                setView(item.id);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }} 
+                            className="flex-1 flex flex-col items-center justify-center h-full relative group outline-none focus:outline-none touch-manipulation"
+                        >
                             <div className={`p-2.5 rounded-2xl transition-all duration-500 ease-out ${active ? 'bg-nature-900 text-white -translate-y-6 shadow-[0_15px_30px_rgba(0,0,0,0.2)] scale-110' : 'text-nature-400'}`}>
                                 <item.icon size={22} />
                             </div>
