@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { User, DailyRitualSnap, ViewState } from '../../types';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
@@ -16,20 +16,30 @@ export const useClientDashboard = (
     const [inviteEmail, setInviteEmail] = useState("");
     const [showNotifications, setShowNotifications] = useState(false);
 
-    // Mock Notifications (In a real app, this might come from a NotificationService context)
-    const [notifications, setNotifications] = useState([
-        { id: '1', title: 'Hora do Ritual', message: 'O sol nasceu. Hora de despertar.', type: 'ritual', read: false },
-        { id: '2', title: 'Pagamento Recebido', message: 'Sua sessão com Dr. Pedro foi confirmada.', type: 'finance', read: true },
-    ]);
+    // Real Notifications Fetch
+    const [notifications, setNotifications] = useState<any[]>([]);
 
-    const handleMarkAsRead = useCallback((id: string) => {
+    useEffect(() => {
+        const loadNotifications = async () => {
+            try {
+                const data = await api.notifications.list(user.id);
+                setNotifications(data || []);
+            } catch (e) {
+                console.error("Failed to load notifications", e);
+            }
+        };
+        loadNotifications();
+    }, [user.id]);
+
+    const handleMarkAsRead = useCallback(async (id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+        await api.notifications.markAsRead(id);
     }, []);
 
-    const handleMarkAllRead = useCallback(() => {
+    const handleMarkAllRead = useCallback(async () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        api.notifications.markAllAsRead();
-    }, []);
+        await api.notifications.markAllAsRead(user.id);
+    }, [user.id]);
 
     const gardenStatus = gardenService.getPlantStatus(user);
     const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', gardenStatus.status);

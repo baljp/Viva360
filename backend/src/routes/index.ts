@@ -17,6 +17,7 @@ import alchemyRoutes from './alchemy.routes';
 import oracleRoutes from './oracle.routes';
 import marketplaceRoutes from './marketplace.routes';
 import recordsRoutes from './records.routes';
+import usersRoutes from './users.routes';
 
 import { rateLimiter } from '../middleware/rateLimiter';
 import { swrMiddleware } from '../middleware/swr.middleware';
@@ -41,6 +42,7 @@ router.use('/profiles', authenticateUser, profileRoutes);
 router.use('/appointments', authenticateUser, appointmentsRoutes);
 
 // New Feature Routes
+router.use('/users', authenticateUser, usersRoutes);
 router.use('/notifications', authenticateUser, notificationsRoutes);
 router.use('/checkout', authenticateUser, checkoutRoutes);
 router.use('/chat', authenticateUser, chatRoutes);
