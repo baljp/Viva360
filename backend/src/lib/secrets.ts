@@ -5,11 +5,13 @@ const isProd = process.env.NODE_ENV === 'production';
 
 let resolvedJwtSecret = rawJwtSecret;
 if (!resolvedJwtSecret) {
-  if (isProd) {
-    throw new Error('JWT_SECRET is required in production');
-  }
+  // Generate ephemeral secret but log severe warning
   resolvedJwtSecret = crypto.randomBytes(32).toString('hex');
-  console.warn('⚠️  JWT_SECRET missing. Using ephemeral secret for non-production.');
+  if (isProd) {
+    console.error('🚨 CRITICAL: JWT_SECRET is not set in production! Using ephemeral secret - all sessions will invalidate on function restart.');
+  } else {
+    console.warn('⚠️  JWT_SECRET missing. Using ephemeral secret for non-production.');
+  }
 }
 
 export const JWT_SECRET = resolvedJwtSecret;
