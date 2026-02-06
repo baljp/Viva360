@@ -4,7 +4,7 @@ import { supabase, isMockMode as isSupabaseMock } from '../lib/supabase';
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const getHeader = () => {
-    const token = localStorage.getItem('supabase.auth.token');
+    const token = localStorage.getItem('viva360.auth.token');
     return {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -31,6 +31,7 @@ export const api = {
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
             if (data.session) {
+                localStorage.setItem('viva360.auth.token', data.session.access_token);
                 const user = await api.auth.getCurrentSession();
                 if (!user) throw new Error('Session created but user not found.');
                 return user;
@@ -83,6 +84,10 @@ export const api = {
             
             if (error) throw error;
             
+            if (authData.session) {
+                localStorage.setItem('viva360.auth.token', authData.session.access_token);
+            }
+            
             const user = await api.auth.getCurrentSession();
             if (!user) {
                 return {
@@ -125,7 +130,7 @@ export const api = {
         },
         logout: async () => {
             await supabase.auth.signOut();
-            localStorage.removeItem('supabase.auth.token');
+            localStorage.removeItem('viva360.auth.token');
         }
     },
     users: {

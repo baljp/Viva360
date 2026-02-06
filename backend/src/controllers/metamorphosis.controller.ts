@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { DeterministicEngine, Mood } from '../lib/determinism';
-import { logsQueue } from '../queue';
+import { logsQueue } from '../lib/queue';
 import { isMockMode } from '../services/supabase.service';
 import prisma from '../lib/prisma';
 import { CloudinaryService } from '../services/cloudinary.service';
