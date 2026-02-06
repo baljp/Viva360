@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
+import { supabaseAdmin } from '../services/supabase.service';
 
 // Extend Express Request type to include user
 declare global {
@@ -31,12 +32,18 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    // Normalize userId to id for consistency across the app
+    // SECURE: Verify token with Supabase Auth Engine
+    const { data, error } = await supabaseAdmin.auth.getUser(token);
+    
+    if (error || !data.user) {
+        throw new Error('Invalid Supabase token');
+    }
+
     req.user = {
-      ...decoded,
-      id: decoded.userId || decoded.id || decoded.sub,  // Support various JWT formats
-      userId: decoded.userId || decoded.id || decoded.sub
+      id: data.user.id,
+      email: data.user.email,
+      role: data.user.user_metadata?.role || 'CLIENT',
+      userId: data.user.id
     };
     next();
   } catch (err) {

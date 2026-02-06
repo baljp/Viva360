@@ -177,8 +177,8 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                 msg = '🔐 A harmonia falhou. Verifique seu e-mail e senha.';
             } else if (msg.includes('DNS') || msg.includes('NXDOMAIN') || msg.includes('network') || msg.includes('fetch')) {
                 msg = '⚠️ Erro de conexão. Verifique sua internet e as configurações do Supabase.';
-            } else if (msg.includes('not confirmed')) {
-                msg = '📧 Email não confirmado. Verifique sua caixa de entrada.';
+            } else if (msg.includes('not confirmed') || msg.includes('Email not confirmed')) {
+                msg = '📧 Email não confirmado. Verifique sua caixa de entrada para ativar sua jornada.';
             }
             
             setError(msg);
