@@ -359,7 +359,15 @@ import { supabase } from '../lib/supabase';
 
             <div className="mt-8 px-2 flex-none pb-12">
                 <button 
-                  onClick={onLogout} 
+                  onClick={() => {
+                      if (onLogout) onLogout();
+                      else {
+                          // Fail-safe
+                          console.warn("Logout handler missing, forcing redirect");
+                          localStorage.removeItem('viva360.auth.token'); // Clear explicitly
+                          window.location.href = '/login';
+                      }
+                  }} 
                   className="w-full py-6 border-2 border-dashed border-rose-100 text-rose-400 rounded-[2rem] font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-rose-50"
                 >
                     <LogOut size={18} /> Encerrar Sincronia
