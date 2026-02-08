@@ -27,7 +27,7 @@ export const MicroInteraction: React.FC<MicroInteractionProps> = ({
     }, [onClose, onComplete, duration]);
 
     return (
-        <div className="micro-interaction-container flex flex-col items-center justify-center text-center gap-4 border-white/50 animate-in slide-in-from-bottom-10 pointer-events-auto">
+        <div className="micro-interaction-container flex flex-col items-center justify-center text-center gap-4 border-white/50 animate-in slide-in-from-bottom-10">
             {/* Elegant Background Glow */}
             <div className="absolute inset-0 bg-gradient-to-br from-primary-500/5 to-transparent rounded-[2rem] pointer-events-none"></div>
             

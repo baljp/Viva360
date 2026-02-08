@@ -45,7 +45,7 @@ const RecordModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (dat
                     <h3 className="text-2xl font-serif italic">Novo Registro Evolutivo</h3>
                     <p className="text-[10px] text-nature-300 font-bold uppercase mt-1">Sintonizando Jornada</p>
                 </div>
-                <div className="p-8 space-y-6 overflow-y-auto no-scrollbar">
+                <div className="p-8 space-y-6 overflow-y-auto">
                     <div className="space-y-2">
                         <label className="text-[10px] font-bold uppercase text-nature-400 px-2 tracking-widest">Título da Sessão</label>
                         <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Sessão de Alinhamento" className="w-full p-4 bg-nature-50 rounded-2xl border-none text-sm font-bold text-nature-900 focus:ring-2 focus:ring-emerald-500 outline-none" />

@@ -123,7 +123,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
             {!shouldHideNav && <Sidebar user={user} currentView={currentView} setView={setView} onLogout={onLogout} unreadCount={notifications.filter(n => !n.read).length} onOpenNotifications={() => setIsNotifOpen(true)} />}
             <div className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
                 <main className="flex-1 w-full h-full relative overflow-hidden">
-                    <div className="h-full w-full overflow-y-auto no-scrollbar scroll-smooth">
+                    <div className="h-full w-full overflow-y-auto scroll-smooth">
                         <div className={`w-full lg:max-w-5xl lg:mx-auto min-h-full ${shouldHideNav ? '' : 'pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-12 lg:pt-8'}`}>
                             <div className={shouldHideNav ? "" : "px-4 lg:px-10"}>{children}</div>
                         </div>

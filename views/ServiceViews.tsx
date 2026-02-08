@@ -104,7 +104,7 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
            </div>
            <textarea 
              placeholder="Anote seus insights aqui..." 
-             className="w-full h-[calc(100%-4rem)] bg-transparent border-none resize-none focus:ring-0 text-sm italic leading-relaxed text-nature-700 no-scrollbar"
+             className="w-full h-[calc(100%-4rem)] bg-transparent border-none resize-none focus:ring-0 text-sm italic leading-relaxed text-nature-700"
            />
         </div>
       )}
