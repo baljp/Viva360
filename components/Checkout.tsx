@@ -114,6 +114,7 @@ export const CheckoutScreen: React.FC<{
   const nextStep = () => {
       if (step === 'cart') return setStep(hasPhysical ? 'address' : 'payment');
       if (step === 'address') return setStep('payment');
+      if (step === 'payment' && !hasPhysical && method === 'pix') return handlePay();
       if (step === 'payment') return setStep('review');
       if (step === 'review') handlePay();
   };
@@ -318,7 +319,11 @@ export const CheckoutScreen: React.FC<{
                 disabled={step === 'address' && (!address.street || !address.number)}
                 className="w-full py-5 bg-nature-900 text-white rounded-3xl font-bold uppercase tracking-widest text-[11px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:scale-100"
             >
-                {step === 'review' ? 'Finalizar Alquimia' : 'Continuar'} <ChevronRight size={16}/>
+                {step === 'review'
+                  ? 'Finalizar Alquimia'
+                  : (step === 'payment' && !hasPhysical && method === 'pix')
+                    ? 'Pagar Agora'
+                    : 'Continuar'} <ChevronRight size={16}/>
             </button>
         </div>
       )}

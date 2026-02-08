@@ -105,4 +105,17 @@ export class AuthService {
   static async findByEmail(email: string) {
     return prisma.user.findUnique({ where: { email } });
   }
+
+  static async canLoginWithEmail(email: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const authUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (authUser) return true;
+
+    const profile = await prisma.profile.findFirst({
+      where: { email: normalizedEmail },
+      select: { id: true },
+    });
+
+    return !!profile;
+  }
 }

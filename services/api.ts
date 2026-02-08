@@ -5,8 +5,19 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
 const AUTH_TOKEN_KEY = 'viva360.auth.token';
 const MOCK_USER_KEY = 'viva360.mock_user';
 const MOCK_AUTH_TOKEN = 'admin-excellence-2026';
+const SESSION_MODE_KEY = 'viva360.session.mode';
+const OAUTH_EXPECTED_EMAIL_KEY = 'viva360.oauth.expected_email';
 const ORACLE_HISTORY_KEY = 'viva360.oracle.history';
 const ORACLE_MAX_CACHE = 40;
+const TEST_ACCOUNT_PASSWORD = '123456';
+
+const STRICT_TEST_ACCOUNTS: Record<string, { id: string; role: UserRole; name: string }> = {
+    'client0@viva360.com': { id: 'client_0', role: UserRole.CLIENT, name: 'Buscador Teste' },
+    'pro0@viva360.com': { id: 'pro_0', role: UserRole.PROFESSIONAL, name: 'Guardião Teste' },
+    'contato.hub0@viva360.com': { id: 'hub_0', role: UserRole.SPACE, name: 'Santuário Teste' },
+    'admin@viva360.com': { id: 'admin-001', role: UserRole.ADMIN, name: 'Admin Viva360' },
+};
+const STRICT_TEST_EMAILS = new Set(Object.keys(STRICT_TEST_ACCOUNTS));
 
 const baseUser = (overrides: Partial<User> & Pick<User, 'id' | 'email' | 'name' | 'role'>): User => ({
     id: overrides.id,
@@ -63,9 +74,45 @@ const isLikelyNetworkError = (message?: string): boolean => {
     return ['network', 'fetch', 'dns', 'nxdomain', 'failed to fetch'].some((token) => text.includes(token));
 };
 
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
+const isStrictTestEmail = (email: string) => STRICT_TEST_EMAILS.has(normalizeEmail(email));
+
+const getSessionMode = (): 'mock' | 'real' | null => {
+    const value = localStorage.getItem(SESSION_MODE_KEY);
+    if (value === 'mock' || value === 'real') return value;
+    return null;
+};
+
+const setSessionMode = (mode: 'mock' | 'real') => {
+    localStorage.setItem(SESSION_MODE_KEY, mode);
+};
+
+const clearMockArtifacts = (opts?: { preserveAuthToken?: boolean }) => {
+    const preserveAuthToken = !!opts?.preserveAuthToken;
+    const keysToDrop = [
+        MOCK_USER_KEY,
+        ORACLE_HISTORY_KEY,
+        OAUTH_EXPECTED_EMAIL_KEY,
+    ];
+    keysToDrop.forEach((key) => localStorage.removeItem(key));
+
+    if (!preserveAuthToken) {
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+    }
+
+    for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.includes('mock') || key.startsWith('viva360_tutorial_seen_')) {
+            localStorage.removeItem(key);
+        }
+    }
+};
+
 const createMockUser = (email: string, role?: UserRole, name?: string): User => {
-    const normalizedEmail = email.trim().toLowerCase();
-    const normalizedRole = role || inferRoleFromEmail(normalizedEmail);
+    const normalizedEmail = normalizeEmail(email);
+    const strictTest = STRICT_TEST_ACCOUNTS[normalizedEmail];
+    const normalizedRole = role || strictTest?.role || inferRoleFromEmail(normalizedEmail);
     const prefix = normalizedRole === UserRole.PROFESSIONAL
         ? 'pro'
         : normalizedRole === UserRole.SPACE
@@ -73,8 +120,8 @@ const createMockUser = (email: string, role?: UserRole, name?: string): User => 
             : normalizedRole === UserRole.ADMIN
                 ? 'admin'
                 : 'client';
-    const id = `${prefix}_${hashString(normalizedEmail).slice(0, 8)}`;
-    const resolvedName = name || normalizedEmail.split('@')[0] || 'Viajante';
+    const id = strictTest?.id || `${prefix}_${hashString(normalizedEmail).slice(0, 8)}`;
+    const resolvedName = name || strictTest?.name || normalizedEmail.split('@')[0] || 'Viajante';
 
     return baseUser({
         id,
@@ -87,13 +134,23 @@ const createMockUser = (email: string, role?: UserRole, name?: string): User => 
 };
 
 const saveMockSession = (user: User) => {
+    setSessionMode('mock');
     localStorage.setItem(MOCK_USER_KEY, JSON.stringify(user));
     localStorage.setItem(AUTH_TOKEN_KEY, MOCK_AUTH_TOKEN);
 };
 
+const promoteToRealSession = (token?: string) => {
+    clearMockArtifacts({ preserveAuthToken: true });
+    if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+    setSessionMode('real');
+};
+
 const getMockSession = (): User | null => {
+    if (!isSupabaseMock) return null;
+    if (getSessionMode() !== 'mock') return null;
     const mockUser = parseSafe<User>(localStorage.getItem(MOCK_USER_KEY));
     if (!mockUser) return null;
+    if (!isStrictTestEmail(mockUser.email || '')) return null;
     return baseUser({
         ...mockUser,
         role: normalizeRole(mockUser.role),
@@ -155,7 +212,8 @@ const buildOracleFallbackCard = (mood: string) => {
 };
 
 const getHeader = () => {
-    const token = localStorage.getItem(AUTH_TOKEN_KEY) || (localStorage.getItem(MOCK_USER_KEY) ? MOCK_AUTH_TOKEN : '');
+    const isMockSession = isSupabaseMock && getSessionMode() === 'mock' && !!localStorage.getItem(MOCK_USER_KEY);
+    const token = localStorage.getItem(AUTH_TOKEN_KEY) || (isMockSession ? MOCK_AUTH_TOKEN : '');
     return {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -179,12 +237,18 @@ export const request = async (endpoint: string, options: RequestInit = {}) => {
 export const api = {
     auth: {
         loginWithPassword: async (email: string, password: string): Promise<User> => {
-            const normalizedEmail = email.trim().toLowerCase();
+            const normalizedEmail = normalizeEmail(email);
             if (!normalizedEmail || !password) {
                 throw new Error('Preencha e-mail e senha.');
             }
 
             if (isSupabaseMock) {
+                if (!isStrictTestEmail(normalizedEmail)) {
+                    throw new Error('No modo teste, use apenas e-mails pré-definidos.');
+                }
+                if (password !== TEST_ACCOUNT_PASSWORD) {
+                    throw new Error('Senha de teste inválida.');
+                }
                 const mockUser = createMockUser(normalizedEmail);
                 saveMockSession(mockUser);
                 return mockUser;
@@ -198,13 +262,16 @@ export const api = {
                     throw new Error('Login failed: No session data returned');
                 }
 
-                localStorage.setItem(AUTH_TOKEN_KEY, data.session.access_token);
-                localStorage.removeItem(MOCK_USER_KEY);
+                promoteToRealSession(data.session.access_token);
+                localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
 
                 const user = await api.auth.getCurrentSession();
                 if (!user) throw new Error('Sessão criada, mas sem usuário válido.');
                 return user;
             } catch (err: any) {
+                if (!isLikelyNetworkError(err?.message)) {
+                    throw err;
+                }
                 // Fallback: backend /auth/login token flow
                 try {
                     const response = await fetch(`${API_URL}/auth/login`, {
@@ -220,10 +287,8 @@ export const api = {
 
                     const payload = await response.json();
                     const token = payload?.session?.access_token;
-                    if (token) {
-                        localStorage.setItem(AUTH_TOKEN_KEY, token);
-                    }
-                    localStorage.removeItem(MOCK_USER_KEY);
+                    promoteToRealSession(token);
+                    localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
 
                     const user = baseUser({
                         id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
@@ -235,16 +300,21 @@ export const api = {
 
                     return user;
                 } catch (fallbackError) {
-                    if (isLikelyNetworkError(err?.message)) {
-                        throw new Error('Erro de conexão. Verifique internet e configuração do Supabase.');
-                    }
                     throw fallbackError instanceof Error ? fallbackError : err;
                 }
             }
         },
-        loginWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
+        loginWithGoogle: async (role: UserRole = UserRole.CLIENT, expectedEmail?: string): Promise<User> => {
+            const normalizedExpectedEmail = normalizeEmail(expectedEmail || '');
+            if (!normalizedExpectedEmail) {
+                throw new Error('Informe seu e-mail antes de continuar com Google.');
+            }
+
             if (isSupabaseMock) {
-                const mockUser = createMockUser(`google.${String(role).toLowerCase()}@viva360.mock`, role, 'Conta Google');
+                if (!isStrictTestEmail(normalizedExpectedEmail)) {
+                    throw new Error('Google em modo teste aceita apenas contas pré-definidas.');
+                }
+                const mockUser = createMockUser(normalizedExpectedEmail, role, 'Conta Google (Teste)');
                 saveMockSession(mockUser);
                 return mockUser;
             }
@@ -254,7 +324,18 @@ export const api = {
                 throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
             }
 
+            const precheckResponse = await fetch(`${API_URL}/auth/precheck-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: normalizedExpectedEmail }),
+            });
+            const precheckPayload = await precheckResponse.json().catch(() => ({}));
+            if (!precheckResponse.ok || !precheckPayload?.allowed) {
+                throw new Error('Este e-mail ainda não está autorizado para login com Google.');
+            }
+
             const redirectTo = getOAuthRedirectUrl();
+            localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -263,12 +344,16 @@ export const api = {
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'select_account',
+                        login_hint: normalizedExpectedEmail,
                     },
                     data: { role }
                 }
             });
 
-            if (error) throw error;
+            if (error) {
+                localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+                throw error;
+            }
             if (data?.url) {
                 window.location.assign(data.url);
                 throw new Error('REDIRECTING_TO_GOOGLE');
@@ -277,13 +362,11 @@ export const api = {
             throw new Error('Falha ao iniciar autenticação Google.');
         },
         register: async (data: any): Promise<User> => {
-            const normalizedEmail = String(data.email || '').trim().toLowerCase();
+            const normalizedEmail = normalizeEmail(String(data.email || ''));
             const normalizedRole = normalizeRole(data.role);
 
             if (isSupabaseMock) {
-                const mockUser = createMockUser(normalizedEmail, normalizedRole, data.name);
-                saveMockSession(mockUser);
-                return mockUser;
+                throw new Error('Cadastro real está desabilitado no modo teste.');
             }
 
             try {
@@ -301,8 +384,7 @@ export const api = {
                 if (error) throw error;
                 
                 if (authData.session) {
-                    localStorage.setItem(AUTH_TOKEN_KEY, authData.session.access_token);
-                    localStorage.removeItem(MOCK_USER_KEY);
+                    promoteToRealSession(authData.session.access_token);
                 }
                 
                 const user = await api.auth.getCurrentSession();
@@ -315,7 +397,10 @@ export const api = {
                     role: normalizedRole,
                     avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
                 });
-            } catch (err) {
+            } catch (err: any) {
+                if (!isLikelyNetworkError(err?.message)) {
+                    throw err;
+                }
                 const response = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -334,10 +419,7 @@ export const api = {
 
                 const payload = await response.json();
                 const token = payload?.session?.access_token;
-                if (token) {
-                    localStorage.setItem(AUTH_TOKEN_KEY, token);
-                    localStorage.removeItem(MOCK_USER_KEY);
-                }
+                promoteToRealSession(token);
 
                 return baseUser({
                     id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
@@ -349,33 +431,66 @@ export const api = {
             }
         },
         getCurrentSession: async (): Promise<User | null> => {
+            if (!isSupabaseMock && localStorage.getItem(MOCK_USER_KEY)) {
+                clearMockArtifacts({ preserveAuthToken: true });
+                localStorage.removeItem(SESSION_MODE_KEY);
+            }
+
             const mockSession = getMockSession();
-            if (isSupabaseMock && mockSession) return mockSession;
+            if (mockSession) return mockSession;
 
             try {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
-                    localStorage.setItem(AUTH_TOKEN_KEY, session.access_token);
-                    localStorage.removeItem(MOCK_USER_KEY);
+                    const expectedOAuthEmail = normalizeEmail(localStorage.getItem(OAUTH_EXPECTED_EMAIL_KEY) || '');
+                    const sessionEmail = normalizeEmail(session.user.email || '');
+                    if (expectedOAuthEmail && sessionEmail && expectedOAuthEmail !== sessionEmail) {
+                        await supabase.auth.signOut();
+                        clearMockArtifacts();
+                        localStorage.removeItem(SESSION_MODE_KEY);
+                        throw new Error('A conta do Google selecionada não corresponde ao e-mail informado.');
+                    }
+                    localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+
+                    const rawRole = normalizeRole(session.user.user_metadata.role);
+                    if (!session.user.user_metadata?.role && !isSupabaseMock) {
+                        await supabase.auth.signOut();
+                        clearMockArtifacts();
+                        localStorage.removeItem(SESSION_MODE_KEY);
+                        throw new Error('Conta não autorizada. Faça cadastro primeiro ou use conta de teste.');
+                    }
+
+                    promoteToRealSession(session.access_token);
                     return baseUser({
                         id: session.user.id,
-                        email: session.user.email || '',
+                        email: sessionEmail,
                         name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Viajante',
-                        role: normalizeRole(session.user.user_metadata.role),
+                        role: rawRole,
                         avatar: session.user.user_metadata.avatar_url || '',
                     });
                 }
-            } catch {
+            } catch (err: any) {
+                if (err?.message?.includes('não corresponde') || err?.message?.includes('Conta não autorizada')) {
+                    throw err;
+                }
                 // Fallback handled below.
             }
-
-            if (mockSession) return mockSession;
 
             const token = localStorage.getItem(AUTH_TOKEN_KEY);
             if (!token) return null;
 
             const payload = decodeJwtPayload(token);
             if (!payload?.email) return null;
+
+            const isMockToken = token === MOCK_AUTH_TOKEN;
+            if (isMockToken && !isSupabaseMock && getSessionMode() !== 'mock') {
+                clearMockArtifacts();
+                localStorage.removeItem(SESSION_MODE_KEY);
+                return null;
+            }
+            if (!isMockToken) {
+                setSessionMode('real');
+            }
 
             return baseUser({
                 id: payload.userId || payload.sub || `user_${hashString(payload.email).slice(0, 8)}`,
@@ -393,8 +508,11 @@ export const api = {
             } catch {
                 // Continue local cleanup even if remote sign-out fails.
             }
+            clearMockArtifacts();
             localStorage.removeItem(AUTH_TOKEN_KEY);
             localStorage.removeItem(MOCK_USER_KEY);
+            localStorage.removeItem(SESSION_MODE_KEY);
+            localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
         }
     },
     users: {
