@@ -26,7 +26,6 @@ const RitualsView = lazyNamed(() => import('../../views/client/RitualsView'), 'R
 
 // --- BUSCADOR GENERATED (Default Exports usually) ---
 const BookingConfirm = lazy(() => import('../../views/client/generated/BookingConfirm'));
-const Checkout = lazy(() => import('../../views/client/generated/Checkout'));
 const PaymentSuccess = lazy(() => import('../../views/client/generated/PaymentSuccess'));
 const TribeInvite = lazy(() => import('../../views/client/generated/TribeInvite'));
 const TribeInteraction = lazy(() => import('../../views/client/generated/TribeInteraction'));
@@ -85,7 +84,7 @@ const SpacePatients = lazy(() => import('../../views/space/generated/SpacePatien
 const SpaceGovernance = lazy(() => import('../../views/space/generated/SpaceGovernance'));
 const SpaceRoomEdit = lazy(() => import('../../views/space/generated/SpaceRoomEdit'));
 const SpaceRoomAgenda = lazy(() => import('../../views/space/generated/SpaceRoomAgenda'));
-const SpaceRoomCreate = lazy(() => import('../../views/space/generated/SpaceRoomCreate'));
+const SpaceRoomCreate = lazyNamed(() => import('../../views/space/SpaceRoomCreate'), 'SpaceRoomCreate');
 const SpaceProDetails = lazy(() => import('../../views/space/generated/SpaceProDetails'));
 const SpaceSummon = lazy(() => import('../../views/space/generated/SpaceSummon'));
 const SpaceInvite = lazy(() => import('../../views/space/generated/SpaceInvite'));

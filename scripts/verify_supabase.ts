@@ -20,6 +20,26 @@ async function verify() {
         process.exit(1);
     }
 
+    const appMode = String(process.env.VITE_APP_MODE || '').toUpperCase();
+    const oauthRedirect = process.env.VITE_SUPABASE_AUTH_REDIRECT_URL || '';
+
+    if (appMode === 'PROD') {
+        if (!oauthRedirect) {
+            console.warn("⚠️  VITE_SUPABASE_AUTH_REDIRECT_URL não definida para PROD.");
+        } else {
+            try {
+                const parsed = new URL(oauthRedirect);
+                if (!parsed.pathname.startsWith('/login')) {
+                    console.warn(`⚠️  Redirect OAuth deveria apontar para /login, atual: ${parsed.pathname}`);
+                } else {
+                    console.log(`✅ OAuth Redirect URL válida: ${parsed.toString()}`);
+                }
+            } catch {
+                console.warn("⚠️  VITE_SUPABASE_AUTH_REDIRECT_URL inválida (não é URL absoluta).");
+            }
+        }
+    }
+
     try {
         // 1. Connection Test
         console.log("🔌 Testing Database Connection...");

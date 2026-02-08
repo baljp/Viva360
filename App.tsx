@@ -6,7 +6,7 @@ import Layout from './components/Layout';
 import { SmartTutorial } from './components/SmartTutorial';
 import { CartDrawer } from './components/Checkout'; // Keep lightweight components eager
 import { api } from './services/api';
-import { supabase } from './lib/supabase';
+import { supabase, APP_MODE, validateOAuthRuntimeConfig } from './lib/supabase';
 import { ZenToast } from './components/Common';
 import { BuscadorFlowProvider } from './src/flow/BuscadorFlowContext';
 import { GuardiaoFlowProvider } from './src/flow/GuardiaoFlowContext';
@@ -206,6 +206,18 @@ const App: React.FC = () => {
             setIsLoading(false);
         };
         init();
+    }, []);
+
+    useEffect(() => {
+        if (APP_MODE !== 'PROD') return;
+        const { ok, issues } = validateOAuthRuntimeConfig();
+        if (!ok) {
+            console.warn('[OAuth Validation] Problemas detectados:', issues);
+            setToast({
+                title: 'OAuth Google',
+                message: 'Configuração de redirect inválida. Verifique domínio e URL de callback no Supabase.'
+            });
+        }
     }, []);
 
     // Global OAuth Listener - Detects Google login callbacks from any route

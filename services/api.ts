@@ -1,5 +1,5 @@
 import { User, Professional, UserRole, Appointment, Product, Notification, DailyJournalEntry } from '../types';
-import { supabase, isMockMode as isSupabaseMock } from '../lib/supabase';
+import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOAuthRuntimeConfig } from '../lib/supabase';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const AUTH_TOKEN_KEY = 'viva360.auth.token';
@@ -249,10 +249,17 @@ export const api = {
                 return mockUser;
             }
 
+            const oauthValidation = validateOAuthRuntimeConfig();
+            if (!oauthValidation.ok) {
+                throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
+            }
+
+            const redirectTo = getOAuthRedirectUrl();
+
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
-                    redirectTo: `${window.location.origin}/login`,
+                    redirectTo,
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'select_account',

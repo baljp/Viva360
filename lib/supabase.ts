@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const appMode = import.meta.env.VITE_APP_MODE;
+const configuredAuthRedirect = import.meta.env.VITE_SUPABASE_AUTH_REDIRECT_URL;
 const isTest = import.meta.env.MODE === 'test';
 
 // Determina o modo da aplicação
@@ -20,6 +21,60 @@ export const envStatus = {
     hasKey: !!supabaseAnonKey,
     mode: APP_MODE,
     urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 8) + '...' : 'undefined'
+};
+
+const safeParseUrl = (value?: string): URL | null => {
+    if (!value) return null;
+    try {
+        return new URL(value);
+    } catch {
+        return null;
+    }
+};
+
+export const getOAuthRedirectUrl = (): string => {
+    const parsedCustom = safeParseUrl(configuredAuthRedirect);
+    if (parsedCustom) return parsedCustom.toString();
+
+    if (typeof window !== 'undefined') {
+        return `${window.location.origin}/login`;
+    }
+
+    return 'http://localhost:5173/login';
+};
+
+export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } => {
+    const issues: string[] = [];
+    const redirectTo = getOAuthRedirectUrl();
+    const parsedRedirect = safeParseUrl(redirectTo);
+
+    if (!parsedRedirect) {
+        issues.push('VITE_SUPABASE_AUTH_REDIRECT_URL inválida.');
+    } else if (!parsedRedirect.pathname.startsWith('/login')) {
+        issues.push('Redirect OAuth deve apontar para /login.');
+    }
+
+    if (APP_MODE === 'PROD') {
+        if (!supabaseUrl || !supabaseAnonKey) {
+            issues.push('VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY são obrigatórias em PROD.');
+        }
+
+        if (typeof window !== 'undefined') {
+            const currentOrigin = window.location.origin;
+            const redirectOrigin = parsedRedirect?.origin || '';
+            const isLocalhost = currentOrigin.includes('localhost');
+
+            if (!configuredAuthRedirect) {
+                issues.push('Defina VITE_SUPABASE_AUTH_REDIRECT_URL para validar OAuth em domínio real.');
+            }
+
+            if (!isLocalhost && redirectOrigin && redirectOrigin !== currentOrigin) {
+                issues.push(`Origem atual (${currentOrigin}) difere da origem do redirect (${redirectOrigin}).`);
+            }
+        }
+    }
+
+    return { ok: issues.length === 0, issues };
 };
 
 // Cria o cliente apenas se configurado, senão cria um cliente dummy

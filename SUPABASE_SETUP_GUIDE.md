@@ -25,6 +25,12 @@ Siga este guia para ativar o Login com Google, Notificações e Chat em tempo re
 4. **Habilite** a opção "Google enabled".
 5. Cole o **Client ID** e **Client Secret** copiados do Google.
 6. Clique em **Save**.
+7. Vá em **Authentication > URL Configuration** e configure:
+   - **Site URL**: `https://seu-dominio.com` (ou URL real da Vercel).
+   - **Redirect URLs**: inclua
+     - `http://localhost:5173/login`
+     - `https://seu-dominio.com/login`
+     - qualquer outro domínio de homologação que você use.
 
 ## Passo 3: Executar Scripts do Banco de Dados
 
@@ -59,6 +65,8 @@ VITE_SUPABASE_URL=https://<seu-projeto>.supabase.co
 VITE_SUPABASE_ANON_KEY=<sua-anon-key>
 # Mude para PROD para usar o Supabase real (Google Login)
 VITE_APP_MODE=PROD
+# Redirect OAuth usado no frontend para o Google Login
+VITE_SUPABASE_AUTH_REDIRECT_URL=https://seu-dominio.com/login
 ```
 
 ## Passo 5: Testar e Verificar (Automático)
