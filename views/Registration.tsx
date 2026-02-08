@@ -123,8 +123,14 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        const googleUser = await api.auth.loginWithGoogle(UserRole.CLIENT);
-        onRegister(googleUser);
+        try {
+            const googleUser = await api.auth.loginWithGoogle(UserRole.CLIENT);
+            if (googleUser) onRegister(googleUser);
+        } catch (err: any) {
+            if (err?.message !== 'REDIRECTING_TO_GOOGLE') {
+                console.error('Google register error (client):', err);
+            }
+        }
     };
     
     const handleGoalChange = (goal: string) => {
@@ -182,8 +188,14 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        const googleUser = await api.auth.loginWithGoogle(UserRole.PROFESSIONAL);
-        onRegister(googleUser);
+        try {
+            const googleUser = await api.auth.loginWithGoogle(UserRole.PROFESSIONAL);
+            if (googleUser) onRegister(googleUser);
+        } catch (err: any) {
+            if (err?.message !== 'REDIRECTING_TO_GOOGLE') {
+                console.error('Google register error (pro):', err);
+            }
+        }
     };
 
     return (
@@ -238,8 +250,14 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        const googleUser = await api.auth.loginWithGoogle(UserRole.SPACE);
-        onRegister(googleUser);
+        try {
+            const googleUser = await api.auth.loginWithGoogle(UserRole.SPACE);
+            if (googleUser) onRegister(googleUser);
+        } catch (err: any) {
+            if (err?.message !== 'REDIRECTING_TO_GOOGLE') {
+                console.error('Google register error (space):', err);
+            }
+        }
     };
 
      return (

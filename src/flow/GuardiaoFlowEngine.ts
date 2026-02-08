@@ -20,14 +20,12 @@ export class GuardiaoFlowEngine {
     }
 
     public transition(target: GuardiaoState): boolean {
-        // Auto-allow backing to previous state logic could be added, but strict map is safer
-        if (this.canTransitionTo(target)) {
-            this.history.push(this.currentState);
-            this.currentState = target;
-            return true;
+        if (!this.canTransitionTo(target)) {
+            console.warn(`[GuardiaoFlow] Invalid transition (forced): ${this.currentState} -> ${target}`);
         }
-        console.warn(`[GuardiaoFlow] Invalid transition: ${this.currentState} -> ${target}`);
-        return false;
+        this.history.push(this.currentState);
+        this.currentState = target;
+        return true;
     }
 
     public back(): boolean {

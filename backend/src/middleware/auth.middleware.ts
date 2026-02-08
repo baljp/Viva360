@@ -12,6 +12,14 @@ declare global {
   }
 }
 
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000001';
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+const normalizeUserId = (candidate?: string) => {
+  if (!candidate) return DEFAULT_USER_ID;
+  return UUID_REGEX.test(candidate) ? candidate : DEFAULT_USER_ID;
+};
+
 export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
@@ -27,25 +35,35 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
 
   // Support for E2E Mock Token in MOCK mode
   if (process.env.APP_MODE === 'MOCK' && token === 'admin-excellence-2026') {
-    req.user = { id: 'admin_master', role: 'ADMIN', email: 'admin@viva360.ai' };
+    req.user = { id: DEFAULT_USER_ID, userId: DEFAULT_USER_ID, role: 'ADMIN', email: 'admin@viva360.ai' };
     return next();
   }
 
   try {
-    // SECURE: Verify token with Supabase Auth Engine
+    // Primary path: Supabase Auth token
     const { data, error } = await supabaseAdmin.auth.getUser(token);
-    
-    if (error || !data.user) {
-        throw new Error('Invalid Supabase token');
+
+    if (!error && data.user) {
+      const userId = normalizeUserId(data.user.id);
+      req.user = {
+        id: userId,
+        userId,
+        email: data.user.email,
+        role: data.user.user_metadata?.role || 'CLIENT',
+      };
+      return next();
     }
 
+    // Fallback path: internal JWT emitted by /auth/login
+    const payload = jwt.verify(token, JWT_SECRET) as any;
+    const userId = normalizeUserId(payload?.userId || payload?.id || payload?.sub);
     req.user = {
-      id: data.user.id,
-      email: data.user.email,
-      role: data.user.user_metadata?.role || 'CLIENT',
-      userId: data.user.id
+      id: userId,
+      userId,
+      email: payload?.email,
+      role: payload?.role || 'CLIENT',
     };
-    next();
+    return next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token' });
   }

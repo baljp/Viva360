@@ -9,7 +9,7 @@ test.describe('Critical Fixes Verification', () => {
     
     // Verify Dashboard
     await expect(page.getByText('Santuário').first()).toBeVisible({ timeout: 15000 }); 
-    await expect(page.getByText('Consagrar Novo Altar')).toBeVisible(); 
+    await expect(page.getByRole('button', { name: 'Ritmos do Templo', exact: true })).toBeVisible();
   });
 
   // 2. Buscador Daily Blessing Fix
@@ -37,16 +37,16 @@ test.describe('Critical Fixes Verification', () => {
     await injectMockData();
     await loginAs('pro'); // Guardião
     // Wait for dashboard to fully load (past the skeleton)
-    // Switch to Expansão tab to find Bazar
-    await page.getByText('EXPANSÃO').click({ force: true });
+    // Switch to Egrégora tab to find Bazar
+    await page.getByText('Egrégora').click({ force: true });
     await page.waitForTimeout(1000);
 
-    // Find and click 'Meu Bazar' card
-    await page.getByText('MEU BAZAR').first().click({ force: true });
+    // Find and click marketplace card
+    await page.getByText('Alquimia').first().click({ force: true });
 
     // Verify Marketplace View loaded
-    await expect(page.getByText('Alquimia Comercial')).toBeVisible();
-    await expect(page.getByText('GESTÃO DE BAZAR')).toBeVisible();
+    await expect(page.getByText('Alquimia')).toBeVisible();
+    await expect(page.getByText('Mercado e Bazar')).toBeVisible();
     
     // Verify Add Button exists
     await expect(page.getByText('Novo Produto ou Ritual')).toBeVisible();

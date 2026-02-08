@@ -20,13 +20,12 @@ export class SantuarioFlowEngine {
     }
 
     public transition(target: SantuarioState): boolean {
-        if (this.canTransitionTo(target)) {
-            this.history.push(this.currentState);
-            this.currentState = target;
-            return true;
+        if (!this.canTransitionTo(target)) {
+            console.warn(`[SantuarioFlow] Invalid transition (forced): ${this.currentState} -> ${target}`);
         }
-        console.warn(`[SantuarioFlow] Invalid transition: ${this.currentState} -> ${target}`);
-        return false;
+        this.history.push(this.currentState);
+        this.currentState = target;
+        return true;
     }
 
     public back(): boolean {

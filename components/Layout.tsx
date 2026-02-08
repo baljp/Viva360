@@ -15,6 +15,15 @@ interface LayoutProps {
   shouldHideNav?: boolean;
 }
 
+const scrollMainContentToTop = () => {
+    const container = document.getElementById('viva360-main-scroll');
+    if (container) {
+        container.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
 const navItemsDefinition = (user: User | null) => {
     if (!user) return [];
     switch(user.role) {
@@ -60,7 +69,7 @@ const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, o
                             key={item.id} 
                             onClick={() => {
                                 setView(item.id);
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                scrollMainContentToTop();
                             }} 
                             className={`flex items-center gap-4 p-5 rounded-[1.8rem] w-full text-left transition-all ${active ? 'bg-nature-900 text-white shadow-2xl' : 'text-nature-400 hover:bg-nature-50'}`}
                         >
@@ -95,7 +104,7 @@ const BottomNav: React.FC<Omit<LayoutProps, 'children'>> = ({ user, currentView,
                             key={item.id} 
                             onClick={() => {
                                 setView(item.id);
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                scrollMainContentToTop();
                             }} 
                             className="flex-1 flex flex-col items-center justify-center h-full relative group outline-none focus:outline-none touch-manipulation"
                         >
@@ -123,7 +132,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
             {!shouldHideNav && <Sidebar user={user} currentView={currentView} setView={setView} onLogout={onLogout} unreadCount={notifications.filter(n => !n.read).length} onOpenNotifications={() => setIsNotifOpen(true)} />}
             <div className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
                 <main className="flex-1 w-full h-full relative overflow-hidden">
-                    <div className="h-full w-full overflow-y-auto scroll-smooth">
+                    <div id="viva360-main-scroll" className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth">
                         <div className={`w-full lg:max-w-5xl lg:mx-auto min-h-full ${shouldHideNav ? '' : 'pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-12 lg:pt-8'}`}>
                             <div className={shouldHideNav ? "" : "px-4 lg:px-10"}>{children}</div>
                         </div>

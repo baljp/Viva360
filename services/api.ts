@@ -2,9 +2,160 @@ import { User, Professional, UserRole, Appointment, Product, Notification, Daily
 import { supabase, isMockMode as isSupabaseMock } from '../lib/supabase';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
+const AUTH_TOKEN_KEY = 'viva360.auth.token';
+const MOCK_USER_KEY = 'viva360.mock_user';
+const MOCK_AUTH_TOKEN = 'admin-excellence-2026';
+const ORACLE_HISTORY_KEY = 'viva360.oracle.history';
+const ORACLE_MAX_CACHE = 40;
+
+const baseUser = (overrides: Partial<User> & Pick<User, 'id' | 'email' | 'name' | 'role'>): User => ({
+    id: overrides.id,
+    email: overrides.email,
+    name: overrides.name,
+    role: overrides.role,
+    avatar: overrides.avatar || '',
+    karma: overrides.karma ?? 0,
+    streak: overrides.streak ?? 0,
+    multiplier: overrides.multiplier ?? 1,
+    personalBalance: overrides.personalBalance ?? 0,
+    corporateBalance: overrides.corporateBalance ?? 0,
+    plantStage: overrides.plantStage || 'seed',
+    plantXp: overrides.plantXp ?? 0,
+    snaps: overrides.snaps || [],
+});
+
+const parseSafe = <T>(value: string | null): T | null => {
+    if (!value) return null;
+    try {
+        return JSON.parse(value) as T;
+    } catch {
+        return null;
+    }
+};
+
+const normalizeRole = (value?: string | UserRole): UserRole => {
+    const role = String(value || '').toUpperCase();
+    if (role === UserRole.PROFESSIONAL) return UserRole.PROFESSIONAL;
+    if (role === UserRole.SPACE) return UserRole.SPACE;
+    if (role === UserRole.ADMIN) return UserRole.ADMIN;
+    return UserRole.CLIENT;
+};
+
+const inferRoleFromEmail = (email: string): UserRole => {
+    const normalized = email.toLowerCase();
+    if (normalized.startsWith('admin') || normalized.includes('admin@')) return UserRole.ADMIN;
+    if (normalized.startsWith('pro') || normalized.includes('guard')) return UserRole.PROFESSIONAL;
+    if (normalized.startsWith('space') || normalized.includes('hub') || normalized.includes('santuario')) return UserRole.SPACE;
+    return UserRole.CLIENT;
+};
+
+const hashString = (value: string): string => {
+    let hash = 0;
+    for (let i = 0; i < value.length; i += 1) {
+        hash = ((hash << 5) - hash) + value.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash).toString(16);
+};
+
+const isLikelyNetworkError = (message?: string): boolean => {
+    const text = (message || '').toLowerCase();
+    return ['network', 'fetch', 'dns', 'nxdomain', 'failed to fetch'].some((token) => text.includes(token));
+};
+
+const createMockUser = (email: string, role?: UserRole, name?: string): User => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedRole = role || inferRoleFromEmail(normalizedEmail);
+    const prefix = normalizedRole === UserRole.PROFESSIONAL
+        ? 'pro'
+        : normalizedRole === UserRole.SPACE
+            ? 'hub'
+            : normalizedRole === UserRole.ADMIN
+                ? 'admin'
+                : 'client';
+    const id = `${prefix}_${hashString(normalizedEmail).slice(0, 8)}`;
+    const resolvedName = name || normalizedEmail.split('@')[0] || 'Viajante';
+
+    return baseUser({
+        id,
+        email: normalizedEmail,
+        name: resolvedName,
+        role: normalizedRole,
+        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${id}`,
+        karma: normalizedRole === UserRole.PROFESSIONAL ? 1500 : 500,
+    });
+};
+
+const saveMockSession = (user: User) => {
+    localStorage.setItem(MOCK_USER_KEY, JSON.stringify(user));
+    localStorage.setItem(AUTH_TOKEN_KEY, MOCK_AUTH_TOKEN);
+};
+
+const getMockSession = (): User | null => {
+    const mockUser = parseSafe<User>(localStorage.getItem(MOCK_USER_KEY));
+    if (!mockUser) return null;
+    return baseUser({
+        ...mockUser,
+        role: normalizeRole(mockUser.role),
+        id: mockUser.id,
+        email: mockUser.email || '',
+        name: mockUser.name || 'Viajante',
+    });
+};
+
+const decodeJwtPayload = (token: string): any | null => {
+    try {
+        const [, payload] = token.split('.');
+        if (!payload) return null;
+        const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+        const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+        return JSON.parse(atob(padded));
+    } catch {
+        return null;
+    }
+};
+
+type OracleCachedEntry = {
+    drawId: string;
+    drawnAt: string;
+    moodContext: string;
+    card: {
+        id: string;
+        name: string;
+        insight: string;
+        element: string;
+        category: string;
+    };
+};
+
+const getOracleCache = (): OracleCachedEntry[] => parseSafe<OracleCachedEntry[]>(localStorage.getItem(ORACLE_HISTORY_KEY)) || [];
+
+const saveOracleCache = (entries: OracleCachedEntry[]) => {
+    localStorage.setItem(ORACLE_HISTORY_KEY, JSON.stringify(entries.slice(0, ORACLE_MAX_CACHE)));
+};
+
+const isSameDay = (isoA: string, isoB: string) => {
+    const a = new Date(isoA);
+    const b = new Date(isoB);
+    return a.getFullYear() === b.getFullYear()
+        && a.getMonth() === b.getMonth()
+        && a.getDate() === b.getDate();
+};
+
+const buildOracleFallbackCard = (mood: string) => {
+    const deck = [
+        { name: 'Respiração da Aurora', insight: 'Hoje, menos pressa revela mais direção.', element: 'Ar', category: 'consciencia' },
+        { name: 'Raiz Serena', insight: 'Sua estabilidade cresce quando você honra o presente.', element: 'Terra', category: 'cura_emocional' },
+        { name: 'Chama Gentil', insight: 'Ação pequena e consistente vence o excesso de força.', element: 'Fogo', category: 'acao_foco' },
+        { name: 'Mar Interno', insight: 'Sentir também é avançar. Escute o que acalma.', element: 'Agua', category: 'cura_emocional' },
+    ];
+    const seed = hashString(`${mood}:${new Date().toISOString().slice(0, 10)}`);
+    const idx = parseInt(seed.slice(0, 2), 16) % deck.length;
+    return { id: `oracle_${seed.slice(0, 10)}`, ...deck[idx] };
+};
 
 const getHeader = () => {
-    const token = localStorage.getItem('viva360.auth.token');
+    const token = localStorage.getItem(AUTH_TOKEN_KEY) || (localStorage.getItem(MOCK_USER_KEY) ? MOCK_AUTH_TOKEN : '');
     return {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -28,117 +179,215 @@ export const request = async (endpoint: string, options: RequestInit = {}) => {
 export const api = {
     auth: {
         loginWithPassword: async (email: string, password: string): Promise<User> => {
-            console.log(`[API] Attempting login for ${email}`);
-            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) {
-                console.error("[API] Login Error:", error);
-                throw error;
+            const normalizedEmail = email.trim().toLowerCase();
+            if (!normalizedEmail || !password) {
+                throw new Error('Preencha e-mail e senha.');
             }
-            if (data.session) {
-                console.log("[API] Login Success, Session retrieved");
-                localStorage.setItem('viva360.auth.token', data.session.access_token);
-                const user = await api.auth.getCurrentSession();
-                if (!user) {
-                     console.error("[API] Session exists but User profile not found");
-                     throw new Error('Session created but user not found.');
+
+            if (isSupabaseMock) {
+                const mockUser = createMockUser(normalizedEmail);
+                saveMockSession(mockUser);
+                return mockUser;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+                if (error) throw error;
+
+                if (!data.session) {
+                    throw new Error('Login failed: No session data returned');
                 }
+
+                localStorage.setItem(AUTH_TOKEN_KEY, data.session.access_token);
+                localStorage.removeItem(MOCK_USER_KEY);
+
+                const user = await api.auth.getCurrentSession();
+                if (!user) throw new Error('Sessão criada, mas sem usuário válido.');
                 return user;
+            } catch (err: any) {
+                // Fallback: backend /auth/login token flow
+                try {
+                    const response = await fetch(`${API_URL}/auth/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: normalizedEmail, password })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error || response.statusText || 'Falha no login');
+                    }
+
+                    const payload = await response.json();
+                    const token = payload?.session?.access_token;
+                    if (token) {
+                        localStorage.setItem(AUTH_TOKEN_KEY, token);
+                    }
+                    localStorage.removeItem(MOCK_USER_KEY);
+
+                    const user = baseUser({
+                        id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
+                        email: payload?.user?.email || normalizedEmail,
+                        name: payload?.user?.name || normalizedEmail.split('@')[0] || 'Viajante',
+                        role: normalizeRole(payload?.user?.role || inferRoleFromEmail(normalizedEmail)),
+                        avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${payload?.user?.id || normalizedEmail}`,
+                    });
+
+                    return user;
+                } catch (fallbackError) {
+                    if (isLikelyNetworkError(err?.message)) {
+                        throw new Error('Erro de conexão. Verifique internet e configuração do Supabase.');
+                    }
+                    throw fallbackError instanceof Error ? fallbackError : err;
+                }
             }
-            throw new Error('Login failed: No session data returned');
         },
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
-            const attemptLogin = async (retries = 3, delay = 1000) => {
-                try {
-                    const { error } = await supabase.auth.signInWithOAuth({
-                        provider: 'google',
-                        options: {
-                            redirectTo: window.location.origin,
-                            queryParams: {
-                                access_type: 'offline',
-                                prompt: 'consent',
-                            },
-                            data: {
-                                role: role
-                            }
-                        }
-                    });
-                    if (error) throw error;
-                    throw new Error('REDIRECTING_TO_GOOGLE');
-                } catch (err: any) {
-                    if (err.message === 'REDIRECTING_TO_GOOGLE') throw err;
-                    
-                    if (retries > 0 && (err.message?.includes('fetch') || err.message?.includes('network') || err.message?.includes('DNS'))) {
-                        console.warn(`Google login attempt failed. Retrying in ${delay}ms...`, err);
-                        await new Promise(resolve => setTimeout(resolve, delay));
-                        return attemptLogin(retries - 1, delay * 2);
-                    }
-                    throw err;
-                }
-            };
+            if (isSupabaseMock) {
+                const mockUser = createMockUser(`google.${String(role).toLowerCase()}@viva360.mock`, role, 'Conta Google');
+                saveMockSession(mockUser);
+                return mockUser;
+            }
 
-            return attemptLogin();
-        },
-        register: async (data: any): Promise<User> => {
-            const { data: authData, error } = await supabase.auth.signUp({
-                email: data.email,
-                password: data.password,
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
                 options: {
-                    data: {
-                        full_name: data.name,
-                        role: data.role
-                    }
+                    redirectTo: `${window.location.origin}/login`,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'select_account',
+                    },
+                    data: { role }
                 }
             });
-            
+
             if (error) throw error;
-            
-            if (authData.session) {
-                localStorage.setItem('viva360.auth.token', authData.session.access_token);
+            if (data?.url) {
+                window.location.assign(data.url);
+                throw new Error('REDIRECTING_TO_GOOGLE');
             }
-            
-            const user = await api.auth.getCurrentSession();
-            if (!user) {
-                return {
-                    id: authData.user?.id || 'temp',
-                    email: data.email,
-                    name: data.name,
-                    role: data.role,
-                    avatar: '',
-                    karma: 0,
-                    streak: 0,
-                    multiplier: 1,
-                    personalBalance: 0,
-                    corporateBalance: 0,
-                    plantStage: 'seed',
-                    plantXp: 0,
-                    snaps: []
-                };
+
+            throw new Error('Falha ao iniciar autenticação Google.');
+        },
+        register: async (data: any): Promise<User> => {
+            const normalizedEmail = String(data.email || '').trim().toLowerCase();
+            const normalizedRole = normalizeRole(data.role);
+
+            if (isSupabaseMock) {
+                const mockUser = createMockUser(normalizedEmail, normalizedRole, data.name);
+                saveMockSession(mockUser);
+                return mockUser;
             }
-            return user;
+
+            try {
+                const { data: authData, error } = await supabase.auth.signUp({
+                    email: normalizedEmail,
+                    password: data.password,
+                    options: {
+                        data: {
+                            full_name: data.name,
+                            role: normalizedRole
+                        }
+                    }
+                });
+                
+                if (error) throw error;
+                
+                if (authData.session) {
+                    localStorage.setItem(AUTH_TOKEN_KEY, authData.session.access_token);
+                    localStorage.removeItem(MOCK_USER_KEY);
+                }
+                
+                const user = await api.auth.getCurrentSession();
+                if (user) return user;
+
+                return baseUser({
+                    id: authData.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
+                    email: normalizedEmail,
+                    name: data.name || normalizedEmail.split('@')[0] || 'Viajante',
+                    role: normalizedRole,
+                    avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
+                });
+            } catch (err) {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: normalizedEmail,
+                        password: data.password,
+                        name: data.name,
+                        role: normalizedRole,
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || response.statusText || 'Falha no cadastro');
+                }
+
+                const payload = await response.json();
+                const token = payload?.session?.access_token;
+                if (token) {
+                    localStorage.setItem(AUTH_TOKEN_KEY, token);
+                    localStorage.removeItem(MOCK_USER_KEY);
+                }
+
+                return baseUser({
+                    id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
+                    email: payload?.user?.email || normalizedEmail,
+                    name: payload?.user?.name || data.name || normalizedEmail.split('@')[0] || 'Viajante',
+                    role: normalizeRole(payload?.user?.role || normalizedRole),
+                    avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
+                });
+            }
         },
         getCurrentSession: async (): Promise<User | null> => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return null;
-            
-            return {
-                id: session.user.id,
-                email: session.user.email || '',
-                name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Viajante',
-                role: (session.user.user_metadata.role as UserRole) || UserRole.CLIENT,
-                avatar: session.user.user_metadata.avatar_url || '',
-                karma: 0,
-                streak: 0,
-                multiplier: 1,
-                personalBalance: 0,
-                corporateBalance: 0,
-                plantStage: 'seed',
-                plantXp: 0,
-                snaps: []
-            };
+            const mockSession = getMockSession();
+            if (isSupabaseMock && mockSession) return mockSession;
+
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    localStorage.setItem(AUTH_TOKEN_KEY, session.access_token);
+                    localStorage.removeItem(MOCK_USER_KEY);
+                    return baseUser({
+                        id: session.user.id,
+                        email: session.user.email || '',
+                        name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Viajante',
+                        role: normalizeRole(session.user.user_metadata.role),
+                        avatar: session.user.user_metadata.avatar_url || '',
+                    });
+                }
+            } catch {
+                // Fallback handled below.
+            }
+
+            if (mockSession) return mockSession;
+
+            const token = localStorage.getItem(AUTH_TOKEN_KEY);
+            if (!token) return null;
+
+            const payload = decodeJwtPayload(token);
+            if (!payload?.email) return null;
+
+            return baseUser({
+                id: payload.userId || payload.sub || `user_${hashString(payload.email).slice(0, 8)}`,
+                email: payload.email,
+                name: payload.name || payload.email.split('@')[0] || 'Viajante',
+                role: normalizeRole(payload.role || inferRoleFromEmail(payload.email)),
+                avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${payload.email}`,
+            });
         },
         logout: async () => {
-            await supabase.auth.signOut();
-            localStorage.removeItem('viva360.auth.token');
+            try {
+                if (!isSupabaseMock) {
+                    await supabase.auth.signOut();
+                }
+            } catch {
+                // Continue local cleanup even if remote sign-out fails.
+            }
+            localStorage.removeItem(AUTH_TOKEN_KEY);
+            localStorage.removeItem(MOCK_USER_KEY);
         }
     },
     users: {
@@ -506,26 +755,97 @@ export const api = {
     oracle: {
         draw: async (mood: string) => {
             try {
-                return await request('/oracle/draw', {
+                const response = await request('/oracle/draw', {
                     method: 'POST',
                     body: JSON.stringify({ mood })
                 });
+                if (response?.card) {
+                    const entry: OracleCachedEntry = {
+                        drawId: response.drawId || `${Date.now()}`,
+                        drawnAt: response.drawnAt || new Date().toISOString(),
+                        moodContext: response.moodContext || mood || 'sereno',
+                        card: {
+                            id: response.card.id || `oracle_${Date.now()}`,
+                            name: response.card.name || 'Oráculo Viva360',
+                            insight: response.card.insight || response.card.message || 'Respire e siga seu centro.',
+                            element: response.card.element || 'Ar',
+                            category: response.card.category || 'consciencia',
+                        }
+                    };
+                    const history = getOracleCache();
+                    saveOracleCache([entry, ...history.filter((h) => h.drawId !== entry.drawId)]);
+                }
+                return response;
             } catch {
-                return { card: null };
+                const fallbackCard = buildOracleFallbackCard(mood || 'sereno');
+                const fallback: OracleCachedEntry = {
+                    drawId: `${Date.now()}`,
+                    drawnAt: new Date().toISOString(),
+                    moodContext: mood || 'sereno',
+                    card: fallbackCard,
+                };
+                const history = getOracleCache();
+                saveOracleCache([fallback, ...history]);
+                return {
+                    drawId: fallback.drawId,
+                    drawnAt: fallback.drawnAt,
+                    moodContext: fallback.moodContext,
+                    card: fallback.card,
+                    source: 'offline-fallback'
+                };
             }
         },
         getToday: async () => {
             try {
-                return await request('/oracle/today');
+                const response = await request('/oracle/today');
+                if (response?.card) {
+                    const entry: OracleCachedEntry = {
+                        drawId: `today-${Date.now()}`,
+                        drawnAt: new Date().toISOString(),
+                        moodContext: 'today',
+                        card: {
+                            id: response.card.id || `oracle_${Date.now()}`,
+                            name: response.card.name || 'Guia Diário',
+                            insight: response.card.insight || response.card.message || 'Respire e siga seu centro.',
+                            element: response.card.element || 'Ar',
+                            category: response.card.category || 'consciencia',
+                        }
+                    };
+                    const history = getOracleCache();
+                    saveOracleCache([entry, ...history]);
+                }
+                return response;
             } catch {
-                return null;
+                const today = getOracleCache().find((entry) => isSameDay(entry.drawnAt, new Date().toISOString()));
+                return today ? { card: today.card } : null;
             }
         },
         history: async () => {
             try {
-                return await request('/oracle/history');
+                const response = await request('/oracle/history');
+                if (Array.isArray(response) && response.length > 0) {
+                    const normalized = response.map((entry: any) => ({
+                        drawId: entry.drawId || entry.id || `${Date.now()}-${Math.random()}`,
+                        drawnAt: entry.drawnAt || entry.drawn_at || new Date().toISOString(),
+                        moodContext: entry.moodContext || entry.context?.mood || 'sereno',
+                        card: {
+                            id: entry.card?.id || entry.message_id || `oracle_${Date.now()}`,
+                            name: entry.card?.name || 'Oráculo Viva360',
+                            insight: entry.card?.insight || entry.card?.message || 'Respire e siga seu centro.',
+                            element: entry.card?.element || 'Ar',
+                            category: entry.card?.category || 'consciencia',
+                        }
+                    })) as OracleCachedEntry[];
+                    saveOracleCache(normalized);
+                }
+                return response;
             } catch {
-                return [];
+                return getOracleCache().map((entry) => ({
+                    drawId: entry.drawId,
+                    drawnAt: entry.drawnAt,
+                    moodContext: entry.moodContext,
+                    card: entry.card
+                }));
             }
         }
     },
