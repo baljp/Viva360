@@ -1,86 +1,64 @@
 import { test, expect } from '../utils/mock-fixtures';
 
 test.describe('Checkout Flow E2E', () => {
-  test('Buscador: Complete Booking → Checkout → Success Flow', async ({ page, loginAs }) => {
-    // 1. Login as Buscador
+  test('Buscador: fluxo de exploração deve carregar com estado vazio ou guardiões', async ({ page, loginAs }) => {
     await loginAs('client');
-    
-    // 2. Navigate to Mapa da Cura (Booking Search)
-    await page.goto('/client/marketplace');
-    await page.waitForTimeout(1000);
-    
-    // 3. Click on any professional card if available
-    const proCard = page.locator('[id^="pro-card-"]').first();
-    if (await proCard.isVisible({ timeout: 5000 })) {
-      await proCard.click();
-      await page.waitForTimeout(500);
+
+    await page.goto('/client/home');
+    await page.locator('#portal-map').click({ timeout: 10000 });
+
+    await expect(page).toHaveURL(/\/client\/explore/, { timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Mapa da Cura' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: 'Guardiões Disponíveis' })).toBeVisible({ timeout: 15000 });
+
+    const emptyState = page.getByText('Frequência não encontrada');
+    if (await emptyState.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await expect(emptyState).toBeVisible();
+      console.log('[Checkout Test] Exploração validada com estado vazio');
     } else {
-      // Navigate directly to booking flow via dashboard
-      await page.goto('/client/home');
-      await page.locator('#portal-map').click();
-      await page.waitForTimeout(1000);
+      const scheduleCta = page.getByRole('button', { name: 'Agendar Ritual' });
+      if (await scheduleCta.isVisible({ timeout: 5000 }).catch(() => false)) {
+        await expect(scheduleCta).toBeVisible();
+      }
+      console.log('[Checkout Test] Exploração validada com guardiões disponíveis');
     }
-    
-    // 4. Verify we can reach Booking Select or Confirm screen
-    await expect(page.getByText(/guardião|agendar|confirmar/i).first()).toBeVisible({ timeout: 10000 });
-    
-    // 5. Screenshot for validation
-    await page.screenshot({ path: 'test-results/checkout/booking-step.png' });
-    
-    console.log('[Checkout Test] Booking step validated');
   });
 
   test('Checkout Screen: Payment Method Selection', async ({ page, loginAs }) => {
     await loginAs('client');
-    
-    // Navigate directly to checkout if possible (in flow context this happens after booking)
+
     await page.goto('/checkout');
-    await page.waitForTimeout(1000);
-    
-    // Check if checkout screen loaded or redirected
-    const title = page.getByText(/troca de energia|checkout|pagamento/i).first();
-    
-    if (await title.isVisible({ timeout: 5000 })) {
-      // Verify payment methods are visible
-      await expect(page.getByText(/cartão|credit/i).first()).toBeVisible({ timeout: 5000 });
-      await expect(page.getByText(/pix/i).first()).toBeVisible({ timeout: 5000 });
-      
-      // Test Pix selection
-      await page.getByText(/pix/i).first().click();
-      await page.waitForTimeout(500);
-      
-      // Test finalizar button exists
-      await expect(page.getByRole('button', { name: /finalizar|pagar|confirmar/i })).toBeVisible();
-      
-      await page.screenshot({ path: 'test-results/checkout/payment-methods.png' });
-      console.log('[Checkout Test] Payment methods validated');
-    } else {
-      // Checkout requires booking context - just verify route exists
-      console.log('[Checkout Test] Checkout requires booking context - skipping direct test');
-    }
+
+    await expect(page.getByRole('heading', { name: 'Checkout' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Revise sua Jornada' })).toBeVisible({ timeout: 10000 });
+
+    await page.getByRole('button', { name: /continuar/i }).first().click();
+
+    await expect(page.getByRole('heading', { name: 'Troca Energética' })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /^Pix$/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('button', { name: /^Cartão$/i })).toBeVisible({ timeout: 10000 });
+
+    await page.getByRole('button', { name: /^Cartão$/i }).click();
+    await expect(page.getByPlaceholder('Número do Cartão')).toBeVisible({ timeout: 5000 });
+
+    await page.getByRole('button', { name: /^Pix$/i }).click();
+    await expect(page.locator('img[src*="qrserver"]').first()).toBeVisible({ timeout: 5000 });
+
+    await expect(page.getByRole('button', { name: /pagar agora|continuar|finalizar alquimia/i }).first()).toBeVisible();
+    console.log('[Checkout Test] Métodos de pagamento validados');
   });
 
   test('Payment Success Screen: Navigation and Feedback', async ({ page, loginAs }) => {
     await loginAs('client');
-    
-    // Navigate to success (simulated - in real flow this happens after payment)
+
     await page.goto('/checkout/success');
-    await page.waitForTimeout(1000);
-    
-    // Check if success screen or redirect
-    const successText = page.getByText(/troca honrada|sucesso|confirmado/i).first();
-    
-    if (await successText.isVisible({ timeout: 5000 })) {
-      // Verify success elements
-      await expect(page.getByRole('button', { name: /voltar|home|core/i })).toBeVisible();
-      
-      // Test navigation back to dashboard
-      await page.getByRole('button', { name: /voltar|home|core/i }).click();
-      await expect(page).toHaveURL(/client\/home/);
-      
-      console.log('[Checkout Test] Success screen navigation validated');
-    } else {
-      console.log('[Checkout Test] Success screen requires payment context - skipping');
-    }
+
+    await expect(page.getByRole('heading', { name: 'A Jornada Começou' })).toBeVisible({ timeout: 10000 });
+    const homeButton = page.getByRole('button', { name: /ver no meu jardim|voltar ao início|home/i }).first();
+    await expect(homeButton).toBeVisible({ timeout: 10000 });
+    await homeButton.click();
+    await expect(page).toHaveURL(/\/client\/home/, { timeout: 10000 });
+
+    console.log('[Checkout Test] Success screen navigation validated');
   });
 });

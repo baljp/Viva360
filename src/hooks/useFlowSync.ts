@@ -2,70 +2,86 @@ import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 export const useFlowSync = (
-    flow: any, 
+    flow: any,
     viewState: string,
     baseRoute: string,
     targetMap: Record<string, string>,
-    clusters?: Record<string, string[]>
+    clusters?: Record<string, string[]>,
+    stateToRouteMap?: Record<string, string>
 ) => {
     const location = useLocation();
     const navigate = useNavigate();
-    const isNavigating = useRef(false);
+    const pendingNavigationRef = useRef<{ fromPath: string; toPath: string; at: number } | null>(null);
+    const previousPathRef = useRef(location.pathname);
+
+    const getFallbackPath = (state: string) => `${baseRoute}/${String(state).toLowerCase().replace(/_/g, '-')}`;
+    const pathChanged = previousPathRef.current !== location.pathname;
+
+    // Sync Flow -> Router (only using canonical map to avoid invalid state URLs)
+    useEffect(() => {
+        if (!flow || !flow.state) return;
+        const currentState = flow.state.currentState;
+
+        const hasCanonicalMap = !!stateToRouteMap;
+        const fallbackPath = getFallbackPath(currentState);
+        const targetPath = hasCanonicalMap ? stateToRouteMap?.[currentState] : fallbackPath;
+        if (!targetPath) return;
+        const routeTargetState = targetMap[viewState];
+        if (pathChanged && routeTargetState && routeTargetState !== currentState) {
+            return;
+        }
+        if (location.pathname !== targetPath) {
+            pendingNavigationRef.current = { fromPath: location.pathname, toPath: targetPath, at: Date.now() };
+            navigate(targetPath, { replace: true });
+        }
+    }, [flow.state.currentState, baseRoute, navigate, stateToRouteMap, location.pathname, targetMap, viewState, pathChanged]);
 
     // Sync Router View -> Flow State (Deep Linking)
     useEffect(() => {
         if (!flow || !flow.state) return;
-        
+
+        const target = targetMap[viewState];
+        if (!target) return;
+
         const currentState = flow.state.currentState;
-        
-        // 1. Check Clusters (if we are already in a valid sub-state, don't force reset)
+        const pending = pendingNavigationRef.current;
+        if (pending) {
+            const reachedPendingTarget = location.pathname === pending.toPath;
+            const stillOnFlowSourcePath = location.pathname === pending.fromPath;
+            const pendingExpired = Date.now() - pending.at > 1500;
+
+            if (reachedPendingTarget) {
+                pendingNavigationRef.current = null;
+                return;
+            }
+            if (stillOnFlowSourcePath && !pendingExpired) {
+                return;
+            }
+            pendingNavigationRef.current = null;
+        }
+
+        const canonicalForCurrentState = stateToRouteMap?.[currentState] || getFallbackPath(currentState);
+        if (canonicalForCurrentState === location.pathname) {
+            return;
+        }
+
+        // If current state is already part of the same cluster, preserve the local sub-flow.
         if (clusters) {
             const allowedStates = clusters[viewState];
             const isAlreadyInCluster = allowedStates?.includes(currentState);
             if (isAlreadyInCluster) return;
         }
 
-        // 2. Target State Check
-        const target = targetMap[viewState];
-        if (target && currentState !== target) {
-            // Prevent loop if we just came from there? No, this is triggered by viewState change (user clicked tab)
-            // If flow has jump (Buscador), use it. Otherwise go.
+        if (currentState !== target) {
             if (flow.jump) {
                 flow.jump(target);
             } else {
-                // For Pro/Space, some states like 'START' trigger this
-                if (currentState === 'START' || currentState === 'DASHBOARD' || currentState === 'EXEC_DASHBOARD') {
-                     flow.go(target);
-                } else {
-                     // Check if valid transition exists? Flow engine handles it usually.
-                     flow.go(target);
-                }
+                flow.go(target);
             }
         }
-    }, [viewState, flow, targetMap, clusters]);
+    }, [viewState, flow, targetMap, clusters, location.pathname, stateToRouteMap]);
 
-    // Sync Flow -> Router (Navigation URL update)
     useEffect(() => {
-         if (!flow || !flow.state) return;
-         const currentState = flow.state.currentState;
-         
-         const pathSegment = currentState.toLowerCase().replace(/_/g, '-');
-         const targetPath = `${baseRoute}/${pathSegment}`;
-         
-         if (location.pathname !== targetPath) {
-             isNavigating.current = true;
-             // navigate(targetPath, { replace: true });
-             // Actually, we shouldn't force navigate generic URL for all states 
-             // because some states might map to the same URL or specific sub-urls.
-             // But for now, Viva360 uses flat mapping logic mostly.
-             // In ClientViews original code: 
-             // const targetPath = `/client/${flow.state.currentState.toLowerCase().replace(/_/g, '-')}`;
-             // if (location.pathname !== targetPath) navigate(targetPath, { replace: true });
-             
-             // So yes, we do this.
-             navigate(targetPath, { replace: true });
-             
-             setTimeout(() => isNavigating.current = false, 100);
-         }
-    }, [flow.state.currentState, baseRoute, navigate, location.pathname]);
+        previousPathRef.current = location.pathname;
+    }, [location.pathname]);
 };

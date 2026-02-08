@@ -1,11 +1,48 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useFlowSync } from '../src/hooks/useFlowSync';
 import { ViewState, Product, User } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
 import { useBuscadorFlow } from '../src/flow/BuscadorFlowContext';
 import { BuscadorState } from '../src/flow/types';
 import { ZenToast } from '../components/Common';
+
+const clientStateRoutes: Partial<Record<BuscadorState, string>> = {
+    START: '/client/home',
+    DASHBOARD: '/client/home',
+    SETTINGS: '/settings',
+    MARKETPLACE: '/client/marketplace',
+    PAYMENT_HISTORY: '/client/orders',
+    KARMA_WALLET: '/client/home',
+    CLIENT_JOURNAL: '/client/journal',
+    ORACLE_PORTAL: '/client/oracle',
+    ORACLE_SHUFFLE: '/client/oracle',
+    ORACLE_REVEAL: '/client/oracle',
+    ORACLE_HISTORY: '/client/oracle',
+    EVOLUTION: '/client/journey',
+    EVOLUTION_ANALYTICS: '/client/journey',
+    EVOLUTION_ACHIEVEMENTS: '/client/journey',
+    EVOLUTION_HISTORY: '/client/journey',
+    EVOLUTION_TIMELAPSE: '/client/journey',
+    TIME_LAPSE_EXPERIENCE: '/client/journey',
+    GARDEN_VIEW: '/client/journey',
+    METAMORPHOSIS_CHECKIN: '/client/metamorphosis',
+    METAMORPHOSIS_CAMERA: '/client/metamorphosis',
+    METAMORPHOSIS_MESSAGE: '/client/metamorphosis',
+    METAMORPHOSIS_RITUAL: '/client/metamorphosis',
+    METAMORPHOSIS_FEEDBACK: '/client/metamorphosis',
+    TRIBE_DASH: '/client/tribe',
+    TRIBE_INVITE: '/client/tribe',
+    TRIBE_INTERACTION: '/client/tribe',
+    TRIBE_VIEW: '/client/tribe',
+    HEALING_CIRCLE: '/client/tribe',
+    CHAT_LIST: '/client/tribe',
+    CHAT_ROOM: '/client/tribe',
+    SOUL_PACT: '/client/tribe',
+    BOOKING_SEARCH: '/client/explore',
+    BOOKING_SELECT: '/client/explore',
+    BOOKING_CONFIRM: '/client/explore',
+};
 
 export const ClientViews: React.FC<{ 
   user: User, 
@@ -42,7 +79,7 @@ export const ClientViews: React.FC<{
        [ViewState.CLIENT_MARKETPLACE]: 'MARKETPLACE',
    };
 
-   useFlowSync({ state: flowState, jump, go }, view, '/client', defaultStates, clusters);
+   useFlowSync({ state: flowState, jump, go }, view, '/client', defaultStates, clusters, clientStateRoutes as Record<string, string>);
 
   const globalData = {
       pros: flowState.data.pros,

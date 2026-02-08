@@ -6,6 +6,45 @@ import { useSantuarioFlow } from '../src/flow/SantuarioFlowContext';
 import { SantuarioState } from '../src/flow/santuarioTypes';
 import { ZenToast } from '../components/Common';
 
+const spaceStateRoutes: Partial<Record<SantuarioState, string>> = {
+    START: '/space/home',
+    EXEC_DASHBOARD: '/space/home',
+    PROS_LIST: '/space/team',
+    PRO_PROFILE: '/space/team',
+    PRO_PERFORMANCE: '/space/team',
+    TEAM_SUMMON: '/space/team',
+    TEAM_INVITE: '/space/team',
+    PATIENTS_LIST: '/space/home',
+    PATIENT_PROFILE: '/space/home',
+    PATIENT_RECORDS: '/space/home',
+    AGENDA_OVERVIEW: '/space/home',
+    AGENDA_EDIT: '/space/home',
+    ROOMS_STATUS: '/space/rooms',
+    ROOM_DETAILS: '/space/rooms',
+    ROOM_EDIT: '/space/rooms',
+    ROOM_CREATE: '/space/rooms',
+    ROOM_AGENDA: '/space/rooms',
+    FINANCE_OVERVIEW: '/space/finance',
+    FINANCE_REPASSES: '/space/finance',
+    FINANCE_FORECAST: '/space/finance',
+    MARKETPLACE_MANAGE: '/space/marketplace',
+    MARKETPLACE_CREATE: '/space/marketplace',
+    EVENTS_MANAGE: '/space/home',
+    EVENT_CREATE: '/space/home',
+    RETREATS_MANAGE: '/space/home',
+    VAGAS_LIST: '/space/recruitment',
+    VAGA_CREATE: '/space/recruitment',
+    VAGA_CANDIDATES: '/space/recruitment',
+    REPUTATION_OVERVIEW: '/space/home',
+    ANALYTICS_DASH: '/space/home',
+    GOVERNANCE: '/space/home',
+    CHAT_LIST: '/space/home',
+    CHAT_ROOM: '/space/home',
+    PREDICTIVE_OCCUPANCY: '/space/home',
+    AUDIT_LOG: '/space/home',
+    RADIANCE_DRILLDOWN: '/space/home',
+};
+
 export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void }> = ({ user, view, setView }) => {
     const { state: flowState, go, back, reset, refreshData } = useSantuarioFlow();
 
@@ -20,7 +59,7 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
         [ViewState.SPACE_ROOMS]: 'ROOMS_STATUS',
         [ViewState.SPACE_TEAM]: 'PROS_LIST',
     };
-    useFlowSync({ state: flowState, go }, view, '/space', map);
+    useFlowSync({ state: flowState, go }, view, '/space', map, undefined, spaceStateRoutes as Record<string, string>);
 
      // Initial Data Fetch
      useEffect(() => {
@@ -59,4 +98,3 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
         </div>
     );
 };
-

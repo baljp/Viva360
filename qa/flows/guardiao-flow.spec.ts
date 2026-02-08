@@ -53,7 +53,7 @@ test.describe('Guardião Flow Stabilization', () => {
             const card = page.locator(portal.id);
             await card.scrollIntoViewIfNeeded();
             await card.click({ timeout: 5000 });
-            await expect(page.getByText(portal.expected)).toBeVisible({ timeout: 15000 });
+            await expect(page.getByText(portal.expected).first()).toBeVisible({ timeout: 15000 });
             await backFromPortal();
             await expect(dashboardMarker).toBeVisible({ timeout: 15000 });
             await page.getByRole('button', { name: /egrégora/i }).click();

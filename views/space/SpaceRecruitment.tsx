@@ -111,10 +111,14 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                     </button>
                 </div>
               </div>
-              <VacancyFormModal isOpen={showAddVacancy} onClose={() => setShowAddVacancy(false)} onSubmit={(title, desc, specs) => {
-                  api.spaces.createVacancy({ title, description: desc, specialties: specs, hubId: user.id });
-                  refreshData();
-                  setToast({ title: "Oportunidade Criada", message: "O universo agora sabe que você busca novos guardiões." });
+              <VacancyFormModal isOpen={showAddVacancy} onClose={() => setShowAddVacancy(false)} onSubmit={async (title, desc, specs) => {
+                  try {
+                      await api.spaces.createVacancy({ title, description: desc, specialties: specs, hubId: user.id });
+                      await refreshData();
+                      setToast({ title: "Oportunidade Criada", message: "O universo agora sabe que você busca novos guardiões." });
+                  } catch {
+                      setToast({ title: "Falha ao criar vaga", message: "Não foi possível registrar o manifesto agora." });
+                  }
               }} />
             </PortalView>
         </>

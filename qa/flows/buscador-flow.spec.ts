@@ -36,7 +36,7 @@ test.describe('Buscador Flow Stabilization', () => {
         }},
         { name: 'Mapa da Cura', expected: 'Mapa da Cura', id: '#portal-map' },
         { name: 'Minha Tribo', expected: 'Minha Tribo', id: '#portal-tribe' },
-        { name: 'Financeiro', expected: 'Financeiro', id: '#portal-abundance' },
+        { name: 'Financeiro', expected: 'Cofre Sagrado', id: '#portal-abundance' },
         { name: 'Bazar', expected: 'Bazar da Tribo', id: '#portal-marketplace' },
     ];
 
@@ -49,7 +49,7 @@ test.describe('Buscador Flow Stabilization', () => {
         await page.waitForTimeout(300);
 
         try {
-            await card.click({ timeout: 5000 });
+            await card.click({ timeout: 5000, position: { x: 24, y: 24 } });
         } catch (e) {
             console.log(`[Test] Click failed for ${portal.name}, using dispatchEvent...`);
             await card.dispatchEvent('click');
