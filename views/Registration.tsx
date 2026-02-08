@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { ViewState, UserRole, User, Professional } from '../types';
 import { User as UserIcon, Briefcase, Building, ChevronRight, ArrowLeft, Mail, Lock, Sparkles, Heart, Activity, Brain, MapPin, DollarSign, List, Home, Check, Leaf, Loader2 } from 'lucide-react';
-import { api } from '../services/api';
 import { ZenToast } from '../components/Common';
 
 interface RegistrationProps {
@@ -123,14 +122,10 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        try {
-            const googleUser = await api.auth.loginWithGoogle(UserRole.CLIENT);
-            if (googleUser) onRegister(googleUser);
-        } catch (err: any) {
-            if (err?.message !== 'REDIRECTING_TO_GOOGLE') {
-                console.error('Google register error (client):', err);
-            }
-        }
+        setToast({
+            title: 'Cadastro via Google indisponível',
+            message: 'Por segurança, faça seu cadastro por e-mail e senha. Depois você poderá vincular o Google.'
+        });
     };
     
     const handleGoalChange = (goal: string) => {
@@ -188,14 +183,10 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        try {
-            const googleUser = await api.auth.loginWithGoogle(UserRole.PROFESSIONAL);
-            if (googleUser) onRegister(googleUser);
-        } catch (err: any) {
-            if (err?.message !== 'REDIRECTING_TO_GOOGLE') {
-                console.error('Google register error (pro):', err);
-            }
-        }
+        setToast({
+            title: 'Cadastro via Google indisponível',
+            message: 'Por segurança, faça seu cadastro por e-mail e senha. Depois você poderá vincular o Google.'
+        });
     };
 
     return (
@@ -250,14 +241,10 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        try {
-            const googleUser = await api.auth.loginWithGoogle(UserRole.SPACE);
-            if (googleUser) onRegister(googleUser);
-        } catch (err: any) {
-            if (err?.message !== 'REDIRECTING_TO_GOOGLE') {
-                console.error('Google register error (space):', err);
-            }
-        }
+        setToast({
+            title: 'Cadastro via Google indisponível',
+            message: 'Por segurança, faça seu cadastro por e-mail e senha. Depois você poderá vincular o Google.'
+        });
     };
 
      return (

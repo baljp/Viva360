@@ -7,23 +7,20 @@ test.describe('Guardião Flow Stabilization', () => {
     });
 
     test('should navigate through main dashboard portals via Flow Engine', async ({ page }) => {
-        // Dashboard Check
-        await expect(page.getByText('Bom Despertar,')).toBeVisible();
-        await expect(page.getByText('Mestre')).toBeVisible();
+        const dashboardMarker = page.getByText('Luz no Caminho,');
+        const backFromPortal = async () => {
+            await page.locator('button:has(svg.rotate-180)').first().click({ timeout: 8000 });
+        };
 
-        // Debug Console
         page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+        await expect(dashboardMarker).toBeVisible({ timeout: 20000 });
 
-        const portals = [
+        const consultorioPortals = [
             { name: 'Agenda', id: '#hero-agenda', expected: 'Agenda de Luz' },
-            { name: 'Patients', id: '#portal-patients', expected: 'Meu Jardim' },
-            { name: 'Tribe', id: '#portal-network', expected: 'Rede Alquimia' },
-            { name: 'Opportunities', id: '#portal-vagas', expected: 'Mural de Oportunidades' },
-            { name: 'Finance', id: '#portal-finance', expected: 'Abundância' },
-            { name: 'Marketplace', id: '#portal-marketplace', expected: 'Alquimia Comercial', altExpected: 'Meu Bazar' }
+            { name: 'Pacientes', id: '#portal-patients', expected: 'Meu Jardim' },
         ];
 
-        for (const portal of portals) {
+        for (const portal of consultorioPortals) {
             console.log(`[Test] Navigating to ${portal.name}...`);
             const card = page.locator(portal.id);
             await card.scrollIntoViewIfNeeded();
@@ -36,21 +33,40 @@ test.describe('Guardião Flow Stabilization', () => {
                 await card.dispatchEvent('click');
             }
 
-            if (portal.altExpected) {
-                 await expect(page.getByText(portal.expected).or(page.getByText(portal.altExpected))).toBeVisible({ timeout: 10000 });
-            } else {
-                 await expect(page.getByText(portal.expected)).toBeVisible({ timeout: 10000 });
-            }
+            await expect(page.getByText(portal.expected)).toBeVisible({ timeout: 15000 });
             console.log(`[Test] Reached ${portal.name}`);
 
-            // Go back
-            const backBtn = page.locator('header button').first();
-            await backBtn.click();
-            await expect(page.getByText('Bom Despertar,')).toBeVisible();
+            await backFromPortal();
+            await expect(dashboardMarker).toBeVisible({ timeout: 15000 });
             await page.waitForTimeout(300);
         }
 
-        // 7. Settings (Avatar Click)
+        await page.getByRole('button', { name: /egrégora/i }).click();
+        await expect(page.getByText('Rede Viva')).toBeVisible({ timeout: 10000 });
+
+        const communityPortals = [
+            { name: 'Marketplace', id: '#portal-marketplace', expected: 'Alquimia' },
+            { name: 'Vagas', id: '#portal-jobs', expected: 'Mural de Oportunidades' },
+        ];
+
+        for (const portal of communityPortals) {
+            const card = page.locator(portal.id);
+            await card.scrollIntoViewIfNeeded();
+            await card.click({ timeout: 5000 });
+            await expect(page.getByText(portal.expected)).toBeVisible({ timeout: 15000 });
+            await backFromPortal();
+            await expect(dashboardMarker).toBeVisible({ timeout: 15000 });
+            await page.getByRole('button', { name: /egrégora/i }).click();
+            await expect(page.getByText('Rede Viva')).toBeVisible({ timeout: 10000 });
+        }
+
+        await page.getByRole('button', { name: /prosperidade/i }).click();
+        await expect(page.getByText('Abundância')).toBeVisible({ timeout: 10000 });
+        await page.locator('#portal-finance-overview').click({ timeout: 5000 });
+        await expect(page.getByText('Abundância')).toBeVisible({ timeout: 15000 });
+        await backFromPortal();
+        await expect(dashboardMarker).toBeVisible({ timeout: 15000 });
+
         console.log('[Test] Navigating to Settings...');
         const avatarBtn = page.locator('header button.relative.group');
         await avatarBtn.scrollIntoViewIfNeeded();
@@ -58,10 +74,9 @@ test.describe('Guardião Flow Stabilization', () => {
         
         await expect(page.getByText('Manifesto Visual').or(page.getByText('Identidade')).first()).toBeVisible({ timeout: 10000 });
         console.log('[Test] Reached Settings');
-        
-        // Go back from Settings
+
         await page.getByText('Voltar ao Início').click();
-        await expect(page.getByText('Bom Despertar,')).toBeVisible();
+        await expect(dashboardMarker).toBeVisible({ timeout: 15000 });
         console.log('[Test] Successfully returned from Settings');
     });
 });

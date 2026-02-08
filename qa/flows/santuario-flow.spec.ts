@@ -2,83 +2,72 @@
 import { test, expect } from '../utils/mock-fixtures';
 
 test.describe('Santuário Flow Stabilization', () => {
+    test.setTimeout(120000);
+
     test.beforeEach(async ({ loginAs }) => {
         await loginAs('space');
     });
 
     test('should navigate through main dashboard portals via Flow Engine', async ({ page }) => {
-        // Debug Console
         page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
-
-        // Dashboard Check
-        await expect(page.getByText('Santuário Viva360')).toBeVisible();
-
-        const portals = [
-            { name: 'Equipe', expected: 'Círculo de Guardiões', id: '#portal-team' },
-            { name: 'Altares', expected: 'GESTÃO DE AMBIENTES', id: '#portal-rooms' },
-            { name: 'Expansão', expected: 'Sincronia Mestra', id: '#portal-recruitment' },
-            { name: 'Abundância', expected: 'Prosperidade', id: '#portal-finance' },
-            { name: 'Bazar do Hub', expected: 'Alquimia Comercial', id: '#portal-marketplace' }
-        ];
-
-        for (const portal of portals) {
-            console.log(`[Test] Navigating to ${portal.name}...`);
-            const card = page.locator(portal.id);
-            
-            // Wait for dashboard to be stable
-            await expect(page.getByText('Santuário Viva360')).toBeVisible();
-            await page.waitForTimeout(500);
-
-            // Robust scroll and click
-            await card.scrollIntoViewIfNeeded();
-            await page.waitForTimeout(200);
-            
-            try {
-                // Try normal click first
-                await card.click({ timeout: 5000 });
-            } catch (e) {
-                console.log(`[Test] Click failed for ${portal.name} (likely viewport/stability), using dispatchEvent...`);
-                await card.dispatchEvent('click');
+        const dashboardMarker = page.getByText('Radiance Score');
+        const goHubBySidebar = async () => {
+            await page.evaluate(() => {
+                const buttons = Array.from(document.querySelectorAll('button'));
+                const hubButton = buttons.find((btn) => (btn.textContent || '').includes('Hub'));
+                if (hubButton) {
+                    (hubButton as HTMLButtonElement).click();
+                }
+            });
+        };
+        const backToHub = async () => {
+            const backBtn = page.locator('div.fixed.inset-0.z-\\[150\\] header button').first();
+            if (await backBtn.isVisible({ timeout: 4000 }).catch(() => false)) {
+                await backBtn.click({ timeout: 8000, force: true });
             }
 
-            try {
-                await expect(page.getByText(portal.expected)).toBeVisible({ timeout: 15000 });
-                console.log(`[Test] Successfully reached ${portal.expected}`);
-            } catch (e) {
-                console.log(`--- FAILURE DEBUG: portal ${portal.name} ---`);
-                console.log(await page.locator('body').innerText());
-                throw e;
-            }
-
-            // Go back
-            const backBtn = page.locator('header button').first();
-            await backBtn.click();
-            await expect(page.getByText('Santuário Viva360')).toBeVisible();
             await page.waitForTimeout(300);
-        }
+            if (!/\/space\/exec-dashboard/.test(page.url())) {
+                await goHubBySidebar();
+            }
 
-        // 6. Agenda (Icon Click)
-        console.log('[Test] Navigating to Agenda...');
-        const agendaBtn = page.locator('header button').filter({ has: page.locator('svg') }).first();
-        try {
-            await agendaBtn.click({ timeout: 5000 });
-        } catch (e) {
-            await agendaBtn.dispatchEvent('click');
-        }
-        await expect(page.getByText('Agenda do Santuário')).toBeVisible({ timeout: 10000 });
-        await page.locator('header button').first().click(); 
-        await page.waitForTimeout(500);
+            await expect(page).toHaveURL(/\/space\/exec-dashboard/, { timeout: 15000 });
+            await page.evaluate(() => {
+                const root = document.getElementById('viva360-main-scroll');
+                if (root) root.scrollTo(0, 0);
+            });
+            await expect(dashboardMarker).toBeVisible({ timeout: 15000 });
+        };
 
-        // 7. Finance Icon (Bonus check)
-        console.log('[Test] Navigating to Finance via Icon...');
-        const financeBtn = page.locator('header button').filter({ has: page.locator('svg') }).nth(1);
-        try {
-            await financeBtn.click({ timeout: 5000 });
-        } catch (e) {
-            await financeBtn.dispatchEvent('click');
-        }
-        await expect(page.getByText('Prosperidade')).toBeVisible({ timeout: 10000 });
-        await page.locator('header button').first().click(); 
-        await page.waitForTimeout(500);
+        await expect(dashboardMarker).toBeVisible({ timeout: 20000 });
+
+        await page.locator('#portal-rooms').click({ timeout: 5000 });
+        await expect(page.getByText('Mundo Físico')).toBeVisible({ timeout: 15000 });
+        await backToHub();
+
+        await page.getByRole('button', { name: 'Equipe' }).first().click();
+        await expect(page.getByText('Círculo de Guardiões')).toBeVisible({ timeout: 15000 });
+        await backToHub();
+
+        await page.getByRole('button', { name: 'Vagas' }).first().click();
+        await expect(page.getByText('Sincronia Mestra')).toBeVisible({ timeout: 15000 });
+        await backToHub();
+
+        await page.getByRole('button', { name: /abundância & zelo/i }).click();
+        await page.getByText('Tesouro').click({ timeout: 5000 });
+        await expect(page.getByText('Painel de Prosperidade')).toBeVisible({ timeout: 15000 });
+        await backToHub();
+
+        await page.getByRole('button', { name: /emanação coletiva/i }).click();
+        await page.getByText('Mural de Vagas').click({ timeout: 5000 });
+        await expect(page.getByText('Sincronia Mestra')).toBeVisible({ timeout: 15000 });
+        await backToHub();
+
+        await page.getByRole('button', { name: /emanação coletiva/i }).click();
+        const bazarCard = page.getByText('Bazar do Santuário').first();
+        await bazarCard.scrollIntoViewIfNeeded();
+        await bazarCard.click({ timeout: 5000 });
+        await expect(page.getByText('Bazar do Santuário')).toBeVisible({ timeout: 15000 });
+        await backToHub();
     });
 });

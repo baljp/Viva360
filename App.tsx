@@ -230,8 +230,14 @@ const App: React.FC = () => {
                     if (user) {
                         handleLogin(user);
                     }
-                } catch (err) {
+                } catch (err: any) {
                     console.error('OAuth callback error:', err);
+                    setToast({
+                        title: 'Acesso não autorizado',
+                        message: err?.message || 'Sua conta não está autorizada para este login.'
+                    });
+                    await api.auth.logout();
+                    navigate('/login');
                 }
             } else if (event === 'SIGNED_OUT') {
                 setCurrentUser(null);

@@ -59,6 +59,8 @@ export const test = base.extend<JourneyFixtures>({
       await page.addInitScript((user) => {
         // Set mock user in localStorage (this is how the API checks auth in mock mode)
         window.localStorage.setItem('viva360.mock_user', JSON.stringify(user));
+        window.localStorage.setItem('viva360.session.mode', 'mock');
+        window.localStorage.setItem('viva360.auth.token', 'admin-excellence-2026');
         
         // Disable Smart Tutorial for tests
         window.localStorage.setItem('viva360_smart_tutorial_seen', 'true');

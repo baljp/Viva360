@@ -7,9 +7,21 @@ import { mockData } from '../services/mockData.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { JWT_SECRET } from '../lib/secrets';
 
+const MOCK_TEST_PASSWORD = '123456';
+const STRICT_MOCK_TEST_USERS: Record<string, { id: string; role: 'CLIENT' | 'PROFESSIONAL' | 'SPACE' | 'ADMIN'; name: string }> = {
+  'client0@viva360.com': { id: 'client_0', role: 'CLIENT', name: 'Buscador Teste' },
+  'pro0@viva360.com': { id: 'pro_0', role: 'PROFESSIONAL', name: 'Guardião Teste' },
+  'contato.hub0@viva360.com': { id: 'hub_0', role: 'SPACE', name: 'Santuário Teste' },
+  'admin@viva360.com': { id: 'admin-001', role: 'ADMIN', name: 'Admin Viva360' },
+};
+
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
+});
+
+const precheckSchema = z.object({
+  email: z.string().email(),
 });
 
 const registerSchema = z.object({
@@ -21,22 +33,23 @@ const registerSchema = z.object({
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = loginSchema.parse(req.body);
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (isMockMode()) {
-       // Try to find in curated dataset first
-       const roundedUser = mockData.findUserByEmail(email);
-       
-       let userPayload;
-       if (roundedUser) {
-           userPayload = { id: roundedUser.id, email: roundedUser.email, role: roundedUser.role };
-       } else {
-           // Fallback for dev convenience if not in dataset but valid email format
-           let role = 'CLIENT';
-           if (email.startsWith('admin')) role = 'ADMIN';
-           else if (email.startsWith('pro')) role = 'PROFESSIONAL';
-           else if (email.startsWith('space')) role = 'SPACE';
-           userPayload = { id: 'mock-fallback-id', email, role };
+       const strictUser = STRICT_MOCK_TEST_USERS[normalizedEmail];
+       const roundedUser = strictUser
+         ? { id: strictUser.id, email: normalizedEmail, role: strictUser.role }
+         : mockData.findUserByEmail(normalizedEmail);
+
+       if (!roundedUser) {
+         return res.status(401).json({ error: 'Conta não autorizada no modo teste.' });
        }
+
+       if (password !== MOCK_TEST_PASSWORD) {
+         return res.status(401).json({ error: 'Senha inválida para conta de teste.' });
+       }
+
+       const userPayload = { id: roundedUser.id, email: normalizedEmail, role: roundedUser.role };
 
        const token = jwt.sign({ userId: userPayload.id, email: userPayload.email, role: userPayload.role }, JWT_SECRET, { expiresIn: '1h' });
        return res.json({
@@ -51,21 +64,20 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
     const { email, password, name, role } = registerSchema.parse(req.body);
+    const normalizedEmail = email.trim().toLowerCase();
 
     if (isMockMode()) {
-       const token = jwt.sign({ userId: 'mock-user-id', email, role: role || 'CLIENT' }, JWT_SECRET, { expiresIn: '1h' });
-       return res.status(201).json({
-         user: { id: 'mock-user-id', email, role },
-         session: { access_token: token, refresh_token: 'mock-refresh' }
+       return res.status(403).json({
+        error: 'Cadastro real desabilitado no modo teste. Use as contas pré-definidas.'
        });
     }
 
-    const data = await AuthService.register(email, password, name, role); // Pass role
+    const data = await AuthService.register(normalizedEmail, password, name, role); // Pass role
     
     // Trigger Holistic Welcome Email (Async - Fire & Forget)
     import('../services/email.service').then(({ emailService }) => {
       emailService.send({
-        to: email,
+        to: normalizedEmail,
         subject: 'Bem-vindo ao Viva360 - Sua Jornada Começa Agora 🌿',
         template: 'WELCOME',
         context: { name }
@@ -73,4 +85,18 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     });
 
     return res.status(201).json(data);
+});
+
+export const precheckLogin = asyncHandler(async (req: Request, res: Response) => {
+    const { email } = precheckSchema.parse(req.body);
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (isMockMode()) {
+      const isStrictTest = !!STRICT_MOCK_TEST_USERS[normalizedEmail];
+      const inCuratedMockDataset = !!mockData.findUserByEmail(normalizedEmail);
+      return res.json({ allowed: isStrictTest || inCuratedMockDataset });
+    }
+
+    const allowed = await AuthService.canLoginWithEmail(normalizedEmail);
+    return res.json({ allowed });
 });

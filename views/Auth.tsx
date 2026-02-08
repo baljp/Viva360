@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ViewState, User } from '../types';
+import { ViewState, User, UserRole } from '../types';
 import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon, Eye, EyeOff } from 'lucide-react';
 import { api, request } from '../services/api';
 import { supabase, isMockMode, isDemoMode, envStatus } from '../lib/supabase';
@@ -196,8 +196,15 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
     const handleGoogleLogin = async () => {
         setLoading(true);
         setError('');
+        const normalizedEmail = email.trim().toLowerCase();
+        if (!normalizedEmail) {
+            setError('Informe seu e-mail antes de continuar com Google.');
+            setLoading(false);
+            return;
+        }
+
         try {
-            const googleUser = await api.auth.loginWithGoogle();
+            const googleUser = await api.auth.loginWithGoogle(UserRole.CLIENT, normalizedEmail);
             if (googleUser) {
                 onSubmit(googleUser);
             }
@@ -256,7 +263,8 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                         <button 
                             type="button"
                             onClick={handleGoogleLogin}
-                            className="w-full bg-white border border-nature-200 text-nature-900 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-sm active:scale-95 transition-all hover:bg-nature-50 flex items-center justify-center gap-3"
+                            disabled={loading || !email.trim()}
+                            className="w-full bg-white border border-nature-200 text-nature-900 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-sm active:scale-95 transition-all hover:bg-nature-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
                         >
                             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
                             Continuar com Google
@@ -338,10 +346,14 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
     // OAuth Callback Check
     useEffect(() => {
                 const checkSession = async () => {
-                    const { data } = await supabase.auth.getSession();
-                    if (data.session) {
-                        const user = await api.auth.getCurrentSession();
-                        if (user) onLogin(user);
+                    try {
+                        const { data } = await supabase.auth.getSession();
+                        if (data.session) {
+                            const user = await api.auth.getCurrentSession();
+                            if (user) onLogin(user);
+                        }
+                    } catch (err) {
+                        await api.auth.logout();
                     }
                 };
         checkSession();
