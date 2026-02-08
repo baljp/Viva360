@@ -25,6 +25,16 @@ export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setVie
         setTimeout(() => setToast(null), 3000);
     };
 
+    const handleDeleteProduct = async (productId: string) => {
+        const success = await api.marketplace.delete(productId);
+        if (!success) {
+            setToast({ title: 'Falha na remoção', message: 'Não foi possível remover o item agora.', type: 'warning' });
+            return;
+        }
+        await refreshData();
+        setToast({ title: 'Item removido', message: 'O item foi retirado do seu bazar.', type: 'info' });
+    };
+
     return (
         <>
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
@@ -85,7 +95,7 @@ export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setVie
                                                 <div className="flex gap-2 justify-end">
                                                     <button className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><Eye size={14}/></button>
                                                     <button className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><RefreshCw size={14}/></button>
-                                                    <button onClick={() => api.marketplace.delete(prod.id).then(refreshData)} className="p-2 bg-rose-50 text-rose-300 rounded-xl hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
+                                                    <button onClick={() => handleDeleteProduct(prod.id)} className="p-2 bg-rose-50 text-rose-300 rounded-xl hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
                                                 </div>
                                             </div>
                                         </div>
@@ -101,9 +111,13 @@ export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setVie
                     )}
                 </div>
                 <ProductFormModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} onSubmit={async (pData) => {
-                    await api.marketplace.create({ ...pData, ownerId: user.id });
-                    refreshData();
-                    setToast({ title: "Item Ancorado", message: "Sua nova alquimia já está disponível no Bazar Global.", type: 'success' });
+                    try {
+                        await api.marketplace.create({ ...pData, ownerId: user.id });
+                        await refreshData();
+                        setToast({ title: "Item Ancorado", message: "Sua nova alquimia já está disponível no Bazar Global.", type: 'success' });
+                    } catch {
+                        setToast({ title: "Falha no cadastro", message: "Não foi possível publicar o item.", type: 'warning' });
+                    }
                 }} />
             </PortalView>
         </>

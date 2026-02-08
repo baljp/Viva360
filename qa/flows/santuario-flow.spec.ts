@@ -27,11 +27,11 @@ test.describe('Santuário Flow Stabilization', () => {
             }
 
             await page.waitForTimeout(300);
-            if (!/\/space\/exec-dashboard/.test(page.url())) {
+            if (!/\/space\/home/.test(page.url())) {
                 await goHubBySidebar();
             }
 
-            await expect(page).toHaveURL(/\/space\/exec-dashboard/, { timeout: 15000 });
+            await expect(page).toHaveURL(/\/space\/home/, { timeout: 15000 });
             await page.evaluate(() => {
                 const root = document.getElementById('viva360-main-scroll');
                 if (root) root.scrollTo(0, 0);
@@ -45,8 +45,9 @@ test.describe('Santuário Flow Stabilization', () => {
         await expect(page.getByText('Mundo Físico')).toBeVisible({ timeout: 15000 });
         await backToHub();
 
-        await page.getByRole('button', { name: 'Equipe' }).first().click();
-        await expect(page.getByText('Círculo de Guardiões')).toBeVisible({ timeout: 15000 });
+        await page.getByRole('button', { name: 'Equipe' }).first().click({ force: true });
+        await expect(page).toHaveURL(/\/space\/team/, { timeout: 15000 });
+        await expect(page.getByText('Círculo Ativo')).toBeVisible({ timeout: 15000 });
         await backToHub();
 
         await page.getByRole('button', { name: 'Vagas' }).first().click();

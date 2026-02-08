@@ -7,6 +7,40 @@ import { useGuardiaoFlow } from '../src/flow/GuardiaoFlowContext';
 import { GuardiaoState } from '../src/flow/guardiaoTypes';
 import { ZenToast } from '../components/Common';
 
+const proStateRoutes: Partial<Record<GuardiaoState, string>> = {
+    START: '/pro/home',
+    DASHBOARD: '/pro/home',
+    FINANCE_OVERVIEW: '/pro/finance',
+    FINANCE_DETAILS: '/pro/finance',
+    FINANCIAL_DASHBOARD: '/pro/finance',
+    VAGAS_LIST: '/pro/opportunities',
+    VAGA_DETAILS: '/pro/opportunities',
+    VAGA_APPLY: '/pro/opportunities',
+    PATIENTS_LIST: '/pro/patients',
+    PATIENT_PROFILE: '/pro/patients',
+    PATIENT_RECORDS: '/pro/patients',
+    PATIENT_PLAN: '/pro/patients',
+    ESCAMBO_MARKET: '/pro/marketplace',
+    ESCAMBO_PROPOSE: '/pro/marketplace',
+    ESCAMBO_TRADE: '/pro/marketplace',
+    ESCAMBO_CONFIRM: '/pro/marketplace',
+    AGENDA_VIEW: '/pro/agenda',
+    AGENDA_EDIT: '/pro/agenda',
+    AGENDA_CONFIRM: '/pro/agenda',
+    TRIBE_PRO: '/pro/network',
+    CHAT_LIST: '/pro/network',
+    CHAT_ROOM: '/pro/network',
+    TRIBE_CHAT: '/pro/network',
+    VIDEO_PREP: '/pro/patients',
+    VIDEO_SESSION: '/pro/patients',
+    SANTUARIO_LIST: '/pro/home',
+    SANTUARIO_PROFILE: '/pro/home',
+    SANTUARIO_CONTRACT: '/pro/home',
+    SETTINGS: '/settings',
+    CUSTOM_INTERVENTION: '/pro/patients',
+    ALQUIMIA_CREATE: '/pro/marketplace',
+};
+
 export const ProViews: React.FC<{ 
     user: Professional, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void 
 }> = ({ user, view, setView, updateUser }) => {
@@ -23,7 +57,7 @@ export const ProViews: React.FC<{
         [ViewState.PRO_AGENDA]: 'AGENDA_VIEW',
         [ViewState.PRO_NETWORK]: 'TRIBE_PRO',
     };
-    useFlowSync({ state: flowState, go }, view, '/pro', map);
+    useFlowSync({ state: flowState, go }, view, '/pro', map, undefined, proStateRoutes as Record<string, string>);
 
     // Initial load and re-fetch when user.id changes
     useEffect(() => {

@@ -29,6 +29,100 @@ const AdminViews = lazy(() => import('./views/AdminViews').then(module => ({ def
 import { NotFoundScreen } from './src/navigation/NotFoundScreen';
 import { preloadRoleViews } from './src/utils/loaderUtils';
 
+const PUBLIC_PATHS = ['/login', '/register', '/register/client', '/register/pro', '/register/space', '/reset-password'];
+
+const VIEW_PATHS: Partial<Record<ViewState, string>> = {
+    [ViewState.LOGIN]: '/login',
+    [ViewState.REGISTER]: '/register',
+    [ViewState.REGISTER_CLIENT]: '/register/client',
+    [ViewState.REGISTER_PRO]: '/register/pro',
+    [ViewState.REGISTER_SPACE]: '/register/space',
+    [ViewState.CLIENT_HOME]: '/client/home',
+    [ViewState.CLIENT_JOURNAL]: '/client/journal',
+    [ViewState.CLIENT_JOURNEY]: '/client/journey',
+    [ViewState.CLIENT_EXPLORE]: '/client/explore',
+    [ViewState.CLIENT_TRIBO]: '/client/tribe',
+    [ViewState.CLIENT_ORACLE]: '/client/oracle',
+    [ViewState.CLIENT_METAMORPHOSIS]: '/client/metamorphosis',
+    [ViewState.CLIENT_TIMELAPSE]: '/client/timelapse',
+    [ViewState.CLIENT_ORDERS]: '/client/orders',
+    [ViewState.CLIENT_MARKETPLACE]: '/client/marketplace',
+    [ViewState.CLIENT_CHECKOUT]: '/checkout',
+    [ViewState.CLIENT_CHECKOUT_SUCCESS]: '/checkout/success',
+    [ViewState.PRO_HOME]: '/pro/home',
+    [ViewState.PRO_PATIENTS]: '/pro/patients',
+    [ViewState.PRO_AGENDA]: '/pro/agenda',
+    [ViewState.PRO_MARKETPLACE]: '/pro/marketplace',
+    [ViewState.PRO_NETWORK]: '/pro/network',
+    [ViewState.PRO_FINANCE]: '/pro/finance',
+    [ViewState.PRO_OPPORTUNITIES]: '/pro/opportunities',
+    [ViewState.SPACE_HOME]: '/space/home',
+    [ViewState.SPACE_TEAM]: '/space/team',
+    [ViewState.SPACE_RECRUITMENT]: '/space/recruitment',
+    [ViewState.SPACE_FINANCE]: '/space/finance',
+    [ViewState.SPACE_MARKETPLACE]: '/space/marketplace',
+    [ViewState.SPACE_ROOMS]: '/space/rooms',
+    [ViewState.SETTINGS]: '/settings',
+    [ViewState.SETTINGS_PROFILE]: '/settings/profile',
+    [ViewState.SETTINGS_WALLET]: '/settings/wallet',
+    [ViewState.SETTINGS_NOTIFICATIONS]: '/settings/notifications',
+    [ViewState.SETTINGS_SECURITY]: '/settings/security',
+    [ViewState.ADMIN_DASHBOARD]: '/admin/dashboard',
+    [ViewState.ADMIN_USERS]: '/admin/users',
+    [ViewState.ADMIN_LGPD]: '/admin/lgpd',
+};
+
+const HOME_PATH_BY_ROLE: Record<string, string> = {
+    CLIENT: '/client/home',
+    PROFESSIONAL: '/pro/home',
+    SPACE: '/space/home',
+    ADMIN: '/admin/dashboard',
+};
+
+const resolveHomePath = (role?: string) => HOME_PATH_BY_ROLE[String(role || '').toUpperCase()] || '/client/home';
+
+const resolveViewFromPath = (path: string): ViewState => {
+    const exactMatch = Object.entries(VIEW_PATHS).find(([, routePath]) => routePath === path);
+    if (exactMatch) return exactMatch[0] as ViewState;
+
+    // Backward compatibility for internal flow URLs
+    if (path === '/client/garden') return ViewState.CLIENT_JOURNEY;
+    if (path.startsWith('/client/')) {
+        if (path.includes('oracle')) return ViewState.CLIENT_ORACLE;
+        if (path.includes('journey') || path.includes('evolution') || path.includes('garden') || path.includes('time-lapse')) return ViewState.CLIENT_JOURNEY;
+        if (path.includes('metamorphosis')) return ViewState.CLIENT_METAMORPHOSIS;
+        if (path.includes('tribe') || path.includes('chat') || path.includes('healing')) return ViewState.CLIENT_TRIBO;
+        if (path.includes('booking') || path.includes('explore')) return ViewState.CLIENT_EXPLORE;
+        if (path.includes('marketplace')) return ViewState.CLIENT_MARKETPLACE;
+        if (path.includes('journal')) return ViewState.CLIENT_JOURNAL;
+        if (path.includes('orders') || path.includes('payment')) return ViewState.CLIENT_ORDERS;
+        return ViewState.CLIENT_HOME;
+    }
+    if (path.startsWith('/pro/')) {
+        if (path.includes('finance')) return ViewState.PRO_FINANCE;
+        if (path.includes('opportun') || path.includes('vaga')) return ViewState.PRO_OPPORTUNITIES;
+        if (path.includes('patient') || path.includes('agenda')) return path.includes('agenda') ? ViewState.PRO_AGENDA : ViewState.PRO_PATIENTS;
+        if (path.includes('market') || path.includes('escambo')) return ViewState.PRO_MARKETPLACE;
+        if (path.includes('network') || path.includes('tribe') || path.includes('chat')) return ViewState.PRO_NETWORK;
+        return ViewState.PRO_HOME;
+    }
+    if (path.startsWith('/space/')) {
+        if (path.includes('team') || path.includes('pros')) return ViewState.SPACE_TEAM;
+        if (path.includes('recruit') || path.includes('vaga')) return ViewState.SPACE_RECRUITMENT;
+        if (path.includes('finance')) return ViewState.SPACE_FINANCE;
+        if (path.includes('market')) return ViewState.SPACE_MARKETPLACE;
+        if (path.includes('room')) return ViewState.SPACE_ROOMS;
+        return ViewState.SPACE_HOME;
+    }
+    if (path.startsWith('/admin/')) {
+        if (path.includes('/users')) return ViewState.ADMIN_USERS;
+        if (path.includes('/lgpd')) return ViewState.ADMIN_LGPD;
+        return ViewState.ADMIN_DASHBOARD;
+    }
+
+    return ViewState.SPLASH;
+};
+
 // Loading Component
 const PageLoader = () => (
   <div className="h-full w-full flex items-center justify-center min-h-[50vh]">
@@ -67,111 +161,12 @@ const App: React.FC = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Mapping URL path to ViewState for backwards compatibility
-    const getCurrentViewFromPath = (): ViewState => {
-        const path = location.pathname;
-        if (path === '/login') return ViewState.LOGIN;
-        if (path === '/register') return ViewState.REGISTER;
-        if (path === '/register/client') return ViewState.REGISTER_CLIENT;
-        if (path === '/register/pro') return ViewState.REGISTER_PRO;
-        if (path === '/register/space') return ViewState.REGISTER_SPACE;
-        
-        // Client Routes
-        if (path === '/client/home') return ViewState.CLIENT_HOME;
-        if (path === '/client/journal') return ViewState.CLIENT_JOURNAL;
-        if (path === '/client/journey') return ViewState.CLIENT_JOURNEY;
-        if (path === '/client/explore') return ViewState.CLIENT_EXPLORE;
-        if (path === '/client/tribe') return ViewState.CLIENT_TRIBO;
-        if (path === '/client/oracle') return ViewState.CLIENT_ORACLE;
-        if (path === '/client/metamorphosis') return ViewState.CLIENT_METAMORPHOSIS;
-        if (path === '/client/timelapse') return ViewState.CLIENT_TIMELAPSE;
-        if (path === '/client/orders') return ViewState.CLIENT_ORDERS;
-        if (path === '/client/marketplace') return ViewState.CLIENT_MARKETPLACE;
-        if (path === '/client/garden') return ViewState.CLIENT_JOURNEY; // Garden is in Journey cluster
-        if (path === '/checkout') return ViewState.CLIENT_CHECKOUT;
-        if (path === '/checkout/success') return ViewState.CLIENT_CHECKOUT_SUCCESS;
-
-        // Pro Routes
-        if (path === '/pro/home') return ViewState.PRO_HOME;
-        if (path === '/pro/patients') return ViewState.PRO_PATIENTS;
-        if (path === '/pro/agenda') return ViewState.PRO_AGENDA;
-        if (path === '/pro/marketplace') return ViewState.PRO_MARKETPLACE;
-        if (path === '/pro/network') return ViewState.PRO_NETWORK;
-        if (path === '/pro/finance') return ViewState.PRO_FINANCE;
-        if (path === '/pro/opportunities') return ViewState.PRO_OPPORTUNITIES;
-
-        // Space Routes
-        if (path === '/space/home') return ViewState.SPACE_HOME;
-        if (path === '/space/team') return ViewState.SPACE_TEAM;
-
-        if (path === '/space/recruitment') return ViewState.SPACE_RECRUITMENT;
-        if (path === '/space/finance') return ViewState.SPACE_FINANCE;
-        if (path === '/space/marketplace') return ViewState.SPACE_MARKETPLACE;
-        if (path === '/space/rooms') return ViewState.SPACE_ROOMS;
-
-        // Settings
-        if (path === '/settings') return ViewState.SETTINGS;
-        if (path === '/settings/profile') return ViewState.SETTINGS_PROFILE;
-        if (path === '/settings/wallet') return ViewState.SETTINGS_WALLET;
-        if (path === '/settings/notifications') return ViewState.SETTINGS_NOTIFICATIONS;
-
-        if (path === '/settings/security') return ViewState.SETTINGS_SECURITY;
-
-        // Admin Routes
-        if (path === '/admin/dashboard') return ViewState.ADMIN_DASHBOARD;
-        if (path === '/admin/users') return ViewState.ADMIN_USERS;
-        if (path === '/admin/lgpd') return ViewState.ADMIN_LGPD;
-       
-        return ViewState.SPLASH; 
-
-
-    };
-
-    const currentView = getCurrentViewFromPath();
+    const currentView = resolveViewFromPath(location.pathname);
 
     // Navigation Helper
     const setView = (view: ViewState) => {
-        switch(view) {
-            case ViewState.LOGIN: navigate('/login'); break;
-        case ViewState.REGISTER: navigate('/register'); break;
-        case ViewState.REGISTER_CLIENT: navigate('/register/client'); break;
-        case ViewState.REGISTER_PRO: navigate('/register/pro'); break;
-        case ViewState.REGISTER_SPACE: navigate('/register/space'); break;
-            case ViewState.CLIENT_HOME: navigate('/client/home'); break;
-            case ViewState.CLIENT_JOURNAL: navigate('/client/journal'); break;
-            case ViewState.CLIENT_JOURNEY: navigate('/client/journey'); break;
-            case ViewState.CLIENT_EXPLORE: navigate('/client/explore'); break;
-            case ViewState.CLIENT_TRIBO: navigate('/client/tribe'); break;
-            case ViewState.CLIENT_ORACLE: navigate('/client/oracle'); break;
-            case ViewState.CLIENT_MARKETPLACE: navigate('/client/marketplace'); break;
-            case ViewState.CLIENT_METAMORPHOSIS: navigate('/client/metamorphosis'); break;
-            case ViewState.CLIENT_TIMELAPSE: navigate('/client/timelapse'); break;
-            case ViewState.CLIENT_ORDERS: navigate('/client/orders'); break;
-            case ViewState.CLIENT_CHECKOUT: navigate('/checkout'); break;
-            case ViewState.CLIENT_CHECKOUT_SUCCESS: navigate('/checkout/success'); break;
-            case ViewState.PRO_HOME: navigate('/pro/home'); break;
-            case ViewState.PRO_PATIENTS: navigate('/pro/patients'); break;
-            case ViewState.PRO_AGENDA: navigate('/pro/agenda'); break;
-            case ViewState.PRO_MARKETPLACE: navigate('/pro/marketplace'); break;
-            case ViewState.PRO_NETWORK: navigate('/pro/network'); break;
-            case ViewState.PRO_FINANCE: navigate('/pro/finance'); break;
-            case ViewState.PRO_OPPORTUNITIES: navigate('/pro/opportunities'); break;
-            case ViewState.SPACE_HOME: navigate('/space/home'); break;
-            case ViewState.SPACE_TEAM: navigate('/space/team'); break;
-            case ViewState.SPACE_RECRUITMENT: navigate('/space/recruitment'); break;
-            case ViewState.SPACE_FINANCE: navigate('/space/finance'); break;
-            case ViewState.SPACE_MARKETPLACE: navigate('/space/marketplace'); break;
-            case ViewState.SPACE_ROOMS: navigate('/space/rooms'); break;
-            case ViewState.SETTINGS: navigate('/settings'); break;
-            case ViewState.SETTINGS_PROFILE: navigate('/settings/profile'); break;
-            case ViewState.SETTINGS_WALLET: navigate('/settings/wallet'); break;
-            case ViewState.SETTINGS_NOTIFICATIONS: navigate('/settings/notifications'); break;
-            case ViewState.SETTINGS_SECURITY: navigate('/settings/security'); break;
-            case ViewState.ADMIN_DASHBOARD: navigate('/admin/dashboard'); break;
-            case ViewState.ADMIN_USERS: navigate('/admin/users'); break;
-            case ViewState.ADMIN_LGPD: navigate('/admin/lgpd'); break;
-            default: break; 
-        }
+        const targetPath = VIEW_PATHS[view];
+        if (targetPath) navigate(targetPath);
     };
 
     useEffect(() => {
@@ -187,15 +182,13 @@ const App: React.FC = () => {
                     setCurrentUser(standardizedUser);
                     preloadRoleViews(standardizedUser.role);
                     
-                    if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register') {
-                        const role = String(standardizedUser.role).toUpperCase();
-                        const homePath = role === 'CLIENT' ? '/client/home' : (role === 'PROFESSIONAL' ? '/pro/home' : (role === 'SPACE' ? '/space/home' : '/admin/dashboard'));
-                        navigate(homePath);
+                    const homePath = resolveHomePath(String(standardizedUser.role));
+                    if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register' || currentView === ViewState.SPLASH) {
+                        navigate(homePath, { replace: true });
                     }
                 } else {
                     // Block entry without login - redirect to login for all protected routes
-                    const publicPaths = ['/login', '/register', '/register/client', '/register/pro', '/register/space', '/reset-password'];
-                    if (!publicPaths.includes(location.pathname)) {
+                    if (!PUBLIC_PATHS.includes(location.pathname)) {
                         navigate('/login');
                     }
                 }
@@ -257,10 +250,7 @@ const App: React.FC = () => {
         const role = String(u.role).toUpperCase();
         preloadRoleViews(role);
         console.log("DEBUG: handleLogin Role:", role);
-        const homePath = role === 'CLIENT' ? '/client/home' : 
-                        (role === 'PROFESSIONAL' ? '/pro/home' : 
-                        (role === 'SPACE' ? '/space/home' : 
-                        (role === 'ADMIN' ? '/admin/dashboard' : '/client/home')));
+        const homePath = resolveHomePath(role);
         console.log("DEBUG: handleLogin Redirecting to:", homePath);
         navigate(homePath);
     };
@@ -312,7 +302,6 @@ const App: React.FC = () => {
     const handleLogout = async () => {
         try {
             await api.auth.logout();
-            await supabase.auth.signOut();
         } catch (e) {
             console.error("Logout error", e);
         } finally {
@@ -367,9 +356,15 @@ const App: React.FC = () => {
                         </BuscadorFlowProvider>
                     ) : <Navigate to="/login" />} />
 
-                    <Route path="/checkout" element={<CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} items={cart} onSuccess={processCheckout} onCancel={() => navigate(-1)} />} />
-                    <Route path="/checkout/success" element={<SuccessScreen onHome={() => navigate('/client/home')} />} />
-                    <Route path="/client/orders" element={<OrdersListView user={currentUser!} onBack={() => navigate('/client/home')} setView={setView} />} />
+                    <Route path="/checkout" element={(String(currentUser?.role).toUpperCase() === 'CLIENT') ? (
+                        <CheckoutScreen total={cart.reduce((a,b)=>a+(b.price*b.quantity),0)} items={cart} onSuccess={processCheckout} onCancel={() => navigate(-1)} />
+                    ) : <Navigate to="/login" />} />
+                    <Route path="/checkout/success" element={(String(currentUser?.role).toUpperCase() === 'CLIENT') ? (
+                        <SuccessScreen onHome={() => navigate('/client/home')} />
+                    ) : <Navigate to="/login" />} />
+                    <Route path="/client/orders" element={(String(currentUser?.role).toUpperCase() === 'CLIENT') ? (
+                        <OrdersListView user={currentUser!} onBack={() => navigate('/client/home')} setView={setView} />
+                    ) : <Navigate to="/login" />} />
 
                     {/* Pro Routes */}
                     <Route path="/pro/*" element={(String(currentUser?.role).toUpperCase() === 'PROFESSIONAL') ? (
@@ -389,7 +384,9 @@ const App: React.FC = () => {
                     {/* Admin Routes */}
                      <Route path="/admin/*" element={(String(currentUser?.role).toUpperCase() === 'ADMIN') ? <AdminViews user={currentUser!} view={currentView} setView={setView} /> : <Navigate to="/login" />} />
 
-                    <Route path="/settings/*" element={<SettingsViews user={currentUser!} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} />} />
+                    <Route path="/settings/*" element={currentUser ? (
+                        <SettingsViews user={currentUser} view={currentView} setView={setView} updateUser={setCurrentUser} onLogout={handleLogout} />
+                    ) : <Navigate to="/login" />} />
                     
                     <Route path="*" element={<NotFoundScreen />} />
                 </Routes>
