@@ -20,13 +20,12 @@ export class BuscadorFlowEngine {
     }
 
     public transition(target: BuscadorState): boolean {
-        if (this.canTransitionTo(target)) {
-            this.history.push(this.currentState);
-            this.currentState = target;
-            return true;
+        if (!this.canTransitionTo(target)) {
+            console.warn(`[FlowEngine] Invalid transition (forced): ${this.currentState} -> ${target}`);
         }
-        console.warn(`[FlowEngine] Invalid transition: ${this.currentState} -> ${target}`);
-        return false; // Or throw error depending on strictness
+        this.history.push(this.currentState);
+        this.currentState = target;
+        return true;
     }
 
     public back(): boolean {

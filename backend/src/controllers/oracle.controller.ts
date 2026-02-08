@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
-import prisma, { prismaRead } from '../lib/prisma';
-import { DeterministicEngine, Mood } from '../lib/determinism';
 import { asyncHandler } from '../middleware/async.middleware';
 
 import { oracleService } from '../services/oracle.service';
+
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000001';
 
 // Mock DB/Service calls for context until authentic User/Profile services are fully typed/linked
 const getUserContext = async (userId: string, moodBody: string) => {
@@ -16,7 +16,7 @@ const getUserContext = async (userId: string, moodBody: string) => {
 };
 
 export const drawCard = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId || 'mock-user-id'; // Fallback for dev
+    const userId = (req as any).user?.userId || DEFAULT_USER_ID; // Fallback for dev
     const { mood } = req.body;
 
     // Simulate "shuffling" delay for UX
@@ -44,14 +44,27 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
     });
 });
 
-// History endpoint to be implemented with real OracleHistory model
 export const getHistory = asyncHandler(async (req: Request, res: Response) => {
-     // Mock return for now
-     return res.json([]);
+     const userId = (req as any).user?.userId || DEFAULT_USER_ID;
+     const history = await oracleService.getHistory(userId);
+     return res.json(
+        history.map((entry) => ({
+            drawId: entry.id,
+            drawnAt: entry.drawn_at,
+            card: {
+                id: entry.message.id,
+                name: 'Oráculo Viva360',
+                insight: entry.message.text,
+                element: entry.message.element,
+                category: entry.message.category,
+            },
+            context: entry.context,
+        }))
+     );
 });
 
 export const getToday = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId || 'mock-user-id';
+    const userId = (req as any).user?.userId || DEFAULT_USER_ID;
     const card = await oracleService.getToday(userId);
     
     if (!card) {

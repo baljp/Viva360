@@ -197,7 +197,10 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         setLoading(true);
         setError('');
         try {
-            await api.auth.loginWithGoogle();
+            const googleUser = await api.auth.loginWithGoogle();
+            if (googleUser) {
+                onSubmit(googleUser);
+            }
         } catch (err: any) {
             if (err.message !== 'REDIRECTING_TO_GOOGLE') {
                console.error(err);
