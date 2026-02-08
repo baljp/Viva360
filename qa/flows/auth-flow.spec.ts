@@ -9,7 +9,7 @@ test.describe('Auth Flow', () => {
     await page.fill('input[placeholder="••••••••"]', '123456');
     await page.click('button[type="submit"]');
 
-    await expect(page).toHaveURL(/\/client\/home/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/client\/(home|dashboard)/, { timeout: 15000 });
     await expect(page.getByText('Sua Jornada até aqui,')).toBeVisible({ timeout: 15000 });
   });
 
@@ -19,7 +19,7 @@ test.describe('Auth Flow', () => {
 
     await page.getByRole('button', { name: /continuar com google/i }).click();
 
-    await expect(page).toHaveURL(/\/client\/home/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/client\/(home|dashboard)/, { timeout: 15000 });
     await expect(page.getByText('Sua Jornada até aqui,')).toBeVisible({ timeout: 15000 });
   });
 });

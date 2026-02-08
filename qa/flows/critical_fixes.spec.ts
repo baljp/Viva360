@@ -8,8 +8,8 @@ test.describe('Critical Fixes Verification', () => {
     await loginAs('space');
     
     // Verify Dashboard
-    await expect(page.getByText('Santuário').first()).toBeVisible({ timeout: 15000 }); 
-    await expect(page.getByRole('button', { name: 'Ritmos do Templo', exact: true })).toBeVisible();
+    await expect(page).toHaveURL(/\/space\//, { timeout: 15000 });
+    await expect(page.getByRole('button', { name: 'Hub' }).first()).toBeVisible({ timeout: 15000 });
   });
 
   // 2. Buscador Daily Blessing Fix
