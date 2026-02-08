@@ -28,6 +28,14 @@ export const notificationQueue = isMock ?
     connection: redisConnection,
   });
 
+export const logsQueue = isMock ?
+  {
+    add: async (name: string, data: any) => ({ id: `mock_log_${Date.now()}`, data })
+  } as any :
+  new Queue('logs-queue', {
+    connection: redisConnection,
+  });
+
 if (!isMock && isRedisEnabled) {
     // Setup Worker - only in non-serverless environments
     const worker = new Worker(QUEUE_NAME, async (job) => {

@@ -68,6 +68,8 @@ export const useClientDashboard = (
           if (res && res.user) {
               updateUser(res.user as User);
               setRitualToast({ title: "Benção Recebida", message: `Sua jornada foi harmonizada com ${res.reward} Karma.` });
+          } else {
+              setToast({ title: "Benção Já Recebida", message: "Você já sintonizou sua energia hoje." });
           }
     }, [user, updateUser]);
 

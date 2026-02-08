@@ -28,15 +28,23 @@ export const request = async (endpoint: string, options: RequestInit = {}) => {
 export const api = {
     auth: {
         loginWithPassword: async (email: string, password: string): Promise<User> => {
+            console.log(`[API] Attempting login for ${email}`);
             const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-            if (error) throw error;
+            if (error) {
+                console.error("[API] Login Error:", error);
+                throw error;
+            }
             if (data.session) {
+                console.log("[API] Login Success, Session retrieved");
                 localStorage.setItem('viva360.auth.token', data.session.access_token);
                 const user = await api.auth.getCurrentSession();
-                if (!user) throw new Error('Session created but user not found.');
+                if (!user) {
+                     console.error("[API] Session exists but User profile not found");
+                     throw new Error('Session created but user not found.');
+                }
                 return user;
             }
-            throw new Error('Login failed');
+            throw new Error('Login failed: No session data returned');
         },
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
             const attemptLogin = async (retries = 3, delay = 1000) => {
