@@ -56,6 +56,10 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
     title: () => 'Agendamento Reagendado',
     message: (data) => `Seu agendamento foi reagendado para ${data.date}.`,
   },
+  'appointment.space_rescheduled': {
+    title: () => 'Agenda do Santuário Atualizada',
+    message: (data) => `${data.guardianName || 'Guardião'} reagendou atendimento para ${data.date}. Agenda sincronizada.`,
+  },
   'payment.received': {
     title: () => 'Pagamento Recebido',
     message: (data) => `Você recebeu R$ ${Number(data.amount || 0).toFixed(2)}.`,
@@ -75,6 +79,18 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
   'appointment.space_unblocked': {
     title: () => 'Agenda Liberada',
     message: (data) => `Bloqueio removido da agenda do santuário para ${data.date}.`,
+  },
+  'record.updated': {
+    title: () => 'Prontuário Atualizado',
+    message: (data) => data.summary
+      ? `Seu prontuário recebeu atualização: ${data.summary}`
+      : 'Seu prontuário recebeu uma nova atualização.',
+  },
+  'record.updated.space': {
+    title: () => 'Prontuário da Equipe Atualizado',
+    message: (data) => data.summary
+      ? `Atualização clínica registrada: ${data.summary}`
+      : 'Um prontuário vinculado ao santuário foi atualizado.',
   },
   'recruitment.application.created': {
     title: () => 'Nova Candidatura',
@@ -234,6 +250,9 @@ export class NotificationEngine {
       return 'finance';
     }
     if (eventType.startsWith('recruitment.')) {
+      return 'alert';
+    }
+    if (eventType.startsWith('record.')) {
       return 'alert';
     }
     return 'alert';

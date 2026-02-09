@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { User, DailyJournalEntry, MoodType } from '../../../types';
-import { PortalView } from '../../../components/Common';
+import { PortalView, ZenToast } from '../../../components/Common';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Book, Lock, TrendingUp, Calendar, Heart, ArrowRight, Video, Plus, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { generateShareCanvas, shareToSocial } from '../../../src/utils/sharing';
 
 export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();
     const [entries, setEntries] = useState<DailyJournalEntry[]>([]);
     const [stats, setStats] = useState<{ total: number; streak: number } | null>(null);
+    const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
     useEffect(() => {
         const load = async () => {
@@ -27,9 +29,55 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
         return 'text-slate-500 bg-slate-50 border-slate-200';
     };
 
+    const getMoodAccent = (mood: MoodType) => {
+        if (mood === 'VIBRANTE') return '#f59e0b';
+        if (mood === 'SERENO' || mood === 'GRATO') return '#10b981';
+        if (mood === 'MELANCÓLICO') return '#3b82f6';
+        if (mood === 'ANSIOSO') return '#64748b';
+        if (mood === 'FOCADO') return '#6366f1';
+        return '#334155';
+    };
+
+    const handleShareEntry = async (entry: DailyJournalEntry) => {
+        try {
+            const sameDaySnap = (user.snaps || []).find((snap) =>
+                new Date(snap.date).toDateString() === new Date(entry.createdAt).toDateString()
+            );
+            const insight = entry.generatedPhrases?.[0] || entry.actionIntent || 'Hoje cuidei da minha jornada interior.';
+            const gratitude = entry.generatedPhrases?.[1] || entry.gratitude || '';
+
+            const blob = await generateShareCanvas({
+                title: 'Diário da Alma',
+                subtitle: `${entry.mood} • ${new Date(entry.createdAt).toLocaleDateString('pt-BR')}`,
+                message: gratitude ? `${insight}\n${gratitude}` : insight,
+                imageUrl: sameDaySnap?.image,
+                accentColor: getMoodAccent(entry.mood),
+                footer: 'VIVA360 • DIARIO',
+                date: new Date(entry.createdAt).toLocaleDateString('pt-BR'),
+                format: 'feed',
+                mimeType: 'image/jpeg',
+            });
+
+            if (!blob) {
+                setToast({ title: 'Compartilhamento', message: 'Não foi possível gerar o card para compartilhar.', type: 'error' });
+                return;
+            }
+
+            await shareToSocial(blob, {
+                title: 'Diário da Alma • Viva360',
+                text: `Espelho da Essência • ${entry.mood}\n${insight}\n\n#Viva360 #DiarioDaAlma`,
+                platform: 'generic',
+                filename: `viva360-diario-${entry.id}.jpg`,
+            });
+        } catch (error) {
+            setToast({ title: 'Compartilhamento', message: 'Não foi possível compartilhar agora. Tente novamente.', type: 'error' });
+        }
+    };
+
     return (
         <PortalView title="Diário da Alma" subtitle="MEMÓRIA EMOCIONAL" onBack={() => go('DASHBOARD')}>
             <div className="flex flex-col h-full bg-nature-50">
+                {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
                 
                 {/* Header Metrics */}
                 <div className="px-6 py-6 bg-white border-b border-nature-100 flex justify-between items-center shadow-sm z-10">
@@ -86,16 +134,7 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                                                 {entry.mood}
                                             </div>
                                             <button 
-                                                onClick={() => {
-                                                    const text = `Espelho da Essência - ${new Date(entry.createdAt).toLocaleDateString()}\n\nIntenção: ${entry.generatedPhrases?.[0] || entry.actionIntent}\nGratidão: ${entry.generatedPhrases?.[1] || entry.gratitude}\n\nSentindo-me ${entry.mood} 🌿 #Viva360`;
-                                                    if (navigator.share) {
-                                                        navigator.share({ title: 'Diário da Alma', text }).catch(() => {});
-                                                    } else {
-                                                        // Fallback for simple copy or alert
-                                                        navigator.clipboard.writeText(text);
-                                                        alert("Copiado para a área de transferência!");
-                                                    }
-                                                }}
+                                                onClick={() => { handleShareEntry(entry); }}
                                                 className="p-2 text-nature-300 hover:text-nature-600 transition-colors"
                                             >
                                                 <Share2 size={14} />

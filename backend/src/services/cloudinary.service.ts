@@ -10,12 +10,19 @@ cloudinary.config({
 export class CloudinaryService {
   /**
    * Uploads an image (base64 or path) to Cloudinary.
-   * In Mock Mode, it returns a static Unsplash/Placeholder URL to avoid external calls.
+   * In Mock Mode, keeps the original payload to preserve visual parity in local/test flows.
    */
   static async uploadImage(imagePath: string, folder: string = 'viva360/metamorphosis') {
-    if (isMockMode() || !process.env.CLOUDINARY_API_KEY) {
-      // Return a professional placeholder for mock mode
-      return `https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&q=80&w=800&folder=${folder}`;
+    if (!imagePath) return imagePath;
+
+    if (isMockMode()) {
+      return imagePath;
+    }
+
+    // In production-like environments, if Cloudinary is not configured,
+    // keep the original image instead of replacing with placeholder.
+    if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_CLOUD_NAME) {
+      return imagePath;
     }
 
     try {

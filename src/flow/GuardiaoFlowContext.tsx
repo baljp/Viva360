@@ -19,6 +19,7 @@ interface GuardiaoContextState extends BaseFlowState<GuardiaoState> {
     };
     notification: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' } | null;
     selectedAppointment?: Appointment;
+    selectedPatient?: { id: string; name?: string } | null;
 }
 
 // Actions
@@ -27,7 +28,8 @@ type FlowAction =
     | { type: 'SET_DATA'; payload: { appointments: Appointment[]; vacancies: Vacancy[]; myProducts: Product[]; transactions: Transaction[] } }
     | { type: 'NOTIFY'; payload: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' } }
     | { type: 'CLEAR_NOTIFICATION' }
-    | { type: 'SELECT_APPOINTMENT'; payload: Appointment };
+    | { type: 'SELECT_APPOINTMENT'; payload: Appointment }
+    | { type: 'SELECT_PATIENT'; payload: { id: string; name?: string } | null };
 
 // Initial State Factory
 const createInitialState = (): GuardiaoContextState => ({
@@ -37,6 +39,7 @@ const createInitialState = (): GuardiaoContextState => ({
     isLoading: false,
     error: null,
     notification: null,
+    selectedPatient: null,
     data: {
         appointments: [],
         vacancies: [],
@@ -83,6 +86,8 @@ const flowReducer = (state: GuardiaoContextState, action: FlowAction): GuardiaoC
             return { ...state, notification: null };
         case 'SELECT_APPOINTMENT':
             return { ...state, selectedAppointment: action.payload };
+        case 'SELECT_PATIENT':
+            return { ...state, selectedPatient: action.payload };
         default:
             return baseReducer(state, action as any) as GuardiaoContextState;
     }
@@ -96,6 +101,7 @@ const GuardiaoFlowContext = createContext<{
     refreshData: (userId: string) => Promise<void>;
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning') => void;
     selectAppointment: (apt: Appointment) => void;
+    selectPatient: (payload: { id: string; name?: string } | null) => void;
 } | undefined>(undefined);
 
 export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -156,9 +162,10 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     };
 
     const selectAppointment = (apt: Appointment) => dispatch({ type: 'SELECT_APPOINTMENT', payload: apt });
+    const selectPatient = (payload: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_PATIENT', payload });
 
     return (
-        <GuardiaoFlowContext.Provider value={{ state, go, back, reset, refreshData, notify, selectAppointment }}>
+        <GuardiaoFlowContext.Provider value={{ state, go, back, reset, refreshData, notify, selectAppointment, selectPatient }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard 

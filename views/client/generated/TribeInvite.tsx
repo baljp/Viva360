@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Users, Share2, Copy, Crown, Star, Sparkles, Send } from 'lucide-react';
 import { ZenToast } from '../../../components/Common';
+import { shareToSocial } from '../../../src/utils/sharing';
 
 export default function TribeInvite() {
   const { go, back } = useBuscadorFlow();
@@ -10,7 +11,7 @@ export default function TribeInvite() {
   const [inviteImage, setInviteImage] = useState<string | null>(null);
   const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
-  const INVITE_LINK = `${window.location.host}/invite/u/joao-luz`;
+  const INVITE_LINK = `${window.location.origin}/invite/u/joao-luz`;
   const INVITE_TEXT = "Olá! Estou te convidando para fazer parte da minha Tribo de Evolução no Viva360. Vamos expandir nossa consciência juntos. 🌿✨";
 
   // Generate Invite Card
@@ -121,31 +122,13 @@ export default function TribeInvite() {
       
       try {
           const blob = await (await fetch(canvasRef.current.toDataURL())).blob();
-          const file = new File([blob], 'convite-viva360.png', { type: 'image/png' });
-
-          if (platform === 'whatsapp') {
-             // WhatsApp text share is easy, image requires native share usually
-             if (navigator.share) {
-                 await navigator.share({
-                     title: 'Convite Tribo Viva360',
-                     text: `${INVITE_TEXT} \n\n${INVITE_LINK}`,
-                     files: [file]
-                 });
-             } else {
-                 // Desktop Fallback
-                 const text = encodeURIComponent(`${INVITE_TEXT} \n\n${INVITE_LINK}`);
-                 window.open(`https://wa.me/?text=${text}`, '_blank');
-             }
-          } else {
-              if (navigator.share) {
-                  await navigator.share({
-                      title: 'Convite Tribo',
-                      text: INVITE_TEXT,
-                      url: `https://${INVITE_LINK}`,
-                      files: [file]
-                   });
-              }
-          }
+          await shareToSocial(blob, {
+              title: 'Convite Tribo Viva360',
+              text: INVITE_TEXT,
+              url: INVITE_LINK,
+              platform: platform === 'whatsapp' ? 'whatsapp' : 'generic',
+              filename: 'convite-viva360.jpg',
+          });
       } catch (e) {
           console.error(e);
           setToast({ title: "Erro no Compartilhamento", message: "Tente copiar o link manualmente.", type: "error" });
@@ -198,7 +181,7 @@ export default function TribeInvite() {
                    <Share2 size={18} /> Outros
                </button>
                <button onClick={() => { 
-                   navigator.clipboard.writeText(`${window.location.protocol}//${INVITE_LINK}`); 
+                   navigator.clipboard.writeText(INVITE_LINK); 
                    setToast({ title: "Link Copiado", message: "Espalhe a luz com sua tribo.", type: "success" });
                 }} className="py-4 bg-indigo-900/50 border border-indigo-500/30 text-indigo-200 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest active:scale-95 transition-all w-full">
                    <Copy size={18} /> Copiar

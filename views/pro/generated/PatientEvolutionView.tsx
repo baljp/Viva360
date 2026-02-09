@@ -97,7 +97,7 @@ const InterventionCard: React.FC<{ title: string, outcome: string, type: string 
 );
 
 export default function PatientEvolutionView() {
-    const { back, go, notify, state } = useGuardiaoFlow();
+    const { go, notify, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'timeline' | 'patterns' | 'interventions' | 'plan'>('timeline');
     const [isModalOpen, setIsModalOpen] = useState(false);
     
@@ -110,24 +110,26 @@ export default function PatientEvolutionView() {
     const [records, setRecords] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Mock Patient ID for demo
-    const PATIENT_ID = 'user_1'; // Linked to Ana Silva in MockDB
+    const PATIENT_ID = String(state.selectedPatient?.id || '').trim();
 
     const fetchRecords = async () => {
         setLoading(true);
+        if (!PATIENT_ID) {
+            setRecords([]);
+            setLoading(false);
+            return;
+        }
         try {
             const data = await api.records.list(PATIENT_ID);
-            // Default mock data if empty, for demo purposes
-            if (data.length === 0) {
-                 const initial = [
-                    { id: 1, type: 'session', title: 'Sessão de Desbloqueio', date: '2023-10-24', mood: 'Vibrante', patientId: PATIENT_ID },
-                    { id: 2, type: 'milestone', title: 'Ritual de Gratidão', date: '2023-10-20', mood: 'Sereno', patientId: PATIENT_ID }
-                ];
-                initial.forEach(r => api.records.create(r));
-                setRecords(initial);
-            } else {
-                setRecords(data.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
-            }
+            const normalized = (data || []).map((item: any) => ({
+                id: item.id,
+                type: item.type || 'session',
+                title: item.type === 'anamnesis' ? 'Anamnese Clínica' : 'Sessão Terapêutica',
+                date: item.created_at || item.date || new Date().toISOString(),
+                mood: 'Registrado',
+                content: item.content || '',
+            }));
+            setRecords(normalized.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         } catch (e) {
             console.error(e);
         } finally {
@@ -137,15 +139,28 @@ export default function PatientEvolutionView() {
 
     useEffect(() => {
         fetchRecords();
-    }, []);
+    }, [PATIENT_ID]);
 
     const handleAddEvent = async (data: any) => {
-        const newEvent = {
-            ...data,
-            id: Date.now(),
-            patientId: PATIENT_ID
+        if (!PATIENT_ID) {
+            notify('Paciente não selecionado', 'Selecione um paciente antes de gravar evolução.', 'warning');
+            return;
+        }
+
+        const recordPayload = {
+            patientId: PATIENT_ID,
+            type: data.type === 'anamnesis' ? 'anamnesis' : 'session',
+            content: `${data.title}\nHumor: ${data.mood}\n\n${data.content}`.trim(),
         };
-        await api.records.create(newEvent);
+        const created = await api.records.create(recordPayload);
+        const newEvent = {
+            id: created?.id || Date.now(),
+            type: created?.type || recordPayload.type,
+            title: data.title,
+            date: created?.created_at || data.date || new Date().toISOString(),
+            mood: data.mood || 'Registrado',
+            content: created?.content || recordPayload.content,
+        };
         setRecords(prev => [newEvent, ...prev]);
         setIsModalOpen(false);
         notify('Evento Registrado', 'A linha da vida foi atualizada.', 'success');
@@ -186,6 +201,9 @@ export default function PatientEvolutionView() {
             {activeTab === 'timeline' && (
                 <div className="pl-2 pb-24">
                     {loading ? <p className="text-center text-xs text-nature-400 animate-pulse">Sincronizando Akasha...</p> : records.map(evt => <TimelineCard key={evt.id} event={evt} />)}
+                    {!loading && records.length === 0 && (
+                        <p className="text-center text-xs text-nature-400">Nenhum registro evolutivo encontrado para este paciente.</p>
+                    )}
                 </div>
             )}
             
@@ -271,5 +289,4 @@ export default function PatientEvolutionView() {
         </PortalView>
     );
 }
-
 

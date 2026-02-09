@@ -10,30 +10,65 @@ import { oracleService } from '../services/oracle.service';
 // In-memory mock DB
 const METAMORPHOSIS_DB: Record<string, any[]> = {};
 
+const normalizeMood = (input: string): Mood => {
+    const value = String(input || '').trim().toLowerCase();
+    if (value === 'feliz' || value === 'vibrante') return 'Feliz';
+    if (value === 'calmo' || value === 'sereno') return 'Calmo';
+    if (value === 'grato') return 'Grato';
+    if (value === 'motivado' || value === 'focado') return 'Motivado';
+    if (value === 'cansado' || value === 'exausto') return 'Cansado';
+    if (value === 'ansioso') return 'Ansioso';
+    if (value === 'triste' || value === 'melancólico' || value === 'melancolico') return 'Triste';
+    if (value === 'sobrecarregado') return 'Sobrecarregado';
+    return 'Calmo';
+};
+
 export const checkIn = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
-    const { mood, photoHash, photoThumb } = req.body;
+    const userId = String((req as any).user?.userId || '').trim();
+    const mood = String(req.body?.mood || '').trim();
+    const photoHash = String(req.body?.photoHash || req.body?.hash || '').trim() || `hash_${Date.now()}`;
+    const photoThumb = String(req.body?.photoThumb || req.body?.thumb || '').trim();
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     if (!mood) return res.status(400).json({ error: 'Mood is required' });
 
     // Asset Optimization: Upload to CDN
     const optimizedPhotoUrl = photoThumb ? await CloudinaryService.uploadImage(photoThumb) : null;
 
+    const normalizedMood = normalizeMood(mood);
+
     // 1. Retrieve History
-    const userHistory = METAMORPHOSIS_DB[userId] || [];
-    const recentMoods = userHistory.map(h => h.mood);
+    const runtimeHistory = METAMORPHOSIS_DB[userId] || [];
+    let recentMoods = runtimeHistory.map((h) => normalizeMood(String(h.mood || '')));
+    if (!isMockMode()) {
+        const previousEvents = await prisma.event.findMany({
+            where: { stream_id: userId, type: 'MOOD_LOGGED' },
+            orderBy: { created_at: 'desc' },
+            take: 10,
+            select: { payload: true },
+        }).catch(() => []);
+        const dbMoods = previousEvents
+            .map((event) => normalizeMood(String((event.payload as any)?.mood || '')))
+            .filter(Boolean);
+        if (dbMoods.length > 0) {
+            recentMoods = dbMoods;
+        }
+    }
 
     // 2. Run Deterministic Engine
-    const recommendation = DeterministicEngine.process(mood as Mood, recentMoods);
+    const recommendation = DeterministicEngine.process(normalizedMood, recentMoods as Mood[]);
 
     // 3. Persist
     const entry = {
         id: Date.now().toString(),
         userId,
         timestamp: new Date().toISOString(),
-        mood,
+        mood: normalizedMood,
         photoHash,
-        photoThumb: optimizedPhotoUrl,
+        photoThumb: optimizedPhotoUrl || photoThumb || null,
         ...recommendation
     };
 
@@ -58,12 +93,12 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
                 create: {
                     user_id: userId,
                     total_checkins: 1,
-                    last_mood: mood,
+                    last_mood: normalizedMood,
                     evolution_score: 10
                 },
                 update: {
                     total_checkins: { increment: 1 },
-                    last_mood: mood,
+                    last_mood: normalizedMood,
                     evolution_score: { increment: 10 }
                 }
             });
@@ -77,8 +112,12 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getEvolution = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
+    const userId = String((req as any).user?.userId || '').trim();
     const { days } = req.query; 
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
 
     if (isMockMode()) {
         const userHistory = METAMORPHOSIS_DB[userId] || [];
@@ -118,7 +157,7 @@ export const getEvolution = asyncHandler(async (req: Request, res: Response) => 
         mood: (e.payload as any).mood,
         quote: (e.payload as any).quote,
         reflection: (e.payload as any).reflection,
-        photoThumb: (e.payload as any).photoThumb
+        photoThumb: (e.payload as any).photoThumb || (e.payload as any).thumb || (e.payload as any).image || null
     }));
 
     return res.json({

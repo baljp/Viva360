@@ -268,12 +268,30 @@ const App: React.FC = () => {
     const handleUpdateUser = (u: any) => {
         if (!u) return;
         setCurrentUser(prev => {
-            if (!prev) return u as User;
-            // Use spread to merge, and ensure we don't lose the role if the update is partial
-            const updated = { ...prev, ...u };
-            // Standardize role to uppercase if it's a string
+            const incoming = { ...(u as User) } as User;
+            if (typeof incoming.role === 'string') {
+                incoming.role = incoming.role.toUpperCase() as any;
+            }
+            if (typeof incoming.activeRole === 'string') {
+                incoming.activeRole = incoming.activeRole.toUpperCase() as any;
+                incoming.role = incoming.activeRole;
+            }
+            if (Array.isArray(incoming.roles)) {
+                incoming.roles = incoming.roles.map((entry: any) => String(entry).toUpperCase() as any);
+            }
+
+            if (!prev) return incoming;
+
+            const sameIdentity = String(prev.id || '') === String(incoming.id || '')
+                && String(prev.email || '').toLowerCase() === String(incoming.email || '').toLowerCase();
+
+            if (!sameIdentity) {
+                return incoming;
+            }
+
+            const updated = { ...prev, ...incoming };
             if (typeof updated.role === 'string') {
-                updated.role = updated.role.toUpperCase();
+                updated.role = updated.role.toUpperCase() as any;
             }
             if (typeof updated.activeRole === 'string') {
                 updated.activeRole = updated.activeRole.toUpperCase() as any;

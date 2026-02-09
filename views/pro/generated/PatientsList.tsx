@@ -1,21 +1,36 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { ChevronLeft, Search, Filter, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle } from 'lucide-react';
+import { Search, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 
 export default function PatientsList() {
-  const { go, back } = useGuardiaoFlow();
+  const { go, state, selectPatient } = useGuardiaoFlow();
 
-  // Mock Data (matches "Meu Jardim" concept)
-  const patients = [
-      { id: 1, name: 'Ana Silva', sessions: 12, mood: 'Ansioso', progress: 45, nextSession: 'Hoje' },
-      { id: 2, name: 'Carlos Luz', sessions: 4, mood: 'Estável', progress: 40, nextSession: '18/Mai' },
-      { id: 3, name: 'Beatriz Sol', sessions: 28, mood: 'Sereno', progress: 95, nextSession: '15/Mai' },
-      { id: 4, name: 'João Terra', sessions: 1, mood: 'Reflexivo', progress: 15, nextSession: '20/Mai' },
-  ];
+  const patients = useMemo(() => {
+      const map = new Map<string, any>();
+      for (const appointment of state.data.appointments || []) {
+          const patientId = String((appointment as any).client_id || (appointment as any).clientId || '').trim();
+          if (!patientId) continue;
+          const dateRaw = String((appointment as any).date || '').slice(0, 10);
+          const dateLabel = dateRaw ? new Date(dateRaw).toLocaleDateString('pt-BR') : 'Sem data';
+          const current = map.get(patientId);
+          const sessions = Number(current?.sessions || 0) + 1;
+          const progress = Math.min(100, sessions * 8);
+          const candidate = {
+              id: patientId,
+              name: String((appointment as any).client_name || current?.name || 'Buscador'),
+              sessions,
+              mood: String(current?.mood || 'Em Jornada'),
+              progress,
+              nextSession: dateLabel,
+          };
+          map.set(patientId, candidate);
+      }
+      return Array.from(map.values());
+  }, [state.data.appointments]);
 
-  const criticalPatients = patients.filter(p => p.mood === 'Ansioso' || p.progress < 20);
-  const flourishingPatients = patients.filter(p => !criticalPatients.includes(p));
+  const criticalPatients = patients.filter((patient) => patient.progress < 20);
+  const flourishingPatients = patients.filter((patient) => !criticalPatients.includes(patient));
 
   return (
     <PortalView title="Meu Jardim" subtitle="ALMAS EM JORNADA" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=800">
@@ -26,7 +41,7 @@ export default function PatientsList() {
                <div className="flex justify-between items-end relative z-10">
                    <div>
                        <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-emerald-400 mb-1">Métrica Viva</p>
-                       <h3 className="text-3xl font-serif italic mb-1">32 <span className="text-lg opacity-60 not-italic sans-serif">Almas</span></h3>
+                       <h3 className="text-3xl font-serif italic mb-1">{patients.length} <span className="text-lg opacity-60 not-italic sans-serif">Almas</span></h3>
                        <div className="flex items-center gap-2 mt-2">
                             <Activity size={14} className="text-emerald-400"/>
                             <span className="text-[10px] uppercase font-bold tracking-wider">Vitalidade Média: 78%</span>
@@ -55,7 +70,7 @@ export default function PatientsList() {
                          <Zap size={12} className="fill-rose-500"/> Necessitam de Cuidado
                     </h4>
                     {criticalPatients.map((p) => (
-                        <div key={p.id} onClick={() => go('PATIENT_PROFILE')} className="bg-rose-50/50 p-5 rounded-[2.5rem] border border-rose-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer group animate-in slide-in-from-bottom-2">
+                        <div key={p.id} onClick={() => { selectPatient({ id: String(p.id), name: p.name }); go('PATIENT_PROFILE'); }} className="bg-rose-50/50 p-5 rounded-[2.5rem] border border-rose-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer group animate-in slide-in-from-bottom-2">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-rose-400 relative">
                                     <Flower size={24} />
@@ -79,7 +94,7 @@ export default function PatientsList() {
        <div className="space-y-4 pb-24 px-2">
            <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest pl-2">Florescimento Recente</h4>
            {flourishingPatients.map((p, i) => (
-               <div key={p.id} onClick={() => go('PATIENT_PROFILE')} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm hover:shadow-lg transition-all cursor-pointer group animate-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 100}ms` }}>
+               <div key={p.id} onClick={() => { selectPatient({ id: String(p.id), name: p.name }); go('PATIENT_PROFILE'); }} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm hover:shadow-lg transition-all cursor-pointer group animate-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 100}ms` }}>
                    <div className="flex items-center gap-4">
                        <div className="w-14 h-14 bg-nature-50 rounded-2xl flex items-center justify-center text-nature-400 relative group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
                            <Flower size={24} />
@@ -103,6 +118,11 @@ export default function PatientsList() {
                    </div>
                </div>
            ))}
+           {patients.length === 0 && (
+                <div className="bg-white p-6 rounded-[2rem] border border-nature-100 text-center text-xs text-nature-400">
+                    Ainda não há pacientes vinculados. Assim que houver agendamentos, eles aparecerão aqui automaticamente.
+                </div>
+           )}
         </div>
 
         {/* INVITE BUTTON */}

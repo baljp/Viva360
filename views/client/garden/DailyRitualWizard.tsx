@@ -28,7 +28,7 @@ import { phraseGenerator } from '../../../services/phraseGenerator';
 
 export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, updateUser, onClose }) => {
     const { go } = useBuscadorFlow();
-    const [step, setStep] = useState<'MOOD' | 'CAPTURE' | 'INTENTION' | 'GRATITUDE' | 'CARD' | 'SHARE' | 'NURTURE' | 'TRIBE'>('CAPTURE');
+    const [step, setStep] = useState<'MOOD' | 'CAPTURE' | 'CAPTURE_REVIEW' | 'INTENTION' | 'GRATITUDE' | 'CARD' | 'SHARE' | 'NURTURE' | 'TRIBE'>('CAPTURE');
     const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({ 
         mood: 'SERENO', image: '', intention: '', gratitude: ''
     });
@@ -51,9 +51,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             // For now, update state but logic will show fallback with retry button
         }
         setData({ ...data, image });
-        // Generate placeholder phrases to prevent crash in later steps if they use it
-        // (Though we confirmed SoulCard doesn't crash, it helps logic consistency)
-        setStep('MOOD');
+        setStep('CAPTURE_REVIEW');
     };
 
     const handleIntentionSubmit = () => {
@@ -109,11 +107,11 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     const shareCard = async () => {
         if (!canvasRef.current) return;
         try {
-            const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
+            const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.96);
             const blob = await (await fetch(dataUrl)).blob();
-            const file = new File([blob], 'viva360-ritual.png', { type: 'image/png' });
+            const file = new File([blob], 'viva360-ritual.jpg', { type: 'image/jpeg' });
             
-            if (navigator.share) {
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     title: 'Meu Jardim Interior • Viva360',
                     text: `Hoje eu cuidei do meu jardim interior. 🌿 Viva360`,
@@ -299,50 +297,52 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     const handleNurtureStart = async () => {
         setStep('NURTURE');
-         
-         // 1. Auto-Save to Soul Journal (Invisible)
-         try {
-             await api.journal.create({
-                 date: new Date().toISOString().split('T')[0],
-                 mood: data.mood,
-                 actionIntent: data.intention,
-                 gratitude: data.gratitude
-             });
-         } catch (e) {
-             console.error("Failed to auto-save journal", e);
-         }
 
-         // Calculate rewards
-         const reward = gardenService.calculateWateringReward(user);
-                     // Generate Phrases
-          const phrases = phraseService.getPhrases(data.mood, 'JARDIM');
+        // 1. Auto-Save to Soul Journal (Invisible)
+        try {
+            await api.journal.create({
+                date: new Date().toISOString().split('T')[0],
+                mood: data.mood,
+                actionIntent: data.intention,
+                gratitude: data.gratitude
+            });
+        } catch (e) {
+            console.error("Failed to auto-save journal", e);
+        }
 
-         // Create Snap
-         const newSnap: DailyRitualSnap = {
-             id: Date.now().toString(),
-             date: new Date().toISOString(),
-             image: data.image,
-             mood: data.mood,
-             note: data.intention, // Storing intention as note
-             phrases: phrases 
-         };
+        // Calculate rewards
+        const reward = gardenService.calculateWateringReward(user);
+        const phrases = phraseService.getPhrases(data.mood, 'JARDIM');
 
-         // Snap saved with whispers
+        // Create Snap
+        const newSnap: DailyRitualSnap = {
+            id: Date.now().toString(),
+            date: new Date().toISOString(),
+            image: data.image,
+            mood: data.mood,
+            note: data.intention, // Storing intention as note
+            phrases: phrases
+        };
 
-         // Update User
-         const updatedUser: User = {
-             ...user,
-             lastWateredAt: new Date().toISOString(),
-             plantHealth: Math.min(100, (user.plantHealth || 0) + 15),
-             plantXp: (user.plantXp || 0) + reward.xp,
-             karma: (user.karma || 0) + reward.karma,
-             snaps: [newSnap, ...(user.snaps || [])]
-         };
-         
-         setFinalUser(updatedUser);
+        // Update User
+        const updatedUser: User = {
+            ...user,
+            lastWateredAt: new Date().toISOString(),
+            plantHealth: Math.min(100, (user.plantHealth || 0) + 15),
+            plantXp: (user.plantXp || 0) + reward.xp,
+            karma: (user.karma || 0) + reward.karma,
+            snaps: [newSnap, ...(user.snaps || [])]
+        };
 
-         // API Call
-         await api.users.update(updatedUser);
+        setFinalUser(updatedUser);
+
+        // Persist profile basics and evolution snapshot/event in backend.
+        try {
+            await api.users.update(updatedUser);
+            await api.metamorphosis.checkIn(data.mood, `ritual_${newSnap.id}`, data.image);
+        } catch (error) {
+            console.error("Failed to persist ritual evolution snapshot", error);
+        }
     };
 
     // --- RENDER STEPS ---
@@ -411,6 +411,49 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 <div className="h-[20%] bg-black p-8 text-center flex flex-col items-center justify-center">
                      <p className="text-white/40 text-[9px] font-bold uppercase tracking-[0.3em] mb-4">Mantenha a alma em foco</p>
                      <h3 className="text-white font-serif italic text-lg leading-tight">Este momento é portal para sua cura.</h3>
+                </div>
+            </div>
+        );
+    }
+
+    if (step === 'CAPTURE_REVIEW') {
+        return (
+            <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col animate-in fade-in">
+                <div className="h-[10%] flex items-center justify-between px-8 bg-black/80 relative z-50">
+                    <button onClick={() => setStep('CAPTURE')} className="p-3 rounded-full text-white/70 hover:text-white transition-colors active:scale-90">
+                        <ArrowRight className="rotate-180" size={22} />
+                    </button>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-400">Prévia da Essência</p>
+                    <button onClick={onClose} className="p-3 rounded-full text-white/70 hover:text-white transition-colors active:scale-90">
+                        <X size={22} />
+                    </button>
+                </div>
+
+                <div className="flex-1 p-6 md:p-8 flex items-center justify-center">
+                    <div className="w-full max-w-md aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
+                        {data.image ? (
+                            <img src={data.image} className="w-full h-full object-cover" alt="Prévia do Jardim da Alma" />
+                        ) : (
+                            <div className="w-full h-full bg-black/40 flex items-center justify-center text-white/50 text-sm">
+                                Foto indisponível. Tente novamente.
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="p-6 md:p-8 bg-black/85 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                        onClick={() => setStep('CAPTURE')}
+                        className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] active:scale-95 transition-all"
+                    >
+                        Refazer Foto
+                    </button>
+                    <button
+                        onClick={() => setStep('MOOD')}
+                        className="w-full py-4 bg-white text-nature-900 rounded-2xl font-bold uppercase tracking-widest text-[11px] active:scale-95 transition-all flex items-center justify-center gap-2"
+                    >
+                        Continuar <ArrowRight size={16} />
+                    </button>
                 </div>
             </div>
         );

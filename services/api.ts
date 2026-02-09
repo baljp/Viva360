@@ -40,6 +40,22 @@ const baseUser = (overrides: Partial<User> & Pick<User, 'id' | 'email' | 'name' 
     corporateBalance: overrides.corporateBalance ?? 0,
     plantStage: overrides.plantStage || 'seed',
     plantXp: overrides.plantXp ?? 0,
+    plantHealth: overrides.plantHealth ?? 100,
+    plantType: overrides.plantType,
+    journeyType: overrides.journeyType,
+    lastCheckIn: overrides.lastCheckIn,
+    lastWateredAt: overrides.lastWateredAt,
+    lastBlessingAt: overrides.lastBlessingAt,
+    lastMood: overrides.lastMood,
+    wateredBy: overrides.wateredBy || [],
+    intention: overrides.intention,
+    constellation: overrides.constellation || [],
+    favorites: overrides.favorites || [],
+    rating: overrides.rating,
+    reviewCount: overrides.reviewCount,
+    ritualsCompleted: overrides.ritualsCompleted,
+    tribeInteractions: overrides.tribeInteractions,
+    curationSessions: overrides.curationSessions,
     snaps: overrides.snaps || [],
 });
 
@@ -291,6 +307,18 @@ const decodeJwtPayload = (token: string): any | null => {
 const normalizeProfilePayload = (input: any): User => {
     const role = normalizeRole(input?.role || input?.active_role || input?.activeRole || UserRole.CLIENT);
     const roles = normalizeRoleList(Array.isArray(input?.roles) ? input.roles : [role]);
+    const snaps = Array.isArray(input?.snaps)
+        ? input.snaps
+            .map((entry: any) => ({
+                id: String(entry?.id || ''),
+                date: String(entry?.date || entry?.timestamp || new Date().toISOString()),
+                image: String(entry?.image || entry?.photoThumb || entry?.thumb || ''),
+                mood: String(entry?.mood || 'SERENO') as any,
+                note: String(entry?.note || entry?.reflection || entry?.quote || ''),
+                phrases: Array.isArray(entry?.phrases) ? entry.phrases : [],
+            }))
+            .filter((entry: any) => entry.id && entry.image)
+        : [];
     return baseUser({
         id: String(input?.id || ''),
         email: String(input?.email || ''),
@@ -306,10 +334,47 @@ const normalizeProfilePayload = (input: any): User => {
         corporateBalance: Number(input?.corporateBalance ?? input?.corporate_balance ?? 0),
         plantStage: String(input?.plantStage || input?.plant_stage || 'seed') as any,
         plantXp: Number(input?.plantXp ?? input?.plant_xp ?? 0),
+        plantHealth: Number(input?.plantHealth ?? input?.plant_health ?? 100),
         lastCheckIn: input?.lastCheckIn || input?.last_check_in || undefined,
+        lastWateredAt: input?.lastWateredAt || input?.last_watered_at || undefined,
+        lastBlessingAt: input?.lastBlessingAt || input?.last_blessing_at || undefined,
+        lastMood: input?.lastMood || input?.last_mood || undefined,
         bio: input?.bio || undefined,
         location: input?.location || undefined,
+        snaps,
     });
+};
+
+const hydrateUserFromProfileApi = async (base: User): Promise<User> => {
+    const userId = String(base?.id || '').trim();
+    if (!userId) return base;
+
+    try {
+        const profilePayload = await request(`/users/${userId}`, {
+            purpose: 'session-hydration',
+            timeoutMs: 7000,
+            retries: 1,
+        });
+        const hydrated = normalizeProfilePayload(profilePayload || {});
+        const merged: User = {
+            ...base,
+            ...hydrated,
+            role: normalizeRole(base.activeRole || base.role || hydrated.activeRole || hydrated.role),
+            activeRole: normalizeRole(base.activeRole || base.role || hydrated.activeRole || hydrated.role),
+            roles: normalizeRoleList([
+                ...(base.roles || []),
+                ...(hydrated.roles || []),
+                base.activeRole || base.role,
+                hydrated.activeRole || hydrated.role,
+            ]),
+        };
+        if (!merged.roles || merged.roles.length === 0) {
+            merged.roles = [merged.activeRole || merged.role];
+        }
+        return merged;
+    } catch {
+        return base;
+    }
 };
 
 type OracleCachedEntry = {
@@ -700,7 +765,7 @@ export const api = {
                     promoteToRealSession(session.access_token);
                     localStorage.removeItem(OAUTH_INTENT_KEY);
                     localStorage.removeItem(OAUTH_ROLE_KEY);
-                    return baseUser({
+                    return hydrateUserFromProfileApi(baseUser({
                         id: session.user.id,
                         email: sessionEmail,
                         name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Viajante',
@@ -708,7 +773,7 @@ export const api = {
                         activeRole: resolvedRole,
                         roles: resolvedRoles,
                         avatar: session.user.user_metadata.avatar_url || '',
-                    });
+                    }));
                 }
             } catch (err: any) {
                 if (err?.message?.includes('não corresponde') || err?.message?.includes('Conta não autorizada')) {
@@ -733,7 +798,7 @@ export const api = {
                 setSessionMode('real');
             }
 
-            return baseUser({
+            return hydrateUserFromProfileApi(baseUser({
                 id: payload.userId || payload.sub || `user_${hashString(payload.email).slice(0, 8)}`,
                 email: payload.email,
                 name: payload.name || payload.email.split('@')[0] || 'Viajante',
@@ -741,7 +806,7 @@ export const api = {
                 activeRole: normalizeRole(payload.activeRole || payload.role || inferRoleFromEmail(payload.email)),
                 roles: normalizeRoleList(Array.isArray(payload.roles) ? payload.roles : [payload.activeRole || payload.role || inferRoleFromEmail(payload.email)]),
                 avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${payload.email}`,
-            });
+            }));
         },
         logout: async () => {
             try {
@@ -919,6 +984,12 @@ export const api = {
             } catch {
                 return record;
             }
+        },
+        update: async (recordId: string, patch: { content?: string; type?: 'anamnesis' | 'session' }) => {
+            return await request(`/records/${recordId}`, {
+                method: 'PATCH',
+                body: JSON.stringify(patch),
+            });
         }
     },
     appointments: {
@@ -1425,10 +1496,18 @@ export const api = {
     metamorphosis: {
         checkIn: async (mood: string, hash: string, thumb: string) => {
             try {
-                return await request('/metamorphosis/checkin', {
+                const response = await request('/metamorphosis/checkin', {
                     method: 'POST',
-                    body: JSON.stringify({ mood, hash, thumb })
+                    body: JSON.stringify({
+                        mood,
+                        photoHash: hash,
+                        photoThumb: thumb,
+                        // Backward compatibility with older backend payload contracts
+                        hash,
+                        thumb,
+                    })
                 });
+                return response?.entry || response;
             } catch {
                 return { id: Date.now(), mood, photoThumb: thumb };
             }

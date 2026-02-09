@@ -15,8 +15,8 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string, type?
   const Icon = config.icon;
 
   return (
-    <div className="fixed top-[calc(env(safe-area-inset-top)+1rem)] left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-[350px] animate-in slide-in-from-top-10 fade-in duration-500 pointer-events-none">
-      <div className={`${config.bg} backdrop-blur-xl border p-4 rounded-[2rem] shadow-2xl flex items-center text-left gap-4 pointer-events-auto border-white/50 relative overflow-hidden group min-h-[80px]`}>
+    <div className="fixed top-[max(env(safe-area-inset-top),0.75rem)] sm:top-[calc(env(safe-area-inset-top)+1rem)] left-1/2 -translate-x-1/2 z-[1000] w-[92vw] sm:w-[90%] max-w-[360px] animate-in slide-in-from-top-10 fade-in duration-500 pointer-events-none px-1">
+      <div className={`${config.bg} backdrop-blur-xl border p-4 rounded-[2rem] shadow-2xl flex items-center text-left gap-3 pointer-events-auto border-white/50 relative overflow-hidden group min-h-[84px]`}>
         <div className="absolute top-0 right-0 w-24 h-24 bg-white/30 rounded-full blur-2xl -translate-y-1/3 translate-x-1/3"></div>
         
         <div className={`w-10 h-10 ${config.iconBg} rounded-xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform`}>
@@ -25,7 +25,7 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string, type?
         
         <div className="flex-1 min-w-0 pr-6">
           <h4 className="font-serif italic text-sm text-nature-900 leading-tight mb-0.5">{toast.title}</h4>
-          <p className="text-[10px] font-bold text-nature-500 uppercase tracking-wide leading-tight line-clamp-2">{toast.message}</p>
+          <p className="text-[11px] font-medium text-nature-600 leading-snug break-words line-clamp-3">{toast.message}</p>
         </div>
 
         <button onClick={onClose} className="absolute top-3 right-3 text-nature-300 hover:text-nature-900 transition-colors p-1 bg-white/20 rounded-full hover:bg-white/40"><X size={14}/></button>
