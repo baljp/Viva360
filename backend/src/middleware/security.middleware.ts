@@ -1,4 +1,33 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../lib/logger';
+
+const WAF_PATTERNS: { id: string; regex: RegExp }[] = [
+    { id: 'xss_script', regex: /<script\b[^>]*>/i },
+    { id: 'xss_handler', regex: /\bon\w+\s*=\s*["']/i },
+    { id: 'sqli_union', regex: /\bunion\s+all?\s+select\b/i },
+    { id: 'sqli_or_true', regex: /\bor\s+['"]?\d+['"]?\s*=\s*['"]?\d+['"]?/i },
+    { id: 'sqli_drop', regex: /\b(drop|truncate|alter)\s+table\b/i },
+];
+
+const flattenPayload = (value: unknown): string => {
+    if (value == null) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    if (Array.isArray(value)) return value.map(flattenPayload).join(' ');
+    if (typeof value === 'object') {
+        return Object.values(value as Record<string, unknown>).map(flattenPayload).join(' ');
+    }
+    return '';
+};
+
+export const detectMaliciousPayload = (payload: string): string | null => {
+    for (const pattern of WAF_PATTERNS) {
+        if (pattern.regex.test(payload)) {
+            return pattern.id;
+        }
+    }
+    return null;
+};
 
 export const securityHardening = (req: Request, res: Response, next: NextFunction) => {
     // 1. OWASP Compliance Headers
@@ -10,24 +39,24 @@ export const securityHardening = (req: Request, res: Response, next: NextFunctio
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
-    // 2. Simple WAF Simulation (Detecting common attacks)
-    const maliciousPatterns = [
-        /<script\b/i,
-        /\bunion\s+select\b/i,
-        /\bor\s+1\s*=\s*1\b/i,
-        /\bdrop\s+table\b/i,
-        /(?:--|#|\/\*)\s*(?:$|\r|\n)/i,
-    ];
-
-    const sources: unknown[] = [req.body, req.query, req.params];
-    const payload = sources
-        .map((value) => (typeof value === 'string' ? value : JSON.stringify(value ?? '')))
+    // 2. Focused WAF checks tuned to reduce false positives.
+    const payload = [req.body, req.query, req.params]
+        .map((source) => flattenPayload(source))
         .join(' ')
         .slice(0, 5000);
 
-    if (maliciousPatterns.some((pattern) => pattern.test(payload))) {
-        console.warn(`🛑 [WAF ALERT] Malicious pattern detected from IP ${req.ip}. Payload: ${payload}`);
-        return res.status(403).json({ error: 'Security Breach Blocked' });
+    const blockedBy = detectMaliciousPayload(payload);
+    if (blockedBy) {
+        logger.warn('waf_blocked', {
+            requestId: req.requestId,
+            ip: req.ip,
+            route: req.originalUrl || req.url,
+            blockedBy,
+        });
+        return res.status(403).json({
+            error: 'Forbidden',
+            reason: 'WAF_BLOCKED',
+        });
     }
 
     next();

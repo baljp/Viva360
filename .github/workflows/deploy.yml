@@ -60,5 +60,8 @@ jobs:
           URL="${{ steps.deploy.outputs.url }}"
           echo "Testing $URL"
           curl -fsS "$URL/" > /dev/null
-          curl -fsS "$URL/api/ping" > /dev/null
+          curl -fsS "$URL/client/home" > /dev/null
+          curl -fsS -D /tmp/ping_headers.txt "$URL/api/ping" > /dev/null
+          grep -qi "x-request-id" /tmp/ping_headers.txt
           curl -fsS "$URL/api/health" > /dev/null
+          test "$(curl -s -o /dev/null -w "%{http_code}" "$URL/api/does-not-exist")" = "404"
