@@ -55,8 +55,8 @@ export class AuthService {
 
   // Login
   static async login(email: string, password: string) {
-
-    const user = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user || !user.encrypted_password) {
       throw new Error('Invalid credentials');
     }
@@ -71,11 +71,12 @@ export class AuthService {
 
   // Helper: Generate Session Response
   private static generateSession(user: any) {
+    const role = String(user.role || user.profile?.role || 'CLIENT').toUpperCase();
     const token = jwt.sign(
       { 
         userId: user.id, 
         email: user.email, 
-        role: 'CLIENT' // We might need to fetch role from profile 
+        role
       }, 
       JWT_SECRET, 
       { expiresIn: '1h' }
@@ -85,6 +86,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        role,
       },
       session: {
         access_token: token,
