@@ -35,8 +35,9 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const CheckoutController = __importStar(require("../controllers/checkout.controller"));
+const role_middleware_1 = require("../middleware/role.middleware");
 const router = (0, express_1.Router)();
 const validate_middleware_1 = require("../middleware/validate.middleware");
 const checkout_schema_1 = require("../schemas/checkout.schema");
-router.post('/pay', (0, validate_middleware_1.validate)(checkout_schema_1.checkoutSchema), CheckoutController.processPayment);
+router.post('/pay', (0, role_middleware_1.requireRoles)('CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN'), (0, validate_middleware_1.validate)(checkout_schema_1.checkoutSchema), CheckoutController.processPayment);
 exports.default = router;

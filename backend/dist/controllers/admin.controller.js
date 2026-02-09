@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getSystemHealth = exports.getLgpdAudit = exports.getGlobalFinance = exports.getMarketplaceOffers = exports.getSanctuaryMetrics = exports.getGuardianMetrics = exports.getSeekerMetrics = exports.blockUser = exports.listUsers = exports.getDashboard = void 0;
+exports.getSystemHealth = exports.getLgpdAudit = exports.getGlobalFinance = exports.getMarketplaceOffers = exports.getMetrics = exports.getSanctuaryMetrics = exports.getGuardianMetrics = exports.getSeekerMetrics = exports.blockUser = exports.listUsers = exports.getDashboard = void 0;
 const audit_service_1 = require("../services/audit.service");
 const async_middleware_1 = require("../middleware/async.middleware");
 // 1. Overview
@@ -28,7 +28,7 @@ exports.listUsers = (0, async_middleware_1.asyncHandler)(async (req, res) => {
     ]);
 });
 exports.blockUser = (0, async_middleware_1.asyncHandler)(async (req, res) => {
-    const { userId } = req.params;
+    const userId = req.params.id;
     await audit_service_1.AuditService.logAccess(req.body.adminId, `user:${userId}`, 'BLOCK_USER', 'SUCCESS');
     res.json({ success: true, message: `User ${userId} blocked successfully.` });
 });
@@ -43,6 +43,13 @@ exports.getGuardianMetrics = (0, async_middleware_1.asyncHandler)(async (req, re
 // 5. Sanctuaries (Metrics)
 exports.getSanctuaryMetrics = (0, async_middleware_1.asyncHandler)(async (req, res) => {
     res.json({ total: 50, eventsActive: 120, avgRevenue: 15000 });
+});
+exports.getMetrics = (0, async_middleware_1.asyncHandler)(async (req, res) => {
+    res.json({
+        seekers: { total: 12000, activeMonthly: 8500, avgSessions: 2.4 },
+        guardians: { total: 500, avgOccupancy: '85%', avgRating: 4.8 },
+        sanctuaries: { total: 50, eventsActive: 120, avgRevenue: 15000 },
+    });
 });
 // 6. Marketplace (Moderation)
 exports.getMarketplaceOffers = (0, async_middleware_1.asyncHandler)(async (req, res) => {

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
 import { supabaseAdmin } from '../services/supabase.service';
+import prisma from '../lib/prisma';
 
 // Extend Express Request type to include user
 declare global {
@@ -45,11 +46,23 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
 
     if (!error && data.user) {
       const userId = normalizeUserId(data.user.id);
+      let role = String(data.user.user_metadata?.role || '').trim().toUpperCase();
+      if (!role) {
+        try {
+          const profile = await prisma.profile.findUnique({
+            where: { id: userId },
+            select: { role: true },
+          });
+          role = String(profile?.role || '').trim().toUpperCase() || 'CLIENT';
+        } catch {
+          role = 'CLIENT';
+        }
+      }
       req.user = {
         id: userId,
         userId,
         email: data.user.email,
-        role: data.user.user_metadata?.role || 'CLIENT',
+        role,
       };
       return next();
     }

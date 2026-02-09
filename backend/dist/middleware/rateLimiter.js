@@ -8,8 +8,9 @@ const rateLimiter = async (req, res, next) => {
     // Enterprise Configuration
     const waitWindow = 5; // 5 seconds
     const limit = 10000; // Stress test limit
-    // Bypass for Stress Testing (Localhost)
-    if (ip === '::1' || ip === '127.0.0.1' || req.headers['user-agent']?.includes('axios')) {
+    const isProd = process.env.NODE_ENV === 'production';
+    // Bypass only for local dev/testing (not in production)
+    if (!isProd && (ip === '::1' || ip === '127.0.0.1')) {
         return next();
     }
     try {

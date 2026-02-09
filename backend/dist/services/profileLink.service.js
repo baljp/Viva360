@@ -161,6 +161,28 @@ class ProfileLinkService {
             type: link.type,
         });
     }
+    async rejectLink(linkId, rejectorId) {
+        const link = await prisma_1.default.profileLink.findUnique({
+            where: { id: linkId },
+        });
+        if (!link) {
+            throw new Error('Link not found');
+        }
+        if (link.target_id !== rejectorId) {
+            throw new Error('Not authorized to reject this link');
+        }
+        if (link.status !== 'pending') {
+            throw new Error('Link is not pending');
+        }
+        const updated = await prisma_1.default.profileLink.update({
+            where: { id: linkId },
+            data: { status: 'rejected' },
+        });
+        await audit_service_1.auditService.log(rejectorId, 'link.rejected', 'profile_link', linkId, {
+            type: link.type,
+        });
+        return updated;
+    }
 }
 exports.ProfileLinkService = ProfileLinkService;
 exports.profileLinkService = new ProfileLinkService();

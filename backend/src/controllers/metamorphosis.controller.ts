@@ -71,7 +71,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     }
 
     // ASYNC
-    logsQueue.add('emotional_log', entry).catch(err => console.error('Queue Error:', err));
+    logsQueue.add('emotional_log', entry).catch((err: unknown) => console.error('Queue Error:', err));
 
     return res.json({ success: true, entry });
 });

@@ -36,8 +36,9 @@ exports.createNote = (0, async_middleware_1.asyncHandler)(async (req, res) => {
 });
 exports.listNotes = (0, async_middleware_1.asyncHandler)(async (req, res) => {
     const requestorId = req.user?.userId;
-    const { patientId } = req.query; // If param is missing, assume list OWN records?
-    const targetPatientId = patientId || requestorId;
+    const queryPatientId = req.query?.patientId;
+    const paramPatientId = req.params?.patientId;
+    const targetPatientId = queryPatientId || paramPatientId || requestorId;
     // 2. Permission Check (Mock ACL)
     // LGPD ABSOLUTE RULE: ADMIN CANNOT VIEW RECORDS
     const userRole = req.user?.role; // Assuming middleware populates this

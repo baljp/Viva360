@@ -35,11 +35,12 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const RoomsController = __importStar(require("../controllers/rooms.controller"));
+const role_middleware_1 = require("../middleware/role.middleware");
 const router = (0, express_1.Router)();
 router.get('/', RoomsController.getRealTime);
 router.get('/real-time', RoomsController.getRealTime);
 router.get('/analytics', RoomsController.getAnalytics);
 router.get('/vacancies', RoomsController.listVacancies);
-router.post('/vacancies', RoomsController.createVacancy);
-router.patch('/:id/status', RoomsController.updateStatus);
+router.post('/vacancies', (0, role_middleware_1.requireRoles)('SPACE', 'ADMIN'), RoomsController.createVacancy);
+router.patch('/:id/status', (0, role_middleware_1.requireRoles)('SPACE', 'ADMIN'), RoomsController.updateStatus);
 exports.default = router;

@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getEvolution = exports.checkIn = void 0;
 const determinism_1 = require("../lib/determinism");
-const queue_1 = require("../queue");
+const queue_1 = require("../lib/queue");
 const supabase_service_1 = require("../services/supabase.service");
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const cloudinary_service_1 = require("../services/cloudinary.service");
@@ -66,7 +66,7 @@ exports.checkIn = (0, async_middleware_1.asyncHandler)(async (req, res) => {
         });
     }
     // ASYNC
-    queue_1.logsQueue.add('emotional_log', entry).catch(err => console.error('Queue Error:', err));
+    queue_1.logsQueue.add('emotional_log', entry).catch((err) => console.error('Queue Error:', err));
     return res.json({ success: true, entry });
 });
 exports.getEvolution = (0, async_middleware_1.asyncHandler)(async (req, res) => {

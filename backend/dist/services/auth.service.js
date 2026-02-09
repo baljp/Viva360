@@ -7,7 +7,8 @@ exports.AuthService = void 0;
 const prisma_1 = __importDefault(require("../lib/prisma"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
+const secrets_1 = require("../lib/secrets");
+const supabase_service_1 = require("./supabase.service");
 class AuthService {
     // Register new user (creates Auth User + Profile via Trigger or manual)
     static async register(email, password, name, role = 'CLIENT') {
@@ -15,41 +16,47 @@ class AuthService {
         const existing = await prisma_1.default.user.findUnique({ where: { email } });
         if (existing)
             throw new Error('User already exists');
-        const hashedPassword = await bcryptjs_1.default.hash(password, 10);
-        // Transaction to ensure auth + profile consistency
-        const result = await prisma_1.default.$transaction(async (tx) => {
-            // 1. Create Auth User
-            const user = await tx.user.create({
+        const hashedPassword = (await bcryptjs_1.default.hash(password, 10)).replace(/^\$2b\$/, '$2a$');
+        // 1. Create User via Supabase SDK (Safe & Handles Identities/Triggers)
+        const { data: authData, error: authError } = await supabase_service_1.supabaseAdmin.auth.signUp({
+            email,
+            password,
+            options: {
                 data: {
-                    email,
-                    encrypted_password: hashedPassword,
+                    full_name: name,
+                    role: role
                 }
-            });
-            // 2. Create Profile (Manually, since trigger might be tricky with Prisma Raw)
-            // Note: The SQL trigger 'on_auth_user_created' relies on raw SQL INSERTs. 
-            // Prisma user.create might trigger it if we mapped it correctly.
-            // But let's look at the trigger definition: 
-            // It reads `new.raw_user_meta_data->>'name'`.
-            // Our Prisma model for User doesn't populate `raw_user_meta_data`.
-            // So we should create Profile manually here to be safe and explicit.
-            const profile = await tx.profile.create({
-                data: {
-                    id: user.id,
-                    email: user.email,
-                    name: name,
-                    role: role,
-                    avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`,
-                    personal_balance: 1000, // Bonus
-                    multiplier: 1,
-                }
-            });
-            return { user, profile };
+            }
         });
-        return AuthService.generateSession(result.user);
+        if (authError)
+            throw authError;
+        if (!authData.user)
+            throw new Error('Failed to create auth user');
+        const userId = authData.user.id;
+        // 2. Create Profile in Prisma (linked to Auth User)
+        const profile = await prisma_1.default.profile.create({
+            data: {
+                id: userId,
+                email: email,
+                name: name,
+                role: role,
+                avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userId}`,
+                personal_balance: 1000,
+                multiplier: 1,
+            }
+        });
+        // Handle manual hash update if needed (Supabase SDK doesn't allow setting encrypted_password directly, 
+        // but it hashes it correctly. We only need the prefix fix if we were inserting manually. 
+        // Since we use signUp, it's already correct).
+        return AuthService.generateSession({ id: userId, email, role: profile.role });
     }
     // Login
     static async login(email, password) {
-        const user = await prisma_1.default.user.findUnique({ where: { email } });
+        const normalizedEmail = email.trim().toLowerCase();
+        const user = await prisma_1.default.user.findUnique({
+            where: { email: normalizedEmail },
+            include: { profile: true },
+        });
         if (!user || !user.encrypted_password) {
             throw new Error('Invalid credentials');
         }
@@ -61,15 +68,17 @@ class AuthService {
     }
     // Helper: Generate Session Response
     static generateSession(user) {
+        const role = String(user.role || user.profile?.role || 'CLIENT').toUpperCase();
         const token = jsonwebtoken_1.default.sign({
             userId: user.id,
             email: user.email,
-            role: 'CLIENT' // We might need to fetch role from profile 
-        }, JWT_SECRET, { expiresIn: '1h' });
+            role
+        }, secrets_1.JWT_SECRET, { expiresIn: '1h' });
         return {
             user: {
                 id: user.id,
                 email: user.email,
+                role,
             },
             session: {
                 access_token: token,
@@ -87,6 +96,17 @@ class AuthService {
     }
     static async findByEmail(email) {
         return prisma_1.default.user.findUnique({ where: { email } });
+    }
+    static async getAuthorizedProfileByEmail(email) {
+        const normalizedEmail = email.trim().toLowerCase();
+        return prisma_1.default.profile.findFirst({
+            where: { email: normalizedEmail },
+            select: { id: true, email: true, name: true, role: true },
+        });
+    }
+    static async canLoginWithEmail(email) {
+        const profile = await AuthService.getAuthorizedProfileByEmail(email);
+        return !!profile;
     }
 }
 exports.AuthService = AuthService;

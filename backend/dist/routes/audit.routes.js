@@ -34,9 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const NotificationsController = __importStar(require("../controllers/notifications.controller"));
+const AuditController = __importStar(require("../controllers/audit.controller"));
 const router = (0, express_1.Router)();
-router.get('/', NotificationsController.list);
-router.post('/:id/read', NotificationsController.markAsRead);
-router.post('/read-all', NotificationsController.markAllAsRead);
+router.get('/logs', AuditController.listLogs);
 exports.default = router;

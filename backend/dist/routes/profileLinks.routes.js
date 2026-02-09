@@ -31,6 +31,17 @@ router.post('/:id/accept', auth_middleware_1.authenticateUser, async (req, res) 
         res.status(400).json({ error: error.message });
     }
 });
+router.post('/:id/reject', auth_middleware_1.authenticateUser, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const rejectorId = req.user.id;
+        const link = await profileLink_service_1.profileLinkService.rejectLink(id, rejectorId);
+        res.json(link);
+    }
+    catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
 // Get links for current user
 router.get('/me', auth_middleware_1.authenticateUser, async (req, res) => {
     try {

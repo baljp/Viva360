@@ -50,13 +50,16 @@ export class AuthService {
     // but it hashes it correctly. We only need the prefix fix if we were inserting manually. 
     // Since we use signUp, it's already correct).
     
-    return AuthService.generateSession({ id: userId, email });
+    return AuthService.generateSession({ id: userId, email, role: profile.role });
   }
 
   // Login
   static async login(email: string, password: string) {
     const normalizedEmail = email.trim().toLowerCase();
-    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    const user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      include: { profile: true },
+    });
     if (!user || !user.encrypted_password) {
       throw new Error('Invalid credentials');
     }
@@ -108,16 +111,16 @@ export class AuthService {
     return prisma.user.findUnique({ where: { email } });
   }
 
-  static async canLoginWithEmail(email: string) {
+  static async getAuthorizedProfileByEmail(email: string) {
     const normalizedEmail = email.trim().toLowerCase();
-    const authUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (authUser) return true;
-
-    const profile = await prisma.profile.findFirst({
+    return prisma.profile.findFirst({
       where: { email: normalizedEmail },
-      select: { id: true },
+      select: { id: true, email: true, name: true, role: true },
     });
+  }
 
+  static async canLoginWithEmail(email: string) {
+    const profile = await AuthService.getAuthorizedProfileByEmail(email);
     return !!profile;
   }
 }
