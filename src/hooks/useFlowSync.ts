@@ -13,6 +13,7 @@ export const useFlowSync = (
     const navigate = useNavigate();
     const pendingNavigationRef = useRef<{ fromPath: string; toPath: string; at: number } | null>(null);
     const previousPathRef = useRef(location.pathname);
+    const hydrationAlignedRef = useRef(false);
 
     const getFallbackPath = (state: string) => `${baseRoute}/${String(state).toLowerCase().replace(/_/g, '-')}`;
     const pathChanged = previousPathRef.current !== location.pathname;
@@ -27,6 +28,17 @@ export const useFlowSync = (
         const targetPath = hasCanonicalMap ? stateToRouteMap?.[currentState] : fallbackPath;
         if (!targetPath) return;
         const routeTargetState = targetMap[viewState];
+        const initialMismatch =
+            !hydrationAlignedRef.current &&
+            !!routeTargetState &&
+            routeTargetState !== currentState;
+
+        // During hydration, prefer current route and let Router -> Flow align first.
+        if (initialMismatch) {
+            hydrationAlignedRef.current = true;
+            return;
+        }
+
         if (pathChanged && routeTargetState && routeTargetState !== currentState) {
             return;
         }
@@ -34,6 +46,7 @@ export const useFlowSync = (
             pendingNavigationRef.current = { fromPath: location.pathname, toPath: targetPath, at: Date.now() };
             navigate(targetPath, { replace: true });
         }
+        hydrationAlignedRef.current = true;
     }, [flow.state.currentState, baseRoute, navigate, stateToRouteMap, location.pathname, targetMap, viewState, pathChanged]);
 
     // Sync Router View -> Flow State (Deep Linking)

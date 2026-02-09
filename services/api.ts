@@ -836,7 +836,7 @@ export const api = {
             amount: number,
             description: string,
             providerId?: string,
-            opts?: { contextType?: 'BAZAR' | 'TRIBO' | 'RECRUTAMENTO' | 'ESCAMBO' | 'AGENDA' | 'GERAL'; items?: Array<{ id: string; price?: number; type?: string }> }
+            opts?: { contextType?: 'BAZAR' | 'TRIBO' | 'RECRUTAMENTO' | 'ESCAMBO' | 'AGENDA' | 'GERAL'; contextRef?: string; items?: Array<{ id: string; price?: number; type?: string }> }
         ) => {
             return await request('/checkout/pay', {
                 method: 'POST',
@@ -846,6 +846,7 @@ export const api = {
                     description,
                     receiverId: providerId,
                     contextType: opts?.contextType || 'GERAL',
+                    contextRef: opts?.contextRef,
                     items: opts?.items || [],
                 })
             });
@@ -939,6 +940,18 @@ export const api = {
             } catch {
                 return apt;
             }
+        },
+        reschedule: async (appointmentId: string, data: { date: string; time: string; service_name?: string }) => {
+            return await request(`/appointments/${appointmentId}/reschedule`, {
+                method: 'PATCH',
+                body: JSON.stringify(data)
+            });
+        },
+        cancel: async (appointmentId: string, reason?: string) => {
+            return await request(`/appointments/${appointmentId}/cancel`, {
+                method: 'PATCH',
+                body: JSON.stringify({ reason })
+            });
         }
     },
     reviews: {
@@ -1052,6 +1065,73 @@ export const api = {
             } catch {
                 return { success: false };
             }
+        },
+        invite: async (payload: { email: string; inviteType?: 'TEAM' | 'COMMUNITY' | 'JOB'; targetRole?: UserRole; contextRef?: string; expiresInHours?: number }) => {
+            return await request('/tribe/invite', {
+                method: 'POST',
+                body: JSON.stringify(payload),
+            });
+        },
+        respondInvite: async (inviteId: string, decision: 'ACCEPT' | 'REJECT') => {
+            return await request(`/tribe/invites/${inviteId}/respond`, {
+                method: 'POST',
+                body: JSON.stringify({ decision }),
+            });
+        }
+    },
+    recruitment: {
+        listApplications: async (scope: 'candidate' | 'space' = 'candidate') => {
+            return await request(`/recruitment/applications?scope=${scope}`);
+        },
+        apply: async (vacancyId: string, notes?: string) => {
+            return await request('/recruitment/applications', {
+                method: 'POST',
+                body: JSON.stringify({ vacancyId, notes }),
+            });
+        },
+        scheduleInterview: async (applicationId: string, payload: { scheduledFor: string; guardianId?: string }) => {
+            return await request(`/recruitment/applications/${applicationId}/interview`, {
+                method: 'POST',
+                body: JSON.stringify(payload),
+            });
+        },
+        respondInterview: async (interviewId: string, decision: 'ACCEPT' | 'DECLINE', note?: string) => {
+            return await request(`/recruitment/interviews/${interviewId}/respond`, {
+                method: 'POST',
+                body: JSON.stringify({ decision, note }),
+            });
+        },
+        decideApplication: async (applicationId: string, decision: 'HIRED' | 'REJECTED', note?: string) => {
+            return await request(`/recruitment/applications/${applicationId}/decision`, {
+                method: 'POST',
+                body: JSON.stringify({ decision, note }),
+            });
+        },
+    },
+    alchemy: {
+        createOffer: async (payload: { requesterId: string; description?: string }) => {
+            return await request('/alchemy/offers', {
+                method: 'POST',
+                body: JSON.stringify(payload),
+            });
+        },
+        listOffers: async () => {
+            return await request('/alchemy/offers');
+        },
+        acceptOffer: async (offerId: string) => {
+            return await request(`/alchemy/offers/${offerId}/accept`, { method: 'POST' });
+        },
+        rejectOffer: async (offerId: string) => {
+            return await request(`/alchemy/offers/${offerId}/reject`, { method: 'POST' });
+        },
+        counterOffer: async (offerId: string, counterOffer: string) => {
+            return await request(`/alchemy/offers/${offerId}/counter`, {
+                method: 'POST',
+                body: JSON.stringify({ counterOffer }),
+            });
+        },
+        completeOffer: async (offerId: string) => {
+            return await request(`/alchemy/offers/${offerId}/complete`, { method: 'POST' });
         }
     },
     spaces: {
@@ -1467,9 +1547,13 @@ export const api = {
         }
     },
     chat: {
-        listRooms: async () => {
+        listRooms: async (filters?: { contextType?: string; contextId?: string }) => {
             try {
-                return await request('/chat/rooms');
+                const query = new URLSearchParams();
+                if (filters?.contextType) query.set('contextType', filters.contextType);
+                if (filters?.contextId) query.set('contextId', filters.contextId);
+                const suffix = query.toString() ? `?${query.toString()}` : '';
+                return await request(`/chat/rooms${suffix}`);
             } catch {
                 return [];
             }

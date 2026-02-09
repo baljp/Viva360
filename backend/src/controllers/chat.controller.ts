@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { chatService } from '../services/chat.service';
+import { interactionReceiptService } from '../services/interactionReceipt.service';
 
 export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   const senderId = (req as any).user?.userId;
@@ -11,8 +12,24 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
   }
   const chat = await chatService.getOrCreateChat(senderId, receiverId);
   const msg = await chatService.sendMessage(chat.id, senderId, content);
+  const actionReceipt = await interactionReceiptService.upsert({
+    entityType: 'CHAT',
+    entityId: chat.id,
+    action: 'SEND_MESSAGE',
+    actorId: senderId,
+    status: 'COMPLETED',
+    nextStep: 'AWAIT_REPLY',
+    requestId: req.requestId,
+    payload: {
+      messageId: msg.id,
+      receiverId,
+    },
+  });
   
-  return res.json(msg);
+  return res.json({
+    ...msg,
+    actionReceipt,
+  });
 });
 
 export const getHistory = asyncHandler(async (req: Request, res: Response) => {
@@ -30,7 +47,12 @@ export const getHistory = asyncHandler(async (req: Request, res: Response) => {
 
 export const listRooms = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
-  const rooms = await chatService.getChatsForProfile(userId);
+  const contextType = typeof req.query.contextType === 'string' ? req.query.contextType : '';
+  const contextId = typeof req.query.contextId === 'string' ? req.query.contextId : '';
+  const rooms = await chatService.getChatsForProfile(userId, {
+    contextType,
+    contextId,
+  });
   return res.json(rooms);
 });
 
@@ -47,5 +69,20 @@ export const sendRoomMessage = asyncHandler(async (req: Request, res: Response) 
 
   if (!content) return res.status(400).json({ error: 'content is required' });
   const message = await chatService.sendMessage(roomId, senderId, content);
-  return res.json(message);
+  const actionReceipt = await interactionReceiptService.upsert({
+    entityType: 'CHAT',
+    entityId: roomId,
+    action: 'SEND_MESSAGE',
+    actorId: senderId,
+    status: 'COMPLETED',
+    nextStep: 'AWAIT_REPLY',
+    requestId: req.requestId,
+    payload: {
+      messageId: message.id,
+    },
+  });
+  return res.json({
+    ...message,
+    actionReceipt,
+  });
 });
