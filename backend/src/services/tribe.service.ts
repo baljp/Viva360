@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { interactionService } from './interaction.service';
 
 export class TribeService {
-    async inviteMember(hubId: string, email: string) {
+    async inviteMember(hubId: string, email: string, options?: { inviteType?: string; targetRole?: string; expiresAt?: Date | null; contextRef?: string | null }) {
 
         // Domain Logic: Only SPACE can invite
         const hub = await tribeRepository.findProfile(hubId);
@@ -16,7 +16,11 @@ export class TribeService {
             hub_id: hubId,
             email,
             token,
-            status: 'pending'
+            status: 'pending',
+            invite_type: String(options?.inviteType || 'TEAM').toUpperCase(),
+            target_role: options?.targetRole ? String(options.targetRole).toUpperCase() : null,
+            expires_at: options?.expiresAt || null,
+            context_ref: options?.contextRef || null,
         });
 
         try {
@@ -46,6 +50,35 @@ export class TribeService {
     async joinTribe(proId: string, vacancyId: string) {
         // Improve: Connect to vacancy logic. For now, simple ack
         return { success: true, message: 'Application received' };
+    }
+
+    async respondInvite(inviteId: string, decision: 'ACCEPT' | 'REJECT', actorEmail?: string) {
+        const invite = await tribeRepository.findInviteById(inviteId);
+        if (!invite) {
+            throw new Error('Invite not found');
+        }
+
+        if (invite.status !== 'pending') {
+            throw new Error('Invite is not pending');
+        }
+
+        if (invite.expires_at && new Date(invite.expires_at).getTime() < Date.now()) {
+            const expired = await tribeRepository.updateInvite(inviteId, {
+                status: 'expired',
+                responded_at: new Date(),
+            });
+            return expired;
+        }
+
+        if (actorEmail && String(invite.email || '').toLowerCase() !== String(actorEmail || '').toLowerCase()) {
+            throw new Error('Invite does not belong to this email');
+        }
+
+        const status = decision === 'ACCEPT' ? 'accepted' : 'rejected';
+        return tribeRepository.updateInvite(inviteId, {
+            status,
+            responded_at: new Date(),
+        });
     }
 }
 
