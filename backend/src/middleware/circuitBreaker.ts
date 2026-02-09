@@ -21,7 +21,14 @@ const circuit: CircuitState = {
     nextAttempt: 0
 };
 
+const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
+const isEnabled = !isServerless || String(process.env.ENABLE_CIRCUIT_BREAKER || '').toLowerCase() === 'true';
+
 export const circuitBreaker = (req: Request, res: Response, next: NextFunction) => {
+    if (!isEnabled) {
+        return next();
+    }
+
     const now = Date.now();
 
     // 1. Check Circuit Status
@@ -37,11 +44,6 @@ export const circuitBreaker = (req: Request, res: Response, next: NextFunction) 
     }
 
     // 2. Wrap Response to monitoring failures
-    const originalJson = res.json;
-    const originalSend = res.send;
-
-    let failed = false;
-
     res.on('finish', () => {
         if (res.statusCode >= 500) {
             recordFailure();
