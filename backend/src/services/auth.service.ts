@@ -527,13 +527,29 @@ export class AuthService {
     });
   }
 
-  static async listRolesForUser(userId: string) {
+  static async listRolesForUser(userId: string, emailHint?: string | null) {
     const profile = await prisma.profile.findUnique({
       where: { id: userId },
       select: { id: true, role: true, active_role: true },
     });
 
     if (!profile) {
+      const normalizedEmail = String(emailHint || '').trim().toLowerCase();
+      if (normalizedEmail) {
+        const access = await AuthService.getAuthorizationStatus(normalizedEmail);
+        if (access.reason === 'REGISTRATION_INCOMPLETE') {
+          const fallbackRole = normalizeRole(access.role) || 'CLIENT';
+          const fallbackRoles = normalizeRoleList(access.roles || [fallbackRole]);
+          return {
+            userId,
+            roles: fallbackRoles.length ? fallbackRoles : [fallbackRole],
+            activeRole: fallbackRoles[0] || fallbackRole,
+            accountState: access.accountState,
+            nextAction: access.nextAction,
+            registrationIncomplete: true,
+          };
+        }
+      }
       throw new AppError('Perfil não encontrado.', 404, 'PROFILE_NOT_FOUND');
     }
 
@@ -544,6 +560,9 @@ export class AuthService {
       userId,
       roles,
       activeRole,
+      accountState: 'ACTIVE',
+      nextAction: 'LOGIN',
+      registrationIncomplete: false,
     };
   }
 
@@ -606,6 +625,97 @@ export class AuthService {
       userId,
       roles: [...roles, role],
       activeRole: normalizeRole(profile.active_role) || role,
+    };
+  }
+
+  static async deleteAccount(userId: string, emailHint?: string | null) {
+    const normalizedEmailHint = String(emailHint || '').trim().toLowerCase();
+
+    await prisma.$transaction(async (tx) => {
+      await tx.chatMessage.deleteMany({
+        where: {
+          OR: [{ sender_id: userId }, { receiver_id: userId }],
+        },
+      });
+      await tx.chatParticipant.deleteMany({ where: { profile_id: userId } });
+      await tx.profileLink.deleteMany({
+        where: {
+          OR: [{ source_id: userId }, { target_id: userId }],
+        },
+      });
+      await tx.swapOffer.deleteMany({
+        where: {
+          OR: [{ provider_id: userId }, { requester_id: userId }],
+        },
+      });
+      await tx.tribeInvite.deleteMany({ where: { hub_id: userId } });
+      await tx.recruitmentApplication.deleteMany({
+        where: {
+          OR: [{ candidate_id: userId }, { space_id: userId }],
+        },
+      });
+      await tx.interview.deleteMany({
+        where: {
+          OR: [{ guardian_id: userId }, { space_id: userId }],
+        },
+      });
+      await tx.marketplaceOrder.deleteMany({
+        where: {
+          OR: [{ buyer_id: userId }, { seller_id: userId }],
+        },
+      });
+      await tx.escamboProposal.deleteMany({
+        where: {
+          OR: [{ proposer_id: userId }, { receiver_id: userId }],
+        },
+      });
+      await tx.appointment.deleteMany({
+        where: {
+          OR: [{ client_id: userId }, { professional_id: userId }],
+        },
+      });
+      await tx.record.deleteMany({
+        where: {
+          OR: [{ patient_id: userId }, { professional_id: userId }],
+        },
+      });
+      await tx.transaction.deleteMany({ where: { user_id: userId } });
+      await tx.notification.deleteMany({ where: { user_id: userId } });
+      await tx.calendarEvent.deleteMany({ where: { user_id: userId } });
+      await tx.vacancy.deleteMany({ where: { space_id: userId } });
+      await tx.room.deleteMany({ where: { hub_id: userId } });
+      await tx.product.deleteMany({ where: { owner_id: userId } });
+      await tx.interactionReceipt.deleteMany({
+        where: {
+          OR: [{ actor_id: userId }, { entity_type: 'PROFILE', entity_id: userId }],
+        },
+      });
+      await tx.guardianPresence.deleteMany({ where: { guardian_id: userId } });
+      await tx.oracleHistory.deleteMany({ where: { user_id: userId } });
+      await tx.metamorphosisProjection.deleteMany({ where: { user_id: userId } });
+      await tx.event.deleteMany({ where: { stream_id: userId } });
+      await tx.auditEvent.deleteMany({ where: { actor_id: userId } });
+      await tx.profileRole.deleteMany({ where: { profile_id: userId } });
+      await tx.profile.deleteMany({ where: { id: userId } });
+      await tx.user.deleteMany({ where: { id: userId } });
+      await tx.authAllowlist.updateMany({
+        where: {
+          OR: [
+            { used_by: userId },
+            normalizedEmailHint ? { email: normalizedEmailHint } : { used_by: userId },
+          ],
+        },
+        data: {
+          used_by: null,
+          used_at: null,
+          status: 'APPROVED',
+        },
+      });
+    });
+
+    return {
+      userId,
+      deleted: true,
     };
   }
 }

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Check, Calendar, Clock, MapPin, Sparkles, Smartphone, Loader2 } from 'lucide-react';
 import { PortalView, DynamicAvatar, ZenToast } from '../../../components/Common';
+import { api } from '../../../services/api';
 
 export default function BookingConfirm({ onClose }: { onClose?: () => void }) {
   const { state, go, back, reset } = useBuscadorFlow();
@@ -17,11 +18,30 @@ export default function BookingConfirm({ onClose }: { onClose?: () => void }) {
   const timeStr = "14:30 - 15:30"; 
 
   const handleSyncCalendar = () => {
-    setIsSyncing(true);
-    setTimeout(() => {
+    (async () => {
+      setIsSyncing(true);
+      try {
+        const sync = await api.spaces.syncCalendar();
+        const icsContent = String(sync?.data || '').trim();
+        if (!icsContent) {
+          throw new Error('Agenda vazia para sincronização.');
+        }
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = String(sync?.filename || 'viva360-calendar.ics');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        setToast({ title: "Sincronizado", message: "Arquivo da agenda gerado para importar no celular ou desktop." });
+      } catch (error: any) {
+        setToast({ title: "Falha na sincronização", message: error?.message || "Não foi possível sincronizar sua agenda agora." });
+      } finally {
         setIsSyncing(false);
-        setToast({ title: "Sincronizado", message: "Este portal agora pulsa em sua agenda pessoal." });
-    }, 2000);
+      }
+    })();
   };
 
   const handleGoToCheckout = () => {

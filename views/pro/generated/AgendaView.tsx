@@ -1,34 +1,88 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { ChevronLeft, Calendar as CalendarIcon, Clock, Video, MoreHorizontal, User } from 'lucide-react';
+import { Video, MoreHorizontal, Loader2, Smartphone } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
+import { api } from '../../../services/api';
 
 export default function AgendaView() {
-  const { go, back, selectAppointment, notify } = useGuardiaoFlow();
-  const [selectedDayIndex, setSelectedDayIndex] = useState(2);
+  const { go, back, selectAppointment, notify, state } = useGuardiaoFlow();
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [syncing, setSyncing] = useState(false);
 
-  const appointments = [
-      { id: 1, time: '14:00', client: 'Ana Silva', clientName: 'Ana Silva', type: 'Reiki à Distância', serviceName: 'Reiki à Distância', status: 'confirmed' },
-      { id: 2, time: '15:30', client: 'Pedro Santos', clientName: 'Pedro Santos', type: 'Leitura de Aura', serviceName: 'Leitura de Aura', status: 'pending' },
-      { id: 3, time: '17:00', client: 'Maria Oliveira', clientName: 'Maria Oliveira', type: 'Mentoria Espiritual', serviceName: 'Mentoria Espiritual', status: 'confirmed' }
-  ];
+  const weekDays = useMemo(() => {
+    const base = new Date();
+    return Array.from({ length: 7 }).map((_, index) => {
+      const date = new Date(base);
+      date.setHours(0, 0, 0, 0);
+      date.setDate(base.getDate() + index);
+      return date;
+    });
+  }, []);
+
+  const selectedDay = weekDays[Math.min(selectedDayIndex, weekDays.length - 1)] || new Date();
+  const selectedDayKey = selectedDay.toISOString().slice(0, 10);
+
+  const appointments = (state?.data?.appointments || [])
+    .map((apt: any) => ({
+      ...apt,
+      dateKey: String(apt.date || '').slice(0, 10),
+      time: String(apt.time || new Date(apt.date || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })),
+      client: String(apt.clientName || apt.client_name || apt.client || 'Buscador'),
+      serviceName: String(apt.serviceName || apt.service_name || apt.type || 'Atendimento'),
+      status: String(apt.status || 'pending').toLowerCase(),
+    }))
+    .filter((apt: any) => apt.dateKey === selectedDayKey)
+    .sort((a: any, b: any) => a.time.localeCompare(b.time));
+
+  const handleSyncCalendar = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const sync = await api.spaces.syncCalendar();
+      const icsContent = String(sync?.data || '').trim();
+      if (!icsContent) return;
+      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = String(sync?.filename || 'viva360-calendar.ics');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   return (
     <PortalView title="Agenda de Luz" subtitle="SEUS RITUAIS" onBack={back} heroImage="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800">
        <div className="space-y-6 px-2">
            {/* Date Selector */}
            <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
-               {['SEG','TER','QUA','QUI','SEX'].map((d, i) => (
-                   <button key={d} onClick={() => setSelectedDayIndex(i)} className={`flex flex-col items-center justify-center min-w-[3.5rem] aspect-[3/4] rounded-2xl border transition-all ${i === selectedDayIndex ? 'bg-nature-900 text-white border-nature-900 shadow-xl' : 'bg-white text-nature-400 border-nature-100 hover:border-nature-300'}`}>
-                       <span className="text-[10px] font-bold uppercase">{d}</span>
-                       <span className="text-lg font-bold">{12 + i}</span>
+               {weekDays.map((day, i) => (
+                   <button key={day.toISOString()} onClick={() => setSelectedDayIndex(i)} className={`flex flex-col items-center justify-center min-w-[3.5rem] aspect-[3/4] rounded-2xl border transition-all ${i === selectedDayIndex ? 'bg-nature-900 text-white border-nature-900 shadow-xl' : 'bg-white text-nature-400 border-nature-100 hover:border-nature-300'}`}>
+                       <span className="text-[10px] font-bold uppercase">{day.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '').toUpperCase()}</span>
+                       <span className="text-lg font-bold">{day.getDate()}</span>
                    </button>
                ))}
            </div>
 
+           <button
+             onClick={handleSyncCalendar}
+             className="w-full py-3 bg-white border border-nature-100 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-nature-500 flex items-center justify-center gap-2"
+           >
+             {syncing ? <Loader2 size={14} className="animate-spin" /> : <Smartphone size={14} />}
+             Sincronizar Agenda no Dispositivo
+           </button>
+
            <div className="space-y-4">
                <h3 className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.2em] px-2">Rituais de Hoje</h3>
-               {appointments.map(apt => (
+               {appointments.length === 0 ? (
+                   <div className="bg-white p-6 rounded-[2rem] border border-nature-100 text-center text-[11px] text-nature-400">
+                       Nenhum ritual para {selectedDay.toLocaleDateString('pt-BR')}.
+                   </div>
+               ) : appointments.map((apt: any) => (
                    <div key={apt.id} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex items-center justify-between shadow-sm group hover:shadow-md transition-all cursor-pointer" onClick={() => go('PATIENT_PROFILE')}>
                        <div className="flex items-center gap-4">
                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xs ${apt.status === 'confirmed' ? 'bg-primary-50 text-primary-600' : 'bg-amber-50 text-amber-600'}`}>
@@ -36,7 +90,7 @@ export default function AgendaView() {
                            </div>
                            <div>
                                <h4 className="text-sm font-bold text-nature-900">{apt.client}</h4>
-                               <p className="text-[10px] text-nature-400 font-bold uppercase tracking-wide">{apt.type}</p>
+                               <p className="text-[10px] text-nature-400 font-bold uppercase tracking-wide">{apt.serviceName}</p>
                            </div>
                        </div>
                        {apt.status === 'confirmed' ? (

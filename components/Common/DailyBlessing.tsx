@@ -1,17 +1,45 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { X, Sun } from 'lucide-react';
 import { User as UserType } from '../../types';
 import { getDailyWisdom } from '../../src/utils/dailyWisdom';
 
-export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: number) => void }> = ({ user, onCheckIn }) => {
+export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: number) => Promise<{ ok: boolean; alreadyDone?: boolean } | void> }> = ({ user, onCheckIn }) => {
     const [dismissed, setDismissed] = useState(false);
+    const [claiming, setClaiming] = useState(false);
     const today = new Date().toISOString().split('T')[0];
     const lastCheckInDate = user.lastCheckIn ? user.lastCheckIn.split('T')[0] : null;
+    const claimStorageKey = useMemo(() => `viva360.daily-blessing.claimed.${user.id}.${today}`, [user.id, today]);
+    const [claimedToday, setClaimedToday] = useState(() => localStorage.getItem(claimStorageKey) === '1');
+    useEffect(() => {
+        setClaimedToday(localStorage.getItem(claimStorageKey) === '1');
+    }, [claimStorageKey]);
     
     // Deterministic wisdom for today
     const wisdom = getDailyWisdom(user.id, user.karma);
 
-    if (lastCheckInDate === today || dismissed) return null;
+    const handleReceiveBlessing = async () => {
+        if (claiming) return;
+        setClaiming(true);
+        const previousClaim = claimedToday;
+        setClaimedToday(true);
+        try {
+            const result = await onCheckIn(wisdom.reward);
+            const succeeded = !result || Boolean((result as any).ok);
+            if (succeeded) {
+                localStorage.setItem(claimStorageKey, '1');
+                return;
+            }
+            setClaimedToday(previousClaim);
+            localStorage.removeItem(claimStorageKey);
+        } catch {
+            setClaimedToday(previousClaim);
+            localStorage.removeItem(claimStorageKey);
+        } finally {
+            setClaiming(false);
+        }
+    };
+
+    if (lastCheckInDate === today || dismissed || claimedToday) return null;
 
     return (
         <div className="fixed inset-x-0 top-0 z-[400] flex items-start justify-center p-4 pointer-events-none animate-in slide-in-from-top-4 duration-700">
@@ -43,10 +71,11 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: numbe
                         <span className="text-sm font-bold text-nature-900">+{wisdom.reward} Karma</span>
                     </div>
                     <button 
-                        onClick={() => onCheckIn(wisdom.reward)} 
-                        className="px-6 py-2.5 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-black"
+                        onClick={handleReceiveBlessing}
+                        disabled={claiming}
+                        className="px-6 py-2.5 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-black disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        Receber Benção
+                        {claiming ? 'Sincronizando...' : 'Receber Benção'}
                     </button>
                 </div>
             </div>
