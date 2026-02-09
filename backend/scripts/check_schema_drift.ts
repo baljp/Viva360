@@ -16,7 +16,12 @@ const REQUIRED: Record<string, Record<string, string[]>> = {
     transactions: ['id', 'user_id', 'amount'],
     oracle_messages: ['id', 'text', 'category', 'element'],
     oracle_history: ['id', 'user_id', 'message_id', 'drawn_at'],
-    tribe_invites: ['id', 'hub_id', 'email', 'status'],
+    tribe_invites: ['id', 'hub_id', 'email', 'status', 'invite_type'],
+    recruitment_applications: ['id', 'vacancy_id', 'candidate_id', 'space_id', 'status'],
+    interviews: ['id', 'application_id', 'space_id', 'guardian_id', 'status'],
+    interaction_receipts: ['id', 'entity_type', 'entity_id', 'action', 'actor_id', 'status'],
+    swap_offers: ['id', 'provider_id', 'requester_id', 'status'],
+    marketplace_orders: ['id', 'buyer_id', 'seller_id', 'status', 'payment_status', 'fulfillment_status'],
     auth_allowlist: ['id', 'email', 'status', 'used_by'],
   },
 };
