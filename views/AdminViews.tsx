@@ -49,7 +49,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
 
     // --- DASHBOARD ---
     if (view === ViewState.ADMIN_DASHBOARD) return (
-        <PortalView title="Governança" subtitle="VISÃO EXECUTIVA" onBack={() => {}}>
+        <PortalView title="Governança" subtitle="VISÃO EXECUTIVA" showCloseWithBack={false}>
             <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                     <Card className="bg-nature-900 text-white p-6">
