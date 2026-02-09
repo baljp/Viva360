@@ -16,6 +16,7 @@
 # production
 /build
 /dist
+/backend/dist
 
 # misc
 .DS_Store
@@ -33,3 +34,9 @@ yarn-error.log*
 .env
 .vercelserver.log
 .vercel
+
+# local logs / sync artifacts
+server.log
+.github_sync_log
+gh_status.txt
+push_log.txt
