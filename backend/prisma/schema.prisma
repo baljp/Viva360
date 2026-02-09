@@ -81,6 +81,11 @@ model Profile {
   tribe_invites     TribeInvite[]   @relation("HubInvites")
   calendar_events   CalendarEvent[]
   vacancies         Vacancy[]
+  recruitment_applications_as_candidate RecruitmentApplication[] @relation("CandidateApplications")
+  recruitment_applications_as_space     RecruitmentApplication[] @relation("SpaceApplications")
+  interviews_as_guardian                Interview[]              @relation("GuardianInterviews")
+  interviews_as_space                   Interview[]              @relation("SpaceInterviews")
+  interaction_receipts                  InteractionReceipt[]     @relation("ActorReceipts")
 
   // Records Relations
   patient_records      Record[]           @relation("PatientRecords")
@@ -245,7 +250,11 @@ model SwapOffer {
   offered_item_id   String?  @db.Uuid
   requested_item_id String?  @db.Uuid
   description       String?
+  counter_offer     String?
   status            String   @default("pending")
+  accepted_at       DateTime? @db.Timestamptz(6)
+  completed_at      DateTime? @db.Timestamptz(6)
+  updated_at        DateTime  @updatedAt @db.Timestamptz(6)
   created_at        DateTime @default(now()) @db.Timestamptz(6)
 
   provider  Profile @relation("SwapProvider", fields: [provider_id], references: [id])
@@ -260,7 +269,12 @@ model TribeInvite {
   hub_id     String   @db.Uuid
   email      String
   token      String   @unique
+  invite_type String  @default("TEAM")
+  target_role String?
+  context_ref String?
   status     String   @default("pending")
+  expires_at DateTime? @db.Timestamptz(6)
+  responded_at DateTime? @db.Timestamptz(6)
   created_at DateTime @default(now()) @db.Timestamptz(6)
 
   hub Profile @relation("HubInvites", fields: [hub_id], references: [id])
@@ -292,9 +306,11 @@ model Vacancy {
   description String
   specialties String[]
   status      String   @default("open")
+  interview_required Boolean @default(true)
   created_at  DateTime @default(now()) @db.Timestamptz(6)
 
   space Profile @relation(fields: [space_id], references: [id])
+  applications RecruitmentApplication[]
 
   @@map("vacancies")
   @@schema("public")
@@ -452,6 +468,10 @@ model MarketplaceOrder {
   quantity    Int      @default(1)
   total_price Decimal
   status      String   @default("pending") // 'pending' | 'paid' | 'shipped' | 'completed'
+  payment_status String @default("PENDING")
+  fulfillment_status String @default("PENDING")
+  completed_at DateTime? @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
   created_at  DateTime @default(now()) @db.Timestamptz(6)
 
   buyer   Profile @relation("BuyerOrders", fields: [buyer_id], references: [id])
@@ -479,6 +499,73 @@ model EscamboProposal {
   receiver Profile @relation("ReceiverEscambo", fields: [receiver_id], references: [id])
 
   @@map("escambo_proposals")
+  @@schema("public")
+}
+
+model RecruitmentApplication {
+  id           String   @id @default(uuid()) @db.Uuid
+  vacancy_id   String   @db.Uuid
+  candidate_id String   @db.Uuid
+  space_id     String   @db.Uuid
+  status       String   @default("APPLIED") // APPLIED | INTERVIEW_INVITED | INTERVIEW_ACCEPTED | HIRED | REJECTED
+  notes        String?
+  decided_by   String?  @db.Uuid
+  decided_at   DateTime? @db.Timestamptz(6)
+  created_at   DateTime @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime @updatedAt @db.Timestamptz(6)
+
+  vacancy   Vacancy @relation(fields: [vacancy_id], references: [id], onDelete: Cascade)
+  candidate Profile @relation("CandidateApplications", fields: [candidate_id], references: [id])
+  space     Profile @relation("SpaceApplications", fields: [space_id], references: [id])
+  interviews Interview[]
+
+  @@unique([vacancy_id, candidate_id])
+  @@index([space_id, status])
+  @@map("recruitment_applications")
+  @@schema("public")
+}
+
+model Interview {
+  id             String   @id @default(uuid()) @db.Uuid
+  application_id String   @db.Uuid
+  space_id       String   @db.Uuid
+  guardian_id    String   @db.Uuid
+  scheduled_for  DateTime @db.Timestamptz(6)
+  status         String   @default("PENDING_RESPONSE") // PENDING_RESPONSE | ACCEPTED | DECLINED | COMPLETED | CANCELLED
+  response_note  String?
+  responded_at   DateTime? @db.Timestamptz(6)
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @updatedAt @db.Timestamptz(6)
+
+  application RecruitmentApplication @relation(fields: [application_id], references: [id], onDelete: Cascade)
+  space       Profile                @relation("SpaceInterviews", fields: [space_id], references: [id])
+  guardian    Profile                @relation("GuardianInterviews", fields: [guardian_id], references: [id])
+
+  @@unique([application_id])
+  @@index([guardian_id, status])
+  @@index([space_id, status])
+  @@map("interviews")
+  @@schema("public")
+}
+
+model InteractionReceipt {
+  id          String   @id @default(uuid()) @db.Uuid
+  entity_type String
+  entity_id   String
+  action      String
+  actor_id    String   @db.Uuid
+  status      String
+  next_step   String?
+  request_id  String?
+  payload     Json?
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @updatedAt @db.Timestamptz(6)
+
+  actor Profile @relation("ActorReceipts", fields: [actor_id], references: [id], onDelete: Cascade)
+
+  @@unique([entity_type, entity_id, action, actor_id])
+  @@index([actor_id, created_at])
+  @@map("interaction_receipts")
   @@schema("public")
 }
 
