@@ -9,13 +9,16 @@ import { chaosMiddleware } from './lib/chaos';
 import register, { httpRequestDurationMicroseconds, httpRequestErrors } from './lib/metrics';
 import compression from 'compression';
 import { initTelemetry } from './lib/instrumentation';
+import { assertCriticalProdConfig } from './lib/runtimeGuard';
 
 // Initialize Telemetry
 initTelemetry();
+assertCriticalProdConfig();
 
 // Load environment variables
 // env already loaded via import './lib/env' at the top
 import { securityHardening } from './middleware/security.middleware';
+import { attachRequestContext } from './middleware/request.middleware';
 
 const app = express();
 
@@ -44,6 +47,7 @@ const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions)); 
 app.use(express.json());
+app.use(attachRequestContext);
 app.use(securityHardening); // Excellence Layer: WAF & Headers
 if (process.env.NODE_ENV !== 'production') app.use(morgan('tiny'));
 
@@ -52,7 +56,7 @@ app.use((req, res, next) => {
     const start = Date.now();
     res.on('finish', () => {
         const duration = (Date.now() - start) / 1000;
-        const route = req.route ? req.route.path : req.path;
+        const route = req.route ? String(req.route.path) : (req.originalUrl || req.path);
         httpRequestDurationMicroseconds.labels(req.method, route, res.statusCode.toString()).observe(duration);
         
         if (res.statusCode >= 400) {
@@ -96,12 +100,20 @@ if (process.env.CHAOS_MODE === 'true') {
 import { circuitBreaker } from './middleware/circuitBreaker';
 app.use(circuitBreaker);
 
+// Health Check
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', pid: process.pid, timestamp: new Date().toISOString(), requestId: req.requestId });
+});
+
 // API Routes
 app.use('/api', routes);
 
-// Health Check
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', pid: process.pid, timestamp: new Date().toISOString() });
+// API 404s are explicit and machine-readable.
+app.use('/api/*', (req, res) => {
+    return res.status(404).json({
+        error: 'Route not found',
+        requestId: req.requestId,
+    });
 });
 
 // Global Error Handler
