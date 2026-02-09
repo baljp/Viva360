@@ -5,7 +5,7 @@ import { Video, Mic, MicOff, VideoOff, X, FileText, User as UserIcon, Clock, Che
 import { api } from '../services/api';
 import { DynamicAvatar, OrganicSkeleton, Card, PortalView } from '../components/Common';
 import { useGuardiaoFlow } from '../src/flow/GuardiaoFlowContext'; 
-import { useOrdersList } from '../frontend/src/hooks/useOrdersList';
+import { useOrdersList } from '../src/hooks/useOrdersList';
 
 // Fix: Added missing VideoSessionView component for tele-health ritual sessions
 export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void, flow?: any }> = ({ appointment, onEnd, flow }) => {

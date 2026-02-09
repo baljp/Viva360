@@ -1,6 +1,7 @@
 import { User, Professional, UserRole, Appointment, Product, Notification, DailyJournalEntry } from '../types';
 import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOAuthRuntimeConfig, TEST_MODE_ENABLED } from '../lib/supabase';
 import { captureFrontendError, captureFrontendMessage } from '../lib/monitoring';
+import { createRequestClient } from './api/requestClient';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const AUTH_TOKEN_KEY = 'viva360.auth.token';
@@ -190,7 +191,12 @@ const getMockSession = (): User | null => {
     });
 };
 
-type LoginEligibility = { allowed: boolean; role: UserRole | null };
+type LoginEligibility = {
+    allowed: boolean;
+    role: UserRole | null;
+    reason?: string | null;
+    canRegister?: boolean;
+};
 
 const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> => {
     const normalizedEmail = normalizeEmail(email);
@@ -207,15 +213,15 @@ const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> =
 
         const allowed = !!payload?.allowed;
         const role = payload?.role ? normalizeRole(String(payload.role)) : null;
-        return { allowed, role };
+        return {
+            allowed,
+            role,
+            reason: payload?.reason ? String(payload.reason) : null,
+            canRegister: !!payload?.canRegister,
+        };
     } catch {
         throw new Error('Não foi possível validar sua conta agora. Tente novamente em instantes.');
     }
-};
-
-const checkLoginEligibility = async (email: string): Promise<boolean> => {
-    const eligibility = await fetchLoginEligibility(email);
-    return eligibility.allowed;
 };
 
 const ensureOAuthProfile = async (accessToken: string, role: UserRole, name?: string) => {
@@ -297,71 +303,18 @@ const getHeader = () => {
     };
 };
 
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const shouldRetryResponse = (status: number) => RETRYABLE_STATUS_CODES.has(status);
-
-type RequestOptions = RequestInit & {
-    retries?: number;
-    retryDelayMs?: number;
-    timeoutMs?: number;
-    purpose?: string;
-};
-
-export const request = async (endpoint: string, options: RequestOptions = {}) => {
-    const {
-        retries = 2,
-        retryDelayMs = 350,
-        timeoutMs = 10000,
-        purpose,
-        ...fetchOptions
-    } = options;
-
-    let lastError: any = null;
-    for (let attempt = 0; attempt <= retries; attempt += 1) {
-        const controller = new AbortController();
-        const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
-
-        try {
-            const res = await fetch(`${API_URL}${endpoint}`, {
-                ...fetchOptions,
-                signal: controller.signal,
-                headers: { ...getHeader(), ...fetchOptions.headers }
-            });
-            clearTimeout(timeoutHandle);
-
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({}));
-                const message = errorData.error || res.statusText || 'API Request Failed';
-                const error = new Error(message);
-                (error as any).status = res.status;
-                if (attempt < retries && shouldRetryResponse(res.status)) {
-                    await wait(retryDelayMs * (attempt + 1));
-                    continue;
-                }
-                throw error;
-            }
-
-            return res.json();
-        } catch (error: any) {
-            clearTimeout(timeoutHandle);
-            lastError = error;
-            const aborted = error?.name === 'AbortError';
-            const status = Number(error?.status || 0);
-            const retryable = aborted || shouldRetryResponse(status) || isLikelyNetworkError(error?.message);
-
-            if (attempt < retries && retryable) {
-                await wait(retryDelayMs * (attempt + 1));
-                continue;
-            }
-        }
-    }
-
-    captureFrontendError(lastError, {
-        endpoint,
-        purpose: purpose || 'request',
-    });
-    throw lastError || new Error('API Request Failed');
-};
+export const request = createRequestClient({
+    apiUrl: API_URL,
+    getHeaders: getHeader,
+    retryableStatusCodes: RETRYABLE_STATUS_CODES,
+    isLikelyNetworkError,
+    captureError: (error, context) => {
+        captureFrontendError(error, {
+            endpoint: context.endpoint,
+            purpose: context.purpose || 'request',
+        });
+    },
+});
 
 export const api = {
     auth: {
@@ -383,8 +336,8 @@ export const api = {
                 throw new Error('No modo teste, use apenas e-mails pré-definidos.');
             }
 
-            const allowed = await checkLoginEligibility(normalizedEmail);
-            if (!allowed) {
+            const eligibility = await fetchLoginEligibility(normalizedEmail);
+            if (!eligibility.allowed) {
                 throw new Error('Conta não autorizada. Faça cadastro antes de entrar.');
             }
 
@@ -472,8 +425,8 @@ export const api = {
                 throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
             }
 
-            const allowed = await checkLoginEligibility(normalizedExpectedEmail);
-            if (!allowed) {
+            const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
+            if (!eligibility.allowed) {
                 throw new Error('Este e-mail ainda não está autorizado para login com Google.');
             }
 
@@ -507,7 +460,12 @@ export const api = {
 
             throw new Error('Falha ao iniciar autenticação Google.');
         },
-        registerWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
+        registerWithGoogle: async (role: UserRole = UserRole.CLIENT, expectedEmail?: string): Promise<User> => {
+            const normalizedExpectedEmail = normalizeEmail(expectedEmail || '');
+            if (!normalizedExpectedEmail) {
+                throw new Error('Informe o e-mail autorizado antes de continuar com Google.');
+            }
+
             if (isSupabaseMock) {
                 throw new Error('Google em modo teste aceita apenas contas pré-definidas.');
             }
@@ -517,8 +475,13 @@ export const api = {
                 throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
             }
 
+            const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
+            if (!eligibility.canRegister) {
+                throw new Error('Este e-mail não está aprovado para cadastro com Google.');
+            }
+
             const redirectTo = getOAuthRedirectUrl();
-            localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+            localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
             localStorage.setItem(OAUTH_INTENT_KEY, 'register');
             localStorage.setItem(OAUTH_ROLE_KEY, normalizeRole(role));
 
@@ -603,37 +566,7 @@ export const api = {
                     avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
                 });
             } catch (err: any) {
-                // If the backend is temporarily unreachable, fallback to Supabase signUp.
-                if (!isLikelyNetworkError(err?.message)) {
-                    throw err;
-                }
-                const { data: authData, error } = await supabase.auth.signUp({
-                    email: normalizedEmail,
-                    password: data.password,
-                    options: {
-                        data: {
-                            full_name: data.name,
-                            role: normalizedRole
-                        }
-                    }
-                });
-
-                if (error) throw error;
-
-                if (authData.session) {
-                    promoteToRealSession(authData.session.access_token);
-                }
-
-                const user = await api.auth.getCurrentSession();
-                if (user) return user;
-
-                return baseUser({
-                    id: authData.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
-                    email: normalizedEmail,
-                    name: data.name || normalizedEmail.split('@')[0] || 'Viajante',
-                    role: normalizedRole,
-                    avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
-                });
+                throw err;
             }
         },
         getCurrentSession: async (): Promise<User | null> => {
@@ -663,7 +596,7 @@ export const api = {
                     const oauthRole = normalizeRole(localStorage.getItem(OAUTH_ROLE_KEY) || '');
 
                     let eligibility = await fetchLoginEligibility(sessionEmail);
-                    if (!eligibility.allowed && oauthIntent === 'register') {
+                    if (!eligibility.allowed && oauthIntent === 'register' && eligibility.canRegister) {
                         // First Google access for a brand new user: create the required `profiles` row.
                         await ensureOAuthProfile(
                             session.access_token,

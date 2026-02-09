@@ -125,7 +125,7 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const handleGoogleRegister = async () => {
         setIsLoading(true);
         try {
-            await api.auth.registerWithGoogle(UserRole.CLIENT);
+            await api.auth.registerWithGoogle(UserRole.CLIENT, formData.email);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
@@ -194,7 +194,7 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const handleGoogleRegister = async () => {
         setIsLoading(true);
         try {
-            await api.auth.registerWithGoogle(UserRole.PROFESSIONAL);
+            await api.auth.registerWithGoogle(UserRole.PROFESSIONAL, formData.email);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
@@ -260,7 +260,7 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const handleGoogleRegister = async () => {
         setIsLoading(true);
         try {
-            await api.auth.registerWithGoogle(UserRole.SPACE);
+            await api.auth.registerWithGoogle(UserRole.SPACE, formData.email);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
