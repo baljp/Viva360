@@ -186,13 +186,6 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         }
     };
 
-    const setDemoCredentials = (role: 'client' | 'pro' | 'space') => {
-        if (role === 'client') setEmail('client0@viva360.com');
-        if (role === 'pro') setEmail('pro0@viva360.com');
-        if (role === 'space') setEmail('contato.hub0@viva360.com');
-        setPassword('123456');
-    };
-
     const handleGoogleLogin = async () => {
         setLoading(true);
         setError('');
