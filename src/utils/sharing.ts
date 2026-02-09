@@ -4,6 +4,9 @@
  * Generates high-quality, non-distorted canvas images for IG Stories or WhatsApp.
  */
 
+export type SharePlatform = 'generic' | 'whatsapp' | 'instagram';
+export type ShareFormat = 'story' | 'feed';
+
 export interface ShareContent {
     title: string;
     subtitle?: string;
@@ -12,6 +15,16 @@ export interface ShareContent {
     footer?: string;
     accentColor?: string;
     date?: string;
+    format?: ShareFormat;
+    mimeType?: 'image/jpeg' | 'image/png';
+}
+
+export interface ShareRequest {
+    title?: string;
+    text: string;
+    url?: string;
+    filename?: string;
+    platform?: SharePlatform;
 }
 
 export const generateShareCanvas = async (content: ShareContent): Promise<Blob | null> => {
@@ -19,9 +32,15 @@ export const generateShareCanvas = async (content: ShareContent): Promise<Blob |
     const ctx = canvas.getContext('2d');
     if (!ctx) return null;
 
-    // IG Stories Aspect Ratio (9:16)
-    canvas.width = 1080;
-    canvas.height = 1920;
+    const format: ShareFormat = content.format || 'story';
+    const target = format === 'feed'
+        ? { width: 1080, height: 1350 }
+        : { width: 1080, height: 1920 };
+
+    canvas.width = target.width;
+    canvas.height = target.height;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     // 1. Background (Deep Gradient)
     const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
@@ -68,18 +87,18 @@ export const generateShareCanvas = async (content: ShareContent): Promise<Blob |
     // Header (Title & Subtitle)
     if (content.subtitle) {
         ctx.fillStyle = content.accentColor || '#6366f1'; // indigo-500
-        ctx.font = 'bold 30px sans-serif';
+        ctx.font = 'bold 28px sans-serif';
         ctx.fillText(content.subtitle.toUpperCase(), canvas.width / 2, 200);
     }
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'italic 70px serif';
-    ctx.fillText(content.title, canvas.width / 2, 300);
+    ctx.font = format === 'feed' ? 'italic 58px serif' : 'italic 70px serif';
+    ctx.fillText(content.title, canvas.width / 2, format === 'feed' ? 280 : 300);
 
     // Message (Quote Box)
-    const padding = 100;
+    const padding = format === 'feed' ? 86 : 100;
     const maxWidth = canvas.width - (padding * 2);
-    ctx.font = 'italic 54px serif';
+    ctx.font = format === 'feed' ? 'italic 46px serif' : 'italic 54px serif';
     const words = content.message.split(' ');
     let line = '';
     const lines = [];
@@ -97,11 +116,11 @@ export const generateShareCanvas = async (content: ShareContent): Promise<Blob |
     lines.push(line);
 
     // Center Message Vertically (Bottom third)
-    const startY = canvas.height * 0.75 - (lines.length * 40);
+    const startY = canvas.height * (format === 'feed' ? 0.7 : 0.75) - (lines.length * 40);
     
     // Draw Quote Background (Glass effect)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
-    const boxHeight = lines.length * 80 + 100;
+    const boxHeight = lines.length * (format === 'feed' ? 70 : 80) + 100;
     // @ts-ignore - roundRect is modern
     if (ctx.roundRect) {
         ctx.roundRect(padding - 40, startY - 80, canvas.width - (padding-40)*2, boxHeight, 40);
@@ -118,43 +137,88 @@ export const generateShareCanvas = async (content: ShareContent): Promise<Blob |
     });
 
     // 5. Footer (Branding)
-    ctx.font = 'bold 40px sans-serif';
+    ctx.font = format === 'feed' ? 'bold 34px sans-serif' : 'bold 40px sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.fillText(content.footer || 'VIVA360', canvas.width / 2, canvas.height - 150);
+    ctx.fillText(content.footer || 'VIVA360', canvas.width / 2, canvas.height - (format === 'feed' ? 120 : 150));
 
     if (content.date) {
-        ctx.font = '30px sans-serif';
-        ctx.fillText(content.date, canvas.width / 2, canvas.height - 100);
+        ctx.font = format === 'feed' ? '24px sans-serif' : '30px sans-serif';
+        ctx.fillText(content.date, canvas.width / 2, canvas.height - (format === 'feed' ? 78 : 100));
     }
 
+    const mimeType = content.mimeType || 'image/jpeg';
+    const quality = mimeType === 'image/jpeg' ? 0.96 : 1.0;
     return new Promise((resolve) => {
-        canvas.toBlob((blob) => resolve(blob), 'image/png', 1.0);
+        canvas.toBlob((blob) => resolve(blob), mimeType, quality);
     });
 };
 
-export const shareToSocial = async (blob: Blob, text: string, filename: string = 'viva360-share.png') => {
-    const file = new File([blob], filename, { type: 'image/png' });
-    const shareData = {
-        title: 'Viva360',
-        text: text,
-        files: [file]
+const buildShareRequest = (input: string | ShareRequest, fallbackFilename: string): ShareRequest => {
+    if (typeof input === 'string') {
+        return {
+            text: input,
+            title: 'Viva360',
+            filename: fallbackFilename,
+            platform: 'generic',
+        };
+    }
+
+    return {
+        title: input.title || 'Viva360',
+        text: input.text,
+        url: input.url,
+        filename: input.filename || fallbackFilename,
+        platform: input.platform || 'generic',
+    };
+};
+
+const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+};
+
+export const shareToSocial = async (blob: Blob, input: string | ShareRequest, fallbackFilename: string = 'viva360-share.jpg') => {
+    const req = buildShareRequest(input, fallbackFilename);
+    const file = new File([blob], req.filename || fallbackFilename, { type: blob.type || 'image/jpeg' });
+    const text = req.url ? `${req.text}\n\n${req.url}` : req.text;
+    const sharePayload = {
+        title: req.title || 'Viva360',
+        text,
+        files: [file],
+        ...(req.url ? { url: req.url } : {}),
     };
 
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+    const canNativeShare = !!(navigator.share && navigator.canShare && navigator.canShare({ files: [file] }));
+    if (canNativeShare) {
         try {
-            await navigator.share(shareData);
+            await navigator.share(sharePayload);
             return true;
-        } catch (e) {
-            console.error("WebShare failed", e);
+        } catch (error) {
+            console.error('WebShare failed', error);
         }
     }
-    
-    // Fallback: Download
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
+
+    if (req.platform === 'whatsapp') {
+        try {
+            const waText = encodeURIComponent(text);
+            window.open(`https://wa.me/?text=${waText}`, '_blank', 'noopener,noreferrer');
+            downloadBlob(blob, req.filename || fallbackFilename);
+            return true;
+        } catch {
+            // fallback below
+        }
+    }
+
+    if (req.platform === 'instagram') {
+        // Instagram web has no direct public API for file upload: best fallback is download with native naming.
+        downloadBlob(blob, req.filename || fallbackFilename);
+        return false;
+    }
+
+    downloadBlob(blob, req.filename || fallbackFilename);
     return false;
 };

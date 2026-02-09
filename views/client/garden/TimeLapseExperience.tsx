@@ -67,16 +67,17 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
         // 2. Setup Stream & Recorder
         const stream = canvasRef.current.captureStream(30); // 30 FPS
         
-        // Try precise mime types for WhatsApp compatibility (H.264/AAC preferred, but VP9/WebM is standard fallback)
-        let mimeType = 'video/webm;codecs=vp9';
-        if (MediaRecorder.isTypeSupported('video/mp4')) {
-            mimeType = 'video/mp4';
-        } else if (MediaRecorder.isTypeSupported('video/webm;codecs=h264')) {
-            mimeType = 'video/webm;codecs=h264';
-        }
+        const mimeCandidates = [
+            'video/mp4;codecs=h264',
+            'video/mp4',
+            'video/webm;codecs=vp9',
+            'video/webm;codecs=vp8',
+            'video/webm',
+        ];
+        const mimeType = mimeCandidates.find((candidate) => MediaRecorder.isTypeSupported(candidate)) || 'video/webm';
 
         // Recording started
-        const recorder = new MediaRecorder(stream, { mimeType });
+        const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 10_000_000 });
         
         recorder.ondataavailable = (e) => {
             if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -107,7 +108,7 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                     navigator.share({
                         files: [file],
                         title: 'Minha Jornada Viva360',
-                        text: 'Confira minha evolução no Jardim da Alma!'
+                        text: 'Confira minha evolução no Jardim da Alma! 🌿'
                     }).catch(console.error);
                 }
             }

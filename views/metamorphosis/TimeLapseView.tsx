@@ -263,9 +263,11 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             
             // Detect Supported MimeType
             const mimeTypes = [
+                'video/mp4;codecs=h264',
+                'video/mp4',
                 'video/webm;codecs=vp9',
-                'video/webm',
-                'video/mp4'
+                'video/webm;codecs=vp8',
+                'video/webm'
             ];
             const selectedMime = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
 
@@ -273,7 +275,9 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                 console.warn("Nenhum formato de vídeo suportado encontrado. Tentando default.");
             }
 
-            const options = selectedMime ? { mimeType: selectedMime, videoBitsPerSecond: 2500000 } : { videoBitsPerSecond: 2500000 };
+            const options = selectedMime
+                ? { mimeType: selectedMime, videoBitsPerSecond: 10_000_000 }
+                : { videoBitsPerSecond: 10_000_000 };
 
             const recorder = new MediaRecorder(stream, options);
             
@@ -309,34 +313,57 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
         }
     };
 
-    const shareVideo = async (platform: string) => {
+    const shareVideo = async (platform: 'whatsapp' | 'instagram' | 'download' | 'generic' = 'generic') => {
         if (!recordedBlob) return;
         
-        // Convert to File
-        const file = new File([recordedBlob], 'viva360-story.webm', { type: 'video/webm' });
-
-        try {
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    title: 'Minha Jornada Viva360',
-                    text: 'Minha evolução em história.',
-                    files: [file]
-                });
-            } else {
-                // Force download if system share not available
-                const url = URL.createObjectURL(recordedBlob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `viva360-story-${Date.now()}.webm`;
-                a.click();
-            }
-        } catch (e) {
-            console.error("Share failed", e);
+        const mimeType = recordedBlob.type || 'video/webm';
+        const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const filename = `viva360-story-${Date.now()}.${extension}`;
+        const file = new File([recordedBlob], filename, { type: mimeType });
+        const downloadVideo = () => {
             const url = URL.createObjectURL(recordedBlob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `viva360-story-${Date.now()}.webm`;
+            a.download = filename;
             a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        try {
+            if (platform === 'download') {
+                downloadVideo();
+                return;
+            }
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    title: 'Minha Jornada Viva360',
+                    text: platform === 'instagram'
+                        ? 'Minha evolução no Jardim da Alma 🌿 #Viva360'
+                        : 'Minha evolução em história no Viva360 🌿',
+                    files: [file]
+                });
+                return;
+            }
+
+            if (platform === 'whatsapp') {
+                const text = encodeURIComponent('Minha evolução no Jardim da Alma no Viva360 🌿');
+                window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+                downloadVideo();
+                return;
+            } else {
+                if (platform === 'instagram') {
+                    setToast({
+                        title: 'Instagram',
+                        message: 'Baixamos o vídeo em alta para você publicar no Reels/Stories.',
+                        type: 'info',
+                    });
+                }
+                downloadVideo();
+            }
+        } catch (e) {
+            console.error("Share failed", e);
+            downloadVideo();
         }
     };
 
@@ -484,13 +511,19 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                     <h3 className="text-3xl font-serif italic text-white mb-4 text-center">Sua História está Pronta! ✨</h3>
                     <p className="text-white/60 text-sm mb-12 text-center max-w-xs">Reviva e compartilhe seus momentos de evolução.</p>
                     
-                    <div className="space-y-4 w-full max-w-sm">
-                         <button onClick={() => shareVideo('whatsapp')} className="w-full py-5 bg-[#25D366] text-white rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all text-sm">
-                            <Share2 size={20} /> Compartilhar (WhatsApp/Stories)
-                         </button>
-                         <button onClick={() => setActiveModal(null)} className="w-full py-5 bg-white/10 text-white rounded-2xl font-bold uppercase tracking-widest text-sm hover:bg-white/20 transition-all">
+                    <div className="space-y-3 w-full max-w-sm">
+                        <button onClick={() => shareVideo('whatsapp')} className="w-full py-5 bg-[#25D366] text-white rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all text-sm">
+                            <Share2 size={20} /> Compartilhar no WhatsApp
+                        </button>
+                        <button onClick={() => shareVideo('instagram')} className="w-full py-5 bg-gradient-to-r from-fuchsia-600 via-rose-500 to-amber-400 text-white rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all text-sm">
+                            <Share2 size={20} /> Preparar para Instagram
+                        </button>
+                        <button onClick={() => shareVideo('download')} className="w-full py-5 bg-white/10 text-white rounded-2xl font-bold uppercase tracking-widest text-sm hover:bg-white/20 transition-all">
+                            Baixar Vídeo
+                        </button>
+                        <button onClick={() => setActiveModal(null)} className="w-full py-4 bg-transparent border border-white/20 text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all">
                             Voltar
-                         </button>
+                        </button>
                     </div>
                 </div>
             )}

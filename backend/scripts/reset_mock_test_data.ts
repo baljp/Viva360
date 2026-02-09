@@ -221,6 +221,7 @@ async function purgeRuntimeDataForEmail(email: string, report: CleanupReport) {
   const operations: Array<{ name: string; run: () => Promise<{ count: number }> }> = [
     { name: 'purge_audit_events', run: () => prisma.auditEvent.deleteMany({ where: { actor_id: profileId } }) },
     { name: 'purge_metamorphosis_projections', run: () => prisma.metamorphosisProjection.deleteMany({ where: { user_id: profileId } }) },
+    { name: 'purge_events', run: () => prisma.event.deleteMany({ where: { stream_id: profileId } }) },
     { name: 'purge_guardian_presence', run: () => prisma.guardianPresence.deleteMany({ where: { guardian_id: profileId } }) },
     { name: 'purge_oracle_history', run: () => prisma.oracleHistory.deleteMany({ where: { user_id: profileId } }) },
     { name: 'purge_profile_links', run: () => prisma.profileLink.deleteMany({ where: { OR: [{ source_id: profileId }, { target_id: profileId }] } }) },
@@ -233,6 +234,9 @@ async function purgeRuntimeDataForEmail(email: string, report: CleanupReport) {
     { name: 'purge_calendar_events', run: () => prisma.calendarEvent.deleteMany({ where: { user_id: profileId } }) },
     { name: 'purge_tribe_invites', run: () => prisma.tribeInvite.deleteMany({ where: { hub_id: profileId } }) },
     { name: 'purge_swap_offers', run: () => prisma.swapOffer.deleteMany({ where: { OR: [{ provider_id: profileId }, { requester_id: profileId }] } }) },
+    { name: 'purge_recruitment_applications', run: () => prisma.recruitmentApplication.deleteMany({ where: { OR: [{ candidate_id: profileId }, { space_id: profileId }] } }) },
+    { name: 'purge_interviews', run: () => prisma.interview.deleteMany({ where: { OR: [{ guardian_id: profileId }, { space_id: profileId }] } }) },
+    { name: 'purge_interaction_receipts', run: () => prisma.interactionReceipt.deleteMany({ where: { actor_id: profileId } }) },
     { name: 'purge_notifications', run: () => prisma.notification.deleteMany({ where: { user_id: profileId } }) },
     { name: 'purge_transactions', run: () => prisma.transaction.deleteMany({ where: { user_id: profileId } }) },
     { name: 'purge_products', run: () => prisma.product.deleteMany({ where: { owner_id: profileId } }) },

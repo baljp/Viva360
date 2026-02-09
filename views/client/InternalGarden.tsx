@@ -164,18 +164,27 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
 
                             <button 
                                 onClick={async () => {
+                                    const latestSnap = (user.snaps || [])[0];
+                                    const stageLabel = `${user.plantStage?.toUpperCase() || 'SEMENTE'} DE ${gardenService.getPlantLabel(user.plantType || 'oak').toUpperCase()}`;
                                     const blob = await generateShareCanvas({
                                         title: 'Meu Jardim da Alma',
-                                        subtitle: `${user.plantStage?.toUpperCase() || 'SEMENTE'} DE ${gardenService.getPlantLabel(user.plantType || 'oak').toUpperCase()}`,
-                                        message: evolutionState.label,
-                                        imageUrl: 'https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=1080', // Hero background
+                                        subtitle: stageLabel,
+                                        message: `${evolutionState.label} • Vitalidade ${status.health}%`,
+                                        imageUrl: latestSnap?.image || 'https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=1080',
                                         accentColor: '#10b981', // Emerald for Garden
                                         footer: 'FLORESCENDO NO VIVA360',
-                                        date: new Date().toLocaleDateString('pt-BR')
+                                        date: new Date().toLocaleDateString('pt-BR'),
+                                        format: 'story',
+                                        mimeType: 'image/jpeg',
                                     });
 
                                     if (blob) {
-                                        await shareToSocial(blob, `🌿 Veja como está florescendo meu jardim da alma! Vitalidade: ${status.health}%`);
+                                        await shareToSocial(blob, {
+                                            platform: 'whatsapp',
+                                            title: 'Meu Jardim da Alma • Viva360',
+                                            text: `🌿 ${stageLabel}\nVitalidade: ${status.health}%\n${evolutionState.label}\n\nVeja minha evolução no Viva360.`,
+                                            filename: `viva360-jardim-${new Date().toISOString().slice(0, 10)}.jpg`,
+                                        });
                                     }
                                 }}
                                 className="w-full py-5 rounded-2xl bg-white border border-nature-200 text-nature-600 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-nature-50 transition-colors shadow-sm"
@@ -261,4 +270,3 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
         </PortalView>
     );
 };
-

@@ -4,7 +4,23 @@ import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
 import { ChevronLeft, FileText, Activity, Calendar, MoreVertical, Shield, MessageCircle } from 'lucide-react';
 
 export default function PatientProfile() {
-  const { go } = useGuardiaoFlow();
+  const { go, state } = useGuardiaoFlow();
+  const selectedPatient = state.selectedPatient;
+  const patientName = String(selectedPatient?.name || 'Buscador');
+  const patientInitials = patientName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || '')
+    .join('') || 'BS';
+
+  const nextAppointment = (state.data.appointments || []).find((appointment: any) => {
+    const clientId = String(appointment?.client_id || appointment?.clientId || '');
+    return clientId === String(selectedPatient?.id || '');
+  });
+  const nextDateLabel = nextAppointment?.date
+    ? new Date(String(nextAppointment.date).slice(0, 10)).toLocaleDateString('pt-BR')
+    : 'Sem data';
 
   return (
     <div className="min-h-screen bg-[#fcfdfc] flex flex-col animate-in slide-in-from-right duration-500">
@@ -21,8 +37,8 @@ export default function PatientProfile() {
            </header>
            
            <div className="text-center relative z-10">
-               <div className="w-24 h-24 bg-white rounded-[2rem] mx-auto mb-4 flex items-center justify-center text-nature-900 font-serif italic text-3xl shadow-lg">AS</div>
-               <h1 className="text-2xl font-serif italic">Ana Silva</h1>
+               <div className="w-24 h-24 bg-white rounded-[2rem] mx-auto mb-4 flex items-center justify-center text-nature-900 font-serif italic text-3xl shadow-lg">{patientInitials}</div>
+               <h1 className="text-2xl font-serif italic">{patientName}</h1>
                <p className="text-emerald-200 text-xs font-bold uppercase tracking-widest mt-2">Em Jornada há 6 meses</p>
            </div>
        </div>
@@ -38,7 +54,7 @@ export default function PatientProfile() {
                <div className="bg-white p-4 rounded-3xl border border-nature-100 text-center shadow-sm">
                    <Calendar size={20} className="mx-auto text-indigo-500 mb-2" />
                    <p className="text-[9px] font-bold text-nature-400 uppercase">Próxima</p>
-                   <p className="font-bold text-nature-900">14/Mai</p>
+                   <p className="font-bold text-nature-900">{nextDateLabel}</p>
                </div>
                <div className="bg-white p-4 rounded-3xl border border-nature-100 text-center shadow-sm">
                    <Shield size={20} className="mx-auto text-emerald-500 mb-2" />

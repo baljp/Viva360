@@ -6,6 +6,8 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 const resolveContextType = (value?: string) => {
   const normalized = String(value || '').trim().toUpperCase();
   if (normalized === 'BAZAR') return 'BAZAR';
@@ -132,6 +134,41 @@ const runCheckout = async (req: Request, res: Response) => {
   const normalizedAmount = Number(amount || 0);
   const normalizedContext = resolveContextType(contextType);
   ensureContext(normalizedContext, contextRef);
+  let resolvedReceiverId = String(receiverId || '').trim() || null;
+  const extraRecipients = new Set<string>();
+
+  if (!resolvedReceiverId && normalizedContext === 'BAZAR' && contextRef) {
+    const product = await prisma.product.findUnique({
+      where: { id: String(contextRef) },
+      select: { owner_id: true },
+    }).catch(() => null);
+    if (product?.owner_id) {
+      resolvedReceiverId = String(product.owner_id);
+    }
+  }
+
+  if (normalizedContext === 'AGENDA' && contextRef) {
+    const { data: appointment } = await supabaseAdmin
+      .from('appointments')
+      .select('id,professional_id')
+      .eq('id', String(contextRef))
+      .single();
+
+    const professionalId = String((appointment as any)?.professional_id || '').trim();
+    if (!resolvedReceiverId && professionalId) {
+      resolvedReceiverId = professionalId;
+    }
+
+    if (UUID_REGEX.test(professionalId)) {
+      const professional = await prisma.profile.findUnique({
+        where: { id: professionalId },
+        select: { hub_id: true },
+      }).catch(() => null);
+      if (professional?.hub_id) {
+        extraRecipients.add(String(professional.hub_id));
+      }
+    }
+  }
 
     if (isMockMode()) {
        // Simulate Cart Checkout
@@ -159,14 +196,15 @@ const runCheckout = async (req: Request, res: Response) => {
         contextType: normalizedContext,
         contextRef: contextRef || null,
         buyerId: String(userId || 'mock-sender'),
-        receiverId: receiverId ? String(receiverId) : null,
+        receiverId: resolvedReceiverId ? String(resolvedReceiverId) : null,
         amount: total,
         description: String(description || ''),
        });
 
        const confirmation = await interactionService.emitCheckoutConfirmation({
         buyerId: String(userId || 'mock-sender'),
-        receiverId: receiverId ? String(receiverId) : undefined,
+        receiverId: resolvedReceiverId ? String(resolvedReceiverId) : undefined,
+        extraRecipients: Array.from(extraRecipients),
         amount: total,
         contextType: normalizedContext,
         entityId: String(mockResult.id),
@@ -194,8 +232,8 @@ const runCheckout = async (req: Request, res: Response) => {
         status: 'COMPLETED',
         code: 'CHECKOUT_CONFIRMED',
         transaction: mockResult,
-        confirmation,
-        confirmationId: confirmation.confirmationId,
+       confirmation,
+       confirmationId: confirmation.confirmationId,
         counterpartiesNotified: confirmation.sentTo || [],
         contextAction: contextResult.contextAction,
         actionReceipt,
@@ -219,9 +257,9 @@ const runCheckout = async (req: Request, res: Response) => {
       });
 
       // 3. Credit Receiver (if any)
-      if (receiverId) {
+      if (resolvedReceiverId) {
         await tx.profile.update({
-          where: { id: receiverId },
+          where: { id: resolvedReceiverId },
           data: { personal_balance: { increment: normalizedAmount } }
         });
         // Debiting and Crediting done in transaction
@@ -239,9 +277,9 @@ const runCheckout = async (req: Request, res: Response) => {
     });
 
     // 5. Post-Commit Actions (Notifications)
-    if (receiverId) {
+    if (resolvedReceiverId) {
       // Notify Receiver (Async/Fire-and-forget or awaited outside tx)
-      await sendPushSimulation(receiverId, 'Payment Received', `You received ${normalizedAmount} coins.`);
+      await sendPushSimulation(resolvedReceiverId, 'Payment Received', `You received ${normalizedAmount} coins.`);
     }
 
     // Notify Sender
@@ -251,7 +289,7 @@ const runCheckout = async (req: Request, res: Response) => {
       contextType: normalizedContext,
       contextRef: contextRef || null,
       buyerId: String(userId),
-      receiverId: receiverId ? String(receiverId) : null,
+      receiverId: resolvedReceiverId ? String(resolvedReceiverId) : null,
       amount: normalizedAmount,
       description: String(description || ''),
     });
@@ -260,7 +298,8 @@ const runCheckout = async (req: Request, res: Response) => {
     try {
       confirmation = await interactionService.emitCheckoutConfirmation({
         buyerId: String(userId),
-        receiverId: receiverId ? String(receiverId) : undefined,
+        receiverId: resolvedReceiverId ? String(resolvedReceiverId) : undefined,
+        extraRecipients: Array.from(extraRecipients),
         amount: normalizedAmount,
         contextType: normalizedContext,
         entityId: String(result.id),

@@ -28,6 +28,7 @@ export class InteractionService {
   async emitCheckoutConfirmation(params: {
     buyerId: string;
     receiverId?: string | null;
+    extraRecipients?: string[];
     amount: number;
     contextType?: string;
     entityId: string;
@@ -63,6 +64,24 @@ export class InteractionService {
           amount: Number(params.amount || 0),
           context: contextLabel,
           description: params.description || 'Transação Viva360',
+        },
+      });
+    }
+
+    for (const recipient of params.extraRecipients || []) {
+      const targetId = String(recipient || '').trim();
+      if (!targetId || sentTo.has(targetId)) continue;
+      sentTo.add(targetId);
+      await notificationEngine.emit({
+        type: 'checkout.confirmed',
+        actorId: params.buyerId,
+        targetUserId: targetId,
+        entityType: 'checkout',
+        entityId: params.entityId,
+        data: {
+          amount: Number(params.amount || 0),
+          context: contextLabel,
+          confirmationId,
         },
       });
     }
@@ -170,6 +189,29 @@ export class InteractionService {
       entityId: params.appointmentId,
       data: { serviceName: params.serviceName, date: params.isoDate },
     });
+
+    if (params.professionalId) {
+      const professional = await prisma.profile.findUnique({
+        where: { id: params.professionalId },
+        select: { hub_id: true, name: true },
+      });
+
+      if (professional?.hub_id) {
+        sentTo.add(professional.hub_id);
+        await notificationEngine.emit({
+          type: 'appointment.space_rescheduled',
+          actorId: params.clientId,
+          targetUserId: professional.hub_id,
+          entityType: 'appointment',
+          entityId: params.appointmentId,
+          data: {
+            serviceName: params.serviceName,
+            date: params.isoDate,
+            guardianName: professional.name || 'Guardião',
+          },
+        });
+      }
+    }
 
     return {
       sentTo: Array.from(sentTo),
