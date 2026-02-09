@@ -44,6 +44,7 @@ model Profile {
   email             String?
   name              String?
   role              String? // 'CLIENT', 'PROFESSIONAL', 'SPACE'
+  active_role       String?
   avatar            String?
   bio               String?
   karma             Int      @default(0)
@@ -101,9 +102,25 @@ model Profile {
   // Escambo Proposals
   proposer_escambos EscamboProposal[] @relation("ProposerEscambo")
   receiver_escambos EscamboProposal[] @relation("ReceiverEscambo")
+  profile_roles     ProfileRole[]
 
   @@map("profiles")
   @@schema("public") // Prisma default is public but explicit is better
+}
+
+model ProfileRole {
+  id         String   @id @default(uuid()) @db.Uuid
+  profile_id String   @db.Uuid
+  role       String
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+
+  @@unique([profile_id, role])
+  @@index([profile_id])
+  @@map("profile_roles")
+  @@schema("public")
 }
 
 model AuthAllowlist {

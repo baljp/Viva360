@@ -7,7 +7,8 @@ const REQUIRED: Record<string, Record<string, string[]>> = {
     users: ['id', 'email', 'encrypted_password'],
   },
   public: {
-    profiles: ['id', 'email', 'role', 'name'],
+    profiles: ['id', 'email', 'role', 'active_role', 'name'],
+    profile_roles: ['id', 'profile_id', 'role'],
     appointments: ['id', 'client_id', 'professional_id', 'status'],
     notifications: ['id', 'user_id', 'read'],
     chat_messages: ['id', 'sender_id', 'receiver_id', 'content'],
@@ -76,4 +77,3 @@ run()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
