@@ -8,6 +8,7 @@
     "build": "npm run prisma:generate && tsc && vite build",
     "vercel-build": "npm run prisma:generate && vite build",
     "test:audit": "npx playwright test tests/audit.spec.ts",
+    "test:e2e": "npx playwright test tests/e2e_master.spec.ts",
     "test": "npx playwright test",
     "test:silent": "./verify_deployment.sh",
     "test:report": "npx playwright show-report",

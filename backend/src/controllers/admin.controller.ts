@@ -50,6 +50,14 @@ export const getSanctuaryMetrics = asyncHandler(async (req: Request, res: Respon
     res.json({ total: 50, eventsActive: 120, avgRevenue: 15000 });
 });
 
+export const getMetrics = asyncHandler(async (req: Request, res: Response) => {
+    res.json({
+        seekers: { total: 12000, activeMonthly: 8500, avgSessions: 2.4 },
+        guardians: { total: 500, avgOccupancy: '85%', avgRating: 4.8 },
+        sanctuaries: { total: 50, eventsActive: 120, avgRevenue: 15000 },
+    });
+});
+
 // 6. Marketplace (Moderation)
 export const getMarketplaceOffers = asyncHandler(async (req: Request, res: Response) => {
     res.json([

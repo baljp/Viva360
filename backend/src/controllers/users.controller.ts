@@ -8,6 +8,14 @@ const checkInSchema = z.object({
   reward: z.number().min(1).default(50)
 });
 
+const userUpdateSchema = z.object({
+  name: z.string().min(2).optional(),
+  bio: z.string().optional(),
+  avatar: z.string().url().optional(),
+  location: z.string().optional(),
+  specialty: z.array(z.string()).optional(),
+});
+
 export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     const { userId, reward } = checkInSchema.parse(req.body);
 
@@ -54,4 +62,55 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     }
 
     return res.json({ user: updatedUser, reward });
+});
+
+export const getById = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { data, error } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error || !data) {
+        return res.status(404).json({ error: 'User not found' });
+    }
+
+    return res.json(data);
+});
+
+export const updateById = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const parsed = userUpdateSchema.safeParse(req.body || {});
+
+    const updates = parsed.success
+        ? parsed.data
+        : {
+            name: req.body?.name,
+            bio: req.body?.bio,
+            avatar: req.body?.avatar,
+            location: req.body?.location,
+            specialty: Array.isArray(req.body?.specialty) ? req.body.specialty : undefined,
+        };
+
+    const sanitized = Object.fromEntries(
+        Object.entries(updates).filter(([, value]) => value !== undefined)
+    );
+
+    if (Object.keys(sanitized).length === 0) {
+        return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    const { data, error } = await supabaseAdmin
+        .from('profiles')
+        .update(sanitized)
+        .eq('id', id)
+        .select('*')
+        .single();
+
+    if (error || !data) {
+        return res.status(404).json({ error: 'User not found or update failed' });
+    }
+
+    return res.json(data);
 });

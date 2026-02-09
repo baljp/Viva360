@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { User, ViewState, Professional, CartItem, Product } from './types';
 import Layout from './components/Layout';
@@ -15,19 +15,20 @@ import { NotificationProvider } from './src/contexts/NotificationContext';
 import { ChatProvider } from './src/contexts/ChatContext';
 
 // Lazy Load Views
-const Auth = lazy(() => import('./views/Auth'));
-const ResetPasswordView = lazy(() => import('./views/ResetPassword').then(m => ({ default: m.ResetPasswordView })));
-const ClientViews = lazy(() => import('./views/ClientViews').then(module => ({ default: module.ClientViews })));
-const ProViews = lazy(() => import('./views/ProViews').then(module => ({ default: module.ProViews })));
-const SpaceViews = lazy(() => import('./views/SpaceViews').then(module => ({ default: module.SpaceViews })));
-const SettingsViews = lazy(() => import('./views/SettingsViews').then(module => ({ default: module.SettingsViews })));
-const RegistrationViews = lazy(() => import('./views/Registration').then(module => ({ default: module.RegistrationViews })));
-const CheckoutScreen = lazy(() => import('./components/Checkout').then(module => ({ default: module.CheckoutScreen })));
-const SuccessScreen = lazy(() => import('./components/Checkout').then(module => ({ default: module.SuccessScreen })));
-const OrdersListView = lazy(() => import('./views/ServiceViews').then(module => ({ default: module.OrdersListView })));
-const AdminViews = lazy(() => import('./views/AdminViews').then(module => ({ default: module.AdminViews })));
+const Auth = lazyWithRetry(() => import('./views/Auth'), 'Auth');
+const ResetPasswordView = lazyWithRetry(() => import('./views/ResetPassword').then(m => ({ default: m.ResetPasswordView })), 'ResetPasswordView');
+const ClientViews = lazyWithRetry(() => import('./views/ClientViews').then(module => ({ default: module.ClientViews })), 'ClientViews');
+const ProViews = lazyWithRetry(() => import('./views/ProViews').then(module => ({ default: module.ProViews })), 'ProViews');
+const SpaceViews = lazyWithRetry(() => import('./views/SpaceViews').then(module => ({ default: module.SpaceViews })), 'SpaceViews');
+const SettingsViews = lazyWithRetry(() => import('./views/SettingsViews').then(module => ({ default: module.SettingsViews })), 'SettingsViews');
+const RegistrationViews = lazyWithRetry(() => import('./views/Registration').then(module => ({ default: module.RegistrationViews })), 'RegistrationViews');
+const CheckoutScreen = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.CheckoutScreen })), 'CheckoutScreen');
+const SuccessScreen = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.SuccessScreen })), 'SuccessScreen');
+const OrdersListView = lazyWithRetry(() => import('./views/ServiceViews').then(module => ({ default: module.OrdersListView })), 'OrdersListView');
+const AdminViews = lazyWithRetry(() => import('./views/AdminViews').then(module => ({ default: module.AdminViews })), 'AdminViews');
 import { NotFoundScreen } from './src/navigation/NotFoundScreen';
 import { preloadRoleViews } from './src/utils/loaderUtils';
+import { lazyWithRetry } from './src/utils/lazyWithRetry';
 
 const PUBLIC_PATHS = ['/login', '/register', '/register/client', '/register/pro', '/register/space', '/reset-password'];
 

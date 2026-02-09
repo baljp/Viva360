@@ -12,6 +12,7 @@ router.post('/users/:id/block', AdminController.blockUser);
 router.get('/metrics/seekers', AdminController.getSeekerMetrics);
 router.get('/metrics/guardians', AdminController.getGuardianMetrics);
 router.get('/metrics/sanctuaries', AdminController.getSanctuaryMetrics);
+router.get('/metrics', AdminController.getMetrics);
 router.get('/marketplace/offers', AdminController.getMarketplaceOffers);
 router.get('/finance/global', AdminController.getGlobalFinance);
 router.get('/lgpd/audit', AdminController.getLgpdAudit);

@@ -1,5 +1,6 @@
 
-import React, { lazy } from 'react';
+import React from 'react';
+import { lazyWithRetry } from '../utils/lazyWithRetry';
 
 // --- HELPER FOR NAMED EXPORTS ---
 // Usage: const Component = lazyNamed(() => import('path'), 'ComponentName');
@@ -7,8 +8,9 @@ const lazyNamed = <T extends React.ComponentType<any>>(
   importFunc: () => Promise<{ [key: string]: any }>, 
   componentName: string
 ) => {
-  return lazy(() => 
-    importFunc().then(module => ({ default: module[componentName] }))
+  return lazyWithRetry(
+    () => importFunc().then(module => ({ default: module[componentName] })),
+    `screen-${componentName}`
   );
 };
 
@@ -25,20 +27,20 @@ const BookingSelect = lazyNamed(() => import('../../views/client/BookingSelect')
 const RitualsView = lazyNamed(() => import('../../views/client/RitualsView'), 'RitualsView');
 
 // --- BUSCADOR GENERATED (Default Exports usually) ---
-const BookingConfirm = lazy(() => import('../../views/client/generated/BookingConfirm'));
-const PaymentSuccess = lazy(() => import('../../views/client/generated/PaymentSuccess'));
-const TribeInvite = lazy(() => import('../../views/client/generated/TribeInvite'));
-const TribeInteraction = lazy(() => import('../../views/client/generated/TribeInteraction'));
-const ChatListScreen = lazy(() => import('../../views/client/chat/ChatListScreen'));
-const ChatRoomScreen = lazy(() => import('../../views/client/chat/ChatRoomScreen'));
-const CheckoutScreen = lazy(() => import('../../views/client/financial/CheckoutScreen'));
-const PaymentHistoryScreen = lazy(() => import('../../views/client/financial/PaymentHistoryScreen'));
+const BookingConfirm = lazyWithRetry(() => import('../../views/client/generated/BookingConfirm'), 'BookingConfirm');
+const PaymentSuccess = lazyWithRetry(() => import('../../views/client/generated/PaymentSuccess'), 'PaymentSuccess');
+const TribeInvite = lazyWithRetry(() => import('../../views/client/generated/TribeInvite'), 'TribeInvite');
+const TribeInteraction = lazyWithRetry(() => import('../../views/client/generated/TribeInteraction'), 'TribeInteraction');
+const ChatListScreen = lazyWithRetry(() => import('../../views/client/chat/ChatListScreen'), 'ChatListScreen');
+const ChatRoomScreen = lazyWithRetry(() => import('../../views/client/chat/ChatRoomScreen'), 'ChatRoomScreen');
+const CheckoutScreen = lazyWithRetry(() => import('../../views/client/financial/CheckoutScreen'), 'CheckoutScreen');
+const PaymentHistoryScreen = lazyWithRetry(() => import('../../views/client/financial/PaymentHistoryScreen'), 'PaymentHistoryScreen');
 const OrdersListView = lazyNamed(() => import('../../views/ServiceViews'), 'OrdersListView');
-const CheckoutSuccessScreen = lazy(() => import('../../views/client/generated/BookingConfirm')); // Reused
+const CheckoutSuccessScreen = lazyWithRetry(() => import('../../views/client/generated/BookingConfirm'), 'CheckoutSuccessScreen'); // Reused
 const ClientMarketplace = lazyNamed(() => import('../../views/client/ClientMarketplace'), 'ClientMarketplace');
 const EvolutionView = lazyNamed(() => import('../../views/client/garden/EvolutionView'), 'EvolutionView');
 const EvolutionAnalytics = lazyNamed(() => import('../../views/client/garden/EvolutionAnalytics'), 'EvolutionAnalytics');
-const KarmaWallet = lazy(() => import('../../views/client/garden/KarmaWallet')); // Default export
+const KarmaWallet = lazyWithRetry(() => import('../../views/client/garden/KarmaWallet'), 'KarmaWallet'); // Default export
 const AchievementsView = lazyNamed(() => import('../../views/client/garden/AchievementsView'), 'AchievementsView');
 const EmotionalHistory = lazyNamed(() => import('../../views/client/garden/EmotionalHistory'), 'EmotionalHistory');
 const TimeLapseExperience = lazyNamed(() => import('../../views/client/garden/TimeLapseExperience'), 'TimeLapseExperience');
@@ -61,14 +63,14 @@ const VideoPrepScreen = lazyNamed(() => import('../../views/pro/VideoPrepScreen'
 const CustomInterventionWizard = lazyNamed(() => import('../../views/pro/CustomInterventionWizard'), 'CustomInterventionWizard');
 
 // --- GUARDIAO GENERATED ---
-const AgendaView = lazy(() => import('../../views/pro/generated/AgendaView'));
-const PatientsList = lazy(() => import('../../views/pro/generated/PatientsList'));
-const PatientProfile = lazy(() => import('../../views/pro/generated/PatientProfile'));
-const PatientEvolutionView = lazy(() => import('../../views/pro/generated/PatientEvolutionView'));
-const VagasList = lazy(() => import('../../views/pro/generated/VagasList'));
-const ProChatListScreen = lazy(() => import('../../views/pro/chat/ProChatListScreen'));
-const ProChatRoomScreen = lazy(() => import('../../views/pro/chat/ProChatRoomScreen'));
-const WalletViewScreen = lazy(() => import('../../views/pro/financial/WalletViewScreen'));
+const AgendaView = lazyWithRetry(() => import('../../views/pro/generated/AgendaView'), 'AgendaView');
+const PatientsList = lazyWithRetry(() => import('../../views/pro/generated/PatientsList'), 'PatientsList');
+const PatientProfile = lazyWithRetry(() => import('../../views/pro/generated/PatientProfile'), 'PatientProfile');
+const PatientEvolutionView = lazyWithRetry(() => import('../../views/pro/generated/PatientEvolutionView'), 'PatientEvolutionView');
+const VagasList = lazyWithRetry(() => import('../../views/pro/generated/VagasList'), 'VagasList');
+const ProChatListScreen = lazyWithRetry(() => import('../../views/pro/chat/ProChatListScreen'), 'ProChatListScreen');
+const ProChatRoomScreen = lazyWithRetry(() => import('../../views/pro/chat/ProChatRoomScreen'), 'ProChatRoomScreen');
+const WalletViewScreen = lazyWithRetry(() => import('../../views/pro/financial/WalletViewScreen'), 'WalletViewScreen');
 
 // --- SANTUARIO SCREENS ---
 const SpaceDashboard = lazyNamed(() => import('../../views/space/SpaceDashboard'), 'SpaceDashboard');
@@ -80,20 +82,20 @@ const SpaceRooms = lazyNamed(() => import('../../views/space/SpaceRooms'), 'Spac
 const SpaceTeam = lazyNamed(() => import('../../views/space/SpaceTeam'), 'SpaceTeam');
 
 // --- SANTUARIO GENERATED ---
-const SpacePatients = lazy(() => import('../../views/space/generated/SpacePatients'));
-const SpaceGovernance = lazy(() => import('../../views/space/generated/SpaceGovernance'));
-const SpaceRoomEdit = lazy(() => import('../../views/space/generated/SpaceRoomEdit'));
-const SpaceRoomAgenda = lazy(() => import('../../views/space/generated/SpaceRoomAgenda'));
+const SpacePatients = lazyWithRetry(() => import('../../views/space/generated/SpacePatients'), 'SpacePatients');
+const SpaceGovernance = lazyWithRetry(() => import('../../views/space/generated/SpaceGovernance'), 'SpaceGovernance');
+const SpaceRoomEdit = lazyWithRetry(() => import('../../views/space/generated/SpaceRoomEdit'), 'SpaceRoomEdit');
+const SpaceRoomAgenda = lazyWithRetry(() => import('../../views/space/generated/SpaceRoomAgenda'), 'SpaceRoomAgenda');
 const SpaceRoomCreate = lazyNamed(() => import('../../views/space/SpaceRoomCreate'), 'SpaceRoomCreate');
-const SpaceProDetails = lazy(() => import('../../views/space/generated/SpaceProDetails'));
-const SpaceSummon = lazy(() => import('../../views/space/generated/SpaceSummon'));
-const SpaceInvite = lazy(() => import('../../views/space/generated/SpaceInvite'));
-const SpaceEventCreate = lazy(() => import('../../views/space/generated/SpaceEventCreate'));
-const SpaceRetreatsManager = lazy(() => import('../../views/space/generated/SpaceRetreatsManager'));
-const SpaceReputation = lazy(() => import('../../views/space/generated/SpaceReputation'));
-const ServiceEvaluation = lazy(() => import('../../views/space/generated/ServiceEvaluation'));
-const SpaceChatListScreen = lazy(() => import('../../views/space/chat/SpaceChatListScreen'));
-const SpaceChatRoomScreen = lazy(() => import('../../views/space/chat/SpaceChatRoomScreen'));
+const SpaceProDetails = lazyWithRetry(() => import('../../views/space/generated/SpaceProDetails'), 'SpaceProDetails');
+const SpaceSummon = lazyWithRetry(() => import('../../views/space/generated/SpaceSummon'), 'SpaceSummon');
+const SpaceInvite = lazyWithRetry(() => import('../../views/space/generated/SpaceInvite'), 'SpaceInvite');
+const SpaceEventCreate = lazyWithRetry(() => import('../../views/space/generated/SpaceEventCreate'), 'SpaceEventCreate');
+const SpaceRetreatsManager = lazyWithRetry(() => import('../../views/space/generated/SpaceRetreatsManager'), 'SpaceRetreatsManager');
+const SpaceReputation = lazyWithRetry(() => import('../../views/space/generated/SpaceReputation'), 'SpaceReputation');
+const ServiceEvaluation = lazyWithRetry(() => import('../../views/space/generated/ServiceEvaluation'), 'ServiceEvaluation');
+const SpaceChatListScreen = lazyWithRetry(() => import('../../views/space/chat/SpaceChatListScreen'), 'SpaceChatListScreen');
+const SpaceChatRoomScreen = lazyWithRetry(() => import('../../views/space/chat/SpaceChatRoomScreen'), 'SpaceChatRoomScreen');
 const PredictiveOccupancy = lazyNamed(() => import('../../views/space/PredictiveOccupancy'), 'PredictiveOccupancy');
 const SpaceAuditLog = lazyNamed(() => import('../../views/space/SpaceAuditLog'), 'SpaceAuditLog');
 const RadianceDrilldown = lazyNamed(() => import('../../views/space/RadianceDrilldown'), 'RadianceDrilldown');

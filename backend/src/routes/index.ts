@@ -23,6 +23,9 @@ import { rateLimiter } from '../middleware/rateLimiter';
 import { swrMiddleware } from '../middleware/swr.middleware';
 import adminRoutes from './admin.routes';
 import executiveRoutes from './executive.routes';
+import journalRoutes from './journal.routes';
+import clinicalRoutes from './clinical.routes';
+import auditRoutes from './audit.routes';
 
 const router = Router();
 router.use(rateLimiter); // Upgrade 9.5: Global Rate Limit
@@ -52,6 +55,9 @@ router.use('/alchemy', authenticateUser, alchemyRoutes);
 router.use('/marketplace', authenticateUser, swrMiddleware(1, 59), marketplaceRoutes);
 router.use('/oracle', authenticateUser, oracleRoutes);
 router.use('/records', authenticateUser, recordsRoutes);
+router.use('/journal', authenticateUser, journalRoutes);
+router.use('/clinical', authenticateUser, clinicalRoutes);
+router.use('/audit', authenticateUser, auditRoutes);
 
 // Admin
 router.use('/admin', authenticateUser, adminRoutes);

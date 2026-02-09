@@ -190,6 +190,35 @@ export class ProfileLinkService {
       type: link.type,
     });
   }
+
+  async rejectLink(linkId: string, rejectorId: string): Promise<any> {
+    const link = await prisma.profileLink.findUnique({
+      where: { id: linkId },
+    });
+
+    if (!link) {
+      throw new Error('Link not found');
+    }
+
+    if (link.target_id !== rejectorId) {
+      throw new Error('Not authorized to reject this link');
+    }
+
+    if (link.status !== 'pending') {
+      throw new Error('Link is not pending');
+    }
+
+    const updated = await prisma.profileLink.update({
+      where: { id: linkId },
+      data: { status: 'rejected' },
+    });
+
+    await auditService.log(rejectorId, 'link.rejected', 'profile_link', linkId, {
+      type: link.type,
+    });
+
+    return updated;
+  }
 }
 
 export const profileLinkService = new ProfileLinkService();
