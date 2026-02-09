@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { ViewState, UserRole, User, Professional } from '../types';
 import { User as UserIcon, Briefcase, Building, ChevronRight, ArrowLeft, Mail, Lock, Sparkles, Heart, Activity, Brain, MapPin, DollarSign, List, Home, Check, Leaf, Loader2 } from 'lucide-react';
 import { ZenToast } from '../components/Common';
+import { api } from '../services/api';
 
 interface RegistrationProps {
     view: ViewState;
@@ -122,10 +123,18 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        setToast({
-            title: 'Cadastro via Google indisponível',
-            message: 'Por segurança, faça seu cadastro por e-mail e senha. Depois você poderá vincular o Google.'
-        });
+        setIsLoading(true);
+        try {
+            await api.auth.registerWithGoogle(UserRole.CLIENT);
+        } catch (e: any) {
+            if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
+                setToast({
+                    title: 'Falha no Google',
+                    message: e?.message || 'Não foi possível iniciar o cadastro com Google.',
+                });
+                setIsLoading(false);
+            }
+        }
     };
     
     const handleGoalChange = (goal: string) => {
@@ -183,10 +192,18 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        setToast({
-            title: 'Cadastro via Google indisponível',
-            message: 'Por segurança, faça seu cadastro por e-mail e senha. Depois você poderá vincular o Google.'
-        });
+        setIsLoading(true);
+        try {
+            await api.auth.registerWithGoogle(UserRole.PROFESSIONAL);
+        } catch (e: any) {
+            if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
+                setToast({
+                    title: 'Falha no Google',
+                    message: e?.message || 'Não foi possível iniciar o cadastro com Google.',
+                });
+                setIsLoading(false);
+            }
+        }
     };
 
     return (
@@ -241,10 +258,18 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     };
 
     const handleGoogleRegister = async () => {
-        setToast({
-            title: 'Cadastro via Google indisponível',
-            message: 'Por segurança, faça seu cadastro por e-mail e senha. Depois você poderá vincular o Google.'
-        });
+        setIsLoading(true);
+        try {
+            await api.auth.registerWithGoogle(UserRole.SPACE);
+        } catch (e: any) {
+            if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
+                setToast({
+                    title: 'Falha no Google',
+                    message: e?.message || 'Não foi possível iniciar o cadastro com Google.',
+                });
+                setIsLoading(false);
+            }
+        }
     };
 
      return (

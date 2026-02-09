@@ -13,10 +13,17 @@ if (isServerless) {
 
 // Mock Redis Class
 class MockRedis {
+  private counters = new Map<string, number>();
   on(event: string, cb: any) { 
       if (event === 'connect') setTimeout(cb, 0); 
       return this; 
   }
+  async incr(key: string) {
+      const next = (this.counters.get(key) || 0) + 1;
+      this.counters.set(key, next);
+      return next;
+  }
+  async expire() { return 1; }
   async publish() { return 1; }
   async get() { return null; }
   async set() { return 'OK'; }

@@ -1,45 +1,52 @@
 import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { z } from 'zod';
 import { JWT_SECRET } from '../lib/secrets';
-import { supabaseAdmin } from './supabase.service';
 
 export class AuthService {
   
   // Register new user (creates Auth User + Profile via Trigger or manual)
   static async register(email: string, password: string, name: string, role: string = 'CLIENT') {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedRole = String(role || 'CLIENT').trim().toUpperCase();
+    const allowedRoles = new Set(['CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN']);
+    const finalRole = allowedRoles.has(normalizedRole) ? normalizedRole : 'CLIENT';
 
     // Check if user exists
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) throw new Error('User already exists');
 
     const hashedPassword = (await bcrypt.hash(password, 10)).replace(/^\$2b\$/, '$2a$');
 
-    // 1. Create User via Supabase SDK (Safe & Handles Identities/Triggers)
-    const { data: authData, error: authError } = await supabaseAdmin.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
+    // Create the Auth user row directly to avoid GoTrue email rate limits/confirmation issues.
+    // The API layer in this repo uses the DB as the source of truth for email/password auth.
+    const authUser = await prisma.user.create({
+      data: {
+        email: normalizedEmail,
+        encrypted_password: hashedPassword,
+        aud: 'authenticated',
+        role: 'authenticated',
+        email_confirmed_at: new Date(),
+        raw_app_meta_data: {
+          provider: 'email',
+          providers: ['email'],
+        },
+        raw_user_meta_data: {
           full_name: name,
-          role: role
-        }
-      }
+          role: finalRole,
+        },
+      },
     });
 
-    if (authError) throw authError;
-    if (!authData.user) throw new Error('Failed to create auth user');
-
-    const userId = authData.user.id;
+    const userId = authUser.id;
 
     // 2. Create Profile in Prisma (linked to Auth User)
     const profile = await prisma.profile.create({
       data: {
         id: userId,
-        email: email,
+        email: normalizedEmail,
         name: name,
-        role: role,
+        role: finalRole,
         avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userId}`,
         personal_balance: 1000,
         multiplier: 1,
@@ -50,7 +57,7 @@ export class AuthService {
     // but it hashes it correctly. We only need the prefix fix if we were inserting manually. 
     // Since we use signUp, it's already correct).
     
-    return AuthService.generateSession({ id: userId, email, role: profile.role });
+    return AuthService.generateSession({ id: userId, email: normalizedEmail, profile });
   }
 
   // Login
@@ -74,7 +81,9 @@ export class AuthService {
 
   // Helper: Generate Session Response
   private static generateSession(user: any) {
-    const role = String(user.role || user.profile?.role || 'CLIENT').toUpperCase();
+    const allowedRoles = new Set(['CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN']);
+    const candidate = String(user.profile?.role || user.role || 'CLIENT').trim().toUpperCase();
+    const role = allowedRoles.has(candidate) ? candidate : 'CLIENT';
     const token = jwt.sign(
       { 
         userId: user.id, 
