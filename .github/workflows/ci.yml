@@ -10,6 +10,12 @@ jobs:
   quality-check:
     name: 🛡️ Type Check & Lint
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      NODE_ENV: test
     steps:
       - uses: actions/checkout@v3
       
@@ -31,21 +37,61 @@ jobs:
           npm ci
           npm run build
 
-  unit-test:
-    name: 🧪 Unit Tests
+      - name: Drift Check (Prisma schema vs DB)
+        run: npm run db:drift-check
+
+  backend-test:
+    name: 🧪 Backend Tests
     runs-on: ubuntu-latest
     needs: quality-check
+    env:
+      NODE_ENV: test
     steps:
       - uses: actions/checkout@v3
-      # Ideally run backend tests here (Jest/Vitest)
-      - name: Run Backend Tests
-        working-directory: ./backend
-        run: echo "Mocking test run - Implement Jest later" 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Backend Test Suite
+        run: npm run test:backend
+
+  smoke-e2e:
+    name: 🎭 Smoke E2E
+    runs-on: ubuntu-latest
+    needs: backend-test
+    env:
+      NODE_ENV: test
+      VITE_APP_MODE: MOCK
+      VITE_ENABLE_TEST_MODE: "true"
+      APP_MODE: MOCK
+      ENABLE_TEST_MODE: "true"
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Smoke E2E
+        run: npm run test:e2e:smoke
 
   docker-build:
     name: 🐳 Docker Build Verify
     runs-on: ubuntu-latest
-    needs: unit-test
+    needs: smoke-e2e
     steps:
       - uses: actions/checkout@v3
       
