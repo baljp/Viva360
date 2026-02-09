@@ -56,8 +56,8 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     const yesterday = new Date(now);
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
     const yesterdayAction = `DAILY_BLESSING_${yesterday.toISOString().slice(0, 10)}`;
-
     const requestId = String((req as any).requestId || '');
+
     const uniqueWhere = {
         entity_type_entity_id_action_actor_id: {
             entity_type: 'PROFILE',
@@ -105,6 +105,8 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
                 status: 'ALREADY_DONE',
                 reward: 0,
                 lastCheckIn: existing?.created_at || null,
+                requestId,
+                timestamp: now.toISOString(),
                 user: {
                     ...user,
                     lastCheckIn: existing?.created_at || null,
@@ -151,6 +153,8 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
                 status: 'ALREADY_DONE',
                 reward: 0,
                 lastCheckIn: alreadyDoneToday.created_at,
+                requestId,
+                timestamp: now.toISOString(),
                 user: {
                     ...user,
                     lastCheckIn: alreadyDoneToday.created_at,
@@ -217,6 +221,8 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     return res.json({
         code: 'CHECKIN_DONE',
         status: 'DONE',
+        requestId,
+        timestamp: checkInAt,
         user: {
             ...updatedUser,
             lastCheckIn: checkInAt,

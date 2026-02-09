@@ -162,6 +162,16 @@ const clearMockArtifacts = (opts?: { preserveAuthToken?: boolean }) => {
     }
 };
 
+const clearSupabaseSessionArtifacts = () => {
+    for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        if (key.startsWith('sb-') && key.includes('-auth-token')) {
+            localStorage.removeItem(key);
+        }
+    }
+};
+
 const createMockUser = (email: string, role?: UserRole, name?: string): User => {
     const normalizedEmail = normalizeEmail(email);
     const strictTest = STRICT_TEST_ACCOUNTS[normalizedEmail];
@@ -653,64 +663,60 @@ export const api = {
                 throw new Error('Cadastro real está desabilitado no modo teste.');
             }
 
-            try {
-                // Prefer backend registration so we guarantee a `profiles` row exists (authorized account).
-                const response = await fetch(`${API_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email: normalizedEmail,
-                        password: data.password,
-                        name: data.name,
-                        role: normalizedRole,
-                    })
-                });
+            // Prefer backend registration so we guarantee a `profiles` row exists (authorized account).
+            const response = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: normalizedEmail,
+                    password: data.password,
+                    name: data.name,
+                    role: normalizedRole,
+                })
+            });
 
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(toDomainAuthMessage({
-                        code: errorData?.code,
-                        reason: errorData?.reason,
-                        fallback: errorData.error || response.statusText || 'Falha no cadastro',
-                    }));
-                }
-
-                const payload = await response.json();
-                const fallbackToken = payload?.session?.access_token;
-                if (fallbackToken) {
-                    promoteToRealSession(fallbackToken);
-                }
-
-                // Best-effort: also create a real Supabase session so password updates work in-app.
-                try {
-                    const { data: signInData, error } = await supabase.auth.signInWithPassword({
-                        email: normalizedEmail,
-                        password: data.password,
-                    });
-                    if (error) throw error;
-                    if (signInData.session?.access_token) {
-                        promoteToRealSession(signInData.session.access_token);
-                        localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
-                    }
-                } catch {
-                    // If email confirmation is required, session may not be available yet.
-                }
-
-                const sessionUser = await api.auth.getCurrentSession();
-                if (sessionUser) return sessionUser;
-
-                return baseUser({
-                    id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
-                    email: payload?.user?.email || normalizedEmail,
-                    name: payload?.user?.name || data.name || normalizedEmail.split('@')[0] || 'Viajante',
-                    role: normalizeRole(payload?.user?.role || normalizedRole),
-                    activeRole: normalizeRole(payload?.user?.activeRole || payload?.user?.role || normalizedRole),
-                    roles: normalizeRoleList(Array.isArray(payload?.user?.roles) ? payload.user.roles : [payload?.user?.role || normalizedRole]),
-                    avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
-                });
-            } catch (err: any) {
-                throw err;
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(toDomainAuthMessage({
+                    code: errorData?.code,
+                    reason: errorData?.reason,
+                    fallback: errorData.error || response.statusText || 'Falha no cadastro',
+                }));
             }
+
+            const payload = await response.json();
+            const fallbackToken = payload?.session?.access_token;
+            if (fallbackToken) {
+                promoteToRealSession(fallbackToken);
+            }
+
+            // Best-effort: also create a real Supabase session so password updates work in-app.
+            try {
+                const { data: signInData, error } = await supabase.auth.signInWithPassword({
+                    email: normalizedEmail,
+                    password: data.password,
+                });
+                if (error) throw error;
+                if (signInData.session?.access_token) {
+                    promoteToRealSession(signInData.session.access_token);
+                    localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+                }
+            } catch {
+                // If email confirmation is required, session may not be available yet.
+            }
+
+            const sessionUser = await api.auth.getCurrentSession();
+            if (sessionUser) return sessionUser;
+
+            return baseUser({
+                id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
+                email: payload?.user?.email || normalizedEmail,
+                name: payload?.user?.name || data.name || normalizedEmail.split('@')[0] || 'Viajante',
+                role: normalizeRole(payload?.user?.role || normalizedRole),
+                activeRole: normalizeRole(payload?.user?.activeRole || payload?.user?.role || normalizedRole),
+                roles: normalizeRoleList(Array.isArray(payload?.user?.roles) ? payload.user.roles : [payload?.user?.role || normalizedRole]),
+                avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
+            });
         },
         getCurrentSession: async (): Promise<User | null> => {
             if (!canUseMockSession() && localStorage.getItem(MOCK_USER_KEY)) {
@@ -811,7 +817,8 @@ export const api = {
         logout: async () => {
             try {
                 if (!canUseMockSession()) {
-                    await supabase.auth.signOut();
+                    await supabase.auth.signOut({ scope: 'global' as any });
+                    await supabase.auth.signOut({ scope: 'local' as any });
                 }
             } catch {
                 // Continue local cleanup even if remote sign-out fails.
@@ -824,6 +831,7 @@ export const api = {
             localStorage.removeItem(OAUTH_INTENT_KEY);
             localStorage.removeItem(OAUTH_ROLE_KEY);
             clearTestMode();
+            clearSupabaseSessionArtifacts();
         },
         deleteAccount: async () => {
             return await request('/auth/account', {
@@ -889,20 +897,43 @@ export const api = {
                 return user;
             }
         },
-        checkIn: async (uid: string, reward: number = 50) => {
-            const payload = await request('/users/checkin', {
-                method: 'POST',
-                body: JSON.stringify({ reward })
-            });
+        checkIn: async (_uid: string, reward: number = 50) => {
+            let payload: any;
+            try {
+                payload = await request('/users/checkin', {
+                    method: 'POST',
+                    purpose: 'daily-checkin',
+                    timeoutMs: 7000,
+                    retries: 0,
+                    body: JSON.stringify({ reward })
+                });
+            } catch (error: any) {
+                const status = Number(error?.status || 0);
+                const code = String(error?.code || error?.details?.code || '').toUpperCase();
+                if (status === 409 || code === 'CHECKIN_ALREADY_DONE') {
+                    const details = error?.details || {};
+                    return {
+                        ...details,
+                        code: 'CHECKIN_ALREADY_DONE',
+                        status: 'ALREADY_DONE',
+                        ok: true,
+                        alreadyDone: true,
+                        user: details?.user ? normalizeProfilePayload(details.user) : undefined,
+                    };
+                }
+                throw error;
+            }
 
             if (payload?.user) {
                 return {
                     ...payload,
+                    ok: true,
+                    alreadyDone: String(payload?.status || payload?.code || '').toUpperCase().includes('ALREADY'),
                     user: normalizeProfilePayload(payload.user),
                 };
             }
 
-            return payload;
+            return { ...payload, ok: true };
         }
     },
     payment: {
@@ -929,7 +960,11 @@ export const api = {
     professionals: {
         list: async (): Promise<Professional[]> => {
             try {
-                return await request('/profiles?role=PROFESSIONAL');
+                return await request('/profiles?role=PROFESSIONAL', {
+                    purpose: 'professionals-list',
+                    timeoutMs: 6000,
+                    retries: 1,
+                });
             } catch {
                 return [];
             }
@@ -1068,7 +1103,11 @@ export const api = {
     marketplace: {
         listAll: async (): Promise<Product[]> => {
             try {
-                return await request('/marketplace/products', { purpose: 'marketplace-list' });
+                return await request('/marketplace/products', {
+                    purpose: 'marketplace-list',
+                    timeoutMs: 6000,
+                    retries: 1,
+                });
             } catch {
                 return [];
             }
@@ -1285,7 +1324,11 @@ export const api = {
         },
         getEvents: async () => {
             try {
-                return await request('/calendar', { purpose: 'space-events' });
+                return await request('/calendar', {
+                    purpose: 'space-events',
+                    timeoutMs: 6000,
+                    retries: 1,
+                });
             } catch {
                 return [];
             }
@@ -1302,7 +1345,11 @@ export const api = {
             }
         },
         syncCalendar: async () => {
-            return await request('/calendar/sync', { purpose: 'space-events-sync' });
+            return await request('/calendar/sync', {
+                purpose: 'space-events-sync',
+                timeoutMs: 8000,
+                retries: 1,
+            });
         }
     },
     admin: {
@@ -1521,6 +1568,9 @@ export const api = {
         checkIn: async (mood: string, hash: string, thumb: string) => {
             const response = await request('/metamorphosis/checkin', {
                 method: 'POST',
+                purpose: 'metamorphosis-checkin',
+                timeoutMs: 6000,
+                retries: 0,
                 body: JSON.stringify({
                     mood,
                     photoHash: hash,
@@ -1534,7 +1584,11 @@ export const api = {
         },
         getEvolution: async () => {
             try {
-                return await request('/metamorphosis/evolution');
+                return await request('/metamorphosis/evolution', {
+                    purpose: 'metamorphosis-evolution',
+                    timeoutMs: 7000,
+                    retries: 1,
+                });
             } catch {
                 return { entries: [] };
             }

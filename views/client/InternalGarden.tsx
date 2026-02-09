@@ -47,8 +47,17 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
             plantHealth: 100
         };
         updateUser(updatedUser);
-        await api.users.update(updatedUser);
+        // Close modal first so the user is never blocked by network latency.
         setActiveModal(null);
+        try {
+            await api.users.update(updatedUser);
+        } catch {
+            setToast({
+                title: 'Jornada iniciada localmente',
+                message: 'Sincronizando seu jardim. Tente novamente se não atualizar.',
+            });
+            return;
+        }
         setToast({ title: 'Jornada Iniciada', message: `Sua semente de ${gardenService.getPlantLabel(updatedUser.plantType || 'oak')} foi plantada.` });
     };
 

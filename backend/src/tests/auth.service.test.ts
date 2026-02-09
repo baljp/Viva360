@@ -118,4 +118,39 @@ describe('AuthService authorization policy', () => {
     expect(status.accountState).toBe('INCOMPLETE_REGISTRATION');
     expect(status.role).toBe('SPACE');
   });
+
+  it('returns treatable registration state on listRolesForUser when profile is missing', async () => {
+    prismaMock.profile.findUnique.mockResolvedValue(null);
+    prismaMock.profile.findFirst.mockResolvedValue(null);
+    prismaMock.authAllowlist.findUnique.mockResolvedValue({
+      id: 'invite-4',
+      role: 'PROFESSIONAL',
+      status: 'APPROVED',
+      used_by: null,
+    });
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'auth-user',
+      raw_user_meta_data: { role: 'PROFESSIONAL' },
+    });
+
+    const rolesPayload = await AuthService.listRolesForUser('auth-user', 'incomplete@example.com');
+    expect(rolesPayload.registrationIncomplete).toBe(true);
+    expect(rolesPayload.accountState).toBe('INCOMPLETE_REGISTRATION');
+    expect(rolesPayload.nextAction).toBe('COMPLETE_REGISTRATION');
+    expect(rolesPayload.roles).toContain('PROFESSIONAL');
+  });
+
+  it('keeps PROFILE_NOT_FOUND for unauthorized orphan in listRolesForUser', async () => {
+    prismaMock.profile.findUnique.mockResolvedValue(null);
+    prismaMock.profile.findFirst.mockResolvedValue(null);
+    prismaMock.authAllowlist.findUnique.mockResolvedValue(null);
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'auth-user',
+      raw_user_meta_data: { role: 'CLIENT' },
+    });
+
+    await expect(AuthService.listRolesForUser('auth-user', 'unauthorized@example.com'))
+      .rejects
+      .toMatchObject({ code: 'PROFILE_NOT_FOUND' });
+  });
 });

@@ -39,8 +39,17 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const [drewCard, setDrewCard] = useState<any>(null);
     const [showSoulReveal, setShowSoulReveal] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const ritualDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const soulCardUserId = String(user?.id || 'user_current').trim() || 'user_current';
     const { performDraw } = useSoulCards(soulCardUserId);
+
+    useEffect(() => {
+        return () => {
+            if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
+            if (ritualDelayRef.current) clearTimeout(ritualDelayRef.current);
+        };
+    }, []);
 
     // Step 1: Mood Selection
     const handleMoodSelect = (m: string) => {
@@ -60,12 +69,28 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const processMetamorphosis = async (photoUrl: string) => {
         setIsProcessing(true);
         const photoHash = 'hash_' + Date.now(); 
+        const fallbackEntry = {
+            id: Date.now(),
+            mood,
+            photoThumb: photoUrl,
+            quote: cardPhrase,
+            timestamp: new Date().toISOString()
+        };
+
+        if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
+        processingTimeoutRef.current = setTimeout(() => {
+            setResult((prev: any) => prev || fallbackEntry);
+            setShowSoulReveal(false);
+            setIsProcessing(false);
+            setStep(4);
+        }, 12000);
         
         try {
             const entry = await api.metamorphosis.checkIn(mood, photoHash, photoUrl);
+            if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
             
             // Longer delay for ritualistic feel
-            setTimeout(() => {
+            ritualDelayRef.current = setTimeout(() => {
                 const card = performDraw(1, mood); // Mock streak 1 for now
                 setDrewCard(card);
                 setResult(entry);
@@ -75,17 +100,28 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             }, 2500); 
         } catch (e) {
             console.error("Metamorphosis Error", e);
+            if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
             // Fallback for UI continuity
-            setResult({
-                id: Date.now(),
-                mood,
-                photoThumb: photoUrl,
-                quote: cardPhrase,
-                timestamp: new Date().toISOString()
-            });
+            setResult(fallbackEntry);
             setIsProcessing(false);
             setStep(4);
         }
+    };
+
+    const continueWithoutWaiting = () => {
+        if (!photo) return;
+        if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
+        if (ritualDelayRef.current) clearTimeout(ritualDelayRef.current);
+        setResult((prev: any) => prev || {
+            id: Date.now(),
+            mood,
+            photoThumb: photo,
+            quote: cardPhrase || phraseService.getPhrase(mood || 'Calmo', 'CARD'),
+            timestamp: new Date().toISOString(),
+        });
+        setShowSoulReveal(false);
+        setIsProcessing(false);
+        setStep(4);
     };
 
     const downloadCard = () => {
@@ -406,6 +442,12 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                         </div>
                         <h3 className="font-serif italic text-xl text-nature-700 mt-10">Sintonizando com {styling.element}...</h3>
                         <p className="text-[10px] text-nature-400 uppercase tracking-[0.3em] font-black mt-4 animate-pulse">Codificando Essência</p>
+                        <button
+                            onClick={continueWithoutWaiting}
+                            className="mt-8 px-5 py-3 rounded-2xl border border-nature-200 bg-white text-[10px] font-bold uppercase tracking-widest text-nature-500 hover:bg-nature-50 transition-all"
+                        >
+                            Continuar agora
+                        </button>
                     </div>
                 )}
 
@@ -489,5 +531,3 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         </PortalView>
     );
 };
-
-

@@ -9,6 +9,15 @@ export default function AgendaView() {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const [syncing, setSyncing] = useState(false);
 
+  const toLocalDateKey = (input: string | Date) => {
+    const date = new Date(input);
+    if (Number.isNaN(date.getTime())) return String(input).slice(0, 10);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const weekDays = useMemo(() => {
     const base = new Date();
     return Array.from({ length: 7 }).map((_, index) => {
@@ -20,13 +29,13 @@ export default function AgendaView() {
   }, []);
 
   const selectedDay = weekDays[Math.min(selectedDayIndex, weekDays.length - 1)] || new Date();
-  const selectedDayKey = selectedDay.toISOString().slice(0, 10);
+  const selectedDayKey = toLocalDateKey(selectedDay);
 
   const appointments = (state?.data?.appointments || [])
     .map((apt: any) => ({
       ...apt,
-      dateKey: String(apt.date || '').slice(0, 10),
-      time: String(apt.time || new Date(apt.date || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })),
+      dateKey: toLocalDateKey(apt.date || apt.start_time || new Date()),
+      time: String(apt.time || new Date(apt.date || apt.start_time || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })),
       client: String(apt.clientName || apt.client_name || apt.client || 'Buscador'),
       serviceName: String(apt.serviceName || apt.service_name || apt.type || 'Atendimento'),
       status: String(apt.status || 'pending').toLowerCase(),

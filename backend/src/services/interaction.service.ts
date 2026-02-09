@@ -24,6 +24,17 @@ const contextToLabel = (context: CheckoutContext): string => {
   return 'Checkout';
 };
 
+const withInteractionPayload = (
+  payload: Record<string, unknown>,
+  meta: { entityType: string; entityId: string; action: string; recipientRole: string }
+) => ({
+  ...payload,
+  entityType: meta.entityType,
+  entityId: meta.entityId,
+  action: meta.action,
+  recipientRole: meta.recipientRole,
+});
+
 export class InteractionService {
   async emitCheckoutConfirmation(params: {
     buyerId: string;
@@ -45,11 +56,16 @@ export class InteractionService {
       targetUserId: params.buyerId,
       entityType: 'checkout',
       entityId: params.entityId,
-      data: {
+      data: withInteractionPayload({
         amount: Number(params.amount || 0),
         context: contextLabel,
         confirmationId,
-      },
+      }, {
+        entityType: 'checkout',
+        entityId: params.entityId,
+        action: 'PAY_CONFIRMED',
+        recipientRole: 'BUYER',
+      }),
     });
 
     if (params.receiverId && params.receiverId !== params.buyerId) {
@@ -60,11 +76,16 @@ export class InteractionService {
         targetUserId: params.receiverId,
         entityType: 'checkout',
         entityId: params.entityId,
-        data: {
+        data: withInteractionPayload({
           amount: Number(params.amount || 0),
           context: contextLabel,
           description: params.description || 'Transação Viva360',
-        },
+        }, {
+          entityType: 'checkout',
+          entityId: params.entityId,
+          action: 'PAYMENT_RECEIVED',
+          recipientRole: 'COUNTERPARTY',
+        }),
       });
     }
 
@@ -78,11 +99,16 @@ export class InteractionService {
         targetUserId: targetId,
         entityType: 'checkout',
         entityId: params.entityId,
-        data: {
+        data: withInteractionPayload({
           amount: Number(params.amount || 0),
           context: contextLabel,
           confirmationId,
-        },
+        }, {
+          entityType: 'checkout',
+          entityId: params.entityId,
+          action: 'PAY_CONFIRMED',
+          recipientRole: 'EXTRA_RECIPIENT',
+        }),
       });
     }
 
@@ -111,10 +137,15 @@ export class InteractionService {
         targetUserId: params.professionalId,
         entityType: 'appointment',
         entityId: params.appointmentId,
-        data: {
+        data: withInteractionPayload({
           serviceName: params.serviceName,
           date: params.isoDate,
-        },
+        }, {
+          entityType: 'appointment',
+          entityId: params.appointmentId,
+          action: 'CREATED',
+          recipientRole: 'PROFESSIONAL',
+        }),
       });
     }
 
@@ -124,10 +155,15 @@ export class InteractionService {
       targetUserId: params.clientId,
       entityType: 'appointment',
       entityId: params.appointmentId,
-      data: {
+      data: withInteractionPayload({
         serviceName: params.serviceName,
         date: params.isoDate,
-      },
+      }, {
+        entityType: 'appointment',
+        entityId: params.appointmentId,
+        action: 'CONFIRMED',
+        recipientRole: 'CLIENT',
+      }),
     });
 
     // If guardian belongs to a sanctuary, notify sanctuary and block calendar.
@@ -145,11 +181,16 @@ export class InteractionService {
           targetUserId: professional.hub_id,
           entityType: 'appointment',
           entityId: params.appointmentId,
-          data: {
+          data: withInteractionPayload({
             serviceName: params.serviceName,
             guardianName: professional.name || 'Guardião',
             date: params.isoDate,
-          },
+          }, {
+            entityType: 'appointment',
+            entityId: params.appointmentId,
+            action: 'SPACE_BLOCKED',
+            recipientRole: 'SPACE',
+          }),
         });
       }
     }
@@ -177,7 +218,12 @@ export class InteractionService {
         targetUserId: params.professionalId,
         entityType: 'appointment',
         entityId: params.appointmentId,
-        data: { serviceName: params.serviceName, date: params.isoDate },
+        data: withInteractionPayload({ serviceName: params.serviceName, date: params.isoDate }, {
+          entityType: 'appointment',
+          entityId: params.appointmentId,
+          action: 'RESCHEDULED',
+          recipientRole: 'PROFESSIONAL',
+        }),
       });
     }
 
@@ -187,7 +233,12 @@ export class InteractionService {
       targetUserId: params.clientId,
       entityType: 'appointment',
       entityId: params.appointmentId,
-      data: { serviceName: params.serviceName, date: params.isoDate },
+      data: withInteractionPayload({ serviceName: params.serviceName, date: params.isoDate }, {
+        entityType: 'appointment',
+        entityId: params.appointmentId,
+        action: 'RESCHEDULED',
+        recipientRole: 'CLIENT',
+      }),
     });
 
     if (params.professionalId) {
@@ -204,11 +255,16 @@ export class InteractionService {
           targetUserId: professional.hub_id,
           entityType: 'appointment',
           entityId: params.appointmentId,
-          data: {
+          data: withInteractionPayload({
             serviceName: params.serviceName,
             date: params.isoDate,
             guardianName: professional.name || 'Guardião',
-          },
+          }, {
+            entityType: 'appointment',
+            entityId: params.appointmentId,
+            action: 'SPACE_RESCHEDULED',
+            recipientRole: 'SPACE',
+          }),
         });
       }
     }
@@ -234,7 +290,12 @@ export class InteractionService {
         targetUserId: params.professionalId,
         entityType: 'appointment',
         entityId: params.appointmentId,
-        data: { date: params.isoDate },
+        data: withInteractionPayload({ date: params.isoDate }, {
+          entityType: 'appointment',
+          entityId: params.appointmentId,
+          action: 'CANCELLED',
+          recipientRole: 'PROFESSIONAL',
+        }),
       });
     }
 
@@ -244,7 +305,12 @@ export class InteractionService {
       targetUserId: params.clientId,
       entityType: 'appointment',
       entityId: params.appointmentId,
-      data: { date: params.isoDate },
+      data: withInteractionPayload({ date: params.isoDate }, {
+        entityType: 'appointment',
+        entityId: params.appointmentId,
+        action: 'CANCELLED',
+        recipientRole: 'CLIENT',
+      }),
     });
 
     return {
@@ -269,9 +335,14 @@ export class InteractionService {
       targetUserId: target.id,
       entityType: 'tribe_invite',
       entityId: params.inviteId,
-      data: {
+      data: withInteractionPayload({
         email: params.email,
-      },
+      }, {
+        entityType: 'tribe_invite',
+        entityId: params.inviteId,
+        action: 'INVITED',
+        recipientRole: 'TARGET_MEMBER',
+      }),
     });
 
     return { sent: true, targetUserId: target.id };
@@ -284,9 +355,14 @@ export class InteractionService {
       targetUserId: params.requesterId,
       entityType: 'swap_offer',
       entityId: params.offerId,
-      data: {
+      data: withInteractionPayload({
         offer: params.description || 'Nova proposta de escambo',
-      },
+      }, {
+        entityType: 'swap_offer',
+        entityId: params.offerId,
+        action: 'CREATED',
+        recipientRole: 'REQUESTER',
+      }),
     });
 
     return { sent: true };
@@ -312,9 +388,14 @@ export class InteractionService {
       targetUserId: params.counterpartId,
       entityType: 'swap_offer',
       entityId: params.offerId,
-      data: {
+      data: withInteractionPayload({
         counterOffer: params.counterOffer || undefined,
-      },
+      }, {
+        entityType: 'swap_offer',
+        entityId: params.offerId,
+        action: String(params.type || '').toUpperCase(),
+        recipientRole: 'COUNTERPARTY',
+      }),
     });
 
     return { sent: true };
