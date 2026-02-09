@@ -281,7 +281,7 @@ export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) 
                             <span className="text-[10px] font-medium text-nature-500">{member.name.split(' ')[0]}</span>
                         </button>
                     ))}
-                    <button className="w-16 h-16 rounded-full border-4 border-dashed border-nature-100 flex items-center justify-center text-nature-200 shrink-0 hover:bg-nature-50 transition-colors"><Plus size={24} /></button>
+                    <button onClick={() => setToast({ title: "Convite aberto", msg: "Fluxo de convite da tribo será iniciado." })} className="w-16 h-16 rounded-full border-4 border-dashed border-nature-100 flex items-center justify-center text-nature-200 shrink-0 hover:bg-nature-50 transition-colors"><Plus size={24} /></button>
                 </div>
             </div>
             {user.activePact && <PactWidget pact={user.activePact} userAvatar={user.avatar} onSendLight={() => handleSendVibe(20)} />}

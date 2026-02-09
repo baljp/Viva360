@@ -214,6 +214,7 @@ import { supabase } from '../lib/supabase';
         const [availableRoles, setAvailableRoles] = useState<UserRole[]>(user.roles || [user.activeRole || user.role]);
         const [activeRole, setActiveRole] = useState<UserRole>(user.activeRole || user.role);
         const [roleBusy, setRoleBusy] = useState(false);
+        const [showAllTransactions, setShowAllTransactions] = useState(false);
         const normalizedTransactions = transactions.map((tx) => {
             const normalizedType = String(tx.type || '').toLowerCase();
             const isIncome = normalizedType === 'income' || normalizedType === 'credit' || normalizedType === 'deposit' || normalizedType === 'entrada';
@@ -436,6 +437,7 @@ import { supabase } from '../lib/supabase';
         }
     
         if (view === ViewState.SETTINGS_WALLET) {
+          const visibleTransactions = showAllTransactions ? normalizedTransactions : normalizedTransactions.slice(0, 5);
           return (
             <PortalView title={roleConfig.wallet.title} subtitle={roleConfig.wallet.subtitle} onBack={() => setView(ViewState.SETTINGS)}>
                 <div className="space-y-10">
@@ -459,7 +461,9 @@ import { supabase } from '../lib/supabase';
                     <div className="space-y-6">
                       <div className="flex justify-between items-center px-2">
                         <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">{roleConfig.wallet.movementsLabel}</h4>
-                        <button className="text-[10px] font-bold text-primary-600 uppercase">Ver Tudo</button>
+                        <button onClick={() => setShowAllTransactions(prev => !prev)} className="text-[10px] font-bold text-primary-600 uppercase">
+                          {showAllTransactions ? 'Ver Menos' : 'Ver Tudo'}
+                        </button>
                       </div>
                       <div className="space-y-3">
                         {txLoading ? (
@@ -469,7 +473,7 @@ import { supabase } from '../lib/supabase';
                         ) : normalizedTransactions.length === 0 ? (
                           <div className="p-8 text-center text-nature-400 italic">Nenhuma movimentação registrada.</div>
                         ) : (
-                          normalizedTransactions.slice(0, 5).map((tx, i) => (
+                          visibleTransactions.map((tx, i) => (
                             <div key={tx.id || i} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex justify-between items-center shadow-sm">
                               <div className="flex items-center gap-4">
                                  <div className={`p-3 rounded-xl ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>

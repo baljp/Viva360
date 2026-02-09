@@ -21,6 +21,15 @@ export default function SpaceRoomEdit() {
         setTimeout(() => go('ROOMS_STATUS'), 1500);
     };
 
+    const handleChangePhoto = () => {
+        setToast({ title: 'Imagem do Altar', message: 'Seleção de nova foto iniciada.', type: 'info' });
+    };
+
+    const handleDeleteRoom = () => {
+        setToast({ title: 'Altar removido', message: 'O espaço foi removido da grade ativa.', type: 'info' });
+        setTimeout(() => go('ROOMS_STATUS'), 1500);
+    };
+
     return (
         <PortalView 
             title="Editar Altar" 
@@ -35,7 +44,7 @@ export default function SpaceRoomEdit() {
                     <img src="https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=800" className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700"/>
                     <div className="absolute inset-0 bg-nature-900/30"></div>
                     <div className="relative z-10 py-8">
-                        <button className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 mx-auto hover:bg-white/30 transition-all">
+                        <button onClick={handleChangePhoto} className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 mx-auto hover:bg-white/30 transition-all">
                             <Camera size={16}/> Alterar Foto
                         </button>
                     </div>
@@ -86,7 +95,7 @@ export default function SpaceRoomEdit() {
                 </div>
 
                 <div className="flex gap-3 pt-4">
-                     <button className="p-5 bg-rose-50 text-rose-500 rounded-[2rem] hover:bg-rose-100 transition-colors">
+                     <button onClick={handleDeleteRoom} className="p-5 bg-rose-50 text-rose-500 rounded-[2rem] hover:bg-rose-100 transition-colors">
                         <Trash2 size={24} />
                     </button>
                     <button onClick={handleSave} className="flex-1 py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl hover:bg-black transition-all flex items-center justify-center gap-2">

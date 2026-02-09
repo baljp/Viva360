@@ -50,7 +50,7 @@ export default function SpaceRetreatsManager() {
                             
                             <div className="flex justify-between items-center">
                                 <p className="text-[10px] text-nature-500 font-bold uppercase flex items-center gap-2"><Users size={12}/> {retreat.spots} Vagas preenchidas</p>
-                                <button className="p-2 bg-nature-50 rounded-full text-nature-400 hover:bg-nature-100 transition-colors"><ArrowRight size={16}/></button>
+                                <button onClick={() => go('EVENT_CREATE')} className="p-2 bg-nature-50 rounded-full text-nature-400 hover:bg-nature-100 transition-colors"><ArrowRight size={16}/></button>
                             </div>
                         </div>
                     </div>

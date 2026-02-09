@@ -19,6 +19,16 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
     const snaps = user.snaps || [];
     const activeSnap = snaps[currentIndex];
 
+    const cyclePeriod = () => {
+        setPeriod((current) => {
+            if (current === 'daily') return 'weekly';
+            if (current === 'weekly') return 'monthly';
+            return 'daily';
+        });
+        setCurrentIndex(0);
+        setProgress(0);
+    };
+
     useEffect(() => {
         if (!snaps.length || !isPlaying) return;
 
@@ -229,7 +239,7 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                 </button>
                 
                 <div className="flex gap-6">
-                     <button className="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+                     <button onClick={cyclePeriod} className="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
                          <Calendar size={20} />
                          <span className="text-[9px] uppercase font-bold tracking-widest">Period</span>
                      </button>

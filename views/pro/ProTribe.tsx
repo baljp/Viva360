@@ -21,6 +21,17 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
         notify("Proposta Enviada", `Você ofereceu troca para ${item.owner}.`, "success");
     };
 
+    const cycleFilter = () => {
+        setFilter((current) => {
+            if (current === 'all') return 'Mentoria';
+            if (current === 'Mentoria') return 'Terapia';
+            if (current === 'Terapia') return 'Consultoria';
+            return 'all';
+        });
+    };
+
+    const filteredExchanges = exchanges.filter((item) => filter === 'all' || item.category === filter);
+
     return (
     <PortalView 
         title="Rede Viva" 
@@ -29,7 +40,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
         footer={
             activeTab === 'market' ? (
                 <div className="flex gap-2">
-                     <button className="flex-1 py-4 bg-indigo-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg flex items-center justify-center gap-2">
+                     <button onClick={cycleFilter} className="flex-1 py-4 bg-indigo-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg flex items-center justify-center gap-2">
                         <Filter size={14}/> Filtrar
                      </button>
                      <button onClick={() => setActiveTab('my-offers')} className="flex-1 py-4 bg-white border border-nature-100 text-nature-900 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-sm">
@@ -84,7 +95,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                     <input type="text" placeholder="O que você procura hoje?" className="flex-1 bg-transparent border-none outline-none text-xs font-medium text-nature-900 placeholder:text-nature-300"/>
                 </div>
 
-                {exchanges.map((item) => (
+                {filteredExchanges.map((item) => (
                     <div key={item.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm hover:border-indigo-200 transition-all group relative overflow-hidden">
                         <div className="flex justify-between items-start mb-4">
                             <div className="flex items-center gap-3">
@@ -125,7 +136,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                 <div className="text-center py-12 opacity-50 space-y-4">
                     <RefreshCw size={48} className="mx-auto text-nature-300"/>
                     <p className="text-sm italic">Você ainda não anunciou nenhum serviço para troca.</p>
-                    <button className="text-indigo-600 font-bold text-xs uppercase tracking-widest underline">Criar Primeiro Anúncio</button>
+                    <button onClick={() => { setActiveTab('market'); notify("Nova Oferta", "Selecione Anunciar Serviço para iniciar sua publicação.", "info"); }} className="text-indigo-600 font-bold text-xs uppercase tracking-widest underline">Criar Primeiro Anúncio</button>
                 </div>
             )}
         </div>

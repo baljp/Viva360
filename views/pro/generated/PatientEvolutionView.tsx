@@ -254,7 +254,7 @@ export default function PatientEvolutionView() {
                     <div className="space-y-3">
                          <div className="flex justify-between items-center px-1">
                              <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Micro-Metas da Semana</h4>
-                             <button className="p-1 bg-nature-50 rounded text-nature-400"><TrendingUp size={14}/></button>
+                             <button onClick={() => setActiveTab('patterns')} className="p-1 bg-nature-50 rounded text-nature-400"><TrendingUp size={14}/></button>
                         </div>
                         {[
                             { title: 'Diário da Gratidão (3x)', done: true },
@@ -289,4 +289,3 @@ export default function PatientEvolutionView() {
         </PortalView>
     );
 }
-

@@ -14,6 +14,11 @@ export default function SpaceReputation() {
         { id: 3, author: 'Fernanda L.', rating: 8.5, comment: 'Ótimo atendimento, mas houve um pequeno atraso.', date: '1 semana atrás', target: 'João Sol' },
     ];
 
+    const filteredReviews = reviews.filter((review) => {
+        if (activeTab === 'space') return review.target.toLowerCase().includes('sala');
+        return !review.target.toLowerCase().includes('sala');
+    });
+
     return (
         <PortalView 
             title="Reputação Sagrada" 
@@ -68,7 +73,7 @@ export default function SpaceReputation() {
 
                 {/* Review List */}
                 <div className="space-y-4">
-                    {reviews.map(review => (
+                    {filteredReviews.map(review => (
                         <div key={review.id} className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm">
                             <div className="flex justify-between items-start mb-3">
                                 <div className="flex items-center gap-3">
@@ -92,8 +97,8 @@ export default function SpaceReputation() {
                 </div>
 
                 <div className="text-center pt-4">
-                     <button className="text-xs font-bold text-indigo-600 uppercase tracking-widest hover:underline">
-                        Ver todas as avaliações
+                     <button onClick={() => setActiveTab((current) => current === 'guardians' ? 'space' : 'guardians')} className="text-xs font-bold text-indigo-600 uppercase tracking-widest hover:underline">
+                        {activeTab === 'guardians' ? 'Ver avaliações do espaço' : 'Ver avaliações dos guardiões'}
                      </button>
                 </div>
 

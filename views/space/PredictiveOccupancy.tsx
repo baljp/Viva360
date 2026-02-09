@@ -100,7 +100,7 @@ export const PredictiveOccupancy: React.FC<{ flow: any }> = ({ flow }) => {
                     </div>
                 </div>
 
-                <button className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">
+                <button onClick={() => flow.go('ROOM_AGENDA')} className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">
                     Sincronizar com Agenda
                 </button>
             </div>

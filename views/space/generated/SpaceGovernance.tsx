@@ -37,17 +37,17 @@ export default function SpaceGovernance() {
                    <div>
                        <h4 className="font-bold text-amber-900 text-sm">Contrato Pendente</h4>
                        <p className="text-xs text-amber-700 mt-1">O terapeuta <strong>Carlos Luz</strong> precisa renovar o termo de responsabilidade.</p>
-                       <button className="mt-3 px-4 py-2 bg-amber-500 text-white rounded-lg text-[10px] font-bold uppercase">Resolver</button>
+                       <button onClick={() => go('PROS_LIST')} className="mt-3 px-4 py-2 bg-amber-500 text-white rounded-lg text-[10px] font-bold uppercase">Resolver</button>
                    </div>
                </div>
            </div>
 
            <div className="grid grid-cols-2 gap-4">
-               <button className="bg-white p-6 rounded-[2rem] border border-nature-100 shadow-sm text-left hover:border-emerald-200 transition-colors">
+               <button onClick={() => go('AUDIT_LOG')} className="bg-white p-6 rounded-[2rem] border border-nature-100 shadow-sm text-left hover:border-emerald-200 transition-colors">
                    <FileText size={24} className="text-nature-400 mb-4" />
                    <h4 className="font-bold text-nature-900 text-sm">Auditoria Financeira</h4>
                </button>
-               <button className="bg-white p-6 rounded-[2rem] border border-nature-100 shadow-sm text-left hover:border-emerald-200 transition-colors">
+               <button onClick={() => go('AUDIT_LOG')} className="bg-white p-6 rounded-[2rem] border border-nature-100 shadow-sm text-left hover:border-emerald-200 transition-colors">
                    <Lock size={24} className="text-nature-400 mb-4" />
                    <h4 className="font-bold text-nature-900 text-sm">LGPD & Dados</h4>
                </button>

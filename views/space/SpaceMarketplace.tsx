@@ -35,6 +35,15 @@ export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setVie
         setToast({ title: 'Item removido', message: 'O item foi retirado do seu bazar.', type: 'info' });
     };
 
+    const handlePreviewProduct = (product: Product) => {
+        setToast({ title: 'Pré-visualização', message: `Abrindo detalhes de "${product.name}".`, type: 'info' });
+    };
+
+    const handleRefreshProduct = async (product: Product) => {
+        await refreshData();
+        setToast({ title: 'Item sincronizado', message: `"${product.name}" foi atualizado com dados recentes.`, type: 'success' });
+    };
+
     return (
         <>
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
@@ -93,8 +102,8 @@ export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setVie
                                                 </div>
                                                 <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest mb-3">{prod.category} • {prod.type === 'physical' ? 'Em Estoque' : 'Digital'}</p>
                                                 <div className="flex gap-2 justify-end">
-                                                    <button className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><Eye size={14}/></button>
-                                                    <button className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><RefreshCw size={14}/></button>
+                                                    <button onClick={() => handlePreviewProduct(prod)} className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><Eye size={14}/></button>
+                                                    <button onClick={() => handleRefreshProduct(prod)} className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><RefreshCw size={14}/></button>
                                                     <button onClick={() => handleDeleteProduct(prod.id)} className="p-2 bg-rose-50 text-rose-300 rounded-xl hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
                                                 </div>
                                             </div>

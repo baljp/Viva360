@@ -47,11 +47,15 @@ export default function SpaceChatRoomScreen() {
         setInputText("");
     };
 
+    const appendQuickAction = (actionLabel: string) => {
+        setInputText((previous) => `${previous}${previous ? '\n' : ''}[${actionLabel}]`);
+    };
+
     const HeaderRight = () => (
         <div className="flex items-center gap-2">
-            <button className="p-2 text-nature-400 hover:text-nature-600"><Phone size={20}/></button>
-            <button className="p-2 text-nature-400 hover:text-nature-600"><Video size={20}/></button>
-            <button className="p-2 text-nature-400 hover:text-nature-600"><MoreVertical size={20}/></button>
+            <button onClick={() => appendQuickAction('Solicitação de ligação de voz')} className="p-2 text-nature-400 hover:text-nature-600"><Phone size={20}/></button>
+            <button onClick={() => appendQuickAction('Solicitação de chamada de vídeo')} className="p-2 text-nature-400 hover:text-nature-600"><Video size={20}/></button>
+            <button onClick={back} className="p-2 text-nature-400 hover:text-nature-600"><MoreVertical size={20}/></button>
         </div>
     );
 

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
 import { ChevronLeft, Calendar as CalendarIcon, Clock, Video, MoreHorizontal, User } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 
 export default function AgendaView() {
-  const { go, back } = useGuardiaoFlow();
+  const { go, back, selectAppointment, notify } = useGuardiaoFlow();
+  const [selectedDayIndex, setSelectedDayIndex] = useState(2);
 
   const appointments = [
       { id: 1, time: '14:00', client: 'Ana Silva', clientName: 'Ana Silva', type: 'Reiki à Distância', serviceName: 'Reiki à Distância', status: 'confirmed' },
@@ -18,7 +19,7 @@ export default function AgendaView() {
            {/* Date Selector */}
            <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
                {['SEG','TER','QUA','QUI','SEX'].map((d, i) => (
-                   <button key={d} className={`flex flex-col items-center justify-center min-w-[3.5rem] aspect-[3/4] rounded-2xl border transition-all ${i === 2 ? 'bg-nature-900 text-white border-nature-900 shadow-xl' : 'bg-white text-nature-400 border-nature-100 hover:border-nature-300'}`}>
+                   <button key={d} onClick={() => setSelectedDayIndex(i)} className={`flex flex-col items-center justify-center min-w-[3.5rem] aspect-[3/4] rounded-2xl border transition-all ${i === selectedDayIndex ? 'bg-nature-900 text-white border-nature-900 shadow-xl' : 'bg-white text-nature-400 border-nature-100 hover:border-nature-300'}`}>
                        <span className="text-[10px] font-bold uppercase">{d}</span>
                        <span className="text-lg font-bold">{12 + i}</span>
                    </button>
@@ -42,8 +43,7 @@ export default function AgendaView() {
                            <button 
                                 onClick={(e) => { 
                                     e.stopPropagation(); 
-                                    const flow = (useGuardiaoFlow as any)();
-                                    if (flow.selectAppointment) flow.selectAppointment(apt);
+                                    selectAppointment(apt as any);
                                     go('VIDEO_PREP'); 
                                 }} 
                                 className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors"
@@ -51,7 +51,7 @@ export default function AgendaView() {
                                <Video size={16}/>
                            </button>
                        ) : (
-                           <button className="p-3 bg-nature-50 text-nature-400 rounded-xl">
+                           <button onClick={(e) => { e.stopPropagation(); notify('Aguardando confirmação', `O ritual de ${apt.client} ainda está pendente.`, 'info'); go('AGENDA_EDIT'); }} className="p-3 bg-nature-50 text-nature-400 rounded-xl">
                                <MoreHorizontal size={16}/>
                            </button>
                        )}

@@ -54,7 +54,7 @@ export default function VagasList() {
                        <p className="text-sm text-nature-500 mt-1">Estimativa: <span className="text-nature-900 font-bold">{v.salary}</span></p>
                    </div>
 
-                   <button className="w-full py-3 border border-nature-200 rounded-xl text-nature-400 text-[10px] font-bold uppercase tracking-widest group-hover:bg-nature-900 group-hover:text-white group-hover:border-nature-900 transition-all">Ver Detalhes</button>
+                   <button onClick={(event) => { event.stopPropagation(); setSelectedVacancy(v); }} className="w-full py-3 border border-nature-200 rounded-xl text-nature-400 text-[10px] font-bold uppercase tracking-widest group-hover:bg-nature-900 group-hover:text-white group-hover:border-nature-900 transition-all">Ver Detalhes</button>
                </div>
            ))}
        </div>

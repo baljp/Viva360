@@ -166,7 +166,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
             onBack={() => go('DASHBOARD')}
             heroImage="https://images.unsplash.com/photo-1620022410313-1f1638234372?q=80&w=800"
             headerRight={
-                <button className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-all">
+                <button onClick={() => notify('Leitura do painel', 'Este painel sintetiza saldo, projeções e ações de abundância.', 'info')} className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-all">
                     <Info size={20} />
                 </button>
             }
@@ -201,7 +201,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                     <div className="space-y-3">
                          <div className="flex justify-between items-center px-1">
                              <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Fluxo Recente</h4>
-                             <button className="text-[10px] font-bold text-primary-600 uppercase tracking-widest hover:underline">Ver Completo</button>
+                             <button onClick={() => setActiveTab('analysis')} className="text-[10px] font-bold text-primary-600 uppercase tracking-widest hover:underline">Ver Completo</button>
                         </div>
                         {transactions.map((tx: any) => <TransactionItem key={tx.id} tx={tx} />)}
                     </div>
@@ -247,7 +247,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                              <Package size={24} />
                          </div>
                          <p className="text-xs text-nature-500 italic max-w-xs mx-auto">Crie jornadas, pacotes e rituais para aumentar seu impacto e previsibilidade.</p>
-                         <button className="bg-nature-900 text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Criar Nova Jornada</button>
+                         <button onClick={() => { notify('Nova jornada', 'Abrindo módulo de criação no marketplace.', 'success'); go('ALQUIMIA_CREATE'); }} className="bg-nature-900 text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Criar Nova Jornada</button>
                      </div>
                 </div>
             )}

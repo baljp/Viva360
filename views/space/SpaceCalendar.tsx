@@ -21,6 +21,12 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
      ];
 
      const filteredApps = filterPro === 'all' ? mockAppointments : mockAppointments.filter(mock => mock.proId === filterPro);
+     const cycleFilter = () => {
+         const ids = ['all', ...team.map((member) => member.id)];
+         const currentIndex = ids.indexOf(filterPro);
+         const nextIndex = currentIndex >= 0 && currentIndex < ids.length - 1 ? currentIndex + 1 : 0;
+         setFilterPro(ids[nextIndex] || 'all');
+     };
 
      return (
         <PortalView 
@@ -29,8 +35,8 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
             onBack={() => flow.go('EXEC_DASHBOARD')}
             footer={
                 <div className="flex gap-2">
-                     <button className="flex-1 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px]">Novo Agendamento</button>
-                     <button className="p-4 bg-white border border-nature-100 rounded-2xl text-nature-400"><Filter size={20}/></button>
+                     <button onClick={() => flow.go('AGENDA_EDIT')} className="flex-1 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px]">Novo Agendamento</button>
+                     <button onClick={cycleFilter} className="p-4 bg-white border border-nature-100 rounded-2xl text-nature-400"><Filter size={20}/></button>
                 </div>
             }
         >
