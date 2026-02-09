@@ -32,10 +32,23 @@ O erro "Invalid API key" ocorre se este passo for pulado.
 2. Em **Site URL**, coloque a URL onde seu app está rodando (ex: `http://localhost:5173`).
 3. Em **Redirect URLs**, adicione a mesma URL.
 
-### 4. Configurar Banco de Dados
-1. Copie o conteúdo do arquivo `supabase_setup.sql`.
-2. Acesse o [SQL Editor do Supabase](https://supabase.com/dashboard/project/_/sql).
-3. Cole o código e clique em "Run".
+### 4. Configurar Banco de Dados (Prisma = fonte de verdade)
+1. Garanta `DATABASE_URL` válido no `.env`.
+2. Rode:
+   ```bash
+   npm run supabase:setup
+   ```
+3. Valide drift:
+   ```bash
+   npm run db:drift-check
+   ```
+
+### 5. Política de Cadastro (convite/allowlist)
+- Cadastro e OAuth só funcionam para e-mails pré-autorizados.
+- Para liberar um e-mail:
+  ```bash
+  npm run allowlist:add -- email@dominio.com CLIENT APPROVED
+  ```
 
 ## Comandos
 
