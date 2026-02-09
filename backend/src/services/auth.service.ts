@@ -2,6 +2,7 @@ import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
+import { AppError } from '../lib/AppError';
 
 export class AuthService {
   
@@ -14,7 +15,7 @@ export class AuthService {
 
     // Check if user exists
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (existing) throw new Error('User already exists');
+    if (existing) throw new AppError('User already exists', 409);
 
     const hashedPassword = (await bcrypt.hash(password, 10)).replace(/^\$2b\$/, '$2a$');
 
@@ -68,12 +69,12 @@ export class AuthService {
       include: { profile: true },
     });
     if (!user || !user.encrypted_password) {
-      throw new Error('Invalid credentials');
+      throw new AppError('Invalid credentials', 401);
     }
 
     const isValid = await bcrypt.compare(password, user.encrypted_password);
     if (!isValid) {
-      throw new Error('Invalid credentials');
+      throw new AppError('Invalid credentials', 401);
     }
 
     return AuthService.generateSession(user);
