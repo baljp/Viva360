@@ -13,7 +13,12 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
       statusCode: err.statusCode,
       message: err.message,
     });
-    return res.status(err.statusCode).json({ error: err.message, requestId });
+    return res.status(err.statusCode).json({
+      error: err.message,
+      code: err.code,
+      details: err.details,
+      requestId,
+    });
   }
 
   if (err instanceof z.ZodError) {
