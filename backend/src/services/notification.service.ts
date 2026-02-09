@@ -38,6 +38,36 @@ export class NotificationService {
             console.error(`❌ [NOTIF] queue failed:`, e);
         }
     }
+
+    async markAsRead(userId: string, notificationId: string) {
+        if (isMockMode()) {
+            return { success: true };
+        }
+
+        await prisma.notification.updateMany({
+            where: {
+                id: notificationId,
+                user_id: userId,
+            },
+            data: {
+                read: true,
+            },
+        });
+
+        return { success: true };
+    }
+
+    async markAllAsRead(userId: string) {
+        if (isMockMode()) {
+            return { success: true };
+        }
+
+        await prisma.notification.updateMany({
+            where: { user_id: userId, read: false },
+            data: { read: true },
+        });
+        return { success: true };
+    }
 }
 
 export const notificationService = new NotificationService();

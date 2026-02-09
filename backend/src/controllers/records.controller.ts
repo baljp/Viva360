@@ -36,9 +36,9 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
 
 export const listNotes = asyncHandler(async (req: Request, res: Response) => {
     const requestorId = (req as any).user?.userId;
-    const { patientId } = req.query; // If param is missing, assume list OWN records?
-
-    const targetPatientId = (patientId as string) || requestorId;
+    const queryPatientId = req.query?.patientId as string | undefined;
+    const paramPatientId = req.params?.patientId as string | undefined;
+    const targetPatientId = queryPatientId || paramPatientId || requestorId;
 
     // 2. Permission Check (Mock ACL)
     // LGPD ABSOLUTE RULE: ADMIN CANNOT VIEW RECORDS

@@ -38,3 +38,15 @@ export const joinTribe = asyncHandler(async (req: Request, res: Response) => {
     const result = await tribeService.joinTribe(proId, vacancyId);
     return res.json(result);
 });
+
+export const syncVibration = asyncHandler(async (req: Request, res: Response) => {
+    const userId = (req as any).user?.userId;
+    const reward = 10;
+
+    return res.json({
+        success: true,
+        reward,
+        syncedAt: new Date().toISOString(),
+        userId,
+    });
+});
