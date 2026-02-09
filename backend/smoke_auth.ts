@@ -1,9 +1,15 @@
 /**
- * Smoke test for Viva360 auth flows (email/password + profile gate).
+ * Smoke test for Viva360 auth flows (invite/allowlist policy).
  *
  * Usage:
  *   API_URL=http://localhost:3001/api npx tsx backend/smoke_auth.ts
  *   API_URL=https://viva360.vercel.app/api npx tsx backend/smoke_auth.ts
+ *
+ * Optional happy-path (authorized invite):
+ *   SMOKE_ALLOWLIST_EMAIL=allowed@example.com \
+ *   SMOKE_ALLOWLIST_PASSWORD=Password123! \
+ *   SMOKE_ALLOWLIST_NAME="Smoke Allowlisted" \
+ *   npx tsx backend/smoke_auth.ts
  */
 
 const API_URL = (process.env.API_URL || 'http://localhost:3001/api').replace(/\/$/, '');
@@ -65,53 +71,57 @@ async function main() {
 
   await request('Ping', 'GET', '/ping');
 
-  const email = uniqueEmail();
-  const password = 'Password123!';
-  const name = 'Smoke Test';
+  const unauthorizedEmail = uniqueEmail();
 
   const pre1 = await request<{ allowed: boolean; role: string | null }>(
     'Precheck (unknown)',
     'POST',
     '/auth/precheck-login',
-    { body: { email } },
+    { body: { email: unauthorizedEmail } },
   );
   if (pre1.allowed) throw new Error('Expected precheck to be false for unknown email');
 
-  const reg = await request<any>('Register', 'POST', '/auth/register', {
-    body: { email, password, name, role: 'CLIENT' },
+  await request('Register blocked (unknown email)', 'POST', '/auth/register', {
+    body: { email: unauthorizedEmail, password: 'Password123!', name: 'Unauthorized', role: 'CLIENT' },
+    expectedStatus: 403,
   });
-  const regToken = reg?.session?.access_token;
-  if (!regToken) throw new Error('Register did not return access_token');
-  if (String(reg?.user?.role || '').toUpperCase() !== 'CLIENT') throw new Error('Register returned wrong role');
-
-  const pre2 = await request<{ allowed: boolean; role: string | null }>(
-    'Precheck (after register)',
-    'POST',
-    '/auth/precheck-login',
-    { body: { email } },
-  );
-  if (!pre2.allowed) throw new Error('Expected precheck to be true after register');
 
   await request('Login (wrong password)', 'POST', '/auth/login', {
-    body: { email, password: 'WrongPassword123!' },
+    body: { email: unauthorizedEmail, password: 'WrongPassword123!' },
     expectedStatus: 401,
   });
 
-  const login = await request<any>('Login', 'POST', '/auth/login', { body: { email, password } });
-  const token = login?.session?.access_token;
-  if (!token) throw new Error('Login did not return access_token');
-  if (String(login?.user?.role || '').toUpperCase() !== 'CLIENT') throw new Error('Login returned wrong role');
+  const allowlistedEmail = String(process.env.SMOKE_ALLOWLIST_EMAIL || '').trim().toLowerCase();
+  const allowlistedPassword = String(process.env.SMOKE_ALLOWLIST_PASSWORD || '').trim();
+  const allowlistedName = String(process.env.SMOKE_ALLOWLIST_NAME || 'Smoke Allowlisted').trim();
+  if (allowlistedEmail && allowlistedPassword) {
+    const preAllowed = await request<{ allowed: boolean; role: string | null; canRegister?: boolean }>(
+      'Precheck (allowlisted)',
+      'POST',
+      '/auth/precheck-login',
+      { body: { email: allowlistedEmail } },
+    );
 
-  await request('Profiles/me', 'GET', '/profiles/me', { token });
+    if (!preAllowed.allowed && !preAllowed.canRegister) {
+      throw new Error('Allowlisted email is neither login-enabled nor register-enabled.');
+    }
 
-  // Works with internal JWT too; for OAuth it will be a Supabase token.
-  await request('OAuth ensure-profile', 'POST', '/auth/oauth/ensure-profile', {
-    token,
-    body: { role: 'CLIENT' },
-  });
+    if (preAllowed.canRegister) {
+      await request<any>('Register (allowlisted)', 'POST', '/auth/register', {
+        body: { email: allowlistedEmail, password: allowlistedPassword, name: allowlistedName, role: 'CLIENT' },
+      });
+      await sleep(250);
+    }
 
-  // Small delay to reduce flakiness on eventual consistency.
-  await sleep(250);
+    const login = await request<any>('Login (allowlisted)', 'POST', '/auth/login', {
+      body: { email: allowlistedEmail, password: allowlistedPassword },
+    });
+    const token = login?.session?.access_token;
+    if (!token) throw new Error('Login did not return access_token for allowlisted account');
+    await request('Profiles/me (allowlisted)', 'GET', '/profiles/me', { token });
+  } else {
+    console.log('ℹ️ Skipping allowlisted happy path (set SMOKE_ALLOWLIST_EMAIL + SMOKE_ALLOWLIST_PASSWORD).');
+  }
 
   console.log('✅ Smoke auth test completed');
 }
@@ -120,4 +130,3 @@ main().catch((err) => {
   console.error('❌ Smoke auth test failed:', err?.message || err);
   process.exit(1);
 });
-

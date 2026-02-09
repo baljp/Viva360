@@ -8,12 +8,16 @@
     "build:backend": "tsc -p backend/tsconfig.json",
     "build": "npm run prisma:generate && npm run build:backend && tsc && vite build",
     "vercel-build": "npm run prisma:generate && npm run build:backend && vite build",
+    "dev:api:test": "NODE_ENV=test APP_MODE=MOCK ENABLE_TEST_MODE=true PORT=3001 npx tsx backend/src/server.ts",
     "test:audit": "npx playwright test tests/audit.spec.ts",
     "test:e2e": "npx playwright test tests/e2e_master.spec.ts",
+    "test:e2e:smoke": "npx playwright test --config=playwright.smoke.config.ts",
     "test": "npx playwright test",
+    "test:backend": "npx vitest run backend/src/tests",
     "test:silent": "./verify_deployment.sh",
     "test:report": "npx playwright show-report",
     "prisma:generate": "prisma generate --schema=./backend/prisma/schema.prisma",
+    "db:drift-check": "npx tsx backend/scripts/check_schema_drift.ts",
     "preview": "vite preview",
     "lint": "eslint .",
     "test:qa": "npx playwright test --config=playwright.qa.config.ts",
@@ -29,7 +33,8 @@
     "db:sync": "bash scripts/db_sync.sh",
     "supabase:setup": "npm run prisma:generate && npx tsx scripts/setup_db.ts",
     "supabase:verify": "npm run prisma:generate && npx tsx scripts/verify_supabase.ts",
-    "supabase:test": "npx tsx scripts/test_realtime_flow.ts"
+    "supabase:test": "npx tsx scripts/test_realtime_flow.ts",
+    "allowlist:add": "npx tsx backend/scripts/manage_allowlist.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",

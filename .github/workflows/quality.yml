@@ -5,6 +5,8 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  schedule:
+    - cron: '0 4 * * *'
 
 jobs:
   test:
@@ -33,8 +35,8 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
-    - name: Run E2E Master Suite
-      run: npm run test:e2e
+    - name: Run Full QA Suite
+      run: npm run test:qa
 
     - name: Upload Playwright Report
       if: failure()
