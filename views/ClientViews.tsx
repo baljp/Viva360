@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useFlowSync } from '../src/hooks/useFlowSync';
 import { ViewState, Product, User } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
@@ -81,6 +81,15 @@ export const ClientViews: React.FC<{
 
    useFlowSync({ state: flowState, jump, go }, view, '/client', defaultStates, clusters, clientStateRoutes as Record<string, string>);
 
+   useEffect(() => {
+       if (view === ViewState.CLIENT_EXPLORE) {
+           const exploreStates: BuscadorState[] = ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM'];
+           if (!exploreStates.includes(flowState.currentState)) {
+               jump('BOOKING_SEARCH');
+           }
+       }
+   }, [view, flowState.currentState, jump]);
+
   const globalData = {
       pros: flowState.data.pros,
       products: flowState.data.products,
@@ -93,6 +102,7 @@ export const ClientViews: React.FC<{
 
   return (
     <div className="w-full h-full bg-[#f8faf9]">
+        <span data-testid="client-flow-state" className="sr-only">{flowState.currentState}</span>
         {flowState.error && (
             <div className="fixed top-[15vh] left-1/2 -translate-x-1/2 z-[500] bg-rose-50 border border-rose-100 p-4 rounded-2xl shadow-xl flex items-center gap-3 animate-in slide-in-from-top duration-500">
                 <p className="text-rose-900 text-xs font-bold uppercase tracking-widest">{flowState.error}</p>

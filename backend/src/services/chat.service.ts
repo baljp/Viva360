@@ -135,9 +135,22 @@ export class ChatService {
   /**
    * Get chats for a profile
    */
-  async getChatsForProfile(profileId: string): Promise<any[]> {
+  async getChatsForProfile(
+    profileId: string,
+    options?: { contextType?: string; contextId?: string }
+  ): Promise<any[]> {
+    const contextType = String(options?.contextType || '').trim();
+    const contextId = String(options?.contextId || '').trim();
     const participations = await prisma.chatParticipant.findMany({
-      where: { profile_id: profileId },
+      where: {
+        profile_id: profileId,
+        ...(contextType || contextId ? {
+          chat: {
+            ...(contextType ? { type: contextType } : {}),
+            ...(contextId ? { context_id: contextId } : {}),
+          },
+        } : {}),
+      },
       include: {
         chat: {
           include: {

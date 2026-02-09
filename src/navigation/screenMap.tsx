@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { lazyWithRetry } from '../utils/lazyWithRetry';
+import { MapaDaCuraView as MapaDaCuraViewEager } from '../../views/client/MapaDaCuraView';
 
 // --- HELPER FOR NAMED EXPORTS ---
 // Usage: const Component = lazyNamed(() => import('path'), 'ComponentName');
@@ -22,7 +23,7 @@ const MetamorphosisWizard = lazyNamed(() => import('../../views/metamorphosis/Me
 const TimeLapseView = lazyNamed(() => import('../../views/metamorphosis/TimeLapseView'), 'TimeLapseView');
 const InternalGarden = lazyNamed(() => import('../../views/client/InternalGarden'), 'InternalGarden');
 const TribeView = lazyNamed(() => import('../../views/client/TribeView'), 'TribeView');
-const MapaDaCuraView = lazyNamed(() => import('../../views/client/MapaDaCuraView'), 'MapaDaCuraView');
+const MapaDaCuraView = MapaDaCuraViewEager;
 const BookingSelect = lazyNamed(() => import('../../views/client/BookingSelect'), 'BookingSelect');
 const RitualsView = lazyNamed(() => import('../../views/client/RitualsView'), 'RitualsView');
 

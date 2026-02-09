@@ -33,6 +33,7 @@ export default function CheckoutScreen() {
             'pro_001',
             {
                 contextType: method === 'direct' ? 'TRIBO' : 'BAZAR',
+                contextRef: method === 'direct' ? 'tribe-direct-flow' : 'bazar-checkout-flow',
                 items: [{ id: 'checkout-guided-service', price: 150, type: 'service' }],
             }
         );
