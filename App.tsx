@@ -431,7 +431,7 @@ const App: React.FC = () => {
                     {/* Pro Routes */}
                     <Route path="/pro/*" element={(String(currentUser?.role).toUpperCase() === 'PROFESSIONAL') ? (
                         <GuardiaoFlowProvider>
-                            <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} />
+                            <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} onLogout={handleLogout} />
                         </GuardiaoFlowProvider>
                     ) : <Navigate to="/login" />} />
                     
@@ -439,7 +439,7 @@ const App: React.FC = () => {
 
                     <Route path="/space/*" element={(String(currentUser?.role).toUpperCase() === 'SPACE') ? (
                         <SantuarioFlowProvider>
-                            <SpaceViews user={currentUser!} view={currentView} setView={setView} />
+                            <SpaceViews user={currentUser!} view={currentView} setView={setView} onLogout={handleLogout} />
                         </SantuarioFlowProvider>
                     ) : <Navigate to="/login" />} />
 

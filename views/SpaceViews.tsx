@@ -45,7 +45,7 @@ const spaceStateRoutes: Partial<Record<SantuarioState, string>> = {
     RADIANCE_DRILLDOWN: '/space/home',
 };
 
-export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void }> = ({ user, view, setView }) => {
+export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void, onLogout?: () => void }> = ({ user, view, setView, onLogout }) => {
     const { state: flowState, go, back, reset, refreshData } = useSantuarioFlow();
 
     // Sync Deep Linking
@@ -91,6 +91,7 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 profile="SANTUARIO" 
                 user={user} 
                 setView={setView} 
+                onLogout={onLogout}
                 flow={{ state: flowState, go, back, reset }}
                 onClose={reset}
                 {...globalData}

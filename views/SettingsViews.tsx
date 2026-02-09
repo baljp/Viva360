@@ -6,7 +6,7 @@ import {
     Heart, Sparkles, Lock, Bell, LogOut, Check, Mail, MapPin, 
     Briefcase, Smartphone, Sun, DoorOpen, DollarSign, List, Activity,
     Building, CreditCard, Wallet, Shield, MessageSquare, Megaphone, Smartphone as PhoneIcon,
-    Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2
+    Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2, Trash2
 } from 'lucide-react';
 import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit, PortalView } from '../components/Common';
 import { api } from '../services/api';
@@ -215,6 +215,7 @@ import { supabase } from '../lib/supabase';
         const [activeRole, setActiveRole] = useState<UserRole>(user.activeRole || user.role);
         const [roleBusy, setRoleBusy] = useState(false);
         const [showAllTransactions, setShowAllTransactions] = useState(false);
+        const [deleteBusy, setDeleteBusy] = useState(false);
         const normalizedTransactions = transactions.map((tx) => {
             const normalizedType = String(tx.type || '').toLowerCase();
             const isIncome = normalizedType === 'income' || normalizedType === 'credit' || normalizedType === 'deposit' || normalizedType === 'entrada';
@@ -362,6 +363,35 @@ import { supabase } from '../lib/supabase';
                 setToast({ title: roleConfig.notifications.title, message: "Preferências de alerta atualizadas com sucesso." });
             } catch {
                 setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
+            }
+        };
+
+        const handleDeleteAccount = async () => {
+            if (deleteBusy) return;
+
+            const typed = window.prompt('Para excluir sua conta definitivamente, digite EXCLUIR.');
+            if (typed !== 'EXCLUIR') {
+                setToast({ title: 'Exclusão cancelada', message: 'Confirmação inválida. Nenhuma alteração foi feita.' });
+                return;
+            }
+
+            const confirmed = window.confirm('Esta ação é definitiva e remove seus dados de acesso. Deseja continuar?');
+            if (!confirmed) return;
+
+            setDeleteBusy(true);
+            try {
+                await api.auth.deleteAccount();
+                setToast({ title: 'Conta removida', message: 'Seu perfil foi excluído definitivamente.' });
+                if (onLogout) {
+                    onLogout();
+                } else {
+                    localStorage.removeItem('viva360.auth.token');
+                    window.location.href = '/login';
+                }
+            } catch (err: any) {
+                setToast({ title: 'Erro ao excluir', message: err?.message || 'Não foi possível excluir sua conta agora.' });
+            } finally {
+                setDeleteBusy(false);
             }
         };
     
@@ -544,6 +574,14 @@ import { supabase } from '../lib/supabase';
                                 className="w-full py-4 bg-primary-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
                             >
                                 <Check size={16} /> {roleConfig.security.saveLabel}
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deleteBusy}
+                                className="w-full py-4 bg-rose-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-60"
+                            >
+                                {deleteBusy ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                Excluir Conta Definitivamente
                             </button>
                         </div>
                     </div>

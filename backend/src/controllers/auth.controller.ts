@@ -40,6 +40,10 @@ const roleSchema = z.object({
   role: z.enum(['CLIENT', 'PROFESSIONAL', 'SPACE']),
 });
 
+const deleteAccountSchema = z.object({
+  confirmText: z.string().optional(),
+});
+
 export const login = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = loginSchema.parse(req.body);
     const normalizedEmail = email.trim().toLowerCase();
@@ -218,12 +222,21 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
 
 export const listRoles = asyncHandler(async (req: any, res: Response) => {
   const userId = String(req.user?.userId || req.user?.id || '').trim();
+  const email = String(req.user?.email || '').trim().toLowerCase();
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
   }
 
-  const data = await AuthService.listRolesForUser(userId);
-  return res.json(data);
+  const data = await AuthService.listRolesForUser(userId, email);
+  return res.json({
+    status: 'OK',
+    code: data.registrationIncomplete ? 'REGISTRATION_INCOMPLETE' : 'ROLES_FETCHED',
+    message: data.registrationIncomplete
+      ? 'Seu cadastro está incompleto, finalize para habilitar todos os perfis.'
+      : 'Perfis carregados com sucesso.',
+    requestId: req.requestId,
+    data,
+  });
 });
 
 export const selectRole = asyncHandler(async (req: any, res: Response) => {
@@ -234,7 +247,13 @@ export const selectRole = asyncHandler(async (req: any, res: Response) => {
 
   const { role } = roleSchema.parse(req.body || {});
   const data = await AuthService.selectActiveRole(userId, role);
-  return res.json(data);
+  return res.json({
+    status: 'OK',
+    code: 'ROLE_SELECTED',
+    message: 'Perfil ativo atualizado.',
+    requestId: req.requestId,
+    data,
+  });
 });
 
 export const addRole = asyncHandler(async (req: any, res: Response) => {
@@ -245,5 +264,36 @@ export const addRole = asyncHandler(async (req: any, res: Response) => {
 
   const { role } = roleSchema.parse(req.body || {});
   const data = await AuthService.addRole(userId, role);
-  return res.status(201).json(data);
+  return res.status(201).json({
+    status: 'OK',
+    code: 'ROLE_ADDED',
+    message: 'Novo perfil habilitado para esta conta.',
+    requestId: req.requestId,
+    data,
+  });
+});
+
+export const deleteAccount = asyncHandler(async (req: any, res: Response) => {
+  const userId = String(req.user?.userId || req.user?.id || '').trim();
+  const email = String(req.user?.email || '').trim().toLowerCase();
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+  }
+
+  const payload = deleteAccountSchema.parse(req.body || {});
+  if (String(payload.confirmText || '').trim().toUpperCase() !== 'EXCLUIR') {
+    return res.status(400).json({
+      error: 'Confirmação inválida. Digite EXCLUIR para confirmar.',
+      code: 'DELETE_CONFIRMATION_REQUIRED',
+    });
+  }
+
+  const data = await AuthService.deleteAccount(userId, email);
+  return res.json({
+    status: 'OK',
+    code: 'ACCOUNT_DELETED',
+    message: 'Conta excluída definitivamente.',
+    requestId: req.requestId,
+    data,
+  });
 });

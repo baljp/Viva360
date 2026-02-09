@@ -825,12 +825,19 @@ export const api = {
             localStorage.removeItem(OAUTH_ROLE_KEY);
             clearTestMode();
         },
+        deleteAccount: async () => {
+            return await request('/auth/account', {
+                method: 'DELETE',
+                body: JSON.stringify({ confirmText: 'EXCLUIR' }),
+            });
+        },
         listRoles: async (): Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }> => {
             const payload = await request('/auth/roles');
-            const roles = normalizeRoleList(Array.isArray(payload?.roles) ? payload.roles : []);
-            const activeRole = normalizeRole(payload?.activeRole || roles[0] || UserRole.CLIENT);
+            const source = payload?.data || payload;
+            const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : []);
+            const activeRole = normalizeRole(source?.activeRole || roles[0] || UserRole.CLIENT);
             return {
-                userId: String(payload?.userId || ''),
+                userId: String(source?.userId || ''),
                 roles: roles.length ? roles : [activeRole],
                 activeRole,
             };
@@ -840,10 +847,11 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ role: normalizeRole(role) }),
             });
-            const roles = normalizeRoleList(Array.isArray(payload?.roles) ? payload.roles : [role]);
-            const activeRole = normalizeRole(payload?.activeRole || role);
+            const source = payload?.data || payload;
+            const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : [role]);
+            const activeRole = normalizeRole(source?.activeRole || role);
             return {
-                userId: String(payload?.userId || ''),
+                userId: String(source?.userId || ''),
                 roles: roles.length ? roles : [activeRole],
                 activeRole,
             };
@@ -853,10 +861,11 @@ export const api = {
                 method: 'POST',
                 body: JSON.stringify({ role: normalizeRole(role) }),
             });
-            const roles = normalizeRoleList(Array.isArray(payload?.roles) ? payload.roles : [role]);
-            const activeRole = normalizeRole(payload?.activeRole || roles[0] || role);
+            const source = payload?.data || payload;
+            const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : [role]);
+            const activeRole = normalizeRole(source?.activeRole || roles[0] || role);
             return {
-                userId: String(payload?.userId || ''),
+                userId: String(source?.userId || ''),
                 roles: roles.length ? roles : [activeRole],
                 activeRole,
             };
@@ -996,8 +1005,20 @@ export const api = {
         list: async (uid: string, role: UserRole) => {
             try {
                 const all = await request('/appointments');
-                if (role === UserRole.PROFESSIONAL) return all.filter((a: Appointment) => a.professionalId === uid);
-                return all.filter((a: Appointment) => a.clientId === uid);
+                const normalized = (Array.isArray(all) ? all : []).map((entry: any) => ({
+                    id: String(entry.id || ''),
+                    clientId: String(entry.clientId || entry.client_id || ''),
+                    clientName: String(entry.clientName || entry.client_name || ''),
+                    professionalId: String(entry.professionalId || entry.professional_id || ''),
+                    professionalName: String(entry.professionalName || entry.professional_name || ''),
+                    time: String(entry.time || '00:00'),
+                    date: String(entry.date || new Date().toISOString()),
+                    status: String(entry.status || 'pending').toLowerCase(),
+                    serviceName: String(entry.serviceName || entry.service_name || 'Atendimento'),
+                    price: Number(entry.price || 0),
+                })) as Appointment[];
+                if (role === UserRole.PROFESSIONAL) return normalized.filter((a: Appointment) => a.professionalId === uid);
+                return normalized.filter((a: Appointment) => a.clientId === uid);
             } catch {
                 return [];
             }
@@ -1279,6 +1300,9 @@ export const api = {
             } catch {
                 return { ...evt, id: `evt_${Date.now()}` };
             }
+        },
+        syncCalendar: async () => {
+            return await request('/calendar/sync', { purpose: 'space-events-sync' });
         }
     },
     admin: {
@@ -1495,22 +1519,18 @@ export const api = {
     },
     metamorphosis: {
         checkIn: async (mood: string, hash: string, thumb: string) => {
-            try {
-                const response = await request('/metamorphosis/checkin', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        mood,
-                        photoHash: hash,
-                        photoThumb: thumb,
-                        // Backward compatibility with older backend payload contracts
-                        hash,
-                        thumb,
-                    })
-                });
-                return response?.entry || response;
-            } catch {
-                return { id: Date.now(), mood, photoThumb: thumb };
-            }
+            const response = await request('/metamorphosis/checkin', {
+                method: 'POST',
+                body: JSON.stringify({
+                    mood,
+                    photoHash: hash,
+                    photoThumb: thumb,
+                    // Backward compatibility with older backend payload contracts
+                    hash,
+                    thumb,
+                })
+            });
+            return response?.entry || response;
         },
         getEvolution: async () => {
             try {

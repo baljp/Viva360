@@ -42,8 +42,8 @@ const proStateRoutes: Partial<Record<GuardiaoState, string>> = {
 };
 
 export const ProViews: React.FC<{ 
-    user: Professional, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void 
-}> = ({ user, view, setView, updateUser }) => {
+    user: Professional, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onLogout?: () => void
+}> = ({ user, view, setView, updateUser, onLogout }) => {
     const { state: flowState, go, back, reset, refreshData } = useGuardiaoFlow();
 
     // Sync Router View -> Flow State (Deep Linking Support)
@@ -90,6 +90,7 @@ export const ProViews: React.FC<{
                 user={user} 
                 updateUser={updateUser}
                 setView={setView} 
+                onLogout={onLogout}
                 flow={{ state: flowState, go, back, reset }}
                 onClose={reset}
                 {...globalData}

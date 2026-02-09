@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Filter, Users, MapPin } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Filter, Users, MapPin, Loader2, Smartphone } from 'lucide-react';
 import { ViewState, Professional } from '../../types';
 import { PortalView } from '../../components/Common';
+import { api } from '../../services/api';
 
 interface SpaceCalendarProps {
     team: Professional[];
@@ -11,21 +12,74 @@ interface SpaceCalendarProps {
 
 export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flow }) => {
      const [filterPro, setFilterPro] = useState<string>('all');
-     
-     // Mock appointments for demo (since we don't have a full appointments endpoint in this file yet)
-     // In real app, use api.spaces.getAppointments(user.id)
-     const mockAppointments = [
-         { id: '1', time: '09:00', client: 'Ana Silva', proId: team[0]?.id, proName: team[0]?.name || 'Mestre 1', status: 'confirmed', room: 'Sala Hera' },
-         { id: '2', time: '10:30', client: 'Carlos B.', proId: team[0]?.id, proName: team[0]?.name || 'Mestre 1', status: 'pending', room: 'Sala Zeus' },
-         { id: '3', time: '14:00', client: 'Julia M.', proId: team[1]?.id, proName: team[1]?.name || 'Mestre 2', status: 'confirmed', room: 'Sala Gaia' },
-     ];
+     const [loading, setLoading] = useState(true);
+     const [syncing, setSyncing] = useState(false);
+     const [events, setEvents] = useState<any[]>([]);
 
-     const filteredApps = filterPro === 'all' ? mockAppointments : mockAppointments.filter(mock => mock.proId === filterPro);
+     useEffect(() => {
+        let mounted = true;
+        const loadEvents = async () => {
+            setLoading(true);
+            try {
+                const rows = await api.spaces.getEvents();
+                if (!mounted) return;
+                const normalized = (Array.isArray(rows) ? rows : []).map((event: any) => {
+                    const startDate = new Date(event.start_time || event.startTime || event.date || Date.now());
+                    const time = startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    return {
+                        id: String(event.id || `evt_${Math.random()}`),
+                        time,
+                        client: String(event.title || 'Evento'),
+                        proId: null,
+                        proName: 'Equipe Viva360',
+                        status: String(event.type || '').includes('block') ? 'confirmed' : 'pending',
+                        room: String(event.details || 'Agenda do Santuário'),
+                        startDate,
+                    };
+                });
+                setEvents(normalized);
+            } catch {
+                if (!mounted) return;
+                setEvents([]);
+            } finally {
+                if (mounted) setLoading(false);
+            }
+        };
+        loadEvents();
+        return () => { mounted = false; };
+     }, []);
+
+     const filteredApps = useMemo(() => {
+        if (filterPro === 'all') return events;
+        return events.filter((event) => !event.proId || event.proId === filterPro);
+     }, [events, filterPro]);
+
      const cycleFilter = () => {
          const ids = ['all', ...team.map((member) => member.id)];
          const currentIndex = ids.indexOf(filterPro);
          const nextIndex = currentIndex >= 0 && currentIndex < ids.length - 1 ? currentIndex + 1 : 0;
          setFilterPro(ids[nextIndex] || 'all');
+     };
+
+     const handleSyncCalendar = async () => {
+        if (syncing) return;
+        setSyncing(true);
+        try {
+            const sync = await api.spaces.syncCalendar();
+            const icsContent = String(sync?.data || '').trim();
+            if (!icsContent) return;
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = String(sync?.filename || 'viva360-calendar.ics');
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(url);
+        } finally {
+            setSyncing(false);
+        }
      };
 
      return (
@@ -36,6 +90,7 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
             footer={
                 <div className="flex gap-2">
                      <button onClick={() => flow.go('AGENDA_EDIT')} className="flex-1 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px]">Novo Agendamento</button>
+                     <button onClick={handleSyncCalendar} className="p-4 bg-white border border-nature-100 rounded-2xl text-nature-400" title="Sincronizar calendário">{syncing ? <Loader2 size={20} className="animate-spin" /> : <Smartphone size={20} />}</button>
                      <button onClick={cycleFilter} className="p-4 bg-white border border-nature-100 rounded-2xl text-nature-400"><Filter size={20}/></button>
                 </div>
             }
@@ -64,7 +119,11 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
 
                 <div className="space-y-4">
                     <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Hoje, {new Date().toLocaleDateString('pt-BR')}</h4>
-                    {filteredApps.length === 0 ? (
+                    {loading ? (
+                        <div className="p-10 text-center opacity-50 flex items-center justify-center gap-2">
+                            <Loader2 size={16} className="animate-spin" /> Carregando agenda...
+                        </div>
+                    ) : filteredApps.length === 0 ? (
                         <div className="p-10 text-center opacity-50">Nenhum agendamento encontrado para este filtro.</div>
                     ) : filteredApps.map((app: any) => (
                         <div key={app.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex gap-4 items-center shadow-sm relative overflow-hidden group">

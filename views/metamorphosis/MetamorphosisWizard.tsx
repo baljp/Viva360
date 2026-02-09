@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Heart, Activity, Coffee, Moon, Sun, ArrowRight, CheckCircle, Smile, Frown, Meh, CloudRain, Zap, Battery, X, Share2, Download, ShieldCheck, Sparkles, Wind, Droplets, Mountain } from 'lucide-react';
 import { PortalView, CameraWidget } from '../../components/Common';
-import { ViewState } from '../../types';
+import { ViewState, User } from '../../types';
 import { api } from '../../services/api';
 import { MOOD_ELEMENTS } from '../../src/data/metamorphosisData';
 import { phraseService } from '../../services/phraseService';
@@ -26,7 +26,7 @@ const ELEMENT_ICONS = {
     'Ar': <Wind size={14} className="text-indigo-500" />
 };
 
-export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) => void, onClose?: () => void }> = ({ flow, setView, onClose }) => {
+export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) => void, onClose?: () => void, user?: User }> = ({ flow, setView, onClose, user }) => {
     const [step, setStep] = useState(1);
     const [mood, setMood] = useState('');
     const [photo, setPhoto] = useState<string | null>(null);
@@ -39,7 +39,8 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const [drewCard, setDrewCard] = useState<any>(null);
     const [showSoulReveal, setShowSoulReveal] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const { performDraw } = useSoulCards('user_current'); // Should use real user ID
+    const soulCardUserId = String(user?.id || 'user_current').trim() || 'user_current';
+    const { performDraw } = useSoulCards(soulCardUserId);
 
     // Step 1: Mood Selection
     const handleMoodSelect = (m: string) => {
@@ -124,7 +125,10 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             setIsDrawing(true);
             const canvas = canvasRef.current;
             const ctx = canvas.getContext('2d');
-            if (!ctx) return;
+            if (!ctx) {
+                setIsDrawing(false);
+                return;
+            }
 
             // Safe Rounded Rect Helper (Browser Compatibility)
             const drawRoundRect = (x: number, y: number, w: number, h: number, r: number) => {
@@ -137,152 +141,174 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 ctx.closePath();
             };
 
+            const resolvedQuote = String(result?.quote || cardPhrase || phraseService.getPhrase(String(result?.mood || mood || 'Calmo'), 'CARD')).trim();
+            const resolvedTimestamp = result?.timestamp || new Date().toISOString();
+
             const userImg = new Image();
             userImg.crossOrigin = "anonymous";
             userImg.src = result.photoThumb;
 
             userImg.onload = () => {
-                const W = 1080; 
-                const H = format === 'STORY' ? 1920 : 1350; 
-                canvas.width = W;
-                canvas.height = H;
+                try {
+                    const W = 1080; 
+                    const H = format === 'STORY' ? 1920 : 1350; 
+                    canvas.width = W;
+                    canvas.height = H;
 
-                const styling = MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo'];
-                const elementColor = styling.color.includes('rose') ? '#f43f5e' : 
-                                     styling.color.includes('cyan') ? '#06b6d4' : 
-                                     styling.color.includes('emerald') ? '#10b981' : 
-                                     styling.color.includes('indigo') ? '#6366f1' : '#f59e0b';
-                
-                // --- LAYER 1: BACKGROUND (Deep & Atmospheric) ---
-                const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
-                bgGradient.addColorStop(0, '#0f172a'); // Deep Slate
-                bgGradient.addColorStop(0.5, '#111827');
-                bgGradient.addColorStop(1, '#020617'); // Darker bottom
-                ctx.fillStyle = bgGradient;
-                ctx.fillRect(0, 0, W, H);
+                    const styling = MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo'];
+                    const elementColor = styling.color.includes('rose') ? '#f43f5e' : 
+                                         styling.color.includes('cyan') ? '#06b6d4' : 
+                                         styling.color.includes('emerald') ? '#10b981' : 
+                                         styling.color.includes('indigo') ? '#6366f1' : '#f59e0b';
+                    
+                    const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
+                    bgGradient.addColorStop(0, '#0f172a');
+                    bgGradient.addColorStop(0.5, '#111827');
+                    bgGradient.addColorStop(1, '#020617');
+                    ctx.fillStyle = bgGradient;
+                    ctx.fillRect(0, 0, W, H);
 
-                // Add subtle texture/noise (simulated)
-                ctx.globalAlpha = 0.03;
-                for (let i = 0; i < 5000; i++) {
-                    ctx.fillStyle = '#fff';
-                    ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
-                }
-                ctx.globalAlpha = 1.0;
+                    ctx.globalAlpha = 0.03;
+                    for (let i = 0; i < 5000; i++) {
+                        ctx.fillStyle = '#fff';
+                        ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
+                    }
+                    ctx.globalAlpha = 1.0;
 
-                // --- LAYER 2: PHOTO (Protagonist) ---
-                const photoW = format === 'STORY' ? 900 : 1000;
-                const photoH = format === 'STORY' ? 1200 : 800;
-                const photoX = (W - photoW) / 2;
-                const photoY = format === 'STORY' ? 250 : 200;
+                    const photoW = format === 'STORY' ? 900 : 1000;
+                    const photoH = format === 'STORY' ? 1200 : 800;
+                    const photoX = (W - photoW) / 2;
+                    const photoY = format === 'STORY' ? 250 : 200;
 
-                ctx.save();
-                // Rounded clip for photo
-                drawRoundRect(photoX, photoY, photoW, photoH, 40);
-                ctx.clip();
-                
-                const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
-                const rx = photoX + (photoW - userImg.width * scale) / 2;
-                const ry = photoY + (photoH - userImg.height * scale) / 2;
-                // --- IG QUALITY PIPELINE (SOUL CARD - NARRATIVE SHARP) ---
-                // 1. Base Image with Narrative Contrast
-                ctx.filter = `brightness(1.05) contrast(1.1) saturate(1.1)`; 
-                ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
-                ctx.filter = 'none';
+                    ctx.save();
+                    drawRoundRect(photoX, photoY, photoW, photoH, 40);
+                    ctx.clip();
+                    
+                    const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
+                    const rx = photoX + (photoW - userImg.width * scale) / 2;
+                    const ry = photoY + (photoH - userImg.height * scale) / 2;
+                    ctx.filter = `brightness(1.05) contrast(1.1) saturate(1.1)`; 
+                    ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
+                    ctx.filter = 'none';
 
-                // 2. Light Correction Overlay (Warmth)
-                ctx.globalCompositeOperation = 'soft-light';
-                ctx.fillStyle = `${elementColor}33`;
-                ctx.fillRect(photoX, photoY, photoW, photoH);
-                
-                // 3. Vignette (Premium Feel)
-                ctx.globalCompositeOperation = 'multiply';
-                const vignette = ctx.createRadialGradient(
-                    photoX + photoW/2, photoY + photoH/2, 200,
-                    photoX + photoW/2, photoY + photoH/2, 800
-                );
-                vignette.addColorStop(0, 'transparent');
-                vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
-                ctx.fillStyle = vignette;
-                ctx.fillRect(photoX, photoY, photoW, photoH);
-                ctx.globalCompositeOperation = 'source-over';
+                    ctx.globalCompositeOperation = 'soft-light';
+                    ctx.fillStyle = `${elementColor}33`;
+                    ctx.fillRect(photoX, photoY, photoW, photoH);
+                    
+                    ctx.globalCompositeOperation = 'multiply';
+                    const vignette = ctx.createRadialGradient(
+                        photoX + photoW/2, photoY + photoH/2, 200,
+                        photoX + photoW/2, photoY + photoH/2, 800
+                    );
+                    vignette.addColorStop(0, 'transparent');
+                    vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
+                    ctx.fillStyle = vignette;
+                    ctx.fillRect(photoX, photoY, photoW, photoH);
+                    ctx.globalCompositeOperation = 'source-over';
 
-                // 4. Subtle Grain (Organic Narrative)
-                const grainCanvas = document.createElement('canvas');
-                grainCanvas.width = 128;
-                grainCanvas.height = 128;
-                const gCtx = grainCanvas.getContext('2d')!;
-                const gData = gCtx.createImageData(128, 128);
-                for (let i = 0; i < gData.data.length; i += 4) {
-                    const val = Math.random() * 255;
-                    gData.data[i] = val;
-                    gData.data[i+1] = val;
-                    gData.data[i+2] = val;
-                    gData.data[i+3] = 10; // Extra subtle for Card
-                }
-                gCtx.putImageData(gData, 0, 0);
-                ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat')!;
-                ctx.globalAlpha = 0.03;
-                ctx.fillRect(photoX, photoY, photoW, photoH);
-                ctx.globalAlpha = 1.0;
-                
-                ctx.restore();
+                    const grainCanvas = document.createElement('canvas');
+                    grainCanvas.width = 128;
+                    grainCanvas.height = 128;
+                    const gCtx = grainCanvas.getContext('2d')!;
+                    const gData = gCtx.createImageData(128, 128);
+                    for (let i = 0; i < gData.data.length; i += 4) {
+                        const val = Math.random() * 255;
+                        gData.data[i] = val;
+                        gData.data[i+1] = val;
+                        gData.data[i+2] = val;
+                        gData.data[i+3] = 10;
+                    }
+                    gCtx.putImageData(gData, 0, 0);
+                    ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat')!;
+                    ctx.globalAlpha = 0.03;
+                    ctx.fillRect(photoX, photoY, photoW, photoH);
+                    ctx.globalAlpha = 1.0;
+                    
+                    ctx.restore();
 
-                // --- LAYER 3: PREMIUM SIGNATURE AREA (NO POLLUTION) ---
-                const quoteAreaY = photoY + photoH + 40;
-                const centerX = W / 2;
+                    const quoteAreaY = photoY + photoH + 40;
+                    const centerX = W / 2;
 
-                // 1. Divider Line (Subtle)
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.moveTo(photoX + 100, quoteAreaY);
-                ctx.lineTo(photoX + photoW - 100, quoteAreaY);
-                ctx.stroke();
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(photoX + 100, quoteAreaY);
+                    ctx.lineTo(photoX + photoW - 100, quoteAreaY);
+                    ctx.stroke();
 
-                // 2. The Soul Archetype (Quote) - Elegant & Focused
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'top';
-                ctx.fillStyle = '#f8fafc';
-                ctx.font = 'italic 48px serif';
-                
-                const words = result.quote.split(' ');
-                let line = '';
-                let lineY = quoteAreaY + 60;
-                const lineHeight = 65;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'top';
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.font = 'italic 48px serif';
+                    
+                    const words = resolvedQuote.split(/\s+/).filter(Boolean);
+                    let line = '';
+                    let lineY = quoteAreaY + 60;
+                    const lineHeight = 65;
 
-                for(let n = 0; n < words.length; n++) {
-                  const testLine = line + words[n] + ' ';
-                  if (ctx.measureText(testLine).width > (photoW - 150) && n > 0) {
+                    for(let n = 0; n < words.length; n++) {
+                        const testLine = line + words[n] + ' ';
+                        if (ctx.measureText(testLine).width > (photoW - 150) && n > 0) {
+                            ctx.fillText(line.trim(), centerX, lineY);
+                            line = words[n] + ' ';
+                            lineY += lineHeight;
+                        } else {
+                            line = testLine;
+                        }
+                    }
                     ctx.fillText(line.trim(), centerX, lineY);
-                    line = words[n] + ' ';
-                    lineY += lineHeight;
-                  } else {
-                    line = testLine;
-                  }
+
+                    const footerY = H - 120;
+                    ctx.font = 'bold 20px sans-serif';
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                    (ctx as any).letterSpacing = '4px';
+                    const dateStr = new Date(resolvedTimestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }).toUpperCase();
+                    ctx.fillText(dateStr, centerX, footerY - 40);
+                    
+                    ctx.font = 'bold 22px sans-serif';
+                    ctx.fillStyle = '#d4af37';
+                    (ctx as any).letterSpacing = '8px';
+                    ctx.fillText(`VIVA360 • ESSÊNCIA & EVOLUÇÃO`, centerX, footerY);
+
+                    setPreviewUrl(canvas.toDataURL('image/png'));
+                } catch (drawError) {
+                    console.error('Erro ao desenhar card da alma', drawError);
+                    setPreviewUrl(result?.photoThumb || null);
+                } finally {
+                    setIsDrawing(false);
                 }
-                ctx.fillText(line.trim(), centerX, lineY);
-
-                // --- LAYER 4: METADATA & ARQUETYPE SEAL ---
-                const footerY = H - 120;
-                
-                // Date (Discrete)
-                ctx.font = 'bold 20px sans-serif';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                (ctx as any).letterSpacing = '4px';
-                const dateStr = new Date(result.timestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }).toUpperCase();
-                ctx.fillText(dateStr, centerX, footerY - 40);
-                
-                // Signature (Golden Mastery)
-                ctx.font = 'bold 22px sans-serif';
-                ctx.fillStyle = '#d4af37';
-                (ctx as any).letterSpacing = '8px';
-                ctx.fillText(`VIVA360 • ESSÊNCIA & EVOLUÇÃO`, centerX, footerY);
-
-                setPreviewUrl(canvas.toDataURL('image/png'));
-                setIsDrawing(false);
             };
+            userImg.onerror = () => {
+                try {
+                    const W = 1080;
+                    const H = format === 'STORY' ? 1920 : 1350;
+                    canvas.width = W;
+                    canvas.height = H;
+                    const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
+                    bgGradient.addColorStop(0, '#0f172a');
+                    bgGradient.addColorStop(1, '#020617');
+                    ctx.fillStyle = bgGradient;
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.textAlign = 'center';
+                    ctx.fillStyle = '#f8fafc';
+                    ctx.font = 'italic 44px serif';
+                    ctx.fillText(resolvedQuote, W / 2, H / 2 - 120, W - 160);
+                    ctx.font = 'bold 22px sans-serif';
+                    ctx.fillStyle = '#d4af37';
+                    ctx.fillText('VIVA360 • ESSÊNCIA & EVOLUÇÃO', W / 2, H - 120);
+                    setPreviewUrl(canvas.toDataURL('image/png'));
+                } catch (drawError) {
+                    console.error('Falha no fallback do card da alma', drawError);
+                    setPreviewUrl(null);
+                } finally {
+                    setIsDrawing(false);
+                }
+            };
+            if (!userImg.src) {
+                userImg.onerror?.(new Event('error'));
+            }
         }
-    }, [step, result, format]);
+    }, [step, result, format, cardPhrase, mood]);
 
     const styling = result ? (MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo']) : MOOD_ELEMENTS['Calmo'];
     
@@ -463,6 +489,5 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         </PortalView>
     );
 };
-
 
 

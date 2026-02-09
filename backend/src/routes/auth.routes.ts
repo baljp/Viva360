@@ -15,6 +15,7 @@ router.post('/oauth/ensure-profile', authenticateUser, AuthController.ensureOAut
 router.get('/roles', authenticateUser, AuthController.listRoles);
 router.post('/select-role', authenticateUser, AuthController.selectRole);
 router.post('/add-role', authenticateUser, AuthController.addRole);
+router.delete('/account', authenticateUser, AuthController.deleteAccount);
 router.post('/forgot-password', RecoverController.forgotPassword); // Add schema later
 router.post('/reset-password', RecoverController.resetPassword); // Add schema later
 

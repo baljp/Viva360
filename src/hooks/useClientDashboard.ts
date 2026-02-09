@@ -63,21 +63,23 @@ export const useClientDashboard = (
         }
     }, [user, updateUser]);
 
-    const handleDailyCheckIn = useCallback(async (reward: number) => {
+    const handleDailyCheckIn = useCallback(async (reward: number): Promise<{ ok: boolean; alreadyDone?: boolean }> => {
           try {
               const res = await api.users.checkIn(user.id, reward);
               if (res && res.user) {
                   updateUser(res.user as User);
                   setRitualToast({ title: "Benção Recebida", message: `Sua jornada foi harmonizada com ${res.reward} Karma.` });
-                  return;
+                  return { ok: true };
               }
               setToast({ title: "Não foi possível concluir", message: "Tente novamente em instantes.", type: 'warning' });
+              return { ok: false };
           } catch (error: any) {
               if (error?.code === 'CHECKIN_ALREADY_DONE' || Number(error?.status) === 409) {
                   setToast({ title: "Benção Já Recebida", message: "Você já sintonizou sua energia hoje.", type: 'info' });
-                  return;
+                  return { ok: true, alreadyDone: true };
               }
               setToast({ title: "Erro ao receber benção", message: "Não conseguimos registrar sua benção agora.", type: 'error' });
+              return { ok: false };
           }
     }, [user, updateUser]);
 

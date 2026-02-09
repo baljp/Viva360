@@ -5,6 +5,7 @@ import { Calendar, Clock, User, ChevronRight } from 'lucide-react';
 
 export default function SpaceRoomAgenda() {
     const { back, go } = useSantuarioFlow();
+    const todayLabel = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
 
     const events = [
         { id: 1, time: '09:00 - 10:30', title: 'Yoga Matinal', host: 'Clara Luz', type: 'Prática Coletiva' },
@@ -22,7 +23,7 @@ export default function SpaceRoomAgenda() {
             <div className="space-y-6 px-4">
                 <div className="bg-nature-50 p-6 rounded-[2.5rem] text-center mb-6">
                     <h3 className="font-serif italic text-2xl text-nature-900">Sala Cristal</h3>
-                    <p className="text-xs text-nature-500 mt-2">Visualizando agenda para Hoje, 24 de Outubro</p>
+                    <p className="text-xs text-nature-500 mt-2">Visualizando agenda para {todayLabel}</p>
                 </div>
 
                 <div className="space-y-4">

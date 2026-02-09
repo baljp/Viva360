@@ -3,6 +3,14 @@ import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
 import { asyncHandler } from '../middleware/async.middleware';
 
+const toIcsDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+
+const sanitizeIcs = (value: string) => String(value || '')
+  .replace(/\\/g, '\\\\')
+  .replace(/\n/g, '\\n')
+  .replace(/,/g, '\\,')
+  .replace(/;/g, '\\;');
+
 export const getEvents = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   
@@ -71,13 +79,48 @@ export const syncToMobile = asyncHandler(async (req: Request, res: Response) => 
   const userId = (req as any).user?.userId;
   
   if (isMockMode()) {
-     return res.json({ format: 'ics', data: 'BEGIN:VEVENT\nSUMMARY:Mock Event\nEND:VEVENT', sync_status: 'synced' });
+     return res.json({
+      format: 'ics',
+      filename: 'viva360-calendar.ics',
+      data: 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Viva360//Agenda//PT-BR\r\nEND:VCALENDAR\r\n',
+      sync_status: 'synced'
+    });
   }
 
-  const events = await prisma.calendarEvent.findMany({ where: { user_id: userId } });
-  
-  // Minimal ICS format simulation
-  const icsData = events.map(e => `BEGIN:VEVENT\nSUMMARY:${e.title}\nDTSTART:${e.start_time.toISOString()}\nEND:VEVENT`).join('\n');
-  
-  return res.json({ format: 'ics', data: icsData, sync_status: 'synced' });
+  const events = await prisma.calendarEvent.findMany({
+    where: { user_id: userId },
+    orderBy: { start_time: 'asc' },
+  });
+
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Viva360//Agenda//PT-BR',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ];
+
+  events.forEach((event) => {
+    const uid = `${event.id}@viva360.app`;
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTAMP:${toIcsDate(new Date())}`,
+      `DTSTART:${toIcsDate(new Date(event.start_time))}`,
+      `DTEND:${toIcsDate(new Date(event.end_time))}`,
+      `SUMMARY:${sanitizeIcs(event.title)}`,
+      `DESCRIPTION:${sanitizeIcs(event.details || event.type || 'Evento Viva360')}`,
+      'END:VEVENT'
+    );
+  });
+
+  lines.push('END:VCALENDAR');
+
+  return res.json({
+    format: 'ics',
+    filename: 'viva360-calendar.ics',
+    data: `${lines.join('\r\n')}\r\n`,
+    sync_status: 'synced',
+    eventCount: events.length,
+  });
 });
