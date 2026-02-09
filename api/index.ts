@@ -1,11 +1,12 @@
 // Vercel Serverless Function Entry Point
-// This file wraps the Express app for Vercel's serverless environment
+// This file wraps the Express app for Vercel's serverless environment.
+//
+// IMPORTANT:
+// - Vercel runs this as ESM because the repo root has `"type": "module"`.
+// - Node ESM does not resolve extensionless relative imports, and it can't load TS.
+// - Import the compiled CJS backend artifact and unwrap `default`.
+import appModule from '../backend/dist/app.js';
 
-// Important: Import order matters! Environment must be loaded first
-import '../backend/src/lib/env';
+const app = (appModule as any)?.default ?? appModule;
 
-// Import the Express app
-import app from '../backend/src/app';
-
-// Export as default for Vercel
 export default app;
