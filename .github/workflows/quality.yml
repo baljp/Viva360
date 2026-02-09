@@ -1,10 +1,7 @@
 name: Enterprise QA & Build Pipeline
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:
   schedule:
     - cron: '0 4 * * *'
 

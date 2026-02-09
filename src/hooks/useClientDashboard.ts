@@ -64,23 +64,38 @@ export const useClientDashboard = (
     }, [user, updateUser]);
 
     const handleDailyCheckIn = useCallback(async (reward: number): Promise<{ ok: boolean; alreadyDone?: boolean }> => {
-          try {
-              const res = await api.users.checkIn(user.id, reward);
-              if (res && res.user) {
-                  updateUser(res.user as User);
-                  setRitualToast({ title: "Benção Recebida", message: `Sua jornada foi harmonizada com ${res.reward} Karma.` });
-                  return { ok: true };
-              }
-              setToast({ title: "Não foi possível concluir", message: "Tente novamente em instantes.", type: 'warning' });
-              return { ok: false };
-          } catch (error: any) {
-              if (error?.code === 'CHECKIN_ALREADY_DONE' || Number(error?.status) === 409) {
-                  setToast({ title: "Benção Já Recebida", message: "Você já sintonizou sua energia hoje.", type: 'info' });
-                  return { ok: true, alreadyDone: true };
-              }
-              setToast({ title: "Erro ao receber benção", message: "Não conseguimos registrar sua benção agora.", type: 'error' });
-              return { ok: false };
-          }
+        try {
+            const res: any = await api.users.checkIn(user.id, reward);
+            if (res?.alreadyDone || String(res?.status || '').toUpperCase() === 'ALREADY_DONE' || String(res?.code || '').toUpperCase() === 'CHECKIN_ALREADY_DONE') {
+                const checkInAt = String(res?.lastCheckIn || res?.user?.lastCheckIn || '').trim();
+                if (checkInAt) {
+                    updateUser({ ...user, lastCheckIn: checkInAt });
+                }
+                setToast({ title: "Benção Já Recebida", message: "Você já sintonizou sua energia hoje.", type: 'info' });
+                return { ok: true, alreadyDone: true };
+            }
+
+            if (res?.ok && res?.user) {
+                updateUser(res.user as User);
+                setRitualToast({ title: "Benção Recebida", message: `Sua jornada foi harmonizada com ${res.reward || reward} Karma.` });
+                return { ok: true };
+            }
+
+            setToast({ title: "Não foi possível concluir", message: "Tente novamente em instantes.", type: 'warning' });
+            return { ok: false };
+        } catch (error: any) {
+            const code = String(error?.code || error?.details?.code || '').toUpperCase();
+            if (code === 'CHECKIN_ALREADY_DONE' || Number(error?.status) === 409) {
+                const checkInAt = String(error?.details?.lastCheckIn || error?.details?.user?.lastCheckIn || '').trim();
+                if (checkInAt) {
+                    updateUser({ ...user, lastCheckIn: checkInAt });
+                }
+                setToast({ title: "Benção Já Recebida", message: "Você já sintonizou sua energia hoje.", type: 'info' });
+                return { ok: true, alreadyDone: true };
+            }
+            setToast({ title: "Erro ao receber benção", message: "Não conseguimos registrar sua benção agora.", type: 'error' });
+            return { ok: false };
+        }
     }, [user, updateUser]);
 
     const handleCapture = useCallback(async (image: string) => {

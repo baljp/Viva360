@@ -26,7 +26,7 @@ export class CloudinaryService {
     }
 
     try {
-      const result = await cloudinary.uploader.upload(imagePath, {
+      const uploadPromise = cloudinary.uploader.upload(imagePath, {
         folder,
         transformation: [
           { width: 1200, height: 1200, crop: 'limit' },
@@ -34,6 +34,10 @@ export class CloudinaryService {
           { fetch_format: 'auto' }
         ]
       });
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Cloudinary upload timeout')), 5000);
+      });
+      const result = await Promise.race([uploadPromise, timeoutPromise]);
       return result.secure_url;
     } catch (error) {
       console.error('Cloudinary Upload Error:', error);

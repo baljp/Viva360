@@ -27,6 +27,7 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: numbe
             const succeeded = !result || Boolean((result as any).ok);
             if (succeeded) {
                 localStorage.setItem(claimStorageKey, '1');
+                setDismissed(true);
                 return;
             }
             setClaimedToday(previousClaim);

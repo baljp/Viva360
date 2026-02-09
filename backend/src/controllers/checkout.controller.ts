@@ -5,6 +5,7 @@ import { isMockMode, supabaseAdmin } from '../services/supabase.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
+import { AppError } from '../lib/AppError';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -20,9 +21,16 @@ const resolveContextType = (value?: string) => {
 
 const ensureContext = (contextType: string, contextRef?: string | null) => {
   if (contextType !== 'BAZAR' && contextType !== 'GERAL' && !String(contextRef || '').trim()) {
-    const error: any = new Error('contextRef é obrigatório para este tipo de checkout.');
-    error.statusCode = 400;
-    throw error;
+    throw new AppError('contextRef é obrigatório para este tipo de checkout.', 400, 'CONTEXT_REF_REQUIRED');
+  }
+};
+
+const ensureContextualContract = (contextType: string, contextRef?: string | null) => {
+  if (contextType === 'GERAL') {
+    throw new AppError('contextType é obrigatório no checkout contextual.', 400, 'CONTEXT_TYPE_REQUIRED');
+  }
+  if (!String(contextRef || '').trim()) {
+    throw new AppError('contextRef é obrigatório no checkout contextual.', 400, 'CONTEXT_REF_REQUIRED');
   }
 };
 
@@ -128,11 +136,40 @@ const applyContextWorkflow = async (params: {
   return { contextAction: 'GENERIC_CHECKOUT', nextStep: 'NONE' };
 };
 
-const runCheckout = async (req: Request, res: Response) => {
+const buildCheckoutResponse = (params: {
+  requestId?: string;
+  transaction: any;
+  confirmationId?: string | null;
+  counterpartiesNotified?: string[];
+  contextAction: string;
+  contextLabel?: string;
+  actionReceipt: any;
+}) => ({
+  status: 'COMPLETED',
+  code: 'CHECKOUT_CONFIRMED',
+  message: 'Checkout contextual confirmado com sucesso.',
+  requestId: params.requestId || null,
+  timestamp: new Date().toISOString(),
+  transaction: params.transaction,
+  confirmationId: params.confirmationId || null,
+  counterpartiesNotified: params.counterpartiesNotified || [],
+  confirmation: {
+    confirmationId: params.confirmationId || null,
+    sentTo: params.counterpartiesNotified || [],
+    context: params.contextLabel || null,
+  },
+  contextAction: params.contextAction,
+  actionReceipt: params.actionReceipt,
+});
+
+const runCheckout = async (req: Request, res: Response, options?: { strictContextual?: boolean }) => {
   const userId = (req as any).user?.userId;
   const { amount, description, receiverId, items, contextType, contextRef } = req.body; // items: [{ id, price, type }]
   const normalizedAmount = Number(amount || 0);
   const normalizedContext = resolveContextType(contextType);
+  if (options?.strictContextual) {
+    ensureContextualContract(normalizedContext, contextRef);
+  }
   ensureContext(normalizedContext, contextRef);
   let resolvedReceiverId = String(receiverId || '').trim() || null;
   const extraRecipients = new Set<string>();
@@ -228,16 +265,15 @@ const runCheckout = async (req: Request, res: Response) => {
         },
        });
 
-       return res.json({
-        status: 'COMPLETED',
-        code: 'CHECKOUT_CONFIRMED',
+       return res.json(buildCheckoutResponse({
+        requestId: req.requestId,
         transaction: mockResult,
-       confirmation,
-       confirmationId: confirmation.confirmationId,
+        confirmationId: confirmation.confirmationId,
         counterpartiesNotified: confirmation.sentTo || [],
         contextAction: contextResult.contextAction,
+        contextLabel: confirmation.context,
         actionReceipt,
-       });
+       }));
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -326,22 +362,21 @@ const runCheckout = async (req: Request, res: Response) => {
       },
     });
 
-    return res.json({
-      status: 'COMPLETED',
-      code: 'CHECKOUT_CONFIRMED',
+    return res.json(buildCheckoutResponse({
+      requestId: req.requestId,
       transaction: result,
-      confirmation,
       confirmationId: confirmation?.confirmationId || null,
       counterpartiesNotified: confirmation?.sentTo || [],
       contextAction: contextResult.contextAction,
+      contextLabel: confirmation?.context || null,
       actionReceipt,
-    });
+    }));
 };
 
 export const processPayment = asyncHandler(async (req: Request, res: Response) => {
-  return runCheckout(req, res);
+  return runCheckout(req, res, { strictContextual: false });
 });
 
 export const processContextualCheckout = asyncHandler(async (req: Request, res: Response) => {
-  return runCheckout(req, res);
+  return runCheckout(req, res, { strictContextual: true });
 });

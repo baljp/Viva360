@@ -53,10 +53,19 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          core: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
-          utils: ['axios', 'zod'] 
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-router-dom')) return 'vendor-core';
+            if (id.includes('framer-motion') || id.includes('lucide-react')) return 'vendor-ui';
+            if (id.includes('axios') || id.includes('zod') || id.includes('supabase-js')) return 'vendor-data';
+            return 'vendor-misc';
+          }
+          if (id.includes('/views/client/') || id.includes('/src/flow/Buscador')) return 'feature-buscador';
+          if (id.includes('/views/pro/') || id.includes('/src/flow/Guardiao')) return 'feature-guardiao';
+          if (id.includes('/views/space/') || id.includes('/src/flow/Santuario')) return 'feature-santuario';
+          if (id.includes('/views/metamorphosis/') || id.includes('/src/hooks/useSoulCards')) return 'feature-evolucao';
+          if (id.includes('/views/SettingsViews') || id.includes('/services/api')) return 'feature-core-app';
+          return undefined;
         },
       },
     },

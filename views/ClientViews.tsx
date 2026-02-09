@@ -54,6 +54,14 @@ export const ClientViews: React.FC<{
 }> = ({ user, view, setView, updateUser, onAddToCart, onLogout }) => {
   const { state: flowState, go, jump, back, reset, refreshData } = useBuscadorFlow();
 
+   useEffect(() => {
+       const isExploreView = view === ViewState.CLIENT_EXPLORE || view === ViewState.CLIENT_PRO_DETAILS;
+       const inExploreSubflow = flowState.currentState === 'BOOKING_SELECT' || flowState.currentState === 'BOOKING_CONFIRM';
+       if (isExploreView && inExploreSubflow && !flowState.selectedProfessionalId) {
+           jump('BOOKING_SEARCH');
+       }
+   }, [view, flowState.currentState, flowState.selectedProfessionalId, jump]);
+
    // Sync Router View -> Flow State (Deep Linking Support)
    const clusters: Record<string, BuscadorState[]> = {
        [ViewState.CLIENT_HOME]: ['DASHBOARD', 'SETTINGS', 'MARKETPLACE', 'PAYMENT_HISTORY', 'KARMA_WALLET'],

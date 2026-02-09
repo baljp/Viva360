@@ -3,6 +3,8 @@ import React from 'react';
 import { lazyWithRetry } from '../utils/lazyWithRetry';
 import { MapaDaCuraView as MapaDaCuraViewEager } from '../../views/client/MapaDaCuraView';
 import { ClientMarketplace as ClientMarketplaceEager } from '../../views/client/ClientMarketplace';
+import { BookingSelect as BookingSelectEager } from '../../views/client/BookingSelect';
+import BookingConfirmEager from '../../views/client/generated/BookingConfirm';
 
 // --- HELPER FOR NAMED EXPORTS ---
 // Usage: const Component = lazyNamed(() => import('path'), 'ComponentName');
@@ -25,11 +27,11 @@ const TimeLapseView = lazyNamed(() => import('../../views/metamorphosis/TimeLaps
 const InternalGarden = lazyNamed(() => import('../../views/client/InternalGarden'), 'InternalGarden');
 const TribeView = lazyNamed(() => import('../../views/client/TribeView'), 'TribeView');
 const MapaDaCuraView = MapaDaCuraViewEager;
-const BookingSelect = lazyNamed(() => import('../../views/client/BookingSelect'), 'BookingSelect');
+const BookingSelect = BookingSelectEager;
 const RitualsView = lazyNamed(() => import('../../views/client/RitualsView'), 'RitualsView');
 
 // --- BUSCADOR GENERATED (Default Exports usually) ---
-const BookingConfirm = lazyWithRetry(() => import('../../views/client/generated/BookingConfirm'), 'BookingConfirm');
+const BookingConfirm = BookingConfirmEager;
 const PaymentSuccess = lazyWithRetry(() => import('../../views/client/generated/PaymentSuccess'), 'PaymentSuccess');
 const TribeInvite = lazyWithRetry(() => import('../../views/client/generated/TribeInvite'), 'TribeInvite');
 const TribeInteraction = lazyWithRetry(() => import('../../views/client/generated/TribeInteraction'), 'TribeInteraction');
