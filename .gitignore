@@ -8,6 +8,9 @@
 /playwright-report
 /test-results
 /qa/reports/playwright-report
+/playwright-report/
+/test-results/
+/qa/reports/playwright-report/
 
 # next.js
 /.next/
@@ -17,6 +20,7 @@
 /build
 /dist
 /backend/dist
+/backend/dist/
 
 # misc
 .DS_Store
@@ -33,6 +37,8 @@ yarn-error.log*
 # vercel
 .env
 .vercel
+/.vercel
+/.vercel/
 vercel-debug.log
 
 # local logs / sync artifacts

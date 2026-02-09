@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:backend": "tsc -p backend/tsconfig.json",
+    "build:backend": "NODE_PATH=./backend/node_modules tsc -p backend/tsconfig.json",
     "build": "npm run prisma:generate && npm run build:backend && tsc && vite build",
     "vercel-build": "npm run prisma:generate && npm run build:backend && vite build",
     "dev:api:test": "NODE_ENV=test APP_MODE=MOCK ENABLE_TEST_MODE=true PORT=3001 npx tsx backend/src/server.ts",
@@ -28,6 +28,7 @@
     "test:buscador-flow": "npx playwright test --config=playwright.qa.config.ts qa/flows/buscador-flow.spec.ts",
     "test:guardiao-flow": "npx playwright test --config=playwright.qa.config.ts qa/flows/guardiao-flow.spec.ts",
     "test:santuario-flow": "npx playwright test --config=playwright.qa.config.ts qa/flows/santuario-flow.spec.ts",
+    "qa:audit-buttons": "npx tsx scripts/audit_buttons.ts",
     "test:debug": "npx playwright test --config=playwright.qa.config.ts qa/flows/debug-guardiao.spec.ts",
     "deploy:auto": "bash scripts/setup_vercel.sh && npx vercel --prod",
     "db:sync": "bash scripts/db_sync.sh",
@@ -35,6 +36,10 @@
     "supabase:verify": "npm run prisma:generate && npx tsx scripts/verify_supabase.ts",
     "supabase:test": "npx tsx scripts/test_realtime_flow.ts",
     "allowlist:add": "npx tsx backend/scripts/manage_allowlist.ts"
+    ,"data:reset-mock:dry": "npx tsx backend/scripts/reset_mock_test_data.ts"
+    ,"data:reset-mock": "npx tsx backend/scripts/reset_mock_test_data.ts --execute"
+    ,"data:purge-profile:dry": "npx tsx backend/scripts/reset_mock_test_data.ts --purge-email=bal_19@msn.com"
+    ,"data:purge-profile": "npx tsx backend/scripts/reset_mock_test_data.ts --execute --purge-email=bal_19@msn.com"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",
