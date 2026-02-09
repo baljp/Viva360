@@ -38,14 +38,14 @@ test.describe('Critical Fixes Verification', () => {
     await loginAs('pro'); // Guardião
     // Wait for dashboard to fully load (past the skeleton)
     // Switch to Egrégora tab to find Bazar
-    await page.getByText('Egrégora').click({ force: true });
+    await page.getByText('Egrégora').first().click({ force: true });
     await page.waitForTimeout(1000);
 
     // Find and click marketplace card
     await page.getByText('Alquimia').first().click({ force: true });
 
     // Verify Marketplace View loaded
-    await expect(page.getByText('Alquimia')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Alquimia' })).toBeVisible();
     await expect(page.getByText('Mercado e Bazar')).toBeVisible();
     
     // Verify Add Button exists

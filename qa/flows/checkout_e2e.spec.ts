@@ -5,11 +5,13 @@ test.describe('Checkout Flow E2E', () => {
     await loginAs('client');
 
     await page.goto('/client/home');
-    await page.locator('#portal-map').click({ timeout: 10000 });
+    const portalMap = page.locator('#portal-map');
+    await expect(portalMap).toBeVisible({ timeout: 10000 });
+    await portalMap.click({ timeout: 10000, force: true });
 
     await expect(page).toHaveURL(/\/client\/explore/, { timeout: 15000 });
-    await expect(page.getByRole('heading', { name: 'Mapa da Cura' })).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('heading', { name: 'Guardiões Disponíveis' })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: /Mapa da Cura/i })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: /Guardiões Disponíveis/i })).toBeVisible({ timeout: 15000 });
 
     const emptyState = page.getByText('Frequência não encontrada');
     if (await emptyState.isVisible({ timeout: 2000 }).catch(() => false)) {
