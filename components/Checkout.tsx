@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { ShoppingBag, X, Trash2, ChevronRight, CreditCard, QrCode, Lock, CheckCircle, Sparkles, Heart, RefreshCw, Package, Cloud, ChevronLeft, ShieldCheck } from 'lucide-react';
 import { CartItem, Product, ViewState } from '../types';
+import { useLocation } from 'react-router-dom';
 
 // --- CART DRAWER ---
 export const CartDrawer: React.FC<{ 
@@ -332,6 +333,11 @@ export const CheckoutScreen: React.FC<{
 };
 
 export const SuccessScreen: React.FC<{ onHome: () => void }> = ({ onHome }) => {
+  const location = useLocation();
+  const confirmation = (location.state as any)?.confirmation || null;
+  const transactionId = String((location.state as any)?.transactionId || '');
+  const protocol = String(confirmation?.confirmationId || '').slice(0, 8).toUpperCase();
+
   return (
     <div className="fixed inset-0 h-full w-full flex flex-col items-center justify-center text-center p-8 bg-primary-50 animate-in zoom-in duration-700 z-[500]">
       <div className="relative mb-12">
@@ -346,6 +352,13 @@ export const SuccessScreen: React.FC<{ onHome: () => void }> = ({ onHome }) => {
       <p className="text-sm text-nature-500 leading-relaxed max-w-xs mb-12 italic">
         "Sua jornada de cura está confirmada. O universo conspira para que cada pétala deste caminho traga a renovação que você busca."
       </p>
+      {(protocol || transactionId) && (
+        <p className="text-[10px] text-nature-400 uppercase tracking-widest mb-10 font-bold">
+          {protocol ? `Protocolo ${protocol}` : ''}
+          {protocol && transactionId ? ' • ' : ''}
+          {transactionId ? `Transação ${transactionId.slice(0, 8).toUpperCase()}` : ''}
+        </p>
+      )}
       
       <div className="grid grid-cols-1 w-full gap-4 max-w-xs pb-[calc(3rem+env(safe-area-inset-bottom))]">
         <button 

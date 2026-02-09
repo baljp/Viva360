@@ -1,5 +1,6 @@
 import { tribeRepository, InviteCreateData } from '../repositories/tribe.repository';
 import crypto from 'crypto';
+import { interactionService } from './interaction.service';
 
 export class TribeService {
     async inviteMember(hubId: string, email: string) {
@@ -17,6 +18,16 @@ export class TribeService {
             token,
             status: 'pending'
         });
+
+        try {
+            await interactionService.emitTribeInvite({
+                hubId,
+                email,
+                inviteId: invite.id,
+            });
+        } catch (error) {
+            interactionService.logInteractionFailure('tribe.invite', error, { hubId, email });
+        }
 
         // Mock Email
         console.log(`[EMAIL] Invite sent to ${email} with token ${token}`);

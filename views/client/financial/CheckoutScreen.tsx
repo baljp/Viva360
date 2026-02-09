@@ -12,6 +12,8 @@ export default function CheckoutScreen() {
   const [loading, setLoading] = useState(false);
   const [showPixQR, setShowPixQR] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('Sua semente foi plantada com sucesso. A abundância retorna a você.');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handlePayment = async () => {
     if (method === 'pix' && !showPixQR) {
@@ -20,19 +22,36 @@ export default function CheckoutScreen() {
     }
 
     setLoading(true);
+    setErrorMessage('');
     try {
         // Mocking a slight delay for ritualistic feel
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        await api.payment.checkout(
+        const response = await api.payment.checkout(
             150.00, 
             'Troca Energética - Viva360', 
-            'pro_001'
+            'pro_001',
+            {
+                contextType: method === 'direct' ? 'TRIBO' : 'BAZAR',
+                items: [{ id: 'checkout-guided-service', price: 150, type: 'service' }],
+            }
+        );
+
+        const confirmationCode = String(response?.confirmation?.confirmationId || '').slice(0, 8).toUpperCase();
+        if (response?.code !== 'CHECKOUT_CONFIRMED') {
+            throw new Error('Checkout não confirmado pela API.');
+        }
+
+        setSuccessMessage(
+            confirmationCode
+                ? `Sua semente foi plantada com sucesso. Protocolo ${confirmationCode}.`
+                : 'Sua semente foi plantada com sucesso. A abundância retorna a você.'
         );
         
         setShowSuccess(true);
-    } catch (error) {
+    } catch (error: any) {
         console.error("Payment failed", error);
+        setErrorMessage(error?.message || 'Não foi possível concluir sua oferenda agora.');
     } finally {
         setLoading(false);
     }
@@ -49,7 +68,7 @@ export default function CheckoutScreen() {
           <div className="fixed inset-0 z-[600] flex items-center justify-center pointer-events-none">
               <MicroInteraction 
                 title="Troca Concluída" 
-                message="Sua semente foi plantada com sucesso. A abundância retorna a você." 
+                message={successMessage}
                 onClose={() => {
                     setShowSuccess(false);
                     go('PAYMENT_SUCCESS');
@@ -140,6 +159,11 @@ export default function CheckoutScreen() {
                 {loading ? <Loader2 size={24} className="animate-spin text-primary-400"/> : <Lock size={20} className="text-primary-400"/>} 
                 <span className="ml-2">{loading ? 'Sincronizando...' : method === 'direct' ? 'Gerar Voucher' : showPixQR ? 'Já Realizei o Pix' : 'Concluir Oferenda'}</span>
             </button>
+            {errorMessage && (
+                <p className="text-center text-[10px] text-rose-500 font-bold uppercase tracking-widest mt-4">
+                    {errorMessage}
+                </p>
+            )}
             <p className="text-center text-[9px] text-nature-400 uppercase tracking-widest mt-8 cursor-pointer hover:text-nature-600 transition-colors font-bold" onClick={back}>Mudar de ideia</p>
          </div>
       </div>

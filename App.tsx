@@ -257,7 +257,7 @@ const App: React.FC = () => {
     const handleLogin = (u: any) => {
         if (!u) return;
         handleUpdateUser(u);
-        const role = String(u.role).toUpperCase();
+        const role = String(u.activeRole || u.role).toUpperCase();
         preloadRoleViews(role);
         console.log("DEBUG: handleLogin Role:", role);
         const homePath = resolveHomePath(role);
@@ -274,6 +274,13 @@ const App: React.FC = () => {
             // Standardize role to uppercase if it's a string
             if (typeof updated.role === 'string') {
                 updated.role = updated.role.toUpperCase();
+            }
+            if (typeof updated.activeRole === 'string') {
+                updated.activeRole = updated.activeRole.toUpperCase() as any;
+                updated.role = updated.activeRole;
+            }
+            if (Array.isArray(updated.roles)) {
+                updated.roles = updated.roles.map((entry: any) => String(entry).toUpperCase() as any);
             }
             return updated;
         });
@@ -300,15 +307,36 @@ const App: React.FC = () => {
             const response = await api.payment.checkout(
                 totalAmount,
                 `Checkout com ${cart.length} item(ns)`,
+                undefined,
+                {
+                    contextType: 'BAZAR',
+                    items: cart.map((item) => ({
+                        id: item.id,
+                        price: Number(item.price || 0),
+                        type: item.type || 'service',
+                    })),
+                }
             );
-            if (!response || (response.success === false && !response.id)) {
+            const txId = String(response?.transaction?.id || response?.id || '');
+            if (!response || response?.code !== 'CHECKOUT_CONFIRMED' || !txId) {
                 throw new Error('Falha ao processar pagamento.');
             }
             
             setCart([]);
             localStorage.removeItem('viva360.cart');
-            setToast({ title: "Portal de Abundância", message: "Sua troca foi processada com honra." });
-            navigate('/checkout/success');
+            const protocol = String(response?.confirmation?.confirmationId || '').slice(0, 8).toUpperCase();
+            setToast({
+                title: "Portal de Abundância",
+                message: protocol
+                    ? `Sua troca foi processada com honra. Protocolo ${protocol}.`
+                    : "Sua troca foi processada com honra."
+            });
+            navigate('/checkout/success', {
+                state: {
+                    confirmation: response?.confirmation || null,
+                    transactionId: txId,
+                },
+            });
         } catch (e) {
             console.error("Checkout failed", e);
             setToast({ title: "Erro na Alquimia", message: "Não foi possível completar a troca energética." });

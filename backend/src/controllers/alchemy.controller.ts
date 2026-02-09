@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
+import { interactionService } from '../services/interaction.service';
 
 export const createOffer = asyncHandler(async (req: Request, res: Response) => {
   const providerId = (req as any).user?.userId;
@@ -16,7 +17,25 @@ export const createOffer = asyncHandler(async (req: Request, res: Response) => {
     }
   });
 
-  return res.json(offer);
+  try {
+    await interactionService.emitEscamboOffer({
+      providerId,
+      requesterId,
+      offerId: offer.id,
+      description,
+    });
+  } catch (error) {
+    interactionService.logInteractionFailure('escambo.create', error, {
+      requestId: req.requestId,
+      providerId,
+      requesterId,
+    });
+  }
+
+  return res.json({
+    ...offer,
+    code: 'ESCAMBO_CREATED',
+  });
 });
 
 export const listOffers = asyncHandler(async (req: Request, res: Response) => {
