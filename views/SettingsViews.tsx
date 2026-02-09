@@ -211,6 +211,9 @@ import { supabase } from '../lib/supabase';
         const [txLoading, setTxLoading] = useState(false);
         const [newPassword, setNewPassword] = useState('');
         const [passwordLoading, setPasswordLoading] = useState(false);
+        const [availableRoles, setAvailableRoles] = useState<UserRole[]>(user.roles || [user.activeRole || user.role]);
+        const [activeRole, setActiveRole] = useState<UserRole>(user.activeRole || user.role);
+        const [roleBusy, setRoleBusy] = useState(false);
         const normalizedTransactions = transactions.map((tx) => {
             const normalizedType = String(tx.type || '').toLowerCase();
             const isIncome = normalizedType === 'income' || normalizedType === 'credit' || normalizedType === 'deposit' || normalizedType === 'entrada';
@@ -236,6 +239,71 @@ import { supabase } from '../lib/supabase';
                 }).finally(() => setTxLoading(false));
             }
         }, [view, user.id]);
+
+        useEffect(() => {
+            let mounted = true;
+            const loadRoles = async () => {
+                try {
+                    const data = await api.auth.listRoles();
+                    if (!mounted) return;
+                    setAvailableRoles(data.roles);
+                    setActiveRole(data.activeRole);
+                    if (data.activeRole !== user.role || (user.activeRole && data.activeRole !== user.activeRole)) {
+                        updateUser({ ...user, role: data.activeRole, activeRole: data.activeRole, roles: data.roles });
+                    }
+                } catch {
+                    // Keep local state when endpoint is unavailable.
+                    setAvailableRoles(user.roles || [user.activeRole || user.role]);
+                    setActiveRole(user.activeRole || user.role);
+                }
+            };
+            loadRoles();
+            return () => { mounted = false; };
+        }, [user.id]);
+
+        const roleLabel = (role: UserRole) => {
+            if (role === UserRole.CLIENT) return 'Buscador';
+            if (role === UserRole.PROFESSIONAL) return 'Guardião';
+            if (role === UserRole.SPACE) return 'Santuário';
+            return 'Admin';
+        };
+
+        const homeForRole = (role: UserRole) => {
+            if (role === UserRole.PROFESSIONAL) return ViewState.PRO_HOME;
+            if (role === UserRole.SPACE) return ViewState.SPACE_HOME;
+            if (role === UserRole.ADMIN) return ViewState.ADMIN_DASHBOARD;
+            return ViewState.CLIENT_HOME;
+        };
+
+        const handleSelectRole = async (role: UserRole) => {
+            if (roleBusy || role === activeRole) return;
+            setRoleBusy(true);
+            try {
+                const data = await api.auth.selectRole(role);
+                setAvailableRoles(data.roles);
+                setActiveRole(data.activeRole);
+                updateUser({ ...user, role: data.activeRole, activeRole: data.activeRole, roles: data.roles });
+                setToast({ title: "Perfil Ativo Atualizado", message: `Agora você está como ${roleLabel(data.activeRole)}.` });
+            } catch (err: any) {
+                setToast({ title: "Erro", message: err?.message || "Não foi possível trocar de perfil." });
+            } finally {
+                setRoleBusy(false);
+            }
+        };
+
+        const handleAddRole = async (role: UserRole) => {
+            if (roleBusy) return;
+            setRoleBusy(true);
+            try {
+                const data = await api.auth.addRole(role);
+                setAvailableRoles(data.roles);
+                setToast({ title: "Novo Perfil Adicionado", message: `Perfil ${roleLabel(role)} habilitado neste e-mail.` });
+            } catch (err: any) {
+                setToast({ title: "Erro", message: err?.message || "Não foi possível adicionar este perfil." });
+            } finally {
+                setRoleBusy(false);
+            }
+        };
     
         const handleSaveProfile = async () => {
           const updated = { ...user, ...editingUser };
@@ -520,6 +588,55 @@ import { supabase } from '../lib/supabase';
             </header>
 
             <div className="space-y-4 px-2 flex-1">
+                <div className="w-full bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="bg-nature-50 text-nature-500 p-4 rounded-2xl"><Users size={20} /></div>
+                            <div className="text-left space-y-1">
+                                <p className="font-bold text-nature-900 text-sm leading-tight">Perfis do mesmo e-mail</p>
+                                <p className="text-[9px] text-nature-300 font-bold uppercase tracking-widest">SELECIONAR PERFIL ATIVO</p>
+                            </div>
+                        </div>
+                        {roleBusy ? <Loader2 size={16} className="animate-spin text-nature-400" /> : null}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        {availableRoles.map((role) => {
+                            const isActive = role === activeRole;
+                            return (
+                                <button
+                                    key={`role-${role}`}
+                                    onClick={() => handleSelectRole(role)}
+                                    className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${isActive ? 'bg-nature-900 text-white' : 'bg-nature-100 text-nature-600 hover:bg-nature-200'}`}
+                                >
+                                    {roleLabel(role)}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                        {[UserRole.CLIENT, UserRole.PROFESSIONAL, UserRole.SPACE]
+                            .filter((role) => !availableRoles.includes(role))
+                            .map((role) => (
+                                <button
+                                    key={`add-${role}`}
+                                    onClick={() => handleAddRole(role)}
+                                    className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-primary-50 text-primary-700 hover:bg-primary-100 transition-all"
+                                >
+                                    Ativar {roleLabel(role)}
+                                </button>
+                            ))}
+                    </div>
+
+                    <button
+                        onClick={() => setView(homeForRole(activeRole))}
+                        className="w-full mt-1 py-3 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+                    >
+                        <ChevronRight size={14} /> Ir para home deste perfil
+                    </button>
+                </div>
+
                 {[
                     { id: ViewState.SETTINGS_PROFILE, label: roleConfig.profile.title, sub: 'BIO, INTENÇÃO E IDENTIDADE', icon: UserIcon, color: 'bg-nature-50 text-nature-400' },
                     { id: ViewState.SETTINGS_WALLET, label: roleConfig.wallet.title, sub: 'CARTEIRA, KARMA E MOVIMENTAÇÕES', icon: Wallet, color: 'bg-amber-50 text-amber-500' },

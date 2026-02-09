@@ -45,6 +45,8 @@ export const createRequestClient = (deps: RequestClientDeps) => {
           const message = errorData.error || response.statusText || 'API Request Failed';
           const error = new Error(message);
           (error as any).status = response.status;
+          (error as any).code = typeof errorData.code === 'string' ? errorData.code : null;
+          (error as any).details = errorData;
           if (attempt < retries && shouldRetryResponse(response.status)) {
             await wait(retryDelayMs * (attempt + 1));
             continue;
@@ -70,4 +72,3 @@ export const createRequestClient = (deps: RequestClientDeps) => {
     throw lastError || new Error('API Request Failed');
   };
 };
-

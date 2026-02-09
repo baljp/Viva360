@@ -36,6 +36,10 @@ const ensureOAuthProfileSchema = z.object({
   name: z.string().min(2).optional(),
 });
 
+const roleSchema = z.object({
+  role: z.enum(['CLIENT', 'PROFESSIONAL', 'SPACE']),
+});
+
 export const login = asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = loginSchema.parse(req.body);
     const normalizedEmail = email.trim().toLowerCase();
@@ -43,14 +47,20 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     if (isMockMode()) {
        const strictUser = STRICT_MOCK_TEST_USERS[normalizedEmail];
        if (!strictUser) {
-         return res.status(401).json({ error: 'Conta não autorizada no modo teste.' });
+         return res.status(401).json({ error: 'Conta não autorizada no modo teste.', code: 'EMAIL_NOT_AUTHORIZED' });
        }
 
        if (password !== MOCK_TEST_PASSWORD) {
-         return res.status(401).json({ error: 'Senha inválida para conta de teste.' });
+         return res.status(401).json({ error: 'Senha inválida para conta de teste.', code: 'INVALID_CREDENTIALS' });
        }
 
-       const userPayload = { id: strictUser.id, email: normalizedEmail, role: strictUser.role };
+       const userPayload = {
+         id: strictUser.id,
+         email: normalizedEmail,
+         role: strictUser.role,
+         activeRole: strictUser.role,
+         roles: [strictUser.role],
+       };
 
        const token = jwt.sign({ userId: userPayload.id, email: userPayload.email, role: userPayload.role }, JWT_SECRET, { expiresIn: '1h' });
        return res.json({
@@ -61,10 +71,16 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
     const access = await AuthService.getAuthorizationStatus(normalizedEmail);
     if (!access.canLogin) {
-      const message = access.canRegister
-        ? 'Conta aprovada para cadastro. Finalize seu cadastro antes de entrar.'
-        : 'Conta não autorizada para login.';
-      return res.status(401).json({ error: message, reason: access.reason });
+      const isIncomplete = access.reason === 'REGISTRATION_INCOMPLETE';
+      return res.status(401).json({
+        error: isIncomplete
+          ? 'Seu cadastro está incompleto, finalize para entrar.'
+          : 'Conta não autorizada para login.',
+        code: isIncomplete ? 'REGISTRATION_INCOMPLETE' : 'EMAIL_NOT_AUTHORIZED',
+        reason: access.reason,
+        accountState: access.accountState,
+        nextAction: access.nextAction,
+      });
     }
 
     const data = await AuthService.login(email, password);
@@ -77,26 +93,27 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
     if (isMockMode()) {
        return res.status(403).json({
-        error: 'Cadastro real desabilitado no modo teste. Use as contas pré-definidas.'
+        error: 'Cadastro real desabilitado no modo teste. Use as contas pré-definidas.',
+        code: 'MOCK_MODE_BLOCKED'
        });
     }
 
     if (STRICT_MOCK_TEST_USERS[normalizedEmail]) {
       return res.status(400).json({
-        error: 'Este e-mail é reservado para ambiente de testes.'
+        error: 'Este e-mail é reservado para ambiente de testes.',
+        code: 'TEST_EMAIL_RESERVED'
       });
     }
 
-    const data = await AuthService.register(normalizedEmail, password, name, role); // Pass role
-    
-    // Trigger Holistic Welcome Email (Async - Fire & Forget)
+    const data = await AuthService.register(normalizedEmail, password, name, role);
+
     import('../services/email.service').then(({ emailService }) => {
       emailService.send({
         to: normalizedEmail,
         subject: 'Bem-vindo ao Viva360 - Sua Jornada Começa Agora 🌿',
         template: 'WELCOME',
         context: { name }
-      }).catch(err => console.error("Email Error:", err));
+      }).catch(err => console.error('Email Error:', err));
     });
 
     return res.status(201).json(data);
@@ -108,11 +125,15 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
 
     if (isMockMode()) {
       const strictUser = STRICT_MOCK_TEST_USERS[normalizedEmail];
+      const role = strictUser?.role || null;
       return res.json({
         allowed: !!strictUser,
-        role: strictUser?.role || null,
+        role,
+        roles: role ? [role] : [],
         reason: strictUser ? 'PROFILE_ACTIVE' : 'EMAIL_NOT_AUTHORIZED',
         canRegister: false,
+        accountState: strictUser ? 'ACTIVE' : 'NOT_AUTHORIZED',
+        nextAction: strictUser ? 'LOGIN' : 'REQUEST_INVITE',
       });
     }
 
@@ -120,14 +141,17 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
     return res.json({
       allowed: access.canLogin,
       role: access.role,
+      roles: access.roles,
       reason: access.reason,
       canRegister: access.canRegister,
+      accountState: access.accountState,
+      nextAction: access.nextAction,
     });
 });
 
 export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) => {
     if (isMockMode()) {
-      return res.status(403).json({ error: 'OAuth indisponível no modo teste.' });
+      return res.status(403).json({ error: 'OAuth indisponível no modo teste.', code: 'MOCK_MODE_BLOCKED' });
     }
 
     const parsed = ensureOAuthProfileSchema.parse(req.body || {});
@@ -135,12 +159,12 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
     const email = String(req.user?.email || '').trim().toLowerCase();
 
     if (!userId || !email) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
     }
 
     const existing = await prisma.profile.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, active_role: true },
     });
     if (existing) {
       return res.json({ ok: true, created: false, profile: existing });
@@ -150,6 +174,7 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
     if (!access.canRegister) {
       return res.status(403).json({
         error: 'Conta Google não autorizada para cadastro.',
+        code: 'EMAIL_NOT_AUTHORIZED',
         reason: access.reason,
       });
     }
@@ -164,14 +189,61 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
         email,
         name: fallbackName,
         role: safeRole,
+        active_role: safeRole,
         avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userId}`,
         personal_balance: 1000,
         multiplier: 1,
       },
-      select: { id: true, email: true, name: true, role: true },
+      select: { id: true, email: true, name: true, role: true, active_role: true },
+    });
+
+    await prisma.profileRole.upsert({
+      where: {
+        profile_id_role: {
+          profile_id: userId,
+          role: safeRole,
+        },
+      },
+      create: {
+        profile_id: userId,
+        role: safeRole,
+      },
+      update: {},
     });
 
     await AuthService.markAllowlistAsUsed(email, userId);
 
     return res.status(201).json({ ok: true, created: true, profile });
+});
+
+export const listRoles = asyncHandler(async (req: any, res: Response) => {
+  const userId = String(req.user?.userId || req.user?.id || '').trim();
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+  }
+
+  const data = await AuthService.listRolesForUser(userId);
+  return res.json(data);
+});
+
+export const selectRole = asyncHandler(async (req: any, res: Response) => {
+  const userId = String(req.user?.userId || req.user?.id || '').trim();
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+  }
+
+  const { role } = roleSchema.parse(req.body || {});
+  const data = await AuthService.selectActiveRole(userId, role);
+  return res.json(data);
+});
+
+export const addRole = asyncHandler(async (req: any, res: Response) => {
+  const userId = String(req.user?.userId || req.user?.id || '').trim();
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+  }
+
+  const { role } = roleSchema.parse(req.body || {});
+  const data = await AuthService.addRole(userId, role);
+  return res.status(201).json(data);
 });

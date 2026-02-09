@@ -157,6 +157,8 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  activeRole?: UserRole;
+  roles?: UserRole[];
   avatar: string;
   karma: number; 
   streak: number; 
