@@ -4,8 +4,7 @@ import { supabaseAdmin } from '../services/supabase.service';
 import { z } from 'zod';
 
 const checkInSchema = z.object({
-  userId: z.string(),
-  reward: z.number().min(1).default(50)
+  reward: z.number().int().min(1).max(500).optional()
 });
 
 const userUpdateSchema = z.object({
@@ -17,11 +16,11 @@ const userUpdateSchema = z.object({
 });
 
 export const checkIn = asyncHandler(async (req: Request, res: Response) => {
-    const { userId, reward } = checkInSchema.parse(req.body);
-
-    // Validate user match
-    if (req.user?.id !== userId) {
-        return res.status(403).json({ error: 'Unauthorized check-in' });
+    const parsed = checkInSchema.parse(req.body || {});
+    const reward = parsed.reward ?? 50;
+    const userId = String(req.user?.userId || req.user?.id || '').trim();
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized check-in', code: 'UNAUTHORIZED_CHECKIN' });
     }
 
     // Update User Karma & Last Checkin
@@ -32,7 +31,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         .single();
 
     if (error || !user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: 'User not found', code: 'USER_NOT_FOUND' });
     }
 
     // Check if already checked in today
@@ -40,7 +39,12 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     const lastCheckIn = user.last_check_in ? user.last_check_in.split('T')[0] : null;
 
     if (lastCheckIn === today) {
-        return res.json({ user, reward: 0, message: 'Already checked in today' });
+        return res.status(409).json({
+            code: 'CHECKIN_ALREADY_DONE',
+            status: 'ALREADY_DONE',
+            reward: 0,
+            user,
+        });
     }
 
     // Apply Reward
@@ -61,7 +65,12 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         throw new Error('Failed to update user check-in');
     }
 
-    return res.json({ user: updatedUser, reward });
+    return res.json({
+        code: 'CHECKIN_DONE',
+        status: 'DONE',
+        user: updatedUser,
+        reward,
+    });
 });
 
 export const getById = asyncHandler(async (req: Request, res: Response) => {

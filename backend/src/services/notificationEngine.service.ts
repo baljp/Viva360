@@ -42,7 +42,19 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
   },
   'payment.received': {
     title: () => 'Pagamento Recebido',
-    message: (data) => `Você recebeu R$ ${data.amount.toFixed(2)}.`,
+    message: (data) => `Você recebeu R$ ${Number(data.amount || 0).toFixed(2)}.`,
+  },
+  'checkout.confirmed': {
+    title: () => 'Checkout Confirmado',
+    message: (data) => `Pagamento de ${data.context || 'Checkout'} confirmado. Protocolo ${data.confirmationId || '-'}.`,
+  },
+  'tribe.invite': {
+    title: () => 'Convite para Tribo',
+    message: () => 'Você recebeu um convite para participar de uma nova tribo.',
+  },
+  'appointment.space_blocked': {
+    title: () => 'Agenda Atualizada',
+    message: (data) => `${data.guardianName || 'Guardião'} recebeu marcação em ${data.date}. Agenda do santuário bloqueada.`,
   },
   'chat.message': {
     title: () => 'Nova Mensagem',
