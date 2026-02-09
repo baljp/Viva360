@@ -132,6 +132,17 @@ const OperationsTab = ({ go }: any) => (
 
 const ManagementTab = ({ go, revenue, teamSize }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {(() => {
+            const handleExportCycle = () => {
+                const blob = new Blob(['Mock Financial Data Export'], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `fechamento_viva360_${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+            };
+            return (
+                <>
         <QuickStat label="Abundância (Mês)" value={`R$ ${revenue}`} icon={TrendingUp} color="bg-emerald-500" />
         
         <div className="grid grid-cols-2 gap-4">
@@ -169,14 +180,7 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
              </div>
         </div>
 
-        <div onClick={() => {
-            const blob = new Blob(['Mock Financial Data Export'], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `fechamento_viva360_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-        }} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-200 transition-all group">
+        <div onClick={handleExportCycle} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-200 transition-all group">
              <div className="flex items-center gap-4">
                  <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"><FileText size={20}/></div>
                  <div>
@@ -184,8 +188,11 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
                      <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Suma da Abundância (CSV)</p>
                  </div>
              </div>
-             <button className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase tracking-widest">Exportar</button>
+             <button onClick={(event) => { event.stopPropagation(); handleExportCycle(); }} className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase tracking-widest">Exportar</button>
         </div>
+                </>
+            );
+        })()}
     </div>
 );
 

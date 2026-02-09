@@ -11,6 +11,7 @@ export default function ProChatListScreen() {
     const { go, back } = useGuardiaoFlow(); 
     const { messages, getMessagesWith } = useChat();
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeFilter, setActiveFilter] = useState<'all' | 'patients' | 'tribe'>('all');
 
     // Group messages by user to create "Rooms"
     // In a real app with many messages, this logic belongs in the backend (e.g. `distinct on`)
@@ -35,10 +36,18 @@ export default function ProChatListScreen() {
         // Real Apps: fetch `conversations` view from DB.
         // For this step: We simply display a static list of "Active Patients" and check if they have messages in Context.
         return [
-            { id: '1', name: 'Maria Silva', role: 'Paciente', lastMsg: getMessagesWith('1').pop()?.content || 'Sem mensagens recent', time: '10:00' },
-            { id: '2', name: 'João Souza', role: 'Paciente', lastMsg: getMessagesWith('2').pop()?.content || 'Olá doutor', time: 'Ontem' }
+            { id: '1', name: 'Maria Silva', role: 'Paciente', roomType: 'patients', lastMsg: getMessagesWith('1').pop()?.content || 'Sem mensagens recentes', time: '10:00' },
+            { id: '2', name: 'João Souza', role: 'Paciente', roomType: 'patients', lastMsg: getMessagesWith('2').pop()?.content || 'Olá doutor', time: 'Ontem' },
+            { id: '3', name: 'Tribo Guardiões', role: 'Tribo', roomType: 'tribe', lastMsg: getMessagesWith('3').pop()?.content || 'Canal coletivo ativo', time: '09:15' }
         ];
     }, [messages]);
+
+    const filteredRooms = rooms.filter((room) => {
+        const matchesFilter = activeFilter === 'all' || room.roomType === activeFilter;
+        const normalizedSearch = searchTerm.trim().toLowerCase();
+        const matchesSearch = !normalizedSearch || room.name.toLowerCase().includes(normalizedSearch) || String(room.lastMsg || '').toLowerCase().includes(normalizedSearch);
+        return matchesFilter && matchesSearch;
+    });
 
     // Better Approach: Fetch Real Profiles via API and map messages
     // Since we are in "Execution", let's make it actually work with the "MockDB" data if possible.
@@ -50,9 +59,9 @@ export default function ProChatListScreen() {
             <div className="space-y-6">
                 {/* Pro Header: Filters */}
                 <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                    <button className="px-4 py-2 bg-indigo-900 text-white rounded-full text-xs font-bold whitespace-nowrap">Tudo</button>
-                    <button className="px-4 py-2 bg-indigo-50 text-indigo-900 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1"><Stethoscope size={12}/> Pacientes</button>
-                    <button className="px-4 py-2 bg-indigo-50 text-indigo-900 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1"><Users size={12}/> Tribo</button>
+                    <button onClick={() => setActiveFilter('all')} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap ${activeFilter === 'all' ? 'bg-indigo-900 text-white' : 'bg-indigo-50 text-indigo-900'}`}>Tudo</button>
+                    <button onClick={() => setActiveFilter('patients')} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1 ${activeFilter === 'patients' ? 'bg-indigo-900 text-white' : 'bg-indigo-50 text-indigo-900'}`}><Stethoscope size={12}/> Pacientes</button>
+                    <button onClick={() => setActiveFilter('tribe')} className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1 ${activeFilter === 'tribe' ? 'bg-indigo-900 text-white' : 'bg-indigo-50 text-indigo-900'}`}><Users size={12}/> Tribo</button>
                 </div>
 
                 {/* Search */}
@@ -68,10 +77,10 @@ export default function ProChatListScreen() {
 
                 {/* Chat List */}
                 <div className="bg-white rounded-3xl shadow-sm border border-indigo-50 overflow-hidden min-h-[50vh]">
-                     {rooms.length === 0 ? (
+                     {filteredRooms.length === 0 ? (
                          <div className="p-8 text-center text-indigo-300 italic">Nenhuma conversa iniciada.</div>
                      ) : (
-                         rooms.map((room, i) => (
+                         filteredRooms.map((room, i) => (
                              <div 
                                 key={room.id}
                                 onClick={() => go('CHAT_ROOM')} // In real flow, pass ID

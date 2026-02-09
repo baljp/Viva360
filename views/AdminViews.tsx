@@ -14,6 +14,20 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
     const [isLoading, setIsLoading] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
 
+    const handleLegalReportExport = () => {
+        const csv = ['acao,alvo,data', `relatorio_legal,consent_logs,${new Date().toISOString()}`].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `viva360-relatorio-legal-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        setToast({ title: 'Relatório exportado', message: 'O arquivo legal foi gerado com sucesso.' });
+    };
+
     const refreshDashboard = async () => {
         setIsLoading(true);
         try {
@@ -139,7 +153,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                          ))}
                     </div>
                 </div>
-                <button className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"><FileText size={16}/> Exportar Relatório Legal</button>
+                <button onClick={handleLegalReportExport} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"><FileText size={16}/> Exportar Relatório Legal</button>
             </div>
         </PortalView>
     );

@@ -7,10 +7,12 @@ import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 
 export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions = [] }) => {
     const { go, notify } = useGuardiaoFlow();
+    const [txFilter, setTxFilter] = React.useState<'all' | 'income' | 'expense'>('all');
 
     const chartData = [1200, 1500, 1100, 1800, 1600, 2100, 1840];
     const maxVal = Math.max(...chartData);
     const points = chartData.map((val, i) => `${(i / (chartData.length - 1)) * 100},${100 - (val / maxVal) * 80}`).join(' ');
+    const filteredTransactions = transactions.filter((tx) => txFilter === 'all' || tx.type === txFilter);
 
     return (
     <PortalView title="Abundância" subtitle="FLUXO DE PROSPERIDADE" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=800">
@@ -55,9 +57,11 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
         <div className="space-y-4">
             <div className="flex justify-between items-center px-2">
                 <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Fluxo Recente</h4>
-                <button className="p-2 bg-white rounded-xl border border-nature-100 shadow-sm"><Filter size={14} className="text-nature-400"/></button>
+                <button onClick={() => setTxFilter((prev) => (prev === 'all' ? 'income' : prev === 'income' ? 'expense' : 'all'))} className="p-2 bg-white rounded-xl border border-nature-100 shadow-sm" title={`Filtro atual: ${txFilter}`}>
+                    <Filter size={14} className="text-nature-400"/>
+                </button>
             </div>
-            {transactions.length > 0 ? transactions.map(tx => (
+            {filteredTransactions.length > 0 ? filteredTransactions.map(tx => (
                 <div key={tx.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>

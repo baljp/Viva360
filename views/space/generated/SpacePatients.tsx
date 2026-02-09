@@ -6,6 +6,8 @@ import { Search, Filter, Heart, Sparkles, TrendingUp, Calendar, Shield, MapPin, 
 const SpacePatients: React.FC = () => {
   const { go } = useSantuarioFlow();
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'stable' | 'attention'>('all');
+  const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
   // Mock Data
   const patients = [
@@ -14,6 +16,28 @@ const SpacePatients: React.FC = () => {
     { id: '3', name: 'Beatriz Lima', health: 92, karma: 890, lastVisit: '12/01', condition: 'Pronto para alta', pro: 'Dr. Pedro' },
   ];
 
+  const filteredPatients = patients.filter((patient) => {
+    const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+    if (statusFilter === 'stable') return patient.health > 70;
+    if (statusFilter === 'attention') return patient.health <= 70;
+    return true;
+  });
+
+  const handleExportPdf = () => {
+    const csv = ['nome,saude,karma,ultimo_atendimento,condicao,guardiao', ...filteredPatients.map((patient) => `${patient.name},${patient.health},${patient.karma},${patient.lastVisit},"${patient.condition}","${patient.pro}"`)].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `pacientes-santuario-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    setToast({ title: 'Resumo gerado', message: 'O relatório dos pacientes foi exportado.' });
+  };
+
   return (
     <PortalView 
         title="Jardim do Santuário" 
@@ -21,6 +45,7 @@ const SpacePatients: React.FC = () => {
         onClose={() => go('EXEC_DASHBOARD')}
         heroImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=800"
     >
+        {toast ? <ZenToast toast={toast} onClose={() => setToast(null)} /> : null}
         <div className="space-y-6">
             {/* 1. HERO STATS */}
             <div className="bg-nature-900 rounded-[3.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
@@ -67,14 +92,14 @@ const SpacePatients: React.FC = () => {
                         className="flex-1 bg-transparent border-none outline-none text-nature-900 placeholder:text-nature-300 text-sm font-medium" 
                     />
                 </div>
-                <button className="p-4 bg-white rounded-3xl border border-nature-100 text-nature-400 hover:text-indigo-600 transition-all shadow-sm active:scale-95">
+                <button onClick={() => setStatusFilter((current) => current === 'all' ? 'stable' : current === 'stable' ? 'attention' : 'all')} className="p-4 bg-white rounded-3xl border border-nature-100 text-nature-400 hover:text-indigo-600 transition-all shadow-sm active:scale-95">
                     <Filter size={20} />
                 </button>
             </div>
 
             {/* 3. PATIENT LIST */}
             <div className="space-y-3">
-                {patients.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).map((patient) => (
+                {filteredPatients.map((patient) => (
                     <div key={patient.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-100 transition-all active:scale-[0.98]" onClick={() => go('PATIENT_PROFILE')}>
                         <div className="flex items-center gap-4">
                             <div className="relative">
@@ -114,7 +139,7 @@ const SpacePatients: React.FC = () => {
                     <h4 className="font-bold text-indigo-900 text-sm">Sintetizar Trajetórias</h4>
                     <p className="text-xs text-indigo-700/70">Gere métricas de evolução coletiva.</p>
                 </div>
-                <button className="px-5 py-3 bg-white text-indigo-600 rounded-2xl text-[10px] font-bold uppercase tracking-widest border border-indigo-100 shadow-sm hover:shadow-md active:scale-95 transition-all">
+                <button onClick={handleExportPdf} className="px-5 py-3 bg-white text-indigo-600 rounded-2xl text-[10px] font-bold uppercase tracking-widest border border-indigo-100 shadow-sm hover:shadow-md active:scale-95 transition-all">
                     Gerar PDF
                 </button>
             </div>

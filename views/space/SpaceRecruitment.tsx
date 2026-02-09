@@ -86,7 +86,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                               <Users size={14}/>
                               <span className="text-[10px] font-bold uppercase tracking-tighter">{v.applicantsCount} Guardiões Inscritos</span>
                            </div>
-                           <button className="flex items-center gap-1.5 px-4 py-2 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                           <button onClick={() => { setToast({ title: 'Candidaturas abertas', message: `Abrindo inscrições de ${v.title}.` }); flow.go('VAGA_CANDIDATES'); }} className="flex items-center gap-1.5 px-4 py-2 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                               Sincronizar <ChevronRight size={12}/>
                            </button>
                         </div>

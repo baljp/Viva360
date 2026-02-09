@@ -19,6 +19,7 @@ const getNextSession = () => {
 export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const [activeFilter, setActiveFilter] = useState<'all' | 'dom' | 'availability' | 'level'>('all');
 
     const teamArray = Array.isArray(team) ? team : [];
     const activeMestres = teamArray.filter((p: any) => p.role === 'Mestre' || p.karma > 800).length;
@@ -34,6 +35,16 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
         setToast({ title: 'Convocação Enviada', message: `Notificação enviada para ${group} disponíveis.` });
         setTimeout(() => setToast(null), 3000);
     };
+
+    const filteredTeam = teamArray.filter((professional: any) => {
+        const normalizedSearch = searchTerm.toLowerCase();
+        const matchesSearch = (professional.name || '').toLowerCase().includes(normalizedSearch);
+        if (!matchesSearch) return false;
+        if (activeFilter === 'availability') return !professional.isOccupied;
+        if (activeFilter === 'level') return Number(professional.karma || 0) > 800;
+        if (activeFilter === 'dom') return Array.isArray(professional.specialty) && professional.specialty.length > 0;
+        return true;
+    });
 
     return (
         <PortalView title="Círculo de Guardiões" subtitle="GESTÃO DE EQUIPE" onBack={() => flow.go('EXEC_DASHBOARD')}>
@@ -73,16 +84,20 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                         />
                     </div>
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                        {['Dom', 'Disponibilidade', 'Nível'].map(f => (
-                            <button key={f} className="px-4 py-2 bg-white border border-nature-100 rounded-xl text-[10px] font-bold uppercase tracking-widest text-nature-500 hover:bg-nature-50 hover:text-indigo-600 transition-colors whitespace-nowrap">
-                                {f}
+                        {[
+                            { label: 'Dom', value: 'dom' as const },
+                            { label: 'Disponibilidade', value: 'availability' as const },
+                            { label: 'Nível', value: 'level' as const }
+                        ].map((filterItem) => (
+                            <button key={filterItem.value} onClick={() => setActiveFilter((current) => current === filterItem.value ? 'all' : filterItem.value)} className={`px-4 py-2 bg-white border rounded-xl text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors ${activeFilter === filterItem.value ? 'border-indigo-300 text-indigo-700 bg-indigo-50' : 'border-nature-100 text-nature-500 hover:bg-nature-50 hover:text-indigo-600'}`}>
+                                {filterItem.label}
                             </button>
                         ))}
                     </div>
                 </div>
 
                 <div className="space-y-3">
-                    {teamArray.filter(p => (p.name || '').toLowerCase().includes(searchTerm.toLowerCase())).map((pro: any) => (
+                    {filteredTeam.map((pro: any) => (
                         <div 
                             key={pro.id} 
                             onClick={() => {

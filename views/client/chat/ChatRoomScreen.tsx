@@ -19,6 +19,7 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Log
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const attachmentInputRef = useRef<HTMLInputElement>(null);
     
     // In a real app we'd get the current user ID properly
     const [myId, setMyId] = useState<string>('');
@@ -58,6 +59,17 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Log
         await sendMessage(activeRoomId, input);
         setInput('');
         scrollToBottom();
+    };
+
+    const handleOpenAttachmentPicker = () => {
+        attachmentInputRef.current?.click();
+    };
+
+    const handleAttachmentSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setInput((prev) => `${prev}${prev ? '\n' : ''}[Arquivo anexado: ${file.name}]`);
+        event.target.value = '';
     };
 
     return (
@@ -106,7 +118,8 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Log
 
              {/* Input Area */}
              <div className="p-3 bg-white flex items-center gap-2 shadow-inner">
-                 <button className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"><Paperclip size={20}/></button>
+                 <button onClick={handleOpenAttachmentPicker} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"><Paperclip size={20}/></button>
+                 <input ref={attachmentInputRef} type="file" className="hidden" onChange={handleAttachmentSelected} />
                  <input 
                     value={input}
                     onChange={e => setInput(e.target.value)}

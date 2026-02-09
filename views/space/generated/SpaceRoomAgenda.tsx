@@ -4,7 +4,7 @@ import { PortalView } from '../../../components/Common';
 import { Calendar, Clock, User, ChevronRight } from 'lucide-react';
 
 export default function SpaceRoomAgenda() {
-    const { back } = useSantuarioFlow();
+    const { back, go } = useSantuarioFlow();
 
     const events = [
         { id: 1, time: '09:00 - 10:30', title: 'Yoga Matinal', host: 'Clara Luz', type: 'Prática Coletiva' },
@@ -46,7 +46,7 @@ export default function SpaceRoomAgenda() {
                     ))}
                 </div>
 
-                <button className="w-full py-4 text-center text-xs font-bold text-nature-400 uppercase tracking-widest hover:text-nature-600 transition-colors">
+                <button onClick={() => go('AGENDA_OVERVIEW')} className="w-full py-4 text-center text-xs font-bold text-nature-400 uppercase tracking-widest hover:text-nature-600 transition-colors">
                     Ver Calendário Completo
                 </button>
             </div>

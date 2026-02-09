@@ -15,6 +15,7 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const attachmentInputRef = useRef<HTMLInputElement>(null);
 
     // Mock "Self" ID for PRO (In real app, get from AuthContext)
     // Mock "Self" ID for PRO (In real app, get from AuthContext)
@@ -53,6 +54,22 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
         await sendMessage(activeRoomId, input);
         setInput('');
         scrollToBottom();
+    };
+
+    const handleAttach = () => {
+        attachmentInputRef.current?.click();
+    };
+
+    const handleAttachmentSelected = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+        setInput((prev) => `${prev}${prev ? '\n' : ''}[Arquivo clínico: ${file.name}]`);
+        event.target.value = '';
+    };
+
+    const handleInsertClinicalTemplate = () => {
+        const template = 'Resumo clínico: evolução observada, sinais principais e próximos passos.';
+        setInput((prev) => (prev ? `${prev}\n${template}` : template));
     };
 
     return (
@@ -110,8 +127,9 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
 
              {/* Pro Input Area */}
              <div className="p-4 bg-white border-t border-slate-100 flex items-center gap-3">
-                 <button className="p-2 text-indigo-300 hover:bg-indigo-50 rounded-full transition-colors"><Paperclip size={20}/></button>
-                 <button className="p-2 text-indigo-300 hover:bg-indigo-50 rounded-full transition-colors"><FileText size={20}/></button>
+                 <button onClick={handleAttach} className="p-2 text-indigo-300 hover:bg-indigo-50 rounded-full transition-colors"><Paperclip size={20}/></button>
+                 <button onClick={handleInsertClinicalTemplate} className="p-2 text-indigo-300 hover:bg-indigo-50 rounded-full transition-colors"><FileText size={20}/></button>
+                 <input ref={attachmentInputRef} type="file" className="hidden" onChange={handleAttachmentSelected} />
                  <div className="flex-1 relative">
                      <input 
                         value={input}

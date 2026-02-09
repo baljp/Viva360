@@ -31,7 +31,7 @@ export default function PatientProfile() {
                <button onClick={() => go('PATIENTS_LIST')} className="p-3 bg-white/10 backdrop-blur-md rounded-2xl hover:bg-white/20 transition-all">
                    <ChevronLeft size={20}/>
                </button>
-               <button className="p-3 bg-white/10 backdrop-blur-md rounded-2xl hover:bg-white/20 transition-all">
+               <button onClick={() => go('PATIENT_RECORDS')} className="p-3 bg-white/10 backdrop-blur-md rounded-2xl hover:bg-white/20 transition-all">
                    <MoreVertical size={20}/>
                </button>
            </header>

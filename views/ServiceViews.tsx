@@ -116,6 +116,17 @@ export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView:
   const { state, actions } = useOrdersList(user);
   const { activeTab, items, isLoading } = state;
   const { setActiveTab } = actions;
+  const [copiedVoucher, setCopiedVoucher] = useState<string | null>(null);
+
+  const handleCopyVoucher = async (code: string) => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopiedVoucher(code);
+      setTimeout(() => setCopiedVoucher(null), 2500);
+    } catch (error) {
+      console.error('Falha ao copiar voucher', error);
+    }
+  };
 
   return (
     <PortalView 
@@ -184,7 +195,9 @@ export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView:
                             </div>
                             <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20"><Ticket size={32}/></div>
                         </div>
-                        <button className="w-full py-4 bg-white text-amber-600 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl">Copiar Chave</button>
+                        <button onClick={() => handleCopyVoucher('VIVA2024')} className="w-full py-4 bg-white text-amber-600 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl">
+                          {copiedVoucher === 'VIVA2024' ? 'Chave Copiada' : 'Copiar Chave'}
+                        </button>
                     </div>
                 </div>
               )}

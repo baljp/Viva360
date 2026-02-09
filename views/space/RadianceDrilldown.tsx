@@ -63,8 +63,19 @@ export const RadianceDrilldown: React.FC<{ flow: any }> = ({ flow }) => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                    <button className="py-4 bg-white border border-nature-100 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-nature-400 hover:bg-nature-50 transition-colors">Ver Histórico</button>
-                    <button className="py-4 bg-nature-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">Relatório Completo</button>
+                    <button onClick={() => flow.go('AUDIT_LOG')} className="py-4 bg-white border border-nature-100 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-nature-400 hover:bg-nature-50 transition-colors">Ver Histórico</button>
+                    <button onClick={() => {
+                        const report = `metrica,score\nharmonia_equipe,95\nocupacao_altares,88\nsatisfacao_almas,98\nimpacto_comunitario,92\n`;
+                        const blob = new Blob([report], { type: 'text/csv;charset=utf-8;' });
+                        const url = URL.createObjectURL(blob);
+                        const anchor = document.createElement('a');
+                        anchor.href = url;
+                        anchor.download = `radiance-report-${new Date().toISOString().slice(0, 10)}.csv`;
+                        document.body.appendChild(anchor);
+                        anchor.click();
+                        document.body.removeChild(anchor);
+                        URL.revokeObjectURL(url);
+                    }} className="py-4 bg-nature-900 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all">Relatório Completo</button>
                 </div>
             </div>
         </PortalView>
