@@ -7,4 +7,5 @@ import { validate } from '../middleware/validate.middleware';
 import { checkoutSchema } from '../schemas/checkout.schema';
 
 router.post('/pay', requireRoles('CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN'), validate(checkoutSchema), CheckoutController.processPayment);
+router.post('/contextual', requireRoles('CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN'), validate(checkoutSchema), CheckoutController.processContextualCheckout);
 export default router;
