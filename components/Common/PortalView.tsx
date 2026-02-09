@@ -7,11 +7,14 @@ export const PortalView: React.FC<{
     subtitle: string, 
     onBack?: () => void, 
     onClose?: () => void,
+    showCloseWithBack?: boolean,
     children: React.ReactNode, 
     footer?: React.ReactNode,
     headerRight?: React.ReactNode,
     heroImage?: string
-}> = ({ title, subtitle, onBack, onClose, children, footer, headerRight, heroImage }) => (
+}> = ({ title, subtitle, onBack, onClose, showCloseWithBack = true, children, footer, headerRight, heroImage }) => {
+    const resolvedClose = onClose || (showCloseWithBack && onBack ? onBack : undefined);
+    return (
     <div className="fixed inset-0 z-[150] flex flex-col bg-nature-50 animate-in slide-in-from-right duration-300 h-full w-full lg:items-center lg:justify-center lg:bg-nature-900/40 lg:backdrop-blur-sm">
         <div className="flex flex-col h-full w-full lg:max-w-xl lg:h-[90vh] lg:rounded-[3rem] lg:shadow-elegant lg:overflow-hidden lg:bg-nature-50 relative">
             <header className={`flex-none flex items-center justify-between px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 z-20 transition-colors ${heroImage ? 'bg-transparent text-white absolute top-0 w-full' : 'bg-white border-b border-nature-100 shadow-sm relative'}`}>
@@ -29,8 +32,8 @@ export const PortalView: React.FC<{
                 
                 <div className="flex items-center gap-2">
                     {headerRight}
-                    {onClose && (
-                        <button onClick={onClose} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
+                    {resolvedClose && (
+                        <button onClick={resolvedClose} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
                             <X size={ICON_SIZE.MD} />
                         </button>
                     )}
@@ -62,4 +65,5 @@ export const PortalView: React.FC<{
             </div>}
         </div>
     </div>
-);
+    );
+};
