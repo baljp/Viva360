@@ -2,7 +2,7 @@ import React from 'react';
 import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
 import { ChevronRight, TrendingUp, TrendingDown, Minus, Plus } from 'lucide-react';
-import { useEvolution } from '../../../frontend/src/hooks/useEvolution';
+import { useEvolution } from '../../../src/hooks/useEvolution';
 
 export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
     const { actions, data } = useEvolution(user);
@@ -133,4 +133,3 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
         </PortalView>
     );
 };
-
