@@ -5,6 +5,7 @@ import { AuthService } from '../services/auth.service';
 import { isMockMode } from '../services/supabase.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { JWT_SECRET } from '../lib/secrets';
+import prisma from '../lib/prisma';
 
 const MOCK_TEST_PASSWORD = '123456';
 const STRICT_MOCK_TEST_USERS: Record<string, { id: string; role: 'CLIENT' | 'PROFESSIONAL' | 'SPACE' | 'ADMIN'; name: string }> = {
@@ -28,6 +29,11 @@ const registerSchema = z.object({
   password: z.string().min(6),
   name: z.string().min(2),
   role: z.enum(['CLIENT', 'PROFESSIONAL', 'SPACE']).optional(),
+});
+
+const ensureOAuthProfileSchema = z.object({
+  role: z.enum(['CLIENT', 'PROFESSIONAL', 'SPACE']).optional(),
+  name: z.string().min(2).optional(),
 });
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
@@ -107,4 +113,45 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
       allowed: !!profile,
       role: profile?.role ? String(profile.role).toUpperCase() : null,
     });
+});
+
+export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) => {
+    if (isMockMode()) {
+      return res.status(403).json({ error: 'OAuth indisponível no modo teste.' });
+    }
+
+    const parsed = ensureOAuthProfileSchema.parse(req.body || {});
+    const userId = String(req.user?.userId || req.user?.id || '').trim();
+    const email = String(req.user?.email || '').trim().toLowerCase();
+
+    if (!userId || !email) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const existing = await prisma.profile.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, name: true, role: true },
+    });
+    if (existing) {
+      return res.json({ ok: true, created: false, profile: existing });
+    }
+
+    const role = String(parsed.role || 'CLIENT').trim().toUpperCase();
+    const safeRole = role === 'PROFESSIONAL' || role === 'SPACE' ? role : 'CLIENT';
+    const fallbackName = parsed.name || email.split('@')[0] || 'Viajante';
+
+    const profile = await prisma.profile.create({
+      data: {
+        id: userId,
+        email,
+        name: fallbackName,
+        role: safeRole,
+        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userId}`,
+        personal_balance: 1000,
+        multiplier: 1,
+      },
+      select: { id: true, email: true, name: true, role: true },
+    });
+
+    return res.status(201).json({ ok: true, created: true, profile });
 });

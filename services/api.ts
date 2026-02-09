@@ -9,6 +9,8 @@ const MOCK_AUTH_TOKEN = 'admin-excellence-2026';
 const SESSION_MODE_KEY = 'viva360.session.mode';
 const TEST_MODE_ACTIVATION_KEY = 'viva360.test_mode.active';
 const OAUTH_EXPECTED_EMAIL_KEY = 'viva360.oauth.expected_email';
+const OAUTH_INTENT_KEY = 'viva360.oauth.intent';
+const OAUTH_ROLE_KEY = 'viva360.oauth.role';
 const ORACLE_HISTORY_KEY = 'viva360.oracle.history';
 const ORACLE_MAX_CACHE = 40;
 const TEST_ACCOUNT_PASSWORD = '123456';
@@ -113,6 +115,8 @@ const clearMockArtifacts = (opts?: { preserveAuthToken?: boolean }) => {
         MOCK_USER_KEY,
         ORACLE_HISTORY_KEY,
         OAUTH_EXPECTED_EMAIL_KEY,
+        OAUTH_INTENT_KEY,
+        OAUTH_ROLE_KEY,
     ];
     keysToDrop.forEach((key) => localStorage.removeItem(key));
     clearTestMode();
@@ -212,6 +216,25 @@ const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> =
 const checkLoginEligibility = async (email: string): Promise<boolean> => {
     const eligibility = await fetchLoginEligibility(email);
     return eligibility.allowed;
+};
+
+const ensureOAuthProfile = async (accessToken: string, role: UserRole, name?: string) => {
+    const response = await fetch(`${API_URL}/auth/oauth/ensure-profile`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+            role: normalizeRole(role),
+            ...(name ? { name } : {}),
+        }),
+    });
+
+    if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error || response.statusText || 'Falha ao criar perfil OAuth.');
+    }
 };
 
 const decodeJwtPayload = (token: string): any | null => {
@@ -365,54 +388,68 @@ export const api = {
                 throw new Error('Conta não autorizada. Faça cadastro antes de entrar.');
             }
 
+            // Primary path: backend /auth/login (works even when Supabase requires email confirmation).
             try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: normalizedEmail, password })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || response.statusText || 'Falha no login');
+                }
+
+                const payload = await response.json();
+                const token = payload?.session?.access_token;
+                promoteToRealSession(token);
+                localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+                localStorage.removeItem(OAUTH_INTENT_KEY);
+                localStorage.removeItem(OAUTH_ROLE_KEY);
+
+                // Best-effort: also establish a Supabase session when possible.
+                try {
+                    const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
+                    if (error) throw error;
+                    if (data.session?.access_token) {
+                        promoteToRealSession(data.session.access_token);
+                        localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+                    }
+                } catch {
+                    // Ignore - internal JWT keeps the user authenticated.
+                }
+
+                const user = await api.auth.getCurrentSession();
+                if (user) return user;
+
+                return baseUser({
+                    id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
+                    email: payload?.user?.email || normalizedEmail,
+                    name: payload?.user?.name || normalizedEmail.split('@')[0] || 'Viajante',
+                    role: normalizeRole(payload?.user?.role || inferRoleFromEmail(normalizedEmail)),
+                    avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${payload?.user?.id || normalizedEmail}`,
+                });
+            } catch (err: any) {
+                // If backend is unreachable, fallback to Supabase auth.
+                if (!isLikelyNetworkError(err?.message)) {
+                    throw err;
+                }
+
                 const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
                 if (error) throw error;
-
-                if (!data.session) {
+                if (!data.session?.access_token) {
                     throw new Error('Login failed: No session data returned');
                 }
 
                 promoteToRealSession(data.session.access_token);
                 localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+                localStorage.removeItem(OAUTH_INTENT_KEY);
+                localStorage.removeItem(OAUTH_ROLE_KEY);
 
                 const user = await api.auth.getCurrentSession();
                 if (!user) throw new Error('Sessão criada, mas sem usuário válido.');
                 return user;
-            } catch (err: any) {
-                if (!isLikelyNetworkError(err?.message)) {
-                    throw err;
-                }
-                // Fallback: backend /auth/login token flow
-                try {
-                    const response = await fetch(`${API_URL}/auth/login`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email: normalizedEmail, password })
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        throw new Error(errorData.error || response.statusText || 'Falha no login');
-                    }
-
-                    const payload = await response.json();
-                    const token = payload?.session?.access_token;
-                    promoteToRealSession(token);
-                    localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
-
-                    const user = baseUser({
-                        id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
-                        email: payload?.user?.email || normalizedEmail,
-                        name: payload?.user?.name || normalizedEmail.split('@')[0] || 'Viajante',
-                        role: normalizeRole(payload?.user?.role || inferRoleFromEmail(normalizedEmail)),
-                        avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${payload?.user?.id || normalizedEmail}`,
-                    });
-
-                    return user;
-                } catch (fallbackError) {
-                    throw fallbackError instanceof Error ? fallbackError : err;
-                }
             }
         },
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT, expectedEmail?: string): Promise<User> => {
@@ -442,6 +479,8 @@ export const api = {
 
             const redirectTo = getOAuthRedirectUrl();
             localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
+            localStorage.setItem(OAUTH_INTENT_KEY, 'login');
+            localStorage.removeItem(OAUTH_ROLE_KEY);
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -457,6 +496,46 @@ export const api = {
 
             if (error) {
                 localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+                localStorage.removeItem(OAUTH_INTENT_KEY);
+                localStorage.removeItem(OAUTH_ROLE_KEY);
+                throw error;
+            }
+            if (data?.url) {
+                window.location.assign(data.url);
+                throw new Error('REDIRECTING_TO_GOOGLE');
+            }
+
+            throw new Error('Falha ao iniciar autenticação Google.');
+        },
+        registerWithGoogle: async (role: UserRole = UserRole.CLIENT): Promise<User> => {
+            if (isSupabaseMock) {
+                throw new Error('Google em modo teste aceita apenas contas pré-definidas.');
+            }
+
+            const oauthValidation = validateOAuthRuntimeConfig();
+            if (!oauthValidation.ok) {
+                throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
+            }
+
+            const redirectTo = getOAuthRedirectUrl();
+            localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+            localStorage.setItem(OAUTH_INTENT_KEY, 'register');
+            localStorage.setItem(OAUTH_ROLE_KEY, normalizeRole(role));
+
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'select_account',
+                    },
+                }
+            });
+
+            if (error) {
+                localStorage.removeItem(OAUTH_INTENT_KEY);
+                localStorage.removeItem(OAUTH_ROLE_KEY);
                 throw error;
             }
             if (data?.url) {
@@ -580,7 +659,19 @@ export const api = {
                     }
                     localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
 
-                    const eligibility = await fetchLoginEligibility(sessionEmail);
+                    const oauthIntent = String(localStorage.getItem(OAUTH_INTENT_KEY) || '').toLowerCase();
+                    const oauthRole = normalizeRole(localStorage.getItem(OAUTH_ROLE_KEY) || '');
+
+                    let eligibility = await fetchLoginEligibility(sessionEmail);
+                    if (!eligibility.allowed && oauthIntent === 'register') {
+                        // First Google access for a brand new user: create the required `profiles` row.
+                        await ensureOAuthProfile(
+                            session.access_token,
+                            oauthRole,
+                            String((session.user.user_metadata as any)?.full_name || '').trim() || undefined,
+                        );
+                        eligibility = await fetchLoginEligibility(sessionEmail);
+                    }
                     if (!eligibility.allowed) {
                         await supabase.auth.signOut();
                         clearMockArtifacts();
@@ -593,6 +684,8 @@ export const api = {
                     const resolvedRole = eligibility.role || metadataRole || inferRoleFromEmail(sessionEmail);
 
                     promoteToRealSession(session.access_token);
+                    localStorage.removeItem(OAUTH_INTENT_KEY);
+                    localStorage.removeItem(OAUTH_ROLE_KEY);
                     return baseUser({
                         id: session.user.id,
                         email: sessionEmail,
@@ -645,6 +738,8 @@ export const api = {
             localStorage.removeItem(MOCK_USER_KEY);
             localStorage.removeItem(SESSION_MODE_KEY);
             localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+            localStorage.removeItem(OAUTH_INTENT_KEY);
+            localStorage.removeItem(OAUTH_ROLE_KEY);
             clearTestMode();
         }
     },
