@@ -2,6 +2,7 @@
 import React from 'react';
 import { lazyWithRetry } from '../utils/lazyWithRetry';
 import { MapaDaCuraView as MapaDaCuraViewEager } from '../../views/client/MapaDaCuraView';
+import { ClientMarketplace as ClientMarketplaceEager } from '../../views/client/ClientMarketplace';
 
 // --- HELPER FOR NAMED EXPORTS ---
 // Usage: const Component = lazyNamed(() => import('path'), 'ComponentName');
@@ -38,7 +39,7 @@ const CheckoutScreen = lazyWithRetry(() => import('../../views/client/financial/
 const PaymentHistoryScreen = lazyWithRetry(() => import('../../views/client/financial/PaymentHistoryScreen'), 'PaymentHistoryScreen');
 const OrdersListView = lazyNamed(() => import('../../views/ServiceViews'), 'OrdersListView');
 const CheckoutSuccessScreen = lazyWithRetry(() => import('../../views/client/generated/BookingConfirm'), 'CheckoutSuccessScreen'); // Reused
-const ClientMarketplace = lazyNamed(() => import('../../views/client/ClientMarketplace'), 'ClientMarketplace');
+const ClientMarketplace = ClientMarketplaceEager;
 const EvolutionView = lazyNamed(() => import('../../views/client/garden/EvolutionView'), 'EvolutionView');
 const EvolutionAnalytics = lazyNamed(() => import('../../views/client/garden/EvolutionAnalytics'), 'EvolutionAnalytics');
 const KarmaWallet = lazyWithRetry(() => import('../../views/client/garden/KarmaWallet'), 'KarmaWallet'); // Default export

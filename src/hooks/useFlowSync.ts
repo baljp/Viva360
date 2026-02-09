@@ -12,11 +12,11 @@ export const useFlowSync = (
     const location = useLocation();
     const navigate = useNavigate();
     const pendingNavigationRef = useRef<{ fromPath: string; toPath: string; at: number } | null>(null);
-    const previousPathRef = useRef(location.pathname);
     const hydrationAlignedRef = useRef(false);
+    const previousPathRef = useRef<string | null>(null);
+    const previousStateRef = useRef<string | null>(null);
 
     const getFallbackPath = (state: string) => `${baseRoute}/${String(state).toLowerCase().replace(/_/g, '-')}`;
-    const pathChanged = previousPathRef.current !== location.pathname;
 
     // Sync Flow -> Router (only using canonical map to avoid invalid state URLs)
     useEffect(() => {
@@ -27,6 +27,19 @@ export const useFlowSync = (
         const fallbackPath = getFallbackPath(currentState);
         const targetPath = hasCanonicalMap ? stateToRouteMap?.[currentState] : fallbackPath;
         if (!targetPath) return;
+        const previousPath = previousPathRef.current;
+        const previousState = previousStateRef.current;
+        const pathChanged = previousPath !== null && previousPath !== location.pathname;
+        const stateChanged = previousState !== null && previousState !== currentState;
+
+        // When only URL changes (e.g. sidebar/deep link), let Router -> Flow align first.
+        if (pathChanged && !stateChanged) {
+            previousPathRef.current = location.pathname;
+            previousStateRef.current = currentState;
+            hydrationAlignedRef.current = true;
+            return;
+        }
+
         const routeTargetState = targetMap[viewState];
         const initialMismatch =
             !hydrationAlignedRef.current &&
@@ -35,19 +48,20 @@ export const useFlowSync = (
 
         // During hydration, prefer current route and let Router -> Flow align first.
         if (initialMismatch) {
+            previousPathRef.current = location.pathname;
+            previousStateRef.current = currentState;
             hydrationAlignedRef.current = true;
             return;
         }
 
-        if (pathChanged && routeTargetState && routeTargetState !== currentState) {
-            return;
-        }
         if (location.pathname !== targetPath) {
             pendingNavigationRef.current = { fromPath: location.pathname, toPath: targetPath, at: Date.now() };
             navigate(targetPath, { replace: true });
         }
+        previousPathRef.current = location.pathname;
+        previousStateRef.current = currentState;
         hydrationAlignedRef.current = true;
-    }, [flow.state.currentState, baseRoute, navigate, stateToRouteMap, location.pathname, targetMap, viewState, pathChanged]);
+    }, [flow.state.currentState, baseRoute, navigate, stateToRouteMap, location.pathname, targetMap, viewState]);
 
     // Sync Router View -> Flow State (Deep Linking)
     useEffect(() => {
@@ -94,7 +108,4 @@ export const useFlowSync = (
         }
     }, [viewState, flow, targetMap, clusters, location.pathname, stateToRouteMap]);
 
-    useEffect(() => {
-        previousPathRef.current = location.pathname;
-    }, [location.pathname]);
 };

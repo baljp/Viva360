@@ -81,15 +81,6 @@ export const ClientViews: React.FC<{
 
    useFlowSync({ state: flowState, jump, go }, view, '/client', defaultStates, clusters, clientStateRoutes as Record<string, string>);
 
-   useEffect(() => {
-       if (view === ViewState.CLIENT_EXPLORE) {
-           const exploreStates: BuscadorState[] = ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM'];
-           if (!exploreStates.includes(flowState.currentState)) {
-               jump('BOOKING_SEARCH');
-           }
-       }
-   }, [view, flowState.currentState, jump]);
-
   const globalData = {
       pros: flowState.data.pros,
       products: flowState.data.products,
