@@ -59,9 +59,12 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
        });
     }
 
-    const canLogin = await AuthService.canLoginWithEmail(normalizedEmail);
-    if (!canLogin) {
-      return res.status(401).json({ error: 'Conta não autorizada. Faça cadastro antes de entrar.' });
+    const access = await AuthService.getAuthorizationStatus(normalizedEmail);
+    if (!access.canLogin) {
+      const message = access.canRegister
+        ? 'Conta aprovada para cadastro. Finalize seu cadastro antes de entrar.'
+        : 'Conta não autorizada para login.';
+      return res.status(401).json({ error: message, reason: access.reason });
     }
 
     const data = await AuthService.login(email, password);
@@ -105,13 +108,20 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
 
     if (isMockMode()) {
       const strictUser = STRICT_MOCK_TEST_USERS[normalizedEmail];
-      return res.json({ allowed: !!strictUser, role: strictUser?.role || null });
+      return res.json({
+        allowed: !!strictUser,
+        role: strictUser?.role || null,
+        reason: strictUser ? 'PROFILE_ACTIVE' : 'EMAIL_NOT_AUTHORIZED',
+        canRegister: false,
+      });
     }
 
-    const profile = await AuthService.getAuthorizedProfileByEmail(normalizedEmail);
+    const access = await AuthService.getAuthorizationStatus(normalizedEmail);
     return res.json({
-      allowed: !!profile,
-      role: profile?.role ? String(profile.role).toUpperCase() : null,
+      allowed: access.canLogin,
+      role: access.role,
+      reason: access.reason,
+      canRegister: access.canRegister,
     });
 });
 
@@ -136,7 +146,15 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
       return res.json({ ok: true, created: false, profile: existing });
     }
 
-    const role = String(parsed.role || 'CLIENT').trim().toUpperCase();
+    const access = await AuthService.getAuthorizationStatus(email);
+    if (!access.canRegister) {
+      return res.status(403).json({
+        error: 'Conta Google não autorizada para cadastro.',
+        reason: access.reason,
+      });
+    }
+
+    const role = String(access.role || parsed.role || 'CLIENT').trim().toUpperCase();
     const safeRole = role === 'PROFESSIONAL' || role === 'SPACE' ? role : 'CLIENT';
     const fallbackName = parsed.name || email.split('@')[0] || 'Viajante';
 
@@ -152,6 +170,8 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
       },
       select: { id: true, email: true, name: true, role: true },
     });
+
+    await AuthService.markAllowlistAsUsed(email, userId);
 
     return res.status(201).json({ ok: true, created: true, profile });
 });

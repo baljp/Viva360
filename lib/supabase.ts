@@ -11,8 +11,16 @@ const isDevRuntime = !!import.meta.env.DEV;
 const explicitTestMode = String(import.meta.env.VITE_ENABLE_TEST_MODE || '').toLowerCase() === 'true';
 const testModeEnabled = explicitTestMode || isTest;
 const explicitMode = String(appMode || '').toUpperCase();
+const isBrowser = typeof window !== 'undefined';
+
+const isLocalHostRuntime = () => {
+    if (!isBrowser) return true;
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1';
+};
 
 const resolveAppMode = (): 'PROD' | 'MOCK' | 'DEMO' => {
+    if (!isLocalHostRuntime()) return 'PROD';
     if (explicitMode === 'DEMO') return 'DEMO';
     if (explicitMode === 'MOCK') return (testModeEnabled || isDevRuntime) ? 'MOCK' : 'PROD';
     if (explicitMode === 'PROD') return 'PROD';
@@ -26,7 +34,7 @@ export const APP_MODE = resolveAppMode();
 export const TEST_MODE_ENABLED = testModeEnabled;
 
 // Export flag para a API saber se deve usar dados reais ou simulados
-export const isMockMode = APP_MODE === 'MOCK' && (TEST_MODE_ENABLED || isDevRuntime);
+export const isMockMode = APP_MODE === 'MOCK' && isLocalHostRuntime() && (TEST_MODE_ENABLED || isDevRuntime);
 export const isDemoMode = APP_MODE === 'DEMO';
 
 // Diagnóstico para o Frontend verificar o que foi injetado pelo Vite

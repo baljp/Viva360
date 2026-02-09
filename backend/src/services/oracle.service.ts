@@ -1,5 +1,6 @@
 import prisma, { prismaRead } from '../lib/prisma';
 import { OracleMessage } from '@prisma/client';
+import { AppError } from '../lib/AppError';
 
 interface OracleContext {
     mood: string;
@@ -8,7 +9,6 @@ interface OracleContext {
 }
 
 export class OracleService {
-    private readonly fallbackUserId = '00000000-0000-0000-0000-000000000001';
     private readonly uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     
     // Core Algorithm: Select the best card based on context
@@ -123,8 +123,11 @@ export class OracleService {
     }
 
     private normalizeUserId(userId?: string) {
-        if (!userId) return this.fallbackUserId;
-        return this.uuidRegex.test(userId) ? userId : this.fallbackUserId;
+        const normalized = String(userId || '').trim();
+        if (!this.uuidRegex.test(normalized)) {
+            throw new AppError('Unauthorized', 401);
+        }
+        return normalized;
     }
 
     private normalizeMood(mood: string): string {

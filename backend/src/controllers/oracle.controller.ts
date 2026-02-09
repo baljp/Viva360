@@ -3,8 +3,6 @@ import { asyncHandler } from '../middleware/async.middleware';
 
 import { oracleService } from '../services/oracle.service';
 
-const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000001';
-
 // Mock DB/Service calls for context until authentic User/Profile services are fully typed/linked
 const getUserContext = async (userId: string, moodBody: string) => {
     // In real app, fetch from Profile/GardenService
@@ -16,7 +14,10 @@ const getUserContext = async (userId: string, moodBody: string) => {
 };
 
 export const drawCard = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId || DEFAULT_USER_ID; // Fallback for dev
+    const userId = String((req as any).user?.userId || (req as any).user?.id || '').trim();
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
     const { mood } = req.body;
 
     // Simulate "shuffling" delay for UX
@@ -45,7 +46,10 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getHistory = asyncHandler(async (req: Request, res: Response) => {
-     const userId = (req as any).user?.userId || DEFAULT_USER_ID;
+     const userId = String((req as any).user?.userId || (req as any).user?.id || '').trim();
+     if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+     }
      const history = await oracleService.getHistory(userId);
      return res.json(
         history.map((entry) => ({
@@ -64,7 +68,10 @@ export const getHistory = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getToday = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId || DEFAULT_USER_ID;
+    const userId = String((req as any).user?.userId || (req as any).user?.id || '').trim();
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
     const card = await oracleService.getToday(userId);
     
     if (!card) {

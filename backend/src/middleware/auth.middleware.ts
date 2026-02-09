@@ -13,12 +13,21 @@ declare global {
   }
 }
 
-const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000001';
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-const normalizeUserId = (candidate?: string) => {
-  if (!candidate) return DEFAULT_USER_ID;
-  return UUID_REGEX.test(candidate) ? candidate : DEFAULT_USER_ID;
+const TEST_ADMIN_USER_ID = '11111111-1111-4111-8111-111111111111';
+const isProd = process.env.NODE_ENV === 'production';
+const isMockTokenEnabled = !isProd
+  && String(process.env.APP_MODE || '').toUpperCase() === 'MOCK'
+  && (String(process.env.ENABLE_TEST_MODE || '').toLowerCase() === 'true' || process.env.NODE_ENV === 'test');
+
+const resolveUserId = (candidate?: string) => {
+  const value = String(candidate || '').trim();
+  return UUID_REGEX.test(value) ? value : null;
+};
+
+const unauthorized = (res: Response, message: string) => {
+  return res.status(401).json({ error: message });
 };
 
 export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -34,9 +43,9 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     return res.status(401).json({ error: 'Invalid Authorization header format' });
   }
 
-  // Support for E2E Mock Token in MOCK mode
-  if (process.env.APP_MODE === 'MOCK' && token === 'admin-excellence-2026') {
-    req.user = { id: DEFAULT_USER_ID, userId: DEFAULT_USER_ID, role: 'ADMIN', email: 'admin@viva360.ai' };
+  // Support for strict E2E mock token only outside production.
+  if (isMockTokenEnabled && token === 'admin-excellence-2026') {
+    req.user = { id: TEST_ADMIN_USER_ID, userId: TEST_ADMIN_USER_ID, role: 'ADMIN', email: 'admin@viva360.com' };
     return next();
   }
 
@@ -45,7 +54,11 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     const { data, error } = await supabaseAdmin.auth.getUser(token);
 
     if (!error && data.user) {
-      const userId = normalizeUserId(data.user.id);
+      const userId = resolveUserId(data.user.id);
+      if (!userId) {
+        return unauthorized(res, 'Invalid token payload');
+      }
+
       let role = String(data.user.user_metadata?.role || '').trim().toUpperCase();
       if (!role) {
         try {
@@ -69,7 +82,11 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
 
     // Fallback path: internal JWT emitted by /auth/login
     const payload = jwt.verify(token, JWT_SECRET) as any;
-    const userId = normalizeUserId(payload?.userId || payload?.id || payload?.sub);
+    const userId = resolveUserId(payload?.userId || payload?.id || payload?.sub);
+    if (!userId) {
+      return unauthorized(res, 'Invalid token payload');
+    }
+
     req.user = {
       id: userId,
       userId,
@@ -78,6 +95,6 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     };
     return next();
   } catch (err) {
-    return res.status(401).json({ error: 'Invalid or expired token' });
+    return unauthorized(res, 'Invalid or expired token');
   }
 };

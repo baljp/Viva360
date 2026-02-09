@@ -4,12 +4,38 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
 import { AppError } from '../lib/AppError';
 
+type AccessReason =
+  | 'PROFILE_ACTIVE'
+  | 'INVITE_APPROVED_PENDING_REGISTRATION'
+  | 'INVITE_ALREADY_USED'
+  | 'INVITE_PENDING_APPROVAL'
+  | 'EMAIL_BLOCKED'
+  | 'EMAIL_NOT_AUTHORIZED';
+
+export type AuthorizationStatus = {
+  canLogin: boolean;
+  canRegister: boolean;
+  role: string | null;
+  reason: AccessReason;
+};
+
+const ALLOWLIST_REGISTER_STATUSES = new Set(['APPROVED', 'ACTIVE']);
+const ALLOWLIST_BLOCKED_STATUSES = new Set(['BLOCKED', 'REVOKED']);
+const ALLOWLIST_PENDING_STATUSES = new Set(['PENDING']);
+
+const normalizeAllowlistStatus = (status?: string | null) => String(status || '').trim().toUpperCase();
+
 export class AuthService {
   
   // Register new user (creates Auth User + Profile via Trigger or manual)
   static async register(email: string, password: string, name: string, role: string = 'CLIENT') {
     const normalizedEmail = email.trim().toLowerCase();
-    const normalizedRole = String(role || 'CLIENT').trim().toUpperCase();
+    const authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
+    if (!authorization.canRegister) {
+      throw new AppError('Cadastro indisponível para este e-mail. Solicite convite.', 403);
+    }
+
+    const normalizedRole = String(authorization.role || role || 'CLIENT').trim().toUpperCase();
     const allowedRoles = new Set(['CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN']);
     const finalRole = allowedRoles.has(normalizedRole) ? normalizedRole : 'CLIENT';
 
@@ -54,6 +80,8 @@ export class AuthService {
       }
     });
 
+    await AuthService.markAllowlistAsUsed(normalizedEmail, userId);
+
     // Handle manual hash update if needed (Supabase SDK doesn't allow setting encrypted_password directly, 
     // but it hashes it correctly. We only need the prefix fix if we were inserting manually. 
     // Since we use signUp, it's already correct).
@@ -64,6 +92,11 @@ export class AuthService {
   // Login
   static async login(email: string, password: string) {
     const normalizedEmail = email.trim().toLowerCase();
+    const authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
+    if (!authorization.canLogin) {
+      throw new AppError('Conta não autorizada para login.', 401);
+    }
+
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
       include: { profile: true },
@@ -130,7 +163,89 @@ export class AuthService {
   }
 
   static async canLoginWithEmail(email: string) {
-    const profile = await AuthService.getAuthorizedProfileByEmail(email);
-    return !!profile;
+    const status = await AuthService.getAuthorizationStatus(email);
+    return status.canLogin;
+  }
+
+  static async getAuthorizationStatus(email: string): Promise<AuthorizationStatus> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const [profile, allowlist] = await Promise.all([
+      prisma.profile.findFirst({
+        where: { email: normalizedEmail },
+        select: { id: true, role: true },
+      }),
+      prisma.authAllowlist.findUnique({
+        where: { email: normalizedEmail },
+        select: { id: true, role: true, status: true, used_by: true },
+      }),
+    ]);
+
+    const allowlistStatus = normalizeAllowlistStatus(allowlist?.status);
+    const allowlistRole = allowlist?.role ? String(allowlist.role).trim().toUpperCase() : null;
+    const profileRole = profile?.role ? String(profile.role).trim().toUpperCase() : null;
+
+    if (ALLOWLIST_BLOCKED_STATUSES.has(allowlistStatus)) {
+      return {
+        canLogin: false,
+        canRegister: false,
+        role: allowlistRole,
+        reason: 'EMAIL_BLOCKED',
+      };
+    }
+
+    if (profile) {
+      return {
+        canLogin: true,
+        canRegister: false,
+        role: profileRole || allowlistRole,
+        reason: 'PROFILE_ACTIVE',
+      };
+    }
+
+    if (allowlist && ALLOWLIST_REGISTER_STATUSES.has(allowlistStatus) && !allowlist.used_by) {
+      return {
+        canLogin: false,
+        canRegister: true,
+        role: allowlistRole,
+        reason: 'INVITE_APPROVED_PENDING_REGISTRATION',
+      };
+    }
+
+    if (allowlist?.used_by) {
+      return {
+        canLogin: false,
+        canRegister: false,
+        role: allowlistRole,
+        reason: 'INVITE_ALREADY_USED',
+      };
+    }
+
+    if (ALLOWLIST_PENDING_STATUSES.has(allowlistStatus)) {
+      return {
+        canLogin: false,
+        canRegister: false,
+        role: allowlistRole,
+        reason: 'INVITE_PENDING_APPROVAL',
+      };
+    }
+
+    return {
+      canLogin: false,
+      canRegister: false,
+      role: allowlistRole,
+      reason: 'EMAIL_NOT_AUTHORIZED',
+    };
+  }
+
+  static async markAllowlistAsUsed(email: string, userId: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    await prisma.authAllowlist.updateMany({
+      where: { email: normalizedEmail },
+      data: {
+        used_by: userId,
+        used_at: new Date(),
+        status: 'USED',
+      },
+    });
   }
 }

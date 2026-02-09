@@ -14,6 +14,7 @@ const TEST_MODE_ENABLED = explicitTestMode || isNodeTest;
 const APP_MODE = explicitMode === 'MOCK'
   ? ((TEST_MODE_ENABLED || isNonProdNode) ? 'MOCK' : 'PROD')
   : (explicitMode || 'PROD');
+const isProd = process.env.NODE_ENV === 'production';
 
 // Flag for Mock/Demo Mode
 const IS_MOCK_MODE = APP_MODE === 'MOCK' && (TEST_MODE_ENABLED || isNonProdNode);
@@ -29,10 +30,22 @@ console.log(`[Supabase Service] Initializing with URL: ${effectiveUrl} (Source: 
 console.log(`[Supabase Service] Mode: ${APP_MODE}`);
 
 try {
+  if (isProd) {
+      if (!SUPABASE_URL) {
+        throw new Error('SUPABASE_URL missing in production.');
+      }
+      if (!SUPABASE_SERVICE_ROLE_KEY) {
+        throw new Error('SUPABASE_SERVICE_ROLE_KEY missing in production.');
+      }
+      if (APP_MODE === 'MOCK' || APP_MODE === 'DEMO') {
+        throw new Error(`APP_MODE ${APP_MODE} not allowed in production.`);
+      }
+  }
+
   if (!SUPABASE_URL) {
       console.error('🚨 Backend: SUPABASE_URL missing. Auth operations will fail.');
   }
-  
+
   if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) {
       console.error('🚨 Backend: No Supabase keys configured. Auth operations will fail.');
   } else if (!SUPABASE_SERVICE_ROLE_KEY) {
