@@ -32,8 +32,8 @@ yarn-error.log*
 
 # vercel
 .env
-.vercelserver.log
 .vercel
+vercel-debug.log
 
 # local logs / sync artifacts
 server.log
