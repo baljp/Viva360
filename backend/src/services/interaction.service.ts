@@ -141,6 +141,76 @@ export class InteractionService {
     };
   }
 
+  async emitAppointmentRescheduled(params: {
+    appointmentId: string;
+    clientId: string;
+    professionalId?: string | null;
+    serviceName: string;
+    isoDate: string;
+  }) {
+    const sentTo = new Set<string>([params.clientId]);
+
+    if (params.professionalId) {
+      sentTo.add(params.professionalId);
+      await notificationEngine.emit({
+        type: 'appointment.rescheduled',
+        actorId: params.clientId,
+        targetUserId: params.professionalId,
+        entityType: 'appointment',
+        entityId: params.appointmentId,
+        data: { serviceName: params.serviceName, date: params.isoDate },
+      });
+    }
+
+    await notificationEngine.emit({
+      type: 'appointment.rescheduled',
+      actorId: params.professionalId || params.clientId,
+      targetUserId: params.clientId,
+      entityType: 'appointment',
+      entityId: params.appointmentId,
+      data: { serviceName: params.serviceName, date: params.isoDate },
+    });
+
+    return {
+      sentTo: Array.from(sentTo),
+      message: 'Agendamento reagendado com notificação para as partes.',
+    };
+  }
+
+  async emitAppointmentCancelled(params: {
+    appointmentId: string;
+    clientId: string;
+    professionalId?: string | null;
+    isoDate: string;
+  }) {
+    const sentTo = new Set<string>([params.clientId]);
+    if (params.professionalId) {
+      sentTo.add(params.professionalId);
+      await notificationEngine.emit({
+        type: 'appointment.cancelled',
+        actorId: params.clientId,
+        targetUserId: params.professionalId,
+        entityType: 'appointment',
+        entityId: params.appointmentId,
+        data: { date: params.isoDate },
+      });
+    }
+
+    await notificationEngine.emit({
+      type: 'appointment.cancelled',
+      actorId: params.professionalId || params.clientId,
+      targetUserId: params.clientId,
+      entityType: 'appointment',
+      entityId: params.appointmentId,
+      data: { date: params.isoDate },
+    });
+
+    return {
+      sentTo: Array.from(sentTo),
+      message: 'Agendamento cancelado com notificação das partes.',
+    };
+  }
+
   async emitTribeInvite(params: { hubId: string; email: string; inviteId: string }) {
     const target = await prisma.profile.findFirst({
       where: { email: String(params.email || '').trim().toLowerCase() },
@@ -177,6 +247,102 @@ export class InteractionService {
       },
     });
 
+    return { sent: true };
+  }
+
+  async emitEscamboDecision(params: {
+    actorId: string;
+    counterpartId: string;
+    offerId: string;
+    type: 'accepted' | 'rejected' | 'countered' | 'completed';
+    counterOffer?: string | null;
+  }) {
+    const eventTypeByDecision = {
+      accepted: 'escambo.accepted',
+      rejected: 'escambo.rejected',
+      countered: 'escambo.countered',
+      completed: 'escambo.completed',
+    } as const;
+
+    await notificationEngine.emit({
+      type: eventTypeByDecision[params.type],
+      actorId: params.actorId,
+      targetUserId: params.counterpartId,
+      entityType: 'swap_offer',
+      entityId: params.offerId,
+      data: {
+        counterOffer: params.counterOffer || undefined,
+      },
+    });
+
+    return { sent: true };
+  }
+
+  async emitRecruitmentApplication(params: {
+    applicationId: string;
+    candidateId: string;
+    spaceId: string;
+    vacancyTitle: string;
+  }) {
+    await notificationEngine.emit({
+      type: 'recruitment.application.created',
+      actorId: params.candidateId,
+      targetUserId: params.spaceId,
+      entityType: 'recruitment_application',
+      entityId: params.applicationId,
+      data: { vacancyTitle: params.vacancyTitle },
+    });
+    return { sent: true };
+  }
+
+  async emitRecruitmentInterviewInvite(params: {
+    interviewId: string;
+    spaceId: string;
+    guardianId: string;
+    scheduledFor: string;
+  }) {
+    await notificationEngine.emit({
+      type: 'recruitment.interview.invited',
+      actorId: params.spaceId,
+      targetUserId: params.guardianId,
+      entityType: 'interview',
+      entityId: params.interviewId,
+      data: { scheduledFor: params.scheduledFor },
+    });
+    return { sent: true };
+  }
+
+  async emitRecruitmentInterviewResponse(params: {
+    interviewId: string;
+    guardianId: string;
+    spaceId: string;
+    accepted: boolean;
+  }) {
+    await notificationEngine.emit({
+      type: params.accepted ? 'recruitment.interview.accepted' : 'recruitment.interview.declined',
+      actorId: params.guardianId,
+      targetUserId: params.spaceId,
+      entityType: 'interview',
+      entityId: params.interviewId,
+      data: {},
+    });
+    return { sent: true };
+  }
+
+  async emitRecruitmentDecision(params: {
+    applicationId: string;
+    actorId: string;
+    candidateId: string;
+    decision: 'HIRED' | 'REJECTED';
+  }) {
+    await notificationEngine.emit({
+      type: params.decision === 'HIRED' ? 'recruitment.application.hired' : 'recruitment.application.rejected',
+      actorId: params.actorId,
+      targetUserId: params.candidateId,
+      entityType: 'recruitment_application',
+      entityId: params.applicationId,
+      data: {},
+    });
     return { sent: true };
   }
 

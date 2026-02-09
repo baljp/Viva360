@@ -28,6 +28,18 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
     title: () => 'Escambo Aceito',
     message: () => 'Sua proposta de escambo foi aceita!',
   },
+  'escambo.rejected': {
+    title: () => 'Escambo Recusado',
+    message: () => 'Sua proposta de escambo foi recusada.',
+  },
+  'escambo.countered': {
+    title: () => 'Contraproposta de Escambo',
+    message: (data) => data.counterOffer || 'Você recebeu uma contraproposta de escambo.',
+  },
+  'escambo.completed': {
+    title: () => 'Escambo Concluído',
+    message: () => 'Escambo concluído com confirmação para as duas partes.',
+  },
   'appointment.created': {
     title: () => 'Novo Agendamento',
     message: (data) => `Você tem um novo agendamento: ${data.serviceName}.`,
@@ -39,6 +51,10 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
   'appointment.cancelled': {
     title: () => 'Agendamento Cancelado',
     message: () => 'Um agendamento foi cancelado.',
+  },
+  'appointment.rescheduled': {
+    title: () => 'Agendamento Reagendado',
+    message: (data) => `Seu agendamento foi reagendado para ${data.date}.`,
   },
   'payment.received': {
     title: () => 'Pagamento Recebido',
@@ -56,11 +72,41 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
     title: () => 'Agenda Atualizada',
     message: (data) => `${data.guardianName || 'Guardião'} recebeu marcação em ${data.date}. Agenda do santuário bloqueada.`,
   },
+  'appointment.space_unblocked': {
+    title: () => 'Agenda Liberada',
+    message: (data) => `Bloqueio removido da agenda do santuário para ${data.date}.`,
+  },
+  'recruitment.application.created': {
+    title: () => 'Nova Candidatura',
+    message: () => 'Você recebeu uma nova candidatura para vaga.',
+  },
+  'recruitment.interview.invited': {
+    title: () => 'Convite para Entrevista',
+    message: (data) => `Você foi convidado para entrevista em ${data.scheduledFor}.`,
+  },
+  'recruitment.interview.accepted': {
+    title: () => 'Entrevista Aceita',
+    message: () => 'O convite de entrevista foi aceito.',
+  },
+  'recruitment.interview.declined': {
+    title: () => 'Entrevista Recusada',
+    message: () => 'O convite de entrevista foi recusado.',
+  },
+  'recruitment.application.hired': {
+    title: () => 'Candidatura Aprovada',
+    message: () => 'Parabéns! Sua candidatura foi aprovada.',
+  },
+  'recruitment.application.rejected': {
+    title: () => 'Candidatura Encerrada',
+    message: () => 'Sua candidatura foi encerrada neste ciclo.',
+  },
   'chat.message': {
     title: () => 'Nova Mensagem',
     message: (data) => data.preview || 'Você recebeu uma nova mensagem.',
   },
 };
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class NotificationEngine {
   /**
@@ -78,10 +124,25 @@ export class NotificationEngine {
     const title = template.title(event.data || {});
     const message = template.message(event.data || {});
 
+    const targetUserId = String(event.targetUserId || '').trim();
+    if (!UUID_REGEX.test(targetUserId)) {
+      console.warn('[NotificationEngine] Skipping notification for non-UUID target:', targetUserId);
+      return;
+    }
+
+    const profile = await prisma.profile.findUnique({
+      where: { id: targetUserId },
+      select: { id: true },
+    }).catch(() => null);
+    if (!profile?.id) {
+      console.warn('[NotificationEngine] Skipping notification for unknown target profile:', targetUserId);
+      return;
+    }
+
     // Create in-app notification
     await prisma.notification.create({
       data: {
-        user_id: event.targetUserId,
+        user_id: targetUserId,
         type: this.mapEventTypeToNotifType(event.type),
         title,
         message,
@@ -92,7 +153,7 @@ export class NotificationEngine {
     // Dispatch to external channels (email, push, whatsapp)
     try {
       await NotificationDispatcher.dispatch({
-        userId: event.targetUserId,
+        userId: targetUserId,
         title,
         message,
         channels: ['IN_APP', 'PUSH'], // Default channels
@@ -169,8 +230,11 @@ export class NotificationEngine {
     if (eventType.startsWith('appointment.')) {
       return 'ritual';
     }
-    if (eventType.startsWith('payment.')) {
+    if (eventType.startsWith('payment.') || eventType.startsWith('checkout.')) {
       return 'finance';
+    }
+    if (eventType.startsWith('recruitment.')) {
+      return 'alert';
     }
     return 'alert';
   }
