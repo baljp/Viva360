@@ -6,6 +6,7 @@ import { useJourneyEngine } from '../../src/hooks/useJourneyEngine';
 import { Play, Search, MapPin, Sparkle, Sun, Moon, Wind, Clock, Star, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { MicroJourneyModal } from './map/MicroJourneyModal';
 import { api } from '../../services/api';
+import { useNavigate } from 'react-router-dom';
 
 interface MapaDaCuraProps {
     pros?: Professional[];
@@ -17,6 +18,7 @@ interface MapaDaCuraProps {
 
 export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading, user, updateUser, onClose }) => {
     const { go, selectProfessional } = useBuscadorFlow();
+    const navigate = useNavigate();
     const { journey, context: journeyContext } = useJourneyEngine(user);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeMicroJourney, setActiveMicroJourney] = useState<any>(null);
@@ -73,12 +75,17 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
         setActiveFilter(prev => prev === f ? null : f);
     };
 
+    const handleExit = () => {
+        go('DASHBOARD');
+        navigate('/client/home', { replace: true });
+    };
+
     return (
         <PortalView 
             title="Mapa da Cura" 
             subtitle="SISTEMA OPERACIONAL DA ALMA" 
-            onBack={() => go('DASHBOARD')}
-            onClose={onClose || (() => go('DASHBOARD'))}
+            onBack={handleExit}
+            onClose={onClose || handleExit}
         >
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             

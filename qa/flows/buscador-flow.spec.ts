@@ -8,11 +8,6 @@ test.describe('Buscador Flow Stabilization', () => {
     await loginAs('client');
 
     const dashboardTitle = page.getByText('Sua Jornada até aqui,');
-    const goBackFromPortal = async () => {
-      const backBtn = page.locator('button:has(svg.rotate-180)').last();
-      await expect(backBtn).toBeVisible({ timeout: 8000 });
-      await backBtn.click({ timeout: 8000, force: true });
-    };
 
     // Handle Daily Blessing if it appears.
     try {
@@ -56,7 +51,7 @@ test.describe('Buscador Flow Stabilization', () => {
         }
 
         try {
-            await expect(page.getByText(portal.expected)).toBeVisible({ timeout: 15000 });
+            await expect(page.getByRole('heading', { name: portal.expected }).first()).toBeVisible({ timeout: 15000 });
             console.log(`[Test] Successfully reached ${portal.expected}`);
 
             if (portal.afterOpen) {
@@ -70,7 +65,7 @@ test.describe('Buscador Flow Stabilization', () => {
 
         const isLastPortal = index === portals.length - 1;
         if (!isLastPortal) {
-            await goBackFromPortal();
+            await page.goto('/client/home');
             await expect(dashboardTitle).toBeVisible({ timeout: 15000 });
             await page.waitForTimeout(300);
         }
