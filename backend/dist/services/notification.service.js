@@ -72,6 +72,31 @@ class NotificationService {
             console.error(`❌ [NOTIF] queue failed:`, e);
         }
     }
+    async markAsRead(userId, notificationId) {
+        if ((0, supabase_service_1.isMockMode)()) {
+            return { success: true };
+        }
+        await prisma_1.default.notification.updateMany({
+            where: {
+                id: notificationId,
+                user_id: userId,
+            },
+            data: {
+                read: true,
+            },
+        });
+        return { success: true };
+    }
+    async markAllAsRead(userId) {
+        if ((0, supabase_service_1.isMockMode)()) {
+            return { success: true };
+        }
+        await prisma_1.default.notification.updateMany({
+            where: { user_id: userId, read: false },
+            data: { read: true },
+        });
+        return { success: true };
+    }
 }
 exports.NotificationService = NotificationService;
 exports.notificationService = new NotificationService();

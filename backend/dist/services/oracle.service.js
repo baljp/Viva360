@@ -36,14 +36,19 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.oracleService = exports.OracleService = void 0;
 const prisma_1 = __importStar(require("../lib/prisma"));
 class OracleService {
+    constructor() {
+        this.fallbackUserId = '00000000-0000-0000-0000-000000000001';
+        this.uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    }
     // Core Algorithm: Select the best card based on context
     async drawCard(userId, context) {
+        const safeUserId = this.normalizeUserId(userId);
         // 1. Fetch Candidate Messages (Filtered by basic rules)
         const sixtyDaysAgo = new Date();
         sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
         const recentHistory = await prisma_1.prismaRead.oracleHistory.findMany({
             where: {
-                user_id: userId,
+                user_id: safeUserId,
                 drawn_at: { gte: sixtyDaysAgo }
             },
             select: { message_id: true }
@@ -88,21 +93,28 @@ class OracleService {
         scoredCandidates.sort((a, b) => b.score - a.score);
         const winner = scoredCandidates[0].card;
         // 4. Record History
-        await prisma_1.default.oracleHistory.create({
-            data: {
-                user_id: userId,
-                message_id: winner.id,
-                context: context
-            }
-        });
+        try {
+            await prisma_1.default.oracleHistory.create({
+                data: {
+                    user_id: safeUserId,
+                    message_id: winner.id,
+                    context: context
+                }
+            });
+        }
+        catch (e) {
+            // Do not block card reveal if history persistence fails.
+            console.warn('Oracle history persistence failed:', e);
+        }
         return winner;
     }
     async getToday(userId) {
+        const safeUserId = this.normalizeUserId(userId);
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
         const lastDraw = await prisma_1.prismaRead.oracleHistory.findFirst({
             where: {
-                user_id: userId,
+                user_id: safeUserId,
                 drawn_at: { gte: startOfDay }
             },
             include: {
@@ -113,6 +125,20 @@ class OracleService {
             }
         });
         return lastDraw?.message || null;
+    }
+    async getHistory(userId, limit = 30) {
+        const safeUserId = this.normalizeUserId(userId);
+        return prisma_1.prismaRead.oracleHistory.findMany({
+            where: { user_id: safeUserId },
+            include: { message: true },
+            orderBy: { drawn_at: 'desc' },
+            take: limit,
+        });
+    }
+    normalizeUserId(userId) {
+        if (!userId)
+            return this.fallbackUserId;
+        return this.uuidRegex.test(userId) ? userId : this.fallbackUserId;
     }
     normalizeMood(mood) {
         const mapping = {

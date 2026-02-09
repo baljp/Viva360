@@ -34,9 +34,8 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const NotificationsController = __importStar(require("../controllers/notifications.controller"));
+const ClinicalController = __importStar(require("../controllers/clinical.controller"));
 const router = (0, express_1.Router)();
-router.get('/', NotificationsController.list);
-router.post('/:id/read', NotificationsController.markAsRead);
-router.post('/read-all', NotificationsController.markAllAsRead);
+router.post('/interventions', ClinicalController.saveIntervention);
+router.get('/interventions', ClinicalController.listInterventions);
 exports.default = router;

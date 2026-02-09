@@ -186,9 +186,11 @@ const getMockSession = (): User | null => {
     });
 };
 
-const checkLoginEligibility = async (email: string): Promise<boolean> => {
+type LoginEligibility = { allowed: boolean; role: UserRole | null };
+
+const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> => {
     const normalizedEmail = normalizeEmail(email);
-    if (!normalizedEmail) return false;
+    if (!normalizedEmail) return { allowed: false, role: null };
 
     try {
         const response = await fetch(`${API_URL}/auth/precheck-login`, {
@@ -197,11 +199,19 @@ const checkLoginEligibility = async (email: string): Promise<boolean> => {
             body: JSON.stringify({ email: normalizedEmail }),
         });
         const payload = await response.json().catch(() => ({}));
-        if (!response.ok) return false;
-        return !!payload?.allowed;
+        if (!response.ok) return { allowed: false, role: null };
+
+        const allowed = !!payload?.allowed;
+        const role = payload?.role ? normalizeRole(String(payload.role)) : null;
+        return { allowed, role };
     } catch {
         throw new Error('Não foi possível validar sua conta agora. Tente novamente em instantes.');
     }
+};
+
+const checkLoginEligibility = async (email: string): Promise<boolean> => {
+    const eligibility = await fetchLoginEligibility(email);
+    return eligibility.allowed;
 };
 
 const decodeJwtPayload = (token: string): any | null => {
@@ -442,7 +452,6 @@ export const api = {
                         prompt: 'select_account',
                         login_hint: normalizedExpectedEmail,
                     },
-                    data: { role }
                 }
             });
 
@@ -466,37 +475,7 @@ export const api = {
             }
 
             try {
-                const { data: authData, error } = await supabase.auth.signUp({
-                    email: normalizedEmail,
-                    password: data.password,
-                    options: {
-                        data: {
-                            full_name: data.name,
-                            role: normalizedRole
-                        }
-                    }
-                });
-                
-                if (error) throw error;
-                
-                if (authData.session) {
-                    promoteToRealSession(authData.session.access_token);
-                }
-                
-                const user = await api.auth.getCurrentSession();
-                if (user) return user;
-
-                return baseUser({
-                    id: authData.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
-                    email: normalizedEmail,
-                    name: data.name || normalizedEmail.split('@')[0] || 'Viajante',
-                    role: normalizedRole,
-                    avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
-                });
-            } catch (err: any) {
-                if (!isLikelyNetworkError(err?.message)) {
-                    throw err;
-                }
+                // Prefer backend registration so we guarantee a `profiles` row exists (authorized account).
                 const response = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -514,8 +493,28 @@ export const api = {
                 }
 
                 const payload = await response.json();
-                const token = payload?.session?.access_token;
-                promoteToRealSession(token);
+                const fallbackToken = payload?.session?.access_token;
+                if (fallbackToken) {
+                    promoteToRealSession(fallbackToken);
+                }
+
+                // Best-effort: also create a real Supabase session so password updates work in-app.
+                try {
+                    const { data: signInData, error } = await supabase.auth.signInWithPassword({
+                        email: normalizedEmail,
+                        password: data.password,
+                    });
+                    if (error) throw error;
+                    if (signInData.session?.access_token) {
+                        promoteToRealSession(signInData.session.access_token);
+                        localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+                    }
+                } catch {
+                    // If email confirmation is required, session may not be available yet.
+                }
+
+                const sessionUser = await api.auth.getCurrentSession();
+                if (sessionUser) return sessionUser;
 
                 return baseUser({
                     id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
@@ -523,6 +522,38 @@ export const api = {
                     name: payload?.user?.name || data.name || normalizedEmail.split('@')[0] || 'Viajante',
                     role: normalizeRole(payload?.user?.role || normalizedRole),
                     avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
+                });
+            } catch (err: any) {
+                // If the backend is temporarily unreachable, fallback to Supabase signUp.
+                if (!isLikelyNetworkError(err?.message)) {
+                    throw err;
+                }
+                const { data: authData, error } = await supabase.auth.signUp({
+                    email: normalizedEmail,
+                    password: data.password,
+                    options: {
+                        data: {
+                            full_name: data.name,
+                            role: normalizedRole
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                if (authData.session) {
+                    promoteToRealSession(authData.session.access_token);
+                }
+
+                const user = await api.auth.getCurrentSession();
+                if (user) return user;
+
+                return baseUser({
+                    id: authData.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
+                    email: normalizedEmail,
+                    name: data.name || normalizedEmail.split('@')[0] || 'Viajante',
+                    role: normalizedRole,
+                    avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
                 });
             }
         },
@@ -549,27 +580,24 @@ export const api = {
                     }
                     localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
 
-                    const rawRole = normalizeRole(session.user.user_metadata.role);
-                    if (!session.user.user_metadata?.role && !canUseMockSession()) {
-                        await supabase.auth.signOut();
-                        clearMockArtifacts();
-                        localStorage.removeItem(SESSION_MODE_KEY);
-                        throw new Error('Conta não autorizada. Faça cadastro primeiro ou use conta de teste.');
-                    }
-                    const isKnownAccount = await checkLoginEligibility(sessionEmail);
-                    if (!isKnownAccount) {
+                    const eligibility = await fetchLoginEligibility(sessionEmail);
+                    if (!eligibility.allowed) {
                         await supabase.auth.signOut();
                         clearMockArtifacts();
                         localStorage.removeItem(SESSION_MODE_KEY);
                         throw new Error('Conta não autorizada. Faça cadastro primeiro ou use conta de teste.');
                     }
 
+                    const metadataRoleValue = String((session.user.user_metadata as any)?.role || '').trim();
+                    const metadataRole = metadataRoleValue ? normalizeRole(metadataRoleValue) : null;
+                    const resolvedRole = eligibility.role || metadataRole || inferRoleFromEmail(sessionEmail);
+
                     promoteToRealSession(session.access_token);
                     return baseUser({
                         id: session.user.id,
                         email: sessionEmail,
                         name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Viajante',
-                        role: rawRole,
+                        role: resolvedRole,
                         avatar: session.user.user_metadata.avatar_url || '',
                     });
                 }

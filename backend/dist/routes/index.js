@@ -20,10 +20,14 @@ const alchemy_routes_1 = __importDefault(require("./alchemy.routes"));
 const oracle_routes_1 = __importDefault(require("./oracle.routes"));
 const marketplace_routes_1 = __importDefault(require("./marketplace.routes"));
 const records_routes_1 = __importDefault(require("./records.routes"));
+const users_routes_1 = __importDefault(require("./users.routes"));
 const rateLimiter_1 = require("../middleware/rateLimiter");
 const swr_middleware_1 = require("../middleware/swr.middleware");
 const admin_routes_1 = __importDefault(require("./admin.routes"));
 const executive_routes_1 = __importDefault(require("./executive.routes"));
+const journal_routes_1 = __importDefault(require("./journal.routes"));
+const clinical_routes_1 = __importDefault(require("./clinical.routes"));
+const audit_routes_1 = __importDefault(require("./audit.routes"));
 const router = (0, express_1.Router)();
 router.use(rateLimiter_1.rateLimiter); // Upgrade 9.5: Global Rate Limit
 // Public Routes
@@ -38,6 +42,7 @@ router.use('/rooms', auth_middleware_1.authenticateUser, rooms_routes_1.default)
 router.use('/profiles', auth_middleware_1.authenticateUser, profile_routes_1.default);
 router.use('/appointments', auth_middleware_1.authenticateUser, appointments_routes_1.default);
 // New Feature Routes
+router.use('/users', auth_middleware_1.authenticateUser, users_routes_1.default);
 router.use('/notifications', auth_middleware_1.authenticateUser, notifications_routes_1.default);
 router.use('/checkout', auth_middleware_1.authenticateUser, checkout_routes_1.default);
 router.use('/chat', auth_middleware_1.authenticateUser, chat_routes_1.default);
@@ -47,6 +52,9 @@ router.use('/alchemy', auth_middleware_1.authenticateUser, alchemy_routes_1.defa
 router.use('/marketplace', auth_middleware_1.authenticateUser, (0, swr_middleware_1.swrMiddleware)(1, 59), marketplace_routes_1.default);
 router.use('/oracle', auth_middleware_1.authenticateUser, oracle_routes_1.default);
 router.use('/records', auth_middleware_1.authenticateUser, records_routes_1.default);
+router.use('/journal', auth_middleware_1.authenticateUser, journal_routes_1.default);
+router.use('/clinical', auth_middleware_1.authenticateUser, clinical_routes_1.default);
+router.use('/audit', auth_middleware_1.authenticateUser, audit_routes_1.default);
 // Admin
 router.use('/admin', auth_middleware_1.authenticateUser, admin_routes_1.default);
 router.use('/admin/executive', auth_middleware_1.authenticateUser, executive_routes_1.default);

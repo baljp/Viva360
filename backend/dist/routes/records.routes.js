@@ -38,7 +38,7 @@ const RecordsController = __importStar(require("../controllers/records.controlle
 const router = (0, express_1.Router)();
 router.post('/', RecordsController.createNote);
 router.get('/', RecordsController.listNotes);
+router.get('/export', RecordsController.exportData);
 router.post('/grant', RecordsController.grantAccess);
-router.get('/export', RecordsController.exportData);
-router.get('/export', RecordsController.exportData);
+router.get('/:patientId', RecordsController.listNotes);
 exports.default = router;

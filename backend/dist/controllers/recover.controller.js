@@ -7,8 +7,8 @@ exports.resetPassword = exports.forgotPassword = void 0;
 const auth_service_1 = require("../services/auth.service");
 const email_service_1 = require("../services/email.service");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const secrets_1 = require("../lib/secrets");
 const async_middleware_1 = require("../middleware/async.middleware");
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-me';
 exports.forgotPassword = (0, async_middleware_1.asyncHandler)(async (req, res) => {
     const { email } = req.body;
     // 1. Check if user exists
@@ -17,7 +17,7 @@ exports.forgotPassword = (0, async_middleware_1.asyncHandler)(async (req, res) =
         return res.status(404).json({ error: "E-mail não encontrado no fluxo." });
     }
     // 2. Generate Recovery Token (JWT valid for 1h)
-    const token = jsonwebtoken_1.default.sign({ email, purpose: 'recovery' }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jsonwebtoken_1.default.sign({ email, purpose: 'recovery' }, secrets_1.JWT_SECRET, { expiresIn: '1h' });
     // 3. Send Email
     const link = `http://localhost:3000/reset-password?token=${token}`; // Should use Frontend URL Env Var
     email_service_1.emailService.send({
@@ -34,7 +34,7 @@ exports.resetPassword = (0, async_middleware_1.asyncHandler)(async (req, res) =>
         return res.status(400).json({ error: "Dados incompletos." });
     // 1. Verify Token
     try {
-        const decoded = jsonwebtoken_1.default.verify(token, JWT_SECRET);
+        const decoded = jsonwebtoken_1.default.verify(token, secrets_1.JWT_SECRET);
         if (decoded.purpose !== 'recovery')
             return res.status(401).json({ error: "Token inválido." });
         // 2. Update Password

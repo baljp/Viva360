@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.joinTribe = exports.listMembers = exports.listInvites = exports.inviteMember = void 0;
+exports.syncVibration = exports.joinTribe = exports.listMembers = exports.listInvites = exports.inviteMember = void 0;
 const async_middleware_1 = require("../middleware/async.middleware");
 const tribe_service_1 = require("../services/tribe.service");
 exports.inviteMember = (0, async_middleware_1.asyncHandler)(async (req, res) => {
@@ -32,4 +32,14 @@ exports.joinTribe = (0, async_middleware_1.asyncHandler)(async (req, res) => {
     const proId = req.user?.userId;
     const result = await tribe_service_1.tribeService.joinTribe(proId, vacancyId);
     return res.json(result);
+});
+exports.syncVibration = (0, async_middleware_1.asyncHandler)(async (req, res) => {
+    const userId = req.user?.userId;
+    const reward = 10;
+    return res.json({
+        success: true,
+        reward,
+        syncedAt: new Date().toISOString(),
+        userId,
+    });
 });

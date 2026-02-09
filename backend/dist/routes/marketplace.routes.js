@@ -35,9 +35,13 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const MarketplaceController = __importStar(require("../controllers/marketplace.controller"));
+const role_middleware_1 = require("../middleware/role.middleware");
 const router = (0, express_1.Router)();
-router.post('/products', MarketplaceController.createProduct);
 router.get('/products', MarketplaceController.listProducts);
-router.post('/purchase', MarketplaceController.purchaseProduct);
-router.delete('/products/:id', MarketplaceController.deleteProduct);
+router.get('/', MarketplaceController.listProducts); // backward-compatible alias
+router.post('/products', (0, role_middleware_1.requireRoles)('PROFESSIONAL', 'SPACE', 'ADMIN'), MarketplaceController.createProduct);
+router.post('/', (0, role_middleware_1.requireRoles)('PROFESSIONAL', 'SPACE', 'ADMIN'), MarketplaceController.createProduct); // alias
+router.post('/purchase', (0, role_middleware_1.requireRoles)('CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN'), MarketplaceController.purchaseProduct);
+router.delete('/products/:id', (0, role_middleware_1.requireRoles)('PROFESSIONAL', 'SPACE', 'ADMIN'), MarketplaceController.deleteProduct);
+router.delete('/:id', (0, role_middleware_1.requireRoles)('PROFESSIONAL', 'SPACE', 'ADMIN'), MarketplaceController.deleteProduct); // alias
 exports.default = router;

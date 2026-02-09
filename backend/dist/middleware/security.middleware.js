@@ -8,16 +8,22 @@ const securityHardening = (req, res, next) => {
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;");
+    res.setHeader('Referrer-Policy', 'no-referrer');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     // 2. Simple WAF Simulation (Detecting common attacks)
     const maliciousPatterns = [
-        /<script/i,
-        /UNION SELECT/i,
-        /OR 1=1/i,
-        /DROP TABLE/i,
-        /--/i
+        /<script\b/i,
+        /\bunion\s+select\b/i,
+        /\bor\s+1\s*=\s*1\b/i,
+        /\bdrop\s+table\b/i,
+        /(?:--|#|\/\*)\s*(?:$|\r|\n)/i,
     ];
-    const payload = JSON.stringify(req.body) + JSON.stringify(req.query) + JSON.stringify(req.params);
-    if (maliciousPatterns.some(pattern => pattern.test(payload))) {
+    const sources = [req.body, req.query, req.params];
+    const payload = sources
+        .map((value) => (typeof value === 'string' ? value : JSON.stringify(value ?? '')))
+        .join(' ')
+        .slice(0, 5000);
+    if (maliciousPatterns.some((pattern) => pattern.test(payload))) {
         console.warn(`🛑 [WAF ALERT] Malicious pattern detected from IP ${req.ip}. Payload: ${payload}`);
         return res.status(403).json({ error: 'Security Breach Blocked' });
     }

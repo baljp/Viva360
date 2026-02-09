@@ -59,7 +59,22 @@ app.use((0, compression_1.default)());
 app.use((0, helmet_1.default)({
     contentSecurityPolicy: false, // For easier dev, can be tightened
 }));
-app.use((0, cors_1.default)());
+const allowedOrigins = (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (!origin)
+            return callback(null, true);
+        if (allowedOrigins.length === 0) {
+            return callback(null, process.env.NODE_ENV !== 'production');
+        }
+        return callback(null, allowedOrigins.includes(origin));
+    },
+    credentials: true,
+};
+app.use((0, cors_1.default)(corsOptions));
 app.use(express_1.default.json());
 app.use(security_middleware_1.securityHardening); // Excellence Layer: WAF & Headers
 if (process.env.NODE_ENV !== 'production')
@@ -79,6 +94,16 @@ app.use((req, res, next) => {
 });
 // Metrics Endpoint
 app.get('/metrics', async (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
+        const token = (process.env.METRICS_TOKEN || '').trim();
+        if (!token) {
+            return res.status(503).json({ error: 'Metrics disabled' });
+        }
+        const auth = req.headers.authorization || '';
+        if (auth !== `Bearer ${token}`) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+    }
     res.setHeader('Content-Type', metrics_1.default.contentType);
     res.send(await metrics_1.default.metrics());
 });

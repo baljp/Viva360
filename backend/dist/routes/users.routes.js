@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const users_controller_1 = require("../controllers/users.controller");
+const role_middleware_1 = require("../middleware/role.middleware");
+const router = (0, express_1.Router)();
+router.post('/checkin', users_controller_1.checkIn);
+router.get('/:id', (0, role_middleware_1.requireSameUserOrAdmin)((req) => req.params.id), users_controller_1.getById);
+router.put('/:id', (0, role_middleware_1.requireSameUserOrAdmin)((req) => req.params.id), users_controller_1.updateById);
+exports.default = router;

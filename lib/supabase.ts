@@ -79,10 +79,6 @@ export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } 
             const redirectOrigin = parsedRedirect?.origin || '';
             const isLocalhost = currentOrigin.includes('localhost');
 
-            if (!configuredAuthRedirect && !TEST_MODE_ENABLED) {
-                issues.push('Defina VITE_SUPABASE_AUTH_REDIRECT_URL para validar OAuth em domínio real.');
-            }
-
             if (!isLocalhost && redirectOrigin && redirectOrigin !== currentOrigin) {
                 issues.push(`Origem atual (${currentOrigin}) difere da origem do redirect (${redirectOrigin}).`);
             }

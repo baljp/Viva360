@@ -40,6 +40,7 @@ const router = (0, express_1.Router)();
 const validate_middleware_1 = require("../middleware/validate.middleware");
 const auth_schema_1 = require("../schemas/auth.schema");
 router.post('/login', (0, validate_middleware_1.validate)(auth_schema_1.loginSchema), AuthController.login);
+router.post('/precheck-login', AuthController.precheckLogin);
 router.post('/register', (0, validate_middleware_1.validate)(auth_schema_1.registerSchema), AuthController.register);
 router.post('/forgot-password', RecoverController.forgotPassword); // Add schema later
 router.post('/reset-password', RecoverController.resetPassword); // Add schema later

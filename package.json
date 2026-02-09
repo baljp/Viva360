@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run prisma:generate && tsc && vite build",
-    "vercel-build": "npm run prisma:generate && vite build",
+    "build:backend": "tsc -p backend/tsconfig.json",
+    "build": "npm run prisma:generate && npm run build:backend && tsc && vite build",
+    "vercel-build": "npm run prisma:generate && npm run build:backend && vite build",
     "test:audit": "npx playwright test tests/audit.spec.ts",
     "test:e2e": "npx playwright test tests/e2e_master.spec.ts",
     "test": "npx playwright test",

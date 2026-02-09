@@ -98,9 +98,13 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
     const normalizedEmail = email.trim().toLowerCase();
 
     if (isMockMode()) {
-      return res.json({ allowed: !!STRICT_MOCK_TEST_USERS[normalizedEmail] });
+      const strictUser = STRICT_MOCK_TEST_USERS[normalizedEmail];
+      return res.json({ allowed: !!strictUser, role: strictUser?.role || null });
     }
 
-    const allowed = await AuthService.canLoginWithEmail(normalizedEmail);
-    return res.json({ allowed });
+    const profile = await AuthService.getAuthorizedProfileByEmail(normalizedEmail);
+    return res.json({
+      allowed: !!profile,
+      role: profile?.role ? String(profile.role).toUpperCase() : null,
+    });
 });
