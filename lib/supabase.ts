@@ -7,12 +7,26 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const appMode = import.meta.env.VITE_APP_MODE;
 const configuredAuthRedirect = import.meta.env.VITE_SUPABASE_AUTH_REDIRECT_URL;
 const isTest = import.meta.env.MODE === 'test';
+const isDevRuntime = !!import.meta.env.DEV;
+const explicitTestMode = String(import.meta.env.VITE_ENABLE_TEST_MODE || '').toLowerCase() === 'true';
+const testModeEnabled = explicitTestMode || isTest;
+const explicitMode = String(appMode || '').toUpperCase();
+
+const resolveAppMode = (): 'PROD' | 'MOCK' | 'DEMO' => {
+    if (explicitMode === 'DEMO') return 'DEMO';
+    if (explicitMode === 'MOCK') return (testModeEnabled || isDevRuntime) ? 'MOCK' : 'PROD';
+    if (explicitMode === 'PROD') return 'PROD';
+
+    if (testModeEnabled) return 'MOCK';
+    return 'PROD';
+};
 
 // Determina o modo da aplicação
-export const APP_MODE = appMode || (isTest ? 'MOCK' : (supabaseUrl ? 'PROD' : 'MOCK'));
+export const APP_MODE = resolveAppMode();
+export const TEST_MODE_ENABLED = testModeEnabled;
 
 // Export flag para a API saber se deve usar dados reais ou simulados
-export const isMockMode = APP_MODE === 'MOCK';
+export const isMockMode = APP_MODE === 'MOCK' && (TEST_MODE_ENABLED || isDevRuntime);
 export const isDemoMode = APP_MODE === 'DEMO';
 
 // Diagnóstico para o Frontend verificar o que foi injetado pelo Vite
@@ -20,6 +34,7 @@ export const envStatus = {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,
     mode: APP_MODE,
+    testModeEnabled: TEST_MODE_ENABLED,
     urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 8) + '...' : 'undefined'
 };
 
@@ -64,7 +79,7 @@ export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } 
             const redirectOrigin = parsedRedirect?.origin || '';
             const isLocalhost = currentOrigin.includes('localhost');
 
-            if (!configuredAuthRedirect) {
+            if (!configuredAuthRedirect && !TEST_MODE_ENABLED) {
                 issues.push('Defina VITE_SUPABASE_AUTH_REDIRECT_URL para validar OAuth em domínio real.');
             }
 
@@ -86,7 +101,7 @@ try {
     const finalKey = supabaseAnonKey || 'dummy-anon-key';
     
     if (!supabaseUrl || !supabaseAnonKey) {
-        console.warn("⚠️ Viva360: SUPABASE_URL ou SUPABASE_ANON_KEY não configurados! Usando placeholders para evitar travamento.");
+        console.warn("⚠️ Viva360: SUPABASE_URL ou SUPABASE_ANON_KEY não configurados! Operação real ficará indisponível.");
     }
     client = createClient(finalUrl, finalKey);
 } catch (error) {

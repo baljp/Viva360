@@ -25,10 +25,179 @@ import { supabase } from '../lib/supabase';
             <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${active ? 'left-7' : 'left-1'}`}></div>
         </button>
     );
+
+    type NotificationPrefKey = 'rituals' | 'tribe' | 'finance';
+
+    type SettingsRoleConfig = {
+        profile: {
+            title: string;
+            subtitle: string;
+            identityLabel: string;
+            bioLabel: string;
+            bioPlaceholder: string;
+            intentionLabel: string;
+            intentionPlaceholder: string;
+        };
+        wallet: {
+            title: string;
+            subtitle: string;
+            karmaLabel: string;
+            movementsLabel: string;
+            actionLabel: string;
+            actionTarget: ViewState;
+        };
+        security: {
+            title: string;
+            subtitle: string;
+            privacyLabel: string;
+            saveLabel: string;
+        };
+        notifications: {
+            title: string;
+            subtitle: string;
+            saveLabel: string;
+            items: Array<{ key: NotificationPrefKey; label: string; sub: string; icon: any; color: string }>;
+        };
+        assets: {
+            route: ViewState;
+            label: string;
+            sub: string;
+        };
+    };
+
+    const getSettingsRoleConfig = (role: UserRole): SettingsRoleConfig => {
+        if (role === UserRole.PROFESSIONAL) {
+            return {
+                profile: {
+                    title: 'Manifesto do Guardião',
+                    subtitle: 'IDENTIDADE PROFISSIONAL',
+                    identityLabel: 'Nome Profissional',
+                    bioLabel: 'Manifesto Terapêutico',
+                    bioPlaceholder: 'Descreva sua abordagem de cuidado e troca.',
+                    intentionLabel: 'Intenção de Atendimento',
+                    intentionPlaceholder: 'Ex: Acolher com presença e clareza.',
+                },
+                wallet: {
+                    title: 'Fluxo Profissional',
+                    subtitle: 'REPASSES & KARMA',
+                    karmaLabel: 'Karma de Cuidado',
+                    movementsLabel: 'Movimentações Profissionais',
+                    actionLabel: 'Ir para Finanças',
+                    actionTarget: ViewState.PRO_FINANCE,
+                },
+                security: {
+                    title: 'Selos Profissionais',
+                    subtitle: 'SEGURANÇA',
+                    privacyLabel: 'Privacidade Profissional',
+                    saveLabel: 'Salvar Privacidade',
+                },
+                notifications: {
+                    title: 'Chamados e Avisos',
+                    subtitle: 'NOTIFICAÇÕES',
+                    saveLabel: 'Atualizar Chamados',
+                    items: [
+                        { key: 'rituals', label: 'Chamados de Agenda', sub: 'Lembretes de sessões e preparação', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
+                        { key: 'tribe', label: 'Mensagens de Rede', sub: 'Conversas da tribo e pacientes', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
+                        { key: 'finance', label: 'Repasses e Pagamentos', sub: 'Entradas e confirmações de troca', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
+                    ],
+                },
+                assets: {
+                    route: ViewState.PRO_MARKETPLACE,
+                    label: 'Ativos de Alquimia',
+                    sub: 'OFERTAS, RITUAIS E SERVIÇOS',
+                },
+            };
+        }
+
+        if (role === UserRole.SPACE) {
+            return {
+                profile: {
+                    title: 'Manifesto do Santuário',
+                    subtitle: 'IDENTIDADE INSTITUCIONAL',
+                    identityLabel: 'Nome do Santuário',
+                    bioLabel: 'Manifesto do Espaço',
+                    bioPlaceholder: 'Descreva propósito, estrutura e diferencial do seu hub.',
+                    intentionLabel: 'Intenção do Ciclo Atual',
+                    intentionPlaceholder: 'Ex: Fortalecer acolhimento e expansão da equipe.',
+                },
+                wallet: {
+                    title: 'Abundância do Santuário',
+                    subtitle: 'TESOURARIA & KARMA',
+                    karmaLabel: 'Karma Institucional',
+                    movementsLabel: 'Movimentações do Santuário',
+                    actionLabel: 'Abrir Financeiro',
+                    actionTarget: ViewState.SPACE_FINANCE,
+                },
+                security: {
+                    title: 'Selos Institucionais',
+                    subtitle: 'SEGURANÇA',
+                    privacyLabel: 'Privacidade Institucional',
+                    saveLabel: 'Salvar Política',
+                },
+                notifications: {
+                    title: 'Alertas Operacionais',
+                    subtitle: 'NOTIFICAÇÕES',
+                    saveLabel: 'Atualizar Alertas',
+                    items: [
+                        { key: 'rituals', label: 'Agenda e Salas', sub: 'Alterações de salas, eventos e operações', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
+                        { key: 'tribe', label: 'Equipe e Convites', sub: 'Novos guardiões e interações internas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
+                        { key: 'finance', label: 'Financeiro Global', sub: 'Repasses, fechamento e pendências', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
+                    ],
+                },
+                assets: {
+                    route: ViewState.SPACE_MARKETPLACE,
+                    label: 'Ativos do Santuário',
+                    sub: 'BAZAR, RETIROS E SERVIÇOS',
+                },
+            };
+        }
+
+        return {
+            profile: {
+                title: 'Manifesto Visual',
+                subtitle: 'IDENTIDADE',
+                identityLabel: 'Sua Identidade',
+                bioLabel: 'Manifesto (Bio)',
+                bioPlaceholder: 'Dedico minha jornada a...',
+                intentionLabel: 'Sua Intenção Atual',
+                intentionPlaceholder: 'Ex: Encontrar clareza mental',
+            },
+            wallet: {
+                title: 'Minha Abundância',
+                subtitle: 'KARMA & SALDO',
+                karmaLabel: 'Karma Acumulado',
+                movementsLabel: 'Movimentações do Fluxo',
+                actionLabel: 'Trocar por Vouchers',
+                actionTarget: ViewState.CLIENT_MARKETPLACE,
+            },
+            security: {
+                title: 'Selos de Proteção',
+                subtitle: 'SEGURANÇA',
+                privacyLabel: 'Privacidade do Fluxo',
+                saveLabel: 'Salvar Privacidade',
+            },
+            notifications: {
+                title: 'Sinais e Avisos',
+                subtitle: 'NOTIFICAÇÕES',
+                saveLabel: 'Atualizar Alertas',
+                items: [
+                    { key: 'rituals', label: 'Alertas de Ritual', sub: 'Lembretes de sessões agendadas', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
+                    { key: 'tribe', label: 'Mensagens da Tribo', sub: 'Novas conexões e vibes enviadas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
+                    { key: 'finance', label: 'Fluxo de Abundância', sub: 'Confirmações de trocas éticas', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
+                ],
+            },
+            assets: {
+                route: ViewState.CLIENT_ORDERS,
+                label: 'Meus Ativos',
+                sub: 'RITUAIS E VOUCHERS',
+            },
+        };
+    };
     
     export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({ 
         user, view, setView, updateUser, onLogout, flow 
     }) => {
+        const roleConfig = getSettingsRoleConfig(user.role);
         const [toast, setToast] = useState<{title: string, message: string} | null>(null);
         const [showPass, setShowPass] = useState(false);
         const [privacyState, setPrivacyState] = useState({ tribe: true, patterns: false, history: true });
@@ -42,6 +211,16 @@ import { supabase } from '../lib/supabase';
         const [txLoading, setTxLoading] = useState(false);
         const [newPassword, setNewPassword] = useState('');
         const [passwordLoading, setPasswordLoading] = useState(false);
+        const normalizedTransactions = transactions.map((tx) => {
+            const normalizedType = String(tx.type || '').toLowerCase();
+            const isIncome = normalizedType === 'income' || normalizedType === 'credit' || normalizedType === 'deposit' || normalizedType === 'entrada';
+            return {
+                ...tx,
+                amount: Number(tx.amount || 0),
+                date: tx.date || new Date().toISOString(),
+                type: isIncome ? 'income' : 'expense',
+            } as Transaction;
+        });
     
         // Ref para o input de arquivo (foto de perfil)
         const fileInputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +262,7 @@ import { supabase } from '../lib/supabase';
             // Save privacy preferences to user profile
             try {
                 await api.users.update({ ...user, privacySettings: privacyState } as any);
-                setToast({ title: "Proteção Ativa", message: "Suas configurações de privacidade foram salvas." });
+                setToast({ title: roleConfig.security.title, message: "Suas configurações de privacidade foram salvas." });
             } catch {
                 setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
             }
@@ -111,7 +290,7 @@ import { supabase } from '../lib/supabase';
             // Persist notification preferences to user profile
             try {
                 await api.users.update({ ...user, notificationPrefs: notifPrefs } as any);
-                setToast({ title: "Sinais Sincronizados", message: "Preferências de alerta atualizadas com sucesso." });
+                setToast({ title: roleConfig.notifications.title, message: "Preferências de alerta atualizadas com sucesso." });
             } catch {
                 setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
             }
@@ -119,7 +298,7 @@ import { supabase } from '../lib/supabase';
     
         if (view === ViewState.SETTINGS_PROFILE) {
           return (
-            <PortalView title="Manifesto Visual" subtitle="IDENTIDADE" onBack={() => setView(ViewState.SETTINGS)}>
+            <PortalView title={roleConfig.profile.title} subtitle={roleConfig.profile.subtitle} onBack={() => setView(ViewState.SETTINGS)}>
                 <div className="space-y-8">
                     <div className="flex flex-col items-center gap-6">
                       <div className="relative group">
@@ -142,7 +321,7 @@ import { supabase } from '../lib/supabase';
     
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Sua Identidade</label>
+                        <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">{roleConfig.profile.identityLabel}</label>
                         <input 
                           type="text" 
                           value={editingUser.name} 
@@ -152,25 +331,25 @@ import { supabase } from '../lib/supabase';
                       </div>
     
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Manifesto (Bio)</label>
+                        <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">{roleConfig.profile.bioLabel}</label>
                         <textarea 
                           rows={4}
                           value={editingUser.bio} 
                           onChange={e => setEditingUser({...editingUser, bio: e.target.value})}
-                          placeholder="Dedico minha jornada a..."
+                          placeholder={roleConfig.profile.bioPlaceholder}
                           className="w-full bg-white border border-nature-100 p-5 rounded-3xl text-sm focus:ring-4 focus:ring-primary-500/5 outline-none resize-none"
                         />
                       </div>
     
                       <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Sua Intenção Atual</label>
+                        <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">{roleConfig.profile.intentionLabel}</label>
                         <div className="bg-white p-5 rounded-3xl border border-nature-100 flex items-center gap-4">
                           <Sparkles size={20} className="text-amber-500" />
                           <input 
                             type="text" 
                             value={editingUser.intention} 
                             onChange={e => setEditingUser({...editingUser, intention: e.target.value})}
-                            placeholder="Ex: Encontrar clareza mental"
+                            placeholder={roleConfig.profile.intentionPlaceholder}
                             className="flex-1 bg-transparent outline-none text-sm font-medium"
                           />
                         </div>
@@ -190,23 +369,28 @@ import { supabase } from '../lib/supabase';
     
         if (view === ViewState.SETTINGS_WALLET) {
           return (
-            <PortalView title="Minha Abundância" subtitle="KARMA & SALDO" onBack={() => setView(ViewState.SETTINGS)}>
+            <PortalView title={roleConfig.wallet.title} subtitle={roleConfig.wallet.subtitle} onBack={() => setView(ViewState.SETTINGS)}>
                 <div className="space-y-10">
                     <WalletSplit personal={user.personalBalance} corporate={user.corporateBalance} />
                     
                     <div className="bg-nature-900 text-white p-10 rounded-[3rem] shadow-2xl relative overflow-hidden">
                        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
-                       <p className="text-[10px] font-bold uppercase tracking-widest text-primary-400 mb-4">Karma Acumulado</p>
+                       <p className="text-[10px] font-bold uppercase tracking-widest text-primary-400 mb-4">{roleConfig.wallet.karmaLabel}</p>
                        <div className="flex items-end gap-3">
                          <h3 className="text-5xl font-serif italic">{user.karma}</h3>
                          <Sparkles size={24} className="text-amber-400 mb-2" />
                        </div>
-                       <button className="mt-8 w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">Trocar por Vouchers</button>
+                       <button
+                           onClick={() => setView(roleConfig.wallet.actionTarget)}
+                           className="mt-8 w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all"
+                       >
+                           {roleConfig.wallet.actionLabel}
+                       </button>
                     </div>
     
                     <div className="space-y-6">
                       <div className="flex justify-between items-center px-2">
-                        <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Movimentações do Fluxo</h4>
+                        <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">{roleConfig.wallet.movementsLabel}</h4>
                         <button className="text-[10px] font-bold text-primary-600 uppercase">Ver Tudo</button>
                       </div>
                       <div className="space-y-3">
@@ -214,10 +398,10 @@ import { supabase } from '../lib/supabase';
                           <div className="p-8 text-center text-nature-400 flex items-center justify-center gap-2">
                             <Loader2 size={16} className="animate-spin" /> Carregando...
                           </div>
-                        ) : transactions.length === 0 ? (
+                        ) : normalizedTransactions.length === 0 ? (
                           <div className="p-8 text-center text-nature-400 italic">Nenhuma movimentação registrada.</div>
                         ) : (
-                          transactions.slice(0, 5).map((tx, i) => (
+                          normalizedTransactions.slice(0, 5).map((tx, i) => (
                             <div key={tx.id || i} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex justify-between items-center shadow-sm">
                               <div className="flex items-center gap-4">
                                  <div className={`p-3 rounded-xl ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
@@ -243,7 +427,7 @@ import { supabase } from '../lib/supabase';
     
         if (view === ViewState.SETTINGS_SECURITY) {
             return (
-                <PortalView title="Selos de Proteção" subtitle="SEGURANÇA" onBack={() => setView(ViewState.SETTINGS)}>
+                <PortalView title={roleConfig.security.title} subtitle={roleConfig.security.subtitle} onBack={() => setView(ViewState.SETTINGS)}>
                     <div className="space-y-8">
                         <Card className="space-y-6">
                             <div className="flex items-center gap-4 border-b border-nature-50 pb-6">
@@ -271,7 +455,7 @@ import { supabase } from '../lib/supabase';
                         </Card>
     
                         <div className="space-y-4">
-                            <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Privacidade do Fluxo</h4>
+                            <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">{roleConfig.security.privacyLabel}</h4>
                             {[
                                 { key: 'tribe', label: 'Perfil Visível na Tribo', icon: Globe },
                                 { key: 'patterns', label: 'Compartilhar Metamorfose', icon: Activity },
@@ -287,7 +471,7 @@ import { supabase } from '../lib/supabase';
                                 onClick={handleSaveSecurity}
                                 className="w-full py-4 bg-primary-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
                             >
-                                <Check size={16} /> Salvar Privacidade
+                                <Check size={16} /> {roleConfig.security.saveLabel}
                             </button>
                         </div>
                     </div>
@@ -297,13 +481,9 @@ import { supabase } from '../lib/supabase';
 
         if (view === ViewState.SETTINGS_NOTIFICATIONS) {
             return (
-                <PortalView title="Sinais e Avisos" subtitle="NOTIFICAÇÕES" onBack={() => setView(ViewState.SETTINGS)}>
+                <PortalView title={roleConfig.notifications.title} subtitle={roleConfig.notifications.subtitle} onBack={() => setView(ViewState.SETTINGS)}>
                     <div className="space-y-4">
-                        {[
-                            { key: 'rituals', label: 'Alertas de Ritual', sub: 'Lembretes de sessões agendadas', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
-                            { key: 'tribe', label: 'Mensagens da Tribo', sub: 'Novas conexões e vibes enviadas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
-                            { key: 'finance', label: 'Fluxo de Abundância', sub: 'Confirmações de trocas éticas', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
-                        ].map((item) => (
+                        {roleConfig.notifications.items.map((item) => (
                             <div key={item.key} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex justify-between items-center shadow-sm">
                                 <div className="flex items-center gap-5">
                                     <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20}/></div>
@@ -317,7 +497,7 @@ import { supabase } from '../lib/supabase';
                             onClick={handleSaveNotifications}
                             className="w-full py-4 bg-primary-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
                         >
-                            <Check size={16} /> Atualizar Alertas
+                            <Check size={16} /> {roleConfig.notifications.saveLabel}
                         </button>
                     </div>
                 </PortalView>
@@ -341,11 +521,11 @@ import { supabase } from '../lib/supabase';
 
             <div className="space-y-4 px-2 flex-1">
                 {[
-                    { id: ViewState.SETTINGS_PROFILE, label: 'Manifesto Visual', sub: 'BIO, INTENÇÃO E IDENTIDADE', icon: UserIcon, color: 'bg-nature-50 text-nature-400' },
-                    { id: ViewState.SETTINGS_WALLET, label: 'Minha Abundância', sub: 'CARTEIRA, KARMA E MOVIMENTAÇÕES', icon: Wallet, color: 'bg-amber-50 text-amber-500' },
-                    { id: ViewState.SETTINGS_NOTIFICATIONS, label: 'Sinais e Avisos', sub: 'ALERTAS DO FLUXO', icon: Bell, color: 'bg-indigo-50 text-indigo-500' },
-                    { id: ViewState.SETTINGS_SECURITY, label: 'Selos de Proteção', sub: 'SEGURANÇA E PRIVACIDADE', icon: Lock, color: 'bg-rose-50 text-rose-500' },
-                    { id: ViewState.CLIENT_ORDERS, label: 'Meus Ativos', sub: 'RITUAIS E VOUCHERS', icon: ShoppingBag, color: 'bg-primary-50 text-primary-600' },
+                    { id: ViewState.SETTINGS_PROFILE, label: roleConfig.profile.title, sub: 'BIO, INTENÇÃO E IDENTIDADE', icon: UserIcon, color: 'bg-nature-50 text-nature-400' },
+                    { id: ViewState.SETTINGS_WALLET, label: roleConfig.wallet.title, sub: 'CARTEIRA, KARMA E MOVIMENTAÇÕES', icon: Wallet, color: 'bg-amber-50 text-amber-500' },
+                    { id: ViewState.SETTINGS_NOTIFICATIONS, label: roleConfig.notifications.title, sub: 'ALERTAS DO FLUXO', icon: Bell, color: 'bg-indigo-50 text-indigo-500' },
+                    { id: ViewState.SETTINGS_SECURITY, label: roleConfig.security.title, sub: 'SEGURANÇA E PRIVACIDADE', icon: Lock, color: 'bg-rose-50 text-rose-500' },
+                    { id: roleConfig.assets.route, label: roleConfig.assets.label, sub: roleConfig.assets.sub, icon: ShoppingBag, color: 'bg-primary-50 text-primary-600' },
                 ].map(item => (
                     <button key={item.id} onClick={() => setView(item.id)} className="w-full bg-white p-6 rounded-[2.5rem] border border-nature-100 flex items-center justify-between group active:scale-[0.98] transition-all hover:shadow-xl shadow-sm">
                         <div className="flex items-center gap-6">

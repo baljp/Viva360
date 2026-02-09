@@ -213,6 +213,15 @@ const App: React.FC = () => {
         }
     }, []);
 
+    useEffect(() => {
+        const container = document.getElementById('viva360-main-scroll');
+        if (container) {
+            container.scrollTo({ top: 0, behavior: 'auto' });
+            return;
+        }
+        window.scrollTo({ top: 0, behavior: 'auto' });
+    }, [location.pathname]);
+
     // Global OAuth Listener - Detects Google login callbacks from any route
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -286,8 +295,14 @@ const App: React.FC = () => {
     const processCheckout = async () => {
         if (!currentUser) return;
         try {
-            // Simulated transaction processing logic
-            console.log(`[Checkout] Processing ${cart.length} items`);
+            const totalAmount = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+            const response = await api.payment.checkout(
+                totalAmount,
+                `Checkout com ${cart.length} item(ns)`,
+            );
+            if (!response || (response.success === false && !response.id)) {
+                throw new Error('Falha ao processar pagamento.');
+            }
             
             setCart([]);
             localStorage.removeItem('viva360.cart');

@@ -1,15 +1,18 @@
 import { User, Professional, UserRole, Appointment, Product, Notification, DailyJournalEntry } from '../types';
-import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOAuthRuntimeConfig } from '../lib/supabase';
+import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOAuthRuntimeConfig, TEST_MODE_ENABLED } from '../lib/supabase';
+import { captureFrontendError, captureFrontendMessage } from '../lib/monitoring';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const AUTH_TOKEN_KEY = 'viva360.auth.token';
 const MOCK_USER_KEY = 'viva360.mock_user';
 const MOCK_AUTH_TOKEN = 'admin-excellence-2026';
 const SESSION_MODE_KEY = 'viva360.session.mode';
+const TEST_MODE_ACTIVATION_KEY = 'viva360.test_mode.active';
 const OAUTH_EXPECTED_EMAIL_KEY = 'viva360.oauth.expected_email';
 const ORACLE_HISTORY_KEY = 'viva360.oracle.history';
 const ORACLE_MAX_CACHE = 40;
 const TEST_ACCOUNT_PASSWORD = '123456';
+const RETRYABLE_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504]);
 
 const STRICT_TEST_ACCOUNTS: Record<string, { id: string; role: UserRole; name: string }> = {
     'client0@viva360.com': { id: 'client_0', role: UserRole.CLIENT, name: 'Buscador Teste' },
@@ -76,6 +79,23 @@ const isLikelyNetworkError = (message?: string): boolean => {
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 const isStrictTestEmail = (email: string) => STRICT_TEST_EMAILS.has(normalizeEmail(email));
+const isLocalDevRuntime = () => {
+    if (typeof window === 'undefined') return false;
+    return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+};
+const isTestRuntimeAllowed = () => isSupabaseMock || (TEST_MODE_ENABLED && isLocalDevRuntime());
+const isTestModeActivated = () => {
+    const activation = localStorage.getItem(TEST_MODE_ACTIVATION_KEY) === '1';
+    const currentMode = getSessionMode() === 'mock';
+    return activation || currentMode;
+};
+const activateTestMode = () => {
+    localStorage.setItem(TEST_MODE_ACTIVATION_KEY, '1');
+};
+const clearTestMode = () => {
+    localStorage.removeItem(TEST_MODE_ACTIVATION_KEY);
+};
+const canUseMockSession = () => isTestRuntimeAllowed() && isTestModeActivated();
 
 const getSessionMode = (): 'mock' | 'real' | null => {
     const value = localStorage.getItem(SESSION_MODE_KEY);
@@ -95,6 +115,7 @@ const clearMockArtifacts = (opts?: { preserveAuthToken?: boolean }) => {
         OAUTH_EXPECTED_EMAIL_KEY,
     ];
     keysToDrop.forEach((key) => localStorage.removeItem(key));
+    clearTestMode();
 
     if (!preserveAuthToken) {
         localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -134,6 +155,10 @@ const createMockUser = (email: string, role?: UserRole, name?: string): User => 
 };
 
 const saveMockSession = (user: User) => {
+    if (!isTestRuntimeAllowed()) {
+        throw new Error('Modo teste indisponível neste ambiente.');
+    }
+    activateTestMode();
     setSessionMode('mock');
     localStorage.setItem(MOCK_USER_KEY, JSON.stringify(user));
     localStorage.setItem(AUTH_TOKEN_KEY, MOCK_AUTH_TOKEN);
@@ -141,12 +166,13 @@ const saveMockSession = (user: User) => {
 
 const promoteToRealSession = (token?: string) => {
     clearMockArtifacts({ preserveAuthToken: true });
+    clearTestMode();
     if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
     setSessionMode('real');
 };
 
 const getMockSession = (): User | null => {
-    if (!isSupabaseMock) return null;
+    if (!isTestRuntimeAllowed() || !isTestModeActivated()) return null;
     if (getSessionMode() !== 'mock') return null;
     const mockUser = parseSafe<User>(localStorage.getItem(MOCK_USER_KEY));
     if (!mockUser) return null;
@@ -158,6 +184,24 @@ const getMockSession = (): User | null => {
         email: mockUser.email || '',
         name: mockUser.name || 'Viajante',
     });
+};
+
+const checkLoginEligibility = async (email: string): Promise<boolean> => {
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail) return false;
+
+    try {
+        const response = await fetch(`${API_URL}/auth/precheck-login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: normalizedEmail }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) return false;
+        return !!payload?.allowed;
+    } catch {
+        throw new Error('Não foi possível validar sua conta agora. Tente novamente em instantes.');
+    }
 };
 
 const decodeJwtPayload = (token: string): any | null => {
@@ -212,7 +256,7 @@ const buildOracleFallbackCard = (mood: string) => {
 };
 
 const getHeader = () => {
-    const isMockSession = isSupabaseMock && getSessionMode() === 'mock' && !!localStorage.getItem(MOCK_USER_KEY);
+    const isMockSession = canUseMockSession() && getSessionMode() === 'mock' && !!localStorage.getItem(MOCK_USER_KEY);
     const token = localStorage.getItem(AUTH_TOKEN_KEY) || (isMockSession ? MOCK_AUTH_TOKEN : '');
     return {
         'Content-Type': 'application/json',
@@ -220,18 +264,70 @@ const getHeader = () => {
     };
 };
 
-export const request = async (endpoint: string, options: RequestInit = {}) => {
-    const res = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers: { ...getHeader(), ...options.headers }
-    });
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const shouldRetryResponse = (status: number) => RETRYABLE_STATUS_CODES.has(status);
 
-    if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || res.statusText || 'API Request Failed');
+type RequestOptions = RequestInit & {
+    retries?: number;
+    retryDelayMs?: number;
+    timeoutMs?: number;
+    purpose?: string;
+};
+
+export const request = async (endpoint: string, options: RequestOptions = {}) => {
+    const {
+        retries = 2,
+        retryDelayMs = 350,
+        timeoutMs = 10000,
+        purpose,
+        ...fetchOptions
+    } = options;
+
+    let lastError: any = null;
+    for (let attempt = 0; attempt <= retries; attempt += 1) {
+        const controller = new AbortController();
+        const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+
+        try {
+            const res = await fetch(`${API_URL}${endpoint}`, {
+                ...fetchOptions,
+                signal: controller.signal,
+                headers: { ...getHeader(), ...fetchOptions.headers }
+            });
+            clearTimeout(timeoutHandle);
+
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                const message = errorData.error || res.statusText || 'API Request Failed';
+                const error = new Error(message);
+                (error as any).status = res.status;
+                if (attempt < retries && shouldRetryResponse(res.status)) {
+                    await wait(retryDelayMs * (attempt + 1));
+                    continue;
+                }
+                throw error;
+            }
+
+            return res.json();
+        } catch (error: any) {
+            clearTimeout(timeoutHandle);
+            lastError = error;
+            const aborted = error?.name === 'AbortError';
+            const status = Number(error?.status || 0);
+            const retryable = aborted || shouldRetryResponse(status) || isLikelyNetworkError(error?.message);
+
+            if (attempt < retries && retryable) {
+                await wait(retryDelayMs * (attempt + 1));
+                continue;
+            }
+        }
     }
 
-    return res.json();
+    captureFrontendError(lastError, {
+        endpoint,
+        purpose: purpose || 'request',
+    });
+    throw lastError || new Error('API Request Failed');
 };
 
 export const api = {
@@ -242,16 +338,21 @@ export const api = {
                 throw new Error('Preencha e-mail e senha.');
             }
 
-            if (isSupabaseMock) {
-                if (!isStrictTestEmail(normalizedEmail)) {
-                    throw new Error('No modo teste, use apenas e-mails pré-definidos.');
-                }
+            if (isTestRuntimeAllowed() && isStrictTestEmail(normalizedEmail)) {
                 if (password !== TEST_ACCOUNT_PASSWORD) {
                     throw new Error('Senha de teste inválida.');
                 }
                 const mockUser = createMockUser(normalizedEmail);
                 saveMockSession(mockUser);
                 return mockUser;
+            }
+            if (isSupabaseMock) {
+                throw new Error('No modo teste, use apenas e-mails pré-definidos.');
+            }
+
+            const allowed = await checkLoginEligibility(normalizedEmail);
+            if (!allowed) {
+                throw new Error('Conta não autorizada. Faça cadastro antes de entrar.');
             }
 
             try {
@@ -310,13 +411,13 @@ export const api = {
                 throw new Error('Informe seu e-mail antes de continuar com Google.');
             }
 
-            if (isSupabaseMock) {
-                if (!isStrictTestEmail(normalizedExpectedEmail)) {
-                    throw new Error('Google em modo teste aceita apenas contas pré-definidas.');
-                }
+            if (isTestRuntimeAllowed() && isStrictTestEmail(normalizedExpectedEmail)) {
                 const mockUser = createMockUser(normalizedExpectedEmail, role, 'Conta Google (Teste)');
                 saveMockSession(mockUser);
                 return mockUser;
+            }
+            if (isSupabaseMock) {
+                throw new Error('Google em modo teste aceita apenas contas pré-definidas.');
             }
 
             const oauthValidation = validateOAuthRuntimeConfig();
@@ -324,13 +425,8 @@ export const api = {
                 throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
             }
 
-            const precheckResponse = await fetch(`${API_URL}/auth/precheck-login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: normalizedExpectedEmail }),
-            });
-            const precheckPayload = await precheckResponse.json().catch(() => ({}));
-            if (!precheckResponse.ok || !precheckPayload?.allowed) {
+            const allowed = await checkLoginEligibility(normalizedExpectedEmail);
+            if (!allowed) {
                 throw new Error('Este e-mail ainda não está autorizado para login com Google.');
             }
 
@@ -365,7 +461,7 @@ export const api = {
             const normalizedEmail = normalizeEmail(String(data.email || ''));
             const normalizedRole = normalizeRole(data.role);
 
-            if (isSupabaseMock) {
+            if (isSupabaseMock || canUseMockSession()) {
                 throw new Error('Cadastro real está desabilitado no modo teste.');
             }
 
@@ -431,9 +527,10 @@ export const api = {
             }
         },
         getCurrentSession: async (): Promise<User | null> => {
-            if (!isSupabaseMock && localStorage.getItem(MOCK_USER_KEY)) {
+            if (!canUseMockSession() && localStorage.getItem(MOCK_USER_KEY)) {
                 clearMockArtifacts({ preserveAuthToken: true });
                 localStorage.removeItem(SESSION_MODE_KEY);
+                captureFrontendMessage('Sessão mock bloqueada fora de ambiente de teste local.');
             }
 
             const mockSession = getMockSession();
@@ -453,7 +550,14 @@ export const api = {
                     localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
 
                     const rawRole = normalizeRole(session.user.user_metadata.role);
-                    if (!session.user.user_metadata?.role && !isSupabaseMock) {
+                    if (!session.user.user_metadata?.role && !canUseMockSession()) {
+                        await supabase.auth.signOut();
+                        clearMockArtifacts();
+                        localStorage.removeItem(SESSION_MODE_KEY);
+                        throw new Error('Conta não autorizada. Faça cadastro primeiro ou use conta de teste.');
+                    }
+                    const isKnownAccount = await checkLoginEligibility(sessionEmail);
+                    if (!isKnownAccount) {
                         await supabase.auth.signOut();
                         clearMockArtifacts();
                         localStorage.removeItem(SESSION_MODE_KEY);
@@ -483,7 +587,7 @@ export const api = {
             if (!payload?.email) return null;
 
             const isMockToken = token === MOCK_AUTH_TOKEN;
-            if (isMockToken && !isSupabaseMock && getSessionMode() !== 'mock') {
+            if (isMockToken && !canUseMockSession()) {
                 clearMockArtifacts();
                 localStorage.removeItem(SESSION_MODE_KEY);
                 return null;
@@ -502,7 +606,7 @@ export const api = {
         },
         logout: async () => {
             try {
-                if (!isSupabaseMock) {
+                if (!canUseMockSession()) {
                     await supabase.auth.signOut();
                 }
             } catch {
@@ -513,6 +617,7 @@ export const api = {
             localStorage.removeItem(MOCK_USER_KEY);
             localStorage.removeItem(SESSION_MODE_KEY);
             localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+            clearTestMode();
         }
     },
     users: {
@@ -547,8 +652,9 @@ export const api = {
     payment: {
         checkout: async (amount: number, description: string, providerId?: string) => {
             try {
-                return await request('/checkout', {
+                return await request('/checkout/pay', {
                     method: 'POST',
+                    purpose: 'checkout-payment',
                     body: JSON.stringify({ amount, description, receiverId: providerId })
                 });
             } catch {
@@ -593,7 +699,14 @@ export const api = {
         applyToVacancy: async (vid: string) => ({ success: true }),
         getFinanceSummary: async (pid: string) => {
             try {
-                return await request(`/professionals/${pid}/finance`);
+                const [summary, transactions] = await Promise.all([
+                    request('/finance/summary', { purpose: 'finance-summary' }).catch(() => ({ balance: 0 })),
+                    request('/finance/transactions', { purpose: 'finance-transactions' }).catch(() => []),
+                ]);
+                return {
+                    ...(summary || {}),
+                    transactions: Array.isArray(transactions) ? transactions : [],
+                };
             } catch {
                 return { balance: 0, transactions: [] };
             }
@@ -661,22 +774,23 @@ export const api = {
     marketplace: {
         listAll: async (): Promise<Product[]> => {
             try {
-                return await request('/marketplace');
+                return await request('/marketplace/products', { purpose: 'marketplace-list' });
             } catch {
                 return [];
             }
         },
         listByOwner: async (oid: string) => {
             try {
-                return await request(`/marketplace?owner=${oid}`);
+                return await request(`/marketplace/products?ownerId=${oid}`, { purpose: 'marketplace-owner-list' });
             } catch {
                 return [];
             }
         },
         create: async (p: any) => {
             try {
-                return await request('/marketplace', {
+                return await request('/marketplace/products', {
                     method: 'POST',
+                    purpose: 'marketplace-create',
                     body: JSON.stringify(p)
                 });
             } catch {
@@ -685,7 +799,7 @@ export const api = {
         },
         delete: async (id: string) => {
             try {
-                await request(`/marketplace/${id}`, { method: 'DELETE' });
+                await request(`/marketplace/products/${id}`, { method: 'DELETE', purpose: 'marketplace-delete' });
                 return true;
             } catch {
                 return false;
@@ -754,29 +868,30 @@ export const api = {
     spaces: {
         getRooms: async (uid?: string) => {
             try {
-                return await request('/spaces/rooms');
+                return await request('/rooms/real-time', { purpose: 'space-rooms' });
             } catch {
                 return [];
             }
         },
         getTeam: async (uid?: string) => {
             try {
-                return await request('/spaces/team');
+                return await request('/profiles?role=PROFESSIONAL', { purpose: 'space-team' });
             } catch {
                 return [];
             }
         },
         getVacancies: async (uid?: string) => {
             try {
-                return await request('/spaces/vacancies');
+                return await request('/rooms/vacancies', { purpose: 'space-vacancies' });
             } catch {
                 return [];
             }
         },
         createVacancy: async (v: any) => {
             try {
-                return await request('/spaces/vacancies', {
+                return await request('/rooms/vacancies', {
                     method: 'POST',
+                    purpose: 'space-vacancy-create',
                     body: JSON.stringify(v)
                 });
             } catch {
@@ -785,7 +900,7 @@ export const api = {
         },
         getTransactions: async (uid?: string) => {
             try {
-                return await request('/spaces/transactions');
+                return await request('/finance/transactions', { purpose: 'space-transactions' });
             } catch {
                 return [];
             }
@@ -809,15 +924,16 @@ export const api = {
         },
         getEvents: async () => {
             try {
-                return await request('/spaces/events');
+                return await request('/calendar', { purpose: 'space-events' });
             } catch {
                 return [];
             }
         },
         createEvent: async (evt: any) => {
             try {
-                return await request('/spaces/events', {
+                return await request('/calendar', {
                     method: 'POST',
+                    purpose: 'space-events-create',
                     body: JSON.stringify(evt)
                 });
             } catch {
@@ -850,28 +966,28 @@ export const api = {
         },
         getMarketplaceOffers: async () => {
             try {
-                return await request('/admin/marketplace');
+                return await request('/admin/marketplace/offers');
             } catch {
                 return [];
             }
         },
         getGlobalFinance: async () => {
             try {
-                return await request('/admin/finance');
+                return await request('/admin/finance/global');
             } catch {
                 return {};
             }
         },
         getLgpdAudit: async () => {
             try {
-                return await request('/admin/lgpd');
+                return await request('/admin/lgpd/audit');
             } catch {
                 return [];
             }
         },
         getSystemHealth: async () => {
             try {
-                return await request('/admin/health');
+                return await request('/admin/system/health');
             } catch {
                 return {};
             }

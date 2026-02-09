@@ -30,7 +30,7 @@ export const listUsers = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const blockUser = asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params;
+    const userId = req.params.id;
     await AuditService.logAccess(req.body.adminId, `user:${userId}`, 'BLOCK_USER', 'SUCCESS');
     res.json({ success: true, message: `User ${userId} blocked successfully.` });
 });

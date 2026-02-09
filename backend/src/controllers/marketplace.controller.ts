@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { marketplaceService } from '../services/marketplace.service';
+import prisma from '../lib/prisma';
+import { isMockMode } from '../services/supabase.service';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const ownerId = (req as any).user?.userId;
@@ -30,6 +32,23 @@ export const listProducts = asyncHandler(async (req: Request, res: Response) => 
 
 export const deleteProduct = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
+    const requesterId = (req as any).user?.userId;
+    const role = String((req as any).user?.role || '').toUpperCase();
+
+    if (!isMockMode() && role !== 'ADMIN') {
+      const product = await prisma.product.findUnique({
+        where: { id },
+        select: { owner_id: true },
+      });
+
+      if (!product) {
+        return res.status(404).json({ error: 'Produto não encontrado.' });
+      }
+
+      if (!product.owner_id || product.owner_id !== requesterId) {
+        return res.status(403).json({ error: 'Você não pode remover este produto.' });
+      }
+    }
 
     const result = await marketplaceService.deleteProduct(id);
     return res.json(result);

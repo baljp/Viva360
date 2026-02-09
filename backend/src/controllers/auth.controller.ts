@@ -3,7 +3,6 @@ import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import { AuthService } from '../services/auth.service';
 import { isMockMode } from '../services/supabase.service';
-import { mockData } from '../services/mockData.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { JWT_SECRET } from '../lib/secrets';
 
@@ -37,11 +36,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
     if (isMockMode()) {
        const strictUser = STRICT_MOCK_TEST_USERS[normalizedEmail];
-       const roundedUser = strictUser
-         ? { id: strictUser.id, email: normalizedEmail, role: strictUser.role }
-         : mockData.findUserByEmail(normalizedEmail);
-
-       if (!roundedUser) {
+       if (!strictUser) {
          return res.status(401).json({ error: 'Conta não autorizada no modo teste.' });
        }
 
@@ -49,13 +44,18 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
          return res.status(401).json({ error: 'Senha inválida para conta de teste.' });
        }
 
-       const userPayload = { id: roundedUser.id, email: normalizedEmail, role: roundedUser.role };
+       const userPayload = { id: strictUser.id, email: normalizedEmail, role: strictUser.role };
 
        const token = jwt.sign({ userId: userPayload.id, email: userPayload.email, role: userPayload.role }, JWT_SECRET, { expiresIn: '1h' });
        return res.json({
          user: userPayload,
          session: { access_token: token, refresh_token: 'mock-refresh' }
        });
+    }
+
+    const canLogin = await AuthService.canLoginWithEmail(normalizedEmail);
+    if (!canLogin) {
+      return res.status(401).json({ error: 'Conta não autorizada. Faça cadastro antes de entrar.' });
     }
 
     const data = await AuthService.login(email, password);
@@ -70,6 +70,12 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
        return res.status(403).json({
         error: 'Cadastro real desabilitado no modo teste. Use as contas pré-definidas.'
        });
+    }
+
+    if (STRICT_MOCK_TEST_USERS[normalizedEmail]) {
+      return res.status(400).json({
+        error: 'Este e-mail é reservado para ambiente de testes.'
+      });
     }
 
     const data = await AuthService.register(normalizedEmail, password, name, role); // Pass role
@@ -92,9 +98,7 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
     const normalizedEmail = email.trim().toLowerCase();
 
     if (isMockMode()) {
-      const isStrictTest = !!STRICT_MOCK_TEST_USERS[normalizedEmail];
-      const inCuratedMockDataset = !!mockData.findUserByEmail(normalizedEmail);
-      return res.json({ allowed: isStrictTest || inCuratedMockDataset });
+      return res.json({ allowed: !!STRICT_MOCK_TEST_USERS[normalizedEmail] });
     }
 
     const allowed = await AuthService.canLoginWithEmail(normalizedEmail);
