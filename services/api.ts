@@ -30,6 +30,8 @@ const baseUser = (overrides: Partial<User> & Pick<User, 'id' | 'email' | 'name' 
     email: overrides.email,
     name: overrides.name,
     role: overrides.role,
+    activeRole: overrides.activeRole || overrides.role,
+    roles: overrides.roles || [overrides.activeRole || overrides.role],
     avatar: overrides.avatar || '',
     karma: overrides.karma ?? 0,
     streak: overrides.streak ?? 0,
@@ -56,6 +58,15 @@ const normalizeRole = (value?: string | UserRole): UserRole => {
     if (role === UserRole.SPACE) return UserRole.SPACE;
     if (role === UserRole.ADMIN) return UserRole.ADMIN;
     return UserRole.CLIENT;
+};
+
+const normalizeRoleList = (values?: Array<string | UserRole | null | undefined>): UserRole[] => {
+    const result: UserRole[] = [];
+    (values || []).forEach((value) => {
+        const normalized = normalizeRole(value || UserRole.CLIENT);
+        if (!result.includes(normalized)) result.push(normalized);
+    });
+    return result;
 };
 
 const inferRoleFromEmail = (email: string): UserRole => {
@@ -154,6 +165,8 @@ const createMockUser = (email: string, role?: UserRole, name?: string): User => 
         email: normalizedEmail,
         name: resolvedName,
         role: normalizedRole,
+        activeRole: normalizedRole,
+        roles: [normalizedRole],
         avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${id}`,
         karma: normalizedRole === UserRole.PROFESSIONAL ? 1500 : 500,
     });
@@ -194,8 +207,24 @@ const getMockSession = (): User | null => {
 type LoginEligibility = {
     allowed: boolean;
     role: UserRole | null;
+    roles?: UserRole[];
     reason?: string | null;
     canRegister?: boolean;
+    accountState?: string | null;
+    nextAction?: string | null;
+};
+
+const toDomainAuthMessage = (input: { code?: string | null; reason?: string | null; fallback?: string }): string => {
+    const code = String(input.code || '').toUpperCase();
+    const reason = String(input.reason || '').toUpperCase();
+    if (code === 'EMAIL_ALREADY_EXISTS') return 'Este e-mail já está cadastrado. Entre com ele ou use outro.';
+    if (code === 'ROLE_ALREADY_ACTIVE') return 'Este perfil já existe neste e-mail.';
+    if (code === 'REGISTRATION_INCOMPLETE' || reason === 'REGISTRATION_INCOMPLETE') return 'Seu cadastro está incompleto, finalize para entrar.';
+    if (reason === 'INVITE_APPROVED_PENDING_REGISTRATION') return 'Seu e-mail está aprovado para cadastro. Finalize o cadastro para entrar.';
+    if (reason === 'INVITE_PENDING_APPROVAL') return 'Seu convite está em análise. Aguarde aprovação para entrar.';
+    if (code === 'EMAIL_NOT_AUTHORIZED' || reason === 'EMAIL_NOT_AUTHORIZED') return 'Conta não autorizada. Faça cadastro antes de entrar.';
+    if (code === 'INVALID_CREDENTIALS') return 'Credenciais inválidas.';
+    return input.fallback || 'Não foi possível concluir autenticação.';
 };
 
 const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> => {
@@ -213,11 +242,15 @@ const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> =
 
         const allowed = !!payload?.allowed;
         const role = payload?.role ? normalizeRole(String(payload.role)) : null;
+        const roles = normalizeRoleList(Array.isArray(payload?.roles) ? payload.roles : (role ? [role] : []));
         return {
             allowed,
             role,
+            roles,
             reason: payload?.reason ? String(payload.reason) : null,
             canRegister: !!payload?.canRegister,
+            accountState: payload?.accountState ? String(payload.accountState) : null,
+            nextAction: payload?.nextAction ? String(payload.nextAction) : null,
         };
     } catch {
         throw new Error('Não foi possível validar sua conta agora. Tente novamente em instantes.');
@@ -253,6 +286,30 @@ const decodeJwtPayload = (token: string): any | null => {
     } catch {
         return null;
     }
+};
+
+const normalizeProfilePayload = (input: any): User => {
+    const role = normalizeRole(input?.role || input?.active_role || input?.activeRole || UserRole.CLIENT);
+    const roles = normalizeRoleList(Array.isArray(input?.roles) ? input.roles : [role]);
+    return baseUser({
+        id: String(input?.id || ''),
+        email: String(input?.email || ''),
+        name: String(input?.name || input?.full_name || 'Viajante'),
+        role,
+        activeRole: role,
+        roles,
+        avatar: String(input?.avatar || ''),
+        karma: Number(input?.karma ?? 0),
+        streak: Number(input?.streak ?? 0),
+        multiplier: Number(input?.multiplier ?? 1),
+        personalBalance: Number(input?.personalBalance ?? input?.personal_balance ?? 0),
+        corporateBalance: Number(input?.corporateBalance ?? input?.corporate_balance ?? 0),
+        plantStage: String(input?.plantStage || input?.plant_stage || 'seed') as any,
+        plantXp: Number(input?.plantXp ?? input?.plant_xp ?? 0),
+        lastCheckIn: input?.lastCheckIn || input?.last_check_in || undefined,
+        bio: input?.bio || undefined,
+        location: input?.location || undefined,
+    });
 };
 
 type OracleCachedEntry = {
@@ -338,7 +395,10 @@ export const api = {
 
             const eligibility = await fetchLoginEligibility(normalizedEmail);
             if (!eligibility.allowed) {
-                throw new Error('Conta não autorizada. Faça cadastro antes de entrar.');
+                throw new Error(toDomainAuthMessage({
+                    reason: eligibility.reason,
+                    fallback: 'Conta não autorizada. Faça cadastro antes de entrar.',
+                }));
             }
 
             // Primary path: backend /auth/login (works even when Supabase requires email confirmation).
@@ -351,7 +411,11 @@ export const api = {
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || response.statusText || 'Falha no login');
+                    throw new Error(toDomainAuthMessage({
+                        code: errorData?.code,
+                        reason: errorData?.reason,
+                        fallback: errorData.error || response.statusText || 'Falha no login',
+                    }));
                 }
 
                 const payload = await response.json();
@@ -381,6 +445,8 @@ export const api = {
                     email: payload?.user?.email || normalizedEmail,
                     name: payload?.user?.name || normalizedEmail.split('@')[0] || 'Viajante',
                     role: normalizeRole(payload?.user?.role || inferRoleFromEmail(normalizedEmail)),
+                    activeRole: normalizeRole(payload?.user?.activeRole || payload?.user?.role || inferRoleFromEmail(normalizedEmail)),
+                    roles: normalizeRoleList(Array.isArray(payload?.user?.roles) ? payload.user.roles : [payload?.user?.role || inferRoleFromEmail(normalizedEmail)]),
                     avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${payload?.user?.id || normalizedEmail}`,
                 });
             } catch (err: any) {
@@ -427,7 +493,13 @@ export const api = {
 
             const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
             if (!eligibility.allowed) {
-                throw new Error('Este e-mail ainda não está autorizado para login com Google.');
+                if (eligibility.canRegister) {
+                    throw new Error('Este e-mail está autorizado para cadastro. Use o fluxo de cadastro com Google no primeiro acesso.');
+                }
+                throw new Error(toDomainAuthMessage({
+                    reason: eligibility.reason,
+                    fallback: 'Este e-mail ainda não está autorizado para login com Google.',
+                }));
             }
 
             const redirectTo = getOAuthRedirectUrl();
@@ -531,7 +603,11 @@ export const api = {
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
-                    throw new Error(errorData.error || response.statusText || 'Falha no cadastro');
+                    throw new Error(toDomainAuthMessage({
+                        code: errorData?.code,
+                        reason: errorData?.reason,
+                        fallback: errorData.error || response.statusText || 'Falha no cadastro',
+                    }));
                 }
 
                 const payload = await response.json();
@@ -563,6 +639,8 @@ export const api = {
                     email: payload?.user?.email || normalizedEmail,
                     name: payload?.user?.name || data.name || normalizedEmail.split('@')[0] || 'Viajante',
                     role: normalizeRole(payload?.user?.role || normalizedRole),
+                    activeRole: normalizeRole(payload?.user?.activeRole || payload?.user?.role || normalizedRole),
+                    roles: normalizeRoleList(Array.isArray(payload?.user?.roles) ? payload.user.roles : [payload?.user?.role || normalizedRole]),
                     avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${normalizedEmail}`,
                 });
             } catch (err: any) {
@@ -615,6 +693,9 @@ export const api = {
                     const metadataRoleValue = String((session.user.user_metadata as any)?.role || '').trim();
                     const metadataRole = metadataRoleValue ? normalizeRole(metadataRoleValue) : null;
                     const resolvedRole = eligibility.role || metadataRole || inferRoleFromEmail(sessionEmail);
+                    const resolvedRoles = normalizeRoleList((eligibility.roles && eligibility.roles.length > 0)
+                        ? eligibility.roles
+                        : [resolvedRole]);
 
                     promoteToRealSession(session.access_token);
                     localStorage.removeItem(OAUTH_INTENT_KEY);
@@ -624,6 +705,8 @@ export const api = {
                         email: sessionEmail,
                         name: session.user.user_metadata.full_name || session.user.email?.split('@')[0] || 'Viajante',
                         role: resolvedRole,
+                        activeRole: resolvedRole,
+                        roles: resolvedRoles,
                         avatar: session.user.user_metadata.avatar_url || '',
                     });
                 }
@@ -655,6 +738,8 @@ export const api = {
                 email: payload.email,
                 name: payload.name || payload.email.split('@')[0] || 'Viajante',
                 role: normalizeRole(payload.role || inferRoleFromEmail(payload.email)),
+                activeRole: normalizeRole(payload.activeRole || payload.role || inferRoleFromEmail(payload.email)),
+                roles: normalizeRoleList(Array.isArray(payload.roles) ? payload.roles : [payload.activeRole || payload.role || inferRoleFromEmail(payload.email)]),
                 avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${payload.email}`,
             });
         },
@@ -674,6 +759,42 @@ export const api = {
             localStorage.removeItem(OAUTH_INTENT_KEY);
             localStorage.removeItem(OAUTH_ROLE_KEY);
             clearTestMode();
+        },
+        listRoles: async (): Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }> => {
+            const payload = await request('/auth/roles');
+            const roles = normalizeRoleList(Array.isArray(payload?.roles) ? payload.roles : []);
+            const activeRole = normalizeRole(payload?.activeRole || roles[0] || UserRole.CLIENT);
+            return {
+                userId: String(payload?.userId || ''),
+                roles: roles.length ? roles : [activeRole],
+                activeRole,
+            };
+        },
+        selectRole: async (role: UserRole): Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }> => {
+            const payload = await request('/auth/select-role', {
+                method: 'POST',
+                body: JSON.stringify({ role: normalizeRole(role) }),
+            });
+            const roles = normalizeRoleList(Array.isArray(payload?.roles) ? payload.roles : [role]);
+            const activeRole = normalizeRole(payload?.activeRole || role);
+            return {
+                userId: String(payload?.userId || ''),
+                roles: roles.length ? roles : [activeRole],
+                activeRole,
+            };
+        },
+        addRole: async (role: UserRole): Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }> => {
+            const payload = await request('/auth/add-role', {
+                method: 'POST',
+                body: JSON.stringify({ role: normalizeRole(role) }),
+            });
+            const roles = normalizeRoleList(Array.isArray(payload?.roles) ? payload.roles : [role]);
+            const activeRole = normalizeRole(payload?.activeRole || roles[0] || role);
+            return {
+                userId: String(payload?.userId || ''),
+                roles: roles.length ? roles : [activeRole],
+                activeRole,
+            };
         }
     },
     users: {
@@ -695,27 +816,39 @@ export const api = {
             }
         },
         checkIn: async (uid: string, reward: number = 50) => {
-            try {
-                return await request('/users/checkin', {
-                    method: 'POST',
-                    body: JSON.stringify({ userId: uid, reward })
-                });
-            } catch {
-                return { user: null, reward: 0 };
+            const payload = await request('/users/checkin', {
+                method: 'POST',
+                body: JSON.stringify({ reward })
+            });
+
+            if (payload?.user) {
+                return {
+                    ...payload,
+                    user: normalizeProfilePayload(payload.user),
+                };
             }
+
+            return payload;
         }
     },
     payment: {
-        checkout: async (amount: number, description: string, providerId?: string) => {
-            try {
-                return await request('/checkout/pay', {
-                    method: 'POST',
-                    purpose: 'checkout-payment',
-                    body: JSON.stringify({ amount, description, receiverId: providerId })
-                });
-            } catch {
-                return { success: false };
-            }
+        checkout: async (
+            amount: number,
+            description: string,
+            providerId?: string,
+            opts?: { contextType?: 'BAZAR' | 'TRIBO' | 'RECRUTAMENTO' | 'ESCAMBO' | 'AGENDA' | 'GERAL'; items?: Array<{ id: string; price?: number; type?: string }> }
+        ) => {
+            return await request('/checkout/pay', {
+                method: 'POST',
+                purpose: 'checkout-payment',
+                body: JSON.stringify({
+                    amount,
+                    description,
+                    receiverId: providerId,
+                    contextType: opts?.contextType || 'GERAL',
+                    items: opts?.items || [],
+                })
+            });
         }
     },
     professionals: {

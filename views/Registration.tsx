@@ -116,8 +116,12 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             await onRegister({ ...formData, role: UserRole.CLIENT });
             setToast({ title: "Boas-vindas!", message: "Seu perfil foi criado com sucesso. A jornada começa." });
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            setToast({
+                title: 'Não foi possível concluir',
+                message: e?.message || 'Revise seus dados e tente novamente.',
+            });
             setIsLoading(false);
         }
     };
@@ -185,8 +189,12 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             await onRegister({ ...formData, role: UserRole.PROFESSIONAL, rating: 5, swapCredits: 100, isAvailableForSwap: true, needs: [], offers: [] });
             setToast({ title: "Guardião Ativado", message: "Seu dom agora está disponível para o mundo." });
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            setToast({
+                title: 'Não foi possível concluir',
+                message: e?.message || 'Revise seus dados e tente novamente.',
+            });
             setIsLoading(false);
         }
     };
@@ -251,8 +259,12 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             await onRegister({ ...formData, role: UserRole.SPACE });
             setToast({ title: "Santuário Criado", message: "Seu hub de cura está pronto para receber almas." });
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            setToast({
+                title: 'Não foi possível concluir',
+                message: e?.message || 'Revise seus dados e tente novamente.',
+            });
             setIsLoading(false);
         }
     };

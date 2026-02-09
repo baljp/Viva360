@@ -4,10 +4,22 @@ const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
     profile: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
+      update: vi.fn(),
+    },
+    profileRole: {
+      findMany: vi.fn(),
+      create: vi.fn(),
+      upsert: vi.fn(),
     },
     authAllowlist: {
       findUnique: vi.fn(),
       updateMany: vi.fn(),
+    },
+    user: {
+      findUnique: vi.fn(),
+      update: vi.fn(),
+      create: vi.fn(),
     },
   },
 }));
@@ -21,6 +33,10 @@ import { AuthService } from '../services/auth.service';
 describe('AuthService authorization policy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    prismaMock.profileRole.findMany.mockResolvedValue([]);
+    prismaMock.profileRole.create.mockResolvedValue({ id: 'role-1', profile_id: 'user-1', role: 'CLIENT' });
+    prismaMock.profileRole.upsert.mockResolvedValue({ id: 'role-1', profile_id: 'user-1', role: 'CLIENT' });
+    prismaMock.user.findUnique.mockResolvedValue(null);
   });
 
   it('allows login when profile exists', async () => {
@@ -31,6 +47,7 @@ describe('AuthService authorization policy', () => {
     expect(status.canLogin).toBe(true);
     expect(status.canRegister).toBe(false);
     expect(status.reason).toBe('PROFILE_ACTIVE');
+    expect(status.accountState).toBe('ACTIVE');
   });
 
   it('allows register when invite is approved and profile absent', async () => {
@@ -47,6 +64,7 @@ describe('AuthService authorization policy', () => {
     expect(status.canRegister).toBe(true);
     expect(status.role).toBe('PROFESSIONAL');
     expect(status.reason).toBe('INVITE_APPROVED_PENDING_REGISTRATION');
+    expect(status.accountState).toBe('INVITE_PENDING_REGISTRATION');
   });
 
   it('blocks when allowlist status is blocked', async () => {
@@ -62,5 +80,42 @@ describe('AuthService authorization policy', () => {
     expect(status.canLogin).toBe(false);
     expect(status.canRegister).toBe(false);
     expect(status.reason).toBe('EMAIL_BLOCKED');
+    expect(status.accountState).toBe('BLOCKED');
+  });
+
+  it('blocks orphan auth user when no allowlist exists', async () => {
+    prismaMock.profile.findFirst.mockResolvedValue(null);
+    prismaMock.authAllowlist.findUnique.mockResolvedValue(null);
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'auth-user',
+      raw_user_meta_data: { role: 'SPACE' },
+    });
+
+    const status = await AuthService.getAuthorizationStatus('incomplete@example.com');
+    expect(status.canLogin).toBe(false);
+    expect(status.canRegister).toBe(false);
+    expect(status.reason).toBe('EMAIL_NOT_AUTHORIZED');
+    expect(status.accountState).toBe('NOT_AUTHORIZED');
+  });
+
+  it('allows incomplete registration only with approved allowlist', async () => {
+    prismaMock.profile.findFirst.mockResolvedValue(null);
+    prismaMock.authAllowlist.findUnique.mockResolvedValue({
+      id: 'invite-3',
+      role: 'SPACE',
+      status: 'APPROVED',
+      used_by: null,
+    });
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: 'auth-user',
+      raw_user_meta_data: { role: 'SPACE' },
+    });
+
+    const status = await AuthService.getAuthorizationStatus('incomplete@example.com');
+    expect(status.canLogin).toBe(false);
+    expect(status.canRegister).toBe(true);
+    expect(status.reason).toBe('REGISTRATION_INCOMPLETE');
+    expect(status.accountState).toBe('INCOMPLETE_REGISTRATION');
+    expect(status.role).toBe('SPACE');
   });
 });

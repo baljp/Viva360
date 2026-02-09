@@ -25,6 +25,7 @@ const resolveUserId = (candidate?: string) => {
   const value = String(candidate || '').trim();
   return UUID_REGEX.test(value) ? value : null;
 };
+const normalizeRole = (value?: string | null) => String(value || '').trim().toUpperCase();
 
 const unauthorized = (res: Response, message: string) => {
   return res.status(401).json({ error: message });
@@ -59,16 +60,37 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
         return unauthorized(res, 'Invalid token payload');
       }
 
-      let role = String(data.user.user_metadata?.role || '').trim().toUpperCase();
+      let role = normalizeRole(String(data.user.user_metadata?.role || ''));
+      let activeRole = role;
+      let roles: string[] = role ? [role] : [];
+
       if (!role) {
         try {
           const profile = await prisma.profile.findUnique({
             where: { id: userId },
-            select: { role: true },
+            select: {
+              role: true,
+              active_role: true,
+              profile_roles: {
+                select: { role: true },
+                orderBy: { created_at: 'asc' },
+              },
+            },
           });
-          role = String(profile?.role || '').trim().toUpperCase() || 'CLIENT';
+          roles = (profile?.profile_roles || [])
+            .map((entry) => normalizeRole(entry.role))
+            .filter(Boolean) as string[];
+          if (roles.length === 0) {
+            const legacy = normalizeRole(profile?.role);
+            if (legacy) roles = [legacy];
+          }
+          if (roles.length === 0) roles = ['CLIENT'];
+          activeRole = normalizeRole(profile?.active_role || profile?.role || roles[0]) || roles[0] || 'CLIENT';
+          role = activeRole;
         } catch {
           role = 'CLIENT';
+          activeRole = 'CLIENT';
+          roles = ['CLIENT'];
         }
       }
       req.user = {
@@ -76,6 +98,8 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
         userId,
         email: data.user.email,
         role,
+        activeRole,
+        roles,
       };
       return next();
     }
@@ -91,7 +115,11 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
       id: userId,
       userId,
       email: payload?.email,
-      role: payload?.role || 'CLIENT',
+      role: normalizeRole(payload?.activeRole || payload?.role) || 'CLIENT',
+      activeRole: normalizeRole(payload?.activeRole || payload?.role) || 'CLIENT',
+      roles: Array.isArray(payload?.roles)
+        ? payload.roles.map((entry: unknown) => normalizeRole(String(entry))).filter(Boolean)
+        : [normalizeRole(payload?.activeRole || payload?.role) || 'CLIENT'],
     };
     return next();
   } catch (err) {
