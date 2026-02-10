@@ -54,6 +54,7 @@ const SoulJournalView = lazyNamed(() => import('../../views/client/journal/SoulJ
 const HealingCircleEntry = lazyNamed(() => import('../../views/client/tribe/HealingCircleEntry'), 'HealingCircleEntry');
 const SoulPactInteraction = lazyNamed(() => import('../../views/client/tribe/SoulPactInteraction'), 'SoulPactInteraction');
 const OfflineRetreat = lazyNamed(() => import('../../views/client/tribe/OfflineRetreat'), 'OfflineRetreat');
+const ClientQuestsView = lazyNamed(() => import('../../views/client/garden/ClientQuestsView'), 'ClientQuestsView');
 
 // --- GUARDIAO SCREENS ---
 const ProDashboard = lazyNamed(() => import('../../views/pro/ProDashboard'), 'ProDashboard');
@@ -157,6 +158,7 @@ export const screenMap: any = {
         CLIENT_JOURNAL: SoulJournalView,
         SOUL_PACT: SoulPactInteraction,
         OFFLINE_RETREAT: OfflineRetreat,
+        CLIENT_QUESTS: ClientQuestsView,
         END: ClientDashboard,
     },
     // GUARDIAO
@@ -233,5 +235,6 @@ export const screenMap: any = {
         PREDICTIVE_OCCUPANCY: PredictiveOccupancy,
         AUDIT_LOG: SpaceAuditLog,
         RADIANCE_DRILLDOWN: RadianceDrilldown,
+        SERVICE_EVALUATION: ServiceEvaluation,
     }
 }

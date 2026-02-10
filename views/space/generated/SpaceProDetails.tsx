@@ -59,15 +59,15 @@ export default function SpaceProDetails() {
                     <div className="grid grid-cols-3 gap-2 border-t border-nature-50 pt-6">
                         <div>
                             <p className="text-lg font-bold text-nature-900">{stats.sessions}</p>
-                            <p className="text-[8px] text-nature-400 uppercase font-bold">Horas de Cura</p>
+                            <p className="text-[9px] text-nature-400 uppercase font-bold">Horas de Cura</p>
                         </div>
                         <div>
                             <p className="text-lg font-bold text-nature-900 flex items-center justify-center gap-1">{stats.rating} <Star size={10} className="fill-amber-400 text-amber-400"/></p>
-                            <p className="text-[8px] text-nature-400 uppercase font-bold">Karma</p>
+                            <p className="text-[9px] text-nature-400 uppercase font-bold">Karma</p>
                         </div>
                         <div>
                             <p className="text-lg font-bold text-nature-900">{stats.reviews}</p>
-                            <p className="text-[8px] text-nature-400 uppercase font-bold">Avaliações</p>
+                            <p className="text-[9px] text-nature-400 uppercase font-bold">Avaliações</p>
                         </div>
                     </div>
                 </div>

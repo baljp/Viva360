@@ -86,7 +86,7 @@ export const ProDashboard: React.FC<{
                         <Video size={20} className="text-white animate-pulse" />
                     </div>
                     <div>
-                        <p className="text-[8px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Conexão Próxima • 14:00</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Conexão Próxima • 14:00</p>
                         <h4 className="text-sm font-bold">Sintonizando com {user.name.split(' ')[0]}</h4>
                     </div>
                 </div>
@@ -133,7 +133,7 @@ export const ProDashboard: React.FC<{
                         <div className="absolute inset-0 bg-nature-900/60 transition-colors group-hover:bg-nature-900/40"></div>
                         <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
                             <div className="space-y-2">
-                                <div className="flex items-center gap-2 bg-emerald-500 text-[8px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit animate-pulse">Hoje • 14:00</div>
+                                <div className="flex items-center gap-2 bg-emerald-500 text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full w-fit animate-pulse">Hoje • 14:00</div>
                                 <h3 className="text-3xl font-serif italic leading-none">Minha Agenda</h3>
                                 <p className="text-[10px] text-primary-200 font-bold uppercase tracking-[0.2em] opacity-80">3 Sessões programadas</p>
                             </div>

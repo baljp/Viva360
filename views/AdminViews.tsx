@@ -147,7 +147,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                                  <CheckCircle size={16} className="text-emerald-500 shrink-0"/>
                                  <p className="text-[10px] text-nature-600 leading-tight">
                                      <span className="font-bold">User_{100+i}</span> aceitou compartilhar dados clínicos com <span className="font-bold">Pro_Anna</span>.
-                                     <br/><span className="text-[8px] text-nature-400 uppercase">{new Date().toLocaleDateString()} - Hash: 0x8F...2A</span>
+                                     <br/><span className="text-[9px] text-nature-400 uppercase">{new Date().toLocaleDateString()} - Hash: 0x8F...2A</span>
                                  </p>
                              </div>
                          ))}

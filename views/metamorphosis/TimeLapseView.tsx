@@ -394,7 +394,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                                 <button
                                     key={f}
                                     onClick={() => setFormat(f)}
-                                    className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest transition-all ${format === f ? 'bg-white text-black' : 'bg-white/10 text-white/40'}`}
+                                    className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${format === f ? 'bg-white text-black' : 'bg-white/10 text-white/40'}`}
                                 >
                                     {f === 'STORY' ? '9:16' : '4:5'}
                                 </button>

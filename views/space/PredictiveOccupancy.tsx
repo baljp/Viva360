@@ -57,8 +57,8 @@ export const PredictiveOccupancy: React.FC<{ flow: any }> = ({ flow }) => {
                     <div className="flex justify-between items-end mb-4">
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-nature-400">Mapa de Calor Semanal</h4>
                         <div className="flex gap-2">
-                             <div className="flex items-center gap-1"><div className="w-2 h-2 bg-indigo-600 rounded-full"></div><span className="text-[8px] font-bold text-nature-400 uppercase">Alta</span></div>
-                             <div className="flex items-center gap-1"><div className="w-2 h-2 bg-nature-100 rounded-full"></div><span className="text-[8px] font-bold text-nature-400 uppercase">Baixa</span></div>
+                             <div className="flex items-center gap-1"><div className="w-2 h-2 bg-indigo-600 rounded-full"></div><span className="text-[9px] font-bold text-nature-400 uppercase">Alta</span></div>
+                             <div className="flex items-center gap-1"><div className="w-2 h-2 bg-nature-100 rounded-full"></div><span className="text-[9px] font-bold text-nature-400 uppercase">Baixa</span></div>
                         </div>
                     </div>
                     

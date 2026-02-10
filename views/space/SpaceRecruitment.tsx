@@ -36,7 +36,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                    <div className="relative z-10 space-y-4">
                       <div className="flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full w-fit border border-white/10">
                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
-                         <span className="text-[8px] font-bold uppercase tracking-widest">Hub em Expansão</span>
+                         <span className="text-[9px] font-bold uppercase tracking-widest">Hub em Expansão</span>
                       </div>
                       <h3 className="text-2xl font-serif italic leading-tight">Manifeste o Guardião Ideal</h3>
                       <p className="text-xs text-indigo-200 italic leading-relaxed">Conecte seu Santuário a mestres que vibram na mesma frequência. Gerencie o funil de luz aqui.</p>
@@ -55,7 +55,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                         <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-amber-500 group-hover:scale-110 transition-transform"><Plus size={24}/></div>
                         <div className="text-center">
                             <span className="text-[11px] font-bold text-amber-900 block">Ampliar Chamado</span>
-                            <span className="text-[8px] text-amber-600 font-bold uppercase tracking-widest">Convite Direto</span>
+                            <span className="text-[9px] text-amber-600 font-bold uppercase tracking-widest">Convite Direto</span>
                         </div>
                     </button>
                     <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm text-center flex flex-col items-center justify-center gap-1">
@@ -74,7 +74,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                               <div>
                                  <h4 className="font-bold text-nature-900 text-sm leading-none">{v.title}</h4>
                                  <div className="flex gap-1.5 mt-2">
-                                   {(v.specialties || []).map(s => <span key={s} className="text-[8px] px-2 py-0.5 bg-nature-50 text-nature-400 rounded-lg font-bold uppercase border border-nature-100">{s}</span>)}
+                                   {(v.specialties || []).map(s => <span key={s} className="text-[9px] px-2 py-0.5 bg-nature-50 text-nature-400 rounded-lg font-bold uppercase border border-nature-100">{s}</span>)}
                                  </div>
                               </div>
                            </div>

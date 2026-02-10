@@ -115,12 +115,12 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
 
                         <div className="flex items-center gap-3 bg-nature-50/50 p-4 rounded-2xl mb-4">
                             <div className="flex-1">
-                                <p className="text-[8px] font-bold uppercase text-nature-400 tracking-wider mb-0.5">OFERECE</p>
+                                <p className="text-[9px] font-bold uppercase text-nature-400 tracking-wider mb-0.5">OFERECE</p>
                                 <p className="font-serif italic text-nature-900 leading-tight">{item.name}</p>
                             </div>
                             <ArrowRightLeft size={16} className="text-nature-300"/>
                             <div className="flex-1 text-right">
-                                <p className="text-[8px] font-bold uppercase text-nature-400 tracking-wider mb-0.5">PEDE</p>
+                                <p className="text-[9px] font-bold uppercase text-nature-400 tracking-wider mb-0.5">PEDE</p>
                                 <p className="font-serif italic text-indigo-900 leading-tight">{item.wish}</p>
                             </div>
                         </div>

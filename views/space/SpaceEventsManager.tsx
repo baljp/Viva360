@@ -76,15 +76,15 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                 <div className="grid grid-cols-3 gap-3">
                     <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
                         <span className="text-xl font-bold text-nature-900">{events.filter(e => e.status === 'upcoming').length}</span>
-                        <p className="text-[8px] font-bold text-nature-400 uppercase mt-1">Próximos</p>
+                        <p className="text-[9px] font-bold text-nature-400 uppercase mt-1">Próximos</p>
                     </div>
                     <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
                         <span className="text-xl font-bold text-nature-900">{events.reduce((a, e) => a + e.enrolled, 0)}</span>
-                        <p className="text-[8px] font-bold text-nature-400 uppercase mt-1">Inscritos</p>
+                        <p className="text-[9px] font-bold text-nature-400 uppercase mt-1">Inscritos</p>
                     </div>
                     <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
                         <span className="text-xl font-bold text-emerald-600">{Math.round(events.reduce((a, e) => a + (e.enrolled/e.capacity), 0) / events.length * 100)}%</span>
-                        <p className="text-[8px] font-bold text-nature-400 uppercase mt-1">Ocupação</p>
+                        <p className="text-[9px] font-bold text-nature-400 uppercase mt-1">Ocupação</p>
                     </div>
                 </div>
 
@@ -98,8 +98,8 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                                 <img src={ev.image} className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                                 <div className="absolute top-4 left-4 flex gap-2">
-                                    <span className={`px-2 py-0.5 rounded-lg text-[8px] font-black uppercase ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
-                                    <span className="px-2 py-0.5 rounded-lg text-[8px] font-bold bg-white/90 text-nature-700">{typeCfg[ev.type]}</span>
+                                    <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
+                                    <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-white/90 text-nature-700">{typeCfg[ev.type]}</span>
                                 </div>
                                 <div className="absolute bottom-3 left-4">
                                     <h3 className="text-white font-bold text-sm">{ev.title}</h3>

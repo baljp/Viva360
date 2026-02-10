@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 
 export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
     const [step, setStep] = useState(1);
+    const [isSaving, setIsSaving] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         type: 'ritual' as 'ritual' | 'prescricao',
@@ -34,12 +35,14 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
     };
 
     const handleFinish = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
         try {
             await api.clinical.saveIntervention(formData);
-            flow.notify("Intervenção Criada", `A prática "${formData.title}" foi salva na sua biblioteca clínica.`, "success");
-            flow.go('DASHBOARD');
+            setStep(4); // Completion screen
         } catch (err) {
             flow.notify("Erro ao Salvar", "Não foi possível selar a prática no momento.", "error");
+            setIsSaving(false);
         }
     };
 
@@ -63,9 +66,39 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
                 {/* Progress Dots */}
                 <div className="flex gap-2 mb-8 justify-center">
                     {[1, 2, 3].map(s => (
-                        <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${step === s ? 'w-8 bg-nature-900' : 'w-2 bg-nature-200'}`}></div>
+                        <div key={s} className={`h-1.5 rounded-full transition-all duration-300 ${step >= s ? (step === 4 ? 'w-4 bg-emerald-500' : step === s ? 'w-8 bg-nature-900' : 'w-4 bg-nature-400') : 'w-2 bg-nature-200'}`}></div>
                     ))}
                 </div>
+
+                {step === 4 && (
+                    <div className="flex flex-col items-center justify-center text-center space-y-6 py-12 animate-in zoom-in fade-in duration-700">
+                        <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center animate-bounce">
+                            <Sparkles size={36} className="text-emerald-600" />
+                        </div>
+                        <h2 className="text-2xl font-serif italic text-nature-900">Prática Selada</h2>
+                        <p className="text-sm text-nature-500 max-w-[280px] leading-relaxed">
+                            "{formData.title}" foi cristalizada na sua biblioteca clínica. Você pode aplicá-la em qualquer alma da sua egrégora.
+                        </p>
+                        <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-full">
+                            <Sparkles size={14} />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">+25 Karma por aplicação</span>
+                        </div>
+                        <div className="flex flex-col gap-3 w-full max-w-xs pt-4">
+                            <button
+                                onClick={() => { setStep(1); setFormData({ title: '', type: 'ritual', element: 'fire', intensity: 5, duration: 7, instructions: '', ingredients: [] }); setIsSaving(false); }}
+                                className="w-full py-4 bg-nature-50 text-nature-900 rounded-2xl font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-all"
+                            >
+                                Criar Outra Prática
+                            </button>
+                            <button
+                                onClick={() => flow.go('DASHBOARD')}
+                                className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all"
+                            >
+                                Voltar ao Painel
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {step === 1 && (
                     <div className="space-y-6 animate-in slide-in-from-right-4">
@@ -110,7 +143,7 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${el.bg} ${el.color}`}>
                                             <el.icon size={20} />
                                         </div>
-                                        <span className="text-[8px] font-bold uppercase tracking-tighter text-nature-600">{el.label}</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-tighter text-nature-600">{el.label}</span>
                                     </button>
                                 ))}
                             </div>
@@ -204,7 +237,7 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
                              <p className="text-[9px] font-bold uppercase tracking-widest opacity-70 mb-4">Ao selar, esta prática poderá ser enviada para qualquer alma da sua egrégora.</p>
                              <div className="flex items-center gap-2 text-primary-200">
                                  <Sparkles size={14} />
-                                 <span className="text-[8px] font-bold uppercase">Garante +25 Karma por aplicação</span>
+                                 <span className="text-[9px] font-bold uppercase">Garante +25 Karma por aplicação</span>
                              </div>
                         </div>
                     </div>
@@ -212,6 +245,7 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
             </div>
 
             {/* Bottom Actions */}
+            {step <= 3 && (
             <div className="p-6 bg-white border-t border-nature-100 z-20 fixed bottom-0 left-0 right-0 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
                 <div className="flex gap-4">
                     {step > 1 && (
@@ -227,16 +261,20 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
                             if (step < 3) setStep(step + 1);
                             else handleFinish();
                         }}
-                        className="flex-[2] py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-nature-900/20 active:scale-95 transition-all outline-none flex items-center justify-center gap-2"
+                        disabled={isSaving || (step === 1 && !formData.title.trim())}
+                        className="flex-[2] py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-nature-900/20 active:scale-95 transition-all outline-none flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         {step === 3 ? (
-                            <>
-                                <Send size={14} /> Selar Prática
-                            </>
+                            isSaving ? (
+                                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> Selando...</>
+                            ) : (
+                                <><Send size={14} /> Selar Prática</>
+                            )
                         ) : 'Continuar'}
                     </button>
                 </div>
             </div>
+            )}
         </div>
     );
 };

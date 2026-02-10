@@ -135,7 +135,7 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
                              <div className="flex-1 border-l border-nature-100 pl-4 bg-nature-50/50 rounded-r-2xl py-2">
                                  <div className="flex justify-between items-start">
                                     <h4 className="font-bold text-nature-900 text-sm">{app.client}</h4>
-                                    <span className={`text-[8px] font-bold uppercase px-2 py-0.5 rounded-lg ${app.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>{app.status}</span>
+                                    <span className={`text-[9px] font-bold uppercase px-2 py-0.5 rounded-lg ${app.status === 'confirmed' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>{app.status}</span>
                                 </div>
                                 <p 
                                     className="text-[10px] text-nature-500 mt-1 flex items-center gap-1 cursor-pointer hover:text-indigo-600 transition-colors"

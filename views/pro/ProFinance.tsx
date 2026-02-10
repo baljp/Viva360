@@ -43,11 +43,11 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
               
               <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/5">
-                    <p className="text-[8px] font-bold uppercase text-primary-200 mb-1">A Liberar</p>
+                    <p className="text-[9px] font-bold uppercase text-primary-200 mb-1">A Liberar</p>
                     <span className="text-lg font-bold text-emerald-400">R$ 1.840</span>
                   </div>
                   <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/5">
-                    <p className="text-[8px] font-bold uppercase text-primary-200 mb-1">Crescimento</p>
+                    <p className="text-[9px] font-bold uppercase text-primary-200 mb-1">Crescimento</p>
                     <span className="text-lg font-bold text-white flex items-center gap-2">+12% <TrendingUp size={14}/></span>
                   </div>
               </div>
@@ -76,7 +76,7 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
                         <p className={`font-bold text-sm ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
                             {tx.type === 'income' ? '+' : '-'} R$ {tx.amount}
                         </p>
-                        <span className="text-[8px] text-nature-200 uppercase font-bold">{tx.status}</span>
+                        <span className="text-[9px] text-nature-200 uppercase font-bold">{tx.status}</span>
                     </div>
                 </div>
             )) : (

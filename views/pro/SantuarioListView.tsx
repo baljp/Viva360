@@ -138,7 +138,7 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
                                 </div>
                                 <div className="flex gap-1">
                                     {s.specialties.slice(0, 2).map((sp, i) => (
-                                        <span key={i} className="px-2 py-0.5 bg-nature-50 rounded-lg text-[8px] font-bold text-nature-500 uppercase">{sp}</span>
+                                        <span key={i} className="px-2 py-0.5 bg-nature-50 rounded-lg text-[9px] font-bold text-nature-500 uppercase">{sp}</span>
                                     ))}
                                 </div>
                             </div>

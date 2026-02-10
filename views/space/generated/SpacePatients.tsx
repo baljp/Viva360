@@ -64,17 +64,17 @@ const SpacePatients: React.FC = () => {
                          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/5 flex flex-col items-center">
                              <TrendingUp size={14} className="text-emerald-400 mb-1" />
                              <span className="text-xs font-bold">+12</span>
-                             <span className="text-[8px] uppercase font-bold opacity-60">Novos/Mês</span>
+                             <span className="text-[9px] uppercase font-bold opacity-60">Novos/Mês</span>
                          </div>
                          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/5 flex flex-col items-center">
                              <Sparkles size={14} className="text-amber-400 mb-1" />
                              <span className="text-xs font-bold">85%</span>
-                             <span className="text-[8px] uppercase font-bold opacity-60">Retenção</span>
+                             <span className="text-[9px] uppercase font-bold opacity-60">Retenção</span>
                          </div>
                          <div className="bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/5 flex flex-col items-center">
                              <UserPlus size={14} className="text-indigo-400 mb-1" />
                              <span className="text-xs font-bold">2.4k</span>
-                             <span className="text-[8px] uppercase font-bold opacity-60">Indicações</span>
+                             <span className="text-[9px] uppercase font-bold opacity-60">Indicações</span>
                          </div>
                     </div>
                 </div>

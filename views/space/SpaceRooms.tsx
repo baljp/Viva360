@@ -61,7 +61,7 @@ export const SpaceRooms: React.FC = () => {
                                     <s.icon size={14} className={s.color} />
                                     <div className="flex flex-col leading-none">
                                         <span className="text-lg font-bold">{s.val}</span>
-                                        <span className="text-[8px] uppercase font-bold text-white/60">{s.label}</span>
+                                        <span className="text-[9px] uppercase font-bold text-white/60">{s.label}</span>
                                     </div>
                                 </div>
                             ))}
@@ -96,11 +96,11 @@ export const SpaceRooms: React.FC = () => {
 
                                     <div className="grid grid-cols-2 gap-2 mt-4">
                                         <div className="p-2 bg-nature-50 rounded-xl">
-                                            <p className="text-[8px] font-bold text-nature-400 uppercase">Ocupação Hoje</p>
+                                            <p className="text-[9px] font-bold text-nature-400 uppercase">Ocupação Hoje</p>
                                             <p className="text-xs font-bold text-nature-900">{room.dailyOccupancy}%</p>
                                         </div>
                                         <div className="p-2 bg-nature-50 rounded-xl">
-                                            <p className="text-[8px] font-bold text-nature-400 uppercase">
+                                            <p className="text-[9px] font-bold text-nature-400 uppercase">
                                                 {room.status === 'Livre' ? 'Próximo Uso' : room.status === 'Ocupado' ? 'Evento Atual' : 'Retorno'}
                                             </p>
                                             <p className="text-xs font-bold text-nature-900 truncate">
@@ -148,15 +148,15 @@ export const SpaceRooms: React.FC = () => {
                     <div className="grid grid-cols-3 gap-2 mb-4">
                         <div className="text-center">
                             <span className="block text-xl font-bold text-nature-900">120h</span>
-                            <span className="text-[8px] font-bold text-nature-400 uppercase">Total/Sem</span>
+                            <span className="text-[9px] font-bold text-nature-400 uppercase">Total/Sem</span>
                         </div>
                         <div className="text-center">
                              <span className="block text-xl font-bold text-indigo-600">89h</span>
-                             <span className="text-[8px] font-bold text-indigo-400 uppercase">Ocupadas</span>
+                             <span className="text-[9px] font-bold text-indigo-400 uppercase">Ocupadas</span>
                         </div>
                         <div className="text-center">
                              <span className="block text-xl font-bold text-emerald-600">31h</span>
-                             <span className="text-[8px] font-bold text-emerald-400 uppercase">Livres</span>
+                             <span className="text-[9px] font-bold text-emerald-400 uppercase">Livres</span>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 bg-amber-50 p-3 rounded-2xl border border-amber-100">

@@ -41,15 +41,15 @@ export default function SpaceReputation() {
                         <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-6">
                             <div>
                                 <p className="text-xl font-bold">1.2k</p>
-                                <p className="text-[8px] font-bold text-nature-400 uppercase">Avaliações</p>
+                                <p className="text-[9px] font-bold text-nature-400 uppercase">Avaliações</p>
                             </div>
                             <div>
                                 <p className="text-xl font-bold text-emerald-400">98%</p>
-                                <p className="text-[8px] font-bold text-nature-400 uppercase">Recomendam</p>
+                                <p className="text-[9px] font-bold text-nature-400 uppercase">Recomendam</p>
                             </div>
                             <div>
                                 <p className="text-xl font-bold">4.9</p>
-                                <p className="text-[8px] font-bold text-nature-400 uppercase">Média Mestres</p>
+                                <p className="text-[9px] font-bold text-nature-400 uppercase">Média Mestres</p>
                             </div>
                         </div>
                     </div>
