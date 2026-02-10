@@ -122,10 +122,10 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                                 { icon: <Sparkles size={14} />, label: 'Energia', value: evolution.total > 70 ? 'Alta' : 'Normal', color: 'text-primary-500' },
                                 { icon: <Users size={14} />, label: 'Tribo', value: `${user.constellation?.length || 0} conexões`, color: 'text-indigo-500' }
                             ].map((stat, i) => (
-                                <div key={i} className="flex-1 bg-white/40 backdrop-blur-sm p-2 rounded-2xl border border-white/50 text-center">
+                                <div key={i} className="flex-1 bg-white/40 backdrop-blur-sm p-2 rounded-2xl border border-white/50 text-center min-w-0">
                                     <div className={`flex justify-center mb-1 ${stat.color}`}>{stat.icon}</div>
-                                    <p className="text-[7px] font-black text-nature-400 uppercase tracking-tighter">{stat.label}</p>
-                                    <p className="text-[9px] font-bold text-nature-900">{stat.value}</p>
+                                    <p className="text-[10px] font-black text-nature-400 uppercase tracking-tight truncate">{stat.label}</p>
+                                    <p className="text-[11px] font-bold text-nature-900 truncate">{stat.value}</p>
                                 </div>
                             ))}
                         </div>

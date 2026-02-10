@@ -28,14 +28,16 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
         <div className="space-y-4">
            <div className="flex justify-between items-center px-4">
               <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2"><Flame size={12} className="text-amber-500"/> Pactos Ativos</h4>
-              <button onClick={() => go('TRIBE_INVITE')} className="text-[9px] font-bold text-primary-600 uppercase flex items-center gap-1 bg-white border border-primary-100 px-3 py-1.5 rounded-full shadow-sm active:scale-95 transition-transform"><Plus size={12}/> Convidar Externo</button>
            </div>
 
-            {/* Referral / Invite Tracking */}
-            <div className="bg-indigo-50 p-4 rounded-[2rem] border border-indigo-100 flex items-center justify-between mb-4">
-               <div>
-                  <h5 className="font-bold text-indigo-900 text-xs">Sementes Plantadas</h5>
-                  <p className="text-[10px] text-indigo-400 font-bold uppercase mt-1">3 Convites Aceitos</p>
+            {/* Referral / Invite Tracking - clickable, goes to invite */}
+            <div onClick={() => go('TRIBE_INVITE')} className="bg-indigo-50 p-4 rounded-[2rem] border border-indigo-100 flex items-center justify-between mb-4 cursor-pointer active:scale-[0.98] transition-all hover:bg-indigo-100/50">
+               <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 bg-indigo-200 rounded-xl flex items-center justify-center shrink-0"><Plus size={18} className="text-indigo-700" /></div>
+                  <div className="min-w-0">
+                     <h5 className="font-bold text-indigo-900 text-xs truncate">Expandir Tribo</h5>
+                     <p className="text-[10px] text-indigo-400 font-bold uppercase mt-0.5 truncate">Convidar nova alma • 3 aceitos</p>
+                  </div>
                </div>
                <div className="flex -space-x-2">
                    <div className="w-8 h-8 rounded-full bg-indigo-200 border-2 border-white flex items-center justify-center text-[10px]">👩‍🎨</div>

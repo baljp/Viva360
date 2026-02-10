@@ -29,7 +29,7 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                         className="bg-nature-900 text-white p-4 rounded-2xl shadow-xl active:scale-95 transition-all flex flex-col items-center gap-1"
                     >
                         <Plus size={16} />
-                        <span className="text-[8px] font-black uppercase tracking-tighter">Novo Registro</span>
+                        <span className="text-[10px] font-black uppercase tracking-tighter">Novo Registro</span>
                     </button>
                 </div>
 

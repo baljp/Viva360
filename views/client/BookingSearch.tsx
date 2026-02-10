@@ -141,7 +141,7 @@ export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolea
                             >
                                 {/* Recommendation Tag */}
                                 {orientation.type === 'Mente' && pro.specialty?.includes('Psicologia') && (
-                                     <div className="absolute top-0 right-0 bg-primary-500 text-white text-[8px] font-black px-4 py-1.5 rounded-bl-2xl uppercase tracking-[0.2em] shadow-lg animate-in slide-in-from-right duration-500">Ideal Hoje</div>
+                                     <div className="absolute top-0 right-0 bg-primary-500 text-white text-[10px] font-black px-4 py-1.5 rounded-bl-2xl uppercase tracking-[0.15em] shadow-lg animate-in slide-in-from-right duration-500">Ideal Hoje</div>
                                 )}
 
                                 <div className="relative">
