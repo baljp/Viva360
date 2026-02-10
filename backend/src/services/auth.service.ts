@@ -504,7 +504,9 @@ export class AuthService {
       };
     }
 
-    // Open registration: allow any email to register when not in allowlist
+    // DECISÃO DE NEGÓCIO (2026-02-10): Registro aberto.
+    // Qualquer email pode se cadastrar mesmo sem estar na allowlist.
+    // Quando não há profile, authUser, nem allowlist, o sistema permite registro livre como CLIENT.
     return {
       canLogin: false,
       canRegister: true,
