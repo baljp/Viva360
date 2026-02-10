@@ -1274,6 +1274,9 @@ export const api = {
         }
     },
     spaces: {
+        list: async () => {
+            return request('/spaces');
+        },
         getRooms: async (uid?: string) => {
             try {
                 return await request('/rooms/real-time', { purpose: 'space-rooms' });
@@ -1358,6 +1361,27 @@ export const api = {
                 timeoutMs: 8000,
                 retries: 1,
             });
+        },
+        getAnalytics: async () => {
+             return request('/spaces/analytics');
+        },
+        getReviews: async () => {
+             return request('/spaces/reviews');
+        },
+        getContract: async () => {
+             return request('/spaces/contract');
+        },
+        createRoom: async (data: { name: string; type: string; capacity: number }) => {
+             return request('/spaces/rooms', {
+                 method: 'POST',
+                 body: JSON.stringify(data)
+             });
+        },
+        createInvite: async (data: { role: string; uses: number }) => {
+             return request('/spaces/invites', {
+                 method: 'POST',
+                 body: JSON.stringify(data)
+             });
         }
     },
     admin: {
@@ -1737,5 +1761,6 @@ export const api = {
                 return false;
             }
         }
-    }
+    },
+
 };

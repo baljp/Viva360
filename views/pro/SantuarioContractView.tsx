@@ -4,25 +4,22 @@ import { Shield, FileText, Calendar, DollarSign, Clock, CheckCircle2, AlertTrian
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { ZenToast, BottomSheet } from '../../components/Common';
 
+import { api } from '../../services/api';
+
 export const SantuarioContractView: React.FC<{ user: User }> = ({ user }) => {
     const { go, back, notify } = useGuardiaoFlow();
     const [toast, setToast] = useState<any>(null);
     const [showRenewModal, setShowRenewModal] = useState(false);
+    const [contract, setContract] = useState<any>(null);
 
-    const contract = {
-        id: 'c001',
-        spaceName: 'Espaço Gaia',
-        startDate: '2025-06-01',
-        endDate: '2026-05-31',
-        status: 'active' as const,
-        monthlyFee: 850,
-        revenueShare: 15,
-        roomsAllowed: ['Sala Gaia', 'Sala Shanti'],
-        hoursPerWeek: 20,
-        benefits: ['Sala de espera', 'Wi-Fi', 'Material de divulgação', 'Agenda compartilhada', 'Suporte administrativo'],
-        rules: ['Manter sala limpa após uso', 'Respeitar horários agendados', 'Notificar cancelamentos com 24h de antecedência'],
-        daysRemaining: 112,
-    };
+    React.useEffect(() => {
+        api.spaces.getContract().then(data => {
+            if (data) setContract(data);
+        }).catch(() => notify('Erro', 'Não foi possível carregar o contrato.', 'warning'));
+    }, []);
+
+    if (!contract) return <div className="min-h-screen bg-[#f8faf9] flex items-center justify-center text-nature-400">Carregando Contrato...</div>;
+
 
     const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
 

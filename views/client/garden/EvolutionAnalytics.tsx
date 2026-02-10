@@ -46,26 +46,32 @@ export const EvolutionAnalytics: React.FC<{ user: User }> = ({ user }) => {
                     ))}
                 </div>
 
-                {/* Emotional Distribution Visualization */}
+                {/* Dynamic Emotional Distribution */}
                 <div className="mt-8 bg-nature-900 p-8 rounded-[3rem] text-white">
                     <h4 className="text-sm font-bold uppercase tracking-[0.2em] mb-6">Mapa dos Sentires</h4>
-                    <div className="space-y-4">
-                        {[
-                            { label: 'Gratidão', percent: 65, color: 'bg-amber-400' },
-                            { label: 'Serenidade', percent: 25, color: 'bg-blue-400' },
-                            { label: 'Desafio', percent: 10, color: 'bg-rose-400' }
-                        ].map((mood, idx) => (
-                            <div key={idx} className="space-y-2">
-                                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest opacity-60">
-                                    <span>{mood.label}</span>
-                                    <span>{mood.percent}%</span>
+                    {evolution.total > 0 && evolution.breakdown && evolution.breakdown.length > 0 ? (
+                        <div className="space-y-4">
+                            {evolution.breakdown.slice(0, 5).map((mood: any, idx: number) => (
+                                <div key={idx} className="space-y-2">
+                                    <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest opacity-60">
+                                        <span>{mood.label}</span>
+                                        <span>{mood.percent}%</span>
+                                    </div>
+                                    <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                        <div 
+                                            className={`h-full ${['bg-amber-400', 'bg-blue-400', 'bg-rose-400', 'bg-emerald-400', 'bg-indigo-400'][idx % 5]}`} 
+                                            style={{ width: `${mood.percent}%` }} 
+                                        />
+                                    </div>
                                 </div>
-                                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                                    <div className={`h-full ${mood.color}`} style={{ width: `${mood.percent}%` }} />
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="text-center py-8 opacity-50">
+                            <p className="text-xs">Ainda não há registros suficientes para traçar seu mapa emocional.</p>
+                            <p className="text-[10px] mt-2 uppercase tracking-widest">Continue nutrindo seu jardim.</p>
+                        </div>
+                    )}
                 </div>
 
             </div>

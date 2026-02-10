@@ -2,21 +2,27 @@ import React, { useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 import { PortalView } from '../../../components/Common';
 import { Star, TrendingUp, User, Calendar, MessageCircle } from 'lucide-react';
+import { api } from '../../../services/api';
 
 export default function SpaceReputation() {
     const { back } = useSantuarioFlow();
     const [activeTab, setActiveTab] = useState<'guardians' | 'space'>('guardians');
 
-    // Mock Data
-    const reviews = [
-        { id: 1, author: 'Julia S.', rating: 9.8, comment: 'Sessão transformadora! A Mestra Ana tem uma energia incrível.', date: '2 dias atrás', target: 'Ana Luz' },
-        { id: 2, author: 'Marcos P.', rating: 10.0, comment: 'O Santuário é um oásis. A Sala Cristal é perfeita.', date: '5 dias atrás', target: 'Sala Cristal' },
-        { id: 3, author: 'Fernanda L.', rating: 8.5, comment: 'Ótimo atendimento, mas houve um pequeno atraso.', date: '1 semana atrás', target: 'João Sol' },
-    ];
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [analytics, setAnalytics] = useState({ average: 0, count: 0 });
+
+    React.useEffect(() => {
+        api.spaces.getReviews().then(data => {
+            if (data && data.reviews) {
+                setReviews(data.reviews);
+                setAnalytics({ average: parseFloat(data.average), count: data.count });
+            }
+        });
+    }, []);
 
     const filteredReviews = reviews.filter((review) => {
-        if (activeTab === 'space') return review.target.toLowerCase().includes('sala');
-        return !review.target.toLowerCase().includes('sala');
+        if (activeTab === 'space') return review.target && String(review.target).toLowerCase().includes('sala');
+        return !review.target || !String(review.target).toLowerCase().includes('sala');
     });
 
     return (
@@ -33,14 +39,14 @@ export default function SpaceReputation() {
                     <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-600 rounded-full blur-[80px] -mr-32 -mt-32 opacity-30"></div>
                      <div className="relative z-10">
                         <p className="text-xs font-bold text-nature-300 uppercase tracking-widest mb-2">Nota Geral do Santuário</p>
-                        <div className="text-7xl font-serif italic mb-2 tracking-tighter">9.7</div>
+                        <div className="text-7xl font-serif italic mb-2 tracking-tighter">{analytics.average.toFixed(1)}</div>
                         <div className="flex justify-center gap-1 text-emerald-400 mb-6">
-                            {[1,2,3,4,5].map(i => <Star key={i} size={16} fill="currentColor" />)}
+                            {[1,2,3,4,5].map(i => <Star key={i} size={16} fill={i <= Math.round(analytics.average/2) ? "currentColor" : "none"} />)}
                         </div>
                         
                         <div className="grid grid-cols-3 gap-4 border-t border-white/10 pt-6">
                             <div>
-                                <p className="text-xl font-bold">1.2k</p>
+                                <p className="text-xl font-bold">{analytics.count}</p>
                                 <p className="text-[9px] font-bold text-nature-400 uppercase">Avaliações</p>
                             </div>
                             <div>

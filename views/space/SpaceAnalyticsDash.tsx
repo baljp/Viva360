@@ -5,16 +5,25 @@ import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 
 interface MetricCard { label: string; value: string; change: number; icon: any; color: string; }
 
+import { api } from '../../services/api';
+
 export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
     const { back } = useSantuarioFlow();
     const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
+    const [stats, setStats] = useState({ appointments: 0, revenue: 0, guardians: 0, occupancy: 0 });
+
+    React.useEffect(() => {
+        api.spaces.getAnalytics().then(data => {
+            if (data) setStats(data);
+        }).catch(() => {});
+    }, []);
 
     const metrics: MetricCard[] = [
-        { label: 'Atendimentos', value: '342', change: 12, icon: Activity, color: 'bg-emerald-50 text-emerald-600' },
-        { label: 'Receita', value: 'R$ 45.2k', change: 8, icon: DollarSign, color: 'bg-indigo-50 text-indigo-600' },
-        { label: 'Buscadores Ativos', value: '186', change: 15, icon: Users, color: 'bg-amber-50 text-amber-600' },
-        { label: 'Taxa Ocupação', value: '78%', change: -3, icon: Calendar, color: 'bg-rose-50 text-rose-600' },
-        { label: 'Avaliação Média', value: '4.8', change: 2, icon: Star, color: 'bg-purple-50 text-purple-600' },
+        { label: 'Atendimentos', value: stats.appointments.toString(), change: 12, icon: Activity, color: 'bg-emerald-50 text-emerald-600' },
+        { label: 'Receita', value: `R$ ${(stats.revenue / 1000).toFixed(1)}k`, change: 8, icon: DollarSign, color: 'bg-indigo-50 text-indigo-600' },
+        { label: 'Buscadores Ativos', value: '186', change: 15, icon: Users, color: 'bg-amber-50 text-amber-600' }, // Todo: Add to API
+        { label: 'Taxa Ocupação', value: `${stats.occupancy}%`, change: -3, icon: Calendar, color: 'bg-rose-50 text-rose-600' },
+        { label: 'Avaliação Média', value: '4.8', change: 2, icon: Star, color: 'bg-purple-50 text-purple-600' }, // Todo: Add to API
         { label: 'Tempo Médio Sessão', value: '52min', change: 5, icon: Clock, color: 'bg-blue-50 text-blue-600' },
     ];
 

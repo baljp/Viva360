@@ -74,13 +74,13 @@ model Profile {
   rooms Room[]
 
   // New Features Relations
-  sent_messages     ChatMessage[]   @relation("SentMessages")
-  received_messages ChatMessage[]   @relation("ReceivedMessages")
-  swap_provided     SwapOffer[]     @relation("SwapProvider")
-  swap_requested    SwapOffer[]     @relation("SwapRequester")
-  tribe_invites     TribeInvite[]   @relation("HubInvites")
-  calendar_events   CalendarEvent[]
-  vacancies         Vacancy[]
+  sent_messages                         ChatMessage[]            @relation("SentMessages")
+  received_messages                     ChatMessage[]            @relation("ReceivedMessages")
+  swap_provided                         SwapOffer[]              @relation("SwapProvider")
+  swap_requested                        SwapOffer[]              @relation("SwapRequester")
+  tribe_invites                         TribeInvite[]            @relation("HubInvites")
+  calendar_events                       CalendarEvent[]
+  vacancies                             Vacancy[]
   recruitment_applications_as_candidate RecruitmentApplication[] @relation("CandidateApplications")
   recruitment_applications_as_space     RecruitmentApplication[] @relation("SpaceApplications")
   interviews_as_guardian                Interview[]              @relation("GuardianInterviews")
@@ -107,7 +107,9 @@ model Profile {
   // Escambo Proposals
   proposer_escambos EscamboProposal[] @relation("ProposerEscambo")
   receiver_escambos EscamboProposal[] @relation("ReceiverEscambo")
+  reviews_written   Review[]          @relation("AuthorReviews")
   profile_roles     ProfileRole[]
+  reviews           Review[]
 
   @@map("profiles")
   @@schema("public") // Prisma default is public but explicit is better
@@ -216,6 +218,8 @@ model Room {
   id               String   @id @default(uuid()) @db.Uuid
   hub_id           String   @db.Uuid
   name             String
+  type             String   @default("generic")
+  capacity         Int      @default(1)
   status           String   @default("available")
   current_occupant String?
   created_at       DateTime @default(now()) @db.Timestamptz(6)
@@ -223,6 +227,23 @@ model Room {
   hub Profile @relation(fields: [hub_id], references: [id])
 
   @@map("rooms")
+  @@schema("public")
+}
+
+model Review {
+  id         String   @id @default(uuid()) @db.Uuid
+  author_id  String   @db.Uuid
+  target_id  String // Can be ProfileID or RoomID
+  rating     Decimal
+  comment    String?
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  author    Profile  @relation("AuthorReviews", fields: [author_id], references: [id])
+  profile   Profile? @relation(fields: [profileId], references: [id])
+  profileId String?  @db.Uuid
+
+  @@index([target_id])
+  @@map("reviews")
   @@schema("public")
 }
 
@@ -244,18 +265,18 @@ model ChatMessage {
 }
 
 model SwapOffer {
-  id                String   @id @default(uuid()) @db.Uuid
-  provider_id       String   @db.Uuid
-  requester_id      String   @db.Uuid
-  offered_item_id   String?  @db.Uuid
-  requested_item_id String?  @db.Uuid
+  id                String    @id @default(uuid()) @db.Uuid
+  provider_id       String    @db.Uuid
+  requester_id      String    @db.Uuid
+  offered_item_id   String?   @db.Uuid
+  requested_item_id String?   @db.Uuid
   description       String?
   counter_offer     String?
-  status            String   @default("pending")
+  status            String    @default("pending")
   accepted_at       DateTime? @db.Timestamptz(6)
   completed_at      DateTime? @db.Timestamptz(6)
   updated_at        DateTime  @updatedAt @db.Timestamptz(6)
-  created_at        DateTime @default(now()) @db.Timestamptz(6)
+  created_at        DateTime  @default(now()) @db.Timestamptz(6)
 
   provider  Profile @relation("SwapProvider", fields: [provider_id], references: [id])
   requester Profile @relation("SwapRequester", fields: [requester_id], references: [id])
@@ -265,17 +286,17 @@ model SwapOffer {
 }
 
 model TribeInvite {
-  id         String   @id @default(uuid()) @db.Uuid
-  hub_id     String   @db.Uuid
-  email      String
-  token      String   @unique
-  invite_type String  @default("TEAM")
-  target_role String?
-  context_ref String?
-  status     String   @default("pending")
-  expires_at DateTime? @db.Timestamptz(6)
+  id           String    @id @default(uuid()) @db.Uuid
+  hub_id       String    @db.Uuid
+  email        String
+  token        String    @unique
+  invite_type  String    @default("TEAM")
+  target_role  String?
+  context_ref  String?
+  status       String    @default("pending")
+  expires_at   DateTime? @db.Timestamptz(6)
   responded_at DateTime? @db.Timestamptz(6)
-  created_at DateTime @default(now()) @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
 
   hub Profile @relation("HubInvites", fields: [hub_id], references: [id])
 
@@ -300,16 +321,16 @@ model CalendarEvent {
 }
 
 model Vacancy {
-  id          String   @id @default(uuid()) @db.Uuid
-  space_id    String   @db.Uuid
-  title       String
-  description String
-  specialties String[]
-  status      String   @default("open")
-  interview_required Boolean @default(true)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  id                 String   @id @default(uuid()) @db.Uuid
+  space_id           String   @db.Uuid
+  title              String
+  description        String
+  specialties        String[]
+  status             String   @default("open")
+  interview_required Boolean  @default(true)
+  created_at         DateTime @default(now()) @db.Timestamptz(6)
 
-  space Profile @relation(fields: [space_id], references: [id])
+  space        Profile                  @relation(fields: [space_id], references: [id])
   applications RecruitmentApplication[]
 
   @@map("vacancies")
@@ -461,18 +482,18 @@ model ChatParticipant {
 // --------------------------------------------------------
 
 model MarketplaceOrder {
-  id          String   @id @default(uuid()) @db.Uuid
-  buyer_id    String   @db.Uuid
-  seller_id   String   @db.Uuid
-  product_id  String   @db.Uuid
-  quantity    Int      @default(1)
-  total_price Decimal
-  status      String   @default("pending") // 'pending' | 'paid' | 'shipped' | 'completed'
-  payment_status String @default("PENDING")
-  fulfillment_status String @default("PENDING")
-  completed_at DateTime? @db.Timestamptz(6)
-  updated_at DateTime @updatedAt @db.Timestamptz(6)
-  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  id                 String    @id @default(uuid()) @db.Uuid
+  buyer_id           String    @db.Uuid
+  seller_id          String    @db.Uuid
+  product_id         String    @db.Uuid
+  quantity           Int       @default(1)
+  total_price        Decimal
+  status             String    @default("pending") // 'pending' | 'paid' | 'shipped' | 'completed'
+  payment_status     String    @default("PENDING")
+  fulfillment_status String    @default("PENDING")
+  completed_at       DateTime? @db.Timestamptz(6)
+  updated_at         DateTime  @updatedAt @db.Timestamptz(6)
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
 
   buyer   Profile @relation("BuyerOrders", fields: [buyer_id], references: [id])
   seller  Profile @relation("SellerOrders", fields: [seller_id], references: [id])
@@ -503,20 +524,20 @@ model EscamboProposal {
 }
 
 model RecruitmentApplication {
-  id           String   @id @default(uuid()) @db.Uuid
-  vacancy_id   String   @db.Uuid
-  candidate_id String   @db.Uuid
-  space_id     String   @db.Uuid
-  status       String   @default("APPLIED") // APPLIED | INTERVIEW_INVITED | INTERVIEW_ACCEPTED | HIRED | REJECTED
+  id           String    @id @default(uuid()) @db.Uuid
+  vacancy_id   String    @db.Uuid
+  candidate_id String    @db.Uuid
+  space_id     String    @db.Uuid
+  status       String    @default("APPLIED") // APPLIED | INTERVIEW_INVITED | INTERVIEW_ACCEPTED | HIRED | REJECTED
   notes        String?
-  decided_by   String?  @db.Uuid
+  decided_by   String?   @db.Uuid
   decided_at   DateTime? @db.Timestamptz(6)
-  created_at   DateTime @default(now()) @db.Timestamptz(6)
-  updated_at   DateTime @updatedAt @db.Timestamptz(6)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @updatedAt @db.Timestamptz(6)
 
-  vacancy   Vacancy @relation(fields: [vacancy_id], references: [id], onDelete: Cascade)
-  candidate Profile @relation("CandidateApplications", fields: [candidate_id], references: [id])
-  space     Profile @relation("SpaceApplications", fields: [space_id], references: [id])
+  vacancy    Vacancy     @relation(fields: [vacancy_id], references: [id], onDelete: Cascade)
+  candidate  Profile     @relation("CandidateApplications", fields: [candidate_id], references: [id])
+  space      Profile     @relation("SpaceApplications", fields: [space_id], references: [id])
   interviews Interview[]
 
   @@unique([vacancy_id, candidate_id])
@@ -526,16 +547,16 @@ model RecruitmentApplication {
 }
 
 model Interview {
-  id             String   @id @default(uuid()) @db.Uuid
-  application_id String   @db.Uuid
-  space_id       String   @db.Uuid
-  guardian_id    String   @db.Uuid
-  scheduled_for  DateTime @db.Timestamptz(6)
-  status         String   @default("PENDING_RESPONSE") // PENDING_RESPONSE | ACCEPTED | DECLINED | COMPLETED | CANCELLED
+  id             String    @id @default(uuid()) @db.Uuid
+  application_id String    @db.Uuid
+  space_id       String    @db.Uuid
+  guardian_id    String    @db.Uuid
+  scheduled_for  DateTime  @db.Timestamptz(6)
+  status         String    @default("PENDING_RESPONSE") // PENDING_RESPONSE | ACCEPTED | DECLINED | COMPLETED | CANCELLED
   response_note  String?
   responded_at   DateTime? @db.Timestamptz(6)
-  created_at     DateTime @default(now()) @db.Timestamptz(6)
-  updated_at     DateTime @updatedAt @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @updatedAt @db.Timestamptz(6)
 
   application RecruitmentApplication @relation(fields: [application_id], references: [id], onDelete: Cascade)
   space       Profile                @relation("SpaceInterviews", fields: [space_id], references: [id])

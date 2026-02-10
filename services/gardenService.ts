@@ -9,6 +9,7 @@ export interface EvolutionMetrics {
     tribe: number;          // 0-100
     curation: number;       // 0-100
     total: number;          // 0-100
+    breakdown?: { label: string; percent: number }[]; // Dynamic Mood Distribution
 }
 
 export type TimeLayer = 'daily' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'semiannual' | 'annual';
@@ -67,8 +68,9 @@ export const gardenService = {
         const curation = Math.min(100, (user.curationSessions || 0) * 15);
         
         // Positivity based on recent snaps mood
-        const recentSnaps = user.snaps?.slice(-10) || [];
+        const recentSnaps = user.snaps?.slice(-30) || []; // Use last 30 for better breakdown
         const positiveMoods = ['happy', 'grateful', 'peaceful', 'excited', '😄', '😊', '😌', 'feliz', 'calmo', 'grato', 'motivado', 'vibrante', 'sereno', 'serena', 'focado', 'focada', 'grata'];
+        
         const positivity = recentSnaps.length > 0
             ? (recentSnaps.filter(s => {
                 const mood = String(s.mood || '').toLowerCase();
@@ -78,13 +80,30 @@ export const gardenService = {
 
         const total = (constancy * 0.4) + (positivity * 0.2) + (rituals * 0.2) + (tribe * 0.1) + (curation * 0.1);
 
+        // Dynamic Breakdown Calculation
+        const moodMap: Record<string, number> = {};
+        recentSnaps.forEach(s => {
+            const mood = s.mood || 'Neutro';
+            // Normalize capitalization
+            const label = mood.charAt(0).toUpperCase() + mood.slice(1);
+            moodMap[label] = (moodMap[label] || 0) + 1;
+        });
+
+        const breakdown = Object.entries(moodMap)
+            .map(([label, count]) => ({
+                label,
+                percent: Math.round((count / (recentSnaps.length || 1)) * 100)
+            }))
+            .sort((a, b) => b.percent - a.percent); // Sort by prevalence
+
         return {
             constancy,
             positivity,
             rituals,
             tribe,
             curation,
-            total: Math.floor(total)
+            total: Math.floor(total),
+            breakdown
         };
     },
 
