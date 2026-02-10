@@ -15,7 +15,7 @@ const TimelineCard: React.FC<{ event: any }> = ({ event }) => (
         <div className="pb-8 flex-1">
             <div className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm relative group-hover:border-nature-300 transition-colors">
                  <div className="flex justify-between items-start mb-2">
-                     <span className={`text-[8px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg ${event.type === 'crisis' ? 'bg-rose-50 text-rose-600' : 'bg-nature-50 text-nature-500'}`}>{event.type}</span>
+                     <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg ${event.type === 'crisis' ? 'bg-rose-50 text-rose-600' : 'bg-nature-50 text-nature-500'}`}>{event.type}</span>
                      <span className="text-[10px] text-nature-300 font-bold">{new Date(event.date).toLocaleDateString()}</span>
                  </div>
                  <h4 className="font-bold text-nature-900 text-sm mb-1">{event.title}</h4>

@@ -56,15 +56,15 @@ export const SantuarioProfileView: React.FC<{ user: User }> = ({ user }) => {
                 <div className="grid grid-cols-3 gap-3">
                     <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
                         <div className="flex items-center justify-center gap-1 mb-1"><Star size={14} className="text-amber-400 fill-amber-400" /><span className="font-bold text-nature-900">{space.rating}</span></div>
-                        <p className="text-[8px] font-bold text-nature-400 uppercase">{space.reviews} Avaliações</p>
+                        <p className="text-[9px] font-bold text-nature-400 uppercase">{space.reviews} Avaliações</p>
                     </div>
                     <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
                         <div className="flex items-center justify-center gap-1 mb-1"><Users size={14} className="text-indigo-500" /><span className="font-bold text-nature-900">{space.guardians.length}</span></div>
-                        <p className="text-[8px] font-bold text-nature-400 uppercase">Guardiões</p>
+                        <p className="text-[9px] font-bold text-nature-400 uppercase">Guardiões</p>
                     </div>
                     <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
                         <div className="flex items-center justify-center gap-1 mb-1"><Building2 size={14} className="text-emerald-500" /><span className="font-bold text-nature-900">{space.rooms.length}</span></div>
-                        <p className="text-[8px] font-bold text-nature-400 uppercase">Altares</p>
+                        <p className="text-[9px] font-bold text-nature-400 uppercase">Altares</p>
                     </div>
                 </div>
 

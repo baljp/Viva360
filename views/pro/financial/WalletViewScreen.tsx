@@ -91,7 +91,7 @@ const TransactionItem: React.FC<{ tx: Transaction }> = ({ tx }) => (
                 <h4 className="font-bold text-nature-900 text-sm">{tx.description}</h4>
                 <div className="flex items-center gap-2 mt-1">
                     <span className="text-[9px] font-bold uppercase tracking-wider text-nature-400">{new Date(tx.date).toLocaleDateString()}</span>
-                    {tx.type === 'income' && <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 rounded font-bold">SESSÃO</span>}
+                    {tx.type === 'income' && <span className="text-[9px] bg-emerald-100 text-emerald-700 px-1.5 rounded font-bold">SESSÃO</span>}
                 </div>
             </div>
         </div>

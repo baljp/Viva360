@@ -77,7 +77,7 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
                 <VideoOff size={32} className="text-nature-400" />
             )}
             <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-1 bg-black/40 backdrop-blur-md rounded-lg">
-                <span className="text-[8px] font-bold text-white uppercase tracking-widest">Você</span>
+                <span className="text-[9px] font-bold text-white uppercase tracking-widest">Você</span>
             </div>
         </div>
       </div>

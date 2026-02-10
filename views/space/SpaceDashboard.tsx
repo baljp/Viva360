@@ -31,7 +31,7 @@ const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: num
                  </div>
                  <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
                     <Info size={10} />
-                    <p className="text-[8px] font-bold uppercase text-indigo-200 tracking-wider">Ver detalhes</p>
+                    <p className="text-[9px] font-bold uppercase text-indigo-200 tracking-wider">Ver detalhes</p>
                  </div>
              </div>
         </div>
@@ -249,7 +249,6 @@ export const SpaceDashboard: React.FC<{
     const { go } = useSantuarioFlow();
     const [activeTab, setActiveTab] = useState<'ops' | 'admin' | 'growth'>('ops');
     const [showNotifications, setShowNotifications] = useState(false);
-    const [isRadianceModalOpen, setIsRadianceModalOpen] = useState(false);
 
     // Mock Notifications
     const [notifications, setNotifications] = useState([
@@ -306,8 +305,7 @@ export const SpaceDashboard: React.FC<{
             </header>
 
             <div className="px-4">
-                <RadianceHero score={radianceScore} trend={trend} onOpenModal={() => setIsRadianceModalOpen(true)} />
-                <RadianceDetailsModal isOpen={isRadianceModalOpen} onClose={() => setIsRadianceModalOpen(false)} />
+                <RadianceHero score={radianceScore} trend={trend} onOpenModal={() => {}} />
 
                 {/* TABS NAVIGATION */}
                 <div className="flex p-1.5 bg-white rounded-[2rem] border border-nature-100 shadow-sm mb-6 sticky top-4 z-20">

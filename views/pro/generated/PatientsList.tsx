@@ -79,7 +79,7 @@ export default function PatientsList() {
                                 <div>
                                     <h4 className="font-bold text-nature-900">{p.name}</h4>
                                     <div className="flex items-center gap-2 mt-1">
-                                        <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-md text-[8px] font-bold uppercase tracking-wide">{p.mood}</span>
+                                        <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-md text-[9px] font-bold uppercase tracking-wide">{p.mood}</span>
                                         <span className="text-[9px] text-rose-400 font-bold">• {p.nextSession}</span>
                                     </div>
                                 </div>
@@ -103,7 +103,7 @@ export default function PatientsList() {
                        <div>
                            <h4 className="font-bold text-nature-900 group-hover:text-emerald-800 transition-colors">{p.name}</h4>
                            <div className="flex items-center gap-2 mt-1">
-                               <span className="px-2 py-0.5 bg-nature-50 rounded-md text-[8px] font-bold uppercase tracking-wide text-nature-500">{p.mood}</span>
+                               <span className="px-2 py-0.5 bg-nature-50 rounded-md text-[9px] font-bold uppercase tracking-wide text-nature-500">{p.mood}</span>
                                <span className="text-[9px] text-nature-300 font-bold">• {p.nextSession}</span>
                            </div>
                        </div>

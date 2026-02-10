@@ -90,7 +90,7 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
                                 <div className="w-full bg-nature-50 rounded-t-xl relative overflow-hidden" style={{ height: `${(m.value / maxTrend) * 100}%` }}>
                                     <div className={`absolute inset-0 rounded-t-xl ${i === monthlyTrend.length - 1 ? 'bg-indigo-500' : 'bg-nature-200'}`}></div>
                                 </div>
-                                <span className="text-[8px] font-bold text-nature-400 uppercase">{m.month}</span>
+                                <span className="text-[9px] font-bold text-nature-400 uppercase">{m.month}</span>
                             </div>
                         ))}
                     </div>

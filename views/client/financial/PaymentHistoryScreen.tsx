@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { PortalView } from '../../../components/Common';
-import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { PortalView, BottomSheet, ZenToast } from '../../../components/Common';
+import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X } from 'lucide-react';
 import { api } from '../../../services/api';
 import { Transaction } from '../../../types';
 
@@ -10,35 +10,53 @@ export default function PaymentHistoryScreen() {
     const { back } = useBuscadorFlow();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState<'all' | 'expense' | 'income'>('all');
+    const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'error' | 'info'} | null>(null);
 
-    useEffect(() => {
-        api.auth.getCurrentSession().then(async user => {
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const user = await api.auth.getCurrentSession();
             if (user) {
-                try {
-                    const summary = await api.professionals.getFinanceSummary(user.id);
-                    setTransactions(summary.transactions || []);
-                } catch {
-                    setTransactions([]);
-                }
+                const summary = await api.professionals.getFinanceSummary(user.id);
+                setTransactions(summary.transactions || []);
             }
+        } catch {
+            setToast({ title: "Erro", message: "Não foi possível carregar seu histórico.", type: 'error' });
+            setTransactions([]);
+        } finally {
             setLoading(false);
-        });
-    }, []);
+        }
+    };
+
+    useEffect(() => { fetchData(); }, []);
+
+    const filtered = filter === 'all' ? transactions : transactions.filter(t => t.type === filter);
+    const totalExpense = transactions.reduce((acc, t) => t.type === 'expense' ? acc + t.amount : acc, 0);
+    const totalIncome = transactions.reduce((acc, t) => t.type === 'income' ? acc + t.amount : acc, 0);
 
     return (
         <PortalView title="Financeiro" subtitle="SEUS PAGAMENTOS" onBack={back}>
+            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <div className="space-y-6">
                 
                 {/* Summary Card */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
                    <div className="relative z-10">
                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Investido</p>
-                       <h2 className="text-3xl font-serif">R$ {transactions.reduce((acc, t) => t.type === 'expense' ? acc + t.amount : acc, 0).toFixed(2).replace('.', ',')}</h2>
-                       <div className="mt-4 flex gap-4">
+                       <h2 className="text-3xl font-serif">R$ {totalExpense.toFixed(2).replace('.', ',')}</h2>
+                       <div className="mt-4 flex gap-3 flex-wrap">
                            <div className="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm flex items-center gap-2">
                                <Receipt size={14} className="text-emerald-400"/>
                                <span className="text-[10px] font-bold">{transactions.length} Transações</span>
                            </div>
+                           {totalIncome > 0 && (
+                               <div className="bg-emerald-500/20 px-3 py-1.5 rounded-lg backdrop-blur-sm flex items-center gap-2">
+                                   <ArrowDownLeft size={14} className="text-emerald-400"/>
+                                   <span className="text-[10px] font-bold text-emerald-300">+R$ {totalIncome.toFixed(2).replace('.', ',')}</span>
+                               </div>
+                           )}
                        </div>
                    </div>
                    <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
@@ -46,29 +64,55 @@ export default function PaymentHistoryScreen() {
                    </div>
                 </div>
 
+                {/* Filter Tabs + Refresh */}
+                <div className="flex items-center justify-between">
+                    <div className="flex gap-2">
+                        {[
+                            { id: 'all', label: 'Todos' },
+                            { id: 'expense', label: 'Saídas' },
+                            { id: 'income', label: 'Entradas' }
+                        ].map(f => (
+                            <button
+                                key={f.id}
+                                onClick={() => setFilter(f.id as any)}
+                                className={`px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${filter === f.id ? 'bg-nature-900 text-white shadow-sm' : 'bg-nature-50 text-nature-400'}`}
+                            >
+                                {f.label}
+                            </button>
+                        ))}
+                    </div>
+                    <button onClick={fetchData} disabled={loading} className="p-2 bg-nature-50 rounded-xl text-nature-400 hover:bg-nature-100 transition-all active:scale-95">
+                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                    </button>
+                </div>
+
                 {/* List */}
-                <div className="space-y-4">
-                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-widest ml-1">Histórico</h3>
-                    
+                <div className="space-y-3">
                     {loading ? (
-                        <div className="p-8 text-center text-slate-400">Carregando...</div>
-                    ) : transactions.length === 0 ? (
-                        <div className="p-8 text-center text-slate-400">Nenhuma transação encontrada.</div>
+                        <div className="space-y-3">
+                            {[1,2,3].map(i => <div key={i} className="h-20 bg-nature-50 rounded-2xl animate-pulse" />)}
+                        </div>
+                    ) : filtered.length === 0 ? (
+                        <div className="p-12 text-center text-nature-400 text-xs italic">Nenhuma transação encontrada.</div>
                     ) : (
-                        transactions.map(tx => (
-                            <div key={tx.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-50 flex items-center gap-4">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${tx.type === 'expense' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                        filtered.map(tx => (
+                            <div 
+                                key={tx.id} 
+                                onClick={() => setSelectedTx(tx)}
+                                className="bg-white p-4 rounded-2xl shadow-sm border border-nature-50 flex items-center gap-4 cursor-pointer hover:bg-nature-50/50 active:scale-[0.98] transition-all"
+                            >
+                                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tx.type === 'expense' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
                                     {tx.type === 'expense' ? <ArrowUpRight size={18} /> : <ArrowDownLeft size={18} />}
                                 </div>
-                                <div className="flex-1">
-                                    <h4 className="font-bold text-slate-900 text-sm">{tx.description}</h4>
-                                    <div className="flex items-center gap-2 text-slate-400 mt-1">
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-nature-900 text-sm truncate">{tx.description}</h4>
+                                    <div className="flex items-center gap-2 text-nature-400 mt-1">
                                         <Calendar size={10} />
-                                        <span className="text-[10px]">{new Date(tx.date).toLocaleDateString()}</span>
+                                        <span className="text-[10px]">{new Date(tx.date).toLocaleDateString('pt-BR')}</span>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <span className={`font-bold block ${tx.type === 'expense' ? 'text-slate-900' : 'text-emerald-600'}`}>
+                                <div className="text-right shrink-0">
+                                    <span className={`font-bold block ${tx.type === 'expense' ? 'text-nature-900' : 'text-emerald-600'}`}>
                                         {tx.type === 'expense' ? '-' : '+'} R$ {tx.amount.toFixed(2).replace('.', ',')}
                                     </span>
                                     <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-500">{tx.status}</span>
@@ -77,8 +121,38 @@ export default function PaymentHistoryScreen() {
                         ))
                     )}
                 </div>
-
             </div>
+
+            {/* Transaction Detail */}
+            <BottomSheet isOpen={!!selectedTx} onClose={() => setSelectedTx(null)} title="Detalhes da Transação">
+                {selectedTx && (
+                    <div className="space-y-6 pb-8">
+                        <div className="text-center">
+                            <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${selectedTx.type === 'expense' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                {selectedTx.type === 'expense' ? <ArrowUpRight size={28} /> : <ArrowDownLeft size={28} />}
+                            </div>
+                            <h3 className="text-2xl font-serif italic text-nature-900">
+                                {selectedTx.type === 'expense' ? '-' : '+'} R$ {selectedTx.amount.toFixed(2).replace('.', ',')}
+                            </h3>
+                            <p className="text-sm text-nature-500 mt-1">{selectedTx.description}</p>
+                        </div>
+                        <div className="space-y-3">
+                            <div className="flex justify-between p-4 bg-nature-50 rounded-2xl">
+                                <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Data</span>
+                                <span className="text-sm font-bold text-nature-900">{new Date(selectedTx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+                            </div>
+                            <div className="flex justify-between p-4 bg-nature-50 rounded-2xl">
+                                <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Status</span>
+                                <span className="text-sm font-bold text-emerald-600 uppercase">{selectedTx.status}</span>
+                            </div>
+                            <div className="flex justify-between p-4 bg-nature-50 rounded-2xl">
+                                <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Tipo</span>
+                                <span className="text-sm font-bold text-nature-900">{selectedTx.type === 'expense' ? 'Investimento' : 'Retorno'}</span>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </BottomSheet>
         </PortalView>
     );
 }

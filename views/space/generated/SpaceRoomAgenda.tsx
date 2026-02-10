@@ -40,7 +40,7 @@ export default function SpaceRoomAgenda() {
                                     <p className="text-[10px] text-nature-500 uppercase font-bold truncate">{evt.host}</p>
                                 </div>
                             </div>
-                            <div className="px-3 py-1 bg-nature-50 text-nature-400 rounded-lg text-[8px] font-bold uppercase tracking-widest whitespace-nowrap">
+                            <div className="px-3 py-1 bg-nature-50 text-nature-400 rounded-lg text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">
                                 {evt.type}
                             </div>
                         </div>

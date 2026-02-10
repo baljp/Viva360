@@ -42,7 +42,7 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                                 { label: 'Taxa Ocupação', value: '78%', icon: Users }
                             ].map((stat, i) => (
                                 <div key={i} className="bg-white/5 backdrop-blur-sm p-3 rounded-2xl border border-white/5">
-                                    <p className="text-[8px] font-bold uppercase text-primary-200/70 mb-1">{stat.label}</p>
+                                    <p className="text-[9px] font-bold uppercase text-primary-200/70 mb-1">{stat.label}</p>
                                     <div className={`text-sm font-bold flex items-center gap-1 ${stat.highlight ? 'text-emerald-400' : 'text-white'}`}>
                                         {stat.value}
                                         {stat.highlight && <ArrowUpRight size={10} />}
@@ -85,15 +85,15 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                     <div className="flex gap-4 mb-6">
                         <div className="flex-1 p-3 bg-nature-50 rounded-2xl border border-nature-100 text-center">
                             <span className="block text-xl font-bold text-nature-900">320h</span>
-                            <span className="text-[8px] font-bold text-nature-400 uppercase">Disponíveis</span>
+                            <span className="text-[9px] font-bold text-nature-400 uppercase">Disponíveis</span>
                         </div>
                         <div className="flex-1 p-3 bg-indigo-50 rounded-2xl border border-indigo-100 text-center">
                             <span className="block text-xl font-bold text-indigo-700">250h</span>
-                            <span className="text-[8px] font-bold text-indigo-400 uppercase">Ocupadas</span>
+                            <span className="text-[9px] font-bold text-indigo-400 uppercase">Ocupadas</span>
                         </div>
                         <div className="flex-1 p-3 bg-emerald-50 rounded-2xl border border-emerald-100 text-center">
                             <span className="block text-xl font-bold text-emerald-700">70h</span>
-                            <span className="text-[8px] font-bold text-emerald-500 uppercase">Ociosa</span>
+                            <span className="text-[9px] font-bold text-emerald-500 uppercase">Ociosa</span>
                         </div>
                     </div>
                     <div className="flex gap-2">
