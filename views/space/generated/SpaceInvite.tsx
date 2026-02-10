@@ -3,24 +3,48 @@ import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 import { PortalView, ZenToast } from '../../../components/Common';
 import { Share2, Copy, Shield, Sprout, Crown, Check } from 'lucide-react';
 
+import { api } from '../../../services/api';
+
 export default function SpaceInvite() {
-    const { back } = useSantuarioFlow();
+    const { back, notify } = useSantuarioFlow();
     const [selectedRole, setSelectedRole] = useState<'Guardian' | 'Facilitator' | 'Master'>('Guardian');
+    const [inviteCode, setInviteCode] = useState<string>('');
+    const [loading, setLoading] = useState(false);
     const [copied, setCopied] = useState(false);
 
-    const inviteCodes = {
-        Guardian: 'VIVA-GUARD-9921',
-        Facilitator: 'VIVA-FACIL-8832',
-        Master: 'VIVA-MAST-1102'
-    };
+    React.useEffect(() => {
+        let mounted = true;
+        setLoading(true);
+        // Map UI roles to backend roles
+        const roleMap: Record<string, string> = {
+            'Guardian': 'GUARDIAN',
+            'Facilitator': 'MEMBER',
+            'Master': 'ADMIN'
+        };
+
+        api.spaces.createInvite({ role: roleMap[selectedRole], uses: 1 })
+            .then(data => {
+                if (mounted && data?.code) setInviteCode(data.code);
+            })
+            .catch(() => notify('Erro', 'Falha ao gerar convite', 'error'))
+            .finally(() => {
+                if (mounted) setLoading(false);
+            });
+        
+        return () => { mounted = false; };
+    }, [selectedRole]);
 
     const handleCopy = () => {
+        if (!inviteCode) return;
+        navigator.clipboard.writeText(inviteCode);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+        notify('Copiado', 'Código copiado para a área de transferência', 'success');
     };
 
     const handleShareWhatsapp = () => {
-        const text = `Olá! Você foi convidado para integrar o Santuário como *${selectedRole}*. Use o código de acesso: *${inviteCodes[selectedRole]}*. Baixe o app e junte-se a nós!`;
+        if (!inviteCode) return;
+        const text = `Olá! Você foi convidado para integrar o Santuário como *${selectedRole}*. Use o código de acesso: *${inviteCode}*. Baixe o app e junte-se a nós!`;
         const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
         window.open(url, '_blank');
     };
@@ -58,7 +82,9 @@ export default function SpaceInvite() {
                     </div>
 
                     <div className="p-4 bg-nature-50 rounded-2xl border border-nature-100 flex items-center justify-between group cursor-pointer hover:bg-white hover:border-indigo-200 transition-all" onClick={handleCopy}>
-                        <span className="font-mono text-xl font-bold text-nature-900 tracking-widest">{inviteCodes[selectedRole]}</span>
+                        <span className="font-mono text-xl font-bold text-nature-900 tracking-widest">
+                            {loading ? <span className="animate-pulse">GERANDO...</span> : inviteCode}
+                        </span>
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${copied ? 'bg-emerald-100 text-emerald-600' : 'bg-white text-nature-400 group-hover:text-indigo-600'}`}>
                             {copied ? <Check size={20}/> : <Copy size={20}/>}
                         </div>

@@ -27,6 +27,7 @@ import executiveRoutes from './executive.routes';
 import journalRoutes from './journal.routes';
 import clinicalRoutes from './clinical.routes';
 import auditRoutes from './audit.routes';
+import spaceRoutes from './space.routes';
 
 const router = Router();
 router.use(rateLimiter); // Upgrade 9.5: Global Rate Limit
@@ -60,6 +61,7 @@ router.use('/records', authenticateUser, recordsRoutes);
 router.use('/journal', authenticateUser, journalRoutes);
 router.use('/clinical', authenticateUser, clinicalRoutes);
 router.use('/audit', authenticateUser, auditRoutes);
+router.use('/spaces', authenticateUser, spaceRoutes);
 
 // Admin
 router.use('/admin', authenticateUser, adminRoutes);
