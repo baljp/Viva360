@@ -146,6 +146,24 @@ export const ClientDashboard: React.FC<{
 
                 </div>
 
+                {/* MISSÕES DIÁRIAS - Gamification CTA */}
+                <div onClick={() => go('CLIENT_QUESTS')} className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 rounded-[2.5rem] p-5 text-white shadow-xl relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-white/20 transition-all"></div>
+                    <div className="relative z-10 flex items-center gap-4">
+                        <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
+                            <CheckCircle2 size={28} className="text-white" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-100">Missões do Dia</p>
+                            <h4 className="text-lg font-serif italic mt-0.5">Conquiste seu Karma</h4>
+                        </div>
+                        <div className="text-right">
+                            <span className="block text-2xl font-black">{user.streak || 0}</span>
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-amber-100">dias</span>
+                        </div>
+                    </div>
+                </div>
+
                 {/* SESSÃO NOVA: JORNADA & EVOLUÇÃO (Moved from Garden) */}
                 <div className="space-y-4">
                     <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">

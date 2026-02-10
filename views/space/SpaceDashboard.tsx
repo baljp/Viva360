@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy
 } from 'lucide-react';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
@@ -94,6 +94,50 @@ const QuickStat = ({ label, value, icon: Icon, color }: any) => (
 
 const OperationsTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* TEAM CHALLENGE - Gamificação do Santuário */}
+        <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+            <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                            <Award size={22} className="text-white" />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-indigo-200">Desafio da Semana</p>
+                            <h4 className="text-sm font-bold">Meta Coletiva do Templo</h4>
+                        </div>
+                    </div>
+                    <div className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full">
+                        <span className="text-[10px] font-bold">72%</span>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    {[
+                        { label: '50 Sessões realizadas', progress: 84, done: false },
+                        { label: '10 Novos buscadores', progress: 60, done: false },
+                        { label: 'NPS acima de 90', progress: 100, done: true },
+                    ].map((goal, i) => (
+                        <div key={i} className="flex items-center gap-3">
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center ${goal.done ? 'bg-emerald-400' : 'bg-white/20'}`}>
+                                {goal.done && <CheckCircle2 size={12} className="text-white" />}
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex justify-between mb-1">
+                                    <span className="text-[9px] font-bold text-white/80">{goal.label}</span>
+                                    <span className="text-[9px] font-bold text-white/60">{goal.progress}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                                    <div className="h-full bg-white rounded-full" style={{ width: `${goal.progress}%` }}></div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <p className="text-[9px] font-bold text-indigo-200 uppercase tracking-widest mt-3">🏆 Recompensa: +200 Radiance para todo o time</p>
+            </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
             <PortalCard 
                 id="portal-agenda"
@@ -232,6 +276,29 @@ const GrowthTab = ({ go }: any) => (
                  <h4 className="font-bold text-nature-900">Reputação</h4>
                  <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Avaliações & Feedback</p>
              </div>
+        </div>
+
+        {/* CONQUISTAS DO SANTUÁRIO */}
+        <div className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm p-6 space-y-4">
+            <div className="flex items-center gap-3">
+                <Trophy size={18} className="text-amber-500" />
+                <h4 className="font-bold text-nature-900 text-sm">Conquistas do Templo</h4>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+                {[
+                    { icon: '🌟', label: '100 Sessões', unlocked: true },
+                    { icon: '🏆', label: 'NPS 95+', unlocked: true },
+                    { icon: '🔥', label: '30 Dias', unlocked: true },
+                    { icon: '💎', label: 'Premium', unlocked: false },
+                    { icon: '🌍', label: 'Expansão', unlocked: false },
+                    { icon: '👑', label: 'Referência', unlocked: false },
+                ].map((badge, i) => (
+                    <div key={i} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${badge.unlocked ? 'bg-amber-50 border-amber-100' : 'bg-nature-50 border-nature-50 opacity-40 grayscale'}`}>
+                        <span className="text-2xl">{badge.icon}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-nature-600 text-center">{badge.label}</span>
+                    </div>
+                ))}
+            </div>
         </div>
     </div>
 );

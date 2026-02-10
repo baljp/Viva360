@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ViewState, Professional, User } from '../../types';
-import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle, Video } from 'lucide-react';
+import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle, Video, Trophy, Target, Flame, Star, CheckCircle2 } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, Logo, NotificationDrawer } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { api } from '../../services/api';
@@ -99,6 +99,48 @@ export const ProDashboard: React.FC<{
             </div>
         </div>
 
+        {/* DAILY ENGAGEMENT TRACKER */}
+        <div className="px-6 mb-6">
+            <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-500 rounded-[2.5rem] p-5 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
+                <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
+                                <Target size={20} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-100">Metas do Dia</p>
+                                <h4 className="text-sm font-bold">Engajamento Guardião</h4>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-full">
+                            <Flame size={14} className="text-amber-200" />
+                            <span className="text-[10px] font-bold">{user.streak || 0} dias</span>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        {[
+                            { label: 'Atender', done: 2, total: 3, icon: Stethoscope },
+                            { label: 'Registrar', done: 1, total: 2, icon: Flower },
+                            { label: 'Conectar', done: 0, total: 1, icon: MessageCircle },
+                        ].map((goal, i) => (
+                            <div key={i} className={`bg-white/15 backdrop-blur-sm rounded-xl p-3 text-center ${goal.done >= goal.total ? 'ring-2 ring-white/40' : ''}`}>
+                                <goal.icon size={16} className="mx-auto mb-1.5 text-white/80" />
+                                <p className="text-[9px] font-bold uppercase tracking-wider text-white/70">{goal.label}</p>
+                                <p className="text-sm font-black mt-0.5">
+                                    {goal.done >= goal.total ? <CheckCircle2 size={16} className="mx-auto text-white" /> : `${goal.done}/${goal.total}`}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-3 w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                        <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${Math.round((3/6)*100)}%` }}></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {/* TABS DE NAVEGAÇÃO SUPERIOR */}
         <div className="px-6 mb-6">
             <div className="flex p-1 bg-nature-50 rounded-2xl">
@@ -125,6 +167,51 @@ export const ProDashboard: React.FC<{
 
         <div className="px-4 space-y-8 min-h-[50vh]">
             
+            {/* GAMIFICATION STRIP - Desafios Diários do Guardião */}
+            <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 rounded-[2.5rem] p-5 text-white shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
+                <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
+                                <Target size={24} className="text-white" />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-100">Desafio do Guardião</p>
+                                <h4 className="text-sm font-bold">Meta Semanal de Cura</h4>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <div className="flex items-center gap-1.5">
+                                <Flame size={16} className="text-amber-200" />
+                                <span className="text-lg font-black">{user.streak || 0}</span>
+                            </div>
+                            <span className="text-[9px] font-bold text-amber-100 uppercase">dias</span>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 mb-3">
+                        {[
+                            { label: '3 Sessões', done: true },
+                            { label: '1 Evolução', done: true },
+                            { label: '1 Escambo', done: false },
+                            { label: '5 Registros', done: false },
+                        ].map((task, i) => (
+                            <div key={i} className={`flex-1 text-center py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all ${task.done ? 'bg-white/30 text-white' : 'bg-white/10 text-white/50'}`}>
+                                {task.done && <CheckCircle2 size={10} className="inline mr-1" />}
+                                {task.label}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+                        <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: '50%' }}></div>
+                    </div>
+                    <div className="flex justify-between mt-2 text-[9px] font-bold text-amber-100 uppercase tracking-widest">
+                        <span>2/4 Concluídos</span>
+                        <span>+75 Karma ao completar</span>
+                    </div>
+                </div>
+            </div>
+
             {/* VIEW: CONSULTÓRIO */}
             {activeTab === 'consultorio' && (
                 <div className="space-y-6 animate-in slide-in-from-left-4 duration-300">
@@ -212,6 +299,43 @@ export const ProDashboard: React.FC<{
                              </div>
                         </div>
                         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-sm"><Plus size={14}/></div>
+                    </div>
+
+                    {/* LEADERBOARD - Ranking dos Guardiões */}
+                    <div className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-nature-50">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <Trophy size={20} className="text-amber-500" />
+                                    <h4 className="font-bold text-nature-900">Ranking da Egrégora</h4>
+                                </div>
+                                <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Semanal</span>
+                            </div>
+                        </div>
+                        <div className="divide-y divide-nature-50">
+                            {[
+                                { rank: 1, name: 'Dra. Marina', karma: 320, avatar: 'M', color: 'bg-amber-100 text-amber-700 ring-amber-300' },
+                                { rank: 2, name: user.name, karma: user.karma || 180, avatar: user.name.charAt(0), color: 'bg-emerald-100 text-emerald-700 ring-emerald-300' },
+                                { rank: 3, name: 'Dr. Rafael', karma: 150, avatar: 'R', color: 'bg-indigo-100 text-indigo-700 ring-indigo-300' },
+                                { rank: 4, name: 'Terapeuta Ana', karma: 120, avatar: 'A', color: 'bg-rose-50 text-rose-600 ring-rose-200' },
+                            ].map((g) => (
+                                <div key={g.rank} className={`flex items-center gap-4 px-6 py-4 ${g.name === user.name ? 'bg-emerald-50/50' : ''}`}>
+                                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ${g.rank <= 3 ? 'bg-amber-100 text-amber-700' : 'bg-nature-50 text-nature-400'}`}>
+                                        {g.rank <= 3 ? ['🥇','🥈','🥉'][g.rank-1] : g.rank}
+                                    </span>
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ring-2 ${g.color}`}>
+                                        {g.avatar}
+                                    </div>
+                                    <div className="flex-1">
+                                        <h5 className="font-bold text-nature-900 text-sm">{g.name}</h5>
+                                        <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">{g.karma} Karma</p>
+                                    </div>
+                                    {g.name === user.name && (
+                                        <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-1 rounded-lg uppercase">Você</span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}
