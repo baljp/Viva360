@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, DailyRitualSnap, MoodType } from '../../../types';
-import { Camera, ArrowRight, Heart, Sparkles, Droplet, Check, Share2, X, Sun, Download, Instagram } from 'lucide-react';
+import { Camera, ArrowRight, Heart, Sparkles, Droplet, Check, Share2, X, Sun, Download, Instagram, TrendingUp } from 'lucide-react';
 import { CameraWidget, ZenToast } from '../../../components/Common';
 import { SoulCard } from '../../../src/components/SoulCard';
 import { phraseService } from '../../../services/phraseService';
@@ -63,9 +63,56 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     };
 
     const handleCardConfirm = async () => {
-        // Proceed to Nurture then Share
-        // Actually flow is: Mood -> Photo -> Intention -> Gratitude -> Card (Show) -> Share/Save -> Nurture -> Tribe
+        // Auto-save snap immediately so photo is never lost
+        await autoSaveSnap();
         setStep('SHARE');
+    };
+
+    const autoSaveSnap = async () => {
+        if (isSaving) return;
+        setIsSaving(true);
+        try {
+            // 1. Save to Soul Journal
+            await api.journal.create({
+                date: new Date().toISOString().split('T')[0],
+                mood: data.mood,
+                actionIntent: data.intention,
+                gratitude: data.gratitude
+            });
+
+            // 2. Calculate rewards & create snap
+            const reward = gardenService.calculateWateringReward(user);
+            const phrases = phraseService.getPhrases(data.mood, 'JARDIM');
+            const newSnap: DailyRitualSnap = {
+                id: Date.now().toString(),
+                date: new Date().toISOString(),
+                image: data.image,
+                mood: data.mood,
+                note: data.intention,
+                phrases: phrases
+            };
+
+            // 3. Update user with snap + rewards
+            const updatedUser: User = {
+                ...user,
+                lastWateredAt: new Date().toISOString(),
+                plantHealth: Math.min(100, (user.plantHealth || 0) + 15),
+                plantXp: (user.plantXp || 0) + reward.xp,
+                karma: (user.karma || 0) + reward.karma,
+                snaps: [newSnap, ...(user.snaps || [])]
+            };
+            setFinalUser(updatedUser);
+
+            // 4. Persist to backend (profile + evolution snapshot)
+            await Promise.all([
+                api.users.update(updatedUser),
+                api.metamorphosis.checkIn(data.mood, `ritual_${newSnap.id}`, data.image)
+            ]);
+        } catch (error) {
+            console.error("Auto-save snap failed:", error);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // Canvas Logic for Sharing (Moved to top level)
@@ -297,51 +344,10 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     const handleNurtureStart = async () => {
         setStep('NURTURE');
-
-        // 1. Auto-Save to Soul Journal (Invisible)
-        try {
-            await api.journal.create({
-                date: new Date().toISOString().split('T')[0],
-                mood: data.mood,
-                actionIntent: data.intention,
-                gratitude: data.gratitude
-            });
-        } catch (e) {
-            console.error("Failed to auto-save journal", e);
-        }
-
-        // Calculate rewards
-        const reward = gardenService.calculateWateringReward(user);
-        const phrases = phraseService.getPhrases(data.mood, 'JARDIM');
-
-        // Create Snap
-        const newSnap: DailyRitualSnap = {
-            id: Date.now().toString(),
-            date: new Date().toISOString(),
-            image: data.image,
-            mood: data.mood,
-            note: data.intention, // Storing intention as note
-            phrases: phrases
-        };
-
-        // Update User
-        const updatedUser: User = {
-            ...user,
-            lastWateredAt: new Date().toISOString(),
-            plantHealth: Math.min(100, (user.plantHealth || 0) + 15),
-            plantXp: (user.plantXp || 0) + reward.xp,
-            karma: (user.karma || 0) + reward.karma,
-            snaps: [newSnap, ...(user.snaps || [])]
-        };
-
-        setFinalUser(updatedUser);
-
-        // Persist profile basics and evolution snapshot/event in backend.
-        try {
-            await api.users.update(updatedUser);
-            await api.metamorphosis.checkIn(data.mood, `ritual_${newSnap.id}`, data.image);
-        } catch (error) {
-            console.error("Failed to persist ritual evolution snapshot", error);
+        // Snap already saved in handleCardConfirm/autoSaveSnap
+        // Just apply final user if not already set
+        if (!finalUser) {
+            await autoSaveSnap();
         }
     };
 
@@ -529,8 +535,12 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                     <SoulCard snap={snapStub} className="shadow-2xl skew-y-1 mb-8" />
                     
                     {step === 'CARD' ? (
-                        <button onClick={handleCardConfirm} className="w-full py-5 bg-white text-nature-900 rounded-2xl font-bold uppercase tracking-widest shadow-xl hover:bg-nature-50 active:scale-95 transition-all flex items-center justify-center gap-2">
-                             <Sparkles size={18} /> Cristalizar Momento
+                        <button onClick={handleCardConfirm} disabled={isSaving} className="w-full py-5 bg-white text-nature-900 rounded-2xl font-bold uppercase tracking-widest shadow-xl hover:bg-nature-50 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
+                             {isSaving ? (
+                                 <><div className="w-4 h-4 border-2 border-nature-300 border-t-nature-900 rounded-full animate-spin"></div> Salvando...</>
+                             ) : (
+                                 <><Sparkles size={18} /> Cristalizar Momento</>
+                             )}
                         </button>
                     ) : (
                         <div className="space-y-3 animate-in slide-in-from-bottom fade-in duration-500">
@@ -567,7 +577,6 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             <div className="fixed inset-0 z-[200] bg-emerald-900 flex flex-col items-center justify-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 animate-pulse"></div>
                 
-                {/* Micro animation: Water falling, Sprout growing */}
                 <div className="relative z-10 flex flex-col items-center gap-8 animate-in slide-in-from-bottom duration-1000">
                     <div className="relative">
                         <Droplet size={64} className="text-emerald-300 fill-emerald-300 animate-bounce" />
@@ -576,7 +585,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                     
                     <div className="space-y-2 text-center">
                          <h2 className="text-4xl font-serif italic text-white">Seu jardim recebeu cuidado hoje.</h2>
-                         <p className="text-emerald-200 text-[10px] font-bold uppercase tracking-[0.2em]">Sintonização Completa</p>
+                         <p className="text-emerald-200 text-[10px] font-bold uppercase tracking-[0.2em]">Sintonização Completa • Salvo na Evolução</p>
                     </div>
 
                     <div className="flex gap-4 justify-center pt-4">
@@ -584,16 +593,28 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                          <div className="px-6 py-2 bg-white/10 rounded-full backdrop-blur-md border border-white/10 text-white text-xs font-bold uppercase tracking-widest">+5 Karma</div>
                     </div>
 
-                    <button 
-                        onClick={() => {
-                            if (finalUser) updateUser(finalUser);
-                            else updateUser(user);
-                            onClose();
-                        }}
-                        className="mt-8 px-12 py-4 bg-white text-emerald-900 rounded-full font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all animate-in fade-in delay-1000 duration-1000"
-                    >
-                        Concluir
-                    </button>
+                    <div className="flex flex-col gap-3 w-full max-w-xs mt-4">
+                        <button 
+                            onClick={() => {
+                                if (finalUser) updateUser(finalUser);
+                                else updateUser(user);
+                                go('EVOLUTION');
+                            }}
+                            className="w-full px-8 py-4 bg-white/20 backdrop-blur-md text-white rounded-full font-bold uppercase tracking-widest border border-white/20 shadow-xl hover:bg-white/30 active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            <TrendingUp size={16} /> Ver minha Evolução
+                        </button>
+                        <button 
+                            onClick={() => {
+                                if (finalUser) updateUser(finalUser);
+                                else updateUser(user);
+                                onClose();
+                            }}
+                            className="w-full px-8 py-4 bg-white text-emerald-900 rounded-full font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+                        >
+                            Concluir
+                        </button>
+                    </div>
                  </div>
             </div>
         );

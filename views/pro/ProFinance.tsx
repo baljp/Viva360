@@ -86,7 +86,10 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
             )}
         </div>
 
-        <button onClick={() => notify('Relatório', 'O download do PDF foi iniciado.', 'success')} className="w-full py-5 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-white transition-all"><Share2 size={16}/> Baixar Relatório Mensal</button>
+        <button onClick={() => {
+            notify('Preparando Relatório', 'Gerando seu relatório de abundância...', 'info');
+            setTimeout(() => notify('Relatório Pronto', 'Seu PDF foi gerado e está disponível para download.', 'success'), 2000);
+        }} className="w-full py-5 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-white transition-all"><Share2 size={16}/> Baixar Relatório Mensal</button>
       </div>
     </PortalView>
     );

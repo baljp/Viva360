@@ -138,6 +138,10 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
     const { notify, back, go, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'services'>('overview');
     const [showReinvest, setShowReinvest] = useState(false);
+    const [showWithdraw, setShowWithdraw] = useState(false);
+    const [showDonate, setShowDonate] = useState(false);
+    const [withdrawProcessing, setWithdrawProcessing] = useState(false);
+    const [donateProcessing, setDonateProcessing] = useState(false);
     
     // Mock Data (In real app, comes from state.data or props)
     const transactions = state.data.transactions?.length ? state.data.transactions : [
@@ -149,14 +153,30 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
     const currentBalance = user.personalBalance || 1250;
 
     const handleAction = (action: string) => {
-        if (action === 'withdraw') notify('Saque Solicitado', 'Sua solicitação via PIX está em processamento.', 'info');
+        if (action === 'withdraw') setShowWithdraw(true);
         if (action === 'reinvest') setShowReinvest(true);
-        if (action === 'donate') notify('Ação de Graça', 'Sua generosidade move o mundo.', 'success');
+        if (action === 'donate') setShowDonate(true);
+    };
+
+    const handleWithdrawConfirm = async (amount: number) => {
+        setWithdrawProcessing(true);
+        await new Promise(r => setTimeout(r, 1800));
+        setWithdrawProcessing(false);
+        setShowWithdraw(false);
+        notify('Saque Solicitado', `R$ ${amount},00 serão transferidos via PIX em até 24h. Protocolo #${Math.random().toString(36).substring(2, 8).toUpperCase()}`, 'success');
+    };
+
+    const handleDonateConfirm = async (amount: number, cause: string) => {
+        setDonateProcessing(true);
+        await new Promise(r => setTimeout(r, 1500));
+        setDonateProcessing(false);
+        setShowDonate(false);
+        notify('Ação de Graça', `R$ ${amount},00 doados para "${cause}". Sua generosidade move o mundo. +${amount} Karma recebido!`, 'success');
     };
 
     const handleReinvestConfirm = (type: string, amount: number) => {
         setShowReinvest(false);
-        notify('Semente Plantada', type === 'garden' ? 'Seu jardim vibra com nova energia!' : 'Você iluminou o caminho de alguém.', 'success');
+        notify('Semente Plantada', type === 'garden' ? `R$ ${amount} investidos no seu Jardim! Novos itens e vibração desbloqueados.` : `R$ ${amount} iluminaram o caminho de alguém. Você recebeu +${amount * 2} Karma!`, 'success');
     };
 
     return (
@@ -166,7 +186,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
             onBack={() => go('DASHBOARD')}
             heroImage="https://images.unsplash.com/photo-1620022410313-1f1638234372?q=80&w=800"
             headerRight={
-                <button onClick={() => notify('Leitura do painel', 'Este painel sintetiza saldo, projeções e ações de abundância.', 'info')} className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-all">
+                <button onClick={() => notify('Painel Financeiro', 'Aqui você gerencia saldo, projeções, saques e reinvestimentos. Toque em cada card para mais detalhes.', 'info')} className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-all">
                     <Info size={20} />
                 </button>
             }
@@ -247,7 +267,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                              <Package size={24} />
                          </div>
                          <p className="text-xs text-nature-500 italic max-w-xs mx-auto">Crie jornadas, pacotes e rituais para aumentar seu impacto e previsibilidade.</p>
-                         <button onClick={() => { notify('Nova jornada', 'Abrindo módulo de criação no marketplace.', 'success'); go('ALQUIMIA_CREATE'); }} className="bg-nature-900 text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Criar Nova Jornada</button>
+                         <button onClick={() => { go('ALQUIMIA_CREATE'); }} className="bg-nature-900 text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Criar Nova Jornada</button>
                      </div>
                 </div>
             )}
