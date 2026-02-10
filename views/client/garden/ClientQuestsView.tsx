@@ -3,7 +3,8 @@ import { User, DailyQuest } from '../../../types';
 import { PortalView, ZenToast } from '../../../components/Common';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { api } from '../../../services/api';
-import { CheckCheck, Activity, Flame, Gift, Sparkles, TrendingUp, Star, Zap } from 'lucide-react';
+import { CheckCheck, Activity, Flame, Gift, Sparkles, TrendingUp, Star, Zap, Award, Lock, Trophy } from 'lucide-react';
+import { CLIENT_ACHIEVEMENTS, checkAchievements, getUserRank, CLIENT_RANKS, getRankProgress, getUnlockedCount } from '../../../utils/gamification';
 
 const DEFAULT_QUESTS: DailyQuest[] = [
     { id: 'checkin', label: 'Check-in Matinal', description: 'Registre como você está hoje', reward: 5, isCompleted: false },
@@ -18,6 +19,12 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
     const [quests, setQuests] = useState<DailyQuest[]>(user.dailyQuests?.length ? user.dailyQuests : DEFAULT_QUESTS);
     const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
     const [animatingId, setAnimatingId] = useState<string | null>(null);
+    const [showAchievements, setShowAchievements] = useState(false);
+
+    const achievements = checkAchievements(user, CLIENT_ACHIEVEMENTS);
+    const unlockedCount = getUnlockedCount(achievements);
+    const rank = getUserRank(user.karma || 0, CLIENT_RANKS);
+    const rankProgress = getRankProgress(user.karma || 0, CLIENT_RANKS);
 
     const completedCount = quests.filter(q => q.isCompleted).length;
     const totalReward = quests.reduce((sum, q) => sum + q.reward, 0);
@@ -158,6 +165,66 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
                             ))}
                         </div>
                     </div>
+                </div>
+
+                {/* Rank Badge */}
+                <div className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${rank.bg}`}>
+                                <Trophy size={22} className={rank.color} />
+                            </div>
+                            <div>
+                                <p className="text-[9px] font-black text-nature-400 uppercase tracking-[0.2em]">Seu Rank</p>
+                                <h4 className={`text-lg font-serif italic ${rank.color}`}>Nível {rank.level}: {rank.name}</h4>
+                            </div>
+                        </div>
+                        <span className="text-2xl font-serif italic text-amber-500">{user.karma || 0}</span>
+                    </div>
+                    <div className="w-full h-2 bg-nature-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-amber-400 to-amber-600 rounded-full transition-all duration-1000" style={{ width: `${rankProgress}%` }}></div>
+                    </div>
+                    <p className="text-[9px] text-nature-400 mt-2 text-right font-bold uppercase tracking-widest">
+                        {rankProgress < 100 ? `${rankProgress}% para o próximo nível` : 'Nível máximo!'}
+                    </p>
+                </div>
+
+                {/* Achievements Section */}
+                <div className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm overflow-hidden">
+                    <button onClick={() => setShowAchievements(!showAchievements)} className="w-full p-6 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <Award size={20} className="text-amber-500" />
+                            <div className="text-left">
+                                <h4 className="font-bold text-nature-900">Conquistas</h4>
+                                <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">{unlockedCount}/{achievements.length} desbloqueadas</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className="flex -space-x-1">
+                                {achievements.filter(a => a.unlockedAt).slice(0, 4).map(a => (
+                                    <span key={a.id} className="text-lg">{a.icon}</span>
+                                ))}
+                            </div>
+                            <Zap size={16} className={`transition-transform ${showAchievements ? 'rotate-90' : ''} text-nature-300`} />
+                        </div>
+                    </button>
+
+                    {showAchievements && (
+                        <div className="px-6 pb-6 grid grid-cols-3 gap-3 animate-in slide-in-from-top-2 duration-300">
+                            {achievements.map(a => (
+                                <div key={a.id} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${
+                                    a.unlockedAt 
+                                        ? 'bg-amber-50 border-amber-100 shadow-sm' 
+                                        : 'bg-nature-50 border-nature-50 opacity-40 grayscale'
+                                }`}>
+                                    <span className="text-2xl">{a.icon}</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-widest text-nature-700 text-center leading-tight">{a.label}</span>
+                                    <span className="text-[9px] text-nature-400 text-center">{a.description}</span>
+                                    {!a.unlockedAt && <Lock size={10} className="text-nature-300" />}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </PortalView>

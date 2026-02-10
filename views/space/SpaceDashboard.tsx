@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy, Lock
 } from 'lucide-react';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
+import { SPACE_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../utils/gamification';
 
 // --- COMPONENTS ---
 
@@ -278,26 +279,28 @@ const GrowthTab = ({ go }: any) => (
              </div>
         </div>
 
-        {/* CONQUISTAS DO SANTUÁRIO */}
+        {/* CONQUISTAS DO SANTUÁRIO - Dynamic */}
         <div className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm p-6 space-y-4">
-            <div className="flex items-center gap-3">
-                <Trophy size={18} className="text-amber-500" />
-                <h4 className="font-bold text-nature-900 text-sm">Conquistas do Templo</h4>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Trophy size={18} className="text-amber-500" />
+                    <h4 className="font-bold text-nature-900 text-sm">Conquistas do Templo</h4>
+                </div>
+                <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">3/{SPACE_ACHIEVEMENTS.length}</span>
             </div>
             <div className="grid grid-cols-3 gap-3">
-                {[
-                    { icon: '🌟', label: '100 Sessões', unlocked: true },
-                    { icon: '🏆', label: 'NPS 95+', unlocked: true },
-                    { icon: '🔥', label: '30 Dias', unlocked: true },
-                    { icon: '💎', label: 'Premium', unlocked: false },
-                    { icon: '🌍', label: 'Expansão', unlocked: false },
-                    { icon: '👑', label: 'Referência', unlocked: false },
-                ].map((badge, i) => (
-                    <div key={i} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${badge.unlocked ? 'bg-amber-50 border-amber-100' : 'bg-nature-50 border-nature-50 opacity-40 grayscale'}`}>
-                        <span className="text-2xl">{badge.icon}</span>
-                        <span className="text-[9px] font-bold uppercase tracking-widest text-nature-600 text-center">{badge.label}</span>
-                    </div>
-                ))}
+                {SPACE_ACHIEVEMENTS.map((badge) => {
+                    // Simple unlock simulation based on achievement thresholds
+                    const unlocked = badge.id === 'nps_80' || badge.id === 'sessions_100' || badge.id === 'pros_5';
+                    return (
+                        <div key={badge.id} className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${unlocked ? 'bg-amber-50 border-amber-100 shadow-sm' : 'bg-nature-50 border-nature-50 opacity-40 grayscale'}`}>
+                            <span className="text-2xl">{badge.icon}</span>
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-nature-600 text-center leading-tight">{badge.label}</span>
+                            <span className="text-[9px] text-nature-400 text-center">{badge.description}</span>
+                            {!unlocked && <Lock size={9} className="text-nature-300" />}
+                        </div>
+                    );
+                })}
             </div>
         </div>
     </div>

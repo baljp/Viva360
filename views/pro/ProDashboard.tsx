@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { ViewState, Professional, User } from '../../types';
-import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle, Video, Trophy, Target, Flame, Star, CheckCircle2 } from 'lucide-react';
+import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle, Video, Trophy, Target, Flame, Star, CheckCircle2, Award, Lock } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, Logo, NotificationDrawer } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { api } from '../../services/api';
 import { useGuardianPresence } from '../../src/hooks/useGuardianPresence';
+import { PRO_ACHIEVEMENTS, checkAchievements, getUserRank, PRO_RANKS, getRankProgress, getUnlockedCount } from '../../utils/gamification';
 
 export const ProDashboard: React.FC<{ 
     user: Professional, 
@@ -30,6 +31,33 @@ export const ProDashboard: React.FC<{
     const handleMarkAllRead = () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     };
+
+    // Weekly Challenge Tasks (interactive)
+    const [weeklyTasks, setWeeklyTasks] = useState([
+        { id: 'sessions', label: '3 Sessões', done: true },
+        { id: 'evolution', label: '1 Evolução', done: true },
+        { id: 'escambo', label: '1 Escambo', done: false },
+        { id: 'registros', label: '5 Registros', done: false },
+    ]);
+    const weeklyDone = weeklyTasks.filter(t => t.done).length;
+    const weeklyTotal = weeklyTasks.length;
+
+    const toggleWeeklyTask = (id: string) => {
+        setWeeklyTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
+        const task = weeklyTasks.find(t => t.id === id);
+        if (task && !task.done) {
+            const karmaReward = 25;
+            const updated = { ...user, karma: (user.karma || 0) + karmaReward };
+            updateUser(updated);
+            notify(`+${karmaReward} Karma`, `${task.label} concluída!`, 'success');
+        }
+    };
+
+    // Gamification
+    const proAchievements = checkAchievements(user, PRO_ACHIEVEMENTS);
+    const proUnlocked = getUnlockedCount(proAchievements);
+    const proRank = getUserRank(user.karma || 0, PRO_RANKS);
+    const proRankProgress = getRankProgress(user.karma || 0, PRO_RANKS);
 
     return (
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-32">
@@ -190,23 +218,18 @@ export const ProDashboard: React.FC<{
                         </div>
                     </div>
                     <div className="flex gap-2 mb-3">
-                        {[
-                            { label: '3 Sessões', done: true },
-                            { label: '1 Evolução', done: true },
-                            { label: '1 Escambo', done: false },
-                            { label: '5 Registros', done: false },
-                        ].map((task, i) => (
-                            <div key={i} className={`flex-1 text-center py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all ${task.done ? 'bg-white/30 text-white' : 'bg-white/10 text-white/50'}`}>
+                        {weeklyTasks.map((task) => (
+                            <button key={task.id} onClick={() => toggleWeeklyTask(task.id)} className={`flex-1 text-center py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all active:scale-95 ${task.done ? 'bg-white/30 text-white' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}>
                                 {task.done && <CheckCircle2 size={10} className="inline mr-1" />}
                                 {task.label}
-                            </div>
+                            </button>
                         ))}
                     </div>
                     <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: '50%' }}></div>
+                        <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${(weeklyDone / weeklyTotal) * 100}%` }}></div>
                     </div>
                     <div className="flex justify-between mt-2 text-[9px] font-bold text-amber-100 uppercase tracking-widest">
-                        <span>2/4 Concluídos</span>
+                        <span>{weeklyDone}/{weeklyTotal} Concluídos</span>
                         <span>+75 Karma ao completar</span>
                     </div>
                 </div>
@@ -336,6 +359,38 @@ export const ProDashboard: React.FC<{
                                 </div>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Rank & Achievements */}
+                    <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-[2.5rem] border border-indigo-100 p-6 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${proRank.bg}`}>
+                                    <Award size={22} className={proRank.color} />
+                                </div>
+                                <div>
+                                    <p className="text-[9px] font-black text-nature-400 uppercase tracking-[0.2em]">Seu Título</p>
+                                    <h4 className={`text-lg font-serif italic ${proRank.color}`}>{proRank.name}</h4>
+                                </div>
+                            </div>
+                            <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">{proRankProgress}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-white rounded-full overflow-hidden">
+                            <div className="h-full bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full transition-all duration-1000" style={{ width: `${proRankProgress}%` }}></div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 pt-2">
+                            {proAchievements.slice(0, 9).map(a => (
+                                <div key={a.id} className={`flex flex-col items-center gap-1.5 p-3 rounded-xl transition-all ${
+                                    a.unlockedAt ? 'bg-white border border-amber-100 shadow-sm' : 'bg-white/50 opacity-30 grayscale'
+                                }`}>
+                                    <span className="text-xl">{a.icon}</span>
+                                    <span className="text-[9px] font-bold uppercase tracking-wider text-nature-600 text-center leading-tight">{a.label}</span>
+                                    {!a.unlockedAt && <Lock size={9} className="text-nature-300" />}
+                                </div>
+                            ))}
+                        </div>
+                        <p className="text-[9px] text-center text-nature-400 font-bold uppercase tracking-widest">{proUnlocked}/{proAchievements.length} conquistas desbloqueadas</p>
                     </div>
                 </div>
             )}
