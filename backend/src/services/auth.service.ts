@@ -504,14 +504,15 @@ export class AuthService {
       };
     }
 
+    // Open registration: allow any email to register when not in allowlist
     return {
       canLogin: false,
-      canRegister: false,
-      role: allowlistRole,
-      roles: allowlistRole ? [allowlistRole] : [],
-      reason: 'EMAIL_NOT_AUTHORIZED',
-      accountState: 'NOT_AUTHORIZED',
-      nextAction: 'REQUEST_INVITE',
+      canRegister: true,
+      role: allowlistRole || 'CLIENT',
+      roles: allowlistRole ? [allowlistRole] : ['CLIENT'],
+      reason: 'INVITE_APPROVED_PENDING_REGISTRATION' as AccessReason,
+      accountState: 'INVITE_PENDING_REGISTRATION' as AccountState,
+      nextAction: 'REGISTER' as NextAction,
     };
   }
 

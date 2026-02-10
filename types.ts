@@ -81,13 +81,25 @@ export interface Badge {
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
 
+// Add Achievement interface
+export interface Achievement {
+  id: string;
+  label: string;
+  description: string;
+  icon: string;
+  category: 'streak' | 'karma' | 'social' | 'ritual' | 'mastery';
+  threshold: number;
+  unlockedAt?: string; // ISO date when unlocked
+}
+
 // Add DailyQuest interface
 export interface DailyQuest {
   id: string;
   label: string;
+  description?: string;
   reward: number;
   isCompleted: boolean;
-  type: 'ritual' | 'water' | 'breathe' | 'other';
+  type?: 'ritual' | 'water' | 'breathe' | 'other';
 }
 
 // Add DailyRitualSnap interface
@@ -184,6 +196,7 @@ export interface User {
   isVerified?: boolean;
   inventory?: { incense: number; crystals: number };
   dailyQuests?: DailyQuest[];
+  achievements?: Achievement[];
   snaps?: DailyRitualSnap[];
   constellationInvites?: any[];
   prestigeLevel?: number;

@@ -548,11 +548,8 @@ export const api = {
         },
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT, expectedEmail?: string): Promise<User> => {
             const normalizedExpectedEmail = normalizeEmail(expectedEmail || '');
-            if (!normalizedExpectedEmail) {
-                throw new Error('Informe seu e-mail antes de continuar com Google.');
-            }
 
-            if (isTestRuntimeAllowed() && isStrictTestEmail(normalizedExpectedEmail)) {
+            if (isTestRuntimeAllowed() && normalizedExpectedEmail && isStrictTestEmail(normalizedExpectedEmail)) {
                 const mockUser = createMockUser(normalizedExpectedEmail, role, 'Conta Google (Teste)');
                 saveMockSession(mockUser);
                 return mockUser;
@@ -566,19 +563,26 @@ export const api = {
                 throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
             }
 
-            const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
-            if (!eligibility.allowed) {
-                if (eligibility.canRegister) {
-                    throw new Error('Este e-mail está autorizado para cadastro. Use o fluxo de cadastro com Google no primeiro acesso.');
+            // Skip eligibility check when no email provided (Google will provide it)
+            if (normalizedExpectedEmail) {
+                try {
+                    const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
+                    if (!eligibility.allowed && !eligibility.canRegister) {
+                        // Don't block - let OAuth proceed and handle on callback
+                        console.warn('[OAuth] Email pre-check failed, proceeding with OAuth anyway');
+                    }
+                } catch {
+                    // Network error on pre-check - proceed with OAuth anyway
+                    console.warn('[OAuth] Pre-check failed, proceeding with OAuth');
                 }
-                throw new Error(toDomainAuthMessage({
-                    reason: eligibility.reason,
-                    fallback: 'Este e-mail ainda não está autorizado para login com Google.',
-                }));
             }
 
             const redirectTo = getOAuthRedirectUrl();
-            localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
+            if (normalizedExpectedEmail) {
+                localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
+            } else {
+                localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+            }
             localStorage.setItem(OAUTH_INTENT_KEY, 'login');
             localStorage.removeItem(OAUTH_ROLE_KEY);
 
@@ -589,7 +593,7 @@ export const api = {
                     queryParams: {
                         access_type: 'offline',
                         prompt: 'select_account',
-                        login_hint: normalizedExpectedEmail,
+                        ...(normalizedExpectedEmail ? { login_hint: normalizedExpectedEmail } : {}),
                     },
                 }
             });
@@ -745,20 +749,24 @@ export const api = {
                     const oauthRole = normalizeRole(localStorage.getItem(OAUTH_ROLE_KEY) || '');
 
                     let eligibility = await fetchLoginEligibility(sessionEmail);
-                    if (!eligibility.allowed && oauthIntent === 'register' && eligibility.canRegister) {
-                        // First Google access for a brand new user: create the required `profiles` row.
-                        await ensureOAuthProfile(
-                            session.access_token,
-                            oauthRole,
-                            String((session.user.user_metadata as any)?.full_name || '').trim() || undefined,
-                        );
-                        eligibility = await fetchLoginEligibility(sessionEmail);
+                    if (!eligibility.allowed && eligibility.canRegister) {
+                        // Auto-create profile for Google users (both login and register intents)
+                        try {
+                            await ensureOAuthProfile(
+                                session.access_token,
+                                oauthRole || UserRole.CLIENT,
+                                String((session.user.user_metadata as any)?.full_name || '').trim() || undefined,
+                            );
+                            eligibility = await fetchLoginEligibility(sessionEmail);
+                        } catch (profileErr) {
+                            console.error('[OAuth] Failed to auto-create profile:', profileErr);
+                        }
                     }
-                    if (!eligibility.allowed) {
+                    if (!eligibility.allowed && !eligibility.canRegister) {
                         await supabase.auth.signOut();
                         clearMockArtifacts();
                         localStorage.removeItem(SESSION_MODE_KEY);
-                        throw new Error('Conta não autorizada. Faça cadastro primeiro ou use conta de teste.');
+                        throw new Error('Conta não autorizada. Faça cadastro primeiro.');
                     }
 
                     const metadataRoleValue = String((session.user.user_metadata as any)?.role || '').trim();
