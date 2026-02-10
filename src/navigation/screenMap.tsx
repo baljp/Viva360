@@ -75,6 +75,9 @@ const VagasList = lazyWithRetry(() => import('../../views/pro/generated/VagasLis
 const ProChatListScreen = lazyWithRetry(() => import('../../views/pro/chat/ProChatListScreen'), 'ProChatListScreen');
 const ProChatRoomScreen = lazyWithRetry(() => import('../../views/pro/chat/ProChatRoomScreen'), 'ProChatRoomScreen');
 const WalletViewScreen = lazyWithRetry(() => import('../../views/pro/financial/WalletViewScreen'), 'WalletViewScreen');
+const SantuarioListView = lazyNamed(() => import('../../views/pro/SantuarioListView'), 'SantuarioListView');
+const SantuarioProfileView = lazyNamed(() => import('../../views/pro/SantuarioProfileView'), 'SantuarioProfileView');
+const SantuarioContractView = lazyNamed(() => import('../../views/pro/SantuarioContractView'), 'SantuarioContractView');
 
 // --- SANTUARIO SCREENS ---
 const SpaceDashboard = lazyNamed(() => import('../../views/space/SpaceDashboard'), 'SpaceDashboard');
@@ -103,6 +106,8 @@ const SpaceChatRoomScreen = lazyWithRetry(() => import('../../views/space/chat/S
 const PredictiveOccupancy = lazyNamed(() => import('../../views/space/PredictiveOccupancy'), 'PredictiveOccupancy');
 const SpaceAuditLog = lazyNamed(() => import('../../views/space/SpaceAuditLog'), 'SpaceAuditLog');
 const RadianceDrilldown = lazyNamed(() => import('../../views/space/RadianceDrilldown'), 'RadianceDrilldown');
+const SpaceEventsManager = lazyNamed(() => import('../../views/space/SpaceEventsManager'), 'SpaceEventsManager');
+const SpaceAnalyticsDash = lazyNamed(() => import('../../views/space/SpaceAnalyticsDash'), 'SpaceAnalyticsDash');
 
 export const screenMap: any = {
     // BUSCADOR
@@ -181,9 +186,9 @@ export const screenMap: any = {
         ESCAMBO_CONFIRM: ProMarketplace,
         FINANCE_DETAILS: ProFinance,
         FINANCIAL_DASHBOARD: WalletViewScreen,
-        SANTUARIO_LIST: ProDashboard,
-        SANTUARIO_PROFILE: ProDashboard,
-        SANTUARIO_CONTRACT: ProDashboard,
+        SANTUARIO_LIST: SantuarioListView,
+        SANTUARIO_PROFILE: SantuarioProfileView,
+        SANTUARIO_CONTRACT: SantuarioContractView,
         SETTINGS: SettingsViews,
         CUSTOM_INTERVENTION: CustomInterventionWizard,
         ALQUIMIA_CREATE: AlquimiaCreateOffer,
@@ -214,14 +219,14 @@ export const screenMap: any = {
         FINANCE_FORECAST: SpaceFinance,
         MARKETPLACE_MANAGE: SpaceMarketplace,
         MARKETPLACE_CREATE: SpaceMarketplace,
-        EVENTS_MANAGE: SpaceDashboard, 
-        EVENT_CREATE: SpaceEventCreate, 
+        EVENTS_MANAGE: SpaceEventsManager, 
+        EVENT_CREATE: SpaceEventCreate,
         RETREATS_MANAGE: SpaceRetreatsManager,
         VAGAS_LIST: SpaceRecruitment,
         VAGA_CREATE: SpaceRecruitment,
         VAGA_CANDIDATES: SpaceRecruitment,
         REPUTATION_OVERVIEW: SpaceReputation,
-        ANALYTICS_DASH: SpaceDashboard,
+        ANALYTICS_DASH: SpaceAnalyticsDash,
         GOVERNANCE: SpaceGovernance,
         CHAT_LIST: SpaceChatListScreen,
         CHAT_ROOM: SpaceChatRoomScreen,

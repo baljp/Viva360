@@ -41,28 +41,34 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
     if (videoRef.current && canvasRef.current) {
       const ctx = canvasRef.current.getContext('2d', { alpha: false });
       if (ctx) {
-        // High Quality Settings
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        // Match UI aspect ratio or video resolution?
-        // Let's use video resolution but ensure it's high
         const vW = videoRef.current.videoWidth;
         const vH = videoRef.current.videoHeight;
-        canvasRef.current.width = vW; 
-        canvasRef.current.height = vH;
         
-        // Apply Instagram-style filters to the canvas context
+        // Resize to max 1080px on longest side (Instagram quality, much lighter)
+        const maxDim = 1080;
+        let outW = vW, outH = vH;
+        if (vW > maxDim || vH > maxDim) {
+            const scale = maxDim / Math.max(vW, vH);
+            outW = Math.round(vW * scale);
+            outH = Math.round(vH * scale);
+        }
+        canvasRef.current.width = outW; 
+        canvasRef.current.height = outH;
+        
+        // Apply Instagram-style filters
         ctx.filter = 'contrast(1.06) saturate(1.15) brightness(1.02) sepia(0.02)';
-        ctx.drawImage(videoRef.current, 0, 0, vW, vH); 
+        ctx.drawImage(videoRef.current, 0, 0, outW, outH); 
         
-        // Add subtle vignette to capture
-        const vignette = ctx.createRadialGradient(vW/2, vH/2, 0, vW/2, vH/2, Math.sqrt(vW**2 + vH**2)/2);
+        // Add subtle vignette
+        const vignette = ctx.createRadialGradient(outW/2, outH/2, 0, outW/2, outH/2, Math.sqrt(outW**2 + outH**2)/2);
         vignette.addColorStop(0, 'rgba(0,0,0,0)');
         vignette.addColorStop(0.8, 'rgba(0,0,0,0)');
         vignette.addColorStop(1, 'rgba(0,0,0,0.15)');
         ctx.fillStyle = vignette;
-        ctx.fillRect(0, 0, vW, vH);
+        ctx.fillRect(0, 0, outW, outH);
         
         // Stop stream immediately after capture
         const stream = videoRef.current.srcObject as MediaStream;
@@ -70,18 +76,47 @@ export const CameraWidget: React.FC<{ onCapture: (img: string) => void, allowUpl
             stream.getTracks().forEach(track => track.stop());
         }
         
-        // Premium Quality JPEG
-        onCapture(canvasRef.current.toDataURL('image/jpeg', 0.95));
+        // Balanced quality JPEG (0.82 = good quality, ~3-4x smaller than 0.95)
+        onCapture(canvasRef.current.toDataURL('image/jpeg', 0.82));
       }
     }
+  };
+
+  const compressImage = (dataUrl: string): Promise<string> => {
+      return new Promise((resolve) => {
+          const img = new Image();
+          img.onload = () => {
+              const maxDim = 1080;
+              let w = img.width, h = img.height;
+              if (w > maxDim || h > maxDim) {
+                  const scale = maxDim / Math.max(w, h);
+                  w = Math.round(w * scale);
+                  h = Math.round(h * scale);
+              }
+              const c = document.createElement('canvas');
+              c.width = w; c.height = h;
+              const ctx = c.getContext('2d', { alpha: false });
+              if (ctx) {
+                  ctx.imageSmoothingEnabled = true;
+                  ctx.imageSmoothingQuality = 'high';
+                  ctx.filter = 'contrast(1.04) saturate(1.1) brightness(1.01)';
+                  ctx.drawImage(img, 0, 0, w, h);
+              }
+              resolve(c.toDataURL('image/jpeg', 0.82));
+          };
+          img.src = dataUrl;
+      });
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) {
           const reader = new FileReader();
-          reader.onload = (ev) => {
-              if (ev.target?.result) onCapture(ev.target.result as string);
+          reader.onload = async (ev) => {
+              if (ev.target?.result) {
+                  const compressed = await compressImage(ev.target.result as string);
+                  onCapture(compressed);
+              }
           };
           reader.readAsDataURL(file);
       }

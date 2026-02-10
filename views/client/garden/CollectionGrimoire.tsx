@@ -59,7 +59,7 @@ export const CollectionGrimoire: React.FC<{ user: User }> = ({ user }) => {
                                         <div className="h-full flex flex-col justify-between">
                                             <div className="text-xs text-nature-400 uppercase tracking-widest font-bold">{card.element}</div>
                                             <div className="text-center font-serif italic text-nature-900">{card.archetype}</div>
-                                            <div className="text-[8px] text-nature-400 text-center line-clamp-2 leading-relaxed">"{card.message}"</div>
+                                            <div className="text-[10px] text-nature-400 text-center line-clamp-2 leading-relaxed">"{card.message}"</div>
                                         </div>
                                     </div>
                                 ))}

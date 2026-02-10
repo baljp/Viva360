@@ -82,7 +82,7 @@ export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
                                     <div className="flex-none flex flex-col items-center">
                                         <div className="w-14 h-14 rounded-2xl bg-white border border-nature-100 shadow-sm flex flex-col items-center justify-center group-hover:bg-nature-900 group-hover:text-white transition-all duration-500">
                                             <span className="text-lg font-black leading-none">{day}</span>
-                                            <span className="text-[8px] font-black tracking-widest leading-none mt-1 opacity-60">{month}</span>
+                                            <span className="text-[10px] font-black tracking-widest leading-none mt-1 opacity-60">{month}</span>
                                         </div>
                                     </div>
 

@@ -12,8 +12,7 @@ export const useClientDashboard = (
     const { go } = useBuscadorFlow();
     const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning'} | null>(null);
     const [ritualToast, setRitualToast] = useState<{title: string, message: string} | null>(null);
-    const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
-    const [inviteEmail, setInviteEmail] = useState("");
+    const [activeModal, setActiveModal] = useState<'camera' | 'leaderboard' | null>(null);
     const [showNotifications, setShowNotifications] = useState(false);
 
     // Real Notifications Fetch
@@ -113,19 +112,11 @@ export const useClientDashboard = (
           setRitualToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada no Akasha." });
     }, [user, updateUser]);
 
-    const handleInvite = useCallback(() => {
-        if (!inviteEmail) return;
-        setToast({ title: "Convite Enviado", message: `Chamado enviado para ${inviteEmail}` });
-        setInviteEmail("");
-        setActiveModal(null);
-    }, [inviteEmail]);
-
     return {
         state: {
             toast,
             ritualToast,
             activeModal,
-            inviteEmail,
             showNotifications,
             notifications,
             gardenStatus,
@@ -135,14 +126,12 @@ export const useClientDashboard = (
             setToast,
             setRitualToast,
             setActiveModal,
-            setInviteEmail,
             setShowNotifications,
             handleMarkAsRead,
             handleMarkAllRead,
             handleWaterPlant,
             handleDailyCheckIn,
             handleCapture,
-            handleInvite,
             go
         }
     };

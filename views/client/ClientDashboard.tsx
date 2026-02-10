@@ -16,7 +16,7 @@ export const ClientDashboard: React.FC<{
     const { state, actions } = useClientDashboard(user, updateUser, setView);
     const { go } = actions;
     // Destructure state for easier access in JSX
-    const { toast, ritualToast, activeModal, inviteEmail, showNotifications, notifications, gardenStatus, plantVisuals } = state;
+    const { toast, ritualToast, activeModal, showNotifications, notifications, gardenStatus, plantVisuals } = state;
 
     // Feature: Karma Synchronization Visual Feedback
     React.useEffect(() => {
@@ -54,24 +54,7 @@ export const ClientDashboard: React.FC<{
                  </div>
             </BottomSheet>
 
-            <BottomSheet isOpen={activeModal === 'invite'} onClose={() => actions.setActiveModal(null)} title="Chamado para a Tribo">
-                 <div className="space-y-6 pb-20">
-                     <div className="text-center space-y-4">
-                         <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto text-indigo-500"><Users size={40}/></div>
-                         <p className="text-sm text-nature-600">Convide uma alma afim para caminhar junto. <br/>Vocês compartilharão Karma e evolução.</p>
-                     </div>
-                     <div className="space-y-2">
-                         <label className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2">Elo de Contato da Alma</label>
-                         <input 
-                            value={inviteEmail} 
-                            onChange={e => actions.setInviteEmail(e.target.value)} 
-                            placeholder="nome@email.com" 
-                            className="w-full bg-nature-50 border border-nature-100 p-4 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-indigo-100"
-                         />
-                     </div>
-                     <button onClick={actions.handleInvite} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all">Manifestar Convite</button>
-                 </div>
-            </BottomSheet>
+            {/* Invite flow is handled by TRIBE_INVITE screen */}
 
             <DailyBlessing user={user} onCheckIn={actions.handleDailyCheckIn} />
             
@@ -145,11 +128,11 @@ export const ClientDashboard: React.FC<{
                          <div className="relative z-10 flex items-center gap-6">
                               <div className="w-20 h-24 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-inner flex flex-col items-center justify-center gap-2 group-hover:scale-105 transition-transform">
                                   <Sparkles size={24} className="text-indigo-300" />
-                                  <span className="text-[8px] font-bold uppercase tracking-widest opacity-70">Carta do Dia</span>
+                                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Carta do Dia</span>
                               </div>
                               <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
-                                      <span className="px-2 py-0.5 bg-indigo-500/30 rounded-lg text-[8px] font-bold uppercase tracking-wider border border-indigo-400/30">Energia Ativa</span>
+                                      <span className="px-2 py-0.5 bg-indigo-500/30 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-indigo-400/30">Energia Ativa</span>
                                       <span className="text-[9px] opacity-60">Sincronicidade detectada</span>
                                   </div>
                                   <h3 className="font-serif italic text-2xl leading-tight mb-1">Revelar Mensagem</h3>
