@@ -20,9 +20,9 @@ export const SoulGarden: React.FC<{ user: UserType, onWater: () => void }> = ({ 
       <div className="space-y-1 relative z-10">
           <h3 className="text-lg font-serif italic text-nature-900">Jardim da Alma</h3>
           <div className="flex items-center justify-center gap-2">
-            <span className="text-[8px] font-bold text-primary-700 uppercase tracking-widest">{stageLabels[user.plantStage || 'seed']}</span>
+            <span className="text-[9px] font-bold text-primary-700 uppercase tracking-widest">{stageLabels[user.plantStage || 'seed']}</span>
             <span className="w-1 h-1 bg-nature-200 rounded-full"></span>
-            <span className="text-[8px] font-bold text-nature-400 uppercase tracking-widest">Nível {Math.floor((user.plantXp || 0) / 20) + 1}</span>
+            <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Nível {Math.floor((user.plantXp || 0) / 20) + 1}</span>
           </div>
       </div>
       <div className="w-full max-w-[140px] h-1.5 bg-nature-100 rounded-full overflow-hidden border border-nature-50 shadow-inner">

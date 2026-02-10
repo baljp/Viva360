@@ -74,7 +74,7 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
                         <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest mt-0.5">Silenciar notificações</p>
                     </div>
                 </div>
-                <div className="px-3 py-1 bg-white/10 rounded-full text-[8px] font-black text-white/60 tracking-widest uppercase">Ativar</div>
+                <div className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black text-white/60 tracking-widest uppercase">Ativar</div>
             </div>
          </div>
 

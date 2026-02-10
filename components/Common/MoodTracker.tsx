@@ -29,7 +29,7 @@ export const MoodTracker: React.FC<{ currentMood?: MoodType, onSelect: (m: MoodT
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${m.color} ${currentMood === m.type ? 'ring-2 ring-offset-2 ring-primary-100' : ''}`}>
                             <m.icon size={ICON_SIZE.MD} />
                         </div>
-                        <span className="text-[8px] font-bold uppercase tracking-widest text-nature-400">{m.type}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-nature-400">{m.type}</span>
                     </button>
                 ))}
             </div>

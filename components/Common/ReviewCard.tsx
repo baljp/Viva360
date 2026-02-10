@@ -23,7 +23,7 @@ export const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
         {review.tags && review.tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-1">
                 {review.tags.map(tag => (
-                    <span key={tag} className="px-2 py-0.5 bg-nature-50 text-nature-500 rounded-lg text-[8px] font-bold uppercase tracking-wider border border-nature-100">
+                    <span key={tag} className="px-2 py-0.5 bg-nature-50 text-nature-500 rounded-lg text-[9px] font-bold uppercase tracking-wider border border-nature-100">
                         {tag}
                     </span>
                 ))}
