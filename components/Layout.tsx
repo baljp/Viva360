@@ -140,7 +140,13 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
                 </main>
                 {!shouldHideNav && <BottomNav user={user} currentView={currentView} setView={setView} onLogout={onLogout} />}
             </div>
-            <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onMarkAsRead={(id) => {}} onMarkAllRead={() => {}} />
+            <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onMarkAsRead={(id) => {
+                setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+                if (user) api.notifications.markAsRead(id).catch(() => {});
+            }} onMarkAllRead={() => {
+                setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+                if (user) api.notifications.markAllAsRead(user.id).catch(() => {});
+            }} />
             
             {/* Mock indicator removed */}
         </div>
