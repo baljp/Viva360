@@ -15,7 +15,14 @@ export const AlquimiaCreateOffer: React.FC = () => {
     });
 
     const handleSubmit = async () => {
-        if (!formData.title) return alert('Por favor, dê um título à sua oferta.');
+        if (!formData.title) {
+            notify("Campo Obrigatório", "Por favor, dê um título à sua oferta.", "warning");
+            return;
+        }
+        if (!formData.specialty) {
+            notify("Categoria Necessária", "Selecione uma categoria para sua oferta.", "warning");
+            return;
+        }
         try {
             await api.marketplace.create({
                 name: formData.title,

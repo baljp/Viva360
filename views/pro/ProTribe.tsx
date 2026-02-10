@@ -18,7 +18,8 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
     ];
 
     const handlePropose = (item: any) => {
-        notify("Proposta Enviada", `Você ofereceu troca para ${item.owner}.`, "success");
+        notify("Abrindo Proposta", `Preparando troca com ${item.owner}...`, "info");
+        setTimeout(() => go('ESCAMBO_PROPOSE'), 600);
     };
 
     const cycleFilter = () => {
@@ -70,7 +71,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
            </div>
            
            <div className="mt-8 flex gap-3">
-               <button onClick={() => notify("Nova Oferta", "Tela de criação de oferta abriria aqui.", "info")} className="flex-1 bg-white text-indigo-900 py-3.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
+               <button onClick={() => go('ALQUIMIA_CREATE')} className="flex-1 bg-white text-indigo-900 py-3.5 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2">
                    <Plus size={14}/> Anunciar Serviço
                </button>
            </div>
@@ -136,7 +137,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                 <div className="text-center py-12 opacity-50 space-y-4">
                     <RefreshCw size={48} className="mx-auto text-nature-300"/>
                     <p className="text-sm italic">Você ainda não anunciou nenhum serviço para troca.</p>
-                    <button onClick={() => { setActiveTab('market'); notify("Nova Oferta", "Selecione Anunciar Serviço para iniciar sua publicação.", "info"); }} className="text-indigo-600 font-bold text-xs uppercase tracking-widest underline">Criar Primeiro Anúncio</button>
+                    <button onClick={() => go('ALQUIMIA_CREATE')} className="text-indigo-600 font-bold text-xs uppercase tracking-widest underline">Criar Primeiro Anúncio</button>
                 </div>
             )}
         </div>
