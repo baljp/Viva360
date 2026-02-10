@@ -103,10 +103,11 @@ export const CheckoutScreen: React.FC<{
   onCancel: () => void;
   items: CartItem[]; 
 }> = ({ total, onSuccess, onCancel, items = [] }) => {
-  const [step, setStep] = useState<'cart' | 'address' | 'payment' | 'review' | 'processing' | 'success'>('cart');
+  const [step, setStep] = useState<'cart' | 'address' | 'payment' | 'review' | 'processing' | 'success' | 'error'>('cart');
   const [address, setAddress] = useState({ street: '', number: '', zip: '', city: '' });
   const [method, setMethod] = useState<'pix' | 'card'>('pix');
   const [processingState, setProcessingState] = useState<'idle' | 'processing' | 'confirmed'>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
 
   // Check if we need shipping address (only for physical items)
   const hasPhysical = items.some(i => i.type === 'physical');
@@ -123,14 +124,39 @@ export const CheckoutScreen: React.FC<{
   const handlePay = () => {
     setStep('processing');
     setProcessingState('processing');
+    setErrorMsg('');
     setTimeout(() => {
-        setProcessingState('confirmed');
-        setStep('success');
-        setTimeout(onSuccess, 3000); // Wait a bit to show success screen
+        try {
+            setProcessingState('confirmed');
+            setStep('success');
+            setTimeout(onSuccess, 3000);
+        } catch (err: any) {
+            setErrorMsg(err?.message || 'Não foi possível processar sua oferenda.');
+            setStep('error');
+        }
     }, 3000);
   };
 
   if (step === 'success') return <SuccessScreen onHome={onSuccess} />;
+
+  if (step === 'error') return (
+    <div className="fixed inset-0 h-full w-full flex flex-col items-center justify-center text-center p-8 bg-rose-50 animate-in fade-in z-[400]">
+      <div className="w-24 h-24 bg-rose-100 rounded-full flex items-center justify-center text-rose-500 mb-8">
+        <X size={48} />
+      </div>
+      <h2 className="text-2xl font-serif italic text-nature-900 mb-3">Algo saiu do fluxo</h2>
+      <p className="text-sm text-nature-500 max-w-xs mb-2">{errorMsg}</p>
+      <p className="text-[10px] text-nature-400 uppercase tracking-widest mb-10">Tente novamente ou mude o método</p>
+      <div className="flex flex-col gap-3 w-full max-w-xs">
+        <button onClick={() => setStep('payment')} className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-all">
+          Tentar Novamente
+        </button>
+        <button onClick={onCancel} className="w-full py-4 bg-white text-nature-400 border border-nature-100 rounded-2xl font-bold uppercase tracking-widest text-[10px] active:scale-95 transition-all">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 h-full w-full flex flex-col animate-in fade-in bg-[#f8fafc] z-[400]">
