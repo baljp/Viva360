@@ -56,7 +56,7 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: numbe
                             <Sun size={32} className="animate-spin-slow" />
                         </div>
                         {wisdom.rarity !== 'Common' && (
-                             <div className="absolute -top-1 -right-1 bg-amber-500 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">{wisdom.rarity}</div>
+                             <div className="absolute -top-1 -right-1 bg-amber-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter shadow-sm">{wisdom.rarity}</div>
                         )}
                     </div>
                     
@@ -68,7 +68,7 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: numbe
 
                 <div className="mt-5 flex items-center justify-between gap-4">
                     <div className="flex flex-col">
-                        <span className="text-[8px] font-bold text-nature-400 uppercase tracking-widest leading-none mb-1">Oferenda de Hoje</span>
+                        <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest leading-none mb-1">Oferenda de Hoje</span>
                         <span className="text-sm font-bold text-nature-900">+{wisdom.reward} Karma</span>
                     </div>
                     <button 

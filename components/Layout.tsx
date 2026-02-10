@@ -111,7 +111,7 @@ const BottomNav: React.FC<Omit<LayoutProps, 'children'>> = ({ user, currentView,
                             <div className={`p-2.5 rounded-2xl transition-all duration-500 ease-out ${active ? 'bg-nature-900 text-white -translate-y-6 shadow-[0_15px_30px_rgba(0,0,0,0.2)] scale-110' : 'text-nature-400'}`}>
                                 <item.icon size={22} />
                             </div>
-                            <span className={`absolute bottom-1.5 text-[8px] font-black uppercase tracking-[0.15em] transition-all duration-300 ${active ? 'opacity-100 translate-y-0 text-nature-900' : 'opacity-0 translate-y-2'}`}>{item.label}</span>
+                            <span className={`absolute bottom-1.5 text-[9px] font-black uppercase tracking-[0.1em] transition-all duration-300 ${active ? 'opacity-100 translate-y-0 text-nature-900' : 'opacity-0 translate-y-2'}`}>{item.label}</span>
                         </button>
                     );
                 })}

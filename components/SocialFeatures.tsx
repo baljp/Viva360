@@ -127,7 +127,7 @@ export const TimelapseViewer: React.FC<{ snaps: DailyRitualSnap[] }> = ({ snaps 
                         <div className="absolute top-0 left-0 w-full p-6 pt-8 flex justify-between items-start z-10">
                              <div className="inline-flex flex-col items-center bg-nature-900/40 backdrop-blur-md border border-white/10 rounded-2xl p-3 text-white shadow-lg min-w-[50px]">
                                  <span className="text-xl font-bold leading-none">{new Date(activeSnap.date).getDate()}</span>
-                                 <span className="text-[8px] font-bold uppercase tracking-widest">{new Date(activeSnap.date).toLocaleDateString('pt-BR', { month: 'short' })}</span>
+                                 <span className="text-[9px] font-bold uppercase tracking-widest">{new Date(activeSnap.date).toLocaleDateString('pt-BR', { month: 'short' })}</span>
                              </div>
                              <div className="flex flex-col items-end gap-2">
                                 {activeSnap.timeSlot && (

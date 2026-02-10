@@ -73,11 +73,11 @@ export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }
                                 onClick={() => selectDate(d)}
                                 className={`flex-shrink-0 w-24 p-4 rounded-3xl border-2 transition-all cursor-pointer text-center ${isSelected ? 'border-nature-900 bg-white shadow-md' : 'border-nature-50 bg-nature-50/50'}`}
                             >
-                                <p className="text-[8px] font-black text-nature-400 uppercase tracking-tighter mb-1">
+                                <p className="text-[9px] font-black text-nature-400 uppercase tracking-tighter mb-1">
                                     {days === 0 ? 'Hoje' : days === 1 ? 'Amanhã' : d.toLocaleDateString('pt-BR', { weekday: 'short' })}
                                 </p>
                                 <p className="text-lg font-serif italic text-nature-900">{d.getDate()}</p>
-                                <p className="text-[8px] font-bold text-nature-400 uppercase">{d.toLocaleDateString('pt-BR', { month: 'short' })}</p>
+                                <p className="text-[9px] font-bold text-nature-400 uppercase">{d.toLocaleDateString('pt-BR', { month: 'short' })}</p>
                             </div>
                         );
                     })}

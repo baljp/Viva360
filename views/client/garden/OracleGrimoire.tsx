@@ -79,7 +79,7 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
                                             })()}
                                         </span>
                                     </div>
-                                    <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[8px] font-black uppercase tracking-tighter rounded-full border border-amber-200">
+                                    <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-tighter rounded-full border border-amber-200">
                                         {item.card.element}
                                     </span>
                                 </div>

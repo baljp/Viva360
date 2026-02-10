@@ -87,18 +87,18 @@ export const OfflineRetreat: React.FC<{ flow: any }> = ({ flow }) => {
                                 <div className="absolute inset-0 border border-white/5 rounded-full animate-ping"></div>
                                 <div className="text-6xl font-serif italic text-white/90">{formatTime(timeLeft)}</div>
                             </div>
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-500 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-[0.2em] shadow-lg">Espaço Sagrado</div>
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-500 text-white px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.2em] shadow-lg">Espaço Sagrado</div>
                         </div>
 
                         <div className="space-y-6">
                             <div className="flex justify-center gap-4">
                                 <div className="flex flex-col items-center gap-2">
                                     <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-white/40"><ShieldAlert size={20} /></div>
-                                    <span className="text-[8px] font-bold text-white/30 uppercase tracking-[0.2em]">Foco Ativo</span>
+                                    <span className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em]">Foco Ativo</span>
                                 </div>
                                 <div className="flex flex-col items-center gap-2">
                                     <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-white/40"><VolumeX size={20} /></div>
-                                    <span className="text-[8px] font-bold text-white/30 uppercase tracking-[0.2em]">Mudo</span>
+                                    <span className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em]">Mudo</span>
                                 </div>
                             </div>
                             <p className="text-xs text-indigo-200/50 italic font-serif">"O silêncio é a linguagem de Deus. O resto é apenas tradução ruim."</p>

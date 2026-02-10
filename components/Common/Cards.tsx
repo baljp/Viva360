@@ -51,7 +51,7 @@ export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string
     <div className="absolute inset-0 bg-gradient-to-t from-nature-900/90 via-nature-900/40 to-transparent group-hover:from-primary-900/90 transition-colors"></div>
     <div className="absolute inset-0 p-5 flex flex-col justify-end text-left">
       <div className="w-8 h-8 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center text-white mb-2 group-hover:bg-white/20 transition-all"><Icon size={ICON_SIZE.MD} /></div>
-      <p className="text-[8px] font-bold text-white/60 uppercase tracking-[0.3em] mb-1">{subtitle}</p>
+      <p className="text-[9px] font-bold text-white/60 uppercase tracking-[0.3em] mb-1">{subtitle}</p>
       <h3 className="text-base font-serif italic text-white leading-tight">{title}</h3>
     </div>
   </button>
