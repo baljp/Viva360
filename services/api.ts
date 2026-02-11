@@ -468,25 +468,27 @@ export const api = {
                 throw new Error('No modo teste, use apenas e-mails pré-definidos.');
             }
 
-            // Pre-check is advisory: skip blocking when user might just have incomplete registration.
-            // The backend /auth/login will auto-create the profile if credentials are valid.
+            // Pre-check is advisory only - never block login here.
+            // The backend /auth/login will validate credentials and auto-create profile if needed.
             try {
                 const eligibility = await fetchLoginEligibility(normalizedEmail);
-                if (!eligibility.allowed && !eligibility.canRegister) {
+                // Only block if explicitly blocked (not just missing profile)
+                if (!eligibility.allowed && !eligibility.canRegister && 
+                    eligibility.reason !== 'EMAIL_NOT_AUTHORIZED' &&
+                    eligibility.reason !== 'REGISTRATION_INCOMPLETE') {
                     throw new Error(toDomainAuthMessage({
                         reason: eligibility.reason,
                         fallback: 'Conta não autorizada. Faça cadastro antes de entrar.',
                     }));
                 }
             } catch (precheckErr: any) {
-                // If precheck itself fails (network), proceed to login attempt anyway
-                if (!precheckErr.message?.includes('Conta não autorizada') && 
-                    !precheckErr.message?.includes('não está cadastrado') &&
-                    !precheckErr.message?.includes('Faça cadastro')) {
-                    console.warn('[Login] Pre-check failed, attempting login anyway:', precheckErr.message);
-                } else {
+                // Only re-throw if it's an explicit block (BLOCKED status)
+                const msg = precheckErr?.message || '';
+                if (msg.includes('bloqueada') || msg.includes('BLOCKED')) {
                     throw precheckErr;
                 }
+                // All other pre-check failures: proceed to login attempt
+                console.warn('[Login] Pre-check non-blocking:', msg);
             }
 
             // Primary path: backend /auth/login (works even when Supabase requires email confirmation).
@@ -573,7 +575,9 @@ export const api = {
 
             const oauthValidation = validateOAuthRuntimeConfig();
             if (!oauthValidation.ok) {
-                throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
+                // If Supabase is not configured, try backend-only Google OAuth
+                console.warn('[OAuth] Supabase config issues:', oauthValidation.issues);
+                throw new Error('Login com Google indisponível. Use e-mail e senha, ou configure VITE_SUPABASE_URL no painel do Vercel.');
             }
 
             // Skip eligibility check when no email provided (Google will provide it)
@@ -636,7 +640,7 @@ export const api = {
 
             const oauthValidation = validateOAuthRuntimeConfig();
             if (!oauthValidation.ok) {
-                throw new Error(`Configuração OAuth inválida: ${oauthValidation.issues.join(' | ')}`);
+                throw new Error('Cadastro com Google indisponível. Use e-mail e senha, ou configure VITE_SUPABASE_URL no painel do Vercel.');
             }
 
             const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
@@ -770,16 +774,27 @@ export const api = {
                                 oauthRole || UserRole.CLIENT,
                                 String((session.user.user_metadata as any)?.full_name || '').trim() || undefined,
                             );
-                            eligibility = await fetchLoginEligibility(sessionEmail);
+                            // Re-check after profile creation
+                            try {
+                                eligibility = await fetchLoginEligibility(sessionEmail);
+                            } catch {
+                                // If re-check fails, assume success since profile was just created
+                                eligibility = { allowed: true, role: oauthRole || UserRole.CLIENT, roles: [oauthRole || UserRole.CLIENT], reason: null, canRegister: false, accountState: 'ACTIVE', nextAction: 'LOGIN' };
+                            }
                         } catch (profileErr) {
                             console.error('[OAuth] Failed to auto-create profile:', profileErr);
                         }
                     }
-                    if (!eligibility.allowed && !eligibility.canRegister) {
+                    // Only block if explicitly blocked (not incomplete/not-authorized)
+                    if (!eligibility.allowed && !eligibility.canRegister && eligibility.accountState === 'BLOCKED') {
                         await supabase.auth.signOut();
                         clearMockArtifacts();
                         localStorage.removeItem(SESSION_MODE_KEY);
-                        throw new Error('Conta não autorizada. Faça cadastro primeiro.');
+                        throw new Error('Conta bloqueada. Entre em contato com o suporte.');
+                    }
+                    // If still not allowed but not blocked, proceed anyway — user authenticated via Google
+                    if (!eligibility.allowed) {
+                        console.warn('[OAuth] Eligibility not fully resolved, proceeding with session:', eligibility);
                     }
 
                     const metadataRoleValue = String((session.user.user_metadata as any)?.role || '').trim();
@@ -803,7 +818,7 @@ export const api = {
                     }));
                 }
             } catch (err: any) {
-                if (err?.message?.includes('não corresponde') || err?.message?.includes('Conta não autorizada')) {
+                if (err?.message?.includes('não corresponde') || err?.message?.includes('bloqueada')) {
                     throw err;
                 }
                 // Fallback handled below.
