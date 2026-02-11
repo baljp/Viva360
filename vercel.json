@@ -9,7 +9,7 @@
       }
     },
     {
-      "src": "backend/src/app.minimal.ts",
+      "src": "backend/src/app.ts",
       "use": "@vercel/node",
       "config": {
         "includeFiles": [
@@ -32,7 +32,7 @@
     },
     {
       "src": "/api/(.*)",
-      "dest": "backend/src/app.minimal.ts"
+      "dest": "backend/src/app.ts"
     },
     {
       "src": "/(.*)",
