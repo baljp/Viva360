@@ -468,12 +468,25 @@ export const api = {
                 throw new Error('No modo teste, use apenas e-mails pré-definidos.');
             }
 
-            const eligibility = await fetchLoginEligibility(normalizedEmail);
-            if (!eligibility.allowed) {
-                throw new Error(toDomainAuthMessage({
-                    reason: eligibility.reason,
-                    fallback: 'Conta não autorizada. Faça cadastro antes de entrar.',
-                }));
+            // Pre-check is advisory: skip blocking when user might just have incomplete registration.
+            // The backend /auth/login will auto-create the profile if credentials are valid.
+            try {
+                const eligibility = await fetchLoginEligibility(normalizedEmail);
+                if (!eligibility.allowed && !eligibility.canRegister) {
+                    throw new Error(toDomainAuthMessage({
+                        reason: eligibility.reason,
+                        fallback: 'Conta não autorizada. Faça cadastro antes de entrar.',
+                    }));
+                }
+            } catch (precheckErr: any) {
+                // If precheck itself fails (network), proceed to login attempt anyway
+                if (!precheckErr.message?.includes('Conta não autorizada') && 
+                    !precheckErr.message?.includes('não está cadastrado') &&
+                    !precheckErr.message?.includes('Faça cadastro')) {
+                    console.warn('[Login] Pre-check failed, attempting login anyway:', precheckErr.message);
+                } else {
+                    throw precheckErr;
+                }
             }
 
             // Primary path: backend /auth/login (works even when Supabase requires email confirmation).
@@ -749,8 +762,8 @@ export const api = {
                     const oauthRole = normalizeRole(localStorage.getItem(OAUTH_ROLE_KEY) || '');
 
                     let eligibility = await fetchLoginEligibility(sessionEmail);
-                    if (!eligibility.allowed && eligibility.canRegister) {
-                        // Auto-create profile for Google users (both login and register intents)
+                    if (!eligibility.allowed) {
+                        // Always try to auto-create profile for OAuth users regardless of eligibility
                         try {
                             await ensureOAuthProfile(
                                 session.access_token,
