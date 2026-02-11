@@ -122,6 +122,55 @@ app.post('/api/debug-login', async (req, res) => {
     }
 });
 
+// Network Diagnostic Endpoint (temporary)
+app.get('/api/debug-net', async (req, res) => {
+    const dns = require('dns').promises;
+    const net = require('net');
+    const dbUrl = process.env.DATABASE_URL || 'NOT_SET';
+    const results: any = {
+        DATABASE_URL_masked: dbUrl.replace(/:[^:@]+@/, ':***@'),
+        dns: null,
+        tcp: null,
+        env_present: {
+            DATABASE_URL: !!process.env.DATABASE_URL,
+            DIRECT_URL: !!process.env.DIRECT_URL,
+            SUPABASE_URL: !!process.env.SUPABASE_URL,
+            JWT_SECRET: !!process.env.JWT_SECRET,
+        }
+    };
+    // Extract host and port from DATABASE_URL
+    try {
+        const urlObj = new URL(dbUrl);
+        const host = urlObj.hostname;
+        const port = parseInt(urlObj.port || '5432');
+        results.parsed = { host, port };
+        // DNS lookup
+        try {
+            const addresses = await dns.resolve(host);
+            results.dns = { ok: true, addresses };
+        } catch (e: any) {
+            results.dns = { ok: false, error: e.message };
+        }
+        // TCP connect test
+        try {
+            await new Promise<void>((resolve, reject) => {
+                const socket = new net.Socket();
+                socket.setTimeout(5000);
+                socket.on('connect', () => { socket.destroy(); resolve(); });
+                socket.on('timeout', () => { socket.destroy(); reject(new Error('TCP timeout (5s)')); });
+                socket.on('error', (e: any) => { reject(e); });
+                socket.connect(port, host);
+            });
+            results.tcp = { ok: true };
+        } catch (e: any) {
+            results.tcp = { ok: false, error: e.message };
+        }
+    } catch (e: any) {
+        results.urlParseError = e.message;
+    }
+    res.json(results);
+});
+
 // API Routes
 app.use('/api', routes);
 
