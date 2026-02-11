@@ -1,6 +1,6 @@
-// import app from '../backend/src/app';
-// import app from '../backend/src/app.minimal';
-import app from '../backend/src/app.micro';
+// import app from '../backend/src/app.micro';
+// export default app;
 
-// Vercel serverless function handler
-export default app;
+export default function handler(req: any, res: any) {
+    res.status(200).json({ status: 'ok', raw: true, time: new Date().toISOString() });
+}
