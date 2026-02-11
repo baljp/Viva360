@@ -1,25 +1,40 @@
-import './lib/env';
+// Diagnostic Minimal App — captures import errors on boot
 import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import authRoutes from './routes/auth.routes';
-import { attachRequestContext } from './middleware/request.middleware';
 
-// Minimal App for Isolation Debugging
 const app = express();
-
 app.use(express.json());
-app.use(cors({ origin: '*' }));
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(attachRequestContext);
 
-// Health Check
+// Health Check (always available)
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', minimal: true, time: new Date().toISOString() });
 });
 
-// Auth Routes (Critical Path)
-app.use('/api/auth', authRoutes);
+// Diagnostic: capture the EXACT error from importing auth routes
+let bootError: string | null = null;
+let authRouter: any = null;
+
+try {
+    // Eagerly require the auth routes to capture any init-time crash
+    const mod = require('./routes/auth.routes');
+    authRouter = mod.default || mod;
+} catch (err: any) {
+    bootError = `[BOOT_CRASH] ${err.message}\n${err.stack}`;
+    console.error(bootError);
+}
+
+// Diagnostic endpoint to expose the boot error
+app.get('/api/boot-status', (req, res) => {
+    res.json({ bootError: bootError || 'none', hasAuthRouter: !!authRouter });
+});
+
+if (authRouter) {
+    app.use('/api/auth', authRouter);
+} else {
+    // If auth failed to load, serve an error on those routes
+    app.use('/api/auth', (req, res) => {
+        res.status(503).json({ error: 'Auth module failed to load', bootError });
+    });
+}
 
 // 404
 app.use('*', (req, res) => res.status(404).json({ error: 'Not Found in Minimal Mode' }));
