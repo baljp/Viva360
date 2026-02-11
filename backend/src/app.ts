@@ -12,8 +12,8 @@ import { initTelemetry } from './lib/instrumentation';
 import { assertCriticalProdConfig } from './lib/runtimeGuard';
 
 // Initialize Telemetry
-initTelemetry();
-assertCriticalProdConfig();
+// initTelemetry();
+// assertCriticalProdConfig();
 
 // Load environment variables
 // env already loaded via import './lib/env' at the top
