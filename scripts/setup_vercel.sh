@@ -1,43 +1,50 @@
 #!/bin/bash
 
 # Viva360 - Automated Vercel Setup Script
-# This script injects Supabase environment variables into Vercel
+# This script injects ALL environment variables from .env.local into Vercel
+
+ENV_FILE=".env.local"
 
 echo "🌱 Starting Viva360 Auto-Integration..."
 
-# Check if Vercel CLI is available
-if ! command -v npx vercel &> /dev/null; then
-    echo "❌ Vercel CLI not found. Please install it first."
+if [ ! -f "$ENV_FILE" ]; then
+    echo "❌ $ENV_FILE not found. Please ensure it exists."
     exit 1
 fi
 
-# Load variables from .env
-if [ -f .env ]; then
-    export $(grep -v '^#' .env | xargs)
-    echo "✅ Local .env loaded."
-else
-    echo "⚠️ .env file not found. Using defaults."
+# Check if Vercel CLI is available
+if ! command -v npx &> /dev/null; then
+    echo "❌ npx not found. Please install Node.js/npm."
+    exit 1
 fi
 
-# Function to add env var safely
-add_env() {
-    local name=$1
-    local value=$2
-    if [ -n "$value" ]; then
-        echo "Pushing $name to Vercel..."
-        echo "$value" | npx vercel env add "$name" production --force
-        echo "$value" | npx vercel env add "$name" preview --force
-        echo "$value" | npx vercel env add "$name" development --force
+echo "🔄 Syncing variables from $ENV_FILE to Vercel..."
+
+# Read .env.local and push each variable
+while read -r line || [ -n "$line" ]; do
+    # Skip comments and empty lines
+    [[ "$line" =~ ^#.*$ ]] && continue
+    [[ -z "$line" ]] && continue
+    
+    # Extract key and value
+    key=$(echo "$line" | cut -d'=' -f1)
+    # Extract value and strip quotes
+    value=$(echo "$line" | cut -d'=' -f2- | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+    
+    if [ -n "$key" ] && [ -n "$value" ]; then
+        echo "Pushing $key..."
+        # Push to all 3 environments
+        echo "$value" | npx vercel env add "$key" production --force &> /dev/null
+        echo "$value" | npx vercel env add "$key" preview --force &> /dev/null
+        echo "$value" | npx vercel env add "$key" development --force &> /dev/null
+        
+        if [ $? -eq 0 ]; then
+            echo "  ✅ $key synced."
+        else
+            echo "  ❌ Failed to sync $key."
+        fi
     fi
-}
+done < "$ENV_FILE"
 
-echo "⛓️ Connecting to Supabase..."
-add_env "VITE_SUPABASE_URL" "$VITE_SUPABASE_URL"
-add_env "VITE_SUPABASE_ANON_KEY" "$VITE_SUPABASE_ANON_KEY"
-
-# Optional: Add Prisma URLs if needed for edge functions
-if [ -n "$DATABASE_URL" ]; then
-    add_env "DATABASE_URL" "$DATABASE_URL"
-fi
-
-echo "🚀 Integration prepared! Run 'npx vercel' to deploy."
+echo "🚀 All variables synced! Triggering a fresh production deploy..."
+npx vercel --prod --yes --force
