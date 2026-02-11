@@ -1,4 +1,5 @@
 import prisma, { prismaRead } from '../lib/prisma';
+// @ts-ignore
 import { OracleMessage } from '@prisma/client';
 import { AppError } from '../lib/AppError';
 

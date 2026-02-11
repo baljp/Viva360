@@ -78,7 +78,7 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
             },
           });
           roles = (profile?.profile_roles || [])
-            .map((entry) => normalizeRole(entry.role))
+            .map((entry: { role: string }) => normalizeRole(entry.role))
             .filter(Boolean) as string[];
           if (roles.length === 0) {
             const legacy = normalizeRole(profile?.role);
