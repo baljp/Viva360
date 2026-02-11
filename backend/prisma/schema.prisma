@@ -601,24 +601,24 @@ model InteractionReceipt {
 // --------------------------------------------------------
 
 model Contract {
-  id            String   @id @default(uuid()) @db.Uuid
-  space_id      String   @db.Uuid
-  guardian_id   String   @db.Uuid
-  space_name    String
-  start_date    DateTime @db.Timestamptz(6)
-  end_date      DateTime @db.Timestamptz(6)
-  status        String   @default("active") // active | expired | cancelled | pending
-  monthly_fee   Decimal  @default(0)
-  revenue_share Int      @default(0) // percentage
-  rooms_allowed String[] @default([])
-  hours_per_week Int     @default(0)
-  benefits      String[] @default([])
-  rules         String[] @default([])
-  terms         String?
-  signed        Boolean  @default(false)
-  version       String   @default("1.0")
-  created_at    DateTime @default(now()) @db.Timestamptz(6)
-  updated_at    DateTime @updatedAt @db.Timestamptz(6)
+  id             String   @id @default(uuid()) @db.Uuid
+  space_id       String   @db.Uuid
+  guardian_id    String   @db.Uuid
+  space_name     String
+  start_date     DateTime @db.Timestamptz(6)
+  end_date       DateTime @db.Timestamptz(6)
+  status         String   @default("active") // active | expired | cancelled | pending
+  monthly_fee    Decimal  @default(0)
+  revenue_share  Int      @default(0) // percentage
+  rooms_allowed  String[] @default([])
+  hours_per_week Int      @default(0)
+  benefits       String[] @default([])
+  rules          String[] @default([])
+  terms          String?
+  signed         Boolean  @default(false)
+  version        String   @default("1.0")
+  created_at     DateTime @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime @updatedAt @db.Timestamptz(6)
 
   space    Profile @relation("SpaceContracts", fields: [space_id], references: [id])
   guardian Profile @relation("GuardianContracts", fields: [guardian_id], references: [id])
@@ -634,15 +634,15 @@ model Contract {
 // --------------------------------------------------------
 
 model SpaceInvite {
-  id         String    @id @default(uuid()) @db.Uuid
-  space_id   String    @db.Uuid
-  code       String    @unique
-  role       String    // GUARDIAN | ADMIN | MEMBER
-  usage      Int       @default(0)
-  max_usage  Int       @default(1)
-  status     String    @default("active") // active | expired | used
-  expires_at DateTime  @db.Timestamptz(6)
-  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  id         String   @id @default(uuid()) @db.Uuid
+  space_id   String   @db.Uuid
+  code       String   @unique
+  role       String // GUARDIAN | ADMIN | MEMBER
+  usage      Int      @default(0)
+  max_usage  Int      @default(1)
+  status     String   @default("active") // active | expired | used
+  expires_at DateTime @db.Timestamptz(6)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
 
   space Profile @relation("SpaceInvites", fields: [space_id], references: [id])
 
