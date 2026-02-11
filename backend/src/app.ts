@@ -171,6 +171,27 @@ app.get('/api/debug-net', async (req, res) => {
     res.json(results);
 });
 
+// Raw DB Diagnostic Endpoint (temporary)
+app.get('/api/debug-db', async (req, res) => {
+    const prisma = require('./lib/prisma').default;
+    const results: any = { connect: null, query: null };
+    try {
+        await prisma.$connect();
+        results.connect = { ok: true };
+    } catch (e: any) {
+        results.connect = { ok: false, error: e.message, code: e.errorCode, meta: e.meta };
+    }
+    if (results.connect.ok) {
+        try {
+            const r = await prisma.$queryRaw`SELECT 1 as test`;
+            results.query = { ok: true, result: r };
+        } catch (e: any) {
+            results.query = { ok: false, error: e.message };
+        }
+    }
+    res.json(results);
+});
+
 // API Routes
 app.use('/api', routes);
 
