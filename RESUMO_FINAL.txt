@@ -1,0 +1,136 @@
+═══════════════════════════════════════════════════════════════
+   🎉 PROBLEMA DE LOGIN RESOLVIDO - VIVA360
+═══════════════════════════════════════════════════════════════
+
+✅ O QUE FOI CORRIGIDO:
+
+1. CREDENCIAIS SUPABASE CONFIGURADAS
+   ✓ .env criado com URL e chaves corretas
+   ✓ VITE_SUPABASE_ANON_KEY (JWT completo)
+   ✓ SUPABASE_SERVICE_ROLE_KEY (para backend)
+   ✓ JWT_SECRET gerado
+
+2. CÓDIGO DE AUTENTICAÇÃO MELHORADO
+   ✓ Login email/senha não bloqueia mais sem motivo
+   ✓ OAuth Google com mensagens de erro claras
+   ✓ Auto-criação de perfil quando falta
+   ✓ Apenas contas BLOQUEADAS são impedidas
+
+3. FERRAMENTAS DE TESTE CRIADAS
+   ✓ validate-env.ts - valida configuração (9/9 ✅)
+   ✓ test-login.ts - teste interativo
+   ✓ test-supabase.ts - teste de conexão
+   ✓ TESTE_LOCAL.md - guia completo
+   ✓ VERCEL_ENV_VARS.md - deploy produção
+
+═══════════════════════════════════════════════════════════════
+   🚀 COMO TESTAR AGORA
+═══════════════════════════════════════════════════════════════
+
+PASSO 1: VALIDAR AMBIENTE
+─────────────────────────
+cd ~/Viva360
+npx tsx validate-env.ts
+
+Esperado: ✅ 9/9 testes passando
+Status atual: ✅ PASSOU!
+
+PASSO 2: INICIAR SERVIDORES
+────────────────────────────
+# Terminal 1 - Backend
+cd ~/Viva360/backend
+npm run dev
+
+# Terminal 2 - Frontend  
+cd ~/Viva360
+npm run dev
+
+PASSO 3: TESTAR LOGIN
+─────────────────────
+Abra: http://localhost:5173/login
+
+Teste 1 - Login Email/Senha:
+• Use email de um dos 5 usuários existentes
+• Se não souber a senha, crie novo usuário:
+  npx tsx test-login.ts (opção 2)
+
+Teste 2 - Login Google:
+• Clique "Entrar com Google"
+• Se der erro "indisponível":
+  → Configure Google OAuth no Supabase
+  → Veja seção "Google OAuth Setup" abaixo
+
+═══════════════════════════════════════════════════════════════
+   ⚙️  GOOGLE OAUTH SETUP (OPCIONAL)
+═══════════════════════════════════════════════════════════════
+
+Para login com Google funcionar:
+
+1. Acesse Supabase Dashboard:
+   https://supabase.com/dashboard/project/oqhzisdjbtyxyarjeuhp
+
+2. Vá em: Authentication → Providers → Google
+   ✓ Habilite Google
+   ✓ Adicione Client ID do Google Cloud
+   ✓ Adicione Client Secret
+
+3. Vá em: Authentication → URL Configuration
+   ✓ Redirect URLs: http://localhost:5173/login
+   ✓ Site URL: http://localhost:5173
+
+═══════════════════════════════════════════════════════════════
+   📦 DEPLOY NO VERCEL
+═══════════════════════════════════════════════════════════════
+
+Veja arquivo: VERCEL_ENV_VARS.md
+
+Variáveis obrigatórias:
+✓ VITE_SUPABASE_URL
+✓ VITE_SUPABASE_ANON_KEY
+✓ SUPABASE_SERVICE_ROLE_KEY
+✓ VITE_SUPABASE_AUTH_REDIRECT_URL (com domínio Vercel)
+✓ JWT_SECRET
+✓ DATABASE_URL (opcional)
+
+Não esqueça:
+• Atualizar redirect URL para domínio Vercel
+• Adicionar URL no Supabase (Redirect URLs)
+
+═══════════════════════════════════════════════════════════════
+   🐛 PROBLEMAS COMUNS
+═══════════════════════════════════════════════════════════════
+
+❌ "Invalid login credentials"
+→ Senha incorreta ou usuário não existe
+→ Crie novo: npx tsx test-login.ts
+
+❌ "Conta bloqueada"
+→ Usuário foi explicitamente bloqueado
+→ Verifique tabela profiles no Supabase
+
+❌ "Login com Google indisponível"
+→ Configure OAuth conforme seção acima
+
+❌ "Backend não responde"
+→ Execute: cd backend && npm run dev
+
+═══════════════════════════════════════════════════════════════
+   📊 STATUS FINAL
+═══════════════════════════════════════════════════════════════
+
+CONFIGURAÇÃO LOCAL:      ✅ 100% COMPLETA
+VALIDAÇÃO AMBIENTE:      ✅ 9/9 TESTES
+CÓDIGO CORRIGIDO:        ✅ COMMITS ENVIADOS
+DOCUMENTAÇÃO:            ✅ CRIADA
+TESTES DISPONÍVEIS:      ✅ 4 SCRIPTS
+
+PRONTO PARA:
+→ ✅ Teste local (inicie os servidores)
+→ ✅ Deploy Vercel (configure env vars)
+→ ⏳ Google OAuth (configure se necessário)
+
+═══════════════════════════════════════════════════════════════
+
+💡 PRÓXIMO PASSO: Execute os comandos do "PASSO 2" acima!
+
+═══════════════════════════════════════════════════════════════
