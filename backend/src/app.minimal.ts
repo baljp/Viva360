@@ -19,7 +19,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // Auth Routes (Critical Path)
-// app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // 404
 app.use('*', (req, res) => res.status(404).json({ error: 'Not Found in Minimal Mode' }));
