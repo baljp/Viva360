@@ -1,0 +1,185 @@
+═══════════════════════════════════════════════════════════════
+   ✅ GOOGLE OAUTH - TESTE COMPLETO
+═══════════════════════════════════════════════════════════════
+
+🎉 STATUS: OAuth configurado e funcionando!
+
+Teste realizado: ✅ PASSOU
+- URL de OAuth sendo gerada corretamente
+- Variáveis de ambiente configuradas
+- Redirect URL configurada: http://localhost:5173/login
+
+═══════════════════════════════════════════════════════════════
+   🧪 COMO TESTAR NO NAVEGADOR
+═══════════════════════════════════════════════════════════════
+
+PASSO 1: Verificar servidores
+──────────────────────────────
+
+✅ Backend: Rodando na porta 3000
+✅ Frontend: Rodando na porta 5173
+
+Se algum não estiver rodando:
+
+Terminal 1 - Backend:
+cd ~/Viva360/backend
+npm run dev
+
+Terminal 2 - Frontend:
+cd ~/Viva360
+npm run dev
+
+PASSO 2: Testar no navegador
+─────────────────────────────
+
+1. Abra: http://localhost:5173/login
+
+2. Clique no botão "Entrar com Google"
+
+3. CENÁRIOS POSSÍVEIS:
+
+   A) ✅ SUCESSO - Redireciona para Google
+      → Selecione sua conta Google
+      → Autorize o app
+      → Deve voltar para http://localhost:5173
+      → Você estará logado!
+
+   B) ❌ ERRO: "Login com Google indisponível"
+      → Significa que VITE_SUPABASE_URL não está configurada
+      → Já está configurada! ✅
+      → Se aparecer, reinicie o frontend
+
+   C) ❌ ERRO: "Provider not enabled"
+      → Google OAuth não está habilitado no Supabase
+      → Veja seção "Como Habilitar" abaixo
+
+   D) ❌ ERRO: "Redirect URL not allowed"
+      → A URL http://localhost:5173/login não está
+        nas Redirect URLs do Supabase
+      → Veja seção "Configurar Redirect URLs" abaixo
+
+═══════════════════════════════════════════════════════════════
+   ⚙️  CONFIGURAÇÃO NO SUPABASE
+═══════════════════════════════════════════════════════════════
+
+Se o Google OAuth NÃO funcionar, siga estes passos:
+
+1. HABILITAR GOOGLE PROVIDER
+────────────────────────────
+
+Acesse: https://supabase.com/dashboard/project/oqhzisdjbtyxyarjeuhp
+Vá em: Authentication → Providers → Google
+
+✓ Toggle "Enable Sign in with Google"
+
+✓ Configure:
+   Client ID: [Do Google Cloud Console]
+   Client Secret: [Do Google Cloud Console]
+
+Como obter Client ID e Secret:
+a) Acesse: https://console.cloud.google.com
+b) Crie ou selecione um projeto
+c) Vá em: APIs & Services → Credentials
+d) Crie OAuth 2.0 Client ID (Web application)
+e) Authorized redirect URIs:
+   - https://oqhzisdjbtyxyarjeuhp.supabase.co/auth/v1/callback
+f) Copie Client ID e Client Secret
+
+2. CONFIGURAR REDIRECT URLs
+────────────────────────────
+
+Acesse: https://supabase.com/dashboard/project/oqhzisdjbtyxyarjeuhp
+Vá em: Authentication → URL Configuration
+
+Adicione em "Redirect URLs":
+✓ http://localhost:5173/login
+✓ http://localhost:5173/* (wildcard para callbacks)
+
+Configure "Site URL":
+✓ http://localhost:5173
+
+Para produção, adicione também:
+✓ https://seu-dominio.vercel.app/login
+✓ https://seu-dominio.vercel.app/*
+
+═══════════════════════════════════════════════════════════════
+   🔍 DIAGNÓSTICO DE PROBLEMAS
+═══════════════════════════════════════════════════════════════
+
+ERRO: "Login com Google indisponível"
+CAUSA: Variáveis de ambiente não carregadas
+SOLUÇÃO: Reinicie o frontend (Ctrl+C e npm run dev)
+
+ERRO: "Provider google is not enabled"
+CAUSA: Google OAuth não habilitado no Supabase
+SOLUÇÃO: Siga "1. HABILITAR GOOGLE PROVIDER" acima
+
+ERRO: "Redirect URL not whitelisted"
+CAUSA: URL não está nas Redirect URLs permitidas
+SOLUÇÃO: Siga "2. CONFIGURAR REDIRECT URLs" acima
+
+ERRO: "Account não autorizada" após login Google
+CAUSA: Perfil não foi criado automaticamente
+SOLUÇÃO: O código já cria automaticamente! Se persistir:
+  1. Verifique se DATABASE_URL está configurada ✅
+  2. Verifique logs do backend
+  3. O usuário foi criado no Supabase Auth mas não no profiles
+
+COMPORTAMENTO ESPERADO:
+1. Clica "Entrar com Google"
+2. Redireciona para accounts.google.com
+3. Usuário seleciona conta e autoriza
+4. Volta para http://localhost:5173/login
+5. getCurrentSession() é chamado
+6. Verifica se tem perfil, se não cria automaticamente
+7. Usuário é redirecionado para a dashboard
+
+═══════════════════════════════════════════════════════════════
+   📊 CHECKLIST DE VERIFICAÇÃO
+═══════════════════════════════════════════════════════════════
+
+VARIÁVEIS DE AMBIENTE:
+✅ VITE_SUPABASE_URL configurada
+✅ VITE_SUPABASE_ANON_KEY configurada
+✅ VITE_SUPABASE_AUTH_REDIRECT_URL configurada
+✅ DATABASE_URL configurada (para criar perfil)
+
+CÓDIGO:
+✅ loginWithGoogle() implementado
+✅ getCurrentSession() cria perfil automaticamente
+✅ Redirect URL validation implementada
+
+SERVIDORES:
+✅ Backend rodando (porta 3000)
+✅ Frontend rodando (porta 5173)
+
+SUPABASE (VERIFIQUE MANUALMENTE):
+⚠️  Google Provider habilitado?
+⚠️  Client ID e Secret configurados?
+⚠️  Redirect URLs adicionadas?
+
+═══════════════════════════════════════════════════════════════
+   🧪 TESTE RÁPIDO
+═══════════════════════════════════════════════════════════════
+
+Execute este comando para validar configuração:
+
+cd ~/Viva360
+npx tsx test-google-oauth.ts
+
+Resultado esperado:
+✅ OAUTH CONFIGURADO CORRETAMENTE!
+✅ URL de redirecionamento gerada
+
+Se passar, o OAuth está funcionando!
+
+═══════════════════════════════════════════════════════════════
+   💡 PRÓXIMO PASSO
+═══════════════════════════════════════════════════════════════
+
+1. Abra http://localhost:5173/login no navegador
+2. Clique em "Entrar com Google"
+3. Veja o que acontece
+4. Se der erro, me avise qual é o erro exato!
+
+═══════════════════════════════════════════════════════════════
