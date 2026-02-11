@@ -175,10 +175,11 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
     }
 
     const access = await AuthService.getAuthorizationStatus(email);
-    if (!access.canRegister) {
+    // For OAuth users, always allow profile creation if not explicitly blocked
+    if (!access.canRegister && access.reason === 'EMAIL_BLOCKED') {
       return res.status(403).json({
-        error: 'Conta Google não autorizada para cadastro.',
-        code: 'EMAIL_NOT_AUTHORIZED',
+        error: 'Conta bloqueada. Entre em contato com o suporte.',
+        code: 'EMAIL_BLOCKED',
         reason: access.reason,
       });
     }

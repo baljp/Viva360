@@ -298,13 +298,6 @@ export class AuthService {
 
   static async login(email: string, password: string) {
     const normalizedEmail = email.trim().toLowerCase();
-    const authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
-    if (!authorization.canLogin) {
-      const code = authorization.reason === 'REGISTRATION_INCOMPLETE'
-        ? 'REGISTRATION_INCOMPLETE'
-        : 'EMAIL_NOT_AUTHORIZED';
-      throw new AppError('Conta não autorizada para login.', 401, code, true, { reason: authorization.reason });
-    }
 
     const user = await prisma.user.findUnique({
       where: { email: normalizedEmail },
@@ -321,6 +314,42 @@ export class AuthService {
     const isValid = await bcrypt.compare(password, user.encrypted_password);
     if (!isValid) {
       throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
+    }
+
+    // Auto-create profile if user authenticated but profile is missing (incomplete registration)
+    if (!user.profile) {
+      const metadata = typeof user.raw_user_meta_data === 'object' && user.raw_user_meta_data
+        ? user.raw_user_meta_data as Record<string, unknown>
+        : {};
+      const metadataRole = normalizeRole(String(metadata.role || ''));
+      const finalRole = metadataRole || defaultRole(null);
+      const fallbackName = String(metadata.full_name || metadata.name || normalizedEmail.split('@')[0] || 'Viajante');
+
+      const profile = await prisma.profile.create({
+        data: {
+          id: user.id,
+          email: normalizedEmail,
+          name: fallbackName,
+          role: finalRole,
+          active_role: finalRole,
+          avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`,
+          personal_balance: 1000,
+          multiplier: 1,
+        },
+      });
+
+      await prisma.profileRole.upsert({
+        where: { profile_id_role: { profile_id: user.id, role: finalRole } },
+        create: { profile_id: user.id, role: finalRole },
+        update: {},
+      });
+
+      await AuthService.markAllowlistAsUsed(normalizedEmail, user.id);
+
+      return AuthService.generateSession({
+        ...user,
+        profile: { ...profile, profile_roles: [{ role: finalRole }] },
+      });
     }
 
     return AuthService.generateSession(user);
@@ -435,22 +464,9 @@ export class AuthService {
     }
 
     if (authUser) {
-      const canCompleteOrphan = !!allowlist
-        && ALLOWLIST_REGISTER_STATUSES.has(allowlistStatus)
-        && (!allowlist.used_by || allowlist.used_by === authUser.id);
-
-      if (!canCompleteOrphan) {
-        return {
-          canLogin: false,
-          canRegister: false,
-          role: allowlistRole,
-          roles: allowlistRole ? [allowlistRole] : [],
-          reason: 'EMAIL_NOT_AUTHORIZED',
-          accountState: 'NOT_AUTHORIZED',
-          nextAction: 'REQUEST_INVITE',
-        };
-      }
-
+      // User exists in auth.users but has no profile yet.
+      // This happens when: (a) Supabase/Google OAuth created the user, (b) partial registration.
+      // DECISION: Always allow registration to complete the profile, regardless of allowlist.
       const metadata = typeof authUser.raw_user_meta_data === 'object' && authUser.raw_user_meta_data
         ? authUser.raw_user_meta_data as Record<string, unknown>
         : {};
@@ -462,9 +478,9 @@ export class AuthService {
         canRegister: true,
         role,
         roles: [role],
-        reason: 'REGISTRATION_INCOMPLETE',
-        accountState: 'INCOMPLETE_REGISTRATION',
-        nextAction: 'COMPLETE_REGISTRATION',
+        reason: 'REGISTRATION_INCOMPLETE' as AccessReason,
+        accountState: 'INCOMPLETE_REGISTRATION' as AccountState,
+        nextAction: 'COMPLETE_REGISTRATION' as NextAction,
       };
     }
 
