@@ -468,28 +468,8 @@ export const api = {
                 throw new Error('No modo teste, use apenas e-mails pré-definidos.');
             }
 
-            // Pre-check is advisory only - never block login here.
-            // The backend /auth/login will validate credentials and auto-create profile if needed.
-            try {
-                const eligibility = await fetchLoginEligibility(normalizedEmail);
-                // Only block if explicitly blocked (not just missing profile)
-                if (!eligibility.allowed && !eligibility.canRegister && 
-                    eligibility.reason !== 'EMAIL_NOT_AUTHORIZED' &&
-                    eligibility.reason !== 'REGISTRATION_INCOMPLETE') {
-                    throw new Error(toDomainAuthMessage({
-                        reason: eligibility.reason,
-                        fallback: 'Conta não autorizada. Faça cadastro antes de entrar.',
-                    }));
-                }
-            } catch (precheckErr: any) {
-                // Only re-throw if it's an explicit block (BLOCKED status)
-                const msg = precheckErr?.message || '';
-                if (msg.includes('bloqueada') || msg.includes('BLOCKED')) {
-                    throw precheckErr;
-                }
-                // All other pre-check failures: proceed to login attempt
-                console.warn('[Login] Pre-check non-blocking:', msg);
-            }
+            // Go straight to backend login - no pre-check needed.
+            // The backend validates credentials and auto-creates profile if missing.
 
             // Primary path: backend /auth/login (works even when Supabase requires email confirmation).
             try {
