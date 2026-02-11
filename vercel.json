@@ -12,7 +12,9 @@
       "src": "backend/src/server.ts",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["backend/**"]
+        "includeFiles": [
+          "backend/prisma/schema.prisma"
+        ]
       }
     }
   ],
