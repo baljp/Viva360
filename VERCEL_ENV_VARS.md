@@ -33,10 +33,9 @@ CORS_ORIGINS=https://SEU-DOMINIO.vercel.app
 ```
 
 ### 🗄️ BANCO DE DADOS (Backend)
-Pegue no Supabase → Settings → Database → Connection String:
 ```
-DATABASE_URL=postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres?pgbouncer=true
-DIRECT_URL=postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:5432/postgres
+DATABASE_URL=postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisdjbtyxyarjeuhp.supabase.co:5432/postgres
+DIRECT_URL=postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisdjbtyxyarjeuhp.supabase.co:5432/postgres
 ```
 
 ### 🔑 JWT SECRET (Backend)
