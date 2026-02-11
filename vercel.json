@@ -16,9 +16,17 @@
           "backend/prisma/schema.prisma"
         ]
       }
+    },
+    {
+      "src": "api/ping.ts",
+      "use": "@vercel/node"
     }
   ],
   "routes": [
+    {
+      "src": "/api/ping",
+      "dest": "api/ping.ts"
+    },
     {
       "src": "/api/(.*)",
       "dest": "api/index.ts"
