@@ -1,46 +1,45 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
-import { BarChart3, TrendingUp, TrendingDown, Users, Calendar, DollarSign, Star, Activity, Clock, Eye } from 'lucide-react';
+import { BarChart3, TrendingUp, TrendingDown, Users, Calendar, DollarSign, Star, Activity, Clock } from 'lucide-react';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
+import { api } from '../../services/api';
 
 interface MetricCard { label: string; value: string; change: number; icon: any; color: string; }
-
-import { api } from '../../services/api';
 
 export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
     const { back } = useSantuarioFlow();
     const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
-    const [stats, setStats] = useState<any>({ appointments: 0, revenue: 0, guardians: 0, occupancy: 0, activeSeekers: 0, avgRating: '0.0', topGuardians: [], roomOccupancy: [] });
+    const [stats, setStats] = useState<any>({
+        appointments: 0, revenue: 0, guardians: 0, occupancy: 0,
+        buscadores: 0, avgRating: 0, avgDuration: '50min',
+        topGuardians: [], roomOccupancy: []
+    });
+    const [loading, setLoading] = useState(true);
 
     React.useEffect(() => {
-        api.spaces.getAnalytics().then(data => {
-            if (data) setStats(data);
-        }).catch(() => {});
+        setLoading(true);
+        api.spaces.getAnalytics()
+            .then(data => { if (data) setStats(data); })
+            .catch(() => {})
+            .finally(() => setLoading(false));
     }, []);
 
     const metrics: MetricCard[] = [
-        { label: 'Atendimentos', value: stats.appointments.toString(), change: 12, icon: Activity, color: 'bg-emerald-50 text-emerald-600' },
-        { label: 'Receita', value: `R$ ${(stats.revenue / 1000).toFixed(1)}k`, change: 8, icon: DollarSign, color: 'bg-indigo-50 text-indigo-600' },
-        { label: 'Buscadores Ativos', value: stats.activeSeekers?.toString() || '0', change: 15, icon: Users, color: 'bg-amber-50 text-amber-600' },
-        { label: 'Taxa Ocupação', value: `${stats.occupancy}%`, change: -3, icon: Calendar, color: 'bg-rose-50 text-rose-600' },
-        { label: 'Avaliação Média', value: stats.avgRating || '0.0', change: 2, icon: Star, color: 'bg-purple-50 text-purple-600' },
-        { label: 'Tempo Médio Sessão', value: '52min', change: 5, icon: Clock, color: 'bg-blue-50 text-blue-600' },
+        { label: 'Atendimentos', value: String(stats.appointments || 0), change: 12, icon: Activity, color: 'bg-emerald-50 text-emerald-600' },
+        { label: 'Receita', value: `R$ ${((stats.revenue || 0) / 1000).toFixed(1)}k`, change: 8, icon: DollarSign, color: 'bg-indigo-50 text-indigo-600' },
+        { label: 'Buscadores Ativos', value: String(stats.buscadores || 0), change: 15, icon: Users, color: 'bg-amber-50 text-amber-600' },
+        { label: 'Taxa Ocupação', value: `${stats.occupancy || 0}%`, change: -3, icon: Calendar, color: 'bg-rose-50 text-rose-600' },
+        { label: 'Avaliação Média', value: stats.avgRating > 0 ? String(stats.avgRating) : '—', change: 2, icon: Star, color: 'bg-purple-50 text-purple-600' },
+        { label: 'Tempo Médio Sessão', value: stats.avgDuration || '—', change: 5, icon: Clock, color: 'bg-blue-50 text-blue-600' },
     ];
 
-    const topGuardians = stats.topGuardians?.length > 0 ? stats.topGuardians : [
-        { name: 'Sem dados', sessions: 0, revenue: 'R$ 0', rating: 0 },
-    ];
-
-    const roomOccupancy = stats.roomOccupancy?.length > 0 ? stats.roomOccupancy : [
-        { name: 'Nenhuma sala cadastrada', pct: 0, sessions: 0 },
-    ];
-
+    const topGuardians = stats.topGuardians?.length > 0 ? stats.topGuardians : [];
+    const roomOccupancy = stats.roomOccupancy?.length > 0 ? stats.roomOccupancy : [];
     const monthlyTrend = [
-        { month: 'Set', value: 62 }, { month: 'Out', value: 71 },
-        { month: 'Nov', value: 68 }, { month: 'Dez', value: 85 },
-        { month: 'Jan', value: 79 }, { month: 'Fev', value: 92 },
+        { month: 'Set', value: 62 }, { month: 'Out', value: 71 }, { month: 'Nov', value: 68 },
+        { month: 'Dez', value: 85 }, { month: 'Jan', value: 79 }, { month: 'Fev', value: stats.appointments || 0 },
     ];
-    const maxTrend = Math.max(...monthlyTrend.map(m => m.value));
+    const maxTrend = Math.max(1, ...monthlyTrend.map(m => m.value));
 
     return (
         <div className="min-h-screen bg-[#f8faf9] pb-32">
@@ -54,7 +53,6 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
                 <p className="text-indigo-200/70 text-xs font-bold uppercase tracking-widest">Visão Holística do Santuário</p>
             </header>
 
-            {/* Period Filter */}
             <div className="px-4 -mt-4 mb-4">
                 <div className="flex p-1 bg-white rounded-2xl border border-nature-100 shadow-sm">
                     {(['week', 'month', 'year'] as const).map(p => (
@@ -64,12 +62,10 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
                     ))}
                 </div>
             </div>
-
             <div className="px-4 space-y-4">
-                {/* Metrics Grid */}
                 <div className="grid grid-cols-2 gap-3">
                     {metrics.map((m, i) => (
-                        <div key={i} className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm">
+                        <div key={i} className={`bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm ${loading ? 'animate-pulse' : ''}`}>
                             <div className="flex items-center justify-between mb-3">
                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${m.color}`}><m.icon size={18} /></div>
                                 <div className={`flex items-center gap-1 text-[10px] font-bold ${m.change > 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
@@ -83,7 +79,6 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
                     ))}
                 </div>
 
-                {/* Monthly Trend Chart */}
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
                     <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-6">Tendência de Atendimentos</h3>
                     <div className="flex items-end justify-between gap-2 h-40">
@@ -98,41 +93,46 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
                         ))}
                     </div>
                 </div>
-
-                {/* Room Occupancy */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
-                    <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Ocupação por Altar</h3>
-                    <div className="space-y-4">
-                        {roomOccupancy.map((r, i) => (
-                            <div key={i} className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-bold text-nature-900">{r.name}</span>
-                                    <span className="text-xs text-nature-500">{r.sessions} sessões • <span className="font-bold">{r.pct}%</span></span>
+                {roomOccupancy.length > 0 && (
+                    <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
+                        <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Ocupação por Altar</h3>
+                        <div className="space-y-4">
+                            {roomOccupancy.map((r: any, i: number) => (
+                                <div key={i} className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm font-bold text-nature-900">{r.name}</span>
+                                        <span className="text-xs text-nature-500">{r.sessions} sessões • <span className="font-bold">{r.pct}%</span></span>
+                                    </div>
+                                    <div className="w-full h-3 bg-nature-50 rounded-full overflow-hidden">
+                                        <div className={`h-full rounded-full transition-all duration-1000 ${r.pct > 80 ? 'bg-amber-500' : r.pct > 50 ? 'bg-emerald-500' : 'bg-indigo-400'}`} style={{ width: `${r.pct}%` }}></div>
+                                    </div>
                                 </div>
-                                <div className="w-full h-3 bg-nature-50 rounded-full overflow-hidden">
-                                    <div className={`h-full rounded-full transition-all duration-1000 ${r.pct > 80 ? 'bg-amber-500' : r.pct > 50 ? 'bg-emerald-500' : 'bg-indigo-400'}`} style={{ width: `${r.pct}%` }}></div>
-                                </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
-
-                {/* Top Guardians */}
-                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
-                    <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Top Guardiões</h3>
-                    <div className="space-y-3">
-                        {topGuardians.map((g, i) => (
-                            <div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-nature-50 transition-colors">
-                                <div className="w-8 h-8 rounded-full bg-nature-100 flex items-center justify-center text-xs font-black text-nature-600">#{i + 1}</div>
-                                <div className="flex-1">
-                                    <h4 className="font-bold text-nature-900 text-sm">{g.name}</h4>
-                                    <p className="text-[10px] text-nature-400">{g.sessions} sessões • {g.revenue}</p>
+                )}
+                {topGuardians.length > 0 && (
+                    <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
+                        <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Top Guardiões</h3>
+                        <div className="space-y-3">
+                            {topGuardians.map((g: any, i: number) => (
+                                <div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-nature-50 transition-colors">
+                                    <div className="w-8 h-8 rounded-full bg-nature-100 flex items-center justify-center text-xs font-black text-nature-600">#{i + 1}</div>
+                                    <div className="flex-1">
+                                        <h4 className="font-bold text-nature-900 text-sm">{g.name}</h4>
+                                        <p className="text-[10px] text-nature-400">{g.sessions} sessões • {g.revenue}</p>
+                                    </div>
+                                    <div className="flex items-center gap-1"><Star size={12} className="text-amber-400 fill-amber-400" /><span className="text-xs font-bold">{g.rating}</span></div>
                                 </div>
-                                <div className="flex items-center gap-1"><Star size={12} className="text-amber-400 fill-amber-400" /><span className="text-xs font-bold">{g.rating}</span></div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
+                )}
+                {!loading && topGuardians.length === 0 && roomOccupancy.length === 0 && (
+                    <div className="bg-white p-8 rounded-[2.5rem] border border-nature-100 text-center">
+                        <p className="text-sm text-nature-500 italic">Os dados detalhados serão exibidos conforme atendimentos e salas forem cadastrados.</p>
+                    </div>
+                )}
             </div>
         </div>
     );
