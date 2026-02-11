@@ -455,7 +455,8 @@ async function main() {
 
   await generateReport();
 
-  process.exit(failed > 0 ? 1 : 0);
+  const failedCount = results.filter(r => r.status === 'FAIL').length;
+  process.exit(failedCount > 0 ? 1 : 0);
 }
 
 main().catch(console.error);

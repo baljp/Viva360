@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
 import { AppError } from '../lib/AppError';
+import { supabaseAdmin } from './supabase.service';
 
 const ALLOWED_ROLES = new Set(['CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN']);
 
@@ -129,8 +130,6 @@ export class AuthService {
       },
     });
 
-    const hashedPassword = (await bcrypt.hash(password, 10)).replace(/^\$2b\$/, '$2a$');
-
     if (existing?.profile) {
       const existingRoles = await AuthService.getRolesByProfile(existing.profile.id, existing.profile.role);
       if (existingRoles.includes(finalRole)) {
@@ -141,21 +140,13 @@ export class AuthService {
         );
       }
 
-      if (!existing.encrypted_password) {
-        throw new AppError(
-          'Este e-mail já está cadastrado. Entre com ele para adicionar um novo perfil.',
-          409,
-          'EMAIL_ALREADY_EXISTS'
-        );
-      }
-
-      const validPassword = await bcrypt.compare(password, existing.encrypted_password);
-      if (!validPassword) {
-        throw new AppError(
-          'Este e-mail já está cadastrado. Entre com ele ou use outro.',
-          409,
-          'EMAIL_ALREADY_EXISTS'
-        );
+      // If user exists but we are adding a role, we must verify password or session
+      // For registration flow, we assume they own the account if password matches
+      if (existing.encrypted_password) {
+        const validPassword = await bcrypt.compare(password, existing.encrypted_password);
+        if (!validPassword) {
+           throw new AppError('Este e-mail já está cadastrado. Entre com ele ou use outro.', 409, 'EMAIL_ALREADY_EXISTS');
+        }
       }
 
       await prisma.profileRole.upsert({
@@ -191,79 +182,46 @@ export class AuthService {
       });
     }
 
+    let userId: string;
+
     if (existing && !existing.profile) {
-      await prisma.user.update({
-        where: { id: existing.id },
-        data: {
-          encrypted_password: hashedPassword,
-          email_confirmed_at: new Date(),
-          raw_user_meta_data: {
-            ...(typeof existing.raw_user_meta_data === 'object' && existing.raw_user_meta_data ? existing.raw_user_meta_data as Record<string, unknown> : {}),
-            full_name: name,
-            role: finalRole,
-          },
-        },
+      // Orphan user: exists in auth.users but no profile.
+      // Update password via Supabase to ensure it's valid for future SDK logins
+      const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(existing.id, {
+        password: password,
+        email_confirm: true,
+        user_metadata: { full_name: name, role: finalRole }
       });
 
-      const profile = await prisma.profile.create({
-        data: {
-          id: existing.id,
-          email: normalizedEmail,
-          name,
-          role: finalRole,
-          active_role: finalRole,
-          avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${existing.id}`,
-          personal_balance: 1000,
-          multiplier: 1,
-        },
-      });
-
-      await prisma.profileRole.upsert({
-        where: {
-          profile_id_role: {
-            profile_id: existing.id,
-            role: finalRole,
-          },
-        },
-        create: {
-          profile_id: existing.id,
-          role: finalRole,
-        },
-        update: {},
-      });
-
-      await AuthService.markAllowlistAsUsed(normalizedEmail, existing.id);
-
-      return AuthService.generateSession({
-        id: existing.id,
+      if (updateError) {
+        throw new AppError(`Erro ao atualizar credenciais: ${updateError.message}`, 500, 'AUTH_UPDATE_FAILED');
+      }
+      
+      userId = existing.id;
+    } else {
+      // New user: Create via Supabase Admin SDK
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: normalizedEmail,
-        profile: {
-          ...profile,
-          profile_roles: [{ role: finalRole }],
-        },
+        password: password,
+        email_confirm: true,
+        user_metadata: { full_name: name, role: finalRole }
       });
+
+      if (authError) {
+        if (authError.message.includes('already registered')) {
+            throw new AppError('Este e-mail já está em uso.', 409, 'EMAIL_ALREADY_EXISTS');
+        }
+        throw new AppError(`Erro no cadastro (Supabase): ${authError.message}`, 500, 'AUTH_PROVIDER_ERROR');
+      }
+
+      if (!authData.user) {
+        throw new AppError('Falha ao criar conta de usuário.', 500, 'AUTH_USER_CREATION_FAILED');
+      }
+
+      userId = authData.user.id;
     }
 
-    const authUser = await prisma.user.create({
-      data: {
-        email: normalizedEmail,
-        encrypted_password: hashedPassword,
-        aud: 'authenticated',
-        role: 'authenticated',
-        email_confirmed_at: new Date(),
-        raw_app_meta_data: {
-          provider: 'email',
-          providers: ['email'],
-        },
-        raw_user_meta_data: {
-          full_name: name,
-          role: finalRole,
-        },
-      },
-    });
-
-    const userId = authUser.id;
-
+    // Now create the Profile link
     const profile = await prisma.profile.create({
       data: {
         id: userId,
@@ -277,11 +235,18 @@ export class AuthService {
       },
     });
 
-    await prisma.profileRole.create({
-      data: {
+    await prisma.profileRole.upsert({
+      where: {
+        profile_id_role: {
+          profile_id: userId,
+          role: finalRole,
+        },
+      },
+      create: {
         profile_id: userId,
         role: finalRole,
       },
+      update: {},
     });
 
     await AuthService.markAllowlistAsUsed(normalizedEmail, userId);
