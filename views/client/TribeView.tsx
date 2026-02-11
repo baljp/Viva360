@@ -22,7 +22,7 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
         </div>
         
         <div className="relative">
-           <ConstellationOrbit user={user} onUpdateUser={updateUser} />
+           <ConstellationOrbit user={user} onUpdateUser={updateUser} onInvite={() => go('TRIBE_INVITE')} />
         </div>
 
         <div className="space-y-4">
