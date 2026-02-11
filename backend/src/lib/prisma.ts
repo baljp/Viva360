@@ -5,23 +5,18 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// Safely construct database URL with connection pooling params
+// Safely construct database URL — use DATABASE_URL as-is (no extra params appended).
+// Connection pooling params (pgbouncer, connection_limit, sslmode) are set
+// directly in the DATABASE_URL environment variable.
 const dbUrl = process.env.DATABASE_URL;
 
 if (!dbUrl) {
   console.error('🚨 DATABASE_URL is not set! Database operations will fail.');
 }
 
-const datasourceConfig = dbUrl ? {
-  db: {
-    url: dbUrl + (dbUrl.includes('?') ? '&' : '?') + 'connection_limit=10&pool_timeout=30'
-  }
-} : undefined;
-
 const prisma = global.prisma || new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  // Enterprise Pooling for Supavisor (Port 6543)
-  datasources: datasourceConfig
+  datasourceUrl: dbUrl,
 });
 
 if (process.env.NODE_ENV !== 'production') global.prisma = prisma;
