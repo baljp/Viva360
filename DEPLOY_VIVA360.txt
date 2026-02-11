@@ -1,0 +1,224 @@
+═══════════════════════════════════════════════════════════════
+   🚀 DEPLOY VIVA360 NO VERCEL - PASSO A PASSO
+═══════════════════════════════════════════════════════════════
+
+Domínio: https://viva360.vercel.app
+
+═══════════════════════════════════════════════════════════════
+   📋 PASSO 1: ADICIONAR VARIÁVEIS NO VERCEL
+═══════════════════════════════════════════════════════════════
+
+1. Acesse: https://vercel.com/dashboard
+2. Clique no projeto "Viva360"
+3. Vá em: Settings → Environment Variables
+4. Para CADA variável abaixo, clique "Add New" e cole:
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 1                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: VITE_SUPABASE_URL                                     │
+│ Value: https://oqhzisdjbtyxyarjeuhp.supabase.co            │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 2                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: SUPABASE_URL                                          │
+│ Value: https://oqhzisdjbtyxyarjeuhp.supabase.co            │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 3                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: VITE_SUPABASE_ANON_KEY                                │
+│ Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJz  │
+│        dXBhYmFzZSIsInJlZiI6Im9xaHppc2RqYnR5eHlhcmpldWhw   │
+│        Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1Mjc0MTIsImV4  │
+│        cCI6MjA4NTEwMzQxMn0.ae0_uaZQJT6y583NMuwyUUI9MUuY   │
+│        9zuRXcVdDgz6ExU                                      │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 4                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: SUPABASE_SERVICE_ROLE_KEY                             │
+│ Value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJz  │
+│        dXBhYmFzZSIsInJlZiI6Im9xaHppc2RqYnR5eHlhcmpldWhw   │
+│        Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTUy  │
+│        NzQxMiwiZXhwIjoyMDg1MTAzNDEyfQ.WzLMzrHgK_gsvt1I6k  │
+│        RaFJiQHpei9650nFKpqFQAHks                            │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 5 ⚠️  IMPORTANTE!                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: VITE_SUPABASE_AUTH_REDIRECT_URL                       │
+│ Value: https://viva360.vercel.app/login                     │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 6                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: VITE_APP_MODE                                         │
+│ Value: PROD                                                 │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 7                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: APP_MODE                                              │
+│ Value: PROD                                                 │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 8                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: VITE_ENABLE_TEST_MODE                                 │
+│ Value: false                                                │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 9                                                  │
+├─────────────────────────────────────────────────────────────┤
+│ Name: CORS_ORIGINS                                          │
+│ Value: https://viva360.vercel.app                           │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 10                                                 │
+├─────────────────────────────────────────────────────────────┤
+│ Name: DATABASE_URL                                          │
+│ Value: postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisd   │
+│        jbtyxyarjeuhp.supabase.co:5432/postgres              │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 11                                                 │
+├─────────────────────────────────────────────────────────────┤
+│ Name: DIRECT_URL                                            │
+│ Value: postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisd   │
+│        jbtyxyarjeuhp.supabase.co:5432/postgres              │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 12                                                 │
+├─────────────────────────────────────────────────────────────┤
+│ Name: JWT_SECRET                                            │
+│ Value: I9Y60Mngk1MswjB9DYJi+ar+pcGkOYzmx9W+4cTndwE=        │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ VARIÁVEL 13                                                 │
+├─────────────────────────────────────────────────────────────┤
+│ Name: VITE_API_URL                                          │
+│ Value: /api                                                 │
+│ Environments: ✓ Production ✓ Preview ✓ Development         │
+└─────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════
+   🔐 PASSO 2: CONFIGURAR SUPABASE
+═══════════════════════════════════════════════════════════════
+
+1. Acesse: https://supabase.com/dashboard/project/oqhzisdjbtyxyarjeuhp
+
+2. Vá em: Authentication → URL Configuration
+
+3. Em "Redirect URLs", adicione estas 2 URLs:
+   ┌───────────────────────────────────────────────────────┐
+   │ https://viva360.vercel.app/login                      │
+   │ https://viva360.vercel.app/*                          │
+   └───────────────────────────────────────────────────────┘
+
+4. Em "Site URL", configure:
+   ┌───────────────────────────────────────────────────────┐
+   │ https://viva360.vercel.app                            │
+   └───────────────────────────────────────────────────────┘
+
+5. Clique em "Save"
+
+═══════════════════════════════════════════════════════════════
+   🔄 PASSO 3: FAZER REDEPLOY
+═══════════════════════════════════════════════════════════════
+
+Opção A - Pelo painel do Vercel:
+1. Vá em: Deployments
+2. Clique nos 3 pontinhos do último deploy
+3. Clique "Redeploy"
+4. Aguarde finalizar
+
+Opção B - Por commit (vai fazer deploy automático):
+Faça qualquer alteração no código e dê push no GitHub
+
+Opção C - Via CLI:
+cd ~/Viva360
+vercel --prod
+
+═══════════════════════════════════════════════════════════════
+   ✅ PASSO 4: TESTAR EM PRODUÇÃO
+═══════════════════════════════════════════════════════════════
+
+1. Aguarde o deploy finalizar (2-5 minutos)
+
+2. Acesse: https://viva360.vercel.app/login
+
+3. Teste login com email/senha:
+   📧 teste1770782863978@viva360.com
+   🔑 senha123
+
+4. Teste login com Google (se configurado)
+
+5. Verifique se está funcionando! ✅
+
+═══════════════════════════════════════════════════════════════
+   📝 CHECKLIST FINAL
+═══════════════════════════════════════════════════════════════
+
+Antes de testar, confirme:
+
+□ Adicionei todas as 13 variáveis no Vercel
+□ Configurei Redirect URLs no Supabase
+□ Configurei Site URL no Supabase
+□ Fiz redeploy no Vercel
+□ Aguardei o deploy finalizar
+
+Se tudo estiver ✓, pode testar!
+
+═══════════════════════════════════════════════════════════════
+   🔧 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+ERRO: "Redirect URL not allowed"
+→ Volte ao Passo 2 e verifique as URLs do Supabase
+
+ERRO: "Login com Google indisponível"
+→ Verifique se VITE_SUPABASE_AUTH_REDIRECT_URL está correta
+
+ERRO: "Database connection failed"
+→ Verifique se DATABASE_URL está correta
+
+ERRO: Variáveis não aplicadas
+→ Faça redeploy (Passo 3)
+
+ERRO: Build failure
+→ Verifique os logs de build no Vercel
+→ Pode ser erro de sintaxe no código
+
+═══════════════════════════════════════════════════════════════
+
+🎉 Pronto! Seu app está configurado para produção!
+
+Qualquer problema, me avise! 🚀
+
+═══════════════════════════════════════════════════════════════
