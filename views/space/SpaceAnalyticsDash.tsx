@@ -10,7 +10,7 @@ import { api } from '../../services/api';
 export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
     const { back } = useSantuarioFlow();
     const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
-    const [stats, setStats] = useState({ appointments: 0, revenue: 0, guardians: 0, occupancy: 0 });
+    const [stats, setStats] = useState<any>({ appointments: 0, revenue: 0, guardians: 0, occupancy: 0, activeSeekers: 0, avgRating: '0.0', topGuardians: [], roomOccupancy: [] });
 
     React.useEffect(() => {
         api.spaces.getAnalytics().then(data => {
@@ -21,24 +21,18 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
     const metrics: MetricCard[] = [
         { label: 'Atendimentos', value: stats.appointments.toString(), change: 12, icon: Activity, color: 'bg-emerald-50 text-emerald-600' },
         { label: 'Receita', value: `R$ ${(stats.revenue / 1000).toFixed(1)}k`, change: 8, icon: DollarSign, color: 'bg-indigo-50 text-indigo-600' },
-        { label: 'Buscadores Ativos', value: '186', change: 15, icon: Users, color: 'bg-amber-50 text-amber-600' }, // Todo: Add to API
+        { label: 'Buscadores Ativos', value: stats.activeSeekers?.toString() || '0', change: 15, icon: Users, color: 'bg-amber-50 text-amber-600' },
         { label: 'Taxa Ocupação', value: `${stats.occupancy}%`, change: -3, icon: Calendar, color: 'bg-rose-50 text-rose-600' },
-        { label: 'Avaliação Média', value: '4.8', change: 2, icon: Star, color: 'bg-purple-50 text-purple-600' }, // Todo: Add to API
+        { label: 'Avaliação Média', value: stats.avgRating || '0.0', change: 2, icon: Star, color: 'bg-purple-50 text-purple-600' },
         { label: 'Tempo Médio Sessão', value: '52min', change: 5, icon: Clock, color: 'bg-blue-50 text-blue-600' },
     ];
 
-    const topGuardians = [
-        { name: 'Ana Luz', sessions: 87, revenue: 'R$ 12.4k', rating: 4.9 },
-        { name: 'Carlos Paz', sessions: 65, revenue: 'R$ 9.8k', rating: 4.8 },
-        { name: 'Mariana Serenidade', sessions: 52, revenue: 'R$ 7.2k', rating: 4.7 },
-        { name: 'Pedro Raio', sessions: 41, revenue: 'R$ 5.9k', rating: 4.6 },
+    const topGuardians = stats.topGuardians?.length > 0 ? stats.topGuardians : [
+        { name: 'Sem dados', sessions: 0, revenue: 'R$ 0', rating: 0 },
     ];
 
-    const roomOccupancy = [
-        { name: 'Sala Gaia', pct: 92, sessions: 145 },
-        { name: 'Sala Shanti', pct: 78, sessions: 98 },
-        { name: 'Altar Zen', pct: 65, sessions: 72 },
-        { name: 'Jardim Externo', pct: 45, sessions: 38 },
+    const roomOccupancy = stats.roomOccupancy?.length > 0 ? stats.roomOccupancy : [
+        { name: 'Nenhuma sala cadastrada', pct: 0, sessions: 0 },
     ];
 
     const monthlyTrend = [

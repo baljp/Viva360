@@ -11,12 +11,29 @@ export const SantuarioContractView: React.FC<{ user: User }> = ({ user }) => {
     const [toast, setToast] = useState<any>(null);
     const [showRenewModal, setShowRenewModal] = useState(false);
     const [contract, setContract] = useState<any>(null);
+    const [noContract, setNoContract] = useState(false);
 
     React.useEffect(() => {
         api.spaces.getContract().then(data => {
-            if (data) setContract(data);
-        }).catch(() => notify('Erro', 'Não foi possível carregar o contrato.', 'warning'));
+            if (data && !data.error) setContract(data);
+            else setNoContract(true);
+        }).catch((err) => {
+            if (err?.response?.status === 404 || err?.status === 404) {
+                setNoContract(true);
+            } else {
+                notify('Erro', 'Não foi possível carregar o contrato.', 'warning');
+            }
+        });
     }, []);
+
+    if (noContract) return (
+        <div className="min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center px-6 text-center gap-4">
+            <Shield size={48} className="text-nature-300" />
+            <h2 className="text-xl font-serif italic text-nature-700">Nenhum Contrato Ativo</h2>
+            <p className="text-sm text-nature-400">Você ainda não possui um contrato vinculado a um espaço.</p>
+            <button onClick={back} className="mt-4 px-6 py-3 bg-nature-900 text-white rounded-2xl text-xs font-bold uppercase tracking-widest">Voltar</button>
+        </div>
+    );
 
     if (!contract) return <div className="min-h-screen bg-[#f8faf9] flex items-center justify-center text-nature-400">Carregando Contrato...</div>;
 
