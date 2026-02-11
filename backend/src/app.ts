@@ -105,6 +105,23 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', pid: process.pid, timestamp: new Date().toISOString(), requestId: req.requestId });
 });
 
+// Diagnostic Login Endpoint (temporary)
+app.post('/api/debug-login', async (req, res) => {
+    try {
+        const { AuthService } = require('./services/auth.service');
+        const result = await AuthService.login(req.body.email || '', req.body.password || '');
+        res.json({ ok: true, result });
+    } catch (err: any) {
+        res.status(500).json({
+            error: err.message,
+            name: err.name,
+            stack: err.stack?.split('\n').slice(0, 5),
+            code: err.code,
+            statusCode: err.statusCode,
+        });
+    }
+});
+
 // API Routes
 app.use('/api', routes);
 
