@@ -7,7 +7,7 @@
     "dev": "vite",
     "build:backend": "NODE_PATH=./backend/node_modules tsc -p backend/tsconfig.json",
     "build": "npm run prisma:generate && npm run build:backend && tsc && vite build",
-    "vercel-build": "npm run prisma:generate && cp -r node_modules/.prisma backend/node_modules/.prisma && npm run build:backend && vite build",
+    "vercel-build": "npm run prisma:generate && mkdir -p backend/node_modules/.prisma && cp -r node_modules/.prisma/client backend/node_modules/.prisma/client && vite build",
     "dev:api:test": "NODE_ENV=test APP_MODE=MOCK ENABLE_TEST_MODE=true PORT=3001 npx tsx backend/src/server.ts",
     "test:audit": "npx playwright test tests/audit.spec.ts",
     "test:e2e": "npx playwright test tests/e2e_master.spec.ts",
