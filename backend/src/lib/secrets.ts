@@ -8,9 +8,9 @@ if (!resolvedJwtSecret) {
   if (isProd) {
     throw new Error('JWT_SECRET is required in production.');
   } else {
-    // Generate ephemeral secret for local development only.
-    resolvedJwtSecret = crypto.randomBytes(32).toString('hex');
-    console.warn('⚠️  JWT_SECRET missing. Using ephemeral secret for non-production.');
+    // Use a stable default secret for development to prevent session invalidation on restart.
+    resolvedJwtSecret = 'viva360-dev-portal-secret-2026';
+    console.warn('⚠️  JWT_SECRET missing. Using stable development secret.');
   }
 }
 

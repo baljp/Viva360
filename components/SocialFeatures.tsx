@@ -4,7 +4,6 @@ import { User, DailyRitualSnap, ConstellationMember, MoodType, ConstellationPact
 import { Sparkles, Heart, Wind, Zap, Users, UserPlus, Search, Droplets, Loader2, Plus, Camera, Calendar, Link, Send, Trophy, Flame, Play, Pause, SkipBack, SkipForward, Maximize2, Clock, CalendarDays, CalendarRange } from 'lucide-react';
 import { BottomSheet, ZenToast, DynamicAvatar } from './Common';
 import { api } from '../services/api';
-import { api } from '../services/api';
 
 // --- USER AURA (GAMIFICADA) ---
 export const UserAura: React.FC<{ user: User }> = ({ user }) => {
@@ -259,12 +258,12 @@ const PactWidget: React.FC<{ pact: ConstellationPact, userAvatar: string, onSend
 
 // --- CONSTELLATION ORBIT ---
 const DEFAULT_CONSTELLATION: ConstellationMember[] = [
-    { id: 'tribe_1', name: 'Luna Paz', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=luna_paz', level: 3, needsWatering: true },
-    { id: 'tribe_2', name: 'Sol Vieira', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=sol_vieira', level: 5, needsWatering: false },
-    { id: 'tribe_3', name: 'Mar Silva', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=mar_silva', level: 2, needsWatering: true },
-    { id: 'tribe_4', name: 'Rio Santos', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=rio_santos', level: 4, needsWatering: false },
-    { id: 'tribe_5', name: 'Céu Almeida', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=ceu_almeida', level: 6, needsWatering: false },
-    { id: 'tribe_6', name: 'Flor Mendes', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=flor_mendes', level: 1, needsWatering: true },
+    { id: 'tribe_1', name: 'Luna Paz', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=luna_paz', needsWatering: true },
+    { id: 'tribe_2', name: 'Sol Vieira', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=sol_vieira', needsWatering: false },
+    { id: 'tribe_3', name: 'Mar Silva', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=mar_silva', needsWatering: true },
+    { id: 'tribe_4', name: 'Rio Santos', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=rio_santos', needsWatering: false },
+    { id: 'tribe_5', name: 'Céu Almeida', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=ceu_almeida', needsWatering: false },
+    { id: 'tribe_6', name: 'Flor Mendes', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=flor_mendes', needsWatering: true },
 ];
 
 export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) => void, onInvite?: () => void }> = ({ user, onUpdateUser, onInvite }) => {
@@ -291,7 +290,7 @@ export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) 
                             <span className="text-[10px] font-medium text-nature-500">{member.name.split(' ')[0]}</span>
                         </button>
                     ))}
-                    <button onClick={() => onInvite ? onInvite() : setToast({ title: "Convite", msg: "Abra a Tribo para convidar novas almas." })} className="w-16 h-16 rounded-full border-4 border-dashed border-nature-100 flex items-center justify-center text-nature-200 shrink-0 hover:bg-nature-50 transition-colors active:scale-95"><Plus size={24} /></button>
+                    <button onClick={() => onInvite ? onInvite() : setToast({ title: "Convite aberto", msg: "Fluxo de convite da tribo será iniciado." })} className="w-16 h-16 rounded-full border-4 border-dashed border-nature-100 flex items-center justify-center text-nature-200 shrink-0 hover:bg-nature-50 transition-colors"><Plus size={24} /></button>
                 </div>
             </div>
             {user.activePact && <PactWidget pact={user.activePact} userAvatar={user.avatar} onSendLight={() => handleSendVibe(20)} />}

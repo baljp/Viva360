@@ -78,20 +78,23 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
             </div>
          </div>
 
-        <div className="bg-indigo-900 rounded-[3.5rem] p-10 text-white text-center space-y-6 relative overflow-hidden">
-           <Trophy size={160} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />
-           <h4 className="font-serif italic text-2xl relative z-10">Jornada Coletiva</h4>
-           <div className="flex justify-center -space-x-4 relative z-10">
-              {[1,2,3,4,5].map(i => <img key={i} src={`https://api.dicebear.com/7.x/notionists/svg?seed=tribo${i}`} className="w-14 h-14 rounded-full border-4 border-indigo-800 shadow-xl object-cover" />)}
-           </div>
-           <p className="text-xs text-indigo-200 italic px-4 relative z-10">"Sua tribo elevou a vibração coletiva em 14% este mês. Continuem brilhando."</p>
-           <div className="grid grid-cols-1 gap-4 relative z-10 px-4">
-                <button onClick={() => go('HEALING_CIRCLE')} className="w-full py-5 bg-white text-indigo-900 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
-                    <Heart size={16} fill="currentColor"/> Participar do Círculo de Cura
-                </button>
-                <button onClick={() => setActiveModal('leaderboard')} className="w-full py-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">Ver evolução da tribo</button>
+         <div className="bg-indigo-900 rounded-[3.5rem] p-10 text-white text-center space-y-6 relative overflow-hidden">
+            <Trophy size={160} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />
+            <h4 className="font-serif italic text-2xl relative z-10">Jornada Coletiva</h4>
+            <div className="flex justify-center -space-x-4 relative z-10">
+               {[1,2,3,4,5].map(i => <img key={i} src={`https://api.dicebear.com/7.x/notionists/svg?seed=tribo${i}`} className="w-14 h-14 rounded-full border-4 border-indigo-800 shadow-xl object-cover" />)}
             </div>
-        </div>
+            <p className="text-xs text-indigo-200 italic px-4 relative z-10">"Sua tribo elevou a vibração coletiva em 14% este mês. Continuem brilhando."</p>
+            <div className="grid grid-cols-1 gap-3 relative z-10 px-4">
+                 <button onClick={() => go('HEALING_CIRCLE')} className="w-full py-4 bg-white text-indigo-900 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                     <Heart size={14} fill="currentColor"/> Participar do Círculo de Cura
+                 </button>
+                 <button onClick={() => go('TRIBE_INTERACTION')} className="w-full py-4 bg-indigo-500 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                     <Plus size={14} /> Sala de Apoio Coletivo
+                 </button>
+                 <button onClick={() => setActiveModal('leaderboard')} className="w-full py-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">Ver evolução da tribo</button>
+             </div>
+         </div>
         
         <BottomSheet isOpen={activeModal === 'leaderboard'} onClose={() => setActiveModal(null)} title="Classificação Radiante">
              <div className="space-y-6 pb-12">

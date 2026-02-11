@@ -64,7 +64,9 @@ export const useClientDashboard = (
 
     const handleDailyCheckIn = useCallback(async (reward: number): Promise<{ ok: boolean; alreadyDone?: boolean }> => {
         try {
+            console.log(`[useClientDashboard] handleDailyCheckIn reward=${reward} user=${user.id}`);
             const res: any = await api.users.checkIn(user.id, reward);
+            console.log(`[useClientDashboard] checkIn result:`, res);
             if (res?.alreadyDone || String(res?.status || '').toUpperCase() === 'ALREADY_DONE' || String(res?.code || '').toUpperCase() === 'CHECKIN_ALREADY_DONE') {
                 const checkInAt = String(res?.lastCheckIn || res?.user?.lastCheckIn || '').trim();
                 if (checkInAt) {
@@ -92,7 +94,9 @@ export const useClientDashboard = (
                 setToast({ title: "Benção Já Recebida", message: "Você já sintonizou sua energia hoje.", type: 'info' });
                 return { ok: true, alreadyDone: true };
             }
-            setToast({ title: "Erro ao receber benção", message: "Não conseguimos registrar sua benção agora.", type: 'error' });
+            console.error("[useClientDashboard] checkIn error:", error);
+            const errMsg = error?.message || "Não conseguimos registrar sua benção agora.";
+            setToast({ title: "Erro ao receber benção", message: errMsg, type: 'error' });
             return { ok: false };
         }
     }, [user, updateUser]);

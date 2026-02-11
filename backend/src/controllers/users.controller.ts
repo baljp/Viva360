@@ -14,6 +14,13 @@ const userUpdateSchema = z.object({
   avatar: z.string().url().optional(),
   location: z.string().optional(),
   specialty: z.array(z.string()).optional(),
+  karma: z.number().optional(),
+  streak: z.number().int().optional(),
+  multiplier: z.number().optional(),
+  plantStage: z.string().optional(),
+  plantXp: z.number().optional(),
+  plantHealth: z.number().min(0).max(100).optional(),
+  snaps: z.any().optional(),
 });
 
 const isMissingTableOrColumnError = (error: unknown) => {
@@ -309,7 +316,13 @@ export const updateById = asyncHandler(async (req: Request, res: Response) => {
         };
 
     const sanitized = Object.fromEntries(
-        Object.entries(updates).filter(([, value]) => value !== undefined)
+        Object.entries(updates).map(([key, value]) => {
+            // Map camelCase to snake_case for DB columns
+            if (key === 'plantStage') return ['plant_stage', value];
+            if (key === 'plantXp') return ['plant_xp', value];
+            if (key === 'plantHealth') return ['plant_health', value];
+            return [key, value];
+        }).filter(([, value]) => value !== undefined)
     );
 
     if (Object.keys(sanitized).length === 0) {
