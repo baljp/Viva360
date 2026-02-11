@@ -23,6 +23,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
     const [toast, setToast] = useState<any>(null);
     const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('all');
     const [selectedEvent, setSelectedEvent] = useState<SpaceEvent | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const [events] = useState<SpaceEvent[]>([
         { id: 'e1', title: 'Workshop Despertar Interior', date: '2026-02-15', time: '09:00', room: 'Sala Shanti', capacity: 15, enrolled: 12, guardian: 'Ana Luz', status: 'upcoming', type: 'workshop', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=400' },
@@ -32,6 +33,8 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
     ]);
 
     const filtered = events.filter(e => filter === 'all' || e.status === filter);
+
+    React.useEffect(() => { const t = setTimeout(() => setIsLoading(false), 600); return () => clearTimeout(t); }, []);
 
     const statusCfg: Record<string, { label: string; color: string; bg: string }> = {
         upcoming: { label: 'Próximo', color: 'text-indigo-700', bg: 'bg-indigo-50' },
@@ -89,7 +92,19 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                 </div>
 
                 {/* Event Cards */}
-                {filtered.map(ev => {
+                {isLoading ? (
+                    <div className="space-y-4">
+                        {[1,2,3].map(i => (
+                            <div key={i} className="bg-white rounded-[2.5rem] overflow-hidden border border-nature-100 shadow-sm animate-pulse">
+                                <div className="h-32 bg-nature-100"></div>
+                                <div className="p-5 space-y-3">
+                                    <div className="h-4 bg-nature-100 rounded w-3/4"></div>
+                                    <div className="h-3 bg-nature-100 rounded w-1/2"></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : filtered.map(ev => {
                     const cfg = statusCfg[ev.status];
                     const pct = Math.round((ev.enrolled / ev.capacity) * 100);
                     return (
@@ -131,7 +146,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                     );
                 })}
 
-                {filtered.length === 0 && (
+                {!isLoading && filtered.length === 0 && (
                     <div className="text-center py-16">
                         <Calendar size={48} className="text-nature-200 mx-auto mb-4" />
                         <p className="text-nature-400 text-sm font-bold">Nenhum evento nesta categoria</p>

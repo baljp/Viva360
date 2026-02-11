@@ -9,6 +9,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
     const [selectedItem, setSelectedItem] = useState<string | null>(null);
     const [message, setMessage] = useState('');
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const [isSending, setIsSending] = useState(false);
 
     // Mock "My Items" to offer in trade
     const [myItems] = useState([
@@ -21,12 +22,16 @@ export const AlquimiaProposeTrade: React.FC = () => {
             setToast({ title: 'Seleção Necessária', message: 'Escolha um item seu para oferecer.' });
             return;
         }
-        
-        // Mock API call
-        await new Promise(r => setTimeout(r, 1000));
-        
-        // Navigate to confirmation or back
-        go('ESCAMBO_CONFIRM');
+        setIsSending(true);
+        try {
+            await new Promise(r => setTimeout(r, 1000));
+            setToast({ title: 'Proposta Enviada!', message: 'Sua troca foi enviada. Aguarde resposta.' });
+            setTimeout(() => go('ESCAMBO_CONFIRM'), 1200);
+        } catch (err: any) {
+            setToast({ title: 'Erro', message: err.message || 'Falha ao enviar proposta. Tente novamente.' });
+        } finally {
+            setIsSending(false);
+        }
     };
 
     return (
@@ -89,9 +94,10 @@ export const AlquimiaProposeTrade: React.FC = () => {
 
                 <button 
                     onClick={handlePropose}
-                    className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-indigo-700 flex items-center justify-center gap-3"
+                    disabled={isSending}
+                    className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-indigo-700 flex items-center justify-center gap-3 disabled:opacity-60"
                 >
-                    Enviar Proposta <ArrowRight size={20} />
+                    {isSending ? <span className="animate-pulse">Enviando...</span> : <>Enviar Proposta <ArrowRight size={20} /></>}
                 </button>
             </div>
         </PortalView>
