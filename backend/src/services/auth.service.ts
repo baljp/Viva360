@@ -512,9 +512,13 @@ export class AuthService {
   }
 
   static async listRolesForUser(userId: string, emailHint?: string | null) {
+    console.log(`[AuthService] listRolesForUser userId=${userId} emailHint=${emailHint}`);
     const profile = await prisma.profile.findUnique({
       where: { id: userId },
       select: { id: true, role: true, active_role: true },
+    }).catch(err => {
+      console.error(`[AuthService] prisma.profile.findUnique failed:`, err);
+      throw err;
     });
 
     if (!profile) {
@@ -550,7 +554,8 @@ export class AuthService {
     };
   }
 
-  static async selectActiveRole(userId: string, requestedRole: string) {
+   static async selectActiveRole(userId: string, requestedRole: string) {
+    console.log(`[AuthService] selectActiveRole userId=${userId} requestedRole=${requestedRole}`);
     const role = defaultRole(requestedRole);
     const current = await AuthService.listRolesForUser(userId);
 
@@ -561,6 +566,9 @@ export class AuthService {
     await prisma.profile.update({
       where: { id: userId },
       data: { active_role: role, role },
+    }).catch(err => {
+      console.error(`[AuthService] prisma.profile.update failed:`, err);
+      throw err;
     });
 
     return {

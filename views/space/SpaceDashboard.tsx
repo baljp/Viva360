@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy, Lock
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy, Lock, Moon
 } from 'lucide-react';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
@@ -156,6 +156,24 @@ const OperationsTab = ({ go }: any) => (
                 bgImage="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600"
                 onClick={() => go('ROOMS_STATUS')}
                 delay={100}
+            />
+             <PortalCard 
+                id="portal-events"
+                title="Eventos" 
+                subtitle="RITOS COLETIVOS" 
+                icon={Sparkles} 
+                bgImage="https://images.unsplash.com/photo-1528644490543-950c4dfceb28?q=80&w=600"
+                onClick={() => go('EVENTS_MANAGE')}
+                delay={200}
+            />
+            <PortalCard 
+                id="portal-retreats"
+                title="Retiros" 
+                subtitle="IMERSÃO PROFUNDA" 
+                icon={Moon} 
+                bgImage="https://images.unsplash.com/photo-1545389336-cf090694435e?q=80&w=600"
+                onClick={() => go('RETREATS_MANAGE')}
+                delay={300}
             />
         </div>
         <div onClick={() => go('PATIENTS_LIST')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex justify-between items-center cursor-pointer hover:border-indigo-200 transition-all group">

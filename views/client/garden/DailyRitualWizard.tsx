@@ -384,7 +384,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                         <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-white/5 to-transparent mix-blend-overlay"></div>
                     </div>
                 </div>
-                <div className="flex-1 px-8 grid grid-cols-2 gap-4 content-start overflow-y-auto pb-12">
+                <div className="flex-1 px-8 grid grid-cols-2 gap-4 content-start overflow-y-auto pb-12 pt-4">
                     {MOODS.map(m => (
                         <button key={m.id} onClick={() => handleMoodSelect(m.id)} className={`p-6 rounded-[2rem] text-left transition-all hover:scale-105 active:scale-95 ${m.color}`}>
                             <span className="text-4xl block mb-3">{m.icon}</span>
@@ -435,7 +435,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                     </button>
                 </div>
 
-                <div className="flex-1 p-6 md:p-8 flex items-center justify-center">
+                <div className="flex-1 p-6 md:p-8 flex items-center justify-center overflow-y-auto">
                     <div className="w-full max-w-md aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
                         {data.image ? (
                             <img src={data.image} className="w-full h-full object-cover" alt="Prévia do Jardim da Alma" />
@@ -447,7 +447,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                     </div>
                 </div>
 
-                <div className="p-6 md:p-8 bg-black/85 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="p-6 md:p-8 bg-black/85 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">
                     <button
                         onClick={() => setStep('CAPTURE')}
                         className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] active:scale-95 transition-all"
@@ -467,7 +467,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'INTENTION') {
         return (
-             <div className="fixed inset-0 z-[200] bg-nature-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right">
+             <div className="fixed inset-0 z-[200] bg-nature-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right overflow-y-auto">
                  <button onClick={() => setStep('CAPTURE')} className="mb-6 bg-white p-4 rounded-full w-min shadow-sm active:scale-95 transition-all"><ArrowRight className="rotate-180 text-nature-900" size={20}/></button>
                  <button onClick={onClose} className="absolute top-8 right-8 bg-white p-4 rounded-full shadow-sm text-nature-400 z-50 active:scale-90 transition-all"><X size={24}/></button>
                  <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Qual pequena ação hoje pode tornar seu dia melhor?</h2>
@@ -495,7 +495,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'GRATITUDE') {
         return (
-             <div className="fixed inset-0 z-[200] bg-emerald-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right">
+             <div className="fixed inset-0 z-[200] bg-emerald-50 flex flex-col p-8 pt-16 animate-in slide-in-from-right overflow-y-auto">
                  <button onClick={() => setStep('INTENTION')} className="mb-6 bg-white p-4 rounded-full w-min shadow-sm active:scale-95 transition-all"><ArrowRight className="rotate-180 text-nature-900" size={20}/></button>
                  <button onClick={onClose} className="absolute top-8 right-8 bg-white p-4 rounded-full shadow-sm text-emerald-600 z-50 active:scale-90 transition-all"><X size={24}/></button>
                  <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Pelo que você é grato agora?</h2>
@@ -527,7 +527,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
         };
 
         return (
-            <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col items-center justify-center p-8 animate-in zoom-in-95 duration-500">
+            <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col items-center justify-center p-8 animate-in zoom-in-95 duration-500 overflow-y-auto">
                 <button onClick={onClose} className="absolute top-8 right-8 bg-white/10 p-4 rounded-full text-white z-50 active:scale-90 transition-all"><X size={24}/></button>
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 <div className="w-full max-w-sm relative">

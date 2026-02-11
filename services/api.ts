@@ -357,15 +357,27 @@ const normalizeProfilePayload = (input: any): User => {
 
 const hydrateUserFromProfileApi = async (base: User): Promise<User> => {
     const userId = String(base?.id || '').trim();
-    if (!userId) return base;
+    if (!userId) {
+        console.warn("[Hydration] userId is missing or empty", base);
+        return base;
+    }
 
     try {
+        console.log(`[Hydration] Starting hydration for user ${userId}`);
         const profilePayload = await request(`/users/${userId}`, {
             purpose: 'session-hydration',
             timeoutMs: 7000,
             retries: 1,
         });
+        
+        if (!profilePayload) {
+            console.error(`[Hydration] Received empty payload for user ${userId}`);
+            return base;
+        }
+
         const hydrated = normalizeProfilePayload(profilePayload || {});
+        console.log(`[Hydration] Successfully normalized payload for ${userId}`, hydrated);
+
         const merged: User = {
             ...base,
             ...hydrated,
@@ -381,8 +393,10 @@ const hydrateUserFromProfileApi = async (base: User): Promise<User> => {
         if (!merged.roles || merged.roles.length === 0) {
             merged.roles = [merged.activeRole || merged.role];
         }
+        console.log(`[Hydration] Final merged user for ${userId}:`, { id: merged.id, role: merged.role, activeRole: merged.activeRole, roles: merged.roles });
         return merged;
-    } catch {
+    } catch (err) {
+        console.error(`[Hydration] Failed to hydrate user ${userId}:`, err);
         return base;
     }
 };
@@ -473,6 +487,7 @@ export const api = {
 
             // Primary path: backend /auth/login (works even when Supabase requires email confirmation).
             try {
+                console.log(`[Login] Attempting backend login for ${normalizedEmail} at ${API_URL}/auth/login`);
                 const response = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -481,6 +496,7 @@ export const api = {
 
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
+                    console.error(`[Login] Backend login failed for ${normalizedEmail}`, errorData);
                     throw new Error(toDomainAuthMessage({
                         code: errorData?.code,
                         reason: errorData?.reason,
@@ -490,6 +506,7 @@ export const api = {
 
                 const payload = await response.json();
                 const token = payload?.session?.access_token;
+                console.log(`[Login] Backend login success for ${normalizedEmail}, token present: ${!!token}`);
                 promoteToRealSession(token);
                 localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
                 localStorage.removeItem(OAUTH_INTENT_KEY);
@@ -497,8 +514,12 @@ export const api = {
 
                 // Best-effort: also establish a Supabase session when possible.
                 try {
+                    console.log(`[Login] Establishing side Supabase session for ${normalizedEmail}`);
                     const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
-                    if (error) throw error;
+                    if (error) {
+                        console.warn(`[Login] Side Supabase session failed for ${normalizedEmail}:`, error.message);
+                        throw error;
+                    }
                     if (data.session?.access_token) {
                         promoteToRealSession(data.session.access_token);
                         localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
@@ -508,8 +529,12 @@ export const api = {
                 }
 
                 const user = await api.auth.getCurrentSession();
-                if (user) return user;
+                if (user) {
+                    console.log(`[Login] Session established and hydrated for ${normalizedEmail}`);
+                    return user;
+                }
 
+                console.warn(`[Login] Hydration failed after login, returning manual user object for ${normalizedEmail}`);
                 return baseUser({
                     id: payload?.user?.id || `user_${hashString(normalizedEmail).slice(0, 8)}`,
                     email: payload?.user?.email || normalizedEmail,
@@ -521,12 +546,17 @@ export const api = {
                 });
             } catch (err: any) {
                 // If backend is unreachable, fallback to Supabase auth.
+                console.warn(`[Login] Backend path failed for ${normalizedEmail}, checking for fallback. Error:`, err.message);
                 if (!isLikelyNetworkError(err?.message)) {
                     throw err;
                 }
 
+                console.log(`[Login] Falling back to direct Supabase auth for ${normalizedEmail}`);
                 const { data, error } = await supabase.auth.signInWithPassword({ email: normalizedEmail, password });
-                if (error) throw error;
+                if (error) {
+                    console.error(`[Login] Fallback Supabase auth failed for ${normalizedEmail}:`, error.message);
+                    throw error;
+                }
                 if (!data.session?.access_token) {
                     throw new Error('Login failed: No session data returned');
                 }
@@ -538,6 +568,7 @@ export const api = {
 
                 const user = await api.auth.getCurrentSession();
                 if (!user) throw new Error('Sessão criada, mas sem usuário válido.');
+                console.log(`[Login] Fallback login success for ${normalizedEmail}`);
                 return user;
             }
         },
