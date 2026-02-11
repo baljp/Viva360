@@ -104,8 +104,17 @@ export class AuthService {
   }
 
   static async register(email: string, password: string, name: string, role: string = 'CLIENT') {
+    console.log('[AuthService] Checking authorization for:', email);
     const normalizedEmail = email.trim().toLowerCase();
-    const authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
+    
+    let authorization;
+    try {
+        authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
+        console.log('[AuthService] Authorization status:', JSON.stringify(authorization));
+    } catch (err: any) {
+        console.error('[AuthService] Failed to getAuthorizationStatus:', err);
+        throw new AppError(`Erro interno ao verificar autorização: ${err.message}`, 500);
+    }
 
     if (!authorization.canRegister) {
       throw new AppError(
@@ -121,6 +130,7 @@ export class AuthService {
     const preferredRole = requestedRole || normalizeRole(authorization.role) || 'CLIENT';
     const finalRole = defaultRole(preferredRole);
 
+    console.log('[AuthService] Checking existing user for:', normalizedEmail);
     const existing = await prisma.user.findUnique({
       where: { email: normalizedEmail },
       include: {
@@ -128,9 +138,13 @@ export class AuthService {
           include: { profile_roles: true },
         },
       },
+    }).catch(err => {
+        console.error('[AuthService] Prisma findUnique failed:', err);
+        throw new AppError(`Erro de banco de dados (User Check): ${err.message}`, 500);
     });
 
     if (existing?.profile) {
+      console.log('[AuthService] User exists with profile');
       const existingRoles = await AuthService.getRolesByProfile(existing.profile.id, existing.profile.role);
       if (existingRoles.includes(finalRole)) {
         throw new AppError(
@@ -140,8 +154,6 @@ export class AuthService {
         );
       }
 
-      // If user exists but we are adding a role, we must verify password or session
-      // For registration flow, we assume they own the account if password matches
       if (existing.encrypted_password) {
         const validPassword = await bcrypt.compare(password, existing.encrypted_password);
         if (!validPassword) {
@@ -185,8 +197,7 @@ export class AuthService {
     let userId: string;
 
     if (existing && !existing.profile) {
-      // Orphan user: exists in auth.users but no profile.
-      // Update password via Supabase to ensure it's valid for future SDK logins
+      console.log('[AuthService] Orphan user found, updating credentials via Supabase Admin...');
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(existing.id, {
         password: password,
         email_confirm: true,
@@ -194,12 +205,13 @@ export class AuthService {
       });
 
       if (updateError) {
+        console.error('[AuthService] Supabase updateUserById failed:', updateError);
         throw new AppError(`Erro ao atualizar credenciais: ${updateError.message}`, 500, 'AUTH_UPDATE_FAILED');
       }
       
       userId = existing.id;
     } else {
-      // New user: Create via Supabase Admin SDK
+      console.log('[AuthService] Creating new user via Supabase Admin SDK...');
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: normalizedEmail,
         password: password,
@@ -208,6 +220,7 @@ export class AuthService {
       });
 
       if (authError) {
+        console.error('[AuthService] Supabase createUser failed:', authError);
         if (authError.message.includes('already registered')) {
             throw new AppError('Este e-mail já está em uso.', 409, 'EMAIL_ALREADY_EXISTS');
         }
@@ -215,53 +228,64 @@ export class AuthService {
       }
 
       if (!authData.user) {
+        console.error('[AuthService] Supabase returned no user object');
         throw new AppError('Falha ao criar conta de usuário.', 500, 'AUTH_USER_CREATION_FAILED');
       }
 
       userId = authData.user.id;
+      console.log('[AuthService] User created with ID:', userId);
     }
 
-    // Now create the Profile link
-    const profile = await prisma.profile.create({
-      data: {
+    console.log('[AuthService] Creating Profile in database...');
+    try {
+        const profile = await prisma.profile.create({
+        data: {
+            id: userId,
+            email: normalizedEmail,
+            name,
+            role: finalRole,
+            active_role: finalRole,
+            avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userId}`,
+            personal_balance: 1000,
+            multiplier: 1,
+        },
+        });
+        console.log('[AuthService] Profile created.');
+
+        await prisma.profileRole.upsert({
+        where: {
+            profile_id_role: {
+            profile_id: userId,
+            role: finalRole,
+            },
+        },
+        create: {
+            profile_id: userId,
+            role: finalRole,
+        },
+        update: {},
+        });
+        
+        await AuthService.markAllowlistAsUsed(normalizedEmail, userId);
+
+        console.log('[AuthService] Generating session...');
+        return AuthService.generateSession({
         id: userId,
         email: normalizedEmail,
-        name,
-        role: finalRole,
-        active_role: finalRole,
-        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userId}`,
-        personal_balance: 1000,
-        multiplier: 1,
-      },
-    });
-
-    await prisma.profileRole.upsert({
-      where: {
-        profile_id_role: {
-          profile_id: userId,
-          role: finalRole,
+        profile: {
+            ...profile,
+            profile_roles: [{ role: finalRole }],
         },
-      },
-      create: {
-        profile_id: userId,
-        role: finalRole,
-      },
-      update: {},
-    });
-
-    await AuthService.markAllowlistAsUsed(normalizedEmail, userId);
-
-    return AuthService.generateSession({
-      id: userId,
-      email: normalizedEmail,
-      profile: {
-        ...profile,
-        profile_roles: [{ role: finalRole }],
-      },
-    });
+        });
+    } catch (dbError: any) {
+        console.error('[AuthService] Database profile creation failed:', dbError);
+        // Clean up user from Supabase if profile creation fails? maybe later.
+        throw new AppError(`Erro ao criar perfil no banco de dados: ${dbError.message}`, 500, 'DB_ERROR');
+    }
   }
 
   static async login(email: string, password: string) {
+    console.log('[AuthService] Login attempt for:', email);
     const normalizedEmail = email.trim().toLowerCase();
 
     const user = await prisma.user.findUnique({
@@ -271,18 +295,27 @@ export class AuthService {
           include: { profile_roles: true },
         },
       },
+    }).catch(err => {
+        console.error('[AuthService] Login Prisma findUnique error:', err);
+        throw new AppError(`Erro de conexão com banco de dados: ${err.message}`, 500);
     });
+
     if (!user || !user.encrypted_password) {
+      console.warn('[AuthService] User not found or no password set.');
       throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
     }
 
     const isValid = await bcrypt.compare(password, user.encrypted_password);
     if (!isValid) {
+      console.warn('[AuthService] Invalid password.');
       throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
     }
+    
+    console.log('[AuthService] Password verified. Checking profile...');
 
     // Auto-create profile if user authenticated but profile is missing (incomplete registration)
     if (!user.profile) {
+      console.log('[AuthService] Missing profile, auto-creating...');
       const metadata = typeof user.raw_user_meta_data === 'object' && user.raw_user_meta_data
         ? user.raw_user_meta_data as Record<string, unknown>
         : {};
@@ -290,31 +323,36 @@ export class AuthService {
       const finalRole = metadataRole || defaultRole(null);
       const fallbackName = String(metadata.full_name || metadata.name || normalizedEmail.split('@')[0] || 'Viajante');
 
-      const profile = await prisma.profile.create({
-        data: {
-          id: user.id,
-          email: normalizedEmail,
-          name: fallbackName,
-          role: finalRole,
-          active_role: finalRole,
-          avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`,
-          personal_balance: 1000,
-          multiplier: 1,
-        },
-      });
+      try {
+          const profile = await prisma.profile.create({
+            data: {
+              id: user.id,
+              email: normalizedEmail,
+              name: fallbackName,
+              role: finalRole,
+              active_role: finalRole,
+              avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`,
+              personal_balance: 1000,
+              multiplier: 1,
+            },
+          });
 
-      await prisma.profileRole.upsert({
-        where: { profile_id_role: { profile_id: user.id, role: finalRole } },
-        create: { profile_id: user.id, role: finalRole },
-        update: {},
-      });
+          await prisma.profileRole.upsert({
+            where: { profile_id_role: { profile_id: user.id, role: finalRole } },
+            create: { profile_id: user.id, role: finalRole },
+            update: {},
+          });
 
-      await AuthService.markAllowlistAsUsed(normalizedEmail, user.id);
+          await AuthService.markAllowlistAsUsed(normalizedEmail, user.id);
 
-      return AuthService.generateSession({
-        ...user,
-        profile: { ...profile, profile_roles: [{ role: finalRole }] },
-      });
+          return AuthService.generateSession({
+            ...user,
+            profile: { ...profile, profile_roles: [{ role: finalRole }] },
+          });
+      } catch (e: any) {
+          console.error('[AuthService] Failed to auto-create profile:', e);
+           throw new AppError(`Erro ao criar perfil automático: ${e.message}`, 500);
+      }
     }
 
     return AuthService.generateSession(user);
