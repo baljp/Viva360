@@ -1,36 +1,20 @@
 import React, { useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { PortalView, ZenToast } from '../../../components/Common';
-import { Sparkles, TrendingUp, Gift, ShoppingBag, Users, Zap, History, Lock, ArrowRight } from 'lucide-react';
+import { Sparkles, TrendingUp, Gift, ShoppingBag, Users, Zap, History, Lock, ArrowRight, Award, Star } from 'lucide-react';
 import { User } from '../../../types';
+import { getUserRank, getRankProgress, CLIENT_RANKS, CLIENT_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../../utils/gamification';
 
 export default function KarmaWallet({ user }: { user: User }) {
     const { back, go } = useBuscadorFlow();
     const [activeTab, setActiveTab] = useState<'history' | 'earn' | 'rewards'>('history');
 
-    // Mock History
-    const history = [
-        { id: 1, action: 'Check-in Diário', amount: +5, date: 'Hoje, 08:00', type: 'earn' },
-        { id: 2, action: 'Ritual Matinal', amount: +10, date: 'Hoje, 08:15', type: 'earn' },
-        { id: 3, action: 'Referência (Convite)', amount: +50, date: 'Ontem', type: 'earn' },
-        { id: 4, action: 'Cupom Bazar', amount: -100, date: '3 dias atrás', type: 'spend' },
-    ];
-
-    // Levels logic
-    const levelParams = [
-        { level: 1, name: 'Semente', min: 0, max: 100 },
-        { level: 2, name: 'Raíz', min: 101, max: 500 },
-        { level: 3, name: 'Broto', min: 501, max: 1000 },
-        { level: 4, name: 'Flor', min: 1001, max: 2500 },
-        { level: 5, name: 'Fruto', min: 2501, max: 5000 },
-    ];
-
     const currentKarma = user.karma || 0;
-    const currentLevel = levelParams.find(l => currentKarma >= l.min && currentKarma <= l.max) || levelParams[levelParams.length - 1];
-    const nextLevel = levelParams.find(l => l.level === currentLevel.level + 1);
-    const progress = nextLevel 
-        ? ((currentKarma - currentLevel.min) / (nextLevel.min - currentLevel.min)) * 100 
-        : 100;
+    const rank = getUserRank(currentKarma, CLIENT_RANKS);
+    const progress = getRankProgress(currentKarma, CLIENT_RANKS);
+    const nextRank = CLIENT_RANKS.find(r => r.level === rank.level + 1);
+    const achievements = checkAchievements(user, CLIENT_ACHIEVEMENTS);
+    const unlockedCount = getUnlockedCount(achievements);
 
     return (
         <PortalView 
@@ -48,7 +32,7 @@ export default function KarmaWallet({ user }: { user: User }) {
                     <div className="relative z-10">
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 mb-4">
                             <Sparkles size={12} className="text-amber-400" />
-                            <span>Nível {currentLevel.level}: {currentLevel.name}</span>
+                            <span>Nível {rank.level}: {rank.name}</span>
                         </div>
 
                         <div className="text-6xl font-serif italic mb-2 tracking-tighter text-amber-50 drop-shadow-lg">
@@ -59,15 +43,22 @@ export default function KarmaWallet({ user }: { user: User }) {
                         {/* Progress Bar */}
                         <div className="mt-8">
                             <div className="flex justify-between text-[9px] font-bold uppercase text-nature-400 mb-2">
-                                <span>{currentLevel.name}</span>
-                                <span>{nextLevel ? nextLevel.name : 'Mestre'}</span>
+                                <span>{rank.name}</span>
+                                <span>{nextRank ? nextRank.name : 'Árvore Mestre'}</span>
                             </div>
                             <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                                 <div className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all duration-1000" style={{ width: `${progress}%` }}></div>
                             </div>
-                            {nextLevel && (
-                                <p className="text-[9px] text-nature-400 mt-2 text-right">Faltam {nextLevel.min - currentKarma} para evoluir</p>
+                            {nextRank && (
+                                <p className="text-[9px] text-nature-400 mt-2 text-right">Faltam {nextRank.min - currentKarma} para evoluir</p>
                             )}
+                        </div>
+
+                        {/* Achievements Summary */}
+                        <div className="mt-6 flex items-center justify-center gap-3">
+                            <Award size={14} className="text-amber-400"/>
+                            <span className="text-[10px] font-bold text-amber-200/80 uppercase tracking-widest">{unlockedCount}/{achievements.length} conquistas</span>
+                            <button onClick={() => go('EVOLUTION_ACHIEVEMENTS')} className="text-[9px] font-bold text-amber-400 underline uppercase tracking-widest">Ver todas</button>
                         </div>
                     </div>
                 </div>
@@ -94,7 +85,15 @@ export default function KarmaWallet({ user }: { user: User }) {
                 <div className="animate-in slide-in-from-bottom duration-300">
                     {activeTab === 'history' && (
                         <div className="space-y-4">
-                            {history.map(item => (
+                            {[
+                                { id: 1, action: 'Check-in Diário', amount: +5, date: 'Hoje, 08:00', type: 'earn' },
+                                { id: 2, action: 'Ritual Matinal', amount: +10, date: 'Hoje, 08:15', type: 'earn' },
+                                { id: 3, action: 'Missão: Oráculo', amount: +15, date: 'Hoje, 09:30', type: 'earn' },
+                                { id: 4, action: 'Regar planta de Luna', amount: +25, date: 'Ontem', type: 'earn' },
+                                { id: 5, action: 'Referência (Convite)', amount: +50, date: 'Ontem', type: 'earn' },
+                                { id: 6, action: 'Cupom Bazar 10%', amount: -100, date: '3 dias atrás', type: 'spend' },
+                                { id: 7, action: 'Sessão com Guardião', amount: -200, date: '5 dias atrás', type: 'spend' },
+                            ].map(item => (
                                 <div key={item.id} className="bg-white p-4 rounded-[2rem] border border-nature-100 flex items-center justify-between shadow-sm">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${item.type === 'earn' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
@@ -115,6 +114,17 @@ export default function KarmaWallet({ user }: { user: User }) {
 
                     {activeTab === 'earn' && (
                         <div className="space-y-3">
+                            <div onClick={() => go('CLIENT_QUESTS')} className="bg-gradient-to-r from-amber-500 to-orange-500 p-5 rounded-[2rem] text-white shadow-lg flex items-center justify-between group active:scale-95 transition-all">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center"><Star size={24}/></div>
+                                    <div>
+                                        <h4 className="font-bold text-sm">Missões do Dia</h4>
+                                        <p className="text-[10px] uppercase font-bold opacity-80">Até +50 Karma/dia</p>
+                                    </div>
+                                </div>
+                                <ArrowRight size={20} className="opacity-70"/>
+                            </div>
+
                             <div onClick={() => go('METAMORPHOSIS_CHECKIN')} className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500"><Zap size={24}/></div>
@@ -131,7 +141,18 @@ export default function KarmaWallet({ user }: { user: User }) {
                                     <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500"><Users size={24}/></div>
                                     <div>
                                         <h4 className="font-bold text-sm text-nature-900">Convidar Amigos</h4>
-                                        <p className="text-[10px] text-emerald-500 uppercase font-bold">+50 Karma</p>
+                                        <p className="text-[10px] text-emerald-500 uppercase font-bold">+50 Karma por convite</p>
+                                    </div>
+                                </div>
+                                <ArrowRight size={20} className="text-nature-300"/>
+                            </div>
+
+                            <div onClick={() => go('TRIBE_DASH')} className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500"><Gift size={24}/></div>
+                                    <div>
+                                        <h4 className="font-bold text-sm text-nature-900">Regar Plantas da Tribo</h4>
+                                        <p className="text-[10px] text-rose-500 uppercase font-bold">+25 Karma por rega</p>
                                     </div>
                                 </div>
                                 <ArrowRight size={20} className="text-nature-300"/>
