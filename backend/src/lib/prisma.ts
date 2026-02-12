@@ -5,13 +5,13 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// Safely construct database URL — use DATABASE_URL as-is (no extra params appended).
+// Safely construct database URL — use SUPABASE_POOLER_URL if available, then fallback to DATABASE_URL.
 // Connection pooling params (pgbouncer, connection_limit, sslmode) are set
-// directly in the DATABASE_URL environment variable.
-const dbUrl = process.env.DATABASE_URL;
+// directly in the environment variables.
+const dbUrl = process.env.SUPABASE_POOLER_URL || process.env.DATABASE_URL;
 
 if (!dbUrl) {
-  console.error('🚨 DATABASE_URL is not set! Database operations will fail.');
+  console.error('🚨 [PRISMA] Neither SUPABASE_POOLER_URL nor DATABASE_URL is set! Database operations will fail.');
 }
 
 const prisma = global.prisma || new PrismaClient({
