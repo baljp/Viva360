@@ -126,21 +126,27 @@ app.post('/api/debug-login', async (req, res) => {
 app.get('/api/debug-net', async (req, res) => {
     const dns = require('dns').promises;
     const net = require('net');
+    const poolerUrl = process.env.SUPABASE_POOLER_URL || 'NOT_SET';
     const dbUrl = process.env.DATABASE_URL || 'NOT_SET';
+    const activeUrl = process.env.SUPABASE_POOLER_URL || process.env.DATABASE_URL || 'NOT_SET';
+
     const results: any = {
-        DATABASE_URL_masked: dbUrl.replace(/:[^:@]+@/, ':***@'),
+        active_url_masked: activeUrl.replace(/:[^:@]+@/, ':***@'),
+        pooler_url_masked: poolerUrl.replace(/:[^:@]+@/, ':***@'),
+        db_url_masked: dbUrl.replace(/:[^:@]+@/, ':***@'),
         dns: null,
         tcp: null,
         env_present: {
+            SUPABASE_POOLER_URL: !!process.env.SUPABASE_POOLER_URL,
             DATABASE_URL: !!process.env.DATABASE_URL,
             DIRECT_URL: !!process.env.DIRECT_URL,
             SUPABASE_URL: !!process.env.SUPABASE_URL,
             JWT_SECRET: !!process.env.JWT_SECRET,
         }
     };
-    // Extract host and port from DATABASE_URL
+    // Extract host and port from active URL
     try {
-        const urlObj = new URL(dbUrl);
+        const urlObj = new URL(activeUrl);
         const host = urlObj.hostname;
         const port = parseInt(urlObj.port || '5432');
         results.parsed = { host, port };
