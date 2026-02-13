@@ -20,6 +20,8 @@ const isProd = process.env.NODE_ENV === 'production';
 const IS_MOCK_MODE = APP_MODE === 'MOCK' && (TEST_MODE_ENABLED || isNonProdNode);
 const IS_DEMO_MODE = APP_MODE === 'DEMO';
 
+// Standard client for verification (using anon key)
+let standardClient: SupabaseClient | null = null;
 // Admin client with Service Role (bypass RLS for admin tasks)
 let adminClient: SupabaseClient | null = null;
 
@@ -54,8 +56,13 @@ try {
   adminClient = createClient(effectiveUrl, effectiveKey, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
+
+  // Regular client for login verification
+  standardClient = createClient(effectiveUrl, SUPABASE_ANON_KEY || effectiveKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 } catch (e) {
-  console.error("Failed to init Supabase Admin:", e);
+  console.error("Failed to init Supabase clients:", e);
   // Fallback dummy client to prevent crash
   adminClient = {
       auth: {
@@ -65,9 +72,11 @@ try {
           }
       }
   } as any;
+  standardClient = adminClient;
 }
 
 export const supabaseAdmin = adminClient!;
+export const supabase = standardClient!;
 
 /**
  * Helper to create a client on behalf of a user (respects RLS)

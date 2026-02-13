@@ -3,6 +3,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { tribeService } from '../services/tribe.service';
 import { z } from 'zod';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
+import { supabaseAdmin } from '../services/supabase.service';
 
 const inviteSchema = z.object({
   email: z.string().email(),
@@ -80,14 +81,41 @@ export const joinTribe = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const syncVibration = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
-    const reward = 10;
+    const userId = (req as any).user?.userId || req.user?.id;
+    const { reward = 10 } = req.body || {};
+
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Update Profile Karma
+    const { data: user, error: fetchError } = await supabaseAdmin
+        .from('profiles')
+        .select('karma')
+        .eq('id', userId)
+        .single();
+
+    if (fetchError || !user) {
+        return res.status(404).json({ error: 'User profile not found' });
+    }
+
+    const newKarma = (user.karma || 0) + Number(reward);
+
+    const { error: updateError } = await supabaseAdmin
+        .from('profiles')
+        .update({ karma: newKarma })
+        .eq('id', userId);
+
+    if (updateError) {
+        throw new Error(`Failed to sync vibration: ${updateError.message}`);
+    }
 
     return res.json({
         success: true,
-        reward,
+        reward: Number(reward),
         syncedAt: new Date().toISOString(),
         userId,
+        karma: newKarma
     });
 });
 
