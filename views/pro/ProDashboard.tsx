@@ -62,18 +62,21 @@ export const ProDashboard: React.FC<{
     return (
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-32">
         {/* PRESENCE BANNER */}
-        <div className={`w-full px-6 py-3 flex items-center justify-between transition-colors ${isOnline ? 'bg-emerald-50 border-b border-emerald-100' : 'bg-slate-50 border-b border-slate-100'}`}>
-             <div className="flex items-center gap-2">
-                 <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`}></div>
-                 <span className={`text-[10px] font-bold uppercase tracking-widest ${isOnline ? 'text-emerald-700' : 'text-slate-500'}`}>
-                     {isOnline ? 'Sua Luz brilha no Mapa' : 'Sua frequência está oculta'}
+        <div className={`w-full px-6 py-2.5 flex items-center justify-between transition-all duration-500 ${isOnline ? 'bg-emerald-50/50 backdrop-blur-sm border-b border-emerald-100/50' : 'bg-slate-50/50 backdrop-blur-sm border-b border-slate-100/50'}`}>
+             <div className="flex items-center gap-3">
+                 <div className="relative">
+                    <div className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]' : 'bg-slate-300'}`}></div>
+                    {isOnline && <div className="absolute inset-0 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping opacity-75"></div>}
+                 </div>
+                 <span className={`text-[9px] font-bold uppercase tracking-[0.15em] ${isOnline ? 'text-emerald-700' : 'text-slate-500'}`}>
+                     {isOnline ? 'Frequência Ativa' : 'Frequência Oculta'}
                  </span>
              </div>
              <button 
                 onClick={toggleStatus}
-                className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all ${isOnline ? 'bg-white text-emerald-600 border border-emerald-200 shadow-sm hover:bg-emerald-50' : 'bg-nature-900 text-white shadow-md hover:bg-black'}`}
+                className={`text-[9px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full transition-all duration-300 ${isOnline ? 'bg-white text-emerald-600 border border-emerald-200 shadow-sm hover:shadow-md' : 'bg-nature-900 text-white shadow-md hover:bg-black hover:scale-105'}`}
              >
-                 {isOnline ? 'Recolher Presença' : 'Irradiar Presença'}
+                 {isOnline ? 'Recolher' : 'Irradiar'}
              </button>
         </div>
 
@@ -84,161 +87,155 @@ export const ProDashboard: React.FC<{
                 onMarkAsRead={handleMarkAsRead} 
                 onMarkAllRead={handleMarkAllRead} 
         />
-        <header className="flex items-center justify-between mt-4 mb-6 px-6 flex-none relative overflow-hidden">
+        
+        <header className="flex items-center justify-between mt-6 mb-8 px-6 flex-none relative">
             <div className="flex items-center gap-4">
-                <button onClick={() => go('SETTINGS')} className="relative group">
-                    <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl group-hover:scale-105 transition-transform" />
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full flex items-center justify-center z-20 pointer-events-none shadow-md animate-pulse"><Zap size={10} className="text-white fill-white" /></div>
+                <button onClick={() => go('SETTINGS')} className="relative group transition-transform duration-500 hover:scale-105">
+                    <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-2xl" />
+                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center z-20 shadow-lg"><Zap size={10} className="text-white fill-white" /></div>
                 </button>
                 <div>
-                    <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em] mb-0.5">Luz no Caminho,</p>
-                    <h2 className="text-2xl font-serif italic text-nature-900 leading-none">Guardião {user.name.split(' ')[0]}</h2>
-            </div>
+                    <h2 className="text-2xl font-serif italic text-nature-900 leading-tight">Guardião {user.name.split(' ')[0]}</h2>
+                    <div className="flex items-center gap-2 mt-0.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                        <p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.2em]">Caminho da Cura</p>
+                    </div>
+                </div>
             </div>
             <div className="flex items-center gap-2">
-                 <button onClick={() => go('CHAT_LIST')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><MessageCircle size={20}/></button>
-                 <button onClick={() => setShowNotifications(true)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none relative">
+                 <button onClick={() => go('CHAT_LIST')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 hover:text-nature-900 active:scale-95 transition-all"><MessageCircle size={20}/></button>
+                 <button onClick={() => setShowNotifications(true)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 hover:text-nature-900 active:scale-95 transition-all relative">
                      <Bell size={20}/>
-                     {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>}
+                     {notifications.some(n => !n.read) && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white shadow-sm"></span>}
                  </button>
-                 <button onClick={() => go('AGENDA_VIEW')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all outline-none"><Calendar size={20}/></button>
+                 <button onClick={() => go('AGENDA_VIEW')} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 hover:text-nature-900 active:scale-95 transition-all"><Calendar size={20}/></button>
             </div>
         </header>
 
-        {/* MENSAGEM DE SESSÃO IMINENTE */}
-        <div className="px-6 mb-6 animate-in slide-in-from-top-2 duration-500">
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 p-4 rounded-3xl text-white shadow-lg flex items-center justify-between group overflow-hidden relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
-                <div className="flex items-center gap-4 relative z-10">
-                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                        <Video size={20} className="text-white animate-pulse" />
-                    </div>
-                    <div>
-                        <p className="text-[9px] font-bold uppercase tracking-widest opacity-80 mb-0.5">Conexão Próxima • 14:00</p>
-                        <h4 className="text-sm font-bold">Sintonizando com {user.name.split(' ')[0]}</h4>
-                    </div>
-                </div>
-                <button 
-                    onClick={() => go('VIDEO_PREP')} 
-                    className="bg-white text-emerald-700 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-md active:scale-95 transition-all relative z-10"
-                >
-                    Entrar agora
-                </button>
-            </div>
-        </div>
-
-        {/* DAILY ENGAGEMENT TRACKER */}
-        <div className="px-6 mb-6">
-            <div className="bg-gradient-to-br from-amber-500 via-amber-600 to-orange-500 rounded-[2.5rem] p-5 text-white shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
-                <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-xl flex items-center justify-center">
-                                <Target size={20} />
-                            </div>
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-100">Metas do Dia</p>
-                                <h4 className="text-sm font-bold">Engajamento Guardião</h4>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-white/20 px-3 py-1.5 rounded-full">
-                            <Flame size={14} className="text-amber-200" />
-                            <span className="text-[10px] font-bold">{user.streak || 0} dias</span>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                        {[
-                            { label: 'Atender', done: 2, total: 3, icon: Stethoscope },
-                            { label: 'Registrar', done: 1, total: 2, icon: Flower },
-                            { label: 'Conectar', done: 0, total: 1, icon: MessageCircle },
-                        ].map((goal, i) => (
-                            <div key={i} className={`bg-white/15 backdrop-blur-sm rounded-xl p-3 text-center ${goal.done >= goal.total ? 'ring-2 ring-white/40' : ''}`}>
-                                <goal.icon size={16} className="mx-auto mb-1.5 text-white/80" />
-                                <p className="text-[9px] font-bold uppercase tracking-wider text-white/70">{goal.label}</p>
-                                <p className="text-sm font-black mt-0.5">
-                                    {goal.done >= goal.total ? <CheckCircle2 size={16} className="mx-auto text-white" /> : `${goal.done}/${goal.total}`}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="mt-3 w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${Math.round((3/6)*100)}%` }}></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {/* TABS DE NAVEGAÇÃO SUPERIOR */}
-        <div className="px-6 mb-6">
-            <div className="flex p-1 bg-nature-50 rounded-2xl">
-                <button 
-                    onClick={() => setActiveTab('consultorio')} 
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'consultorio' ? 'bg-white shadow-sm text-nature-900 font-black' : 'text-nature-400 hover:text-nature-600'}`}
-                >
-                    <Stethoscope size={14}/> Portal de Cura
-                </button>
-                <button 
-                    onClick={() => setActiveTab('financeiro')} 
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'financeiro' ? 'bg-white shadow-sm text-nature-900 font-black' : 'text-nature-400 hover:text-nature-600'}`}
-                >
-                    <Wallet size={14}/> Prosperidade
-                </button>
-                <button 
-                    onClick={() => setActiveTab('comunidade')} 
-                    className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'comunidade' ? 'bg-white shadow-sm text-nature-900 font-black' : 'text-nature-400 hover:text-nature-600'}`}
-                >
-                    <Zap size={14}/> Egrégora
-                </button>
-            </div>
-        </div>
-
-        <div className="px-4 space-y-8 min-h-[50vh]">
+        {/* HUB DE JORNADA E AÇÕES RÁPIDAS */}
+        <div className="px-6 space-y-6">
             
-            {/* GAMIFICATION STRIP - Desafios Diários do Guardião */}
-            <div className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 rounded-[2.5rem] p-5 text-white shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8"></div>
-                <div className="relative z-10">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center">
-                                <Target size={24} className="text-white" />
-                            </div>
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-amber-100">Desafio do Guardião</p>
-                                <h4 className="text-sm font-bold">Meta Semanal de Cura</h4>
-                            </div>
+            {/* SESSION BANNER - Refined and Integrated */}
+            <div className="animate-in slide-in-from-top-4 duration-700">
+                <div className="bg-gradient-to-br from-emerald-600 to-teal-800 p-5 rounded-[2.5rem] text-white shadow-xl flex items-center justify-between group relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-white/10 transition-colors"></div>
+                    <div className="flex items-center gap-5 relative z-10">
+                        <div className="w-14 h-14 bg-white/15 rounded-3xl flex items-center justify-center backdrop-blur-md border border-white/20 shadow-inner">
+                            <Video size={24} className="text-white animate-pulse" />
                         </div>
-                        <div className="text-right">
-                            <div className="flex items-center gap-1.5">
-                                <Flame size={16} className="text-amber-200" />
-                                <span className="text-lg font-black">{user.streak || 0}</span>
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <span className="px-2 py-0.5 bg-emerald-400/30 rounded-full text-[8px] font-black uppercase tracking-widest border border-emerald-400/20">Hoje • 14:00</span>
                             </div>
-                            <span className="text-[9px] font-bold text-amber-100 uppercase">dias</span>
+                            <h4 className="text-base font-bold tracking-tight">Sintonizando com {user.name.split(' ')[0]}</h4>
                         </div>
                     </div>
-                    <div className="flex gap-2 mb-3">
+                    <button 
+                        onClick={() => go('VIDEO_PREP')} 
+                        className="bg-white text-emerald-800 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all relative z-10"
+                    >
+                        Atender
+                    </button>
+                </div>
+            </div>
+
+            {/* GOAL HUB - Grouped Daily & Weekly for cleaner flow */}
+            <div className="bg-white rounded-[3rem] p-6 border border-nature-100 shadow-sm space-y-6">
+                <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600">
+                            <Trophy size={20} />
+                        </div>
+                        <h3 className="text-lg font-serif italic text-nature-900">Minha Jornada</h3>
+                    </div>
+                    <div className="flex items-center gap-1.5 bg-nature-50 px-3 py-1.5 rounded-full border border-nature-100">
+                        <Flame size={14} className="text-orange-500" />
+                        <span className="text-[10px] font-bold text-nature-600">{user.streak || 0} dias</span>
+                    </div>
+                </div>
+
+                {/* Daily Progress Grid */}
+                <div className="grid grid-cols-3 gap-3">
+                    {[
+                        { label: 'Atender', done: 2, total: 3, icon: Stethoscope, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+                        { label: 'Registrar', done: 1, total: 2, icon: Flower, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                        { label: 'Verificar', done: 0, total: 1, icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-50' },
+                    ].map((goal, i) => (
+                        <div key={i} className="flex flex-col items-center p-4 rounded-3xl bg-nature-25 border border-nature-50 shadow-sm hover:shadow-md transition-all group">
+                            <div className={`${goal.bg} ${goal.color} w-10 h-10 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm`}>
+                                <goal.icon size={18} />
+                            </div>
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-nature-400 mb-1">{goal.label}</span>
+                            <span className="text-sm font-black text-nature-900">
+                                {goal.done >= goal.total ? <CheckCircle2 size={16} className="text-emerald-500" /> : `${goal.done}/${goal.total}`}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Weekly Challenge Sub-section */}
+                <div className="pt-2">
+                    <div className="flex justify-between items-end mb-3 px-2">
+                        <div>
+                            <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mb-0.5">Desafio do Guardião</p>
+                            <h4 className="text-sm font-bold text-nature-900">Meta Semanal de Cura</h4>
+                        </div>
+                        <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">+75 Karma</span>
+                    </div>
+                    
+                    <div className="flex gap-2 mb-4">
                         {weeklyTasks.map((task) => (
-                            <button key={task.id} onClick={() => toggleWeeklyTask(task.id)} className={`flex-1 text-center py-2 rounded-xl text-[9px] font-bold uppercase tracking-wider transition-all active:scale-95 ${task.done ? 'bg-white/30 text-white' : 'bg-white/10 text-white/50 hover:bg-white/20'}`}>
-                                {task.done && <CheckCircle2 size={10} className="inline mr-1" />}
+                            <button 
+                                key={task.id} 
+                                onClick={() => toggleWeeklyTask(task.id)} 
+                                className={`flex-1 py-1.5 rounded-xl text-[8px] font-bold uppercase tracking-wider transition-all active:scale-95 border ${task.done ? 'bg-emerald-50 text-emerald-700 border-emerald-100 shadow-sm' : 'bg-white text-nature-400 border-nature-100 hover:bg-nature-50'}`}
+                            >
                                 {task.label}
                             </button>
                         ))}
                     </div>
-                    <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
-                        <div className="h-full bg-white rounded-full transition-all duration-1000" style={{ width: `${(weeklyDone / weeklyTotal) * 100}%` }}></div>
+
+                    <div className="relative h-2 w-full bg-nature-100 rounded-full overflow-hidden">
+                        <div 
+                            className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.3)]" 
+                            style={{ width: `${(weeklyDone / weeklyTotal) * 100}%` }}
+                        ></div>
                     </div>
-                    <div className="flex justify-between mt-2 text-[9px] font-bold text-amber-100 uppercase tracking-widest">
-                        <span>{weeklyDone}/{weeklyTotal} Concluídos</span>
-                        <span>+75 Karma ao completar</span>
+                    <div className="flex justify-between mt-2 px-1">
+                        <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">{weeklyDone}/{weeklyTotal} concluídos</span>
+                        <div className="flex gap-1.5 items-center">
+                            {weeklyTasks.map((t, idx) => (
+                                <div key={idx} className={`w-1.5 h-1.5 rounded-full transition-colors ${t.done ? 'bg-emerald-500' : 'bg-nature-200'}`}></div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
 
+            {/* TAB SELECTOR - More modern and integrated */}
+            <div className="flex p-1.5 bg-nature-100/50 rounded-2xl backdrop-blur-sm shadow-inner">
+                {[
+                    { id: 'consultorio', label: 'Consultório', icon: Stethoscope },
+                    { id: 'financeiro', label: 'Abundância', icon: Wallet },
+                    { id: 'comunidade', label: 'Egrégora', icon: Zap }
+                ].map((tab) => (
+                    <button 
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id as any)} 
+                        className={`flex-1 py-3 px-2 text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-white shadow-md text-nature-900 ring-1 ring-nature-100/50' : 'text-nature-400 hover:text-nature-600'}`}
+                    >
+                        <tab.icon size={14}/> {tab.label}
+                    </button>
+                ))}
+            </div>
+        </div>
+
+        <div className="px-6 space-y-8 mt-8 min-h-[50vh]">
+            
             {/* VIEW: CONSULTÓRIO */}
             {activeTab === 'consultorio' && (
                 <div className="space-y-6 animate-in slide-in-from-left-4 duration-300">
-                    <div id="hero-agenda" className="relative h-72 rounded-[3.5rem] overflow-hidden shadow-xl group cursor-pointer" onClick={() => go('AGENDA_VIEW')}>
+                    <div id="hero-agenda" className="relative h-72 rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('AGENDA_VIEW')}>
                         <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" />
                         <div className="absolute inset-0 bg-nature-900/60 transition-colors group-hover:bg-nature-900/40"></div>
                         <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">

@@ -11,7 +11,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-VERCEL_DOMAIN="$1"
+VERCEL_DOMAIN=$(echo "$1" | tr -d '\r\n' | xargs)
 
 echo "═══════════════════════════════════════════════════════════════"
 echo "   📋 VARIÁVEIS DE AMBIENTE PARA O VERCEL"

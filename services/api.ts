@@ -1237,9 +1237,12 @@ export const api = {
                 return true;
             }
         },
-        syncVibration: async (userId: string) => {
+        syncVibration: async (userId: string, reward: number = 10) => {
             try {
-                return await request('/tribe/sync', { method: 'POST' });
+                return await request('/tribe/sync', { 
+                    method: 'POST',
+                    body: JSON.stringify({ reward })
+                });
             } catch {
                 return { success: false };
             }

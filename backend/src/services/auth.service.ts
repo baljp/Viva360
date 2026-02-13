@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
 import { AppError } from '../lib/AppError';
-import { supabaseAdmin } from './supabase.service';
+import { supabaseAdmin, supabase } from './supabase.service';
 
 const ALLOWED_ROLES = new Set(['CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN']);
 
@@ -300,18 +300,28 @@ export class AuthService {
         throw new AppError(`Erro de conexão com banco de dados: ${err.message}`, 500);
     });
 
-    if (!user || !user.encrypted_password) {
-      console.warn('[AuthService] User not found or no password set.');
-      throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
-    }
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password: password,
+    });
 
-    const isValid = await bcrypt.compare(password, user.encrypted_password);
-    if (!isValid) {
-      console.warn('[AuthService] Invalid password.');
-      throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
+    if (authError || !authData.user) {
+      console.warn('[AuthService] Supabase native login failed:', authError?.message);
+      // Fallback for VERY old users that might only be in Prisma but not Supabase Auth
+      // (Though my repair script should have fixed this)
+      if (user.encrypted_password) {
+        const isValidManual = await bcrypt.compare(password, user.encrypted_password);
+        if (isValidManual) {
+           console.log('[AuthService] Valid manual bcrypt fallback. User likely missing in Supabase Auth but exists in Prisma.');
+        } else {
+           throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
+        }
+      } else {
+        throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
+      }
     }
     
-    console.log('[AuthService] Password verified. Checking profile...');
+    console.log('[AuthService] Credentials verified. Checking profile...');
 
     // Auto-create profile if user authenticated but profile is missing (incomplete registration)
     if (!user.profile) {

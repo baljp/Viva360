@@ -5,7 +5,7 @@ import { z } from 'zod';
 import prisma from '../lib/prisma';
 
 const checkInSchema = z.object({
-  reward: z.number().int().min(1).max(500).optional()
+  reward: z.number().int().min(1).max(1500).optional()
 });
 
 const userUpdateSchema = z.object({

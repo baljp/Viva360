@@ -47,10 +47,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     const handleCapture = (image: string) => {
         if (!image || image.length < 100) {
             console.error("Capture failed: Empty image data");
-            // Stay in capture or show error?
-            // For now, update state but logic will show fallback with retry button
+            return;
         }
-        setData({ ...data, image });
+        setData(prev => ({ ...prev, image }));
         setStep('CAPTURE_REVIEW');
     };
 
@@ -62,9 +61,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
         setStep('CARD');
     };
 
-    const handleCardConfirm = async () => {
-        // Auto-save snap immediately so photo is never lost
-        await autoSaveSnap();
+    const handleCardConfirm = () => {
+        // Start saving in background - don't await to avoid blocking UI
+        autoSaveSnap().catch(err => console.error("Ritual auto-save background error:", err));
         setStep('SHARE');
     };
 
@@ -355,42 +354,52 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'MOOD') {
         return (
-            <div className="fixed inset-0 z-[200] bg-white flex flex-col animate-in fade-in">
-                <div className="p-8 pt-12 relative z-10">
-                     <button onClick={onClose} className="mb-6 bg-nature-50 p-4 rounded-full active:scale-95 transition-all shadow-sm relative z-50">
-                        <X size={24} className="text-nature-400"/>
+            <div className="fixed inset-0 z-[200] bg-white flex flex-col animate-in fade-in overflow-hidden">
+                <div className="p-8 pt-12 relative z-10 flex justify-between items-start w-full max-w-5xl mx-auto">
+                     <div>
+                        <h2 className="text-4xl font-serif italic text-nature-900 mb-2">Como você se sente?</h2>
+                        <p className="text-sm text-nature-400 font-medium font-sans">Apenas seja verdadeiro consigo neste momento.</p>
+                     </div>
+                     <button onClick={onClose} className="bg-nature-50 p-4 rounded-full active:scale-95 transition-all shadow-sm hover:bg-nature-100 group">
+                        <X size={24} className="text-nature-400 group-hover:text-nature-600"/>
                      </button>
-                    <h2 className="text-3xl font-serif italic text-nature-900 mb-2">Como você se sente neste momento?</h2>
-                    <p className="text-sm text-nature-400">Não existe resposta certa. Apenas seja verdadeiro consigo.</p>
                 </div>
-                <div className="flex-1 flex flex-col items-center justify-center p-8">
-                    <div className="relative w-full max-w-[350px] aspect-[4/5] bg-nature-900 rounded-[2rem] shadow-2xl overflow-hidden border border-white/10 group">
+                
+                <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-12 p-8 max-w-6xl mx-auto w-full overflow-y-auto pb-24 md:pb-8">
+                    {/* PHOTO PREVIEW - Elegant & Minimal */}
+                    <div className="relative w-full max-w-[320px] aspect-[3/4] bg-nature-900 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.2)] overflow-hidden border border-white/10 shrink-0">
                         {data.image ? (
                             <img src={data.image} className="w-full h-full object-cover" alt="Sua Essência" />
                         ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-4 text-center">
-                                <Sparkles className="text-primary-400 animate-pulse" size={48} />
-                                <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest leading-relaxed">Sua luz não foi capturada.<br/>Tente novamente.</p>
+                            <div className="w-full h-full flex flex-col items-center justify-center gap-6 p-8 text-center bg-gradient-to-br from-nature-800 to-black">
+                                <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
+                                    <Sparkles className="text-white/40 animate-pulse" size={32} />
+                                </div>
+                                <p className="text-white/40 text-[10px] uppercase font-black tracking-[0.3em] leading-relaxed">Sua luz aguarda<br/>ser capturada</p>
                                 <button 
                                     onClick={() => setStep('CAPTURE')}
-                                    className="mt-4 px-6 py-2 bg-white/10 rounded-full text-white text-xs font-bold uppercase tracking-widest hover:bg-white/20 transition-all border border-white/20"
+                                    className="px-6 py-2.5 bg-white text-nature-900 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-nature-50 transition-all shadow-xl active:scale-95"
                                 >
                                     Ver Câmera
                                 </button>
                             </div>
                         )}
-                        
-                        {/* Atmospheric Overlays */}
-                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-white/5 to-transparent mix-blend-overlay"></div>
+                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-tr from-black/20 to-transparent"></div>
                     </div>
-                </div>
-                <div className="flex-1 px-8 grid grid-cols-2 gap-4 content-start overflow-y-auto pb-12 pt-4">
-                    {MOODS.map(m => (
-                        <button key={m.id} onClick={() => handleMoodSelect(m.id)} className={`p-6 rounded-[2rem] text-left transition-all hover:scale-105 active:scale-95 ${m.color}`}>
-                            <span className="text-4xl block mb-3">{m.icon}</span>
-                            <span className="font-bold text-sm uppercase tracking-wide opacity-80">{m.label}</span>
-                        </button>
-                    ))}
+
+                    {/* MOOD GRID - Clean & High-End */}
+                    <div className="flex-1 w-full grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 content-start">
+                        {MOODS.map(m => (
+                            <button 
+                                key={m.id} 
+                                onClick={() => handleMoodSelect(m.id)} 
+                                className={`group p-6 rounded-[2rem] text-left transition-all hover:shadow-lg active:scale-95 border border-transparent hover:border-white/50 ${m.color} h-full min-h-[120px] flex flex-col justify-between`}
+                            >
+                                <span className="text-4xl block mb-2 group-hover:scale-110 transition-transform origin-left">{m.icon}</span>
+                                <span className="font-black text-[10px] uppercase tracking-[0.2em] opacity-80">{m.label}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
@@ -424,42 +433,49 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'CAPTURE_REVIEW') {
         return (
-            <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col animate-in fade-in">
-                <div className="h-[10%] flex items-center justify-between px-8 bg-black/80 relative z-50">
-                    <button onClick={() => setStep('CAPTURE')} className="p-3 rounded-full text-white/70 hover:text-white transition-colors active:scale-90">
-                        <ArrowRight className="rotate-180" size={22} />
+            <div className="fixed inset-0 z-[200] bg-nature-950 flex flex-col animate-in fade-in overflow-hidden">
+                <div className="h-[12%] flex items-center justify-between px-8 bg-black/40 backdrop-blur-xl relative z-50 border-b border-white/5">
+                    <button onClick={() => setStep('CAPTURE')} className="p-4 bg-white/5 rounded-full text-white/70 hover:text-white transition-all active:scale-90 border border-white/10 group">
+                        <ArrowRight className="rotate-180 group-hover:-translate-x-1 transition-transform" size={24} />
                     </button>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-400">Prévia da Essência</p>
-                    <button onClick={onClose} className="p-3 rounded-full text-white/70 hover:text-white transition-colors active:scale-90">
-                        <X size={22} />
+                    <div className="text-center">
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-400">Essência Capturada</p>
+                        <p className="text-[8px] text-white/30 uppercase mt-1">Prévia da Alma</p>
+                    </div>
+                    <button onClick={onClose} className="p-4 bg-white/5 rounded-full text-white/70 hover:text-white transition-all active:scale-90 border border-white/10">
+                        <X size={24} />
                     </button>
                 </div>
 
-                <div className="flex-1 p-6 md:p-8 flex items-center justify-center overflow-y-auto">
-                    <div className="w-full max-w-md aspect-[4/5] rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
+                <div className="flex-1 p-6 md:p-12 flex items-center justify-center overflow-hidden bg-black">
+                    <div className="relative h-full max-h-[80vh] aspect-[3/4] rounded-[3rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] group">
                         {data.image ? (
-                            <img src={data.image} className="w-full h-full object-cover" alt="Prévia do Jardim da Alma" />
+                            <img src={data.image} className="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-105" alt="Prévia do Jardim da Alma" />
                         ) : (
-                            <div className="w-full h-full bg-black/40 flex items-center justify-center text-white/50 text-sm">
-                                Foto indisponível. Tente novamente.
+                            <div className="w-full h-full bg-nature-900/50 flex flex-col items-center justify-center text-white/20 gap-4">
+                                <Camera size={48} />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Imagem não encontrada</span>
                             </div>
                         )}
+                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 to-transparent"></div>
                     </div>
                 </div>
 
-                <div className="p-6 md:p-8 bg-black/85 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0">
-                    <button
-                        onClick={() => setStep('CAPTURE')}
-                        className="w-full py-4 bg-white/10 text-white rounded-2xl font-bold uppercase tracking-widest text-[11px] active:scale-95 transition-all"
-                    >
-                        Refazer Foto
-                    </button>
-                    <button
-                        onClick={() => setStep('MOOD')}
-                        className="w-full py-4 bg-white text-nature-900 rounded-2xl font-bold uppercase tracking-widest text-[11px] active:scale-95 transition-all flex items-center justify-center gap-2"
-                    >
-                        Continuar <ArrowRight size={16} />
-                    </button>
+                <div className="p-8 bg-black/60 backdrop-blur-2xl border-t border-white/10 shrink-0">
+                    <div className="max-w-md mx-auto grid grid-cols-2 gap-4">
+                        <button
+                            onClick={() => setStep('CAPTURE')}
+                            className="w-full py-5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all"
+                        >
+                            Refazer
+                        </button>
+                        <button
+                            onClick={() => setStep('MOOD')}
+                            className="w-full py-5 bg-white text-nature-950 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(255,255,255,0.1)] hover:shadow-[0_15px_40px_rgba(255,255,255,0.2)]"
+                        >
+                            Confirmar <ArrowRight size={18} className="text-nature-600" />
+                        </button>
+                    </div>
                 </div>
             </div>
         );

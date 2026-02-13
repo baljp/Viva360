@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Moon, Sun, BellOff, ShieldAlert, ChevronLeft, VolumeX, Sparkles } from 'lucide-react';
+import { api } from '../../../services/api';
 
 export const OfflineRetreat: React.FC<{ flow: any }> = ({ flow }) => {
     const [isActive, setIsActive] = useState(false);
@@ -14,6 +15,8 @@ export const OfflineRetreat: React.FC<{ flow: any }> = ({ flow }) => {
             }, 1000);
         } else if (timeLeft === 0) {
             setIsActive(false);
+            // Award +50 Karma for completing retreat
+            api.tribe.syncVibration('self', 50).catch(err => console.error("Failed to award retreat karma", err));
             flow.notify("Retiro Concluído", "Sua energia foi renovada. Bem-vindo de volta!", "success");
         }
         return () => clearInterval(timer);

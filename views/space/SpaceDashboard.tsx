@@ -12,27 +12,28 @@ import { SPACE_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../u
 const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: number, onOpenModal: () => void }) => {
     const { go } = useSantuarioFlow();
     return (
-        <button onClick={() => go('RADIANCE_DRILLDOWN')} className="w-full text-left bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group mb-8 active:scale-95 transition-all outline-none">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/20 rounded-full blur-3xl -translate-y-12 translate-x-12 animate-pulse-slow"></div>
-        <div className="relative z-10 flex justify-between items-end">
-             <div>
-                 <div className="flex items-center gap-2 mb-2">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-indigo-200">Radiance Score</p>
-                    <div className="bg-emerald-500/20 backdrop-blur-md px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
-                        <TrendingUp size={10} className="text-emerald-300"/>
-                        <span className="text-[9px] font-bold text-emerald-300">+{trend}%</span>
+        <button onClick={() => go('RADIANCE_DRILLDOWN')} className="w-full text-left bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#020617] rounded-[3rem] p-8 text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden group mb-8 active:scale-[0.98] transition-all outline-none border border-white/5">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] -translate-y-24 translate-x-12 animate-pulse-slow"></div>
+        <div className="relative z-10 flex justify-between items-center">
+             <div className="space-y-2">
+                 <div className="flex items-center gap-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-300/60">Radiance Score</p>
+                    <div className="bg-emerald-500/10 backdrop-blur-md px-2.5 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+                        <TrendingUp size={10} className="text-emerald-400"/>
+                        <span className="text-[10px] font-black text-emerald-400">+{trend}%</span>
                     </div>
                  </div>
-                 <h3 className="text-6xl font-serif italic text-white drop-shadow-lg leading-none">{score} <span className="text-2xl not-italic opacity-50">/100</span></h3>
+                 <h3 className="text-7xl font-serif italic text-white drop-shadow-2xl leading-none">{score}<span className="text-2xl not-italic opacity-30 ml-2">/100</span></h3>
+                 <p className="text-[10px] font-bold text-indigo-200/40 uppercase tracking-widest">Sintonia do Santuário</p>
              </div>
-             <div className="text-right">
-                 <div className="flex -space-x-3 mb-2 justify-end">
-                     {[1,2,3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-indigo-900 bg-indigo-200"></div>)}
-                     <div className="w-8 h-8 rounded-full border-2 border-indigo-900 bg-nature-800 text-white flex items-center justify-center text-[10px] font-bold">+12</div>
+             <div className="text-right flex flex-col items-end gap-6">
+                 <div className="flex -space-x-3 transition-transform group-hover:-translate-x-2">
+                     {[1,2,3].map(i => <div key={i} className="w-10 h-10 rounded-full border-2 border-[#1e1b4b] bg-indigo-200/80 backdrop-blur-sm shadow-lg"></div>)}
+                     <div className="w-10 h-10 rounded-full border-2 border-[#1e1b4b] bg-nature-800 text-white flex items-center justify-center text-[10px] font-black shadow-lg">12+</div>
                  </div>
-                 <div className="flex items-center justify-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-                    <Info size={10} />
-                    <p className="text-[9px] font-bold uppercase text-indigo-200 tracking-wider">Ver detalhes</p>
+                 <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-2xl border border-white/5 backdrop-blur-md group-hover:bg-white/10 transition-all">
+                    <Info size={12} className="text-indigo-300" />
+                    <p className="text-[10px] font-black uppercase text-indigo-100/80 tracking-widest">Detalhes do Fluxo</p>
                  </div>
              </div>
         </div>
@@ -194,68 +195,73 @@ const OperationsTab = ({ go }: any) => (
 );
 
 const ManagementTab = ({ go, revenue, teamSize }: any) => (
-    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {(() => {
-            const handleExportCycle = () => {
-                const blob = new Blob(['Mock Financial Data Export'], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `fechamento_viva360_${new Date().toISOString().split('T')[0]}.csv`;
-                a.click();
-            };
-            return (
-                <>
-        <QuickStat label="Abundância (Mês)" value={`R$ ${revenue}`} icon={TrendingUp} color="bg-emerald-500" />
-        
-        <div className="grid grid-cols-2 gap-4">
-             <div onClick={() => go('FINANCE_OVERVIEW')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-emerald-200 transition-all">
-                <Wallet size={32} className="text-emerald-500" />
-                <div>
-                    <h4 className="font-bold text-nature-900">Tesouro</h4>
-                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Fluxo da Egrégora</p>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        {/* LOGICAL GROUPING: FINANCIAL HUB */}
+        <div className="bg-white rounded-[3rem] p-6 border border-nature-100 shadow-sm space-y-6">
+            <div className="flex items-center gap-3 px-2">
+                <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                    <Wallet size={20} />
+                </div>
+                <h3 className="text-lg font-serif italic text-nature-900">Hub Financeiro</h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div onClick={() => go('FINANCE_OVERVIEW')} className="bg-nature-25 p-6 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col gap-4 cursor-pointer hover:shadow-md transition-all group">
+                    <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                        <TrendingUp size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-black uppercase text-nature-400 tracking-widest mb-1">Abundância (Mês)</p>
+                        <h4 className="text-2xl font-black text-nature-900 leading-none">R$ {revenue}</h4>
+                    </div>
+                </div>
+
+                <div onClick={() => go('PROS_LIST')} className="bg-nature-25 p-6 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col gap-4 cursor-pointer hover:shadow-md transition-all group">
+                    <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+                        <Users size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[9px] font-black uppercase text-nature-400 tracking-widest mb-1">Equipe de Guardiões</p>
+                        <h4 className="text-2xl font-black text-nature-900 leading-none">{teamSize} Membros</h4>
+                    </div>
                 </div>
             </div>
-            <div onClick={() => go('PROS_LIST')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex flex-col gap-4 cursor-pointer hover:border-indigo-200 transition-all">
-                <Users size={32} className="text-indigo-500" />
-                <div>
-                    <h4 className="font-bold text-nature-900">Equipe ({teamSize})</h4>
-                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Guardiões</p>
-                </div>
-            </div>
-        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-             <div onClick={() => go('AUDIT_LOG')} className="bg-nature-900 text-white p-6 rounded-[2.5rem] shadow-lg flex flex-col justify-between cursor-pointer relative overflow-hidden group">
-                  <div className="relative z-10">
-                      <Shield size={24} className="text-indigo-300 mb-4"/>
-                      <h4 className="font-bold text-lg leading-tight">Proteção</h4>
-                      <p className="text-[9px] text-indigo-300 font-bold uppercase tracking-widest mt-1">Audit Trail</p>
-                  </div>
-                  <div className="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
-             </div>
-             <div onClick={() => go('TEAM_SUMMON')} className="bg-rose-50 text-rose-900 p-6 rounded-[2.5rem] border border-rose-100 shadow-sm flex flex-col justify-between cursor-pointer relative overflow-hidden hover:bg-rose-100 transition-all">
-                  <div className="relative z-10">
-                      <Zap size={24} className="text-rose-500 mb-4"/>
-                      <h4 className="font-bold text-lg leading-tight">Convocar</h4>
-                      <p className="text-[9px] text-rose-400 font-bold uppercase tracking-widest mt-1">Alerta Círculo</p>
-                  </div>
-             </div>
-        </div>
-
-        <div onClick={handleExportCycle} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between cursor-pointer hover:border-emerald-200 transition-all group">
-             <div className="flex items-center gap-4">
-                 <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"><FileText size={20}/></div>
-                 <div>
-                     <h4 className="font-bold text-nature-900">Encerramento de Ciclo</h4>
-                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Suma da Abundância (CSV)</p>
+            <div className="grid grid-cols-2 gap-4">
+                 <div onClick={() => go('AUDIT_LOG')} className="bg-[#0f172a] text-white p-6 rounded-[2.5rem] shadow-xl flex flex-col justify-between cursor-pointer relative overflow-hidden group border border-white/5 active:scale-95 transition-all">
+                      <div className="relative z-10">
+                          <Shield size={24} className="text-indigo-400 mb-4"/>
+                          <h4 className="font-bold text-lg leading-tight">Proteção</h4>
+                          <p className="text-[9px] text-indigo-300/60 font-black uppercase tracking-widest mt-1">Trilha de Auditoria</p>
+                      </div>
+                      <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
                  </div>
-             </div>
-             <button onClick={(event) => { event.stopPropagation(); handleExportCycle(); }} className="px-4 py-2 bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase tracking-widest">Exportar</button>
+                 <div onClick={() => go('TEAM_SUMMON')} className="bg-rose-50 text-rose-900 p-6 rounded-[2.5rem] border border-rose-100 shadow-sm flex flex-col justify-between cursor-pointer relative overflow-hidden active:scale-95 transition-all hover:bg-rose-100">
+                      <div className="relative z-10">
+                          <Zap size={24} className="text-rose-500 mb-4"/>
+                          <h4 className="font-bold text-lg leading-tight">Convocar</h4>
+                          <p className="text-[9px] text-rose-400 font-bold uppercase tracking-widest mt-1">Alerta Círculo</p>
+                      </div>
+                      <div className="absolute right-0 top-0 w-24 h-24 bg-rose-200/20 rounded-full blur-xl -translate-y-8 translate-x-8"></div>
+                 </div>
+            </div>
+
+            <div className="bg-nature-50 p-4 rounded-3xl border border-nature-100 flex items-center justify-between group">
+                 <div className="flex items-center gap-4">
+                     <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm group-hover:rotate-12 transition-transform"><FileText size={20}/></div>
+                     <div>
+                         <h4 className="font-bold text-nature-900 text-sm">Fechamento de Ciclo</h4>
+                         <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">Suma da Abundância (CSV)</p>
+                     </div>
+                 </div>
+                 <button 
+                    onClick={(e) => { e.stopPropagation(); const handleExportCycle = () => { const blob = new Blob(['Mock Financial Data Export'], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `fechamento_viva360_${new Date().toISOString().split('T')[0]}.csv`; a.click(); }; handleExportCycle(); }} 
+                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-emerald-700 active:scale-95 transition-all"
+                >
+                    Exportar
+                </button>
+            </div>
         </div>
-                </>
-            );
-        })()}
     </div>
 );
 
