@@ -83,7 +83,7 @@ describe('AuthService authorization policy', () => {
     expect(status.accountState).toBe('BLOCKED');
   });
 
-  it('blocks orphan auth user when no allowlist exists', async () => {
+  it('allows orphan auth user to complete registration (Open Auth)', async () => {
     prismaMock.profile.findFirst.mockResolvedValue(null);
     prismaMock.authAllowlist.findUnique.mockResolvedValue(null);
     prismaMock.user.findUnique.mockResolvedValue({
@@ -93,9 +93,9 @@ describe('AuthService authorization policy', () => {
 
     const status = await AuthService.getAuthorizationStatus('incomplete@example.com');
     expect(status.canLogin).toBe(false);
-    expect(status.canRegister).toBe(false);
-    expect(status.reason).toBe('EMAIL_NOT_AUTHORIZED');
-    expect(status.accountState).toBe('NOT_AUTHORIZED');
+    expect(status.canRegister).toBe(true);
+    expect(status.reason).toBe('REGISTRATION_INCOMPLETE');
+    expect(status.accountState).toBe('INCOMPLETE_REGISTRATION');
   });
 
   it('allows incomplete registration only with approved allowlist', async () => {
@@ -140,7 +140,7 @@ describe('AuthService authorization policy', () => {
     expect(rolesPayload.roles).toContain('PROFESSIONAL');
   });
 
-  it('keeps PROFILE_NOT_FOUND for unauthorized orphan in listRolesForUser', async () => {
+  it('returns INCOMPLETE_REGISTRATION for orphan user in listRolesForUser', async () => {
     prismaMock.profile.findUnique.mockResolvedValue(null);
     prismaMock.profile.findFirst.mockResolvedValue(null);
     prismaMock.authAllowlist.findUnique.mockResolvedValue(null);
@@ -149,8 +149,9 @@ describe('AuthService authorization policy', () => {
       raw_user_meta_data: { role: 'CLIENT' },
     });
 
-    await expect(AuthService.listRolesForUser('auth-user', 'unauthorized@example.com'))
-      .rejects
-      .toMatchObject({ code: 'PROFILE_NOT_FOUND' });
+    const rolesPayload = await AuthService.listRolesForUser('auth-user', 'unauthorized@example.com');
+    expect(rolesPayload.registrationIncomplete).toBe(true);
+    expect(rolesPayload.accountState).toBe('INCOMPLETE_REGISTRATION');
+    expect(rolesPayload.nextAction).toBe('COMPLETE_REGISTRATION');
   });
 });

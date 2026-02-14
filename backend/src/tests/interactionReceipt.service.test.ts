@@ -38,7 +38,7 @@ describe('interactionReceiptService', () => {
       entityId: 'tx-1',
       action: 'pay',
       actorId: '11111111-1111-4111-8111-111111111111',
-      status: 'completed',
+      status: 'COMPLETED',
       nextStep: 'NONE',
       requestId: 'req-1',
       payload: { ok: true },

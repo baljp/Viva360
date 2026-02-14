@@ -36,7 +36,7 @@ const verifyJwtHS256 = async (token: string, secret: string) => {
 
     const data = encoder.encode(`${headerB64}.${payloadB64}`);
     const signature = base64UrlToBytes(signatureB64);
-    const valid = await crypto.subtle.verify('HMAC', key, signature, data);
+    const valid = await crypto.subtle.verify('HMAC', key, signature as any, data as any);
     if (!valid) return null;
 
     const payload = decodeJson(payloadB64);
@@ -52,10 +52,10 @@ export default {
         // 1. Intercept API requests
         if (url.pathname.startsWith('/api/')) {
             const authHeader = request.headers.get('Authorization');
-            
+
             // 2. Allow public endpoints
             if (url.pathname.startsWith('/api/auth/login') || url.pathname.startsWith('/api/auth/register')) {
-                 return fetch(request);
+                return fetch(request);
             }
 
             const secret = env?.JWT_SECRET;
