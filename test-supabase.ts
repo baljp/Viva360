@@ -5,8 +5,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 async function testSupabase() {
   console.log('\n=== TESTE DE CONEXÃO SUPABASE ===\n');
-  
-  if (SUPABASE_ANON_KEY === 'COLE_AQUI_A_CHAVE_ANON_COMPLETA') {
+
+  if ((SUPABASE_ANON_KEY as string) === 'COLE_AQUI_A_CHAVE_ANON_COMPLETA') {
     console.error('❌ ERRO: Cole a chave ANON do Supabase no arquivo test-supabase.ts');
     console.log('\n📝 Como obter a chave:');
     console.log('1. Acesse: https://oqhzisdjbtyxyarjeuhp.supabase.co');
@@ -17,10 +17,10 @@ async function testSupabase() {
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
+
     console.log('✅ Cliente Supabase criado com sucesso');
     console.log('🔗 URL:', SUPABASE_URL);
-    
+
     // Teste 1: Verificar conexão
     const { data: session, error: sessionError } = await supabase.auth.getSession();
     if (sessionError) {
@@ -28,30 +28,30 @@ async function testSupabase() {
     } else {
       console.log('✅ Conexão estabelecida (sessão:', session.session ? 'ativa' : 'nenhuma', ')');
     }
-    
+
     // Teste 2: Verificar tabela de profiles
     const { data: profiles, error: profileError } = await supabase
       .from('profiles')
       .select('id')
       .limit(1);
-    
+
     if (profileError) {
       console.error('❌ Erro ao acessar tabela profiles:', profileError.message);
     } else {
       console.log('✅ Tabela profiles acessível');
     }
-    
+
     // Teste 3: Teste de login (com email de teste)
     console.log('\n--- Teste de Login ---');
     const testEmail = 'teste@exemplo.com';
     const testPassword = '123456';
-    
+
     console.log(`📧 Tentando login com: ${testEmail}`);
     const { data: loginData, error: loginError } = await supabase.auth.signInWithPassword({
       email: testEmail,
       password: testPassword
     });
-    
+
     if (loginError) {
       if (loginError.message.includes('Invalid login credentials')) {
         console.log('ℹ️  Credenciais de teste não existem (esperado)');
@@ -62,9 +62,9 @@ async function testSupabase() {
       console.log('✅ Login bem-sucedido!');
       await supabase.auth.signOut();
     }
-    
+
     console.log('\n=== FIM DOS TESTES ===\n');
-    
+
   } catch (error: any) {
     console.error('❌ ERRO CRÍTICO:', error.message);
   }
