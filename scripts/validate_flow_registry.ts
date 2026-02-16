@@ -85,12 +85,16 @@ for (const flow of flowRegistry) {
   }
 }
 
-const payload = {
-  generatedAt: new Date().toISOString(),
+const ok = findings.filter((finding) => finding.level === 'ERROR').length === 0;
+// Keep reports deterministic on PASS so the repo doesn't churn due to timestamps.
+const payload: Record<string, unknown> = {
   totalFlows: flowRegistry.length,
-  ok: findings.filter((finding) => finding.level === 'ERROR').length === 0,
+  ok,
   findings,
 };
+if (!ok) {
+  payload.generatedAt = new Date().toISOString();
+}
 
 const reportsDir = path.resolve(process.cwd(), 'reports');
 if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir, { recursive: true });
@@ -103,9 +107,9 @@ fs.writeFileSync(outJson, JSON.stringify(payload, null, 2), 'utf8');
 const mdLines = [
   '# Flow Registry Validation',
   '',
-  `Generated at: ${payload.generatedAt}`,
+  ...(ok ? [] : [`Generated at: ${String(payload.generatedAt)}`]),
   `Total flows: ${payload.totalFlows}`,
-  `Status: ${payload.ok ? 'PASS' : 'FAIL'}`,
+  `Status: ${ok ? 'PASS' : 'FAIL'}`,
   '',
   '| Level | Flow | Message |',
   '|---|---|---|',
@@ -113,10 +117,10 @@ const mdLines = [
 ];
 fs.writeFileSync(outMd, `${mdLines.join('\n')}\n`, 'utf8');
 
-console.log(`flow-registry: ${payload.ok ? 'PASS' : 'FAIL'}`);
+console.log(`flow-registry: ${ok ? 'PASS' : 'FAIL'}`);
 console.log(`flow-registry: ${outJson}`);
 console.log(`flow-registry: ${outMd}`);
 
-if (!payload.ok) {
+if (!ok) {
   process.exit(1);
 }

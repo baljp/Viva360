@@ -15,6 +15,10 @@
 /reports/regression_checklist.md
 /reports/screen_button_flow_matrix.json
 /reports/screen_button_flow_matrix.md
+/reports/frontend_prod_bundle_audit.json
+/reports/frontend_prod_bundle_audit.md
+/reports/tracked_secret_audit.json
+/reports/tracked_secret_audit.md
 
 # next.js
 /.next/
