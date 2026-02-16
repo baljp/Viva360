@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
 import { Search, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
+import { api } from '../../../services/api';
 
 export default function PatientsList() {
   const { go, state, selectPatient } = useGuardiaoFlow();
@@ -128,9 +129,17 @@ export default function PatientsList() {
         {/* INVITE BUTTON */}
         <div className="px-2 mt-4 pb-32">
             <button 
-                onClick={() => {
-                    const text = encodeURIComponent(`Olá! Gostaria de convidar você para iniciar sua jornada terapêutica comigo no Viva360. 🌱`);
-                    window.open(`https://wa.me/?text=${text}`, '_blank');
+                onClick={async () => {
+                    try {
+                        const invite = await api.invites.create({ kind: 'guardian', targetRole: 'CLIENT' } as any);
+                        const url = String((invite as any)?.url || window.location.origin);
+                        const text = encodeURIComponent(`Olá! Gostaria de convidar você para iniciar sua jornada terapêutica comigo no Viva360. 🌱\n\nAcesse aqui: ${url}`);
+                        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+                    } catch {
+                        // Silent fallback: keep UX simple in this generated screen.
+                        const text = encodeURIComponent(`Olá! Gostaria de convidar você para iniciar sua jornada terapêutica comigo no Viva360. 🌱\n\nAcesse aqui: ${window.location.origin}`);
+                        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+                    }
                 }}
                 className="w-full bg-[#25D366] text-white py-5 rounded-[2rem] shadow-lg flex items-center justify-center gap-3 active:scale-95 transition-all font-bold uppercase tracking-widest text-[10px]"
             >

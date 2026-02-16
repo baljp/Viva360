@@ -38,7 +38,6 @@ export default function TribeInvite() {
 
   useEffect(() => {
     generateCard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inviteLink, inviterName]);
 
   const generateCard = () => {

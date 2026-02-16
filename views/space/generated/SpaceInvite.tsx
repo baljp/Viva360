@@ -9,6 +9,7 @@ export default function SpaceInvite() {
     const [selectedRole, setSelectedRole] = useState<'Guardian' | 'Facilitator' | 'Master'>('Guardian');
     const [inviteCode, setInviteCode] = useState<string>('');
     const [loading, setLoading] = useState(false);
+    const [shareLoading, setShareLoading] = useState(false);
     const [copied, setCopied] = useState(false);
 
     const roleMap: Record<string, string> = { Guardian: 'GUARDIAN', Facilitator: 'MEMBER', Master: 'ADMIN' };
@@ -30,11 +31,21 @@ export default function SpaceInvite() {
         notify('Copiado', 'Código copiado para a área de transferência', 'success');
     };
 
-    const handleShareWhatsapp = () => {
+    const handleShareWhatsapp = async () => {
         if (!inviteCode) return;
-        const rolePt = selectedRole === 'Guardian' ? 'Guardião' : selectedRole === 'Facilitator' ? 'Facilitador' : 'Mestre';
-        const text = `Olá! Você foi convidado para integrar o Santuário como *${rolePt}*. Use o código: *${inviteCode}*. Baixe o app e junte-se a nós!`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        if (shareLoading) return;
+        setShareLoading(true);
+        try {
+            const rolePt = selectedRole === 'Guardian' ? 'Guardião' : selectedRole === 'Facilitator' ? 'Facilitador' : 'Mestre';
+            const invite = await api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: inviteCode } as any);
+            const url = String((invite as any)?.url || window.location.origin);
+            const text = `🌿 Convite Viva360\n\nVocê foi convidado para integrar o Santuário como *${rolePt}*.\n\nAcesse aqui: ${url}\n\n(Código de backup: *${inviteCode}*)`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+        } catch {
+            notify('Erro', 'Falha ao gerar link de convite', 'error');
+        } finally {
+            setShareLoading(false);
+        }
     };
 
     return (
@@ -76,7 +87,7 @@ export default function SpaceInvite() {
                     )}
                     {inviteCode && (
                         <>
-                            <button onClick={handleShareWhatsapp} className="w-full py-5 bg-[#25D366] text-white rounded-2xl font-bold uppercase tracking-widest shadow-lg shadow-[#25D366]/20 hover:bg-[#128C7E] transition-all flex items-center justify-center gap-3">
+                            <button onClick={handleShareWhatsapp} disabled={shareLoading} className="w-full py-5 bg-[#25D366] text-white rounded-2xl font-bold uppercase tracking-widest shadow-lg shadow-[#25D366]/20 hover:bg-[#128C7E] transition-all flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed">
                                 <Share2 size={18} /> Compartilhar no WhatsApp
                             </button>
                             <button onClick={() => setInviteCode('')} className="text-xs font-bold text-nature-400 uppercase tracking-widest hover:text-nature-600">Gerar novo código</button>

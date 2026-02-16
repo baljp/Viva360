@@ -112,7 +112,6 @@ export default function InviteLanding() {
 
   useEffect(() => {
     handleAcceptIfLoggedIn();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   return (
@@ -175,4 +174,3 @@ export default function InviteLanding() {
     </div>
   );
 }
-
