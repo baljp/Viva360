@@ -54,15 +54,15 @@ test.describe('Santuário Flow Stabilization', () => {
 
         await page.getByRole('button', { name: /^Vagas$/i }).first().click({ force: true });
         await expect(page).toHaveURL(/\/space\/(jobs|recruitment)/i, { timeout: 15000 });
-        const hasRecruitmentMarkers = await page.getByText(
-            /Sincronia Mestra|Manifeste o Guardi[aã]o Ideal|Novo Manifesto|C[íi]rculo de Guardi(õ|o)es|Expandir o C[íi]rculo/i
-        ).first().isVisible({ timeout: 5000 }).catch(() => false);
-        if (!hasRecruitmentMarkers) {
-            await page.goto('/space/recruitment', { waitUntil: 'domcontentloaded' });
-        }
-        await expect(page.getByText(
-            /Sincronia Mestra|Manifeste o Guardi[aã]o Ideal|Novo Manifesto|C[íi]rculo de Guardi(õ|o)es|Expandir o C[íi]rculo/i
-        ).first()).toBeVisible({ timeout: 15000 });
+        // Do not hard-reload here: it hides real routing/flow issues and makes the test flaky.
+        // Invariant: recruitment portal opens and shows an actionable CTA.
+        const recruitmentTitle = page.getByRole('heading', { name: /Sincronia Mestra/i }).first();
+        const newManifesto = page.getByRole('button', { name: /Novo Manifesto de Busca/i }).first();
+        await expect.poll(async () => {
+            const titleVisible = await recruitmentTitle.isVisible({ timeout: 1000 }).catch(() => false);
+            const manifestoVisible = await newManifesto.isVisible({ timeout: 1000 }).catch(() => false);
+            return (titleVisible || manifestoVisible) ? 1 : 0;
+        }, { timeout: 15000 }).toBeGreaterThan(0);
         await goHub();
 
         await page.getByRole('button', { name: /abundância & zelo/i }).click();

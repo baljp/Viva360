@@ -84,7 +84,7 @@ export const ProMarketplace: React.FC<{
                         {myProducts.length > 0 ? myProducts.map(prod => (
                             <div key={prod.id} className="bg-white p-4 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center gap-4 group">
                                 <div className="w-20 h-20 rounded-[1.5rem] overflow-hidden shrink-0 relative bg-nature-50">
-                                    <img src={prod.image} className="w-full h-full object-cover" />
+                                    <img src={prod.image} className="w-full h-full object-cover" alt={prod.name || 'Produto'} />
                                     <div className="absolute top-1 right-1 bg-white/90 p-1 rounded-lg text-nature-900 shadow-sm"><ExternalLink size={10}/></div>
                                 </div>
                                 <div className="flex-1 min-w-0 pr-2">

@@ -59,7 +59,37 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
         [ViewState.SPACE_ROOMS]: 'ROOMS_STATUS',
         [ViewState.SPACE_TEAM]: 'PROS_LIST',
     };
-    useFlowSync({ state: flowState, go, jump }, view, '/space', map, undefined, spaceStateRoutes as Record<string, string>);
+
+    // Preserve local sub-flows (many Santuário screens share /space/home).
+    const clusters: Record<string, SantuarioState[]> = {
+        [ViewState.SPACE_HOME]: [
+            'START',
+            'EXEC_DASHBOARD',
+            'PATIENTS_LIST',
+            'PATIENT_PROFILE',
+            'PATIENT_RECORDS',
+            'AGENDA_OVERVIEW',
+            'AGENDA_EDIT',
+            'EVENTS_MANAGE',
+            'EVENT_CREATE',
+            'RETREATS_MANAGE',
+            'REPUTATION_OVERVIEW',
+            'ANALYTICS_DASH',
+            'GOVERNANCE',
+            'CHAT_LIST',
+            'CHAT_ROOM',
+            'PREDICTIVE_OCCUPANCY',
+            'AUDIT_LOG',
+            'RADIANCE_DRILLDOWN',
+        ],
+        [ViewState.SPACE_TEAM]: ['PROS_LIST', 'PRO_PROFILE', 'PRO_PERFORMANCE', 'TEAM_SUMMON', 'TEAM_INVITE'],
+        [ViewState.SPACE_RECRUITMENT]: ['VAGAS_LIST', 'VAGA_CREATE', 'VAGA_CANDIDATES'],
+        [ViewState.SPACE_FINANCE]: ['FINANCE_OVERVIEW', 'FINANCE_REPASSES', 'FINANCE_FORECAST'],
+        [ViewState.SPACE_MARKETPLACE]: ['MARKETPLACE_MANAGE', 'MARKETPLACE_CREATE'],
+        [ViewState.SPACE_ROOMS]: ['ROOMS_STATUS', 'ROOM_DETAILS', 'ROOM_EDIT', 'ROOM_CREATE', 'ROOM_AGENDA'],
+    };
+
+    useFlowSync({ state: flowState, go, jump }, view, '/space', map, clusters, spaceStateRoutes as Record<string, string>);
 
      // Initial Data Fetch
      useEffect(() => {

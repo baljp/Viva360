@@ -51,7 +51,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
                         <p className="text-xs text-emerald-300 mt-1">por Ana Silva</p>
                     </div>
                     <div className="w-16 h-16 bg-white/10 rounded-2xl">
-                        <img src="https://images.unsplash.com/photo-1602755295717-d5d143c65c08?q=80&w=200" className="w-full h-full object-cover rounded-2xl" />
+                        <img src="https://images.unsplash.com/photo-1602755295717-d5d143c65c08?q=80&w=200" className="w-full h-full object-cover rounded-2xl" alt="Item desejado" />
                     </div>
                 </div>
 
@@ -71,7 +71,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
                                 onClick={() => setSelectedItem(item.id)}
                                 className={`p-4 rounded-[2rem] border flex items-center gap-4 cursor-pointer transition-all ${selectedItem === item.id ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-200' : 'bg-white border-nature-100'}`}
                             >
-                                <img src={item.image} className="w-14 h-14 rounded-xl object-cover" />
+                                <img src={item.image} className="w-14 h-14 rounded-xl object-cover" alt={item.name} />
                                 <div className="flex-1">
                                     <h5 className="font-bold text-nature-900">{item.name}</h5>
                                     <p className="text-[10px] text-nature-400 font-bold uppercase">Disponível</p>

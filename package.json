@@ -8,7 +8,7 @@
     "build:backend": "NODE_PATH=./backend/node_modules tsc -p backend/tsconfig.json",
     "build": "NODE_ENV=production npm run prisma:generate && NODE_ENV=production npm run build:backend && NODE_ENV=production tsc && NODE_ENV=production vite build",
     "vercel-build": "NODE_ENV=production npm run prisma:generate && mkdir -p backend/node_modules/.prisma && cp -r node_modules/.prisma/client backend/node_modules/.prisma/client && NODE_ENV=production vite build",
-    "dev:api:test": "NODE_ENV=test APP_MODE=MOCK ENABLE_TEST_MODE=true PORT=3001 npx tsx backend/src/server.ts",
+    "dev:api:test": "NODE_ENV=test APP_MODE=MOCK ENABLE_TEST_MODE=true PORT=${PORT:-3001} npx tsx backend/src/server.ts",
     "test:audit": "env -u NO_COLOR -u FORCE_COLOR npx playwright test tests/audit.spec.ts",
     "test:e2e": "npx playwright test tests/e2e_master.spec.ts",
     "test:e2e:smoke": "npx playwright test --config=playwright.smoke.config.ts",

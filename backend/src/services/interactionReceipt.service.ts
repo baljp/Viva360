@@ -71,6 +71,9 @@ export class InteractionReceiptService {
       const isDbUnavailable =
         ['P1000', 'P1001', 'P1002', 'P1017'].includes(String(error?.code || ''))
         || /Authentication failed against database server/i.test(errorMessage)
+        || /Can't reach database server/i.test(errorMessage)
+        || /ECONNREFUSED|ENOTFOUND|ETIMEDOUT/i.test(errorMessage)
+        || /Connection terminated unexpectedly/i.test(errorMessage)
         || /circuit breaker open/i.test(errorMessage)
         || /too many authentication errors/i.test(errorMessage);
       const isSafeFallbackRuntime =

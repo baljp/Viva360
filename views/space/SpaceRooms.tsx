@@ -99,7 +99,7 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
                         <div key={room.id} className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm overflow-hidden p-1">
                             <div className="flex gap-4 p-4 items-start">
                                 <div className="w-20 h-20 rounded-2xl bg-nature-100 overflow-hidden shrink-0">
-                                    <img src={room.image} className="w-full h-full object-cover" />
+                                    <img src={room.image} className="w-full h-full object-cover" alt={room.name || 'Altar'} />
                                 </div>
                                 <div className="flex-1 min-w-0 pt-1">
                                     <div className="flex justify-between items-start">

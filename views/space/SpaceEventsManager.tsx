@@ -195,7 +195,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                             className="bg-white rounded-[2.5rem] overflow-hidden border border-nature-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
                         >
                             <div className="relative h-32">
-                                <img src={ev.image} className="w-full h-full object-cover" />
+                                <img src={ev.image} className="w-full h-full object-cover" alt={ev.title || 'Evento'} />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                                 <div className="absolute top-4 left-4 flex gap-2">
                                     <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase ${cfg.bg} ${cfg.color}`}>{cfg.label}</span>
@@ -243,7 +243,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
             <BottomSheet isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} title={selectedEvent?.title || ''}>
                 {selectedEvent && (
                     <div className="space-y-6 pb-12">
-                        <img src={selectedEvent.image} className="w-full h-40 object-cover rounded-2xl" />
+                        <img src={selectedEvent.image} className="w-full h-40 object-cover rounded-2xl" alt={selectedEvent.title || 'Evento'} />
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-nature-50 p-4 rounded-2xl"><p className="text-[9px] font-bold text-nature-400 uppercase">Data</p><p className="font-bold text-nature-900 text-sm">{new Date(selectedEvent.date).toLocaleDateString('pt-BR')}</p></div>
                             <div className="bg-nature-50 p-4 rounded-2xl"><p className="text-[9px] font-bold text-nature-400 uppercase">Horário</p><p className="font-bold text-nature-900 text-sm">{selectedEvent.time}</p></div>

@@ -81,7 +81,7 @@ export const ClientDashboard: React.FC<{
                 {/* JARDIM INTERNO HERO CARD - Refined & Cinematic */}
                 <div id="hero-garden" className="relative rounded-[3.5rem] overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.25)] group cursor-pointer border border-white/10" onClick={() => go('GARDEN_VIEW')}>
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity group-hover:opacity-70 z-10"></div>
-                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[15000ms] group-hover:scale-110" />
+                    <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[15000ms] group-hover:scale-110" alt="" />
                     <div className="relative z-20 p-8 h-72 flex flex-col justify-between">
                         <div className="flex justify-between items-start">
                             <div className="bg-white/15 backdrop-blur-xl border border-white/20 p-3 rounded-2xl text-white shadow-inner group-hover:bg-white/25 transition-colors">

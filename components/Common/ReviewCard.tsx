@@ -11,6 +11,7 @@ export const ReviewCard: React.FC<{ review: Review }> = ({ review }) => (
                     crossOrigin="anonymous"
                     onError={(e) => { e.currentTarget.src = `https://api.dicebear.com/7.x/notionists/svg?seed=${review.authorName}`; }}
                     className="w-10 h-10 rounded-full border border-nature-200 object-cover" 
+                    alt={review.authorName || 'Autor'}
                 />
                 <div>
                     <p className="text-xs font-bold text-nature-900">{review.authorName}</p>

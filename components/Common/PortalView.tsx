@@ -51,6 +51,7 @@ export const PortalView: React.FC<{
                                 e.currentTarget.src = 'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800';
                             }}
                             className="w-full h-full object-cover" 
+                            alt={title}
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-nature-50/20"></div>
                     </div>

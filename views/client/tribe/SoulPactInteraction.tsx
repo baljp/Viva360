@@ -127,7 +127,7 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
                             className="space-y-8 pb-32"
                         >
                             <div className="flex items-center gap-4 bg-white p-4 rounded-3xl border border-nature-100">
-                                <img src={selectedPartner?.avatar} className="w-12 h-12 rounded-xl" />
+                                <img src={selectedPartner?.avatar} className="w-12 h-12 rounded-xl" alt={selectedPartner?.name || 'Guardião'} />
                                 <div>
                                     <p className="text-[9px] text-nature-400 font-bold uppercase">Pactuando com</p>
                                     <h4 className="font-bold text-nature-900">{selectedPartner?.name}</h4>

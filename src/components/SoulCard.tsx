@@ -101,6 +101,7 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
                             crossOrigin="anonymous"
                             className="w-full h-full object-cover" 
                             style={{ transform: "translateZ(10px)" }} 
+                            alt="Registro do ritual"
                         />
                     ) : (
                         <div className="w-full h-full bg-slate-900 flex items-center justify-center">

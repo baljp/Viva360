@@ -82,7 +82,7 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
             <Trophy size={160} className="absolute -right-8 -bottom-8 opacity-10 rotate-12" />
             <h4 className="font-serif italic text-2xl relative z-10">Jornada Coletiva</h4>
             <div className="flex justify-center -space-x-4 relative z-10">
-               {[1,2,3,4,5].map(i => <img key={i} src={`https://api.dicebear.com/7.x/notionists/svg?seed=tribo${i}`} className="w-14 h-14 rounded-full border-4 border-indigo-800 shadow-xl object-cover" />)}
+               {[1,2,3,4,5].map(i => <img key={i} src={`https://api.dicebear.com/7.x/notionists/svg?seed=tribo${i}`} className="w-14 h-14 rounded-full border-4 border-indigo-800 shadow-xl object-cover" alt="Membro da tribo" />)}
             </div>
             <p className="text-xs text-indigo-200 italic px-4 relative z-10">"Sua tribo elevou a vibração coletiva em 14% este mês. Continuem brilhando."</p>
             <div className="grid grid-cols-1 gap-3 relative z-10 px-4">

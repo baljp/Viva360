@@ -5,6 +5,7 @@ import { Home, Compass, ShoppingBag, User as UserIcon, LogOut, Activity, Buildin
 import { AuroraBackground, NotificationDrawer } from './Common';
 import { api } from '../services/api';
 import { isDemoMode, isMockMode } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -50,8 +51,47 @@ const navItemsDefinition = (user: User | null) => {
     }
 };
 
+const canonicalPathForView = (user: User | null, view: ViewState): string | null => {
+    if (!user) return null;
+    // Keep navigation deterministic so clicking an already-active tab can still "escape" deep screens.
+    // This is important for zero-dead-end UX and QA stability.
+    switch (view) {
+        case ViewState.SETTINGS:
+            return '/settings';
+        default:
+            break;
+    }
+    if (user.role === UserRole.CLIENT) {
+        switch (view) {
+            case ViewState.CLIENT_HOME: return '/client/home';
+            case ViewState.CLIENT_JOURNEY: return '/client/journey';
+            case ViewState.CLIENT_EXPLORE: return '/client/explore';
+            case ViewState.CLIENT_TRIBO: return '/client/tribo';
+            default: return null;
+        }
+    }
+    if (user.role === UserRole.PROFESSIONAL) {
+        switch (view) {
+            case ViewState.PRO_HOME: return '/pro/home';
+            case ViewState.PRO_PATIENTS: return '/pro/patients';
+            case ViewState.PRO_AGENDA: return '/pro/agenda';
+            default: return null;
+        }
+    }
+    if (user.role === UserRole.SPACE) {
+        switch (view) {
+            case ViewState.SPACE_HOME: return '/space/home';
+            case ViewState.SPACE_TEAM: return '/space/team';
+            case ViewState.SPACE_RECRUITMENT: return '/space/recruitment';
+            default: return null;
+        }
+    }
+    return null;
+};
+
 const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, onOpenNotifications: () => void }> = ({ user, currentView, setView, onLogout, unreadCount, onOpenNotifications }) => {
     const navItems = navItemsDefinition(user);
+    const navigate = useNavigate();
     return (
         <aside className="hidden lg:flex flex-col w-80 bg-white border-r border-nature-100 h-full shadow-[10px_0_30px_rgba(0,0,0,0.02)] z-50">
             <div className="p-10 flex items-center gap-4">
@@ -69,6 +109,8 @@ const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, o
                             key={item.id} 
                             onClick={() => {
                                 setView(item.id);
+                                const path = canonicalPathForView(user, item.id);
+                                if (path) navigate(path);
                                 scrollMainContentToTop();
                             }} 
                             className={`flex items-center gap-4 p-5 rounded-[1.8rem] w-full text-left transition-all ${active ? 'bg-nature-900 text-white shadow-2xl' : 'text-nature-400 hover:bg-nature-50'}`}
@@ -94,6 +136,7 @@ const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, o
 
 const BottomNav: React.FC<Omit<LayoutProps, 'children'>> = ({ user, currentView, setView }) => {
     const navItems = navItemsDefinition(user);
+    const navigate = useNavigate();
     return (
         <div className="lg:hidden fixed bottom-6 left-0 w-full px-6 z-[100] pb-[env(safe-area-inset-bottom,20px)] pointer-events-none">
             <nav className="mx-auto bg-white/95 backdrop-blur-2xl border border-nature-100 shadow-[0_10px_60px_rgba(0,0,0,0.15)] rounded-full flex justify-between items-center px-2 h-14 pointer-events-auto max-w-md relative ring-1 ring-white/50">
@@ -104,6 +147,8 @@ const BottomNav: React.FC<Omit<LayoutProps, 'children'>> = ({ user, currentView,
                             key={item.id} 
                             onClick={() => {
                                 setView(item.id);
+                                const path = canonicalPathForView(user, item.id);
+                                if (path) navigate(path);
                                 scrollMainContentToTop();
                             }} 
                             className="flex-1 flex flex-col items-center justify-center h-full relative group outline-none focus:outline-none touch-manipulation"

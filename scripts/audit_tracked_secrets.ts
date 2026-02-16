@@ -15,10 +15,15 @@ const findings: Finding[] = [];
 
 const blockedTrackedFiles = new Set([
   '.env',
+  '.env.local',
   '.env.production',
+  '.env.production.local',
   '.env.staging',
   'backend/.env',
+  'backend/.env.local',
   'backend/.env.production',
+  'backend/.env.production.local',
+  'backend/.env.staging',
 ]);
 
 const placeholderPattern = /(your-|change-me|<REDACTED>|<|example|test|dummy|localhost|127\.0\.0\.1|password|\[PASSWORD\]|\[PROJECT_ID\]|\[REGION\]|\$\{\{\s*secrets\.|resolvedJwtSecret)/i;
@@ -31,6 +36,15 @@ const getTrackedFiles = () => {
     return output.split('\n').map((line) => line.trim()).filter(Boolean);
   } catch {
     return [];
+  }
+};
+
+const hasGitHistoryForPath = (filePath: string): boolean => {
+  try {
+    const out = execSync(`git rev-list --all -- "${filePath}"`, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+    return out.trim().length > 0;
+  } catch {
+    return false;
   }
 };
 
@@ -117,6 +131,19 @@ for (const trackedFile of trackedFiles) {
   }
 
   scanFile(trackedFile);
+}
+
+// Ensure blocked env files were never committed, even historically.
+for (const blocked of blockedTrackedFiles) {
+  if (hasGitHistoryForPath(blocked)) {
+    pushFinding({
+      level: 'ERROR',
+      file: blocked,
+      line: 1,
+      reason: 'Blocked env file exists in git history. Purge history and rotate all exposed secrets.',
+      snippet: blocked,
+    });
+  }
 }
 
 const reportsDir = path.resolve(process.cwd(), 'reports');

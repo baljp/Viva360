@@ -180,7 +180,7 @@ export default function TribeInvite() {
        {/* Main Card Preview */}
        <div className="relative z-10 w-full max-w-sm aspect-[9/16] bg-white rounded-[2rem] shadow-2xl overflow-hidden mb-8 border-4 border-white/10 rotate-1 transform transition-transform hover:rotate-0">
            {inviteImage ? (
-               <img src={inviteImage} className="w-full h-full object-cover" />
+               <img src={inviteImage} className="w-full h-full object-cover" alt="Convite Viva360" />
            ) : (
                <div className="w-full h-full bg-indigo-900 flex items-center justify-center text-white">Gerando Convite...</div>
            )}
