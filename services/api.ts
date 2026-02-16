@@ -110,6 +110,27 @@ const isLikelyNetworkError = (message?: string): boolean => {
 };
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
+const canonicalizeGoogleMailbox = (email: string): string => {
+    const normalized = normalizeEmail(email);
+    const [local, domain] = normalized.split('@');
+    if (!local || !domain) return normalized;
+
+    // Gmail treats dots as insignificant and supports plus aliases.
+    const isGmail = domain === 'gmail.com' || domain === 'googlemail.com';
+    if (!isGmail) return normalized;
+
+    const noPlus = local.split('+')[0] || local;
+    const noDots = noPlus.replace(/\./g, '');
+    return `${noDots}@gmail.com`;
+};
+
+const emailsMatchForOAuth = (expected: string, actual: string): boolean => {
+    const a = normalizeEmail(expected);
+    const b = normalizeEmail(actual);
+    if (!a || !b) return false;
+    if (a === b) return true;
+    return canonicalizeGoogleMailbox(a) === canonicalizeGoogleMailbox(b);
+};
 const isStrictTestEmail = (email: string) => STRICT_TEST_EMAILS.has(normalizeEmail(email));
 const isLocalDevRuntime = () => {
     if (typeof window === 'undefined') return false;
@@ -712,9 +733,6 @@ export const api = {
         },
         registerWithGoogle: async (role: UserRole = UserRole.CLIENT, expectedEmail?: string): Promise<User> => {
             const normalizedExpectedEmail = normalizeEmail(expectedEmail || '');
-            if (!normalizedExpectedEmail) {
-                throw new Error('Informe o e-mail autorizado antes de continuar com Google.');
-            }
 
             if (isSupabaseMock) {
                 throw new Error('Cadastro com Google indisponível em modo teste.');
@@ -722,18 +740,38 @@ export const api = {
 
             const oauthValidation = validateOAuthRuntimeConfig();
             if (!oauthValidation.ok) {
-                throw new Error('Cadastro com Google indisponível. Use e-mail e senha, ou configure VITE_SUPABASE_URL no painel do Vercel.');
+                const details = oauthValidation.issues.length
+                  ? `Config faltando: ${oauthValidation.issues.join(' | ')}`
+                  : 'Configuração OAuth/Supabase inválida.';
+                throw new Error(`Cadastro com Google indisponível. ${details}`);
             }
 
-            const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
-            if (!eligibility.canRegister) {
-                throw new Error('Este e-mail não está aprovado para cadastro com Google.');
+            // If the user typed an email, use it to decide whether this should be treated as
+            // registration or login (existing accounts should not be blocked).
+            let intent: 'register' | 'login' = 'register';
+            if (normalizedExpectedEmail) {
+                const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
+                if (eligibility.allowed) {
+                    // Account already exists: proceed as login so users don't hit a dead-end on the register page.
+                    intent = 'login';
+                } else if (!eligibility.canRegister) {
+                    throw new Error('Este e-mail não está aprovado para cadastro com Google.');
+                }
             }
 
             const redirectTo = getOAuthRedirectUrl();
-            localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
-            localStorage.setItem(OAUTH_INTENT_KEY, 'register');
-            localStorage.setItem(OAUTH_ROLE_KEY, normalizeRole(role));
+            // Only lock the expected email if user intentionally provided it.
+            if (normalizedExpectedEmail) {
+                localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
+            } else {
+                localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+            }
+            localStorage.setItem(OAUTH_INTENT_KEY, intent);
+            if (intent === 'register') {
+                localStorage.setItem(OAUTH_ROLE_KEY, normalizeRole(role));
+            } else {
+                localStorage.removeItem(OAUTH_ROLE_KEY);
+            }
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -837,7 +875,7 @@ export const api = {
                 if (session) {
                     const expectedOAuthEmail = normalizeEmail(localStorage.getItem(OAUTH_EXPECTED_EMAIL_KEY) || '');
                     const sessionEmail = normalizeEmail(session.user.email || '');
-                    if (expectedOAuthEmail && sessionEmail && expectedOAuthEmail !== sessionEmail) {
+                    if (expectedOAuthEmail && sessionEmail && !emailsMatchForOAuth(expectedOAuthEmail, sessionEmail)) {
                         await supabase.auth.signOut();
                         clearMockArtifacts();
                         localStorage.removeItem(SESSION_MODE_KEY);
