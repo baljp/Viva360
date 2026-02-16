@@ -11,12 +11,23 @@ export type RequestOptions = RequestInit & {
   retryDelayMs?: number;
   timeoutMs?: number;
   purpose?: string;
+  cacheTtlMs?: number;
+  cacheKey?: string;
+  dedupe?: boolean;
 };
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const clonePayload = <T>(value: T): T => {
+  if (typeof globalThis.structuredClone === 'function') {
+    return globalThis.structuredClone(value);
+  }
+  return JSON.parse(JSON.stringify(value)) as T;
+};
 
 export const createRequestClient = (deps: RequestClientDeps) => {
   const shouldRetryResponse = (status: number) => deps.retryableStatusCodes.has(status);
+  const responseCache = new Map<string, { expiresAt: number; payload: unknown }>();
+  const inflightRequests = new Map<string, Promise<unknown>>();
 
   return async (endpoint: string, options: RequestOptions = {}) => {
     const {
@@ -24,10 +35,25 @@ export const createRequestClient = (deps: RequestClientDeps) => {
       retryDelayMs = 350,
       timeoutMs = 10000,
       purpose,
+      cacheTtlMs = 0,
+      cacheKey,
+      dedupe = true,
       ...fetchOptions
     } = options;
+    const method = String(fetchOptions.method || 'GET').toUpperCase();
+    const isCacheable = method === 'GET';
+    const resolvedCacheKey = cacheKey || `${method}:${endpoint}`;
     const externalSignal = fetchOptions.signal;
 
+    if (isCacheable && cacheTtlMs > 0) {
+      const cached = responseCache.get(resolvedCacheKey);
+      if (cached && cached.expiresAt > Date.now()) {
+        return clonePayload(cached.payload);
+      }
+      if (cached) responseCache.delete(resolvedCacheKey);
+    }
+
+    const runRequest = async () => {
     let lastError: any = null;
     for (let attempt = 0; attempt <= retries; attempt += 1) {
       const controller = new AbortController();
@@ -64,7 +90,14 @@ export const createRequestClient = (deps: RequestClientDeps) => {
           throw error;
         }
 
-        return response.json();
+        const payload = await response.json();
+        if (isCacheable && cacheTtlMs > 0) {
+          responseCache.set(resolvedCacheKey, {
+            expiresAt: Date.now() + cacheTtlMs,
+            payload,
+          });
+        }
+        return payload;
       } catch (error: any) {
         clearTimeout(timeoutHandle);
         if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
@@ -81,5 +114,21 @@ export const createRequestClient = (deps: RequestClientDeps) => {
 
     deps.captureError(lastError, { endpoint, purpose });
     throw lastError || new Error('API Request Failed');
+    };
+
+    if (isCacheable && dedupe) {
+      const inflight = inflightRequests.get(resolvedCacheKey);
+      if (inflight) {
+        return clonePayload(await inflight);
+      }
+
+      const pending = runRequest().finally(() => {
+        inflightRequests.delete(resolvedCacheKey);
+      });
+      inflightRequests.set(resolvedCacheKey, pending);
+      return clonePayload(await pending);
+    }
+
+    return runRequest();
   };
 };

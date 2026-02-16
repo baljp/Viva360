@@ -76,4 +76,35 @@ describe('requestClient', () => {
     expect(result).toEqual({ ok: true });
     expect(captureError).not.toHaveBeenCalled();
   });
+
+  it('cacheia GET com TTL e evita nova chamada dentro da janela', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({ items: [1, 2] }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const request = createClient();
+    const first = await request('/cached', { cacheTtlMs: 1000 });
+    const second = await request('/cached', { cacheTtlMs: 1000 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(first).toEqual({ items: [1, 2] });
+    expect(second).toEqual({ items: [1, 2] });
+  });
+
+  it('deduplica chamadas GET concorrentes para o mesmo endpoint', async () => {
+    const fetchMock = vi.fn().mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const request = createClient();
+    const [a, b] = await Promise.all([
+      request('/inflight', { dedupe: true }),
+      request('/inflight', { dedupe: true }),
+    ]);
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(a).toEqual({ ok: true });
+    expect(b).toEqual({ ok: true });
+  });
 });

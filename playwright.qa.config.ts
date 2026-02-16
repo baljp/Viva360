@@ -50,7 +50,7 @@ export default defineConfig({
   /* Run backend + frontend before QA tests */
   webServer: [
     {
-      command: 'env -u NO_COLOR npm run dev:api:test',
+      command: 'env -u NO_COLOR STRICT_RECORD_CONSENT=true JWT_SECRET=viva360_test_jwt_secret_2026 npm run dev:api:test',
       url: 'http://localhost:3001/api/ping',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,

@@ -25,10 +25,16 @@ const runE2ECore = String(process.env.SKIP_E2E_CORE || '').toLowerCase() !== 'tr
 
 const checks: Check[] = [
   { id: 'matrix', label: 'Matriz Tela x Botao x Fluxo', command: 'npm run qa:matrix', required: true },
+  { id: 'flow-registry', label: 'Validação do Flow Registry', command: 'npm run qa:validate-flow-registry', required: true },
   { id: 'routes', label: 'Auditoria de rotas/imports', command: 'node scripts/audit_routes.cjs', required: true },
+  { id: 'route-leaks', label: 'Auditoria de vazamento de rotas teste/mock', command: 'npm run qa:audit-route-leaks', required: true },
   { id: 'buttons', label: 'Auditoria de botoes sem handler', command: 'npx tsx scripts/audit_buttons.ts --strict', required: true },
   { id: 'contracts', label: 'Contratos backend', command: 'npm run test:contracts', required: true },
+  { id: 'oauth-policy', label: 'Política OAuth redirect/callback', command: 'npm run test:oauth-policy', required: true },
   { id: 'request-client', label: 'Request client unit (abort/timeout/retry)', command: 'npx vitest run services/api/requestClient.test.ts', required: true },
+  { id: 'consent-e2e', label: 'E2E consentimento grant/revoke prontuario', command: 'npm run test:qa:consent', required: true },
+  { id: 'deeplinks-e2e', label: 'E2E deep links por perfil', command: 'npm run test:qa:deeplinks', required: true },
+  { id: 'a11y-smoke', label: 'QA acessibilidade smoke', command: 'npm run test:qa:a11y-smoke', required: true },
   { id: 'links-assets', label: 'Auditoria de links e imagens', command: 'npm run test:audit', required: true, retries: 1 },
 ];
 

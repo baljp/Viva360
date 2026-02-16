@@ -11,9 +11,20 @@ import compression from 'compression';
 import { initTelemetry } from './lib/instrumentation';
 import { assertCriticalProdConfig } from './lib/runtimeGuard';
 
+const isProductionRuntime = process.env.NODE_ENV === 'production';
+const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
+const isDebugRoutesEnabled = !isProductionRuntime && (
+    truthy(process.env.ENABLE_DEBUG_ROUTES) || truthy(process.env.ENABLE_TEST_MODE)
+);
+const blockedProdRoutePatterns = [
+    /^\/api\/debug(?:\/|$|-)/i,
+    /^\/api\/test(?:\/|$|-)/i,
+    /^\/api\/mock(?:\/|$|-)/i,
+];
+
 // Initialize Telemetry
-// initTelemetry();
-// assertCriticalProdConfig();
+initTelemetry();
+assertCriticalProdConfig();
 
 // Load environment variables
 // env already loaded via import './lib/env' at the top
@@ -49,7 +60,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(attachRequestContext);
 app.use(securityHardening); // Excellence Layer: WAF & Headers
-if (process.env.NODE_ENV !== 'production') app.use(morgan('tiny'));
+if (!isProductionRuntime) app.use(morgan('tiny'));
 
 // Observability Middleware
 app.use((req, res, next) => {
@@ -91,6 +102,19 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+// Production hardening: block test/debug/mock surface explicitly.
+app.use((req, res, next) => {
+    if (!isProductionRuntime) return next();
+    const pathname = String(req.path || req.originalUrl || '');
+    if (blockedProdRoutePatterns.some((pattern) => pattern.test(pathname))) {
+        return res.status(404).json({
+            error: 'Route not found',
+            requestId: req.requestId,
+        });
+    }
+    return next();
+});
+
 // CHAOS ENGINEERING
 if (process.env.CHAOS_MODE === 'true') {
     app.use(chaosMiddleware);
@@ -105,98 +129,97 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', pid: process.pid, timestamp: new Date().toISOString(), requestId: req.requestId });
 });
 
-// Diagnostic Login Endpoint (temporary)
-app.post('/api/debug-login', async (req, res) => {
-    try {
-        const { AuthService } = require('./services/auth.service');
-        const result = await AuthService.login(req.body.email || '', req.body.password || '');
-        res.json({ ok: true, result });
-    } catch (err: any) {
-        res.status(500).json({
-            error: err.message,
-            name: err.name,
-            stack: err.stack?.split('\n').slice(0, 5),
-            code: err.code,
-            statusCode: err.statusCode,
-        });
-    }
-});
-
-// Network Diagnostic Endpoint (temporary)
-app.get('/api/debug-net', async (req, res) => {
-    const dns = require('dns').promises;
-    const net = require('net');
-    const poolerUrl = process.env.SUPABASE_POOLER_URL || 'NOT_SET';
-    const dbUrl = process.env.DATABASE_URL || 'NOT_SET';
-    const activeUrl = process.env.SUPABASE_POOLER_URL || process.env.DATABASE_URL || 'NOT_SET';
-
-    const results: any = {
-        active_url_masked: activeUrl.replace(/:[^:@]+@/, ':***@'),
-        pooler_url_masked: poolerUrl.replace(/:[^:@]+@/, ':***@'),
-        db_url_masked: dbUrl.replace(/:[^:@]+@/, ':***@'),
-        dns: null,
-        tcp: null,
-        env_present: {
-            SUPABASE_POOLER_URL: !!process.env.SUPABASE_POOLER_URL,
-            DATABASE_URL: !!process.env.DATABASE_URL,
-            DIRECT_URL: !!process.env.DIRECT_URL,
-            SUPABASE_URL: !!process.env.SUPABASE_URL,
-            JWT_SECRET: !!process.env.JWT_SECRET,
-        }
-    };
-    // Extract host and port from active URL
-    try {
-        const urlObj = new URL(activeUrl);
-        const host = urlObj.hostname;
-        const port = parseInt(urlObj.port || '5432');
-        results.parsed = { host, port };
-        // DNS lookup
+if (isDebugRoutesEnabled) {
+    // Diagnostic Login Endpoint (debug only)
+    app.post('/api/debug-login', async (req, res) => {
         try {
-            const addresses = await dns.resolve(host);
-            results.dns = { ok: true, addresses };
-        } catch (e: any) {
-            results.dns = { ok: false, error: e.message };
-        }
-        // TCP connect test
-        try {
-            await new Promise<void>((resolve, reject) => {
-                const socket = new net.Socket();
-                socket.setTimeout(5000);
-                socket.on('connect', () => { socket.destroy(); resolve(); });
-                socket.on('timeout', () => { socket.destroy(); reject(new Error('TCP timeout (5s)')); });
-                socket.on('error', (e: any) => { reject(e); });
-                socket.connect(port, host);
+            const { AuthService } = require('./services/auth.service');
+            const result = await AuthService.login(req.body.email || '', req.body.password || '');
+            res.json({ ok: true, result });
+        } catch (err: any) {
+            res.status(500).json({
+                error: err.message,
+                name: err.name,
+                stack: err.stack?.split('\n').slice(0, 5),
+                code: err.code,
+                statusCode: err.statusCode,
             });
-            results.tcp = { ok: true };
-        } catch (e: any) {
-            results.tcp = { ok: false, error: e.message };
         }
-    } catch (e: any) {
-        results.urlParseError = e.message;
-    }
-    res.json(results);
-});
+    });
 
-// Raw DB Diagnostic Endpoint (temporary)
-app.get('/api/debug-db', async (req, res) => {
-    const prisma = require('./lib/prisma').default;
-    const results: any = { connect: null, query: null };
-    try {
-        await prisma.$connect();
-        results.connect = { ok: true };
-    } catch (e: any) {
-        results.connect = { ok: false, error: e.message, code: e.errorCode, meta: e.meta };
-    }
-    if (results.connect.ok) {
+    // Network Diagnostic Endpoint (debug only)
+    app.get('/api/debug-net', async (req, res) => {
+        const dns = require('dns').promises;
+        const net = require('net');
+        const poolerUrl = process.env.SUPABASE_POOLER_URL || 'NOT_SET';
+        const dbUrl = process.env.DATABASE_URL || 'NOT_SET';
+        const activeUrl = process.env.SUPABASE_POOLER_URL || process.env.DATABASE_URL || 'NOT_SET';
+
+        const results: any = {
+            active_url_masked: activeUrl.replace(/:[^:@]+@/, ':***@'),
+            pooler_url_masked: poolerUrl.replace(/:[^:@]+@/, ':***@'),
+            db_url_masked: dbUrl.replace(/:[^:@]+@/, ':***@'),
+            dns: null,
+            tcp: null,
+            env_present: {
+                SUPABASE_POOLER_URL: !!process.env.SUPABASE_POOLER_URL,
+                DATABASE_URL: !!process.env.DATABASE_URL,
+                DIRECT_URL: !!process.env.DIRECT_URL,
+                SUPABASE_URL: !!process.env.SUPABASE_URL,
+                JWT_SECRET: !!process.env.JWT_SECRET,
+            }
+        };
         try {
-            const r = await prisma.$queryRaw`SELECT 1 as test`;
-            results.query = { ok: true, result: r };
+            const urlObj = new URL(activeUrl);
+            const host = urlObj.hostname;
+            const port = parseInt(urlObj.port || '5432');
+            results.parsed = { host, port };
+            try {
+                const addresses = await dns.resolve(host);
+                results.dns = { ok: true, addresses };
+            } catch (e: any) {
+                results.dns = { ok: false, error: e.message };
+            }
+            try {
+                await new Promise<void>((resolve, reject) => {
+                    const socket = new net.Socket();
+                    socket.setTimeout(5000);
+                    socket.on('connect', () => { socket.destroy(); resolve(); });
+                    socket.on('timeout', () => { socket.destroy(); reject(new Error('TCP timeout (5s)')); });
+                    socket.on('error', (e: any) => { reject(e); });
+                    socket.connect(port, host);
+                });
+                results.tcp = { ok: true };
+            } catch (e: any) {
+                results.tcp = { ok: false, error: e.message };
+            }
         } catch (e: any) {
-            results.query = { ok: false, error: e.message };
+            results.urlParseError = e.message;
         }
-    }
-    res.json(results);
-});
+        res.json(results);
+    });
+
+    // Raw DB Diagnostic Endpoint (debug only)
+    app.get('/api/debug-db', async (req, res) => {
+        const prisma = require('./lib/prisma').default;
+        const results: any = { connect: null, query: null };
+        try {
+            await prisma.$connect();
+            results.connect = { ok: true };
+        } catch (e: any) {
+            results.connect = { ok: false, error: e.message, code: e.errorCode, meta: e.meta };
+        }
+        if (results.connect.ok) {
+            try {
+                const r = await prisma.$queryRaw`SELECT 1 as test`;
+                results.query = { ok: true, result: r };
+            } catch (e: any) {
+                results.query = { ok: false, error: e.message };
+            }
+        }
+        res.json(results);
+    });
+}
 
 // API Routes
 app.use('/api', routes);
