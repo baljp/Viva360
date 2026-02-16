@@ -113,7 +113,7 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
                             className="bg-white rounded-[2.5rem] overflow-hidden border border-nature-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
                         >
                             <div className="relative h-36">
-                                <img src={s.image} className="w-full h-full object-cover" />
+                                <img src={s.image} className="w-full h-full object-cover" alt={s.name || 'Santuário'} />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                                 <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
                                     <div>

@@ -74,7 +74,7 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
                 
                 {/* Hero / Cover */}
                 <div className="relative h-72 flex-none">
-                    <img src={event.image || 'https://images.unsplash.com/photo-1528644490543-950c4dfceb28?q=80&w=800'} className="w-full h-full object-cover opacity-60" />
+                    <img src={event.image || 'https://images.unsplash.com/photo-1528644490543-950c4dfceb28?q=80&w=800'} className="w-full h-full object-cover opacity-60" alt="" />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
                     
                     <div className="absolute bottom-8 left-8 right-8">
@@ -143,7 +143,7 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
                     <div className="space-y-4">
                          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Facilitadora</h4>
                          <div className="flex items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-3xl">
-                            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200" className="w-12 h-12 rounded-2xl object-cover" />
+                            <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200" className="w-12 h-12 rounded-2xl object-cover" alt={event.facilitatorName || 'Facilitadora'} />
                             <div className="flex-1">
                                 <h5 className="font-bold text-white text-sm">{event.facilitatorName}</h5>
                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Guardiã da Consciência</p>

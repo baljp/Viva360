@@ -262,7 +262,7 @@ export const ProDashboard: React.FC<{
             {activeTab === 'consultorio' && (
                 <div className="space-y-6 animate-in slide-in-from-left-4 duration-300">
                     <div id="hero-agenda" className="relative h-72 rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('AGENDA_VIEW')}>
-                        <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" />
+                        <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" alt="" />
                         <div className="absolute inset-0 bg-nature-900/60 transition-colors group-hover:bg-nature-900/40"></div>
                         <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
                             <div className="space-y-2">

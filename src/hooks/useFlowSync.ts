@@ -36,21 +36,25 @@ export const useFlowSync = (
         if (pathChanged && !stateChanged) {
             previousPathRef.current = location.pathname;
             previousStateRef.current = currentState;
-            hydrationAlignedRef.current = true;
             return;
         }
 
         const routeTargetState = targetMap[viewState];
-        const initialMismatch =
-            !hydrationAlignedRef.current &&
-            !!routeTargetState &&
-            routeTargetState !== currentState;
+        const routeAllowedStates = clusters?.[viewState];
+        const isCurrentStateInRouteCluster = !!routeAllowedStates?.includes(currentState);
+        const routeWantsDifferentState = !!routeTargetState && routeTargetState !== currentState && !isCurrentStateInRouteCluster;
+        const canonicalForRouteTarget = routeTargetState
+            ? (hasCanonicalMap ? stateToRouteMap?.[routeTargetState] : getFallbackPath(routeTargetState))
+            : undefined;
 
-        // During hydration, prefer current route and let Router -> Flow align first.
-        if (initialMismatch) {
+        // If the URL already represents the view's canonical route, don't let Flow->Router overwrite it
+        // while the Flow state is still catching up (this avoids /client/explore being forced to /client/home on mount).
+        // Only block when the URL is authoritative (route changed without a flow transition),
+        // e.g. initial hydration or sidebar/deep-link. When the flow state changes (go/jump),
+        // we must allow Flow -> Router navigation to keep URL in sync.
+        if (!stateChanged && routeWantsDifferentState && canonicalForRouteTarget === location.pathname) {
             previousPathRef.current = location.pathname;
             previousStateRef.current = currentState;
-            hydrationAlignedRef.current = true;
             return;
         }
 
@@ -77,14 +81,18 @@ export const useFlowSync = (
             const stillOnFlowSourcePath = location.pathname === pending.fromPath;
             const pendingExpired = Date.now() - pending.at > 1500;
 
+            // If we reached the target of a Flow -> Router navigation, clear the pending marker but
+            // keep going: the marker can become stale across rapid sequences, and Router -> Flow
+            // must still be authoritative when the URL changed explicitly (sidebar/deep link).
             if (reachedPendingTarget) {
                 pendingNavigationRef.current = null;
+            } else if (stillOnFlowSourcePath && !pendingExpired) {
+                // Navigation in-flight: avoid a Router -> Flow jump that could fight the ongoing navigate().
                 return;
+            } else {
+                // Pending marker expired or irrelevant.
+                pendingNavigationRef.current = null;
             }
-            if (stillOnFlowSourcePath && !pendingExpired) {
-                return;
-            }
-            pendingNavigationRef.current = null;
         }
 
         const canonicalForCurrentState = stateToRouteMap?.[currentState] || getFallbackPath(currentState);
@@ -108,6 +116,7 @@ export const useFlowSync = (
                 flow.go(target);
             }
         }
+        hydrationAlignedRef.current = true;
     }, [viewState, flow, targetMap, clusters, location.pathname, stateToRouteMap]);
 
 };

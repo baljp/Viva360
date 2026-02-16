@@ -103,7 +103,7 @@ export const SoulCardReveal: React.FC<SoulCardRevealProps> = ({ card, userPhoto,
                     >
                          {/* THE PROTO (User Image) */}
                          <div className="absolute inset-0 bg-[#0f172a]">
-                            <img src={userPhoto} className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" style={{ filter: 'contrast(1.1) brightness(0.9) saturate(1.1)' }} />
+                            <img src={userPhoto} className="w-full h-full object-cover transition-transform duration-[10s] group-hover:scale-110" style={{ filter: 'contrast(1.1) brightness(0.9) saturate(1.1)' }} alt="Foto do ritual" />
                             {/* Inner Vignette / Shadow Overlay */}
                             <div className="absolute inset-0 shadow-[inset_0_0_150px_rgba(0,0,0,0.8)]"></div>
                          </div>

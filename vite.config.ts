@@ -69,7 +69,9 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        // Allow QA to run backend on a dedicated port to avoid conflicts (EADDRINUSE)
+        // and avoid IPv6 localhost resolution issues by using 127.0.0.1.
+        target: process.env.VITE_API_PROXY_TARGET || 'http://127.0.0.1:3001',
         changeOrigin: true,
         secure: false
       }

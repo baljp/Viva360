@@ -4,6 +4,15 @@ test.describe('Checkout Flow E2E', () => {
   test('Buscador: fluxo de exploração deve carregar com estado vazio ou guardiões', async ({ page, loginAs }) => {
     await loginAs('client');
 
+    if (process.env.PW_VERBOSE_LOGS === '1') {
+      page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+      page.on('framenavigated', frame => {
+        if (frame === page.mainFrame()) {
+          console.log('NAVIGATED:', frame.url());
+        }
+      });
+    }
+
     await page.goto('/client/explore', { waitUntil: 'domcontentloaded' });
 
     await expect(page).toHaveURL(/\/client\/explore/, { timeout: 15000 });

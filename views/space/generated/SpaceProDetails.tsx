@@ -45,7 +45,7 @@ export default function SpaceProDetails() {
                 {/* Profile Card */}
                 <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-nature-100 text-center relative overflow-hidden mb-6">
                     <div className="w-24 h-24 rounded-[2rem] mx-auto mb-4 relative overflow-hidden border-4 border-white shadow-lg">
-                        <img src={(pro as any).avatar || (pro as any).image} className="w-full h-full object-cover" />
+                        <img src={(pro as any).avatar || (pro as any).image} className="w-full h-full object-cover" alt={pro.name || 'Guardião'} />
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-1">
                         <h2 className="font-serif italic text-2xl text-nature-900">{pro.name}</h2>

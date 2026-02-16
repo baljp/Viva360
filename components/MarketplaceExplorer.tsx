@@ -77,7 +77,7 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = React.mem
                         <div key={product.id} className="bg-white p-3 rounded-[2rem] border border-nature-100 shadow-sm group hover:shadow-md transition-all flex flex-col justify-between">
                             <div className="space-y-3">
                                 <div className="relative aspect-square rounded-[1.5rem] overflow-hidden bg-nature-50">
-                                    <img src={product.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                    <img src={product.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt={product.name || 'Produto'} />
                                     <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm p-1.5 rounded-full shadow-sm">
                                         {product.type === 'physical' ? <Package size={12} className="text-nature-900"/> : <Star size={12} className="text-amber-500 fill-amber-500"/>}
                                     </div>

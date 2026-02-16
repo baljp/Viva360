@@ -100,7 +100,7 @@ export default function SpaceRetreatsManager() {
                         onClick={() => { selectEvent(retreat.id); setSelected(retreat); }}
                     >
                         <div className="h-32 relative">
-                            <img src={retreat.image} className="w-full h-full object-cover"/>
+                            <img src={retreat.image} className="w-full h-full object-cover" alt={retreat.title || 'Retiro'} />
                             <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[9px] font-bold uppercase tracking-widest text-nature-900 shadow-sm">
                                 {retreat.status === 'active' ? '🟢 Ativo' : retreat.status === 'cancelled' ? '🔴 Cancelado' : '⚪ Rascunho'}
                             </div>
@@ -144,7 +144,7 @@ export default function SpaceRetreatsManager() {
             <BottomSheet isOpen={!!selected} onClose={() => setSelected(null)} title={selected?.title || 'Retiro'}>
                 {selected && (
                     <div className="space-y-6 pb-12">
-                        <img src={selected.image} className="w-full h-40 object-cover rounded-2xl" />
+                        <img src={selected.image} className="w-full h-40 object-cover rounded-2xl" alt={selected.title || 'Retiro'} />
                         <div className="grid grid-cols-2 gap-3">
                             <div className="bg-nature-50 p-4 rounded-2xl"><p className="text-[9px] font-bold text-nature-400 uppercase">Datas</p><p className="font-bold text-nature-900 text-sm">{selected.dates}</p></div>
                             <div className="bg-nature-50 p-4 rounded-2xl"><p className="text-[9px] font-bold text-nature-400 uppercase">Vagas</p><p className="font-bold text-nature-900 text-sm">{selected.spots}</p></div>

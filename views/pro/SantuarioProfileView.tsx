@@ -38,7 +38,7 @@ export const SantuarioProfileView: React.FC<{ user: User }> = ({ user }) => {
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="relative h-64">
-                <img src={space.image} className="w-full h-full object-cover" />
+                <img src={space.image} className="w-full h-full object-cover" alt={space.name || 'Santuário'} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                 <button onClick={back} className="absolute top-12 left-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all">←</button>
                 <button onClick={() => setToast({ title: 'Link Copiado', message: 'Compartilhe este santuário', type: 'success' })} className="absolute top-12 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all"><Share2 size={16} /></button>
@@ -97,7 +97,7 @@ export const SantuarioProfileView: React.FC<{ user: User }> = ({ user }) => {
                     <div className="space-y-3">
                         {space.guardians.map(g => (
                             <div key={g.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-nature-50 transition-colors">
-                                <img src={g.avatar} className="w-12 h-12 rounded-xl object-cover border border-nature-100" />
+                                <img src={g.avatar} className="w-12 h-12 rounded-xl object-cover border border-nature-100" alt={g.name} />
                                 <div className="flex-1">
                                     <h4 className="font-bold text-nature-900 text-sm">{g.name}</h4>
                                     <p className="text-[10px] text-nature-400 font-bold uppercase">{g.specialty}</p>

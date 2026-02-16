@@ -114,7 +114,7 @@ export const OracleCardPremium: React.FC<OracleCardPremiumProps> = ({ card, onCl
                         className="w-64 h-96 bg-gradient-to-br from-indigo-900 to-nature-900 rounded-3xl border border-white/20 shadow-2xl flex items-center justify-center"
                      >
                         <div className="w-full h-full backface-hidden flex items-center justify-center">
-                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=400" className="w-full h-full object-cover opacity-20 rounded-3xl" />
+                            <img src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=400" className="w-full h-full object-cover opacity-20 rounded-3xl" alt="" />
                         </div>
                      </motion.div>
                 )}

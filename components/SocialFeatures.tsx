@@ -233,7 +233,7 @@ const PactWidget: React.FC<{ pact: ConstellationPact, userAvatar: string, onSend
                 </div>
                 <div className="flex items-center justify-between gap-6">
                     <div className="flex flex-col items-center gap-3">
-                        <img src={userAvatar} className="w-16 h-16 rounded-full border-4 border-white/20 shadow-lg" />
+                        <img src={userAvatar} className="w-16 h-16 rounded-full border-4 border-white/20 shadow-lg" alt="Você" />
                         <span className="text-[10px] font-bold uppercase">Você</span>
                     </div>
                     <div className="flex-1 flex gap-2 h-20 items-end justify-center px-4">
@@ -241,7 +241,7 @@ const PactWidget: React.FC<{ pact: ConstellationPact, userAvatar: string, onSend
                         <div className="w-4 bg-white/5 rounded-full h-full relative overflow-hidden border border-white/10"><div className="absolute bottom-0 w-full bg-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.5)] transition-all duration-1000" style={{ height: `${partnerPercent}%` }}></div></div>
                     </div>
                     <div className="flex flex-col items-center gap-3">
-                        <img src={pact.partnerAvatar} className="w-16 h-16 rounded-full border-4 border-white/20 shadow-lg" />
+                        <img src={pact.partnerAvatar} className="w-16 h-16 rounded-full border-4 border-white/20 shadow-lg" alt={pact.partnerName || 'Parceiro'} />
                         <span className="text-[10px] font-bold uppercase truncate w-16 text-center">{pact.partnerName.split(' ')[0]}</span>
                     </div>
                 </div>
@@ -283,10 +283,10 @@ export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) 
             <div className="bg-white p-6 rounded-[3.5rem] border border-nature-100 shadow-sm overflow-hidden">
                 <h3 className="font-bold text-nature-900 text-sm flex items-center gap-2 mb-6 px-2"><Users size={18} className="text-primary-600" /> Minha Tribo</h3>
                 <div className="flex gap-5 overflow-x-auto no-scrollbar pb-2">
-                    <div className="flex flex-col items-center gap-3 shrink-0"><div className="w-16 h-16 rounded-full border-4 border-primary-500 p-1"><img src={user.avatar} className="w-full h-full rounded-full object-cover" /></div><span className="text-[10px] font-bold text-nature-900">Você</span></div>
+                    <div className="flex flex-col items-center gap-3 shrink-0"><div className="w-16 h-16 rounded-full border-4 border-primary-500 p-1"><img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="Você" /></div><span className="text-[10px] font-bold text-nature-900">Você</span></div>
                     {members.map(member => (
                         <button key={member.id} onClick={() => setSelectedMember(member)} className="flex flex-col items-center gap-3 shrink-0 group">
-                            <div className={`w-16 h-16 rounded-full border-4 p-1 transition-all group-hover:scale-110 ${member.needsWatering ? 'border-amber-400 animate-pulse' : 'border-nature-50'}`}><img src={member.avatar} className="w-full h-full rounded-full object-cover" /></div>
+                            <div className={`w-16 h-16 rounded-full border-4 p-1 transition-all group-hover:scale-110 ${member.needsWatering ? 'border-amber-400 animate-pulse' : 'border-nature-50'}`}><img src={member.avatar} className="w-full h-full rounded-full object-cover" alt={member.name} /></div>
                             <span className="text-[10px] font-medium text-nature-500">{member.name.split(' ')[0]}</span>
                         </button>
                     ))}

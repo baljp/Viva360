@@ -57,7 +57,18 @@ export const ProViews: React.FC<{
         [ViewState.PRO_AGENDA]: 'AGENDA_VIEW',
         [ViewState.PRO_NETWORK]: 'TRIBE_PRO',
     };
-    useFlowSync({ state: flowState, go, jump }, view, '/pro', map, undefined, proStateRoutes as Record<string, string>);
+    // Preserve local sub-flows (many Guardião screens share the same route).
+    const clusters: Record<string, GuardiaoState[]> = {
+        [ViewState.PRO_HOME]: ['START', 'DASHBOARD'],
+        [ViewState.PRO_FINANCE]: ['FINANCE_OVERVIEW', 'FINANCE_DETAILS', 'FINANCIAL_DASHBOARD'],
+        [ViewState.PRO_OPPORTUNITIES]: ['VAGAS_LIST', 'VAGA_DETAILS', 'VAGA_APPLY'],
+        [ViewState.PRO_PATIENTS]: ['PATIENTS_LIST', 'PATIENT_PROFILE', 'PATIENT_RECORDS', 'PATIENT_PLAN', 'VIDEO_PREP', 'VIDEO_SESSION', 'CUSTOM_INTERVENTION'],
+        [ViewState.PRO_PATIENT_DETAILS]: ['PATIENT_PROFILE', 'PATIENT_RECORDS', 'PATIENT_PLAN', 'VIDEO_PREP', 'VIDEO_SESSION', 'CUSTOM_INTERVENTION'],
+        [ViewState.PRO_MARKETPLACE]: ['ESCAMBO_MARKET', 'ESCAMBO_PROPOSE', 'ESCAMBO_TRADE', 'ESCAMBO_CONFIRM', 'ALQUIMIA_CREATE'],
+        [ViewState.PRO_AGENDA]: ['AGENDA_VIEW', 'AGENDA_EDIT', 'AGENDA_CONFIRM'],
+        [ViewState.PRO_NETWORK]: ['TRIBE_PRO', 'CHAT_LIST', 'CHAT_ROOM', 'TRIBE_CHAT'],
+    };
+    useFlowSync({ state: flowState, go, jump }, view, '/pro', map, clusters, proStateRoutes as Record<string, string>);
 
     // Initial load and re-fetch when user.id changes
     useEffect(() => {

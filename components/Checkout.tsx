@@ -44,7 +44,7 @@ export const CartDrawer: React.FC<{
                         <h4 className="text-[10px] font-bold uppercase tracking-widest text-nature-400 px-2 flex items-center gap-2 flex-wrap"><Package size={12}/> Entrega Física</h4>
                         {physicalItems.map(item => (
                             <div key={item.id} className="bg-white p-4 rounded-3xl border border-nature-100/80 flex items-center gap-4 shadow-sm group">
-                                <img src={item.image} className="w-16 h-16 rounded-2xl object-cover shrink-0" />
+                                <img src={item.image} className="w-16 h-16 rounded-2xl object-cover shrink-0" alt={item.name || 'Item'} />
                                 <div className="flex-1 min-w-0">
                                     <h4 className="font-bold text-nature-900 text-xs truncate break-words line-clamp-2 leading-tight">{item.name}</h4>
                                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">R$ {(item.price || 0).toFixed(2)}</p>
@@ -61,7 +61,7 @@ export const CartDrawer: React.FC<{
                         {digitalItems.map(item => (
                             <div key={item.id} className="bg-white p-4 rounded-3xl border border-nature-100/80 flex items-center gap-4 shadow-sm group">
                                 <div className="w-16 h-16 rounded-2xl overflow-hidden relative shrink-0">
-                                    <img src={item.image} className="w-full h-full object-cover opacity-80" />
+                                    <img src={item.image} className="w-full h-full object-cover opacity-80" alt={item.name || 'Item'} />
                                     <div className="absolute inset-0 bg-indigo-900/10"></div>
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -199,7 +199,7 @@ export const CheckoutScreen: React.FC<{
                 <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-nature-100 space-y-4">
                     {items.map(item => (
                         <div key={item.id} className="flex gap-4 items-center">
-                            <img src={item.image} className="w-16 h-16 rounded-2xl object-cover bg-nature-50 shrink-0"/>
+                            <img src={item.image} className="w-16 h-16 rounded-2xl object-cover bg-nature-50 shrink-0" alt={item.name || 'Item'} />
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-bold text-sm text-nature-900 break-words line-clamp-2 leading-snug">{item.name}</h4>
                                 <p className="text-[10px] text-nature-400 uppercase font-bold tracking-tighter sm:tracking-widest">{item.type === 'physical' ? 'Entrega Física' : 'Digital / Serviço'}</p>
@@ -264,7 +264,7 @@ export const CheckoutScreen: React.FC<{
                 {method === 'pix' ? (
                      <div className="bg-white p-8 rounded-[2.5rem] border border-nature-100 shadow-sm text-center">
                          <div className="w-48 h-48 bg-nature-50 mx-auto rounded-2xl mb-4 flex items-center justify-center">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=viva360-pix-simulado" className="w-40 h-40 mix-blend-multiply opacity-80" />
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=viva360-pix-simulado" className="w-40 h-40 mix-blend-multiply opacity-80" alt="QR Code Pix" />
                          </div>
                          <p className="text-xs text-nature-500 max-w-[200px] mx-auto">O código expira em 30 minutos. A liberação é imediata.</p>
                      </div>

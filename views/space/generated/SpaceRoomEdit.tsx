@@ -108,7 +108,7 @@ export default function SpaceRoomEdit() {
             
             <div className="space-y-6 px-4 pb-24">
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm text-center relative overflow-hidden group">
-                    <img src={imagePreview || initialImage} className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700"/>
+                    <img src={imagePreview || initialImage} className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700" alt="" />
                     <div className="absolute inset-0 bg-nature-900/30"></div>
                     <div className="relative z-10 py-8">
                         <button onClick={handleChangePhoto} className="bg-white/20 backdrop-blur-md border border-white/30 text-white px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest flex items-center gap-2 mx-auto hover:bg-white/30 transition-all">
