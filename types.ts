@@ -298,6 +298,10 @@ export interface SpaceRoom {
   nextSession?: string;
   generatedRevenue?: number;
   image?: string; // Added for mock visuals
+  // UI expects these fields in multiple Santuário flows; keep optional for backward compatibility.
+  imageUrl?: string;
+  capacity?: number;
+  description?: string;
 }
 
 // Add Transaction interface

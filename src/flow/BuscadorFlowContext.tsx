@@ -6,6 +6,7 @@ import { Professional, Product } from '../../types';
 import { api } from '../../services/api';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
+import { isInAppMuted } from '../utils/inAppMute';
 
 // Define Context State
 interface FlowContextState extends BaseFlowState<BuscadorState> {
@@ -153,8 +154,11 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const reset = () => dispatch({ type: 'RESET' });
     const selectProfessional = (id: string | null) => dispatch({ type: 'SELECT_PROFESSIONAL', payload: id });
     const selectDate = (date: Date | null) => dispatch({ type: 'SELECT_DATE', payload: date });
-    const notify = (title: string, message: string, type: 'success' | 'info' | 'error' = 'success') => 
+    const notify = (title: string, message: string, type: 'success' | 'info' | 'error' = 'success') => {
+        // Retiro Offline silences in-app notifications (toasts/ritual cards) while active.
+        if (isInAppMuted()) return;
         dispatch({ type: 'SHOW_RITUAL', payload: { title, message, type } });
+    };
 
     return (
         <BuscadorFlowContext.Provider value={{ 

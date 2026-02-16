@@ -4,6 +4,7 @@ import { supabase, isMockMode } from '../../lib/supabase';
 import { api } from '../../services/api';
 import { Notification } from '../../types'; // Adjust path if needed
 import { ZenToast } from '../../components/Common';
+import { isInAppMuted, onInAppMuteChange } from '../utils/inAppMute';
 
 interface NotificationContextType {
     notifications: Notification[];
@@ -24,6 +25,7 @@ export const useNotifications = () => useContext(NotificationContext);
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [user, setUser] = useState<any>(null);
+    const [muteNonce, setMuteNonce] = useState(0);
 
     // Initial Load & Auth Check
     useEffect(() => {
@@ -43,9 +45,14 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return () => subscription.unsubscribe();
     }, []);
 
+    useEffect(() => {
+        return onInAppMuteChange(() => setMuteNonce((n) => n + 1));
+    }, []);
+
     // Realtime Subscription
     useEffect(() => {
         if (!user || isMockMode) return;
+        if (isInAppMuted()) return;
 
         // Fetch initial
         const fetchNotes = async () => {
@@ -83,7 +90,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [user]);
+    }, [user, muteNonce]);
 
     const markAsRead = async (id: string) => {
         // Optimistic update

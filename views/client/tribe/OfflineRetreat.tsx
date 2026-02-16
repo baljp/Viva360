@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Moon, Sun, BellOff, ShieldAlert, ChevronLeft, VolumeX, Sparkles } from 'lucide-react';
 import { api } from '../../../services/api';
+import { clearInAppMute, getInAppMuteUntil, setInAppMuteUntil } from '../../../src/utils/inAppMute';
 
 export const OfflineRetreat: React.FC<{ flow: any }> = ({ flow }) => {
     const [isActive, setIsActive] = useState(false);
     const [duration, setDuration] = useState(60); // minutes
     const [timeLeft, setTimeLeft] = useState(duration * 60);
+
+    // Hydrate from persisted mute window so retreat survives navigation/refresh.
+    useEffect(() => {
+        const until = getInAppMuteUntil();
+        if (!until || until <= Date.now()) return;
+        const seconds = Math.max(0, Math.floor((until - Date.now()) / 1000));
+        setIsActive(true);
+        setTimeLeft(seconds);
+    }, []);
 
     useEffect(() => {
         let timer: any;
@@ -15,6 +25,7 @@ export const OfflineRetreat: React.FC<{ flow: any }> = ({ flow }) => {
             }, 1000);
         } else if (timeLeft === 0) {
             setIsActive(false);
+            clearInAppMute();
             // Award +50 Karma for completing retreat
             api.tribe.syncVibration('self', 50).catch(err => console.error("Failed to award retreat karma", err));
             flow.notify("Retiro Concluído", "Sua energia foi renovada. Bem-vindo de volta!", "success");
@@ -30,10 +41,13 @@ export const OfflineRetreat: React.FC<{ flow: any }> = ({ flow }) => {
 
     const handleToggle = () => {
         if (!isActive) {
+            const until = Date.now() + duration * 60 * 1000;
             setIsActive(true);
+            setInAppMuteUntil(until);
             setTimeLeft(duration * 60);
         } else {
             setIsActive(false);
+            clearInAppMute();
         }
     };
 
