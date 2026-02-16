@@ -3,6 +3,7 @@ import path from 'path';
 import { transitions } from '../src/flow/types';
 import { guardiaoTransitions } from '../src/flow/guardiaoTypes';
 import { santuarioTransitions } from '../src/flow/santuarioTypes';
+import { flowRegistry } from '../src/flow/registry';
 
 type TransitionMap = Record<string, string[]>;
 type Profile = 'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO';
@@ -16,6 +17,7 @@ type MatrixEntry = {
   proximaTelaEsperada: string;
   endpointsTocados: string[];
   navegacaoMinima: string[];
+  flowIds: string[];
 };
 
 const rolePrefix: Record<Profile, string> = {
@@ -91,6 +93,17 @@ const inferEndpoints = (profile: Profile, state: string, nextState: string) => {
 };
 
 const entries: MatrixEntry[] = [];
+const flowByProfileAndScreen = new Map<string, string[]>();
+
+for (const flow of flowRegistry) {
+  const profile = flow.profile as Profile;
+  for (const screen of flow.screens) {
+    const key = `${profile}:${screen}`;
+    const current = flowByProfileAndScreen.get(key) || [];
+    if (!current.includes(flow.id)) current.push(flow.id);
+    flowByProfileAndScreen.set(key, current);
+  }
+}
 
 for (const domain of transitionMaps) {
   Object.entries(domain.transitions).forEach(([state, nextStates]) => {
@@ -104,6 +117,7 @@ for (const domain of transitionMaps) {
         proximaTelaEsperada: nextState,
         endpointsTocados: inferEndpoints(domain.profile, state, nextState),
         navegacaoMinima: ['Voltar', 'Fechar'],
+        flowIds: flowByProfileAndScreen.get(`${domain.profile}:${state}`) || [],
       });
     });
   });
@@ -137,12 +151,12 @@ const header = [
   `Entradas: ${report.totalEntries}`,
   `Telas unicas: ${report.totalScreens}`,
   '',
-  '| Perfil | Tela | Botao(s) visivel(eis) | Acao esperada | Proxima tela | Endpoint(s) |',
-  '|---|---|---|---|---|---|',
+  '| Perfil | Tela | Botao(s) visivel(eis) | Acao esperada | Proxima tela | Endpoint(s) | Flow(s) |',
+  '|---|---|---|---|---|---|---|',
 ];
 
 const rows = entries.map((entry) =>
-  `| ${entry.profile} | ${entry.tela} | ${entry.botoesVisiveis.join(', ')} | ${entry.acaoEsperada} | ${entry.proximaTelaEsperada} | ${entry.endpointsTocados.join(', ')} |`,
+  `| ${entry.profile} | ${entry.tela} | ${entry.botoesVisiveis.join(', ')} | ${entry.acaoEsperada} | ${entry.proximaTelaEsperada} | ${entry.endpointsTocados.join(', ')} | ${entry.flowIds.join(', ')} |`,
 );
 
 fs.writeFileSync(outMd, `${header.join('\n')}\n${rows.join('\n')}\n`, 'utf8');

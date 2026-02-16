@@ -1,14 +1,17 @@
 
 import { createClient } from '@supabase/supabase-js';
+import { parseAllowedOrigins, resolveOAuthRedirectPolicy } from './oauthRedirectPolicy';
 
 // Tenta pegar das variáveis de ambiente com segurança
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const appMode = import.meta.env.VITE_APP_MODE;
 const configuredAuthRedirect = import.meta.env.VITE_SUPABASE_AUTH_REDIRECT_URL;
+const oauthAllowedOriginsRaw = import.meta.env.VITE_OAUTH_ALLOWED_ORIGINS;
 const isTest = import.meta.env.MODE === 'test';
+const isProdBuild = import.meta.env.PROD;
 const explicitTestMode = String(import.meta.env.VITE_ENABLE_TEST_MODE || '').toLowerCase() === 'true';
-const testModeEnabled = explicitTestMode || isTest;
+const testModeEnabled = !isProdBuild && (explicitTestMode || isTest);
 const normalizeMode = (value: string): 'MOCK' | 'DEMO' | 'PROD' | '' => {
     const normalized = value.trim().toLowerCase();
     if (!normalized) return '';
@@ -22,6 +25,8 @@ const normalizeMode = (value: string): 'MOCK' | 'DEMO' | 'PROD' | '' => {
 };
 const explicitMode = normalizeMode(String(appMode || ''));
 const isBrowser = typeof window !== 'undefined';
+const runtimeOrigin = isBrowser ? window.location.origin : 'http://localhost:5173';
+const oauthAllowedOrigins = parseAllowedOrigins(oauthAllowedOriginsRaw);
 
 const isLocalHostRuntime = () => {
     if (!isBrowser) return true;
@@ -30,6 +35,7 @@ const isLocalHostRuntime = () => {
 };
 
 const resolveAppMode = (): 'PROD' | 'MOCK' | 'DEMO' => {
+    if (isProdBuild) return 'PROD';
     if (!isLocalHostRuntime()) return 'PROD';
     if (explicitMode === 'DEMO') return 'DEMO';
     // MOCK mode is only allowed with explicit test flag.
@@ -43,6 +49,7 @@ const resolveAppMode = (): 'PROD' | 'MOCK' | 'DEMO' => {
 // Determina o modo da aplicação
 export const APP_MODE = resolveAppMode();
 export const TEST_MODE_ENABLED = testModeEnabled;
+export const PROD_BUILD_LOCKED = isProdBuild;
 
 // Export flag para a API saber se deve usar dados reais ou simulados
 export const isMockMode = APP_MODE === 'MOCK' && isLocalHostRuntime() && TEST_MODE_ENABLED;
@@ -52,69 +59,49 @@ export const isDemoMode = APP_MODE === 'DEMO';
 export const envStatus = {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,
+    hasOAuthAllowlist: oauthAllowedOrigins.length > 0,
     mode: APP_MODE,
     testModeEnabled: TEST_MODE_ENABLED,
     urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 8) + '...' : 'undefined'
 };
 
-const safeParseUrl = (value?: string): URL | null => {
-    if (!value) return null;
-    try {
-        return new URL(value);
-    } catch {
-        return null;
-    }
-};
-
 export const getOAuthRedirectUrl = (): string => {
     if (APP_MODE === 'MOCK') {
-        if (typeof window !== 'undefined') {
-            return `${window.location.origin}/login`;
-        }
-        return 'http://localhost:5173/login';
+        return `${runtimeOrigin}/login`;
     }
 
-    const parsedCustom = safeParseUrl(configuredAuthRedirect);
-    if (parsedCustom) return parsedCustom.toString();
-
-    if (typeof window !== 'undefined') {
-        return `${window.location.origin}/login`;
-    }
-
-    return 'http://localhost:5173/login';
+    const result = resolveOAuthRedirectPolicy({
+        configuredRedirect: configuredAuthRedirect,
+        currentOrigin: runtimeOrigin,
+        allowedOrigins: oauthAllowedOrigins,
+        defaultPath: '/login',
+        enforceSameOrigin: true,
+        productionRuntime: APP_MODE === 'PROD',
+    });
+    return result.redirectUrl;
 };
 
 export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } => {
     const issues: string[] = [];
-    const redirectTo = getOAuthRedirectUrl();
-    const parsedRedirect = safeParseUrl(redirectTo);
-
-    if (!parsedRedirect) {
-        issues.push('VITE_SUPABASE_AUTH_REDIRECT_URL inválida.');
-    } else if (!parsedRedirect.pathname.startsWith('/login')) {
-        issues.push('Redirect OAuth deve apontar para /login.');
-    }
+    const policy = resolveOAuthRedirectPolicy({
+        configuredRedirect: configuredAuthRedirect,
+        currentOrigin: runtimeOrigin,
+        allowedOrigins: oauthAllowedOrigins,
+        defaultPath: '/login',
+        enforceSameOrigin: true,
+        productionRuntime: APP_MODE === 'PROD',
+    });
+    issues.push(...policy.issues);
 
     if (APP_MODE === 'PROD') {
         if (!supabaseUrl || !supabaseAnonKey) {
             issues.push('VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY são obrigatórias em PROD.');
         }
-
-        if (typeof window !== 'undefined') {
-            const currentOrigin = window.location.origin;
-            const redirectOrigin = parsedRedirect?.origin || '';
-            const isLocalhost = currentOrigin.includes('localhost');
-
-            if (!isLocalhost && redirectOrigin && redirectOrigin !== currentOrigin) {
-                issues.push(`Origem atual (${currentOrigin}) difere da origem do redirect (${redirectOrigin}).`);
-            }
+        if (!configuredAuthRedirect) {
+            issues.push('VITE_SUPABASE_AUTH_REDIRECT_URL é obrigatória em PROD.');
         }
-    }
-
-    if (APP_MODE !== 'MOCK' && typeof window !== 'undefined' && parsedRedirect) {
-        const currentOrigin = window.location.origin;
-        if (parsedRedirect.origin !== currentOrigin) {
-            issues.push(`Redirect OAuth deve manter a mesma origem da aplicação (${currentOrigin}).`);
+        if (oauthAllowedOrigins.length === 0) {
+            issues.push('VITE_OAUTH_ALLOWED_ORIGINS deve listar origens permitidas em PROD.');
         }
     }
 

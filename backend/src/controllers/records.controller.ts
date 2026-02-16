@@ -24,6 +24,9 @@ const normalizeStatus = (value?: string | null) => String(value || '').trim().to
 const CONSENT_LINK_TYPE = 'patient';
 const ACTIVE_CONSENT_STATUSES = new Set(['ACTIVE', 'ACCEPTED']);
 const STRICT_RECORD_CONSENT = String(process.env.STRICT_RECORD_CONSENT || '').toLowerCase() === 'true';
+const mockConsentStore = new Map<string, 'ACTIVE' | 'REVOKED'>();
+
+const consentKey = (patientId: string, professionalId: string) => `${patientId}::${professionalId}`;
 
 const hasLegacyProfessionalRelationship = async (patientId: string, professionalId: string) => {
     const existing = await prisma.record.findFirst({
@@ -53,7 +56,16 @@ const isProfessionalRoleProfile = async (profileId: string) => {
     return roles.has('PROFESSIONAL');
 };
 
-const hasActiveConsentForRecord = async (patientId: string, professionalId: string) => {
+const hasActiveConsentForRecord = async (
+    patientId: string,
+    professionalId: string,
+    opts?: { mockRuntime?: boolean },
+) => {
+    if (opts?.mockRuntime) {
+        if (!STRICT_RECORD_CONSENT) return true;
+        return mockConsentStore.get(consentKey(patientId, professionalId)) === 'ACTIVE';
+    }
+
     const consent = await prisma.profileLink.findUnique({
         where: {
             source_id_target_id_type: {
@@ -132,8 +144,8 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
 
     const { patientId, content, type } = createRecordSchema.parse(req.body || {});
 
-    if (!mockRuntime && patientId !== proId) {
-        const consentGranted = await hasActiveConsentForRecord(patientId, proId);
+    if ((STRICT_RECORD_CONSENT || !mockRuntime) && patientId !== proId) {
+        const consentGranted = await hasActiveConsentForRecord(patientId, proId, { mockRuntime });
         if (!consentGranted) {
             return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente não concedeu consentimento para este prontuário.' });
         }
@@ -200,8 +212,8 @@ export const listNotes = asyncHandler(async (req: Request, res: Response) => {
     if (userRole === 'CLIENT' && targetPatientId !== requestorId) {
         return res.status(403).json({ error: 'Sem permissão para acessar prontuário de outra pessoa.' });
     }
-    if (!mockRuntime && userRole === 'PROFESSIONAL' && targetPatientId !== requestorId) {
-        const consentGranted = await hasActiveConsentForRecord(targetPatientId, requestorId);
+    if ((STRICT_RECORD_CONSENT || !mockRuntime) && userRole === 'PROFESSIONAL' && targetPatientId !== requestorId) {
+        const consentGranted = await hasActiveConsentForRecord(targetPatientId, requestorId, { mockRuntime });
         if (!consentGranted) {
             return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente não concedeu consentimento para este prontuário.' });
         }
@@ -235,6 +247,7 @@ export const updateNote = asyncHandler(async (req: Request, res: Response) => {
     const actorId = String((req as any).user?.userId || '').trim();
     const userRole = normalizeRole((req as any).user?.role);
     const recordId = String(req.params?.recordId || '').trim();
+    const mockRuntime = isMockMode();
     if (!actorId) return res.status(401).json({ error: 'Unauthorized' });
     if (userRole !== 'PROFESSIONAL') {
         return res.status(403).json({ error: 'Apenas guardiões podem editar prontuário.' });
@@ -251,8 +264,8 @@ export const updateNote = asyncHandler(async (req: Request, res: Response) => {
     if (existing.professional_id !== actorId) {
         return res.status(403).json({ error: 'Sem permissão para editar este registro.' });
     }
-    if (existing.patient_id !== actorId) {
-        const consentGranted = await hasActiveConsentForRecord(existing.patient_id, actorId);
+    if ((STRICT_RECORD_CONSENT || !mockRuntime) && existing.patient_id !== actorId) {
+        const consentGranted = await hasActiveConsentForRecord(existing.patient_id, actorId, { mockRuntime });
         if (!consentGranted) {
             return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente revogou ou não concedeu consentimento.' });
         }
@@ -302,6 +315,9 @@ export const grantAccess = asyncHandler(async (req: Request, res: Response) => {
     await AuditService.logAccess(patientId, `grant:${professionalId}`, 'GRANT_ACCESS', 'SUCCESS');
 
     if (mockRuntime) {
+        if (STRICT_RECORD_CONSENT) {
+            mockConsentStore.set(consentKey(patientId, professionalId), 'ACTIVE');
+        }
         return res.json({
             success: true,
             message: `Access granted to ${professionalId}`,
@@ -356,6 +372,9 @@ export const revokeAccess = asyncHandler(async (req: Request, res: Response) => 
     await AuditService.logAccess(patientId, `revoke:${professionalId}`, 'REVOKE_ACCESS', 'SUCCESS');
 
     if (mockRuntime) {
+        if (STRICT_RECORD_CONSENT) {
+            mockConsentStore.set(consentKey(patientId, String(professionalId)), 'REVOKED');
+        }
         return res.json({
             success: true,
             message: `Access revoked from ${professionalId}`,

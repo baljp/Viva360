@@ -225,7 +225,6 @@ export const screenMap: any = {
         EVENTS_MANAGE: SpaceEventsManager, 
         EVENT_CREATE: SpaceEventCreate,
         RETREATS_MANAGE: SpaceRetreatsManager,
-        SERVICE_EVALUATION: ServiceEvaluation,
         VAGAS_LIST: SpaceRecruitment,
         VAGA_CREATE: SpaceRecruitment,
         VAGA_CANDIDATES: SpaceRecruitment,

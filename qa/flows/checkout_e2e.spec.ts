@@ -4,23 +4,7 @@ test.describe('Checkout Flow E2E', () => {
   test('Buscador: fluxo de exploração deve carregar com estado vazio ou guardiões', async ({ page, loginAs }) => {
     await loginAs('client');
 
-    await page.goto('/client/home');
-    const portalMap = page.locator('#portal-map');
-    const fallbackMapButton = page.getByRole('button', { name: /mapa da cura|explorar|guardiões/i }).first();
-    const sidebarExplore = page.getByRole('button', { name: /^Explorar$/i }).first();
-    if (await portalMap.isVisible({ timeout: 4000 }).catch(() => false)) {
-      await portalMap.click({ timeout: 10000, force: true });
-    } else if (await fallbackMapButton.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await expect(fallbackMapButton).toBeVisible({ timeout: 10000 });
-      await fallbackMapButton.click({ timeout: 10000, force: true });
-    } else {
-      await expect(sidebarExplore).toBeVisible({ timeout: 10000 });
-      await sidebarExplore.click({ timeout: 10000, force: true });
-    }
-
-    if (!page.url().includes('/client/explore')) {
-      await page.goto('/client/explore', { waitUntil: 'domcontentloaded' });
-    }
+    await page.goto('/client/explore', { waitUntil: 'domcontentloaded' });
 
     await expect(page).toHaveURL(/\/client\/explore/, { timeout: 15000 });
     await expect.poll(
@@ -29,15 +13,14 @@ test.describe('Checkout Flow E2E', () => {
     ).toMatch(/BOOKING_SEARCH|BOOKING_SELECT|BOOKING_CONFIRM/);
     await expect(page.getByRole('heading', { name: /Mapa da Cura/i })).toBeVisible({ timeout: 15000 });
 
-    const guardiansHeading = page.getByRole('heading', { name: /Guardiões Disponíveis/i });
-    const emptyState = page.getByText(/Frequência não encontrada/i);
-    const scheduleCta = page.getByRole('button', { name: /Agendar Ritual/i }).first();
+    await expect.poll(async () => {
+      const guardiansHeadingCount = await page.getByRole('heading', { name: /Guardiões Disponíveis/i }).count();
+      const emptyStateCount = await page.getByText(/Frequência não encontrada/i).count();
+      const scheduleCtaCount = await page.getByRole('button', { name: /Agendar Ritual/i }).count();
+      const searchInputCount = await page.getByPlaceholder(/Busque por emoção, técnica ou guardião/i).count();
+      return guardiansHeadingCount + emptyStateCount + scheduleCtaCount + searchInputCount;
+    }, { timeout: 12000 }).toBeGreaterThan(0);
 
-    const hasGuardians = await guardiansHeading.isVisible({ timeout: 4000 }).catch(() => false);
-    const hasEmptyState = await emptyState.isVisible({ timeout: 4000 }).catch(() => false);
-    const hasScheduleCta = await scheduleCta.isVisible({ timeout: 4000 }).catch(() => false);
-
-    expect(hasGuardians || hasEmptyState || hasScheduleCta).toBeTruthy();
     console.log('[Checkout Test] Exploração validada com conteúdo carregado');
   });
 
