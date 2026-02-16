@@ -46,7 +46,7 @@ const spaceStateRoutes: Partial<Record<SantuarioState, string>> = {
 };
 
 export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void, onLogout?: () => void }> = ({ user, view, setView, onLogout }) => {
-    const { state: flowState, go, back, reset, refreshData } = useSantuarioFlow();
+    const { state: flowState, go, jump, back, reset, refreshData } = useSantuarioFlow();
 
     // Sync Deep Linking
     const map: Record<string, SantuarioState> = {
@@ -59,7 +59,7 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
         [ViewState.SPACE_ROOMS]: 'ROOMS_STATUS',
         [ViewState.SPACE_TEAM]: 'PROS_LIST',
     };
-    useFlowSync({ state: flowState, go }, view, '/space', map, undefined, spaceStateRoutes as Record<string, string>);
+    useFlowSync({ state: flowState, go, jump }, view, '/space', map, undefined, spaceStateRoutes as Record<string, string>);
 
      // Initial Data Fetch
      useEffect(() => {

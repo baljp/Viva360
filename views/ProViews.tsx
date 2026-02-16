@@ -44,7 +44,7 @@ const proStateRoutes: Partial<Record<GuardiaoState, string>> = {
 export const ProViews: React.FC<{ 
     user: Professional, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onLogout?: () => void
 }> = ({ user, view, setView, updateUser, onLogout }) => {
-    const { state: flowState, go, back, reset, refreshData } = useGuardiaoFlow();
+    const { state: flowState, go, jump, back, reset, refreshData } = useGuardiaoFlow();
 
     // Sync Router View -> Flow State (Deep Linking Support)
     const map: Record<string, GuardiaoState> = {
@@ -57,7 +57,7 @@ export const ProViews: React.FC<{
         [ViewState.PRO_AGENDA]: 'AGENDA_VIEW',
         [ViewState.PRO_NETWORK]: 'TRIBE_PRO',
     };
-    useFlowSync({ state: flowState, go }, view, '/pro', map, undefined, proStateRoutes as Record<string, string>);
+    useFlowSync({ state: flowState, go, jump }, view, '/pro', map, undefined, proStateRoutes as Record<string, string>);
 
     // Initial load and re-fetch when user.id changes
     useEffect(() => {

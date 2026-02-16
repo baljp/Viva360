@@ -122,6 +122,7 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
 const SantuarioFlowContext = createContext<{
     state: SantuarioContextState;
     go: (target: SantuarioState) => void;
+    jump: (target: SantuarioState) => void;
     back: () => void;
     reset: () => void;
     refreshData: (userId: string) => Promise<void>;
@@ -180,6 +181,8 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         dispatch({ type: 'SET_LOADING', payload: false });
     };
 
+    const jump = (target: SantuarioState) => dispatch({ type: 'JUMP', payload: target });
+
     const back = () => dispatch({ type: 'BACK' });
     const reset = () => dispatch({ type: 'RESET' });
 
@@ -205,7 +208,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     };
 
     return (
-        <SantuarioFlowContext.Provider value={{ state, go, back, reset, refreshData, selectPro, selectRoom, selectPatient, selectEvent, notify }}>
+        <SantuarioFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectPro, selectRoom, selectPatient, selectEvent, notify }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard 
