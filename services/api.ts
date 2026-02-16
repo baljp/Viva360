@@ -656,7 +656,10 @@ export const api = {
             if (!oauthValidation.ok) {
                 // If Supabase is not configured, try backend-only Google OAuth
                 console.warn('[OAuth] Supabase config issues:', oauthValidation.issues);
-                throw new Error('Login com Google indisponível. Use e-mail e senha, ou configure VITE_SUPABASE_URL no painel do Vercel.');
+                const details = oauthValidation.issues.length
+                  ? `Config faltando: ${oauthValidation.issues.join(' | ')}`
+                  : 'Configuração OAuth/Supabase inválida.';
+                throw new Error(`Login com Google indisponível. ${details}`);
             }
 
             // Skip eligibility check when no email provided (Google will provide it)

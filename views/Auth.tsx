@@ -175,6 +175,8 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
             // Detect specific error types
             if (msg.includes('Invalid login') || msg.includes('Invalid credentials')) {
                 msg = '🔐 A harmonia falhou. Verifique seu e-mail e senha.';
+            } else if (msg.includes('CONFIG_DEGRADED') || msg.includes('Service temporarily unavailable') || msg.includes('FUNCTION_INVOCATION_FAILED')) {
+                msg = '⚠️ Serviço temporariamente indisponível. Tente novamente em instantes.';
             } else if (msg.includes('DNS') || msg.includes('NXDOMAIN') || msg.includes('network') || msg.includes('fetch')) {
                 msg = '⚠️ Erro de conexão. Verifique sua internet e as configurações do Supabase.';
             } else if (msg.includes('not confirmed') || msg.includes('Email not confirmed')) {
