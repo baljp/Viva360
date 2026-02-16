@@ -21,6 +21,7 @@ const ProViews = lazyWithRetry(() => import('./views/ProViews').then(module => (
 const SpaceViews = lazyWithRetry(() => import('./views/SpaceViews').then(module => ({ default: module.SpaceViews })), 'SpaceViews');
 const SettingsViews = lazyWithRetry(() => import('./views/SettingsViews').then(module => ({ default: module.SettingsViews })), 'SettingsViews');
 const RegistrationViews = lazyWithRetry(() => import('./views/Registration').then(module => ({ default: module.RegistrationViews })), 'RegistrationViews');
+const InviteLanding = lazyWithRetry(() => import('./views/InviteLanding'), 'InviteLanding');
 const CartDrawer = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.CartDrawer })), 'CartDrawer');
 const CheckoutScreen = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.CheckoutScreen })), 'CheckoutScreen');
 const SuccessScreen = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.SuccessScreen })), 'SuccessScreen');
@@ -189,7 +190,8 @@ const App: React.FC = () => {
                     }
                 } else {
                     // Block entry without login - redirect to login for all protected routes
-                    if (!PUBLIC_PATHS.includes(location.pathname)) {
+                    const isPublic = PUBLIC_PATHS.includes(location.pathname) || location.pathname.startsWith('/invite');
+                    if (!isPublic) {
                         navigate('/login');
                     }
                 }
@@ -266,8 +268,36 @@ const App: React.FC = () => {
         preloadRoleViews(role);
         console.log("DEBUG: handleLogin Role:", role);
         const homePath = resolveHomePath(role);
-        console.log("DEBUG: handleLogin Redirecting to:", homePath);
-        navigate(homePath);
+        let pendingToken: string | null = null;
+        let pendingDest: string | null = null;
+        try {
+            pendingToken = localStorage.getItem('viva360.pendingInviteToken');
+            pendingDest = localStorage.getItem('viva360.pendingInviteDestination');
+        } catch {
+            // ignore
+        }
+        const dest = pendingDest || homePath;
+        console.log("DEBUG: handleLogin Redirecting to:", dest);
+        navigate(dest);
+
+        // Accept pending invite post-login (best-effort, non-blocking).
+        (async () => {
+            if (!pendingToken) return;
+            try {
+                await api.invites.accept(pendingToken);
+                setToast({ title: 'Vínculo ativado', message: 'Seu chamado foi aceito e o vínculo foi concluído.' });
+            } catch (e) {
+                console.warn('Invite accept failed:', e);
+                setToast({ title: 'Convite', message: 'Não foi possível concluir o vínculo automaticamente.' });
+            } finally {
+                try {
+                    localStorage.removeItem('viva360.pendingInviteToken');
+                    localStorage.removeItem('viva360.pendingInviteDestination');
+                } catch {
+                    // ignore
+                }
+            }
+        })();
     };
 
     const handleUpdateUser = (u: any) => {
@@ -390,7 +420,7 @@ const App: React.FC = () => {
                     <Route path="/" element={<Navigate to="/login" replace />} />
                     <Route path="/login" element={<Auth onLogin={handleLogin} setView={setView} />} />
                     <Route path="/reset-password" element={<ResetPasswordView />} />
-                    <Route path="/invite/*" element={<Navigate to="/register/client?ref=invite" replace />} />
+                    <Route path="/invite/*" element={<InviteLanding />} />
 
                     <Route path="/register" element={<RegistrationViews view={ViewState.REGISTER} setView={setView} onRegister={async (u) => { 
                         const user = await api.auth.register(u); 

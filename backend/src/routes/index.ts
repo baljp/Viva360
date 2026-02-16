@@ -19,6 +19,7 @@ import oracleRoutes from './oracle.routes';
 import marketplaceRoutes from './marketplace.routes';
 import recordsRoutes from './records.routes';
 import usersRoutes from './users.routes';
+import invitesRoutes from './invites.routes';
 
 import { rateLimiter } from '../middleware/rateLimiter';
 import { swrMiddleware } from '../middleware/swr.middleware';
@@ -62,6 +63,7 @@ router.use('/journal', authenticateUser, journalRoutes);
 router.use('/clinical', authenticateUser, clinicalRoutes);
 router.use('/audit', authenticateUser, auditRoutes);
 router.use('/spaces', authenticateUser, spaceRoutes);
+router.use('/invites', invitesRoutes);
 
 // Admin
 router.use('/admin', authenticateUser, adminRoutes);
