@@ -193,7 +193,9 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         setError('');
 
         try {
-            const googleUser = await api.auth.loginWithGoogle(UserRole.CLIENT, email.trim().toLowerCase() || undefined);
+            const candidate = email.trim().toLowerCase();
+            const expected = candidate.includes('@') ? candidate : undefined;
+            const googleUser = await api.auth.loginWithGoogle(UserRole.CLIENT, expected);
             if (googleUser) {
                 onSubmit(googleUser);
             }
