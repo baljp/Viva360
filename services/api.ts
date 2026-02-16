@@ -17,7 +17,7 @@ const ORACLE_HISTORY_KEY = 'viva360.oracle.history';
 const ORACLE_MAX_CACHE = 40;
 const TEST_ACCOUNT_PASSWORD = '123456';
 const RETRYABLE_STATUS_CODES = new Set([408, 425, 429, 500, 502, 503, 504]);
-const IS_PROD_BUILD = import.meta.env.PROD;
+const IS_PROD_BUILD = import.meta.env.PROD || import.meta.env.MODE === 'production';
 
 const STRICT_TEST_ACCOUNTS: Record<string, { id: string; role: UserRole; name: string }> = {
     'client0@viva360.com': { id: 'client_0', role: UserRole.CLIENT, name: 'Buscador Teste' },

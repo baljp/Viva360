@@ -51,22 +51,22 @@ Cole estas no Vercel (uma por uma):
 #### 🔐 Supabase
 ```
 Nome: VITE_SUPABASE_URL
-Valor: https://oqhzisdjbtyxyarjeuhp.supabase.co
+Valor: https://SEU_PROJECT_REF.supabase.co
 ```
 
 ```
 Nome: SUPABASE_URL
-Valor: https://oqhzisdjbtyxyarjeuhp.supabase.co
+Valor: https://SEU_PROJECT_REF.supabase.co
 ```
 
 ```
 Nome: VITE_SUPABASE_ANON_KEY
-Valor: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xaHppc2RqYnR5eHlhcmpldWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1Mjc0MTIsImV4cCI6MjA4NTEwMzQxMn0.ae0_uaZQJT6y583NMuwyUUI9MUuY9zuRXcVdDgz6ExU
+Valor: <SUPABASE_ANON_KEY>
 ```
 
 ```
 Nome: SUPABASE_SERVICE_ROLE_KEY
-Valor: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xaHppc2RqYnR5eHlhcmpldWhwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTUyNzQxMiwiZXhwIjoyMDg1MTAzNDEyfQ.WzLMzrHgK_gsvt1I6kRaFJiQHpei9650nFKpqFQAHks
+Valor: <SUPABASE_SERVICE_ROLE_KEY>
 ```
 
 #### 🌐 OAuth Redirect (SUBSTITUA O DOMÍNIO!)
@@ -102,18 +102,18 @@ Valor: https://SEU-DOMINIO.vercel.app
 #### 🗄️ Database
 ```
 Nome: DATABASE_URL
-Valor: postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisdjbtyxyarjeuhp.supabase.co:5432/postgres
+Valor: postgresql://postgres:<DB_PASSWORD>@db.<PROJECT_REF>.supabase.co:5432/postgres
 ```
 
 ```
 Nome: DIRECT_URL
-Valor: postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisdjbtyxyarjeuhp.supabase.co:5432/postgres
+Valor: postgresql://postgres:<DB_PASSWORD>@db.<PROJECT_REF>.supabase.co:5432/postgres
 ```
 
 #### 🔑 Security
 ```
 Nome: JWT_SECRET
-Valor: I9Y60Mngk1MswjB9DYJi+ar+pcGkOYzmx9W+4cTndwE=
+Valor: <GERAR_COM_OPENSSL_RAND_BASE64_32>
 ```
 
 #### 📡 API
@@ -126,7 +126,7 @@ Valor: /api
 
 ### ETAPA 5: Configurar Supabase Redirect URLs
 
-1. Acesse: https://supabase.com/dashboard/project/oqhzisdjbtyxyarjeuhp
+1. Acesse: https://supabase.com/dashboard/project/SEU_PROJECT_REF
 2. Vá em: **Authentication** → **URL Configuration**
 3. Em "Redirect URLs", adicione:
    ```

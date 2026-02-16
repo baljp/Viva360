@@ -26,6 +26,8 @@ const runE2ECore = String(process.env.SKIP_E2E_CORE || '').toLowerCase() !== 'tr
 const checks: Check[] = [
   { id: 'matrix', label: 'Matriz Tela x Botao x Fluxo', command: 'npm run qa:matrix', required: true },
   { id: 'flow-registry', label: 'Validação do Flow Registry', command: 'npm run qa:validate-flow-registry', required: true },
+  { id: 'tracked-secrets', label: 'Auditoria de secrets versionados', command: 'npm run qa:audit-tracked-secrets', required: true },
+  { id: 'prod-bundle', label: 'Auditoria de bundle frontend em production', command: 'npm run build && npm run qa:audit-prod-bundle', required: true },
   { id: 'routes', label: 'Auditoria de rotas/imports', command: 'node scripts/audit_routes.cjs', required: true },
   { id: 'route-leaks', label: 'Auditoria de vazamento de rotas teste/mock', command: 'npm run qa:audit-route-leaks', required: true },
   { id: 'buttons', label: 'Auditoria de botoes sem handler', command: 'npx tsx scripts/audit_buttons.ts --strict', required: true },

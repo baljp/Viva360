@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import * as readline from 'readline';
 
-const SUPABASE_URL = 'https://oqhzisdjbtyxyarjeuhp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xaHppc2RqYnR5eHlhcmpldWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1Mjc0MTIsImV4cCI6MjA4NTEwMzQxMn0.ae0_uaZQJT6y583NMuwyUUI9MUuY9zuRXcVdDgz6ExU';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -16,6 +16,12 @@ function question(query: string): Promise<string> {
 
 async function testAuth() {
   console.log('\n🔐 TESTE DE AUTENTICAÇÃO\n');
+
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('❌ ERRO: defina SUPABASE_URL e SUPABASE_ANON_KEY (ou VITE_SUPABASE_*) no ambiente.');
+    rl.close();
+    process.exit(1);
+  }
   
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   
