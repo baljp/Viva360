@@ -4,6 +4,7 @@ import * as ChatController from '../controllers/chat.controller';
 const router = Router();
 
 router.get('/rooms', ChatController.listRooms);
+router.post('/rooms/join', ChatController.joinRoom);
 router.get('/rooms/:roomId/messages', ChatController.getRoomMessages);
 router.post('/rooms/:roomId/messages', ChatController.sendRoomMessage);
 

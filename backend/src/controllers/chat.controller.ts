@@ -86,3 +86,19 @@ export const sendRoomMessage = asyncHandler(async (req: Request, res: Response) 
     actionReceipt,
   });
 });
+
+export const joinRoom = asyncHandler(async (req: Request, res: Response) => {
+  const userId = (req as any).user?.userId;
+  const { type, contextId } = req.body || {};
+
+  const safeType = String(type || '').trim();
+  if (!safeType) return res.status(400).json({ error: 'type is required' });
+
+  // Restrict to known group-room types to avoid creating arbitrary rooms via API.
+  if (!['support_room', 'healing_circle'].includes(safeType)) {
+    return res.status(400).json({ error: 'unsupported room type' });
+  }
+
+  const chat = await chatService.getOrCreateContextRoom(userId, safeType, contextId);
+  return res.json({ chat });
+});

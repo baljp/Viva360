@@ -6,7 +6,7 @@ import { Sparkles, CalendarCheck, Home, History, CheckCircle2, X } from 'lucide-
 import confetti from 'canvas-confetti';
 
 export default function PaymentSuccess() {
-  const { go, reset } = useBuscadorFlow();
+  const { go, jump, reset, selectTribeRoomContext } = useBuscadorFlow();
 
   useEffect(() => {
     confetti({
@@ -19,6 +19,15 @@ export default function PaymentSuccess() {
 
   const today = new Date();
   const dateStr = today.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+  const postIntent = (() => {
+    try {
+      const intent = localStorage.getItem('viva360.post_checkout.intent');
+      const contextId = localStorage.getItem('viva360.post_checkout.contextId');
+      return { intent, contextId };
+    } catch {
+      return { intent: null, contextId: null };
+    }
+  })();
 
   return (
     <div className="min-h-screen bg-nature-950 flex flex-col items-center justify-center p-6 animate-in fade-in duration-700 relative overflow-hidden">
@@ -77,6 +86,26 @@ export default function PaymentSuccess() {
               >
                  <Home size={18} /> Voltar ao Core
               </button>
+              {postIntent.intent === 'healing_circle' && (
+                <button
+                  onClick={() => {
+                    try {
+                      localStorage.removeItem('viva360.post_checkout.intent');
+                      localStorage.removeItem('viva360.post_checkout.contextId');
+                    } catch {
+                      // ignore
+                    }
+                    selectTribeRoomContext({
+                      type: 'healing_circle',
+                      contextId: postIntent.contextId || undefined,
+                    });
+                    jump('TRIBE_INTERACTION');
+                  }}
+                  className="w-full py-5 bg-emerald-500 text-white rounded-[2rem] font-bold uppercase text-[10px] tracking-[0.3em] shadow-[0_15px_30px_rgba(0,0,0,0.3)] flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-emerald-400"
+                >
+                  <Sparkles size={18} /> Entrar no Círculo
+                </button>
+              )}
               <button 
                 onClick={() => go('PAYMENT_HISTORY')} 
                 className="w-full py-5 bg-white/10 text-white rounded-[2rem] border border-white/20 font-bold uppercase text-[10px] tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all backdrop-blur-md shadow-xl hover:bg-white/20"

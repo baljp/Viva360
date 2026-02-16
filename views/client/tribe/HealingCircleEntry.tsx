@@ -7,7 +7,7 @@ import { Users, Clock, MapPin, Sparkles, Heart, ChevronRight, ShieldCheck, Zap }
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
-    const { go, back } = useBuscadorFlow();
+    const { go, back, selectTribeRoomContext } = useBuscadorFlow();
     const [event, setEvent] = useState<Event | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -55,8 +55,14 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
 
     const handleJoin = () => {
         if (!event) return;
-        // In a real app, we'd add to cart or navigate to specialized booking
-        // For simplicity in this flow, we navigate to checkout with simulated "Circle" item
+        // Persist post-checkout intent so PaymentSuccess can offer a direct entry into the circle chat.
+        try {
+            localStorage.setItem('viva360.post_checkout.intent', 'healing_circle');
+            localStorage.setItem('viva360.post_checkout.contextId', String(event.id));
+        } catch {
+            // ignore
+        }
+        selectTribeRoomContext({ type: 'healing_circle', contextId: String(event.id) });
         go('CHECKOUT');
     };
 

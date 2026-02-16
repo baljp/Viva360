@@ -2,6 +2,16 @@ import prisma from '../lib/prisma';
 import { notificationEngine } from './notificationEngine.service';
 import { auditService } from './audit.service';
 import { profileLinkService } from './profileLink.service';
+import crypto from 'crypto';
+
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+function keyToUuid(key: string): string {
+  const hex = crypto.createHash('sha256').update(key).digest('hex').slice(0, 32);
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
 
 export class ChatService {
   /**
@@ -247,6 +257,72 @@ export class ChatService {
     return chats.find((chat) => {
       const participantIds = chat.participants.map((p) => p.profile_id);
       return participantIds.includes(profile1Id) && participantIds.includes(profile2Id);
+    });
+  }
+
+  /**
+   * Get or create a context-based group room and ensure the profile is joined.
+   * Used for Tribo "Sala de Apoio" and "Circulo de Cura" persistent chats.
+   */
+  async getOrCreateContextRoom(
+    profileId: string,
+    type: string,
+    contextId?: string
+  ): Promise<any> {
+    const normalizedContextId = (() => {
+      const raw = String(contextId || '').trim();
+      if (raw && isUuid(raw)) return raw;
+      if (raw) return keyToUuid(`viva360:${type}:${raw}`);
+      return keyToUuid(`viva360:${type}`);
+    })();
+
+    const existing = await prisma.chat.findFirst({
+      where: { type, context_id: normalizedContextId },
+      include: {
+        participants: {
+          include: {
+            profile: { select: { id: true, name: true, avatar: true, role: true } },
+          },
+        },
+      },
+    });
+
+    const chat = existing
+      ? existing
+      : await prisma.chat.create({
+          data: {
+            type,
+            context_id: normalizedContextId,
+            participants: { create: [{ profile_id: profileId }] },
+          },
+          include: {
+            participants: {
+              include: {
+                profile: { select: { id: true, name: true, avatar: true, role: true } },
+              },
+            },
+          },
+        });
+
+    const participant = await prisma.chatParticipant.findFirst({
+      where: { chat_id: chat.id, profile_id: profileId },
+    });
+    if (!participant) {
+      // Best-effort: unique constraint on (chat_id, profile_id) prevents dupes.
+      await prisma.chatParticipant
+        .create({ data: { chat_id: chat.id, profile_id: profileId } })
+        .catch(() => undefined);
+    }
+
+    return prisma.chat.findUnique({
+      where: { id: chat.id },
+      include: {
+        participants: {
+          include: {
+            profile: { select: { id: true, name: true, avatar: true, role: true } },
+          },
+        },
+      },
     });
   }
 }

@@ -175,6 +175,12 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
   },
 
   chat: {
+    joinRoom: async (payload: { type: 'support_room' | 'healing_circle'; contextId?: string }) => {
+      return await request('/chat/rooms/join', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
     listRooms: async (filters?: { contextType?: string; contextId?: string }) => {
       try {
         const query = new URLSearchParams();
