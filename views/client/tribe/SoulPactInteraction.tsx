@@ -4,6 +4,7 @@ import { PortalView, DynamicAvatar, ZenToast } from '../../../components/Common'
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Flame, Star, Users, Send, CheckCircle2, Zap, Heart, Wind, Sun, Moon, Leaf, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { api } from '../../../services/api';
 
 const PRE_MADE_PACTS = [
     { id: 'morning_sync', title: 'Sintonização Matinal', desc: 'Respirar juntos por 5 min ao acordar.', icon: Sun, color: 'text-amber-500', bg: 'bg-amber-50' },
@@ -32,6 +33,7 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
     const [selectedPact, setSelectedPact] = useState<any>(null);
     const [customPact, setCustomPact] = useState('');
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const [inviteLoading, setInviteLoading] = useState(false);
 
     const handleSelectPartner = (p: any) => {
         setSelectedPartner(p);
@@ -49,6 +51,23 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
 
     const handleSendPact = () => {
         setStep('SUCCESS');
+    };
+
+    const handleInviteTribo = async () => {
+        if (inviteLoading) return;
+        setInviteLoading(true);
+        try {
+            const invite = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' } as any);
+            const url = String((invite as any)?.url || window.location.origin);
+            const text = encodeURIComponent(
+                `🌿 Olá! Sinto um chamado para que você faça parte da minha Tribo no Viva360. Vamos trilhar um caminho de luz e sintonização juntos? 🌱\n\nAcesse aqui: ${url}`
+            );
+            window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+        } catch {
+            setToast({ title: 'Falha ao gerar convite', message: 'Não foi possível abrir o portal de convite agora.' });
+        } finally {
+            setInviteLoading(false);
+        }
     };
 
     return (
@@ -83,18 +102,15 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
                                     </button>
                                 ))}
                                 <button 
-                                    onClick={() => {
-                                        const url = window.location.origin;
-                                        const text = encodeURIComponent(`🌿 Olá! Sinto um chamado para que você faça parte da minha Tribo no Viva360. Vamos trilhar um caminho de luz e sintonização juntos? 🌱\n\nAcesse aqui: ${url}`);
-                                        window.open(`https://wa.me/?text=${text}`, '_blank');
-                                    }}
+                                    onClick={handleInviteTribo}
+                                    disabled={inviteLoading}
                                     className="col-span-2 bg-gradient-to-br from-indigo-50 to-white p-8 rounded-[3rem] border border-indigo-100 shadow-sm flex flex-col items-center justify-center gap-4 hover:shadow-lg transition-all active:scale-[0.98] group"
                                 >
                                     <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-md border border-indigo-50 group-hover:scale-110 transition-transform">
                                         <Plus size={32} className="text-indigo-500" />
                                     </div>
                                     <div className="text-center">
-                                        <span className="text-sm font-bold text-indigo-900 block mb-1">Ampliar o Chamado</span>
+                                        <span className="text-sm font-bold text-indigo-900 block mb-1">{inviteLoading ? 'Gerando Chamado...' : 'Ampliar o Chamado'}</span>
                                         <span className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Convidar novos membros para a tribo</span>
                                     </div>
                                 </button>

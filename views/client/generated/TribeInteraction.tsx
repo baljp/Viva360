@@ -53,6 +53,9 @@ export default function TribeInteraction() {
   const [inputText, setInputText] = useState("");
   const [myId, setMyId] = useState<string>('');
   const [room, setRoom] = useState<ApiChatRoom | null>(null);
+  const [isConnecting, setIsConnecting] = useState(true);
+  const [joinError, setJoinError] = useState<string | null>(null);
+  const [joinAttempt, setJoinAttempt] = useState(0);
   const pollRef = useRef<number | null>(null);
 
   const roomType: RoomType = (state.tribeRoomContext?.type || 'support_room') as RoomType;
@@ -99,23 +102,38 @@ export default function TribeInteraction() {
     let cancelled = false;
 
     const join = async () => {
+      setIsConnecting(true);
+      setJoinError(null);
       const result = await api.chat.joinRoom({ type: roomType, contextId: roomContextId });
       const chat = (result as any)?.chat as ApiChatRoom | undefined;
-      if (!chat || cancelled) return;
+      if (!chat || cancelled) {
+        if (!cancelled) {
+          setJoinError('Não foi possível abrir o portal agora. Tente novamente.');
+          setIsConnecting(false);
+        }
+        return;
+      }
       setRoom(chat);
       await loadMessages(chat.id);
 
       if (pollRef.current) window.clearInterval(pollRef.current);
       pollRef.current = window.setInterval(() => loadMessages(chat.id).catch(() => undefined), 4000) as any;
+      setIsConnecting(false);
     };
 
-    join().catch(() => undefined);
+    join().catch((e: any) => {
+      console.warn('Tribo room join failed', e);
+      if (!cancelled) {
+        setJoinError('Não foi possível abrir o portal agora. Tente novamente.');
+        setIsConnecting(false);
+      }
+    });
     return () => {
       cancelled = true;
       if (pollRef.current) window.clearInterval(pollRef.current);
       pollRef.current = null;
     };
-  }, [roomType, roomContextId]);
+  }, [roomType, roomContextId, joinAttempt]);
 
   const handleSend = () => {
       if (!room?.id) return;
@@ -167,6 +185,9 @@ export default function TribeInteraction() {
            <div className="flex-1">
                <h1 className="font-bold text-slate-900">{headerTitle}</h1>
                <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> {headerHint}</p>
+               {room?.id && !isConnecting && (
+                 <span data-testid="tribo-room-ready" className="sr-only">ready</span>
+               )}
            </div>
            <button onClick={() => go('SOUL_PACT')} className="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center hover:bg-amber-100 transition-colors" title="Pactos">
               <Handshake size={20} />
@@ -174,6 +195,27 @@ export default function TribeInteraction() {
        </header>
 
        <div className="flex-1 p-6 overflow-y-auto space-y-6 pb-32">
+           {isConnecting && (
+             <div className="bg-white border border-slate-100 rounded-2xl p-4 text-slate-500 text-xs font-medium italic">
+               Sincronizando sala...
+             </div>
+           )}
+           {joinError && (
+             <div className="bg-rose-50 border border-rose-100 rounded-2xl p-4 text-rose-700 text-xs font-bold uppercase tracking-widest flex items-center justify-between gap-3">
+               <span>{joinError}</span>
+               <button
+                 className="px-3 py-2 bg-white rounded-xl border border-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-widest"
+                 onClick={() => {
+                   setJoinError(null);
+                   setRoom(null);
+                   setMessages([]);
+                   setJoinAttempt((n) => n + 1);
+                 }}
+               >
+                 Tentar
+               </button>
+             </div>
+           )}
            {messages.map((msg) => (
              <div key={msg.id} className={`flex gap-4 ${msg.mine ? 'flex-row-reverse' : ''}`}>
                  <div className={`w-10 h-10 rounded-full flex-shrink-0 ${msg.avatar}`}></div>
@@ -205,8 +247,9 @@ export default function TribeInteraction() {
                {ENERGIES.map(e => (
                    <button 
                       key={e.id}
+                      disabled={isConnecting || !!joinError}
                       onClick={() => setSelectedEnergy(selectedEnergy === e.id ? null : e.id)}
-                      className={`flex-shrink-0 px-4 py-2 rounded-xl border flex items-center gap-2 transition-all ${selectedEnergy === e.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-100 text-slate-600 hover:border-indigo-200'}`}
+                      className={`flex-shrink-0 px-4 py-2 rounded-xl border flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed ${selectedEnergy === e.id ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-100 text-slate-600 hover:border-indigo-200'}`}
                    >
                        <e.icon size={16} className={selectedEnergy === e.id ? 'text-white' : e.color} />
                        <span className="text-xs font-bold whitespace-nowrap">{e.label}</span>
@@ -220,10 +263,17 @@ export default function TribeInteraction() {
                   value={selectedEnergy ? ENERGIES.find(e => e.id === selectedEnergy)?.msg : inputText}
                   onChange={e => !selectedEnergy && setInputText(e.target.value)}
                   readOnly={!!selectedEnergy}
+                  disabled={isConnecting || !!joinError}
                   placeholder="Compartilhe sua luz..." 
+                  onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (!isConnecting && !joinError) handleSend();
+                      }
+                  }}
                   className={`flex-1 bg-transparent border-none outline-none px-4 text-sm ${selectedEnergy ? 'text-indigo-600 font-medium italic' : ''}`} 
                />
-               <button onClick={handleSend} className="p-3 bg-indigo-600 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all"><Send size={18}/></button>
+               <button aria-label="Enviar mensagem" disabled={isConnecting || !!joinError} onClick={handleSend} className="p-3 bg-indigo-600 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"><Send size={18}/></button>
            </div>
        </div>
     </div>

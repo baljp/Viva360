@@ -16,6 +16,7 @@ interface SpaceRecruitmentProps {
 export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setView, user, vacancies, refreshData, flow }) => {
     const [showAddVacancy, setShowAddVacancy] = useState(false);
     const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const [inviteLoading, setInviteLoading] = useState(false);
 
     return (
         <>
@@ -45,16 +46,35 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
         
                 <div className="grid grid-cols-2 gap-4">
                     <button 
-                        onClick={() => {
-                            const url = window.location.origin;
-                            const text = encodeURIComponent(`🌿 Olá! Convido você a ser um Guardião no Viva360. Vamos expandir a cura juntos? 🌱\n\nAcesse aqui: ${url}`);
-                            window.open(`https://wa.me/?text=${text}`, '_blank');
+                        onClick={async () => {
+                            if (inviteLoading) return;
+                            setInviteLoading(true);
+                            try {
+                                const codeRes = await api.spaces.createInvite({ role: 'GUARDIAN', uses: 1 });
+                                const code = String((codeRes as any)?.code || '').trim();
+                                if (!code) {
+                                    setToast({ title: 'Falha ao gerar convite', message: 'Código inválido do servidor.' });
+                                    return;
+                                }
+
+                                const invite = await api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: code } as any);
+                                const url = String((invite as any)?.url || window.location.origin);
+                                const text = encodeURIComponent(
+                                  `🌿 Olá! Convido você a ser um Guardião no Viva360 e integrar nosso Santuário. Vamos expandir a cura juntos? 🌱\n\nAcesse aqui: ${url}\n\n(Código de backup: ${code})`
+                                );
+                                window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+                            } catch {
+                                setToast({ title: 'Falha ao gerar convite', message: 'Não foi possível abrir o portal de convite agora.' });
+                            } finally {
+                                setInviteLoading(false);
+                            }
                         }}
+                        disabled={inviteLoading}
                         className="bg-amber-50 p-6 rounded-[2.5rem] border border-amber-100 shadow-sm flex flex-col items-center justify-center gap-3 hover:bg-amber-100 transition-all group"
                     >
                         <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-amber-500 group-hover:scale-110 transition-transform"><Plus size={24}/></div>
                         <div className="text-center">
-                            <span className="text-[11px] font-bold text-amber-900 block">Ampliar Chamado</span>
+                            <span className="text-[11px] font-bold text-amber-900 block">{inviteLoading ? 'Gerando...' : 'Ampliar Chamado'}</span>
                             <span className="text-[9px] text-amber-600 font-bold uppercase tracking-widest">Convite Direto</span>
                         </div>
                     </button>
