@@ -9,7 +9,7 @@ const appMode = import.meta.env.VITE_APP_MODE;
 const configuredAuthRedirect = import.meta.env.VITE_SUPABASE_AUTH_REDIRECT_URL;
 const oauthAllowedOriginsRaw = import.meta.env.VITE_OAUTH_ALLOWED_ORIGINS;
 const isTest = import.meta.env.MODE === 'test';
-const isProdBuild = import.meta.env.PROD;
+const isProdBuild = import.meta.env.PROD || import.meta.env.MODE === 'production';
 const explicitTestMode = String(import.meta.env.VITE_ENABLE_TEST_MODE || '').toLowerCase() === 'true';
 const testModeEnabled = !isProdBuild && (explicitTestMode || isTest);
 const normalizeMode = (value: string): 'MOCK' | 'DEMO' | 'PROD' | '' => {

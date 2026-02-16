@@ -6,12 +6,12 @@ Cole estas variáveis no **Vercel Dashboard** → **Settings** → **Environment
 
 ### 🔐 SUPABASE (Obrigatório)
 ```
-VITE_SUPABASE_URL=https://oqhzisdjbtyxyarjeuhp.supabase.co
-SUPABASE_URL=https://oqhzisdjbtyxyarjeuhp.supabase.co
+VITE_SUPABASE_URL=https://SEU_PROJECT_REF.supabase.co
+SUPABASE_URL=https://SEU_PROJECT_REF.supabase.co
 
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xaHppc2RqYnR5eHlhcmpldWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1Mjc0MTIsImV4cCI6MjA4NTEwMzQxMn0.ae0_uaZQJT6y583NMuwyUUI9MUuY9zuRXcVdDgz6ExU
+VITE_SUPABASE_ANON_KEY=<SUPABASE_ANON_KEY>
 
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xaHppc2RqYnR5eHlhcmpldWhwIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTUyNzQxMiwiZXhwIjoyMDg1MTAzNDEyfQ.WzLMzrHgK_gsvt1I6kRaFJiQHpei9650nFKpqFQAHks
+SUPABASE_SERVICE_ROLE_KEY=<SUPABASE_SERVICE_ROLE_KEY>
 ```
 
 ### 🌐 OAUTH REDIRECT (Obrigatório para Google Login)
@@ -34,8 +34,8 @@ CORS_ORIGINS=https://SEU-DOMINIO.vercel.app
 
 ### 🗄️ BANCO DE DADOS (Backend)
 ```
-DATABASE_URL=postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisdjbtyxyarjeuhp.supabase.co:5432/postgres
-DIRECT_URL=postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisdjbtyxyarjeuhp.supabase.co:5432/postgres
+DATABASE_URL=postgresql://postgres:<DB_PASSWORD>@db.<PROJECT_REF>.supabase.co:5432/postgres
+DIRECT_URL=postgresql://postgres:<DB_PASSWORD>@db.<PROJECT_REF>.supabase.co:5432/postgres
 ```
 
 ### 🔑 JWT SECRET (Backend)

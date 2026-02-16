@@ -1,7 +1,7 @@
 const { Client } = require('pg');
 
-const projectRef = 'oqhzisdjbtyxyarjeuhp';
-const password = 'Elisaalencar1985';
+const projectRef = process.env.SUPABASE_PROJECT_REF || 'SEU_PROJECT_REF';
+const password = process.env.SUPABASE_DB_PASSWORD || '';
 
 async function test(connectionString, label) {
   console.log(`\n--- Testing ${label} ---`);
@@ -17,6 +17,11 @@ async function test(connectionString, label) {
 }
 
 async function run() {
+  if (!password) {
+    console.error('❌ Defina SUPABASE_DB_PASSWORD no ambiente para executar este script.');
+    process.exit(1);
+  }
+
   // Test 1: Standard Pooler URL (Transaction Mode)
   await test(`postgresql://postgres.${projectRef}:${password}@aws-1-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true`, 'Transaction Mode (Suffix)');
 

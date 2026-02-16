@@ -10,7 +10,8 @@ import './src/index.css'; // Global Design System
 const getIsProd = () => {
   try {
     const env = (import.meta as any).env;
-    return env ? env.PROD : false;
+    if (!env) return false;
+    return env.PROD === true || env.MODE === 'production';
   } catch (e) {
     return false;
   }

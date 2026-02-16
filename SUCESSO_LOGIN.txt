@@ -16,7 +16,7 @@
    ✅ JWT_SECRET gerado
 
 2. DATABASE_URL CONFIGURADA
-   ✅ Senha correta obtida: 207tAwUiYOcwxgIn
+   ✅ Senha correta obtida: <REDACTED>
    ✅ Connection string funcionando
    ✅ Prisma conectando ao banco
    ✅ Queries funcionando
@@ -82,11 +82,11 @@ Todas as variáveis já estão documentadas em:
 📄 VERCEL_ENV_VARS.md
 
 VARIÁVEIS OBRIGATÓRIAS (com valores corretos):
-✅ VITE_SUPABASE_URL=https://oqhzisdjbtyxyarjeuhp.supabase.co
+✅ VITE_SUPABASE_URL=https://SEU_PROJECT_REF.supabase.co
 ✅ VITE_SUPABASE_ANON_KEY=[chave configurada]
 ✅ SUPABASE_SERVICE_ROLE_KEY=[chave configurada]
-✅ DATABASE_URL=postgresql://postgres:207tAwUiYOcwxgIn@db...
-✅ JWT_SECRET=I9Y60Mngk1MswjB9DYJi+ar+pcGkOYzmx9W+4cTndwE=
+✅ DATABASE_URL=postgresql://postgres:<DB_PASSWORD>.<PROJECT_REF>.supabase.co:5432/postgres
+✅ JWT_SECRET=<GERAR_COM_OPENSSL_RAND_BASE64_32>
 ✅ VITE_SUPABASE_AUTH_REDIRECT_URL=[seu-dominio]/login
 
 IMPORTANTE: Atualize apenas o VITE_SUPABASE_AUTH_REDIRECT_URL
@@ -98,7 +98,7 @@ para o domínio do Vercel quando fizer deploy!
 
 Para ativar login com Google:
 
-1. Acesse: https://supabase.com/dashboard/project/oqhzisdjbtyxyarjeuhp
+1. Acesse: https://supabase.com/dashboard/project/SEU_PROJECT_REF
 2. Vá em: Authentication → Providers → Google
 3. Configure Client ID e Secret do Google Cloud
 4. Adicione redirect URLs:
@@ -133,7 +133,7 @@ PROBLEMA ORIGINAL:
 
 SOLUÇÃO APLICADA:
 ✅ Credenciais Supabase corretas em .env
-✅ DATABASE_URL com senha correta (207tAwUiYOcwxgIn)
+✅ DATABASE_URL com senha correta (<REDACTED>)
 ✅ Código de autenticação melhorado
 ✅ Auto-criação de perfil implementada
 ✅ Mensagens de erro claras

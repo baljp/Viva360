@@ -28,11 +28,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit tracked secrets
+        run: npm run qa:audit-tracked-secrets
+
       - name: Lint
         run: npm run lint
         
       - name: TypeScript Check (Frontend)
         run: npm run build # Vite build runs tsc
+
+      - name: Audit frontend production bundle
+        run: npm run qa:audit-prod-bundle
 
       - name: Performance Budget
         run: npm run perf:budget

@@ -22,7 +22,7 @@ console.log('   ⏱️  Aguardar: 2-5 minutos para o deploy finalizar\n');
 console.log('3️⃣  DATABASE_URL INCORRETA');
 console.log('   ❌ Problema: String de conexão com erro');
 console.log('   ✅ Solução: Verificar se está exatamente assim:');
-console.log('   postgresql://postgres:207tAwUiYOcwxgIn@db.oqhzisdjbtyxyarjeuhp.supabase.co:5432/postgres\n');
+console.log('   postgresql://postgres:<DB_PASSWORD>@db.<PROJECT_REF>.supabase.co:5432/postgres\n');
 
 console.log('4️⃣  SUPABASE REDIRECT URL NÃO CONFIGURADA');
 console.log('   ❌ Problema: URLs não adicionadas no Supabase');

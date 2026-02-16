@@ -1,6 +1,46 @@
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
 
+const REDACTED = '[REDACTED]';
+const sensitiveKeyPattern = /(password|secret|token|authorization|cookie|jwt|email|phone|cpf|ssn|content|note|anamnesis|record)/i;
+
+const sanitizeText = (input?: string) => {
+  const text = String(input || '');
+  if (!text) return '';
+  return text
+    .replace(/Bearer\s+[A-Za-z0-9._-]+/gi, `Bearer ${REDACTED}`)
+    .replace(/eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9._-]+\.[A-Za-z0-9._-]+/g, REDACTED)
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, REDACTED);
+};
+
+const sanitizePayload = (input: unknown, depth = 0): unknown => {
+  if (depth > 4) return REDACTED;
+  if (input == null) return input;
+
+  if (typeof input === 'string') {
+    return sanitizeText(input);
+  }
+
+  if (Array.isArray(input)) {
+    return input.map((item) => sanitizePayload(item, depth + 1));
+  }
+
+  if (typeof input === 'object') {
+    const value = input as Record<string, unknown>;
+    const next: Record<string, unknown> = {};
+    Object.keys(value).forEach((key) => {
+      if (sensitiveKeyPattern.test(key)) {
+        next[key] = REDACTED;
+        return;
+      }
+      next[key] = sanitizePayload(value[key], depth + 1);
+    });
+    return next;
+  }
+
+  return input;
+};
+
 export class AuditService {
   
   /**
@@ -11,10 +51,11 @@ export class AuditService {
    * @param status 'SUCCESS' or 'FAILURE'
    */
   static async logAccess(userId: string, resource: string, action: string, status: 'SUCCESS' | 'FAILURE' = 'SUCCESS', details?: string) {
+    const sanitizedDetails = sanitizeText(details);
     
     // 1. Mock Mode: Log to console
     if (isMockMode()) {
-      console.log(`[AUDIT] User: ${userId} | Action: ${action} | Resource: ${resource} | Status: ${status} | Details: ${details || ''}`);
+      console.log(`[AUDIT] User: ${userId} | Action: ${action} | Resource: ${resource} | Status: ${status} | Details: ${sanitizedDetails}`);
       return; 
     }
 
@@ -30,6 +71,7 @@ export class AuditService {
    * Log an event to the audit_events table (Event Sourcing Light)
    */
   async log(actorId: string, action: string, entityType: string, entityId: string, payload?: any): Promise<void> {
+    const sanitizedPayload = sanitizePayload(payload || {});
     if (isMockMode()) {
       console.log(`[AUDIT] Actor: ${actorId} | Action: ${action} | Entity: ${entityType}:${entityId}`);
       return;
@@ -42,12 +84,12 @@ export class AuditService {
           action,
           entity_type: entityType,
           entity_id: entityId,
-          payload: payload || {},
+          payload: sanitizedPayload as any,
         },
       });
     } catch (e) {
       // Fallback to console if table doesn't exist yet
-      console.log(`[AUDIT] Actor: ${actorId} | Action: ${action} | Entity: ${entityType}:${entityId}`, payload);
+      console.log(`[AUDIT] Actor: ${actorId} | Action: ${action} | Entity: ${entityType}:${entityId}`, sanitizedPayload);
     }
   }
 

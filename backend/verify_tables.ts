@@ -1,8 +1,13 @@
 import { Client } from 'pg';
 
-const connectionString = "postgresql://postgres:Elisaalencar1985@db.oqhzisdjbtyxyarjeuhp.supabase.co:5432/postgres";
+const connectionString = process.env.DATABASE_URL || '';
 
 async function listTables() {
+  if (!connectionString) {
+    console.error('❌ DATABASE_URL não definida no ambiente.');
+    process.exit(1);
+  }
+
   const client = new Client({
     connectionString,
     connectionTimeoutMillis: 10000,

@@ -1,15 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://oqhzisdjbtyxyarjeuhp.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9xaHppc2RqYnR5eHlhcmpldWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk1Mjc0MTIsImV4cCI6MjA4NTEwMzQxMn0.ae0_uaZQJT6y583NMuwyUUI9MUuY9zuRXcVdDgz6ExU';
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
 async function testSupabase() {
   console.log('\n=== TESTE DE CONEXÃO SUPABASE ===\n');
 
-  if ((SUPABASE_ANON_KEY as string) === 'COLE_AQUI_A_CHAVE_ANON_COMPLETA') {
-    console.error('❌ ERRO: Cole a chave ANON do Supabase no arquivo test-supabase.ts');
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.error('❌ ERRO: Defina SUPABASE_URL e SUPABASE_ANON_KEY (ou VITE_SUPABASE_*) no ambiente.');
     console.log('\n📝 Como obter a chave:');
-    console.log('1. Acesse: https://oqhzisdjbtyxyarjeuhp.supabase.co');
+    console.log('1. Acesse seu projeto no Supabase Dashboard');
     console.log('2. Vá em Settings → API');
     console.log('3. Copie a chave "anon public"');
     return;

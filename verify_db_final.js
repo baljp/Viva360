@@ -2,7 +2,11 @@ const { Client } = require('pg');
 const fs = require('fs');
 
 async function verify() {
-  const connectionString = "postgresql://postgres.oqhzisdjbtyxyarjeuhp:Elisaalencar1985@aws-1-us-east-1.pooler.supabase.com:5432/postgres";
+  const connectionString = process.env.DATABASE_URL || '';
+  if (!connectionString) {
+    fs.writeFileSync('db_error_report.txt', 'DATABASE_URL não definida no ambiente.');
+    process.exit(1);
+  }
   const client = new Client({
     connectionString,
     connectionTimeoutMillis: 15000,
