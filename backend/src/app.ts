@@ -24,7 +24,8 @@ const blockedProdRoutePatterns = [
 
 // Initialize Telemetry
 initTelemetry();
-assertCriticalProdConfig();
+const criticalProdConfigIssues = assertCriticalProdConfig();
+const hasCriticalProdConfigIssues = isProductionRuntime && criticalProdConfigIssues.length > 0;
 
 // Load environment variables
 // env already loaded via import './lib/env' at the top
@@ -126,7 +127,31 @@ app.use(circuitBreaker);
 
 // Health Check
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', pid: process.pid, timestamp: new Date().toISOString(), requestId: req.requestId });
+    const payload = {
+        status: hasCriticalProdConfigIssues ? 'degraded' : 'ok',
+        degraded: hasCriticalProdConfigIssues,
+        configIssues: hasCriticalProdConfigIssues ? criticalProdConfigIssues : [],
+        pid: process.pid,
+        timestamp: new Date().toISOString(),
+        requestId: req.requestId,
+    };
+    if (hasCriticalProdConfigIssues) {
+        return res.status(503).json(payload);
+    }
+    return res.json(payload);
+});
+
+// If production config is incomplete, keep API observable with controlled 503 responses.
+app.use((req, res, next) => {
+    if (!hasCriticalProdConfigIssues) return next();
+    const pathname = String(req.path || req.originalUrl || '');
+    if (!pathname.startsWith('/api')) return next();
+    return res.status(503).json({
+        error: 'Service temporarily unavailable: critical production configuration is incomplete.',
+        code: 'CONFIG_DEGRADED',
+        configIssues: criticalProdConfigIssues,
+        requestId: req.requestId,
+    });
 });
 
 if (isDebugRoutesEnabled) {

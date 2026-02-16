@@ -94,9 +94,8 @@ export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } 
     issues.push(...policy.issues);
 
     if (APP_MODE === 'PROD') {
-        if (!supabaseUrl || !supabaseAnonKey) {
-            issues.push('VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY são obrigatórias em PROD.');
-        }
+        if (!supabaseUrl) issues.push('VITE_SUPABASE_URL é obrigatória em PROD.');
+        if (!supabaseAnonKey) issues.push('VITE_SUPABASE_ANON_KEY é obrigatória em PROD.');
         if (!configuredAuthRedirect) {
             issues.push('VITE_SUPABASE_AUTH_REDIRECT_URL é obrigatória em PROD.');
         }
