@@ -96,13 +96,15 @@ const auditRuntimeGuardAndEnv = () => {
   const appPath = path.resolve(process.cwd(), 'backend', 'src', 'app.ts');
   if (fs.existsSync(appPath)) {
     const appSource = fs.readFileSync(appPath, 'utf8');
-    if (!appSource.includes('assertCriticalProdConfig();')) {
+    // Allow both `assertCriticalProdConfig();` and assignments like
+    // `const issues = assertCriticalProdConfig();`.
+    if (!/assertCriticalProdConfig\s*\(/.test(appSource)) {
       pushFinding({
         level: 'ERROR',
         file: path.relative(process.cwd(), appPath),
         line: 1,
         reason: 'Missing assertCriticalProdConfig() call in app bootstrap.',
-        snippet: 'assertCriticalProdConfig() not found',
+        snippet: 'assertCriticalProdConfig(...) not found',
       });
     }
   }
@@ -162,12 +164,16 @@ auditRuntimeGuardAndEnv();
 const reportsDir = path.resolve(process.cwd(), 'reports');
 if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir, { recursive: true });
 
-const payload = {
-  generatedAt: new Date().toISOString(),
+const ok = findings.length === 0;
+// Keep reports deterministic on PASS so the repo doesn't churn due to timestamps.
+const payload: Record<string, unknown> = {
   strictMode,
   findings,
-  ok: findings.length === 0,
+  ok,
 };
+if (!ok) {
+  payload.generatedAt = new Date().toISOString();
+}
 
 const jsonPath = path.join(reportsDir, 'test_route_leak_audit.json');
 const mdPath = path.join(reportsDir, 'test_route_leak_audit.md');
@@ -176,8 +182,8 @@ fs.writeFileSync(jsonPath, JSON.stringify(payload, null, 2), 'utf8');
 const lines = [
   '# Test/Debug Route Leak Audit',
   '',
-  `Generated at: ${payload.generatedAt}`,
-  `Status: ${payload.ok ? 'PASS' : 'FAIL'}`,
+  ...(ok ? [] : [`Generated at: ${String(payload.generatedAt)}`]),
+  `Status: ${ok ? 'PASS' : 'FAIL'}`,
   '',
   '| Level | File | Line | Reason |',
   '|---|---|---:|---|',
@@ -185,7 +191,7 @@ const lines = [
 ];
 fs.writeFileSync(mdPath, `${lines.join('\n')}\n`, 'utf8');
 
-if (payload.ok) {
+if (ok) {
   console.log('route-leak-audit: PASS');
   console.log(`route-leak-audit: ${jsonPath}`);
   console.log(`route-leak-audit: ${mdPath}`);
