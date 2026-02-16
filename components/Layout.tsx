@@ -124,7 +124,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
 
-    useEffect(() => { if (user) api.notifications.list(user.id).then(setNotifications); }, [user]);
+    useEffect(() => { if (user) api.notifications.list().then(setNotifications); }, [user]);
 
     return (
         <div className="h-[100dvh] w-full bg-[#f8faf9] flex relative text-nature-800 font-sans overflow-hidden">
@@ -145,7 +145,7 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
                 if (user) api.notifications.markAsRead(id).catch(() => {});
             }} onMarkAllRead={() => {
                 setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-                if (user) api.notifications.markAllAsRead(user.id).catch(() => {});
+                if (user) api.notifications.markAllAsRead().catch(() => {});
             }} />
             
             {/* Mock indicator removed */}

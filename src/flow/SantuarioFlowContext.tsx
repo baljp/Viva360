@@ -122,10 +122,10 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
             const [r, t, v, tx, prods] = await Promise.all([
-                  api.spaces.getRooms(userId),
-                  api.spaces.getTeam(userId),
+                  api.spaces.getRooms(),
+                  api.spaces.getTeam(),
                   api.spaces.getVacancies(),
-                  api.spaces.getTransactions(userId),
+                  api.spaces.getTransactions(),
                   api.marketplace.listByOwner(userId)
             ]);
             

@@ -2,13 +2,14 @@ import prisma from '../lib/prisma';
 import { randomUUID } from 'crypto';
 
 export type ReceiptStatus = 'CREATED' | 'UPDATED' | 'COMPLETED' | 'REJECTED' | 'CANCELLED' | 'FAILED';
+type ReceiptStatusInput = ReceiptStatus | Lowercase<ReceiptStatus>;
 
 type UpsertActionReceiptInput = {
   entityType: string;
   entityId: string;
   action: string;
   actorId: string;
-  status: ReceiptStatus;
+  status: ReceiptStatusInput;
   nextStep?: string | null;
   requestId?: string | null;
   payload?: unknown;

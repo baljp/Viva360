@@ -21,7 +21,7 @@ export const useClientDashboard = (
     useEffect(() => {
         const loadNotifications = async () => {
             try {
-                const data = await api.notifications.list(user.id);
+                const data = await api.notifications.list();
                 setNotifications(data || []);
             } catch (e) {
                 console.error("Failed to load notifications", e);
@@ -37,7 +37,7 @@ export const useClientDashboard = (
 
     const handleMarkAllRead = useCallback(async () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        await api.notifications.markAllAsRead(user.id);
+        await api.notifications.markAllAsRead();
     }, [user.id]);
 
     const gardenStatus = gardenService.getPlantStatus(user);
