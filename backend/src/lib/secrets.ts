@@ -2,6 +2,8 @@ import crypto from 'crypto';
 
 const rawJwtSecret = (process.env.JWT_SECRET || '').trim();
 const isProd = process.env.NODE_ENV === 'production';
+const isTestOrMock =
+  process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toLowerCase() === 'mock';
 
 let resolvedJwtSecret = rawJwtSecret;
 if (!resolvedJwtSecret) {
@@ -11,6 +13,9 @@ if (!resolvedJwtSecret) {
     // meaningful errors instead of FUNCTION_INVOCATION_FAILED.
     console.error('🚨 [SECRETS] JWT_SECRET is NOT set in production! Auth will NOT work correctly. Set it in Vercel env vars.');
     resolvedJwtSecret = crypto.randomUUID() + '-MISSING-JWT-SECRET';
+  } else if (isTestOrMock) {
+    // Deterministic secret keeps tests stable and avoids noisy warnings in mock/test runtime.
+    resolvedJwtSecret = 'viva360_test_jwt_secret_2026';
   } else {
     // Use a stable default secret for development to prevent session invalidation on restart.
     resolvedJwtSecret = 'viva360-dev-portal-secret-2026';

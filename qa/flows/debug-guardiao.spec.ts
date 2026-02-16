@@ -6,7 +6,7 @@ test.describe('Guardião Flow Debug', () => {
         await loginAs('pro');
     });
 
-    test('should dump html after Agenda click', async ({ page }) => {
+    test('@debug should dump html after Agenda click', async ({ page }) => {
         console.log('--- DEBUG: Initial Page Content ---');
         // console.log(await page.content()); 
 

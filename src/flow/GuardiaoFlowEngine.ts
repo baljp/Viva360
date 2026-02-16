@@ -21,7 +21,8 @@ export class GuardiaoFlowEngine {
 
     public transition(target: GuardiaoState): boolean {
         if (!this.canTransitionTo(target)) {
-            console.warn(`[GuardiaoFlow] Invalid transition (forced): ${this.currentState} -> ${target}`);
+            console.warn(`[GuardiaoFlow] Invalid transition blocked: ${this.currentState} -> ${target}`);
+            return false;
         }
         this.history.push(this.currentState);
         this.currentState = target;

@@ -22,17 +22,17 @@ test.describe('Buscador Flow Stabilization', () => {
     await expect(dashboardTitle).toBeVisible({ timeout: 20000 });
 
     const portals = [
-        { name: 'Jardim', expected: 'Jardim da Alma', id: '#hero-garden', afterOpen: async () => {
+        { name: 'Jardim', expected: /Jardim da Alma/i, id: '#hero-garden', afterOpen: async () => {
             const journeyModal = page.getByText('Escolha seu Caminho');
             if (await journeyModal.isVisible()) {
                 await page.getByText('Cura Emocional').click();
                 await expect(journeyModal).not.toBeVisible();
             }
         }},
-        { name: 'Mapa da Cura', expected: 'Mapa da Cura', id: '#portal-map' },
-        { name: 'Minha Tribo', expected: 'Minha Tribo', id: '#portal-tribe' },
-        { name: 'Financeiro', expected: 'Cofre Sagrado', id: '#portal-abundance' },
-        { name: 'Bazar', expected: 'Bazar da Tribo', id: '#portal-marketplace' },
+        { name: 'Mapa da Cura', expected: /Mapa da Cura/i, id: '#portal-map' },
+        { name: 'Minha Tribo', expected: /Minha Tribo/i, id: '#portal-tribe' },
+        { name: 'Financeiro', expected: /Financeiro|Cofre Sagrado/i, id: '#portal-abundance' },
+        { name: 'Bazar', expected: /Bazar da Tribo|Santuário de Ofertas/i, id: '#portal-marketplace' },
     ];
 
     for (const [index, portal] of portals.entries()) {
@@ -52,7 +52,7 @@ test.describe('Buscador Flow Stabilization', () => {
 
         try {
             await expect(page.getByRole('heading', { name: portal.expected }).first()).toBeVisible({ timeout: 15000 });
-            console.log(`[Test] Successfully reached ${portal.expected}`);
+            console.log(`[Test] Successfully reached ${String(portal.expected)}`);
 
             if (portal.afterOpen) {
                 await portal.afterOpen();

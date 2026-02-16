@@ -32,7 +32,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             setUser(currentUser);
         };
         loadUser();
-        
+
+        if (isMockMode) return;
+
         // Listen for auth changes to reload user
         const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
             loadUser();

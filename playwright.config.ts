@@ -22,7 +22,7 @@ export default defineConfig({
   ],
   // Run local dev server before starting the tests
   webServer: {
-    command: 'VITE_APP_MODE=MOCK VITE_ENABLE_TEST_MODE=true npm run dev',
+    command: 'env -u NO_COLOR VITE_APP_MODE=MOCK VITE_ENABLE_TEST_MODE=true npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

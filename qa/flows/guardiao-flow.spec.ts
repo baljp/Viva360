@@ -12,7 +12,17 @@ test.describe('Guardião Flow Stabilization', () => {
             await page.locator('button:has(svg.rotate-180)').first().click({ timeout: 8000 });
         };
 
-        page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+        if (process.env.PW_VERBOSE_LOGS === '1') {
+            page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+        }
+        if (process.env.PW_LOG_404 === '1') {
+            page.on('response', response => {
+                const status = response.status();
+                if (status >= 400) {
+                    console.log(`[HTTP ${status}] ${response.request().resourceType()} ${response.url()}`);
+                }
+            });
+        }
         await expect(dashboardMarker).toBeVisible({ timeout: 20000 });
 
         const consultorioPortals = [

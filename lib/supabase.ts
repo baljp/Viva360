@@ -7,10 +7,20 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const appMode = import.meta.env.VITE_APP_MODE;
 const configuredAuthRedirect = import.meta.env.VITE_SUPABASE_AUTH_REDIRECT_URL;
 const isTest = import.meta.env.MODE === 'test';
-const isDevRuntime = !!import.meta.env.DEV;
 const explicitTestMode = String(import.meta.env.VITE_ENABLE_TEST_MODE || '').toLowerCase() === 'true';
 const testModeEnabled = explicitTestMode || isTest;
-const explicitMode = String(appMode || '').toUpperCase();
+const normalizeMode = (value: string): 'MOCK' | 'DEMO' | 'PROD' | '' => {
+    const normalized = value.trim().toLowerCase();
+    if (!normalized) return '';
+    if (normalized === 'mock') return 'MOCK';
+    if (normalized === 'demo') return 'DEMO';
+    if (normalized === 'prod' || normalized === 'production' || normalized === 'staging' || normalized === 'stage') {
+        // staging must behave as real mode (no mock shortcuts).
+        return 'PROD';
+    }
+    return '';
+};
+const explicitMode = normalizeMode(String(appMode || ''));
 const isBrowser = typeof window !== 'undefined';
 
 const isLocalHostRuntime = () => {
@@ -22,7 +32,8 @@ const isLocalHostRuntime = () => {
 const resolveAppMode = (): 'PROD' | 'MOCK' | 'DEMO' => {
     if (!isLocalHostRuntime()) return 'PROD';
     if (explicitMode === 'DEMO') return 'DEMO';
-    if (explicitMode === 'MOCK') return (testModeEnabled || isDevRuntime) ? 'MOCK' : 'PROD';
+    // MOCK mode is only allowed with explicit test flag.
+    if (explicitMode === 'MOCK') return testModeEnabled ? 'MOCK' : 'PROD';
     if (explicitMode === 'PROD') return 'PROD';
 
     if (testModeEnabled) return 'MOCK';
@@ -34,7 +45,7 @@ export const APP_MODE = resolveAppMode();
 export const TEST_MODE_ENABLED = testModeEnabled;
 
 // Export flag para a API saber se deve usar dados reais ou simulados
-export const isMockMode = APP_MODE === 'MOCK' && isLocalHostRuntime() && (TEST_MODE_ENABLED || isDevRuntime);
+export const isMockMode = APP_MODE === 'MOCK' && isLocalHostRuntime() && TEST_MODE_ENABLED;
 export const isDemoMode = APP_MODE === 'DEMO';
 
 // Diagnóstico para o Frontend verificar o que foi injetado pelo Vite
@@ -56,6 +67,13 @@ const safeParseUrl = (value?: string): URL | null => {
 };
 
 export const getOAuthRedirectUrl = (): string => {
+    if (APP_MODE === 'MOCK') {
+        if (typeof window !== 'undefined') {
+            return `${window.location.origin}/login`;
+        }
+        return 'http://localhost:5173/login';
+    }
+
     const parsedCustom = safeParseUrl(configuredAuthRedirect);
     if (parsedCustom) return parsedCustom.toString();
 
@@ -90,6 +108,13 @@ export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } 
             if (!isLocalhost && redirectOrigin && redirectOrigin !== currentOrigin) {
                 issues.push(`Origem atual (${currentOrigin}) difere da origem do redirect (${redirectOrigin}).`);
             }
+        }
+    }
+
+    if (APP_MODE !== 'MOCK' && typeof window !== 'undefined' && parsedRedirect) {
+        const currentOrigin = window.location.origin;
+        if (parsedRedirect.origin !== currentOrigin) {
+            issues.push(`Redirect OAuth deve manter a mesma origem da aplicação (${currentOrigin}).`);
         }
     }
 

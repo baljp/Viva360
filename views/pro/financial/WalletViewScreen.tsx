@@ -184,7 +184,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
             title="Santuário Financeiro" 
             subtitle="GESTÃO CONSCIENTE" 
             onBack={() => go('DASHBOARD')}
-            heroImage="https://images.unsplash.com/photo-1620022410313-1f1638234372?q=80&w=800"
+            heroImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=800"
             headerRight={
                 <button onClick={() => notify('Painel Financeiro', 'Aqui você gerencia saldo, projeções, saques e reinvestimentos. Toque em cada card para mais detalhes.', 'info')} className="p-2 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/30 transition-all">
                     <Info size={20} />

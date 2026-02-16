@@ -7,6 +7,7 @@ import { MOOD_ELEMENTS } from '../../src/data/metamorphosisData';
 import { phraseService } from '../../services/phraseService';
 import { useSoulCards } from '../../src/hooks/useSoulCards';
 import { SoulCardReveal } from './SoulCardReveal';
+import { dataUrlToBlob } from '../../src/utils/dataUrl';
 
 const MOODS = [
     { id: 'Feliz', icon: Sun, element: 'Fogo' },
@@ -136,7 +137,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         if (!canvasRef.current || isDrawing) return;
         try {
             const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
-            const blob = await (await fetch(dataUrl)).blob();
+            const blob = dataUrlToBlob(dataUrl);
             const file = new File([blob], 'viva360-soulcard.png', { type: 'image/png' });
             
             if (navigator.share) {

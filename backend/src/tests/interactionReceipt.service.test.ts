@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { prismaMock } = vi.hoisted(() => ({
   prismaMock: {
@@ -15,8 +15,15 @@ vi.mock('../lib/prisma', () => ({
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 
 describe('interactionReceiptService', () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.NODE_ENV = 'test';
+  });
+
+  afterAll(() => {
+    process.env.NODE_ENV = originalNodeEnv;
   });
 
   it('normalizes and persists receipts', async () => {
@@ -45,6 +52,23 @@ describe('interactionReceiptService', () => {
     });
 
     expect(prismaMock.interactionReceipt.upsert).toHaveBeenCalledTimes(1);
+    expect(receipt.entityType).toBe('CHECKOUT');
+    expect(receipt.action).toBe('PAY');
+    expect(receipt.status).toBe('COMPLETED');
+  });
+
+  it('uses safe fallback when db auth circuit breaker is open in test runtime', async () => {
+    prismaMock.interactionReceipt.upsert.mockRejectedValue(new Error('FATAL: Circuit breaker open: Too many authentication errors'));
+
+    const receipt = await interactionReceiptService.upsert({
+      entityType: 'checkout',
+      entityId: 'tx-2',
+      action: 'pay',
+      actorId: '11111111-1111-4111-8111-111111111111',
+      status: 'completed',
+    });
+
+    expect(receipt.id).toBeTruthy();
     expect(receipt.entityType).toBe('CHECKOUT');
     expect(receipt.action).toBe('PAY');
     expect(receipt.status).toBe('COMPLETED');

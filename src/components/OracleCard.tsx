@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Share2, Instagram, Download, X } from 'lucide-react';
+import { dataUrlToBlob } from '../utils/dataUrl';
 
 interface OracleMessage {
     id: string;
@@ -177,7 +178,7 @@ export const OracleCard: React.FC<OracleCardProps> = ({ card, onClose }) => {
         // 6. Share
         try {
             const dataUrl = canvas.toDataURL('image/png');
-            const blob = await (await fetch(dataUrl)).blob();
+            const blob = dataUrlToBlob(dataUrl);
             const file = new File([blob], 'oraculo-viva360.png', { type: 'image/png' });
 
             if (navigator.share) {

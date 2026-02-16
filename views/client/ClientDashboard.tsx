@@ -123,7 +123,7 @@ export const ClientDashboard: React.FC<{
                     </h4>
                     
                     {/* ORACLE HERO WIDGET */}
-                    <div onClick={() => go('ORACLE_PORTAL')} className="bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden group cursor-pointer mb-4">
+                    <div id="portal-oracle" onClick={() => go('ORACLE_PORTAL')} className="bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden group cursor-pointer mb-4">
                          <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -translate-y-10 translate-x-10 group-hover:bg-indigo-500/30 transition-all duration-700"></div>
                          <div className="relative z-10 flex items-center gap-6">
                               <div className="w-20 h-24 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-inner flex flex-col items-center justify-center gap-2 group-hover:scale-105 transition-transform">

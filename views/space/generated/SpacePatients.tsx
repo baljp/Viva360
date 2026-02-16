@@ -43,7 +43,7 @@ const SpacePatients: React.FC = () => {
         title="Jardim do Santuário" 
         subtitle="ZELO PELAS ALMAS" 
         onClose={() => go('EXEC_DASHBOARD')}
-        heroImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=800"
+        heroImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800"
     >
         {toast ? <ZenToast toast={toast} onClose={() => setToast(null)} /> : null}
         <div className="space-y-6">

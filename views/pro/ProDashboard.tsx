@@ -276,7 +276,7 @@ export const ProDashboard: React.FC<{
                     </div>
 
                     <div className="grid grid-cols-1 gap-4">
-                        <PortalCard id="portal-finance-overview" title="Resumo Mensal" subtitle="FINANÇAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1565514020175-8501da23d5a3?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} />
+                        <PortalCard id="portal-finance-overview" title="Resumo Mensal" subtitle="FINANÇAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=600" onClick={() => go('FINANCIAL_DASHBOARD')} />
                     </div>
                 </div>
             )}

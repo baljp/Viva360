@@ -33,7 +33,7 @@ export default function PatientsList() {
   const flourishingPatients = patients.filter((patient) => !criticalPatients.includes(patient));
 
   return (
-    <PortalView title="Meu Jardim" subtitle="ALMAS EM JORNADA" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1598155523122-38423bb4d6c1?q=80&w=800">
+    <PortalView title="Meu Jardim" subtitle="ALMAS EM JORNADA" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800">
        
        <div className="px-2 mb-8 animate-in slide-in-from-bottom-4 duration-700">
            <div className="bg-nature-900 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden">

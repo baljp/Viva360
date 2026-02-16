@@ -21,8 +21,8 @@ describe('BuscadorFlowEngine', () => {
     });
 
     test('should prevent invalid transition', () => {
-        // START -> ORACLE_PORTAL is not allowed directly (must go via DASHBOARD)
-        const success = engine.transition('ORACLE_PORTAL');
+        // START -> CHAT_ROOM is invalid without passing through chat list.
+        const success = engine.transition('CHAT_ROOM');
         expect(success).toBe(false);
         expect(engine.getState()).toBe('START');
     });

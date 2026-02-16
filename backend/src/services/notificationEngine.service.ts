@@ -123,6 +123,8 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
 };
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const isQuietRuntime = () =>
+  process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toLowerCase() === 'mock';
 
 export class NotificationEngine {
   /**
@@ -142,7 +144,9 @@ export class NotificationEngine {
 
     const targetUserId = String(event.targetUserId || '').trim();
     if (!UUID_REGEX.test(targetUserId)) {
-      console.warn('[NotificationEngine] Skipping notification for non-UUID target:', targetUserId);
+      if (!isQuietRuntime()) {
+        console.warn('[NotificationEngine] Skipping notification for non-UUID target:', targetUserId);
+      }
       return;
     }
 
@@ -151,7 +155,9 @@ export class NotificationEngine {
       select: { id: true },
     }).catch(() => null);
     if (!profile?.id) {
-      console.warn('[NotificationEngine] Skipping notification for unknown target profile:', targetUserId);
+      if (!isQuietRuntime()) {
+        console.warn('[NotificationEngine] Skipping notification for unknown target profile:', targetUserId);
+      }
       return;
     }
 

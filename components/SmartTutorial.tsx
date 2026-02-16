@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ChevronRight, MapPin, Camera, Compass, Sparkles, Zap } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { User } from '../types';
 
 interface TutorialStep {
@@ -49,16 +50,27 @@ const tutorialSteps: TutorialStep[] = [
 export const SmartTutorial: React.FC<{ user: User | null }> = ({ user }) => {
     const [isActive, setIsActive] = useState(false);
     const [stepIndex, setStepIndex] = useState(0);
-    const [position, setPosition] = useState<{ top?: number, left?: number, bottom?: number, right?: number, width?: number, isCentered?: boolean }>({ isCentered: true });
+    const [position, setPosition] = useState<{ top?: number; left?: number; width?: number; isCentered: boolean }>({ isCentered: true });
+    const location = useLocation();
+    const viewportMargin = 16;
+    const cardMaxWidth = 340;
+    const cardMinWidth = 280;
     
     // Check local storage on mount
     useEffect(() => {
-        const seen = localStorage.getItem('viva360_smart_tutorial_seen');
-        if (!seen) {
-             // Only auto-start if user is logged in, optionally
-            if (user) setIsActive(true);
+        if (!user) {
+            setIsActive(false);
+            return;
         }
-    }, [user]);
+
+        const seenForUser = localStorage.getItem(`viva360_tutorial_seen_${user.id}`);
+        const seenFallback = localStorage.getItem('viva360_smart_tutorial_seen');
+
+        if (!seenForUser && !seenFallback) {
+            setStepIndex(0);
+            setIsActive(true);
+        }
+    }, [user?.id]);
 
     const step = tutorialSteps[stepIndex];
     const cardRef = useRef<HTMLDivElement>(null);
@@ -82,51 +94,54 @@ export const SmartTutorial: React.FC<{ user: User | null }> = ({ user }) => {
 
             const rect = target.getBoundingClientRect();
             const viewportHeight = window.innerHeight;
-            const cardHeight = cardRef.current?.offsetHeight || 200; // Estimate if not rendered
+            const viewportWidth = window.innerWidth;
+            const cardHeight = cardRef.current?.offsetHeight || 240;
             const margin = 20;
+            const cardWidth = Math.min(cardMaxWidth, Math.max(cardMinWidth, viewportWidth - viewportMargin * 2));
 
-            // Logic: Flip
-            // If space below is tight (element is low), place above.
-            const spaceBelow = viewportHeight - rect.bottom;
-            const spaceAbove = rect.top;
-
-            const newPos: any = { left: rect.left, width: rect.width, isCentered: false };
-
-            // Centralized Mode for huge elements
+            // Very large targets usually generate unstable anchor points; keep centered.
             if (rect.height > viewportHeight * 0.6) {
-                 setPosition({ isCentered: true });
-                 return;
+                setPosition({ isCentered: true });
+                return;
             }
 
-            if (spaceBelow < cardHeight + margin && spaceAbove > cardHeight + margin) {
-                // Place On Top
-                newPos.bottom = viewportHeight - rect.top + margin;
-                newPos.top = undefined;
-            } else {
-                // Place Below (Default)
-                newPos.top = rect.bottom + margin;
-                newPos.bottom = undefined;
-            }
-            
-            // Adjust horizontal if going off screen
-            if (rect.left + 300 > window.innerWidth) {
-                 newPos.left = undefined;
-                 newPos.right = 20;
-                 newPos.width = 300; 
+            const maxTop = viewportHeight - cardHeight - viewportMargin;
+            if (maxTop <= viewportMargin) {
+                setPosition({ isCentered: true });
+                return;
             }
 
-            setPosition(newPos);
+            const preferBelow = rect.bottom + margin;
+            const preferAbove = rect.top - cardHeight - margin;
+            let top = preferBelow;
+
+            if (preferBelow > maxTop && preferAbove >= viewportMargin) {
+                top = preferAbove;
+            }
+
+            if (!Number.isFinite(top) || top < viewportMargin || top > maxTop) {
+                setPosition({ isCentered: true });
+                return;
+            }
+
+            const maxLeft = Math.max(viewportMargin, viewportWidth - cardWidth - viewportMargin);
+            const left = Math.min(Math.max(rect.left, viewportMargin), maxLeft);
+
+            setPosition({ top, left, width: cardWidth, isCentered: false });
         };
 
         calculatePosition();
         window.addEventListener('resize', calculatePosition);
-        window.addEventListener('scroll', calculatePosition);
+        window.addEventListener('orientationchange', calculatePosition);
+        // Capture scroll from nested containers too.
+        window.addEventListener('scroll', calculatePosition, true);
         
         return () => {
             window.removeEventListener('resize', calculatePosition);
-            window.removeEventListener('scroll', calculatePosition);
+            window.removeEventListener('orientationchange', calculatePosition);
+            window.removeEventListener('scroll', calculatePosition, true);
         };
-    }, [stepIndex, isActive, step.targetId]);
+    }, [stepIndex, isActive, step.targetId, location.pathname]);
 
     const handleNext = () => {
         if (stepIndex < tutorialSteps.length - 1) {
@@ -160,7 +175,7 @@ export const SmartTutorial: React.FC<{ user: User | null }> = ({ user }) => {
         return (
             <button 
                 onClick={restartTutorial}
-                className="fixed bottom-[calc(20px+env(safe-area-inset-bottom))] left-6 z-[90] w-12 h-12 bg-white/90 backdrop-blur-md rounded-full shadow-xl border border-nature-100 flex items-center justify-center text-nature-400 hover:text-primary-600 active:scale-95 transition-all"
+                className="fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] lg:bottom-[calc(20px+env(safe-area-inset-bottom))] left-4 sm:left-6 z-[120] w-12 h-12 bg-white/90 backdrop-blur-md rounded-full shadow-xl border border-nature-100 flex items-center justify-center text-nature-400 hover:text-primary-600 active:scale-95 transition-all"
                 title="Abrir Bússola (Ajuda)"
             >
                 <Compass size={24} />
@@ -171,30 +186,27 @@ export const SmartTutorial: React.FC<{ user: User | null }> = ({ user }) => {
     return (
         <div className="fixed inset-0 z-[1000] overflow-hidden pointer-events-none">
             {/* Dimmed Background */}
-            <div className="absolute inset-0 bg-nature-900/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-500" />
+            <div data-testid="smart-tutorial-backdrop" className="absolute inset-0 bg-nature-900/60 backdrop-blur-sm pointer-events-auto transition-opacity duration-500" />
 
-            {/* Target Highlight Cutout (Optional sophisticated effect, simplified here as focus rect) */}
-            {!position.isCentered && position.width && (
-                <div 
-                    className="absolute border-4 border-white/50 rounded-3xl shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] pointer-events-none transition-all duration-500 ease-in-out"
-                    style={{
-                        top: position.top !== undefined ? position.top - (position.top > 100 ? 0 : 0) - 20 - (document.getElementById(step.targetId!)?.offsetHeight || 0) : undefined, // Quick hack to reconstruct rect top from computed pos
-                        // Actually, using the stored rect would be cleaner, but for this 'Smart Position' logic let's keep it simple: 
-                        // The highlight is often better handled by just dimming everything else.
-                        // For this implementation, we will just float the card correctly.
-                    }}
-                />
-            )}
+            {/* Emergency close path so the backdrop can never trap the user. */}
+            <button
+                data-testid="smart-tutorial-emergency-close"
+                onClick={finishTutorial}
+                className="absolute top-[max(env(safe-area-inset-top),0.75rem)] right-4 z-[1001] pointer-events-auto rounded-full bg-white/90 text-nature-700 p-2 shadow-lg border border-white/60 active:scale-95 transition-all"
+                aria-label="Fechar tutorial"
+            >
+                <X size={18} />
+            </button>
 
             {/* Smart Card */}
             <div 
+                data-testid="smart-tutorial-card"
                 ref={cardRef}
                 className={`absolute pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] ${position.isCentered ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90%] max-w-sm' : ''}`}
                 style={{
-                    top: position.top,
-                    bottom: position.bottom,
-                    left: position.isCentered ? undefined : (position.left || 20),
-                    right: position.right
+                    top: position.isCentered ? undefined : position.top,
+                    left: position.isCentered ? undefined : position.left,
+                    width: position.isCentered ? undefined : position.width,
                 }}
             >
                 <div className={`${step.color === 'bg-amber-900 text-white' ? 'bg-amber-900 text-white' : 'bg-white text-nature-900'} p-6 rounded-[2.5rem] shadow-2xl border border-white/20 relative overflow-hidden`}>

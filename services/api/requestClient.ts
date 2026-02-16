@@ -26,11 +26,20 @@ export const createRequestClient = (deps: RequestClientDeps) => {
       purpose,
       ...fetchOptions
     } = options;
+    const externalSignal = fetchOptions.signal;
 
     let lastError: any = null;
     for (let attempt = 0; attempt <= retries; attempt += 1) {
       const controller = new AbortController();
       const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+      const onExternalAbort = () => controller.abort();
+      if (externalSignal) {
+        if (externalSignal.aborted) {
+          controller.abort();
+        } else {
+          externalSignal.addEventListener('abort', onExternalAbort, { once: true });
+        }
+      }
 
       try {
         const response = await fetch(`${deps.apiUrl}${endpoint}`, {
@@ -39,6 +48,7 @@ export const createRequestClient = (deps: RequestClientDeps) => {
           headers: { ...deps.getHeaders(), ...fetchOptions.headers },
         });
         clearTimeout(timeoutHandle);
+        if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -57,6 +67,7 @@ export const createRequestClient = (deps: RequestClientDeps) => {
         return response.json();
       } catch (error: any) {
         clearTimeout(timeoutHandle);
+        if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
         lastError = error;
         const aborted = error?.name === 'AbortError';
         const status = Number(error?.status || 0);

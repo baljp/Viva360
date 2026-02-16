@@ -4,7 +4,6 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { User, ViewState, Professional, CartItem, Product } from './types';
 import Layout from './components/Layout';
 import { SmartTutorial } from './components/SmartTutorial';
-import { CartDrawer } from './components/Checkout'; // Keep lightweight components eager
 import { api } from './services/api';
 import { supabase, APP_MODE, validateOAuthRuntimeConfig } from './lib/supabase';
 import { ZenToast } from './components/Common';
@@ -22,6 +21,7 @@ const ProViews = lazyWithRetry(() => import('./views/ProViews').then(module => (
 const SpaceViews = lazyWithRetry(() => import('./views/SpaceViews').then(module => ({ default: module.SpaceViews })), 'SpaceViews');
 const SettingsViews = lazyWithRetry(() => import('./views/SettingsViews').then(module => ({ default: module.SettingsViews })), 'SettingsViews');
 const RegistrationViews = lazyWithRetry(() => import('./views/Registration').then(module => ({ default: module.RegistrationViews })), 'RegistrationViews');
+const CartDrawer = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.CartDrawer })), 'CartDrawer');
 const CheckoutScreen = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.CheckoutScreen })), 'CheckoutScreen');
 const SuccessScreen = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.SuccessScreen })), 'SuccessScreen');
 const OrdersListView = lazyWithRetry(() => import('./views/ServiceViews').then(module => ({ default: module.OrdersListView })), 'OrdersListView');
@@ -225,6 +225,11 @@ const App: React.FC = () => {
 
     // Global OAuth Listener - Detects Google login callbacks from any route
     useEffect(() => {
+        if (APP_MODE === 'MOCK') {
+            // In mock mode, session is local-only and should never be overridden by Supabase events.
+            return;
+        }
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log('🔐 Auth State Changed:', event);
             if (event === 'SIGNED_IN' && session) {
@@ -455,7 +460,9 @@ const App: React.FC = () => {
             </Suspense>
 
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={removeFromCart} onProceed={() => {setIsCartOpen(false); navigate('/checkout');}} />
+            <Suspense fallback={null}>
+                <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={removeFromCart} onProceed={() => {setIsCartOpen(false); navigate('/checkout');}} />
+            </Suspense>
             <SmartTutorial user={currentUser} />
         </Layout>
         </ChatProvider>
