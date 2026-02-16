@@ -96,6 +96,7 @@ const flowReducer = (state: GuardiaoContextState, action: FlowAction): GuardiaoC
 const GuardiaoFlowContext = createContext<{
     state: GuardiaoContextState;
     go: (target: GuardiaoState) => void;
+    jump: (target: GuardiaoState) => void;
     back: () => void;
     reset: () => void;
     refreshData: (userId: string) => Promise<void>;
@@ -152,6 +153,9 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         dispatch({ type: 'SET_LOADING', payload: false });
     };
 
+    // Allows deep linking / sidebar navigation to realign the flow even when engine transition graph is strict.
+    const jump = (target: GuardiaoState) => dispatch({ type: 'JUMP', payload: target });
+
     const back = () => dispatch({ type: 'BACK' });
     const reset = () => dispatch({ type: 'RESET' });
 
@@ -165,7 +169,7 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const selectPatient = (payload: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_PATIENT', payload });
 
     return (
-        <GuardiaoFlowContext.Provider value={{ state, go, back, reset, refreshData, notify, selectAppointment, selectPatient }}>
+        <GuardiaoFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, notify, selectAppointment, selectPatient }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard 
