@@ -40,7 +40,6 @@ const ChatRoomScreen = lazyWithRetry(() => import('../../views/client/chat/ChatR
 const CheckoutScreen = lazyWithRetry(() => import('../../views/client/financial/CheckoutScreen'), 'CheckoutScreen');
 const PaymentHistoryScreen = lazyWithRetry(() => import('../../views/client/financial/PaymentHistoryScreen'), 'PaymentHistoryScreen');
 const OrdersListView = lazyNamed(() => import('../../views/ServiceViews'), 'OrdersListView');
-const CheckoutSuccessScreen = lazyWithRetry(() => import('../../views/client/generated/BookingConfirm'), 'CheckoutSuccessScreen'); // Reused
 const ClientMarketplace = ClientMarketplaceEager;
 const EvolutionView = lazyNamed(() => import('../../views/client/garden/EvolutionView'), 'EvolutionView');
 const EvolutionAnalytics = lazyNamed(() => import('../../views/client/garden/EvolutionAnalytics'), 'EvolutionAnalytics');
@@ -125,6 +124,8 @@ export const screenMap: any = {
         METAMORPHOSIS_FEEDBACK: MetamorphosisWizard,
         HISTORY: EvolutionView,
         TRIBE_DASH: TribeView,
+        TRIBE_VIEW: TribeView,
+        TRIBE_DETAILS: TribeInteraction,
         TRIBE_INVITE: TribeInvite,
         TRIBE_INTERACTION: TribeInteraction,
         HEALING_CIRCLE: HealingCircleEntry,
@@ -224,6 +225,7 @@ export const screenMap: any = {
         EVENTS_MANAGE: SpaceEventsManager, 
         EVENT_CREATE: SpaceEventCreate,
         RETREATS_MANAGE: SpaceRetreatsManager,
+        SERVICE_EVALUATION: ServiceEvaluation,
         VAGAS_LIST: SpaceRecruitment,
         VAGA_CREATE: SpaceRecruitment,
         VAGA_CANDIDATES: SpaceRecruitment,

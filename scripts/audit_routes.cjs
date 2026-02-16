@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const baseDir = '/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1';
+const baseDir = process.cwd();
 const screenMapPath = path.join(baseDir, 'src/navigation/screenMap.tsx');
 const appPath = path.join(baseDir, 'App.tsx');
 

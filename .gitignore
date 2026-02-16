@@ -11,6 +11,10 @@
 /playwright-report/
 /test-results/
 /qa/reports/playwright-report/
+/reports/regression_checklist.json
+/reports/regression_checklist.md
+/reports/screen_button_flow_matrix.json
+/reports/screen_button_flow_matrix.md
 
 # next.js
 /.next/

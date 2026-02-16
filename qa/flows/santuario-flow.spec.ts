@@ -9,7 +9,17 @@ test.describe('Santuário Flow Stabilization', () => {
     });
 
     test('should navigate through main dashboard portals via Flow Engine', async ({ page }) => {
-        page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+        if (process.env.PW_VERBOSE_LOGS === '1') {
+            page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
+        }
+        if (process.env.PW_LOG_404 === '1') {
+            page.on('response', response => {
+                const status = response.status();
+                if (status >= 400) {
+                    console.log(`[HTTP ${status}] ${response.request().resourceType()} ${response.url()}`);
+                }
+            });
+        }
         const dashboardMarker = page.getByRole('button', { name: /Ritmos do Templo/i }).first();
         const goHubBySidebar = async () => {
             await page.evaluate(() => {

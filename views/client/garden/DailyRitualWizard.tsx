@@ -7,6 +7,7 @@ import { phraseService } from '../../../services/phraseService';
 import { gardenService } from '../../../services/gardenService';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { dataUrlToBlob } from '../../../src/utils/dataUrl';
 
 interface DailyRitualWizardProps {
     user: User;
@@ -154,7 +155,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
         if (!canvasRef.current) return;
         try {
             const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.96);
-            const blob = await (await fetch(dataUrl)).blob();
+            const blob = dataUrlToBlob(dataUrl);
             const file = new File([blob], 'viva360-ritual.jpg', { type: 'image/jpeg' });
             
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {

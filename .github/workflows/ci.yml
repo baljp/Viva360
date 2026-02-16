@@ -66,6 +66,15 @@ jobs:
       - name: Run contract tests
         run: npm run test:contracts
 
+      - name: Generate flow matrix
+        run: npm run qa:matrix
+
+      - name: Audit route imports
+        run: node scripts/audit_routes.cjs
+
+      - name: Audit dead buttons
+        run: npx tsx scripts/audit_buttons.ts --strict
+
       - name: Run security regression tests
         run: npm run test:backend:security
 
@@ -97,8 +106,8 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Run Smoke E2E
-        run: npm run test:e2e:smoke
+      - name: Run QA Core Regression
+        run: npm run test:qa:core
 
   docker-build:
     name: 🐳 Docker Build Verify

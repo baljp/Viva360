@@ -38,7 +38,7 @@ export const SpaceRooms: React.FC = () => {
     };
 
     return (
-        <PortalView title="Mundo Físico" subtitle="GESTÃO DE ESPAÇOS" onBack={() => go('EXEC_DASHBOARD')} heroImage="https://images.unsplash.com/photo-1560183286-68199927b202?q=80&w=800">
+        <PortalView title="Mundo Físico" subtitle="GESTÃO DE ESPAÇOS" onBack={() => go('EXEC_DASHBOARD')} heroImage="https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=800">
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="space-y-6">

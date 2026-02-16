@@ -42,7 +42,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(currentUser);
         };
         loadUser();
-        
+
+        if (isMockMode) return;
+
         const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
             loadUser();
         });

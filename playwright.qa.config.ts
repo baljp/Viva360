@@ -50,13 +50,13 @@ export default defineConfig({
   /* Run backend + frontend before QA tests */
   webServer: [
     {
-      command: 'npm run dev:api:test',
+      command: 'env -u NO_COLOR npm run dev:api:test',
       url: 'http://localhost:3001/api/ping',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },
     {
-      command: 'VITE_APP_MODE=MOCK VITE_ENABLE_TEST_MODE=true npm run dev',
+      command: 'env -u NO_COLOR VITE_APP_MODE=MOCK VITE_ENABLE_TEST_MODE=true npm run dev',
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,

@@ -21,7 +21,8 @@ export class BuscadorFlowEngine {
 
     public transition(target: BuscadorState): boolean {
         if (!this.canTransitionTo(target)) {
-            console.warn(`[FlowEngine] Invalid transition (forced): ${this.currentState} -> ${target}`);
+            console.warn(`[FlowEngine] Invalid transition blocked: ${this.currentState} -> ${target}`);
+            return false;
         }
         this.history.push(this.currentState);
         this.currentState = target;

@@ -248,20 +248,73 @@ const toDomainAuthMessage = (input: { code?: string | null; reason?: string | nu
     if (code === 'REGISTRATION_INCOMPLETE' || reason === 'REGISTRATION_INCOMPLETE') return 'Seu cadastro está incompleto, finalize para entrar.';
     if (reason === 'INVITE_APPROVED_PENDING_REGISTRATION') return 'Seu e-mail está aprovado para cadastro. Finalize o cadastro para entrar.';
     if (reason === 'INVITE_PENDING_APPROVAL') return 'Seu convite está em análise. Aguarde aprovação para entrar.';
+    if (reason === 'MOCK_STRICT_ONLY') return 'No modo teste, use apenas e-mails pré-definidos.';
     if (code === 'EMAIL_NOT_AUTHORIZED' || reason === 'EMAIL_NOT_AUTHORIZED') return 'Conta não autorizada. Faça cadastro antes de entrar.';
     if (code === 'INVALID_CREDENTIALS') return 'Credenciais inválidas.';
     return input.fallback || 'Não foi possível concluir autenticação.';
+};
+
+type TimedFetchOptions = RequestInit & { timeoutMs?: number };
+
+const fetchWithTimeout = async (url: string, options: TimedFetchOptions = {}) => {
+    const { timeoutMs = 10000, signal, ...rest } = options;
+    const controller = new AbortController();
+    const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
+    const onExternalAbort = () => controller.abort();
+
+    if (signal) {
+        if (signal.aborted) {
+            controller.abort();
+        } else {
+            signal.addEventListener('abort', onExternalAbort, { once: true });
+        }
+    }
+
+    try {
+        return await fetch(url, {
+            ...rest,
+            signal: controller.signal,
+        });
+    } finally {
+        clearTimeout(timeoutHandle);
+        if (signal) signal.removeEventListener('abort', onExternalAbort);
+    }
 };
 
 const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> => {
     const normalizedEmail = normalizeEmail(email);
     if (!normalizedEmail) return { allowed: false, role: null };
 
+    if (isSupabaseMock) {
+        if (isStrictTestEmail(normalizedEmail)) {
+            const account = STRICT_TEST_ACCOUNTS[normalizedEmail];
+            return {
+                allowed: true,
+                role: account.role,
+                roles: [account.role],
+                reason: 'MOCK_TEST_ACCOUNT',
+                canRegister: false,
+                accountState: 'ACTIVE',
+                nextAction: 'LOGIN',
+            };
+        }
+        return {
+            allowed: false,
+            role: null,
+            roles: [],
+            reason: 'MOCK_STRICT_ONLY',
+            canRegister: false,
+            accountState: 'NOT_AUTHORIZED',
+            nextAction: 'REQUEST_INVITE',
+        };
+    }
+
     try {
-        const response = await fetch(`${API_URL}/auth/precheck-login`, {
+        const response = await fetchWithTimeout(`${API_URL}/auth/precheck-login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: normalizedEmail }),
+            timeoutMs: 7000,
         });
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) return { allowed: false, role: null };
@@ -284,7 +337,7 @@ const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> =
 };
 
 const ensureOAuthProfile = async (accessToken: string, role: UserRole, name?: string) => {
-    const response = await fetch(`${API_URL}/auth/oauth/ensure-profile`, {
+    const response = await fetchWithTimeout(`${API_URL}/auth/oauth/ensure-profile`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -294,6 +347,7 @@ const ensureOAuthProfile = async (accessToken: string, role: UserRole, name?: st
             role: normalizeRole(role),
             ...(name ? { name } : {}),
         }),
+        timeoutMs: 9000,
     });
 
     if (!response.ok) {
@@ -470,16 +524,21 @@ export const api = {
                 throw new Error('Preencha e-mail e senha.');
             }
 
-            if (isTestRuntimeAllowed() && isStrictTestEmail(normalizedEmail)) {
-                if (password !== TEST_ACCOUNT_PASSWORD) {
-                    throw new Error('Senha de teste inválida.');
+            if (isSupabaseMock) {
+                if (!isStrictTestEmail(normalizedEmail)) {
+                    throw new Error('No modo teste, use apenas e-mails pré-definidos.');
                 }
+                if (password !== TEST_ACCOUNT_PASSWORD) throw new Error('Senha de teste inválida.');
                 const mockUser = createMockUser(normalizedEmail);
                 saveMockSession(mockUser);
                 return mockUser;
             }
-            if (isSupabaseMock) {
-                throw new Error('No modo teste, use apenas e-mails pré-definidos.');
+
+            if (isTestRuntimeAllowed() && isStrictTestEmail(normalizedEmail)) {
+                if (password !== TEST_ACCOUNT_PASSWORD) throw new Error('Senha de teste inválida.');
+                const mockUser = createMockUser(normalizedEmail);
+                saveMockSession(mockUser);
+                return mockUser;
             }
 
             // Go straight to backend login - no pre-check needed.
@@ -488,10 +547,11 @@ export const api = {
             // Primary path: backend /auth/login (works even when Supabase requires email confirmation).
             try {
                 console.log(`[Login] Attempting backend login for ${normalizedEmail} at ${API_URL}/auth/login`);
-                const response = await fetch(`${API_URL}/auth/login`, {
+                const response = await fetchWithTimeout(`${API_URL}/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: normalizedEmail, password })
+                    body: JSON.stringify({ email: normalizedEmail, password }),
+                    timeoutMs: 12000,
                 });
 
                 if (!response.ok) {
@@ -575,13 +635,19 @@ export const api = {
         loginWithGoogle: async (role: UserRole = UserRole.CLIENT, expectedEmail?: string): Promise<User> => {
             const normalizedExpectedEmail = normalizeEmail(expectedEmail || '');
 
-            if (isTestRuntimeAllowed() && normalizedExpectedEmail && isStrictTestEmail(normalizedExpectedEmail)) {
+            if (isSupabaseMock) {
+                if (!isStrictTestEmail(normalizedExpectedEmail)) {
+                    throw new Error('Google em modo teste aceita apenas contas pré-definidas.');
+                }
                 const mockUser = createMockUser(normalizedExpectedEmail, role, 'Conta Google (Teste)');
                 saveMockSession(mockUser);
                 return mockUser;
             }
-            if (isSupabaseMock) {
-                throw new Error('Google em modo teste aceita apenas contas pré-definidas.');
+
+            if (isTestRuntimeAllowed() && isStrictTestEmail(normalizedExpectedEmail)) {
+                const mockUser = createMockUser(normalizedExpectedEmail, role, 'Conta Google (Teste)');
+                saveMockSession(mockUser);
+                return mockUser;
             }
 
             const oauthValidation = validateOAuthRuntimeConfig();
@@ -646,7 +712,7 @@ export const api = {
             }
 
             if (isSupabaseMock) {
-                throw new Error('Google em modo teste aceita apenas contas pré-definidas.');
+                throw new Error('Cadastro com Google indisponível em modo teste.');
             }
 
             const oauthValidation = validateOAuthRuntimeConfig();
@@ -696,7 +762,7 @@ export const api = {
             }
 
             // Prefer backend registration so we guarantee a `profiles` row exists (authorized account).
-            const response = await fetch(`${API_URL}/auth/register`, {
+            const response = await fetchWithTimeout(`${API_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -704,7 +770,8 @@ export const api = {
                     password: data.password,
                     name: data.name,
                     role: normalizedRole,
-                })
+                }),
+                timeoutMs: 12000,
             });
 
             if (!response.ok) {
@@ -1040,7 +1107,16 @@ export const api = {
                 return true;
             }
         },
-        revokeAccess: async () => true,
+        revokeAccess: async (professionalId: string) => {
+            try {
+                return await request('/records/revoke', {
+                    method: 'POST',
+                    body: JSON.stringify({ professionalId }),
+                });
+            } catch {
+                return true;
+            }
+        },
         getRecordAccessList: async () => [],
         applyToVacancy: async (vid: string) => ({ success: true }),
         getFinanceSummary: async (pid: string) => {

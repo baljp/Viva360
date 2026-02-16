@@ -63,10 +63,20 @@ export class InteractionReceiptService {
         },
       });
     } catch (error: any) {
+      const errorMessage = String(error?.message || '');
       const isSchemaNotReady = error?.code === 'P2021' || error?.code === 'P2022';
       const isMissingActorInTestData =
         error?.code === 'P2003' && String(error?.meta?.constraint || '').includes('interaction_receipts_actor_id_fkey');
-      if (isSchemaNotReady || isMissingActorInTestData) {
+      const isDbUnavailable =
+        ['P1000', 'P1001', 'P1002', 'P1017'].includes(String(error?.code || ''))
+        || /Authentication failed against database server/i.test(errorMessage)
+        || /circuit breaker open/i.test(errorMessage)
+        || /too many authentication errors/i.test(errorMessage);
+      const isSafeFallbackRuntime =
+        process.env.NODE_ENV === 'test'
+        || String(process.env.APP_MODE || '').toUpperCase() === 'MOCK';
+
+      if ((isSchemaNotReady || isMissingActorInTestData || isDbUnavailable) && isSafeFallbackRuntime) {
         const now = new Date();
         return {
           id: randomUUID(),

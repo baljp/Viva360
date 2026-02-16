@@ -60,7 +60,7 @@ export const PortalView: React.FC<{
                 </div>
             </div>
             
-            {footer && <div className="flex-none bg-white border-t border-nature-100 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] relative z-30 lg:rounded-b-[3rem]">
+            {footer && <div className="flex-none bg-white border-t border-nature-100 p-6 pb-[calc(6rem+env(safe-area-inset-bottom))] relative z-30 lg:rounded-b-[3rem] lg:pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
                 {footer}
             </div>}
         </div>

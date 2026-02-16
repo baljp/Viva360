@@ -22,7 +22,9 @@ const circuit: CircuitState = {
 };
 
 const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
-const isEnabled = !isServerless || String(process.env.ENABLE_CIRCUIT_BREAKER || '').toLowerCase() === 'true';
+const isTestRuntime = process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toUpperCase() === 'MOCK';
+const forceEnable = String(process.env.ENABLE_CIRCUIT_BREAKER || '').toLowerCase() === 'true';
+const isEnabled = forceEnable || (!isTestRuntime && !isServerless);
 
 export const circuitBreaker = (req: Request, res: Response, next: NextFunction) => {
     if (!isEnabled) {

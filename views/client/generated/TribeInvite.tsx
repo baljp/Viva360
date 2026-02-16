@@ -3,6 +3,7 @@ import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Users, Share2, Copy, Crown, Star, Sparkles, Send } from 'lucide-react';
 import { ZenToast } from '../../../components/Common';
 import { shareToSocial } from '../../../src/utils/sharing';
+import { dataUrlToBlob } from '../../../src/utils/dataUrl';
 
 export default function TribeInvite() {
   const { go, back } = useBuscadorFlow();
@@ -121,7 +122,7 @@ export default function TribeInvite() {
       if (!canvasRef.current) return;
       
       try {
-          const blob = await (await fetch(canvasRef.current.toDataURL())).blob();
+          const blob = dataUrlToBlob(canvasRef.current.toDataURL());
           await shareToSocial(blob, {
               title: 'Convite Tribo Viva360',
               text: INVITE_TEXT,

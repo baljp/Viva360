@@ -20,6 +20,59 @@ const updateRecordSchema = z.object({
 });
 
 const normalizeRole = (value?: string | null) => String(value || '').trim().toUpperCase();
+const normalizeStatus = (value?: string | null) => String(value || '').trim().toUpperCase();
+const CONSENT_LINK_TYPE = 'patient';
+const ACTIVE_CONSENT_STATUSES = new Set(['ACTIVE', 'ACCEPTED']);
+const STRICT_RECORD_CONSENT = String(process.env.STRICT_RECORD_CONSENT || '').toLowerCase() === 'true';
+
+const hasLegacyProfessionalRelationship = async (patientId: string, professionalId: string) => {
+    const existing = await prisma.record.findFirst({
+        where: { patient_id: patientId, professional_id: professionalId },
+        select: { id: true },
+    });
+    return Boolean(existing);
+};
+
+const isProfessionalRoleProfile = async (profileId: string) => {
+    const profile = await prisma.profile.findUnique({
+        where: { id: profileId },
+        select: {
+            role: true,
+            active_role: true,
+            profile_roles: {
+                select: { role: true },
+            },
+        },
+    });
+    if (!profile) return false;
+
+    const roles = new Set<string>();
+    roles.add(normalizeRole(profile.role));
+    roles.add(normalizeRole(profile.active_role));
+    (profile.profile_roles || []).forEach((entry) => roles.add(normalizeRole(entry.role)));
+    return roles.has('PROFESSIONAL');
+};
+
+const hasActiveConsentForRecord = async (patientId: string, professionalId: string) => {
+    const consent = await prisma.profileLink.findUnique({
+        where: {
+            source_id_target_id_type: {
+                source_id: patientId,
+                target_id: professionalId,
+                type: CONSENT_LINK_TYPE,
+            },
+        },
+        select: { status: true },
+    });
+
+    if (consent) {
+        return ACTIVE_CONSENT_STATUSES.has(normalizeStatus(consent.status));
+    }
+
+    // Transitional compatibility keeps legacy clinical pairs valid unless strict mode is enabled.
+    if (STRICT_RECORD_CONSENT) return false;
+    return hasLegacyProfessionalRelationship(patientId, professionalId);
+};
 
 const emitRecordNotifications = async (params: {
     actorId: string;
@@ -30,7 +83,10 @@ const emitRecordNotifications = async (params: {
     type: string;
     content: string;
 }) => {
-    const summary = String(params.content || '').trim().slice(0, 160);
+    // Never propagate raw record content in notifications/log payloads.
+    const redactedMeta = {
+        contentLength: String(params.content || '').trim().length,
+    };
     await notificationEngine.emit({
         type: 'record.updated',
         actorId: params.actorId,
@@ -40,7 +96,7 @@ const emitRecordNotifications = async (params: {
         data: {
             action: params.action,
             type: params.type,
-            summary,
+            ...redactedMeta,
         },
     });
 
@@ -59,7 +115,7 @@ const emitRecordNotifications = async (params: {
             data: {
                 action: params.action,
                 type: params.type,
-                summary,
+                ...redactedMeta,
             },
         });
     }
@@ -68,6 +124,7 @@ const emitRecordNotifications = async (params: {
 export const createNote = asyncHandler(async (req: Request, res: Response) => {
     const proId = String((req as any).user?.userId || '').trim();
     const userRole = normalizeRole((req as any).user?.role);
+    const mockRuntime = isMockMode();
     if (!proId) return res.status(401).json({ error: 'Unauthorized' });
     if (userRole !== 'PROFESSIONAL') {
         return res.status(403).json({ error: 'Apenas guardiões podem atualizar prontuário.' });
@@ -75,10 +132,17 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
 
     const { patientId, content, type } = createRecordSchema.parse(req.body || {});
 
+    if (!mockRuntime && patientId !== proId) {
+        const consentGranted = await hasActiveConsentForRecord(patientId, proId);
+        if (!consentGranted) {
+            return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente não concedeu consentimento para este prontuário.' });
+        }
+    }
+
     // 1. Audit Attempt
     await AuditService.logAccess(proId, `patient:${patientId}`, 'WRITE_RECORD', 'SUCCESS', `Type: ${type}`);
 
-    if (isMockMode()) {
+    if (mockRuntime) {
         // Safe mock handling
         return res.status(201).json({
             id: 'mock-record-id',
@@ -120,6 +184,7 @@ export const listNotes = asyncHandler(async (req: Request, res: Response) => {
     const paramPatientId = req.params?.patientId as string | undefined;
     const targetPatientId = queryPatientId || paramPatientId || requestorId;
     const userRole = normalizeRole((req as any).user?.role);
+    const mockRuntime = isMockMode();
 
     if (!requestorId || !targetPatientId) {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -135,10 +200,16 @@ export const listNotes = asyncHandler(async (req: Request, res: Response) => {
     if (userRole === 'CLIENT' && targetPatientId !== requestorId) {
         return res.status(403).json({ error: 'Sem permissão para acessar prontuário de outra pessoa.' });
     }
+    if (!mockRuntime && userRole === 'PROFESSIONAL' && targetPatientId !== requestorId) {
+        const consentGranted = await hasActiveConsentForRecord(targetPatientId, requestorId);
+        if (!consentGranted) {
+            return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente não concedeu consentimento para este prontuário.' });
+        }
+    }
 
     await AuditService.logAccess(requestorId, `patient:${targetPatientId}`, 'READ_RECORD', 'SUCCESS');
 
-    if (isMockMode()) {
+    if (mockRuntime) {
         return res.json([
             { id: 'rec-1', type: 'anamnesis', content: 'Patient reports anxiety. (Mock)', date: '2024-01-20' },
             { id: 'rec-2', type: 'session', content: 'Reiki session complete. (Mock)', date: '2024-01-25' }
@@ -180,6 +251,12 @@ export const updateNote = asyncHandler(async (req: Request, res: Response) => {
     if (existing.professional_id !== actorId) {
         return res.status(403).json({ error: 'Sem permissão para editar este registro.' });
     }
+    if (existing.patient_id !== actorId) {
+        const consentGranted = await hasActiveConsentForRecord(existing.patient_id, actorId);
+        if (!consentGranted) {
+            return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente revogou ou não concedeu consentimento.' });
+        }
+    }
 
     const updated = await prisma.record.update({
         where: { id: recordId },
@@ -206,16 +283,109 @@ export const updateNote = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const grantAccess = asyncHandler(async (req: Request, res: Response) => {
-    const patientId = (req as any).user?.userId;
-    const { professionalId } = req.body;
+    const patientId = String((req as any).user?.userId || '').trim();
+    const userRole = normalizeRole((req as any).user?.role);
+    const professionalId = String(req.body?.professionalId || '').trim();
+    const mockRuntime = isMockMode();
+
+    if (!patientId) return res.status(401).json({ error: 'Unauthorized' });
+    if (userRole !== 'CLIENT') {
+        return res.status(403).json({ error: 'Apenas buscadores podem conceder consentimento clínico.' });
+    }
+    if (!professionalId) {
+        return res.status(400).json({ error: 'professionalId inválido.' });
+    }
+    if (professionalId === patientId) {
+        return res.status(400).json({ error: 'Não é possível conceder consentimento para si mesmo.' });
+    }
 
     await AuditService.logAccess(patientId, `grant:${professionalId}`, 'GRANT_ACCESS', 'SUCCESS');
 
-    if (isMockMode()) {
-        return res.json({ success: true, message: `Access granted to ${professionalId}` });
+    if (mockRuntime) {
+        return res.json({
+            success: true,
+            message: `Access granted to ${professionalId}`,
+            consent: { patientId, professionalId, status: 'ACTIVE', mock: true },
+        });
     }
-    
-    return res.json({ success: true });
+
+    const isProfessional = await isProfessionalRoleProfile(professionalId);
+    if (!isProfessional) {
+        return res.status(404).json({ error: 'Profissional não encontrado para consentimento.' });
+    }
+
+    await prisma.profileLink.upsert({
+        where: {
+            source_id_target_id_type: {
+                source_id: patientId,
+                target_id: professionalId,
+                type: CONSENT_LINK_TYPE,
+            },
+        },
+        update: {
+            status: 'active',
+        },
+        create: {
+            source_id: patientId,
+            target_id: professionalId,
+            type: CONSENT_LINK_TYPE,
+            status: 'active',
+        },
+    });
+
+    return res.json({
+        success: true,
+        consent: { patientId, professionalId, status: 'ACTIVE' },
+    });
+});
+
+export const revokeAccess = asyncHandler(async (req: Request, res: Response) => {
+    const patientId = String((req as any).user?.userId || '').trim();
+    const userRole = normalizeRole((req as any).user?.role);
+    const { professionalId } = req.body || {};
+    const mockRuntime = isMockMode();
+
+    if (!patientId) return res.status(401).json({ error: 'Unauthorized' });
+    if (userRole !== 'CLIENT') {
+        return res.status(403).json({ error: 'Apenas buscadores podem revogar consentimento clínico.' });
+    }
+    if (!professionalId) {
+        return res.status(400).json({ error: 'patientId/professionalId inválido.' });
+    }
+
+    await AuditService.logAccess(patientId, `revoke:${professionalId}`, 'REVOKE_ACCESS', 'SUCCESS');
+
+    if (mockRuntime) {
+        return res.json({
+            success: true,
+            message: `Access revoked from ${professionalId}`,
+            consent: { patientId, professionalId, status: 'REVOKED', mock: true },
+        });
+    }
+
+    await prisma.profileLink.upsert({
+        where: {
+            source_id_target_id_type: {
+                source_id: patientId,
+                target_id: String(professionalId),
+                type: CONSENT_LINK_TYPE,
+            },
+        },
+        update: {
+            status: 'revoked',
+        },
+        create: {
+            source_id: patientId,
+            target_id: String(professionalId),
+            type: CONSENT_LINK_TYPE,
+            status: 'revoked',
+        },
+    });
+
+    return res.json({
+        success: true,
+        consent: { patientId, professionalId: String(professionalId), status: 'REVOKED' },
+    });
 });
 
 export const exportData = asyncHandler(async (req: Request, res: Response) => {

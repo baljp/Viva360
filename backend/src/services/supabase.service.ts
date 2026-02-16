@@ -6,18 +6,29 @@ dotenv.config();
 const SUPABASE_URL = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
-const explicitMode = String(process.env.APP_MODE || '').toUpperCase();
+const normalizeMode = (value: string): 'MOCK' | 'DEMO' | 'PROD' | '' => {
+  const normalized = value.trim().toLowerCase();
+  if (!normalized) return '';
+  if (normalized === 'mock') return 'MOCK';
+  if (normalized === 'demo') return 'DEMO';
+  if (normalized === 'prod' || normalized === 'production' || normalized === 'staging' || normalized === 'stage') {
+    // staging is treated as real mode.
+    return 'PROD';
+  }
+  return '';
+};
+const explicitMode = normalizeMode(String(process.env.APP_MODE || ''));
 const isNodeTest = process.env.NODE_ENV === 'test';
-const isNonProdNode = process.env.NODE_ENV !== 'production';
 const explicitTestMode = String(process.env.ENABLE_TEST_MODE || '').toLowerCase() === 'true';
 const TEST_MODE_ENABLED = explicitTestMode || isNodeTest;
+const isNonProdNode = process.env.NODE_ENV !== 'production';
 const APP_MODE = explicitMode === 'MOCK'
-  ? ((TEST_MODE_ENABLED || isNonProdNode) ? 'MOCK' : 'PROD')
+  ? ((TEST_MODE_ENABLED && isNonProdNode) ? 'MOCK' : 'PROD')
   : (explicitMode || 'PROD');
 const isProd = process.env.NODE_ENV === 'production';
 
 // Flag for Mock/Demo Mode
-const IS_MOCK_MODE = APP_MODE === 'MOCK' && (TEST_MODE_ENABLED || isNonProdNode);
+const IS_MOCK_MODE = APP_MODE === 'MOCK' && TEST_MODE_ENABLED && isNonProdNode;
 const IS_DEMO_MODE = APP_MODE === 'DEMO';
 
 // Standard client for verification (using anon key)

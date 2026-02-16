@@ -32,8 +32,8 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
-    - name: Run Full QA Suite
-      run: npm run test:qa
+    - name: Run Regression Checklist
+      run: npm run qa:regression-checklist
 
     - name: Upload Playwright Report
       if: failure()

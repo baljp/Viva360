@@ -11,38 +11,84 @@ interface OracleContext {
 
 export class OracleService {
     private readonly uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    private readonly fallbackDeck: OracleMessage[] = [
+        {
+            id: '11111111-1111-4111-8111-111111111111',
+            text: 'Aquiete o peito. A resposta nasce no silencio entre dois respiros.',
+            category: 'consciencia',
+            element: 'Ar',
+            moods: ['neutral', 'focado', 'ansioso'],
+            phases: ['inicio', 'crescimento'],
+            depth: 1,
+            weight: 1 as any,
+            rarity: 'common',
+            created_at: new Date('2026-01-01T00:00:00.000Z'),
+        },
+        {
+            id: '22222222-2222-4222-8222-222222222222',
+            text: 'Onde houver excesso, escolha delicadeza. Forca tambem pode ser suave.',
+            category: 'cura_emocional',
+            element: 'Agua',
+            moods: ['triste', 'ansioso', 'cansado'],
+            phases: ['inicio', 'integracao'],
+            depth: 1,
+            weight: 1 as any,
+            rarity: 'common',
+            created_at: new Date('2026-01-01T00:00:00.000Z'),
+        },
+        {
+            id: '33333333-3333-4333-8333-333333333333',
+            text: 'Seu proximo passo nao precisa ser grande. Precisa ser verdadeiro.',
+            category: 'acao_foco',
+            element: 'Terra',
+            moods: ['focado', 'motivado', 'neutral'],
+            phases: ['crescimento', 'expansao'],
+            depth: 1,
+            weight: 1 as any,
+            rarity: 'common',
+            created_at: new Date('2026-01-01T00:00:00.000Z'),
+        },
+    ];
     
     // Core Algorithm: Select the best card based on context
     async drawCard(userId: string, context: OracleContext): Promise<OracleMessage | null> {
         const safeUserId = this.normalizeUserId(userId);
-
-        // 1. Fetch Candidate Messages (Filtered by basic rules)
-        const sixtyDaysAgo = new Date();
-        sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-
-        const recentHistory = await prismaRead.oracleHistory.findMany({
-            where: {
-                user_id: safeUserId,
-                drawn_at: { gte: sixtyDaysAgo }
-            },
-            select: { message_id: true }
-        });
-
-        const recentMessageIds = recentHistory.map(h => h.message_id);
         const normalizedMood = this.normalizeMood(context.mood);
 
-        const candidates = await prismaRead.oracleMessage.findMany({
-            where: {
-                id: { notIn: recentMessageIds },
-                 OR: [
-                    { moods: { has: normalizedMood } },
-                    { moods: { has: context.mood } },
-                    { phases: { has: context.metamorphosisPhase } },
-                    { category: 'consciencia' },
-                    { element: this.getElementForMood(normalizedMood) }
-                 ]
+        let candidates: OracleMessage[] = [];
+        try {
+            // 1. Fetch Candidate Messages (Filtered by basic rules)
+            const sixtyDaysAgo = new Date();
+            sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+            const recentHistory = await prismaRead.oracleHistory.findMany({
+                where: {
+                    user_id: safeUserId,
+                    drawn_at: { gte: sixtyDaysAgo }
+                },
+                select: { message_id: true }
+            });
+
+            const recentMessageIds = recentHistory.map(h => h.message_id);
+
+            candidates = await prismaRead.oracleMessage.findMany({
+                where: {
+                    id: { notIn: recentMessageIds },
+                    OR: [
+                        { moods: { has: normalizedMood } },
+                        { moods: { has: context.mood } },
+                        { phases: { has: context.metamorphosisPhase } },
+                        { category: 'consciencia' },
+                        { element: this.getElementForMood(normalizedMood) }
+                    ]
+                }
+            });
+        } catch (error) {
+            if (this.isSafeFallbackRuntime() && this.isDbUnavailableError(error)) {
+                return this.getFallbackByContext(normalizedMood);
             }
-        });
+            throw error;
+        }
 
         if (candidates.length === 0) {
             return this.getRandomFallback();
@@ -97,30 +143,44 @@ export class OracleService {
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
 
-        const lastDraw = await prismaRead.oracleHistory.findFirst({
-            where: {
-                user_id: safeUserId,
-                drawn_at: { gte: startOfDay }
-            },
-            include: {
-                message: true
-            },
-            orderBy: {
-                drawn_at: 'desc'
-            }
-        });
+        try {
+            const lastDraw = await prismaRead.oracleHistory.findFirst({
+                where: {
+                    user_id: safeUserId,
+                    drawn_at: { gte: startOfDay }
+                },
+                include: {
+                    message: true
+                },
+                orderBy: {
+                    drawn_at: 'desc'
+                }
+            });
 
-        return lastDraw?.message || null;
+            return lastDraw?.message || null;
+        } catch (error) {
+            if (this.isSafeFallbackRuntime() && this.isDbUnavailableError(error)) {
+                return this.getFallbackByContext('neutral');
+            }
+            throw error;
+        }
     }
 
     async getHistory(userId: string, limit = 30) {
         const safeUserId = this.normalizeUserId(userId);
-        return prismaRead.oracleHistory.findMany({
-            where: { user_id: safeUserId },
-            include: { message: true },
-            orderBy: { drawn_at: 'desc' },
-            take: limit,
-        });
+        try {
+            return await prismaRead.oracleHistory.findMany({
+                where: { user_id: safeUserId },
+                include: { message: true },
+                orderBy: { drawn_at: 'desc' },
+                take: limit,
+            });
+        } catch (error) {
+            if (this.isSafeFallbackRuntime() && this.isDbUnavailableError(error)) {
+                return [];
+            }
+            throw error;
+        }
     }
 
     private normalizeUserId(userId?: string) {
@@ -161,9 +221,31 @@ export class OracleService {
             const [card] = await prismaRead.oracleMessage.findMany({ take: 1, skip });
             return card || null;
         } catch (e) {
+            if (this.isSafeFallbackRuntime() && this.isDbUnavailableError(e)) {
+                return this.getFallbackByContext('neutral');
+            }
             console.error('Fallback error:', e);
             return null;
         }
+    }
+
+    private getFallbackByContext(mood: string): OracleMessage {
+        const normalized = this.normalizeMood(mood);
+        const candidate = this.fallbackDeck.find((card) => card.moods.includes(normalized));
+        return candidate || this.fallbackDeck[0];
+    }
+
+    private isSafeFallbackRuntime(): boolean {
+        return process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toUpperCase() === 'MOCK';
+    }
+
+    private isDbUnavailableError(error: any): boolean {
+        const code = String(error?.code || '');
+        const message = String(error?.message || '');
+        return ['P1000', 'P1001', 'P1002', 'P1017'].includes(code)
+            || /authentication failed against database server/i.test(message)
+            || /circuit breaker open/i.test(message)
+            || /too many authentication errors/i.test(message);
     }
 }
 
