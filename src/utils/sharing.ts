@@ -17,6 +17,7 @@ export interface ShareContent {
     date?: string;
     format?: ShareFormat;
     mimeType?: 'image/jpeg' | 'image/png';
+    overlayIcon?: { text: string; color?: string; size?: number };
 }
 
 export interface ShareRequest {
@@ -80,6 +81,23 @@ export const generateShareCanvas = async (content: ShareContent): Promise<Blob |
     vignette.addColorStop(1, 'rgba(2, 6, 23, 1)');
     ctx.fillStyle = vignette;
     ctx.fillRect(0, canvas.height * 0.5, canvas.width, canvas.height * 0.5);
+
+    // 3.5 Overlay icon (e.g., Jardim "planta")
+    if (content.overlayIcon?.text) {
+        const size = content.overlayIcon.size || (format === 'feed' ? 120 : 150);
+        ctx.save();
+        ctx.font = `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.shadowColor = 'rgba(0,0,0,0.35)';
+        ctx.shadowBlur = 24;
+        if (content.overlayIcon.color) {
+            ctx.fillStyle = content.overlayIcon.color;
+        }
+        // Slightly below header zone so it reads as part of the hero.
+        ctx.fillText(content.overlayIcon.text, 86, format === 'feed' ? 210 : 240);
+        ctx.restore();
+    }
 
     // 4. Content Rendering
     ctx.textAlign = 'center';
