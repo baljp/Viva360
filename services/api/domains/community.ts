@@ -6,6 +6,24 @@ type CommunityDomainDeps = {
 };
 
 export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
+  invites: {
+    create: async (payload: { kind: 'tribo' | 'guardian' | 'space'; targetRole?: 'CLIENT' | 'PROFESSIONAL' | 'SPACE'; contextRef?: string }) => {
+      return await request('/invites/create', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    resolve: async (token: string) => {
+      return await request(`/invites/resolve/${encodeURIComponent(token)}`);
+    },
+    accept: async (token: string) => {
+      return await request('/invites/accept', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      });
+    },
+  },
+
   notifications: {
     list: async () => {
       try {

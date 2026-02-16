@@ -4,21 +4,42 @@ import { Users, Share2, Copy, Crown, Star, Sparkles, Send } from 'lucide-react';
 import { ZenToast } from '../../../components/Common';
 import { shareToSocial } from '../../../src/utils/sharing';
 import { dataUrlToBlob } from '../../../src/utils/dataUrl';
+import { api } from '../../../services/api';
 
 export default function TribeInvite() {
   const { go, back } = useBuscadorFlow();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [inviteImage, setInviteImage] = useState<string | null>(null);
+  const [inviteLink, setInviteLink] = useState<string>(() => `${window.location.origin}/invite`);
+  const [inviterName, setInviterName] = useState<string>('Viva360');
   const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
-  const INVITE_LINK = `${window.location.origin}/invite/u/joao-luz`;
-  const INVITE_TEXT = "Olá! Estou te convidando para fazer parte da minha Tribo de Evolução no Viva360. Vamos expandir nossa consciência juntos. 🌿✨";
+  const INVITE_TEXT = `Olá! Estou te convidando para fazer parte da minha Tribo de Evolução no Viva360. Vamos expandir nossa consciência juntos. 🌿✨\n\n${inviteLink}`;
 
   // Generate Invite Card
   useEffect(() => {
-    generateCard();
+    (async () => {
+      try {
+        const u = await api.auth.getCurrentSession();
+        if (u?.name) setInviterName(String(u.name));
+      } catch {
+        // ignore
+      }
+      try {
+        const created = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' });
+        const url = String((created as any)?.url || '').trim();
+        if (url) setInviteLink(url);
+      } catch (e) {
+        console.warn('Invite create failed, falling back to generic /invite route', e);
+      }
+    })();
   }, []);
+
+  useEffect(() => {
+    generateCard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inviteLink, inviterName]);
 
   const generateCard = () => {
       const canvas = canvasRef.current;
@@ -68,7 +89,7 @@ export default function TribeInvite() {
       ctx.font = 'bold 100px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('J', W/2, 400); // Mock Initial
+      ctx.fillText((inviterName || 'V').slice(0, 1).toUpperCase(), W/2, 400);
 
       // Text Content
       ctx.textAlign = 'center';
@@ -84,7 +105,7 @@ export default function TribeInvite() {
       ctx.fillText('Você foi chamado para a tribo de', W/2, 750);
       
       ctx.font = 'bold 80px sans-serif';
-      ctx.fillText('JOÃO LUZ', W/2, 850);
+      ctx.fillText(String(inviterName || 'Viva360').toUpperCase().slice(0, 18), W/2, 850);
 
       // Quote Area
       ctx.fillStyle = 'rgba(255,255,255,0.1)';
@@ -111,7 +132,7 @@ export default function TribeInvite() {
       // Footer
       ctx.fillStyle = 'rgba(255,255,255,0.5)';
       ctx.font = '30px monospace';
-      ctx.fillText(INVITE_LINK, W/2, 1600);
+      ctx.fillText(inviteLink, W/2, 1600);
       ctx.font = 'bold 30px sans-serif';
       ctx.fillText('VIVA360', W/2, 1750);
 
@@ -126,7 +147,7 @@ export default function TribeInvite() {
           await shareToSocial(blob, {
               title: 'Convite Tribo Viva360',
               text: INVITE_TEXT,
-              url: INVITE_LINK,
+              url: inviteLink,
               platform: platform === 'whatsapp' ? 'whatsapp' : 'generic',
               filename: 'convite-viva360.jpg',
           });
@@ -182,7 +203,7 @@ export default function TribeInvite() {
                    <Share2 size={18} /> Outros
                </button>
                <button onClick={() => { 
-                   navigator.clipboard.writeText(INVITE_LINK); 
+                   navigator.clipboard.writeText(inviteLink); 
                    setToast({ title: "Link Copiado", message: "Espalhe a luz com sua tribo.", type: "success" });
                 }} className="py-4 bg-indigo-900/50 border border-indigo-500/30 text-indigo-200 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest active:scale-95 transition-all w-full">
                    <Copy size={18} /> Copiar
