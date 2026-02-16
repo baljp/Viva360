@@ -87,6 +87,8 @@ const SpaceMarketplace = lazyNamed(() => import('../../views/space/SpaceMarketpl
 const SpaceRecruitment = lazyNamed(() => import('../../views/space/SpaceRecruitment'), 'SpaceRecruitment');
 const SpaceRooms = lazyNamed(() => import('../../views/space/SpaceRooms'), 'SpaceRooms');
 const SpaceTeam = lazyNamed(() => import('../../views/space/SpaceTeam'), 'SpaceTeam');
+const SpacePatientProfile = lazyNamed(() => import('../../views/space/SpacePatientProfile'), 'SpacePatientProfile');
+const SpacePatientRecords = lazyNamed(() => import('../../views/space/SpacePatientRecords'), 'SpacePatientRecords');
 
 // --- SANTUARIO GENERATED ---
 const SpacePatients = lazyWithRetry(() => import('../../views/space/generated/SpacePatients'), 'SpacePatients');
@@ -208,8 +210,8 @@ export const screenMap: any = {
         TEAM_SUMMON: SpaceSummon,
         TEAM_INVITE: SpaceInvite,
         PATIENTS_LIST: SpacePatients,
-        PATIENT_PROFILE: SpacePatients,
-        PATIENT_RECORDS: SpacePatients,
+        PATIENT_PROFILE: SpacePatientProfile,
+        PATIENT_RECORDS: SpacePatientRecords,
         AGENDA_OVERVIEW: SpaceCalendar,
         AGENDA_EDIT: SpaceCalendar,
         ROOMS_STATUS: SpaceRooms,

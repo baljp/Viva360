@@ -22,9 +22,10 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
     const [activeFilter, setActiveFilter] = useState<'all' | 'dom' | 'availability' | 'level'>('all');
 
     const teamArray = Array.isArray(team) ? team : [];
-    const activeMestres = teamArray.filter((p: any) => p.role === 'Mestre' || p.karma > 800).length;
-    const activeGuardioes = teamArray.length - activeMestres;
+    const activeMestres = teamArray.filter((p: any) => (p.roleLabel || (p.karma > 800 ? 'Mestre' : 'Guardião')) === 'Mestre').length;
+    const activeGuardioes = Math.max(0, teamArray.length - activeMestres);
     const activeInSession = teamArray.filter((p: any) => p.isOccupied).length;
+    const facilitators = teamArray.filter((p: any) => Array.isArray(p.specialty) && p.specialty.length > 0).length;
 
     const handleInvite = (type: string) => {
         setToast({ title: 'Link Gerado', message: `Convite para ${type} copiado.` });
@@ -65,7 +66,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                              <div className="flex items-center gap-2 text-nature-600 text-xs font-medium"><Shield size={14} className="text-indigo-400"/> {activeGuardioes} Guardiões</div>
                          </div>
                          <div className="flex flex-col gap-1">
-                             <div className="flex items-center gap-2 text-nature-600 text-xs font-medium"><Sprout size={14} className="text-emerald-400"/> 12 Facilitadores</div>
+                             <div className="flex items-center gap-2 text-nature-600 text-xs font-medium"><Sprout size={14} className="text-emerald-400"/> {facilitators} Facilitadores</div>
                              <div className="flex items-center gap-2 text-rose-600 font-bold text-xs"><div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div> {activeInSession} Em sessão</div>
                          </div>
                     </div>
@@ -119,7 +120,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                                         {pro.karma > 800 && <Crown size={10} className="text-amber-500 fill-amber-500"/>}
                                     </div>
                                     <p className="text-[9px] text-nature-400 font-bold uppercase mt-0.5">
-                                        {pro.role === 'Mestre' ? 'Mestre' : 'Guardião'} · {pro.specialty && pro.specialty.length > 0 ? pro.specialty[0] : 'Iniciante'}
+                                        {(pro.roleLabel || (pro.karma > 800 ? 'Mestre' : 'Guardião'))} · {pro.specialty && pro.specialty.length > 0 ? pro.specialty[0] : 'Iniciante'}
                                     </p>
                                     <div className="flex items-center gap-1.5 mt-1.5">
                                         <span className={`w-1.5 h-1.5 rounded-full ${pro.isOccupied ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
@@ -128,6 +129,22 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                                         </span>
                                         {!pro.isOccupied && <span className="text-[9px] text-nature-300 font-medium ml-1">· {getNextSession()}</span>}
                                     </div>
+                                    {pro.contract && (
+                                        <div className="flex flex-wrap gap-1.5 mt-2">
+                                            <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+                                                pro.contract.status === 'active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                                : 'bg-amber-50 text-amber-700 border border-amber-100'
+                                            }`}>
+                                                Contrato {String(pro.contract.status || '').toUpperCase()}
+                                            </span>
+                                            <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-nature-50 text-nature-600 border border-nature-100">
+                                                Repasse {Number(pro.contract.revenueShare || 0)}%
+                                            </span>
+                                            <span className="px-2 py-0.5 rounded-lg text-[9px] font-bold bg-nature-50 text-nature-600 border border-nature-100">
+                                                Salas {Array.isArray(pro.contract.roomsAllowed) ? pro.contract.roomsAllowed.length : 0}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <ChevronRight size={16} className="text-nature-200 group-hover:text-indigo-500 transition-colors" />

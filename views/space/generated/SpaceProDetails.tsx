@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 import { PortalView } from '../../../components/Common';
-import { Star, Award, Calendar, Shield, Crown, MessageCircle, MapPin } from 'lucide-react';
+import { Star, Award, Calendar, Shield, Crown, MessageCircle } from 'lucide-react';
 
 export default function SpaceProDetails() {
     const { state, back, go } = useSantuarioFlow();
@@ -26,15 +26,18 @@ export default function SpaceProDetails() {
 
     // Performance metrics derived from real data
     const stats = {
-        sessions: (pro as any).totalHealingHours || 0,
-        rating: pro.rating || 0,
-        reviews: (pro as any).reviewCount || 0
+        sessions: Number((pro as any).totalHealingHours || 0),
+        rating: Number((pro as any).rating || 0),
+        reviews: Number((pro as any).reviewCount || 0),
+        karma: Number((pro as any).karma || 0),
     };
+    const contract = (pro as any).contract || null;
+    const isMaster = stats.karma > 800;
 
     return (
         <PortalView 
-            title="Perfil do Mestre" 
-            subtitle="GUARDIÃO" 
+            title={isMaster ? 'Perfil do Mestre' : 'Perfil do Guardião'} 
+            subtitle="CÍRCULO DO SANTUÁRIO" 
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1519681393784-d8e5b5a45742?q=80&w=800"
         >
@@ -46,9 +49,9 @@ export default function SpaceProDetails() {
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-1">
                         <h2 className="font-serif italic text-2xl text-nature-900">{pro.name}</h2>
-                        <Crown size={16} className="text-amber-500 fill-amber-500" />
+                        {isMaster && <Crown size={16} className="text-amber-500 fill-amber-500" />}
                     </div>
-                    <p className="text-xs font-bold uppercase tracking-widest text-nature-400 mb-4">{pro.role}</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-nature-400 mb-4">{isMaster ? 'Mestre' : 'Guardião'}</p>
                     
                     <div className="flex flex-wrap justify-center gap-2 mb-6">
                         {((pro as any).specialty || (pro as any).specialties || []).map((s: string) => (
@@ -62,8 +65,8 @@ export default function SpaceProDetails() {
                             <p className="text-[9px] text-nature-400 uppercase font-bold">Horas de Cura</p>
                         </div>
                         <div>
-                            <p className="text-lg font-bold text-nature-900 flex items-center justify-center gap-1">{stats.rating} <Star size={10} className="fill-amber-400 text-amber-400"/></p>
-                            <p className="text-[9px] text-nature-400 uppercase font-bold">Karma</p>
+                            <p className="text-lg font-bold text-nature-900 flex items-center justify-center gap-1">{stats.rating.toFixed ? stats.rating.toFixed(1) : stats.rating} <Star size={10} className="fill-amber-400 text-amber-400"/></p>
+                            <p className="text-[9px] text-nature-400 uppercase font-bold">Avaliação</p>
                         </div>
                         <div>
                             <p className="text-lg font-bold text-nature-900">{stats.reviews}</p>
@@ -71,6 +74,44 @@ export default function SpaceProDetails() {
                         </div>
                     </div>
                 </div>
+
+                {/* Contract (Space view) */}
+                {contract && (
+                    <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm mb-6">
+                        <h3 className="font-bold text-nature-900 text-sm mb-3 flex items-center gap-2"><Award size={14}/> Vínculo com o Santuário</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="bg-nature-50 p-4 rounded-2xl border border-nature-100">
+                                <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Status</p>
+                                <p className="text-sm font-black text-nature-900 mt-1">{String(contract.status || '').toUpperCase()}</p>
+                            </div>
+                            <div className="bg-nature-50 p-4 rounded-2xl border border-nature-100">
+                                <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Repasse</p>
+                                <p className="text-sm font-black text-emerald-700 mt-1">{Number(contract.revenueShare || 0)}%</p>
+                            </div>
+                            <div className="bg-nature-50 p-4 rounded-2xl border border-nature-100">
+                                <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Horas/Semana</p>
+                                <p className="text-sm font-black text-nature-900 mt-1">{Number(contract.hoursPerWeek || 0)}h</p>
+                            </div>
+                            <div className="bg-nature-50 p-4 rounded-2xl border border-nature-100">
+                                <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Assinatura</p>
+                                <p className="text-sm font-black text-nature-900 mt-1">{contract.signed ? 'Assinado' : 'Pendente'}</p>
+                            </div>
+                        </div>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            <span className="px-3 py-1 rounded-xl text-[9px] font-bold uppercase tracking-widest bg-indigo-50 text-indigo-700 border border-indigo-100">
+                                Karma {stats.karma}
+                            </span>
+                            <span className="px-3 py-1 rounded-xl text-[9px] font-bold uppercase tracking-widest bg-nature-50 text-nature-700 border border-nature-100">
+                                Salas {Array.isArray(contract.roomsAllowed) ? contract.roomsAllowed.length : 0}
+                            </span>
+                            {(contract.endDate || contract.end_date) && (
+                                <span className="px-3 py-1 rounded-xl text-[9px] font-bold uppercase tracking-widest bg-nature-50 text-nature-700 border border-nature-100">
+                                    Até {new Date(contract.endDate || contract.end_date).toLocaleDateString('pt-BR')}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* About */}
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm mb-6">

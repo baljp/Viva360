@@ -4,8 +4,11 @@ import { PortalView } from '../../../components/Common';
 import { Calendar, Clock, User, ChevronRight } from 'lucide-react';
 
 export default function SpaceRoomAgenda() {
-    const { back, go } = useSantuarioFlow();
+    const { state, back, go } = useSantuarioFlow();
     const todayLabel = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
+    const selected = state.data.rooms?.find((r: any) => r.id === state.selectedRoomId) || null;
+    const roomName = selected?.name || 'Altar';
+    const hero = selected?.imageUrl || "https://images.unsplash.com/photo-1596131397935-33ec8a7e0892?q=80&w=600";
 
     const events = [
         { id: 1, time: '09:00 - 10:30', title: 'Yoga Matinal', host: 'Clara Luz', type: 'Prática Coletiva' },
@@ -18,11 +21,11 @@ export default function SpaceRoomAgenda() {
             title="Agenda do Altar" 
             subtitle="FLUXO DE ENERGIA" 
             onBack={back}
-            heroImage="https://images.unsplash.com/photo-1596131397935-33ec8a7e0892?q=80&w=600"
+            heroImage={hero}
         >
             <div className="space-y-6 px-4">
                 <div className="bg-nature-50 p-6 rounded-[2.5rem] text-center mb-6">
-                    <h3 className="font-serif italic text-2xl text-nature-900">Sala Cristal</h3>
+                    <h3 className="font-serif italic text-2xl text-nature-900">{roomName}</h3>
                     <p className="text-xs text-nature-500 mt-2">Visualizando agenda para {todayLabel}</p>
                 </div>
 

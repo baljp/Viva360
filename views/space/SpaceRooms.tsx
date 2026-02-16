@@ -1,30 +1,54 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 import { PortalView, ZenToast } from '../../components/Common';
 import { Plus, Edit3, Image as ImageIcon, ChevronRight, Calendar, Settings, Clock, Users, Sun, PenTool, CheckCircle, AlertTriangle, Hammer } from 'lucide-react';
 
-export const SpaceRooms: React.FC = () => {
-    const { go } = useSantuarioFlow();
+export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData }) => {
+    const { state, go, selectRoom } = useSantuarioFlow();
     const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'warning' | 'info'} | null>(null);
 
-    // Mock Data
-    const rooms = [
-        { 
-            id: 1, name: 'Sala Cristal', capacity: 15, current: 0, status: 'Livre', 
+    useEffect(() => {
+        // Best-effort refresh when the screen mounts (e.g. after editing a room).
+        refreshData?.();
+    }, [refreshData]);
+
+    const fallbackRooms = [
+        {
+            id: 'mock-room-1', name: 'Sala Cristal', capacity: 15, current: 0, status: 'Livre',
             dailyOccupancy: 42, nextUse: '14:30',
             image: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=600'
         },
-        { 
-            id: 2, name: 'Templo Solar', capacity: 40, current: 12, status: 'Ocupado', 
+        {
+            id: 'mock-room-2', name: 'Templo Solar', capacity: 40, current: 12, status: 'Ocupado',
             dailyOccupancy: 78, currentEvent: 'Yoga Coletivo',
             image: 'https://images.unsplash.com/photo-1596131397935-33ec8a7e0892?q=80&w=600'
         },
-        { 
-            id: 3, name: 'Domo da Cura', capacity: 8, current: 0, status: 'Manutenção', 
+        {
+            id: 'mock-room-3', name: 'Domo da Cura', capacity: 8, current: 0, status: 'Manutenção',
             dailyOccupancy: 0, returnDate: 'Amanhã 10h',
             image: 'https://images.unsplash.com/photo-1545167622-3a6ac15600f3?q=80&w=600'
         }
     ];
+
+    const rooms = (Array.isArray(state.data.rooms) && state.data.rooms.length > 0)
+        ? state.data.rooms.map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            capacity: r.capacity || 1,
+            current: 0,
+            // Normalize backend status to UI labels.
+            status: String(r.status || '').toLowerCase() === 'occupied'
+                ? 'Ocupado'
+                : String(r.status || '').toLowerCase() === 'maintenance'
+                    ? 'Manutenção'
+                    : 'Livre',
+            dailyOccupancy: 0,
+            nextUse: null,
+            currentEvent: null,
+            returnDate: null,
+            image: r.imageUrl || 'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=600',
+        }))
+        : fallbackRooms;
 
     const timeline = [
         { time: '09h – 10h', room: 'Sala Cristal', event: 'Reiki' },
@@ -111,10 +135,16 @@ export const SpaceRooms: React.FC = () => {
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-1 px-4 pb-4">
-                                <button onClick={() => go('ROOM_AGENDA')} className="py-2.5 bg-white border border-nature-100 rounded-xl text-[10px] font-bold text-nature-600 uppercase hover:bg-nature-50 transition-colors">
+                                <button
+                                    onClick={() => { selectRoom(String(room.id)); go('ROOM_AGENDA'); }}
+                                    className="py-2.5 bg-white border border-nature-100 rounded-xl text-[10px] font-bold text-nature-600 uppercase hover:bg-nature-50 transition-colors"
+                                >
                                     {room.status === 'Ocupado' ? 'Ver Evento' : 'Ver Agenda'}
                                 </button>
-                                <button onClick={() => go('ROOM_EDIT')} className="py-2.5 bg-nature-900 text-white rounded-xl text-[10px] font-bold uppercase hover:bg-black transition-colors">
+                                <button
+                                    onClick={() => { selectRoom(String(room.id)); go('ROOM_EDIT'); }}
+                                    className="py-2.5 bg-nature-900 text-white rounded-xl text-[10px] font-bold uppercase hover:bg-black transition-colors"
+                                >
                                     Editar
                                 </button>
                             </div>
