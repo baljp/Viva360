@@ -18,8 +18,12 @@ export const VideoPrepScreen: React.FC = () => {
     }
 
     const startWhatsApp = () => {
-        // Prepare WhatsApp link (Mock)
-        const phone = "5511999999999"; // In real scenario, take from apt.clientPhone
+        const rawPhone = String((apt as any)?.clientPhone || (apt as any)?.client_phone || (apt as any)?.phone || '');
+        const phone = rawPhone.replace(/\D/g, '');
+        if (!phone) {
+            notify('WhatsApp indisponível', 'Este agendamento não possui telefone cadastrado.', 'warning');
+            return;
+        }
         const text = encodeURIComponent(`Olá ${apt.clientName}, estou iniciando nossa sessão de ${apt.serviceName} via Viva360. Podemos começar?`);
         const url = `https://wa.me/${phone}?text=${text}`;
         

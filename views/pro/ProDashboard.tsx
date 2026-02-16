@@ -13,7 +13,7 @@ export const ProDashboard: React.FC<{
     updateUser: (u: User) => void,
     data?: any
 }> = ({ user, setView, updateUser, data }) => {
-    const { go, notify } = useGuardiaoFlow();
+    const { go, notify, selectAppointment, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'consultorio' | 'financeiro' | 'comunidade'>('consultorio');
     const [showNotifications, setShowNotifications] = useState(false);
     const { status, toggleStatus, isOnline } = useGuardianPresence(user);
@@ -58,6 +58,21 @@ export const ProDashboard: React.FC<{
     const proUnlocked = getUnlockedCount(proAchievements);
     const proRank = getUserRank(user.karma || 0, PRO_RANKS);
     const proRankProgress = getRankProgress(user.karma || 0, PRO_RANKS);
+
+    const nextAppointment = (() => {
+        const apts = state.data.appointments || [];
+        const parsed = apts
+            .filter((a: any) => a && (a.status === 'confirmed' || a.status === 'pending'))
+            .map((a: any) => {
+                const base = String(a.date || '');
+                const dt = base.includes('T') ? new Date(base) : new Date(`${base}T${String(a.time || '00:00')}`);
+                return { apt: a, dt };
+            })
+            .filter((entry) => Number.isFinite(entry.dt.getTime()))
+            .sort((a, b) => a.dt.getTime() - b.dt.getTime());
+        const now = Date.now();
+        return parsed.find((p) => p.dt.getTime() >= now - 30 * 60 * 1000)?.apt || parsed[0]?.apt || null;
+    })();
 
     return (
     <div className="flex flex-col animate-in fade-in w-full bg-[#fcfdfc] min-h-screen pb-32">
@@ -125,13 +140,24 @@ export const ProDashboard: React.FC<{
                         </div>
                         <div>
                             <div className="flex items-center gap-2 mb-1">
-                                <span className="px-2 py-0.5 bg-emerald-400/30 rounded-full text-[8px] font-black uppercase tracking-widest border border-emerald-400/20">Hoje • 14:00</span>
+                                <span className="px-2 py-0.5 bg-emerald-400/30 rounded-full text-[8px] font-black uppercase tracking-widest border border-emerald-400/20">
+                                    {nextAppointment?.date ? 'Hoje' : 'Sessão'} • {nextAppointment?.time || '14:00'}
+                                </span>
                             </div>
-                            <h4 className="text-base font-bold tracking-tight">Sintonizando com {user.name.split(' ')[0]}</h4>
+                            <h4 className="text-base font-bold tracking-tight">
+                                Sintonizando com {nextAppointment?.clientName ? String(nextAppointment.clientName).split(' ')[0] : user.name.split(' ')[0]}
+                            </h4>
                         </div>
                     </div>
                     <button 
-                        onClick={() => go('VIDEO_PREP')} 
+                        onClick={() => {
+                            if (!nextAppointment) {
+                                notify('Nenhuma sessão', 'Você não tem sessões confirmadas agora.', 'info');
+                                return;
+                            }
+                            selectAppointment(nextAppointment);
+                            go('VIDEO_PREP');
+                        }} 
                         className="bg-white text-emerald-800 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all relative z-10"
                     >
                         Atender

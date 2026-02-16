@@ -37,6 +37,14 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
       window.history.back();
   });
 
+  const jitsiDomain = (import.meta as any).env?.VITE_JITSI_DOMAIN || 'meet.jit.si';
+  const roomName = (() => {
+      const raw = String(activeAppointment?.id || 'demo-session');
+      const safe = raw.replace(/[^a-zA-Z0-9_-]/g, '-');
+      return `viva360-${safe}`;
+  })();
+  const jitsiUrl = `https://${jitsiDomain}/${encodeURIComponent(roomName)}#config.prejoinPageEnabled=false&config.disableDeepLinking=true`;
+
   return (
     <div className="fixed inset-0 z-[500] bg-nature-900 flex flex-col animate-in fade-in duration-500 h-full w-full">
       {/* Top Header */}
@@ -53,32 +61,20 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
 
       {/* Video Grid */}
       <div className="flex-1 relative flex flex-col lg:flex-row gap-4 p-4 lg:p-8 overflow-hidden bg-nature-950">
-        {/* Main View (Professional) */}
-        <div className="flex-1 bg-nature-900 rounded-[3rem] overflow-hidden relative shadow-2xl flex items-center justify-center">
-           <img 
-             src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=1200" 
-             crossOrigin="anonymous"
-             onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x800/1a211d/FFF?text=Stream+Offline'; }}
-             className="w-full h-full object-cover opacity-80 absolute inset-0" 
-             alt="Stream"
-           />
-           <div className="absolute bottom-6 left-6 flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
-              <span className="text-xs font-bold text-white">{activeAppointment.professionalName || 'Guardião'}</span>
-           </div>
-        </div>
-
-        {/* Self View Overlay */}
-        <div className="w-32 h-48 lg:w-48 lg:h-64 bg-nature-900 rounded-[2rem] overflow-hidden absolute bottom-24 right-8 lg:bottom-12 lg:right-12 shadow-2xl border-2 border-white/20 z-10 flex items-center justify-center">
-            {isVideoOn ? (
-                <div className="w-full h-full bg-primary-900/20 animate-pulse flex items-center justify-center text-primary-500">
-                    <Wind size={48} className="animate-spin-slow" />
-                </div>
-            ) : (
-                <VideoOff size={32} className="text-nature-400" />
-            )}
-            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-1 bg-black/40 backdrop-blur-md rounded-lg">
-                <span className="text-[9px] font-bold text-white uppercase tracking-widest">Você</span>
-            </div>
+        <div className="flex-1 bg-nature-900 rounded-[3rem] overflow-hidden relative shadow-2xl">
+          <iframe
+            title="Viva360 Jitsi Session"
+            src={jitsiUrl}
+            allow="camera; microphone; fullscreen; display-capture; autoplay"
+            className="absolute inset-0 w-full h-full"
+          />
+          <div className="absolute bottom-6 left-6 flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
+            <span className="text-xs font-bold text-white">{activeAppointment.clientName || 'Sessão Viva360'}</span>
+            <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">{roomName}</span>
+          </div>
+          <div className="absolute top-6 right-6 text-[9px] font-bold uppercase tracking-widest text-white/50 bg-black/30 px-3 py-1.5 rounded-full border border-white/10">
+            Controles no Jitsi
+          </div>
         </div>
       </div>
 
