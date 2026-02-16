@@ -18,6 +18,7 @@ interface FlowContextState extends BaseFlowState<BuscadorState> {
     };
     selectedProfessionalId: string | null;
     selectedDate: Date | null;
+    tribeRoomContext: { type: 'support_room' | 'healing_circle'; contextId?: string } | null;
 }
 
 // Actions
@@ -28,6 +29,7 @@ type FlowAction =
     | { type: 'CLEAR_TOAST' }
     | { type: 'SELECT_PROFESSIONAL'; payload: string | null }
     | { type: 'SELECT_DATE'; payload: Date | null }
+    | { type: 'SET_TRIBE_ROOM_CONTEXT'; payload: { type: 'support_room' | 'healing_circle'; contextId?: string } | null }
     | { type: 'SHOW_RITUAL'; payload: { title: string; message: string; type?: 'success' | 'info' | 'error' } }
     | { type: 'CLEAR_RITUAL' };
 
@@ -45,7 +47,8 @@ const createInitialState = (): FlowContextState => ({
     },
     selectedProfessionalId: null,
     selectedDate: new Date(),
-    ritualCompletion: null
+    ritualCompletion: null,
+    tribeRoomContext: null,
 });
 
 // Reducer
@@ -89,6 +92,8 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
             return { ...state, selectedProfessionalId: action.payload };
         case 'SELECT_DATE':
             return { ...state, selectedDate: action.payload };
+        case 'SET_TRIBE_ROOM_CONTEXT':
+            return { ...state, tribeRoomContext: action.payload };
         default:
             return baseReducer(state, action as any) as FlowContextState;
     }
@@ -104,6 +109,7 @@ const BuscadorFlowContext = createContext<{
     refreshData: () => Promise<void>;
     selectProfessional: (id: string | null) => void;
     selectDate: (date: Date | null) => void;
+    selectTribeRoomContext: (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) => void;
     notify: (title: string, message: string, type?: 'success' | 'info' | 'error') => void;
 } | undefined>(undefined);
 
@@ -154,6 +160,8 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const reset = () => dispatch({ type: 'RESET' });
     const selectProfessional = (id: string | null) => dispatch({ type: 'SELECT_PROFESSIONAL', payload: id });
     const selectDate = (date: Date | null) => dispatch({ type: 'SELECT_DATE', payload: date });
+    const selectTribeRoomContext = (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) =>
+        dispatch({ type: 'SET_TRIBE_ROOM_CONTEXT', payload: ctx });
     const notify = (title: string, message: string, type: 'success' | 'info' | 'error' = 'success') => {
         // Retiro Offline silences in-app notifications (toasts/ritual cards) while active.
         if (isInAppMuted()) return;
@@ -162,7 +170,7 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     return (
         <BuscadorFlowContext.Provider value={{ 
-            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, notify 
+            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, selectTribeRoomContext, notify 
         }}>
             {children}
             {state.ritualCompletion && (

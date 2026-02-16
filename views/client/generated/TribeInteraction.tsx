@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { MessageSquare, Heart, Send, Flame, Droplet, Sprout, Wind, Eye, Zap, Handshake } from 'lucide-react';
+import { Heart, Send, Flame, Droplet, Sprout, Wind, Eye, Zap, Handshake } from 'lucide-react';
+import { api } from '../../../services/api';
 
 const ENERGIES = [
     { id: 'vitality', label: 'Vitalidade', icon: Flame, color: 'text-amber-500', bg: 'bg-amber-50', msg: 'Envio fogo vital para fortalecer sua vontade! 🔥' },
@@ -11,54 +12,151 @@ const ENERGIES = [
     { id: 'love', label: 'Amor', icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50', msg: 'Um abraço de alma para alma. Estamos juntos. ❤️' },
 ];
 
+type RoomType = 'support_room' | 'healing_circle';
+
+type ApiChatRoom = {
+  id: string;
+  type: string;
+  context_id?: string | null;
+};
+
+type ApiChatMessage = {
+  id: string;
+  content: string;
+  created_at?: string;
+  sender_id?: string;
+  sender?: { id: string; name?: string | null; avatar?: string | null };
+};
+
+function parseEnergy(content: string): { energyId: string; text: string } | null {
+  const m = content.match(/^::energy\(([^)]+)\)::(.*)$/s);
+  if (!m) return null;
+  return { energyId: m[1], text: (m[2] || '').trim() };
+}
+
 interface Message {
-    id: number;
-    user: string;
-    avatar: string;
-    text: string;
-    likes?: number;
-    type: 'chat' | 'energy';
-    energy?: string;
-    mine: boolean;
+  id: string;
+  user: string;
+  avatar: string;
+  text: string;
+  likes?: number;
+  type: 'chat' | 'energy';
+  energy?: string;
+  mine: boolean;
+  createdAt?: string;
 }
 
 export default function TribeInteraction() {
-  const { go, back } = useBuscadorFlow();
+  const { go, back, state } = useBuscadorFlow();
   const [selectedEnergy, setSelectedEnergy] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([
-     { id: 1, user: 'Lucas Paz', avatar: 'bg-indigo-100', text: 'Alguém sentiu a energia do portal de hoje? Foi intenso! ✨', likes: 5, type: 'chat', mine: false },
-     { id: 2, user: 'Você', avatar: 'bg-emerald-100', text: 'Sim! A meditação guiada ajudou muito a ancorar.', likes: 0, type: 'chat', mine: true },
-     { id: 3, user: 'Ana Luz', avatar: 'bg-rose-100', text: 'Enviou Vitalidade para o grupo.', type: 'energy', energy: 'vitality', mine: false }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
+  const [myId, setMyId] = useState<string>('');
+  const [room, setRoom] = useState<ApiChatRoom | null>(null);
+  const pollRef = useRef<number | null>(null);
+
+  const roomType: RoomType = (state.tribeRoomContext?.type || 'support_room') as RoomType;
+  const roomContextId = state.tribeRoomContext?.contextId;
+
+  const headerTitle = roomType === 'healing_circle' ? 'Círculo de Cura' : 'Sala de Apoio Coletivo';
+  const headerHint = roomType === 'healing_circle' ? '12 Guardiões Online' : 'Presença acolhedora';
+
+  const avatarClassForUser = (userId: string) => {
+    if (userId === myId) return 'bg-emerald-100';
+    // Stable-ish color bucket by last char
+    const c = userId.slice(-1);
+    const idx = (c.charCodeAt(0) || 0) % 3;
+    return idx === 0 ? 'bg-indigo-100' : idx === 1 ? 'bg-rose-100' : 'bg-amber-100';
+  };
+
+  const mapApiMessage = (m: ApiChatMessage): Message => {
+    const senderId = m.sender?.id || m.sender_id || '';
+    const energy = parseEnergy(m.content || '');
+    return {
+      id: m.id,
+      user: senderId === myId ? 'Você' : (m.sender?.name || 'Alma'),
+      avatar: avatarClassForUser(senderId || m.id),
+      text: energy ? energy.text : (m.content || ''),
+      likes: 0,
+      type: energy ? 'energy' : 'chat',
+      energy: energy?.energyId,
+      mine: !!myId && senderId === myId,
+      createdAt: m.created_at,
+    };
+  };
+
+  const loadMessages = async (roomId: string) => {
+    const raw = (await api.chat.getMessages(roomId)) as ApiChatMessage[];
+    const sorted = [...(raw || [])].reverse(); // API returns desc
+    setMessages(sorted.map(mapApiMessage));
+  };
+
+  useEffect(() => {
+    api.auth.getCurrentSession().then((u) => u && setMyId(u.id));
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const join = async () => {
+      const result = await api.chat.joinRoom({ type: roomType, contextId: roomContextId });
+      const chat = (result as any)?.chat as ApiChatRoom | undefined;
+      if (!chat || cancelled) return;
+      setRoom(chat);
+      await loadMessages(chat.id);
+
+      if (pollRef.current) window.clearInterval(pollRef.current);
+      pollRef.current = window.setInterval(() => loadMessages(chat.id).catch(() => undefined), 4000) as any;
+    };
+
+    join().catch(() => undefined);
+    return () => {
+      cancelled = true;
+      if (pollRef.current) window.clearInterval(pollRef.current);
+      pollRef.current = null;
+    };
+  }, [roomType, roomContextId]);
 
   const handleSend = () => {
+      if (!room?.id) return;
+
       if (selectedEnergy) {
-           const energy = ENERGIES.find(e => e.id === selectedEnergy);
-           if (energy) {
-               setMessages([...messages, { 
-                   id: Date.now(), 
-                   user: 'Você', 
-                   avatar: 'bg-emerald-100', 
-                   text: energy.msg, // Pre-defined msg
-                   likes: 0, 
-                   type: 'energy',
-                   energy: energy.id,
-                   mine: true 
-               }]);
-               setSelectedEnergy(null);
-           }
-      } else if (inputText.trim()) {
-           setMessages([...messages, { 
-               id: Date.now(), 
-               user: 'Você', 
-               avatar: 'bg-emerald-100', 
-               text: inputText, 
-               likes: 0, 
-               type: 'chat', 
-               mine: true 
-           }]);
-           setInputText("");
+        const energy = ENERGIES.find(e => e.id === selectedEnergy);
+        if (!energy) return;
+        const content = `::energy(${energy.id})::${energy.msg}`;
+
+        const optimistic: Message = {
+          id: `tmp_${Date.now()}`,
+          user: 'Você',
+          avatar: 'bg-emerald-100',
+          text: energy.msg,
+          likes: 0,
+          type: 'energy',
+          energy: energy.id,
+          mine: true,
+          createdAt: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, optimistic]);
+        setSelectedEnergy(null);
+        api.chat.sendMessage(room.id, content).then(() => loadMessages(room.id)).catch(() => undefined);
+        return;
+      }
+
+      if (inputText.trim()) {
+        const content = inputText.trim();
+        const optimistic: Message = {
+          id: `tmp_${Date.now()}`,
+          user: 'Você',
+          avatar: 'bg-emerald-100',
+          text: content,
+          likes: 0,
+          type: 'chat',
+          mine: true,
+          createdAt: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, optimistic]);
+        setInputText("");
+        api.chat.sendMessage(room.id, content).then(() => loadMessages(room.id)).catch(() => undefined);
       }
   };
 
@@ -67,8 +165,8 @@ export default function TribeInteraction() {
        <header className="bg-white p-6 shadow-sm flex items-center gap-4 z-10 sticky top-0">
            <button onClick={back} className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-indigo-600 transition-colors">←</button>
            <div className="flex-1">
-               <h1 className="font-bold text-slate-900">Círculo de Cura</h1>
-               <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> 12 Guardiões Online</p>
+               <h1 className="font-bold text-slate-900">{headerTitle}</h1>
+               <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> {headerHint}</p>
            </div>
            <button onClick={() => go('SOUL_PACT')} className="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center hover:bg-amber-100 transition-colors" title="Pactos">
               <Handshake size={20} />

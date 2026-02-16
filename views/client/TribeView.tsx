@@ -6,7 +6,7 @@ import { ConstellationOrbit, GlobalMandala } from '../../components/SocialFeatur
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 
 export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
-    const { go, back } = useBuscadorFlow();
+    const { go, back, selectTribeRoomContext } = useBuscadorFlow();
     const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
 
     return (
@@ -86,10 +86,10 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
             </div>
             <p className="text-xs text-indigo-200 italic px-4 relative z-10">"Sua tribo elevou a vibração coletiva em 14% este mês. Continuem brilhando."</p>
             <div className="grid grid-cols-1 gap-3 relative z-10 px-4">
-                 <button onClick={() => go('HEALING_CIRCLE')} className="w-full py-4 bg-white text-indigo-900 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                 <button onClick={() => { selectTribeRoomContext({ type: 'healing_circle' }); go('HEALING_CIRCLE'); }} className="w-full py-4 bg-white text-indigo-900 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
                      <Heart size={14} fill="currentColor"/> Participar do Círculo de Cura
                  </button>
-                 <button onClick={() => go('TRIBE_INTERACTION')} className="w-full py-4 bg-indigo-500 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
+                 <button onClick={() => { selectTribeRoomContext({ type: 'support_room' }); go('TRIBE_INTERACTION'); }} className="w-full py-4 bg-indigo-500 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2">
                      <Plus size={14} /> Sala de Apoio Coletivo
                  </button>
                  <button onClick={() => setActiveModal('leaderboard')} className="w-full py-3.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 text-[10px] font-bold uppercase tracking-widest hover:bg-white/20 transition-all">Ver evolução da tribo</button>
