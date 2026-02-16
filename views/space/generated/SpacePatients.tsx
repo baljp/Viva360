@@ -2,21 +2,72 @@ import React, { useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 import { PortalView, ZenToast, DynamicAvatar } from '../../../components/Common';
 import { Search, Filter, Heart, Sparkles, TrendingUp, Calendar, Shield, MapPin, ChevronRight, UserPlus, MessageCircle } from 'lucide-react';
+import { api } from '../../../services/api';
 
 const SpacePatients: React.FC = () => {
-  const { go } = useSantuarioFlow();
+  const { go, selectPatient } = useSantuarioFlow();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'stable' | 'attention'>('all');
   const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [patientsData, setPatientsData] = useState<any[] | null>(null);
 
   // Mock Data
-  const patients = [
+  const fallbackPatients = [
     { id: '1', name: 'Ana Oliveira', health: 85, karma: 420, lastVisit: '10/01', condition: 'Estável', pro: 'Dr. Pedro' },
     { id: '2', name: 'Carlos Santos', health: 45, karma: 180, lastVisit: '15/01', condition: 'Em atenção', pro: 'Dra. Maria' },
     { id: '3', name: 'Beatriz Lima', health: 92, karma: 890, lastVisit: '12/01', condition: 'Pronto para alta', pro: 'Dr. Pedro' },
   ];
 
-  const filteredPatients = patients.filter((patient) => {
+  React.useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const data = await api.spaces.getPatients();
+        if (mounted) setPatientsData(Array.isArray(data) ? data : []);
+      } catch {
+        if (mounted) setPatientsData(null);
+      } finally {
+        if (mounted) setIsLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  const deriveHealth = (plantStage?: string) => {
+    const stage = String(plantStage || '').toLowerCase();
+    if (stage === 'tree') return 95;
+    if (stage === 'flower') return 90;
+    if (stage === 'bud') return 82;
+    if (stage === 'sprout') return 72;
+    if (stage === 'withered') return 40;
+    return 60;
+  };
+
+  const normalizePatients = (input: any[] | null) => {
+    if (!input || input.length === 0) return fallbackPatients;
+    return input.map((p) => {
+      const health = deriveHealth(p.plantStage);
+      const lastVisit = p.lastVisitAt ? new Date(p.lastVisitAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '--/--';
+      const pro = Array.isArray(p.guardians) && p.guardians.length > 0 ? p.guardians[0] : 'Equipe';
+      const condition = health > 70 ? 'Estável' : 'Em atenção';
+      return {
+        id: p.id,
+        name: p.name || 'Buscador',
+        health,
+        karma: Number(p.karma || 0),
+        lastVisit,
+        condition,
+        pro,
+      };
+    });
+  };
+
+  const patients = normalizePatients(patientsData);
+
+  const filteredPatients = patients.filter((patient: any) => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     if (statusFilter === 'stable') return patient.health > 70;
@@ -99,8 +150,27 @@ const SpacePatients: React.FC = () => {
 
             {/* 3. PATIENT LIST */}
             <div className="space-y-3">
-                {filteredPatients.map((patient) => (
-                    <div key={patient.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-100 transition-all active:scale-[0.98]" onClick={() => go('PATIENT_PROFILE')}>
+                {isLoading ? (
+                    [1,2,3].map((i) => (
+                        <div key={i} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm animate-pulse">
+                            <div className="h-4 w-1/3 bg-nature-100 rounded mb-3"></div>
+                            <div className="h-3 w-2/3 bg-nature-100 rounded"></div>
+                        </div>
+                    ))
+                ) : filteredPatients.map((patient: any) => (
+                    <div
+                        key={patient.id}
+                        className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-100 transition-all active:scale-[0.98]"
+                        onClick={() => {
+                            // Preserve flow context for detail screens.
+                            selectPatient(patient.id);
+                            go('PATIENT_PROFILE');
+                            try {
+                                // Best-effort: stash in sessionStorage so the detail screen can render even before API is wired.
+                                sessionStorage.setItem('viva360.space.selectedPatient', JSON.stringify(patient));
+                            } catch { /* ignore */ }
+                        }}
+                    >
                         <div className="flex items-center gap-4">
                             <div className="relative">
                                 <DynamicAvatar user={{ name: patient.name } as any} size="md" className="border-2 border-white shadow-sm" />

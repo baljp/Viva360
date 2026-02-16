@@ -1,19 +1,122 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 import { PortalView, ZenToast } from '../../../components/Common';
-import { Calendar, MapPin, Users, Ticket, Image as ImageIcon, Save, ArrowRight } from 'lucide-react';
+import { Calendar, Users, Ticket, ArrowRight } from 'lucide-react';
+import { api } from '../../../services/api';
 
 export default function SpaceEventCreate() {
-    const { back, go } = useSantuarioFlow();
+    const { back, go, notify, state, selectEvent } = useSantuarioFlow();
     const [step, setStep] = useState(1);
-    const [eventType, setEventType] = useState('workshop'); // workshop, retreat, class
+    const editingId = state.selectedEventId;
+    const preselectedType = (() => {
+        try {
+            return localStorage.getItem('viva360.space.event_create.type') || '';
+        } catch {
+            return '';
+        }
+    })();
+    const [eventType, setEventType] = useState(preselectedType || 'workshop'); // workshop, retreat
+    const [title, setTitle] = useState('');
+    const [capacity, setCapacity] = useState<number>(15);
+    const [roomName, setRoomName] = useState('Sala Cristal');
+    const [price, setPrice] = useState<number>(0);
+    const [startDate, setStartDate] = useState<string>(new Date().toISOString().slice(0, 10));
+    const [startTime, setStartTime] = useState<string>('09:00');
+    const [endDate, setEndDate] = useState<string>(new Date().toISOString().slice(0, 10));
+    const [endTime, setEndTime] = useState<string>('10:30');
+    const [submitting, setSubmitting] = useState(false);
+    const [toast, setToast] = useState<any>(null);
+
+    const parseMeta = (details?: string | null) => {
+        if (!details) return {};
+        try {
+            const parsed = JSON.parse(details);
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch {
+            return {};
+        }
+    };
+
+    const isEditing = !!editingId;
+    const editingLabel = isEditing ? 'Salvar Alterações' : 'Publicar Vivência';
+
+    useEffect(() => {
+        let mounted = true;
+        const load = async () => {
+            if (!editingId) return;
+            setSubmitting(true);
+            try {
+                const ev = await api.spaces.getEvent(editingId);
+                if (!mounted || !ev) return;
+                const meta: any = parseMeta((ev as any).details);
+                const start = (ev as any).start_time ? new Date((ev as any).start_time) : new Date();
+                const end = (ev as any).end_time ? new Date((ev as any).end_time) : new Date(start.getTime() + 60 * 60 * 1000);
+                setTitle(String((ev as any).title || ''));
+                setEventType(String(meta.kind || (ev as any).type || preselectedType || 'workshop'));
+                setCapacity(Number(meta.capacity || 15));
+                setRoomName(String(meta.roomName || 'Sala Cristal'));
+                setPrice(Number(meta.price || 0));
+                setStartDate(start.toISOString().slice(0, 10));
+                setStartTime(start.toISOString().slice(11, 16));
+                setEndDate(end.toISOString().slice(0, 10));
+                setEndTime(end.toISOString().slice(11, 16));
+            } catch (e: any) {
+                if (!mounted) return;
+                setToast({ title: 'Falha ao carregar', message: e?.message || 'Não foi possível abrir este evento.', type: 'error' });
+            } finally {
+                if (mounted) setSubmitting(false);
+            }
+        };
+        load();
+        return () => { mounted = false; };
+    }, [editingId]);
 
     const handleNext = () => {
-        if (step < 2) setStep(step + 1);
-        else {
-            // Finish
-            go('EXEC_DASHBOARD');
-        }
+        if (step < 2) return setStep(step + 1);
+        // Publish
+        (async () => {
+            if (!title.trim()) {
+                notify('Nome Necessário', 'Dê um nome à vivência.', 'warning');
+                return;
+            }
+            setSubmitting(true);
+            try {
+                const start = new Date(`${startDate}T${startTime}:00`);
+                const end = new Date(`${endDate}T${endTime}:00`);
+                const safeEnd = end.getTime() > start.getTime() ? end : new Date(start.getTime() + 60 * 60 * 1000);
+                const details = JSON.stringify({
+                    kind: eventType,
+                    capacity,
+                    roomName,
+                    price,
+                });
+                if (editingId) {
+                    await api.spaces.updateEvent(editingId, {
+                        title,
+                        start: start.toISOString(),
+                        end: safeEnd.toISOString(),
+                        type: eventType,
+                        details,
+                    } as any);
+                } else {
+                    await api.spaces.createEvent({
+                        title,
+                        start: start.toISOString(),
+                        end: safeEnd.toISOString(),
+                        type: eventType,
+                        details,
+                    } as any);
+                }
+                try { localStorage.removeItem('viva360.space.event_create.type'); } catch { /* ignore */ }
+                selectEvent(null);
+                setToast({ title: isEditing ? 'Vivência Atualizada' : 'Vivência Publicada', message: 'O calendário sagrado foi atualizado.', type: 'success' });
+                setTimeout(() => go('EVENTS_MANAGE'), 900);
+            } catch (e: any) {
+                setToast({ title: 'Falha ao Publicar', message: e?.message || 'Não foi possível criar o evento.', type: 'error' });
+            } finally {
+                setSubmitting(false);
+            }
+        })();
     };
 
     return (
@@ -23,6 +126,7 @@ export default function SpaceEventCreate() {
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1528642474498-1af0c17fd8c3?q=80&w=800"
         >
+            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <div className="space-y-6 px-4 pb-24">
                 
                 {/* Progress */}
@@ -53,6 +157,8 @@ export default function SpaceEventCreate() {
                             <label className="text-[10px] font-bold uppercase tracking-widest text-nature-400 pl-4">Nome do Evento</label>
                             <input 
                                 placeholder="Ex: Círculo de Mulheres - Lua Nova"
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
                                 className="w-full p-5 bg-white border border-nature-100 rounded-2xl focus:border-indigo-300 focus:ring-4 focus:ring-indigo-100 outline-none transition-all font-serif text-lg text-nature-900"
                             />
                         </div>
@@ -74,18 +180,38 @@ export default function SpaceEventCreate() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
                                     <Calendar className="text-indigo-400" size={20}/>
-                                    <span className="text-sm font-bold text-nature-700">Data Início</span>
+                                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
                                 </div>
                                 <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
                                     <Users className="text-indigo-400" size={20}/>
-                                    <input type="number" placeholder="Vagas" className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
+                                    <input type="number" value={capacity} onChange={(e) => setCapacity(Number(e.target.value || 0))} placeholder="Vagas" className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
                                 </div>
+                                <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
+                                    <Calendar className="text-emerald-400" size={20}/>
+                                    <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
+                                </div>
+                                <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
+                                    <Calendar className="text-amber-400" size={20}/>
+                                    <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
+                                </div>
+                                {eventType === 'retreat' && (
+                                  <>
+                                    <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
+                                      <Calendar className="text-indigo-400" size={20}/>
+                                      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
+                                    </div>
+                                    <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
+                                      <Calendar className="text-indigo-400" size={20}/>
+                                      <span className="text-xs font-bold text-nature-600">Multi-dia</span>
+                                    </div>
+                                  </>
+                                )}
                             </div>
                         </div>
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-nature-400 pl-4">Onde?</label>
-                            <select className="w-full p-5 bg-white border border-nature-100 rounded-2xl focus:border-indigo-300 outline-none font-bold text-nature-700">
+                            <select value={roomName} onChange={(e) => setRoomName(e.target.value)} className="w-full p-5 bg-white border border-nature-100 rounded-2xl focus:border-indigo-300 outline-none font-bold text-nature-700">
                                 <option>Sala Cristal</option>
                                 <option>Templo Solar</option>
                                 <option>Jardim Externo</option>
@@ -97,14 +223,14 @@ export default function SpaceEventCreate() {
                             <div className="p-5 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
                                 <Ticket className="text-emerald-500" size={20}/>
                                 <span className="font-bold text-nature-900">R$</span>
-                                <input type="number" placeholder="0,00" className="w-full outline-none text-lg font-bold text-nature-900 bg-transparent"/>
+                                <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value || 0))} placeholder="0,00" className="w-full outline-none text-lg font-bold text-nature-900 bg-transparent"/>
                             </div>
                         </div>
                     </div>
                 )}
 
-                <button onClick={handleNext} className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl hover:bg-black transition-all flex items-center justify-center gap-3 mt-8">
-                    {step === 2 ? 'Publicar Vivência' : 'Continuar'} <ArrowRight size={20} />
+                <button disabled={submitting} onClick={handleNext} className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl hover:bg-black transition-all flex items-center justify-center gap-3 mt-8 disabled:opacity-60">
+                    {step === 2 ? editingLabel : 'Continuar'} <ArrowRight size={20} />
                 </button>
             </div>
         </PortalView>

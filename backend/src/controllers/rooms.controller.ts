@@ -2,6 +2,32 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
 import { asyncHandler } from '../middleware/async.middleware';
+import { z } from 'zod';
+import { CloudinaryService } from '../services/cloudinary.service';
+
+const getUserIdCompat = (req: Request): string =>
+  String((req as any).user?.userId || (req as any).user?.id || '').trim();
+
+const parseRoomMeta = (raw?: string | null): { meta: any; legacyOccupant?: string } => {
+  if (!raw) return { meta: {} };
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') return { meta: parsed };
+    return { meta: {}, legacyOccupant: String(raw) };
+  } catch {
+    return { meta: {}, legacyOccupant: String(raw) };
+  }
+};
+
+const serializeRoomMeta = (existing: string | null | undefined, updates: any) => {
+  const { meta, legacyOccupant } = parseRoomMeta(existing);
+  const next = {
+    ...meta,
+    ...updates,
+    ...(legacyOccupant && !meta.occupant ? { occupant: legacyOccupant } : {}),
+  };
+  return JSON.stringify(next);
+};
 
 export const getRealTime = asyncHandler(async (req: Request, res: Response) => {
   if (isMockMode()) {
@@ -10,9 +36,21 @@ export const getRealTime = asyncHandler(async (req: Request, res: Response) => {
       { id: 'mock-room-2', name: 'Sala Zeus', status: 'occupied', next_booking: '14:00' }
     ]);
   }
-  // Return all rooms for simplicity or filter by hub
-  const rooms = await prisma.room.findMany();
-  return res.json(rooms);
+  const hubId = getUserIdCompat(req);
+  // Filter rooms by hub (space) by default.
+  const rooms = await prisma.room.findMany({
+    where: hubId ? { hub_id: hubId } : undefined,
+    orderBy: { created_at: 'desc' },
+  });
+  const shaped = rooms.map((room: any) => {
+    const { meta } = parseRoomMeta(room.current_occupant);
+    return {
+      ...room,
+      imageUrl: meta?.imageUrl || null,
+      description: meta?.description || null,
+    };
+  });
+  return res.json(shaped);
 });
 
 export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
@@ -48,6 +86,61 @@ export const updateStatus = asyncHandler(async (req: Request, res: Response) => 
     data: { status }
   });
   return res.json(room);
+});
+
+const updateRoomSchema = z.object({
+  name: z.string().min(2).max(120).optional(),
+  capacity: z.number().int().min(1).max(500).optional(),
+  status: z.string().min(1).max(40).optional(),
+  description: z.string().max(2000).optional(),
+  imageBase64: z.string().min(20).optional(),
+});
+
+export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const hubId = getUserIdCompat(req);
+  const payload = updateRoomSchema.parse(req.body || {});
+
+  if (!id) return res.status(400).json({ error: 'Missing room id' });
+  if (!hubId) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (isMockMode() || id === 'dummy_id') {
+    return res.json({ id, ...payload, success: true, mock: true });
+  }
+
+  const room = await prisma.room.findUnique({ where: { id } });
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  if (String((room as any).hub_id) !== hubId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  let imageUrl: string | null = null;
+  if (payload.imageBase64) {
+    // If Cloudinary is configured, store URL; otherwise persist base64 as last-resort.
+    const uploaded = await CloudinaryService.uploadImage(payload.imageBase64, 'viva360/rooms');
+    imageUrl = uploaded || null;
+  }
+
+  const nextMetaUpdates: any = {};
+  if (typeof payload.description === 'string') nextMetaUpdates.description = payload.description;
+  if (imageUrl) nextMetaUpdates.imageUrl = imageUrl;
+
+  const updated = await prisma.room.update({
+    where: { id },
+    data: {
+      ...(payload.name ? { name: payload.name } : {}),
+      ...(typeof payload.capacity === 'number' ? { capacity: payload.capacity } : {}),
+      ...(payload.status ? { status: payload.status } : {}),
+      ...(Object.keys(nextMetaUpdates).length ? { current_occupant: serializeRoomMeta((room as any).current_occupant, nextMetaUpdates) } : {}),
+    },
+  });
+
+  const { meta } = parseRoomMeta((updated as any).current_occupant);
+  return res.json({
+    ...updated,
+    imageUrl: meta?.imageUrl || null,
+    description: meta?.description || null,
+  });
 });
 
 export const createVacancy = asyncHandler(async (req: Request, res: Response) => {

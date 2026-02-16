@@ -21,6 +21,11 @@ const getUserId = (req: Request): string => {
   return (req as any).user?.id || '';
 };
 
+const getUserIdCompat = (req: Request): string => {
+  // The codebase currently uses both `req.user.id` and `req.user.userId` in different places.
+  return String((req as any).user?.userId || (req as any).user?.id || '').trim();
+};
+
 // 1. Analytics Dashboard — ALL REAL DATA
 export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
     const totalAppointments = await prisma.appointment.count();
@@ -193,4 +198,156 @@ export const listSpaces = asyncHandler(async (req: Request, res: Response) => {
         return res.json([{ id: 'demo', name: 'Espaço Gaia (Demo)', address: 'Nenhum santuário cadastrado', rating: 5.0, status: 'demo', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400' }]);
     }
     return res.json(results);
+});
+
+// 7. Linked Team (Space -> guardians via contracts)
+export const getTeam = asyncHandler(async (req: Request, res: Response) => {
+  const spaceId = getUserIdCompat(req);
+  if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
+
+  let contracts: any[] = [];
+  try {
+    contracts = await (prisma as any).contract.findMany({
+      where: { space_id: spaceId, status: { in: ['active', 'pending'] } },
+      include: {
+        guardian: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            karma: true,
+            specialty: true,
+            rating: true,
+            review_count: true,
+            location: true,
+          },
+        },
+      },
+      orderBy: { created_at: 'desc' },
+    });
+  } catch (e: any) {
+    return res.json({ team: [], _error: e.message });
+  }
+
+  const team = contracts
+    .filter((c) => c.guardian)
+    .map((c) => ({
+      ...c.guardian,
+      contract: {
+        id: c.id,
+        status: c.status,
+        startDate: c.start_date,
+        endDate: c.end_date,
+        revenueShare: Number(c.revenue_share || 0),
+        roomsAllowed: c.rooms_allowed || [],
+        hoursPerWeek: c.hours_per_week || 0,
+        signed: !!c.signed,
+      },
+    }));
+
+  return res.json({ team });
+});
+
+// 8. Patients (non-sensitive) for a space: clients with appointments with linked guardians
+export const getPatients = asyncHandler(async (req: Request, res: Response) => {
+  const spaceId = getUserIdCompat(req);
+  if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const contracts = await (prisma as any).contract.findMany({
+    where: { space_id: spaceId, status: { in: ['active', 'pending'] } },
+    select: { guardian_id: true },
+  });
+  const guardianIds: string[] = Array.from(
+    new Set(
+      (contracts || [])
+        .map((c: any) => String(c?.guardian_id || '').trim())
+        .filter(Boolean)
+    )
+  );
+  if (guardianIds.length === 0) return res.json({ patients: [] });
+
+  const appts = await prisma.appointment.findMany({
+    where: { professional_id: { in: guardianIds }, client_id: { not: null } },
+    include: {
+      client: { select: { id: true, name: true, avatar: true, karma: true, plant_stage: true } },
+      professional: { select: { id: true, name: true } },
+    },
+    orderBy: { date: 'desc' },
+    take: 500,
+  });
+
+  const byClient = new Map<string, any>();
+  appts.forEach((a: any) => {
+    const clientId = a.client?.id;
+    if (!clientId) return;
+    const existing = byClient.get(clientId);
+    const base = existing || {
+      id: clientId,
+      name: a.client?.name || 'Buscador',
+      avatar: a.client?.avatar || '',
+      karma: a.client?.karma || 0,
+      plantStage: a.client?.plant_stage || 'seed',
+      sessionsCount: 0,
+      lastVisitAt: null as string | null,
+      guardians: new Set<string>(),
+    };
+    base.sessionsCount += 1;
+    base.lastVisitAt = base.lastVisitAt || a.date?.toISOString?.() || null;
+    if (a.professional?.name) base.guardians.add(a.professional.name);
+    byClient.set(clientId, base);
+  });
+
+  const patients = Array.from(byClient.values()).map((p) => ({
+    ...p,
+    guardians: Array.from(p.guardians).slice(0, 5),
+  }));
+
+  return res.json({ patients });
+});
+
+// 9. Patient detail (non-sensitive)
+export const getPatient = asyncHandler(async (req: Request, res: Response) => {
+  const spaceId = getUserIdCompat(req);
+  const patientId = String(req.params.id || '').trim();
+  if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
+  if (!patientId) return res.status(400).json({ error: 'Missing patient id' });
+
+  const contracts = await (prisma as any).contract.findMany({
+    where: { space_id: spaceId, status: { in: ['active', 'pending'] } },
+    select: { guardian_id: true },
+  });
+  const guardianIds: string[] = Array.from(
+    new Set(
+      (contracts || [])
+        .map((c: any) => String(c?.guardian_id || '').trim())
+        .filter(Boolean)
+    )
+  );
+  if (guardianIds.length === 0) return res.status(404).json({ error: 'No linked guardians' });
+
+  const patient = await prisma.profile.findUnique({
+    where: { id: patientId },
+    select: { id: true, name: true, avatar: true, karma: true, plant_stage: true, specialty: true, location: true },
+  });
+  if (!patient) return res.status(404).json({ error: 'Patient not found' });
+
+  const appts = await prisma.appointment.findMany({
+    where: { client_id: patientId, professional_id: { in: guardianIds } },
+    include: { professional: { select: { id: true, name: true, avatar: true } } },
+    orderBy: { date: 'desc' },
+    take: 50,
+  });
+
+  return res.json({
+    patient,
+    appointments: appts.map((a: any) => ({
+      id: a.id,
+      date: a.date,
+      time: a.time,
+      serviceName: a.service_name,
+      status: a.status,
+      price: a.price,
+      guardian: a.professional,
+    })),
+  });
 });

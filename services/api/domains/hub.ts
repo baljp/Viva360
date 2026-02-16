@@ -75,9 +75,45 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
     },
     getTeam: async () => {
       try {
-        return await request('/profiles?role=PROFESSIONAL', { purpose: 'space-team' });
+        const result = await request('/spaces/team', { purpose: 'space-team' });
+        if (Array.isArray((result as any)?.team)) {
+          const raw = (result as any).team as any[];
+          return raw.map((g: any) => {
+            const specialtyRaw = (g as any).specialty;
+            const specialty = Array.isArray(specialtyRaw)
+              ? specialtyRaw
+              : (typeof specialtyRaw === 'string' && specialtyRaw.trim() ? [specialtyRaw.trim()] : []);
+            return {
+              ...g,
+              specialty,
+              reviewCount: Number((g as any).reviewCount || (g as any).review_count || 0),
+              rating: Number((g as any).rating || 0),
+              // Some UIs rely on these flags; when backend doesn't provide presence, default to "available".
+              isOccupied: Boolean((g as any).isOccupied || false),
+              roleLabel: Number((g as any).karma || 0) > 800 ? 'Mestre' : 'Guardião',
+            };
+          });
+        }
+        // Backward compat for older backends.
+        return await request('/profiles?role=PROFESSIONAL', { purpose: 'space-team-legacy' });
       } catch {
         return [];
+      }
+    },
+    getPatients: async () => {
+      try {
+        const result = await request('/spaces/patients', { purpose: 'space-patients' });
+        if (Array.isArray((result as any)?.patients)) return (result as any).patients;
+        return [];
+      } catch {
+        return [];
+      }
+    },
+    getPatient: async (patientId: string) => {
+      try {
+        return await request(`/spaces/patients/${patientId}`, { purpose: 'space-patient-detail' });
+      } catch {
+        return null;
       }
     },
     getVacancies: async () => {
@@ -133,6 +169,13 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
         return [];
       }
     },
+    getEvent: async (eventId: string) => {
+      try {
+        return await request(`/calendar/${eventId}`, { purpose: 'space-event-detail', timeoutMs: 6000, retries: 1 });
+      } catch {
+        return null;
+      }
+    },
     createEvent: async (event: any) => {
       try {
         return await request('/calendar', {
@@ -142,6 +185,24 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
         });
       } catch {
         return { ...event, id: `evt_${Date.now()}` };
+      }
+    },
+    updateEvent: async (eventId: string, patch: any) => {
+      try {
+        return await request(`/calendar/${eventId}`, {
+          method: 'PATCH',
+          purpose: 'space-events-update',
+          body: JSON.stringify(patch),
+        });
+      } catch {
+        return { ...patch, id: eventId, _offline: true };
+      }
+    },
+    deleteEvent: async (eventId: string) => {
+      try {
+        return await request(`/calendar/${eventId}`, { method: 'DELETE', purpose: 'space-events-delete' });
+      } catch {
+        return { id: eventId, deleted: false, _offline: true };
       }
     },
     syncCalendar: async () => {
@@ -157,6 +218,12 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
     createRoom: async (data: { name: string; type: string; capacity: number }) => {
       return request('/spaces/rooms', {
         method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
+    updateRoom: async (roomId: string, data: { name?: string; capacity?: number; status?: string; description?: string; imageBase64?: string }) => {
+      return request(`/rooms/${roomId}`, {
+        method: 'PATCH',
         body: JSON.stringify(data),
       });
     },

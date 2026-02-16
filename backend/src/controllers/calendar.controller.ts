@@ -3,6 +3,9 @@ import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
 import { asyncHandler } from '../middleware/async.middleware';
 
+const getUserIdCompat = (req: Request): string =>
+  String((req as any).user?.userId || (req as any).user?.id || '').trim();
+
 const toIcsDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
 
 const sanitizeIcs = (value: string) => String(value || '')
@@ -12,7 +15,7 @@ const sanitizeIcs = (value: string) => String(value || '')
   .replace(/;/g, '\\;');
 
 export const getEvents = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = getUserIdCompat(req);
   
   if (isMockMode()) {
     const events = [
@@ -40,10 +43,35 @@ export const getEvents = asyncHandler(async (req: Request, res: Response) => {
   return res.json(events);
 });
 
+export const getEventById = asyncHandler(async (req: Request, res: Response) => {
+  const userId = getUserIdCompat(req);
+  const { id } = req.params;
+
+  if (!id) return res.status(400).json({ error: 'Missing event id' });
+
+  if (isMockMode()) {
+    return res.json({
+      id,
+      user_id: userId || 'mock-user',
+      title: 'Vivência (Mock)',
+      start_time: new Date().toISOString(),
+      end_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
+      type: 'workshop',
+      details: JSON.stringify({ kind: 'workshop', capacity: 15, roomName: 'Sala Cristal', price: 0 }),
+    });
+  }
+
+  const event = await prisma.calendarEvent.findFirst({
+    where: { id, user_id: userId },
+  });
+  if (!event) return res.status(404).json({ error: 'Event not found' });
+  return res.json(event);
+});
+
 
 export const createEvent = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
-    const { title, start, end, type } = req.body;
+    const userId = getUserIdCompat(req);
+    const { title, start, end, type, details } = req.body;
     
     if (isMockMode()) {
       // Conflict Simulation: Reject appointments at 14:00
@@ -58,7 +86,8 @@ export const createEvent = asyncHandler(async (req: Request, res: Response) => {
         title,
         start_time: start,
         end_time: end,
-        type
+        type,
+        details: typeof details === 'string' ? details : undefined,
       });
     }
 
@@ -68,15 +97,71 @@ export const createEvent = asyncHandler(async (req: Request, res: Response) => {
             title,
             start_time: new Date(start),
             end_time: new Date(end),
-            type
+            type,
+            details: typeof details === 'string' ? details : undefined,
         }
     });
 
     return res.json(event);
 });
 
+export const updateEvent = asyncHandler(async (req: Request, res: Response) => {
+  const userId = getUserIdCompat(req);
+  const { id } = req.params;
+  const { title, start, end, type, details } = req.body || {};
+
+  if (!id) return res.status(400).json({ error: 'Missing event id' });
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (isMockMode()) {
+    return res.json({
+      id,
+      user_id: userId || 'mock-user',
+      ...(title ? { title } : {}),
+      ...(start ? { start_time: start } : {}),
+      ...(end ? { end_time: end } : {}),
+      ...(typeof type === 'string' ? { type } : {}),
+      ...(typeof details === 'string' ? { details } : {}),
+      updated_at: new Date().toISOString(),
+      mock: true,
+    });
+  }
+
+  const existing = await prisma.calendarEvent.findFirst({ where: { id, user_id: userId } });
+  if (!existing) return res.status(404).json({ error: 'Event not found' });
+
+  const updated = await prisma.calendarEvent.update({
+    where: { id },
+    data: {
+      ...(typeof title === 'string' && title.trim() ? { title: title.trim() } : {}),
+      ...(start ? { start_time: new Date(start) } : {}),
+      ...(end ? { end_time: new Date(end) } : {}),
+      ...(typeof type === 'string' ? { type } : {}),
+      ...(typeof details === 'string' ? { details } : {}),
+    },
+  });
+
+  return res.json(updated);
+});
+
+export const deleteEvent = asyncHandler(async (req: Request, res: Response) => {
+  const userId = getUserIdCompat(req);
+  const { id } = req.params;
+  if (!id) return res.status(400).json({ error: 'Missing event id' });
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  if (isMockMode()) {
+    return res.json({ id, deleted: true, mock: true });
+  }
+
+  const existing = await prisma.calendarEvent.findFirst({ where: { id, user_id: userId } });
+  if (!existing) return res.status(404).json({ error: 'Event not found' });
+  await prisma.calendarEvent.delete({ where: { id } });
+  return res.json({ id, deleted: true });
+});
+
 export const syncToMobile = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = getUserIdCompat(req);
   
   if (isMockMode()) {
      return res.json({

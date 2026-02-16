@@ -88,7 +88,9 @@ export const useFlowSync = (
         }
 
         const canonicalForCurrentState = stateToRouteMap?.[currentState] || getFallbackPath(currentState);
-        if (canonicalForCurrentState === location.pathname) {
+        // If the URL already matches the current flow state and the view wants the same state, do nothing.
+        // Otherwise (e.g. sidebar view change while still on a canonical path), allow Router -> Flow alignment.
+        if (canonicalForCurrentState === location.pathname && currentState === target) {
             return;
         }
 

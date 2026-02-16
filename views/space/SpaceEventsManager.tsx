@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { User } from '../../types';
-import { Calendar, Plus, Clock, MapPin, Users, Edit3, Trash2, Eye, ChevronRight, Search, Filter } from 'lucide-react';
+import { Calendar, Plus, Clock, MapPin, Users, Edit3, Trash2 } from 'lucide-react';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 import { ZenToast, BottomSheet } from '../../components/Common';
+import { api } from '../../services/api';
 
 interface SpaceEvent {
     id: string;
@@ -16,25 +17,93 @@ interface SpaceEvent {
     status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
     type: 'workshop' | 'retreat' | 'circle' | 'meditation';
     image: string;
+    _raw?: any;
+    _meta?: any;
 }
 
 export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
-    const { go, back } = useSantuarioFlow();
+    const { go, back, selectEvent } = useSantuarioFlow();
     const [toast, setToast] = useState<any>(null);
     const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('all');
     const [selectedEvent, setSelectedEvent] = useState<SpaceEvent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [events, setEvents] = useState<SpaceEvent[]>([]);
 
-    const [events] = useState<SpaceEvent[]>([
-        { id: 'e1', title: 'Workshop Despertar Interior', date: '2026-02-15', time: '09:00', room: 'Sala Shanti', capacity: 15, enrolled: 12, guardian: 'Ana Luz', status: 'upcoming', type: 'workshop', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=400' },
-        { id: 'e2', title: 'Círculo de Cura Lunar', date: '2026-02-20', time: '19:00', room: 'Altar Zen', capacity: 20, enrolled: 18, guardian: 'Mariana Serenidade', status: 'upcoming', type: 'circle', image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=400' },
-        { id: 'e3', title: 'Meditação Matinal', date: '2026-02-08', time: '06:30', room: 'Altar Zen', capacity: 30, enrolled: 22, guardian: 'Carlos Paz', status: 'completed', type: 'meditation', image: 'https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?q=80&w=400' },
-        { id: 'e4', title: 'Retiro Silêncio Sagrado', date: '2026-03-01', time: '08:00', room: 'Espaço Completo', capacity: 10, enrolled: 7, guardian: 'Ana Luz', status: 'upcoming', type: 'retreat', image: 'https://images.unsplash.com/photo-1545389336-cf090694435e?q=80&w=400' },
-    ]);
+    const parseMeta = (details?: string | null) => {
+        if (!details) return {};
+        try {
+            const parsed = JSON.parse(details);
+            return parsed && typeof parsed === 'object' ? parsed : {};
+        } catch {
+            return {};
+        }
+    };
 
-    const filtered = events.filter(e => filter === 'all' || e.status === filter);
+    const typeFromRaw = (t: any): SpaceEvent['type'] => {
+        const v = String(t || '').toLowerCase();
+        if (v === 'retreat') return 'retreat';
+        if (v === 'circle') return 'circle';
+        if (v === 'meditation') return 'meditation';
+        return 'workshop';
+    };
 
-    React.useEffect(() => { const t = setTimeout(() => setIsLoading(false), 600); return () => clearTimeout(t); }, []);
+    const defaultImageByType: Record<SpaceEvent['type'], string> = {
+        workshop: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=600',
+        circle: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=600',
+        meditation: 'https://images.unsplash.com/photo-1593811167562-9cef47bfc4d7?q=80&w=600',
+        retreat: 'https://images.unsplash.com/photo-1545389336-cf090694435e?q=80&w=600',
+    };
+
+    useEffect(() => {
+        let mounted = true;
+        const load = async () => {
+            setIsLoading(true);
+            try {
+                const raw = await api.spaces.getEvents();
+                const list = Array.isArray(raw) ? raw : [];
+                const now = Date.now();
+                const mapped: SpaceEvent[] = list.map((e: any) => {
+                    const meta = parseMeta(e.details);
+                    const start = e.start_time ? new Date(e.start_time) : new Date();
+                    const end = e.end_time ? new Date(e.end_time) : new Date(start.getTime() + 60 * 60 * 1000);
+                    const type = typeFromRaw(meta.kind || e.type);
+                    const cancelled = !!meta.cancelled || !!meta.cancelledAt;
+                    const status: SpaceEvent['status'] = cancelled
+                        ? 'cancelled'
+                        : (now < start.getTime() ? 'upcoming' : (now <= end.getTime() ? 'ongoing' : 'completed'));
+                    const capacity = Number(meta.capacity || 0) || 15;
+                    const enrolled = Number(meta.enrolled || 0) || 0;
+                    return {
+                        id: String(e.id || ''),
+                        title: String(e.title || 'Vivência'),
+                        date: start.toISOString().slice(0, 10),
+                        time: start.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+                        room: String(meta.roomName || meta.room || 'Espaço'),
+                        capacity,
+                        enrolled,
+                        guardian: String(meta.guardianName || meta.guardian || 'Santuário'),
+                        status,
+                        type,
+                        image: String(meta.image || defaultImageByType[type]),
+                        _raw: e,
+                        _meta: meta,
+                    };
+                });
+                if (mounted) setEvents(mapped);
+            } catch {
+                if (mounted) setEvents([]);
+            } finally {
+                if (mounted) setIsLoading(false);
+            }
+        };
+        load();
+        return () => { mounted = false; };
+    }, []);
+
+    const filtered = useMemo(
+        () => events.filter(e => filter === 'all' || e.status === filter),
+        [events, filter]
+    );
 
     const statusCfg: Record<string, { label: string; color: string; bg: string }> = {
         upcoming: { label: 'Próximo', color: 'text-indigo-700', bg: 'bg-indigo-50' },
@@ -51,7 +120,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
         <div className="min-h-screen bg-[#f8faf9] pb-32">
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
-            <header className="bg-gradient-to-br from-indigo-900 to-purple-900 px-6 pt-14 pb-10 relative overflow-hidden">
+            <header className="bg-gradient-to-br from-indigo-900 to-purple-900 px-6 pt-10 pb-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                 <button onClick={back} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-6 active:scale-95">←</button>
                 <div className="flex items-center justify-between">
@@ -59,7 +128,17 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                         <h1 className="text-3xl font-serif italic text-white">Eventos</h1>
                         <p className="text-indigo-200/70 text-xs font-bold uppercase tracking-widest mt-1">Ritmos do Calendário Sagrado</p>
                     </div>
-                    <button onClick={() => go('EVENT_CREATE')} className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/10 active:scale-95 transition-all"><Plus size={22} /></button>
+	                    <button
+	                        onClick={() => {
+                                selectEvent(null);
+                                try { localStorage.removeItem('viva360.space.event_create.type'); } catch { /* ignore */ }
+                                go('EVENT_CREATE');
+                            }}
+	                        className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white border border-white/10 active:scale-95 transition-all"
+	                        aria-label="Criar evento"
+	                    >
+                        <Plus size={22} />
+                    </button>
                 </div>
             </header>
 
@@ -74,7 +153,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                 </div>
             </div>
 
-            <div className="px-4 space-y-4">
+                <div className="px-4 space-y-4">
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-3">
                     <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
@@ -86,7 +165,9 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                         <p className="text-[9px] font-bold text-nature-400 uppercase mt-1">Inscritos</p>
                     </div>
                     <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
-                        <span className="text-xl font-bold text-emerald-600">{Math.round(events.reduce((a, e) => a + (e.enrolled/e.capacity), 0) / events.length * 100)}%</span>
+                        <span className="text-xl font-bold text-emerald-600">
+                            {events.length ? Math.round(events.reduce((a, e) => a + (e.enrolled / Math.max(1, e.capacity)), 0) / events.length * 100) : 0}%
+                        </span>
                         <p className="text-[9px] font-bold text-nature-400 uppercase mt-1">Ocupação</p>
                     </div>
                 </div>
@@ -106,9 +187,13 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                     </div>
                 ) : filtered.map(ev => {
                     const cfg = statusCfg[ev.status];
-                    const pct = Math.round((ev.enrolled / ev.capacity) * 100);
+                    const pct = Math.round((ev.enrolled / Math.max(1, ev.capacity)) * 100);
                     return (
-                        <div key={ev.id} onClick={() => setSelectedEvent(ev)} className="bg-white rounded-[2.5rem] overflow-hidden border border-nature-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer">
+                        <div
+                            key={ev.id}
+                            onClick={() => { selectEvent(ev.id); setSelectedEvent(ev); }}
+                            className="bg-white rounded-[2.5rem] overflow-hidden border border-nature-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
+                        >
                             <div className="relative h-32">
                                 <img src={ev.image} className="w-full h-full object-cover" />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -154,7 +239,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                 )}
             </div>
 
-            {/* Event Detail Sheet */}
+                {/* Event Detail Sheet */}
             <BottomSheet isOpen={!!selectedEvent} onClose={() => setSelectedEvent(null)} title={selectedEvent?.title || ''}>
                 {selectedEvent && (
                     <div className="space-y-6 pb-12">
@@ -166,8 +251,35 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                             <div className="bg-nature-50 p-4 rounded-2xl"><p className="text-[9px] font-bold text-nature-400 uppercase">Vagas</p><p className="font-bold text-nature-900 text-sm">{selectedEvent.enrolled}/{selectedEvent.capacity}</p></div>
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={() => { setSelectedEvent(null); setToast({ title: 'Evento Editado', message: 'Alterações salvas.', type: 'success' }); }} className="flex-1 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs active:scale-95 flex items-center justify-center gap-2"><Edit3 size={14} /> Editar</button>
-                            <button onClick={() => { setSelectedEvent(null); setToast({ title: 'Evento Cancelado', message: 'Os inscritos serão notificados.', type: 'warning' }); }} className="py-4 px-6 bg-rose-50 text-rose-600 rounded-2xl font-bold uppercase tracking-widest text-xs border border-rose-100 active:scale-95"><Trash2 size={14} /></button>
+                            <button
+	                                onClick={() => {
+	                                    setSelectedEvent(null);
+	                                    try { localStorage.setItem('viva360.space.event_create.type', selectedEvent.type); } catch { /* ignore */ }
+	                                    selectEvent(selectedEvent.id);
+	                                    go('EVENT_CREATE');
+	                                }}
+                                className="flex-1 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-xs active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                <Edit3 size={14} /> Editar
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    const meta = selectedEvent._meta || {};
+                                    const nextMeta = { ...meta, cancelled: true, cancelledAt: new Date().toISOString() };
+                                    try {
+                                        await api.spaces.updateEvent(selectedEvent.id, { details: JSON.stringify(nextMeta) });
+                                        setEvents((prev) => prev.map((e) => e.id === selectedEvent.id ? ({ ...e, status: 'cancelled', _meta: nextMeta }) : e));
+                                        setToast({ title: 'Evento Cancelado', message: 'O calendário sagrado foi atualizado.', type: 'warning' });
+                                    } catch {
+                                        setToast({ title: 'Falha ao Cancelar', message: 'Tente novamente.', type: 'error' });
+                                    } finally {
+                                        setSelectedEvent(null);
+                                    }
+                                }}
+                                className="py-4 px-6 bg-rose-50 text-rose-600 rounded-2xl font-bold uppercase tracking-widest text-xs border border-rose-100 active:scale-95"
+                            >
+                                <Trash2 size={14} />
+                            </button>
                         </div>
                     </div>
                 )}
