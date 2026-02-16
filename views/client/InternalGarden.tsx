@@ -175,23 +175,32 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                                 onClick={async () => {
                                     const latestSnap = (user.snaps || [])[0];
                                     const stageLabel = `${user.plantStage?.toUpperCase() || 'SEMENTE'} DE ${gardenService.getPlantLabel(user.plantType || 'oak').toUpperCase()}`;
+                                    let inviteUrl: string | undefined;
+                                    try {
+                                        const created = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' });
+                                        inviteUrl = String((created as any)?.url || '').trim() || undefined;
+                                    } catch {
+                                        // ignore
+                                    }
                                     const blob = await generateShareCanvas({
                                         title: 'Meu Jardim da Alma',
                                         subtitle: stageLabel,
-                                        message: `${evolutionState.label} • Vitalidade ${status.health}%`,
+                                        message: `${evolutionState.label} • Vitalidade ${status.health}%\n\nVem plantar a sua semente comigo.`,
                                         imageUrl: latestSnap?.image || 'https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=1080',
                                         accentColor: '#10b981', // Emerald for Garden
                                         footer: 'FLORESCENDO NO VIVA360',
                                         date: new Date().toLocaleDateString('pt-BR'),
                                         format: 'story',
                                         mimeType: 'image/jpeg',
+                                        overlayIcon: { text: plantVisuals.icon, size: 160 },
                                     });
 
                                     if (blob) {
                                         await shareToSocial(blob, {
                                             platform: 'whatsapp',
                                             title: 'Meu Jardim da Alma • Viva360',
-                                            text: `🌿 ${stageLabel}\nVitalidade: ${status.health}%\n${evolutionState.label}\n\nVeja minha evolução no Viva360.`,
+                                            text: `🌿 ${stageLabel}\n${plantVisuals.icon} Vitalidade: ${status.health}%\n${evolutionState.label}\n\nVem plantar a sua semente comigo no Viva360.`,
+                                            ...(inviteUrl ? { url: inviteUrl } : {}),
                                             filename: `viva360-jardim-${new Date().toISOString().slice(0, 10)}.jpg`,
                                         });
                                     }
