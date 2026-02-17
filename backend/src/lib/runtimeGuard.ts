@@ -25,6 +25,17 @@ export const getCriticalProdConfigIssues = (env: NodeJS.ProcessEnv = process.env
     issues.push('APP_MODE_MUST_BE_PROD');
   }
 
+  // DATA-01: Also check the unified MOCK_ENABLED flag
+  const mockEnabled = String(env.MOCK_ENABLED || '').trim().toLowerCase();
+  if (mockEnabled === 'true' || mockEnabled === '1') {
+    issues.push('MOCK_ENABLED_MUST_BE_DISABLED');
+  }
+
+  // SEC-01: Warn if mock token is set in production (it will be blocked by middleware anyway)
+  if (env.MOCK_AUTH_TOKEN) {
+    issues.push('MOCK_AUTH_TOKEN_SHOULD_NOT_BE_SET_IN_PROD');
+  }
+
   if (truthy(env.ENABLE_TEST_MODE) || truthy(env.VITE_ENABLE_TEST_MODE)) {
     issues.push('TEST_MODE_MUST_BE_DISABLED');
   }

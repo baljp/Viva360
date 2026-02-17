@@ -11,7 +11,9 @@ const oauthAllowedOriginsRaw = import.meta.env.VITE_OAUTH_ALLOWED_ORIGINS;
 const isTest = import.meta.env.MODE === 'test';
 const isProdBuild = import.meta.env.PROD || import.meta.env.MODE === 'production';
 const explicitTestMode = String(import.meta.env.VITE_ENABLE_TEST_MODE || '').toLowerCase() === 'true';
-const testModeEnabled = !isProdBuild && (explicitTestMode || isTest);
+// DATA-01: Unified mock flag — single source of truth for mock eligibility.
+const mockEnabledFlag = String(import.meta.env.VITE_MOCK_ENABLED || '').trim().toLowerCase() === 'true';
+const testModeEnabled = !isProdBuild && (mockEnabledFlag || explicitTestMode || isTest);
 const normalizeMode = (value: string): 'MOCK' | 'DEMO' | 'PROD' | '' => {
     const normalized = value.trim().toLowerCase();
     if (!normalized) return '';
@@ -52,7 +54,8 @@ export const TEST_MODE_ENABLED = testModeEnabled;
 export const PROD_BUILD_LOCKED = isProdBuild;
 
 // Export flag para a API saber se deve usar dados reais ou simulados
-export const isMockMode = APP_MODE === 'MOCK' && isLocalHostRuntime() && TEST_MODE_ENABLED;
+// DATA-01: isMockMode now requires the unified MOCK_ENABLED flag to be set.
+export const isMockMode = APP_MODE === 'MOCK' && isLocalHostRuntime() && TEST_MODE_ENABLED && mockEnabledFlag;
 export const isDemoMode = APP_MODE === 'DEMO';
 
 // Diagnóstico para o Frontend verificar o que foi injetado pelo Vite

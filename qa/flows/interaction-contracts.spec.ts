@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-const AUTH_HEADER = { Authorization: 'Bearer admin-excellence-2026' };
+// SEC-01: Read mock token from env var, never hardcoded.
+const MOCK_TOKEN = process.env.MOCK_AUTH_TOKEN || 'test-token-e2e';
+const AUTH_HEADER = { Authorization: `Bearer ${MOCK_TOKEN}` };
 const TEST_USER_ID = '11111111-1111-4111-8111-111111111111';
 
 test.describe('Interaction Contracts', () => {
