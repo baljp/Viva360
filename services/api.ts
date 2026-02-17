@@ -890,6 +890,10 @@ export const api = {
                     const oauthIntent = String(localStorage.getItem(OAUTH_INTENT_KEY) || '').toLowerCase();
                     const oauthRole = normalizeRole(localStorage.getItem(OAUTH_ROLE_KEY) || '');
 
+                    // Persist token early so downstream API calls (e.g. addRole/selectRole) have auth.
+                    // Note: promoteToRealSession clears OAuth keys, so we must read them before calling it.
+                    promoteToRealSession(session.access_token);
+
                     let eligibility = await fetchLoginEligibility(sessionEmail);
                     if (!eligibility.allowed) {
                         // Always try to auto-create profile for OAuth users regardless of eligibility
@@ -952,7 +956,6 @@ export const api = {
                         ? eligibility.roles
                         : [resolvedRole]);
 
-                    promoteToRealSession(session.access_token);
                     localStorage.removeItem(OAUTH_INTENT_KEY);
                     localStorage.removeItem(OAUTH_ROLE_KEY);
                     return hydrateUserFromProfileApi(baseUser({
