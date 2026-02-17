@@ -1,5 +1,6 @@
 
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../lib/logger';
 
 interface CircuitState {
     status: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
@@ -37,9 +38,9 @@ export const circuitBreaker = (req: Request, res: Response, next: NextFunction) 
     if (circuit.status === 'OPEN') {
         if (now > circuit.nextAttempt) {
             circuit.status = 'HALF_OPEN';
-            console.warn(`⚠️ [CIRCUIT BREAKER] Half-Open: Allowing trial request.`);
+            logger.warn('circuit_breaker.half_open');
         } else {
-            console.warn(`🛑 [CIRCUIT BREAKER] Open: Blocked request to ${req.path}`);
+            logger.warn('circuit_breaker.open_blocked', { path: req.path });
             res.status(503).json({ error: 'Service Temporarily Unavailable (Circuit Breaker)' });
             return;
         }
@@ -64,14 +65,16 @@ function recordFailure() {
     if (circuit.failures >= BREAKER_OPTIONS.failureThreshold && circuit.status === 'CLOSED') {
         circuit.status = 'OPEN';
         circuit.nextAttempt = Date.now() + BREAKER_OPTIONS.resetTimeout;
-        console.error(`🔥 [CIRCUIT BREAKER] Threshold Reached! Circuit OPENed. Resets in ${BREAKER_OPTIONS.resetTimeout}ms`);
+        logger.error('circuit_breaker.threshold_opened', {
+          resetTimeoutMs: BREAKER_OPTIONS.resetTimeout,
+        });
     }
 }
 
 function resetCircuit() {
     circuit.status = 'CLOSED';
     circuit.failures = 0;
-    console.log(`✅ [CIRCUIT BREAKER] Circuit Closed (Recovered).`);
+    logger.info('circuit_breaker.closed');
 }
 
 export const getCircuitStatus = () => ({ ...circuit });

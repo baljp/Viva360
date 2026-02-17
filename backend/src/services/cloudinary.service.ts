@@ -1,5 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary';
 import { isMockMode } from './supabase.service';
+import { logger } from '../lib/logger';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -40,7 +41,7 @@ export class CloudinaryService {
       const result = await Promise.race([uploadPromise, timeoutPromise]);
       return result.secure_url;
     } catch (error) {
-      console.error('Cloudinary Upload Error:', error);
+      logger.warn('cloudinary.upload_failed', error);
       // Fallback to avoid breaking the flow
       return imagePath; 
     }

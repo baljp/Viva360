@@ -1,3 +1,5 @@
+import { logger } from './logger';
+
 const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
 
 export const getCriticalProdConfigIssues = (env: NodeJS.ProcessEnv = process.env): string[] => {
@@ -32,7 +34,7 @@ export const getCriticalProdConfigIssues = (env: NodeJS.ProcessEnv = process.env
 export const assertCriticalProdConfig = (): string[] => {
   const issues = getCriticalProdConfigIssues();
   if (issues.length > 0) {
-    console.error(`[BOOT_DEGRADED] Missing/invalid critical production config: ${issues.join(', ')}`);
+    logger.error('boot_degraded', { issues });
   }
   return issues;
 };

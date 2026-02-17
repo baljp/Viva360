@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { logger } from './logger';
 
 // Prevent multiple instances of Prisma Client in development/serverless
 declare global {
@@ -11,7 +12,7 @@ declare global {
 const dbUrl = process.env.SUPABASE_POOLER_URL || process.env.DATABASE_URL;
 
 if (!dbUrl) {
-  console.error('🚨 [PRISMA] Neither SUPABASE_POOLER_URL nor DATABASE_URL is set! Database operations will fail.');
+  logger.error('prisma.missing_database_url');
 }
 
 const prisma = global.prisma || new PrismaClient({

@@ -1,6 +1,7 @@
 import { Queue, Worker } from 'bullmq';
 import { redisConnection, isRedisEnabled } from './redis';
 import { supabaseAdmin } from '../services/supabase.service';
+import { logger } from './logger';
 
 const QUEUE_NAME = 'checkout-queue';
 
@@ -9,12 +10,12 @@ const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NA
 const isMock = process.env.MOCK_MODE === 'true' || isServerless || !isRedisEnabled;
 
 if (isServerless) {
-    console.log('⚡ Running in serverless mode - Queue workers disabled');
+    logger.info('queue.serverless_disabled');
 }
 
 export const checkoutQueue = isMock ? 
   { 
-    add: async (name: string, data: any) => ({ id: `mock_job_${Date.now()}`, data }) 
+    add: async (name: string, data: unknown) => ({ id: `mock_job_${Date.now()}`, data }) 
   } as any : 
   new Queue(QUEUE_NAME, {
     connection: redisConnection,
@@ -22,7 +23,7 @@ export const checkoutQueue = isMock ?
 
 export const notificationQueue = isMock ?
   {
-    add: async (name: string, data: any) => ({ id: `mock_notif_${Date.now()}`, data })
+    add: async (name: string, data: unknown) => ({ id: `mock_notif_${Date.now()}`, data })
   } as any :
   new Queue('notification-queue', {
     connection: redisConnection,
@@ -30,7 +31,7 @@ export const notificationQueue = isMock ?
 
 export const logsQueue = isMock ?
   {
-    add: async (name: string, data: any) => ({ id: `mock_log_${Date.now()}`, data })
+    add: async (name: string, data: unknown) => ({ id: `mock_log_${Date.now()}`, data })
   } as any :
   new Queue('logs-queue', {
     connection: redisConnection,
@@ -39,7 +40,7 @@ export const logsQueue = isMock ?
 if (!isMock && isRedisEnabled) {
     // Setup Worker - only in non-serverless environments
     const worker = new Worker(QUEUE_NAME, async (job) => {
-    console.log(`Job ${job.id} started:`, job.data);
+    logger.info('queue.job_started', { jobId: job.id, queue: QUEUE_NAME, data: job.data });
     
     const { amount, description, user_id, receiver_id } = job.data;
 
@@ -51,11 +52,11 @@ if (!isMock && isRedisEnabled) {
         });
         
         if (error) throw error;
-        console.log(`Job ${job.id} completed:`, data);
+        logger.info('queue.job_completed', { jobId: job.id, queue: QUEUE_NAME, result: data });
         return data;
 
     } catch (error: any) {
-        console.error(`Job ${job.id} failed:`, error.message);
+        logger.error('queue.job_failed', { jobId: job.id, queue: QUEUE_NAME, error });
         throw error;
     }
     }, {
@@ -64,16 +65,16 @@ if (!isMock && isRedisEnabled) {
     });
 
     worker.on('completed', job => {
-    console.log(`${job.id} has completed!`);
+    logger.info('queue.worker_completed', { jobId: job.id, queue: QUEUE_NAME });
     });
 
     worker.on('failed', (job, err) => {
-    console.log(`${job?.id} has failed with ${err.message}`);
+    logger.warn('queue.worker_failed', { jobId: job?.id, queue: QUEUE_NAME, error: err });
     });
 
     // Setup Notification Worker
     const notifWorker = new Worker('notification-queue', async (job) => {
-      console.log(`Processing Notification ${job.id}:`, job.data);
+      logger.info('queue.notification_processing', { jobId: job.id, data: job.data });
       await new Promise(r => setTimeout(r, 500));
       return { success: true };
     }, {
@@ -81,5 +82,5 @@ if (!isMock && isRedisEnabled) {
       concurrency: 100
     });
 } else {
-    console.log('⚠️  Queue Workers skipped (serverless/mock mode)');
+    logger.info('queue.workers_skipped', { reason: 'serverless_or_mock' });
 }

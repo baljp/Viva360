@@ -7,6 +7,7 @@ import { chaosMiddleware } from './lib/chaos';
 import register, { httpRequestDurationMicroseconds, httpRequestErrors } from './lib/metrics';
 import { initTelemetry } from './lib/instrumentation';
 import { authenticateUser } from './middleware/auth.middleware';
+import { logger } from './lib/logger';
 
 initTelemetry();
 dotenv.config();
@@ -46,5 +47,5 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Oracle Service running on port ${PORT}`);
+    logger.info('server_oracle.listening', { port: PORT });
 });

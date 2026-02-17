@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import IORedis from 'ioredis';
+import { logger } from '../lib/logger';
 
 const redis = new IORedis({
     host: process.env.REDIS_HOST || 'localhost',
@@ -32,7 +33,7 @@ export const cacheMiddleware = (durationInSeconds: number) => {
 
             next();
         } catch (err) {
-            console.error('Redis Cache Error:', err);
+            logger.warn('cache.middleware_error', err);
             next();
         }
     };

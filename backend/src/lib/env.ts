@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import path from 'path';
+import { logger } from './logger';
 
 // In Vercel, env vars are injected automatically, so only load .env for local dev
 const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
@@ -15,10 +16,10 @@ if (!isServerless) {
     for (const envPath of paths) {
         const result = dotenv.config({ path: envPath });
         if (!result.error) {
-            console.log(`🌍 [ENV] Loaded from ${envPath}`);
+            logger.info('env.loaded', { envPath });
             break;
         }
     }
 }
 
-console.log(`🌍 [ENV] APP_MODE: ${process.env.APP_MODE || 'PROD'}, VERCEL: ${!!process.env.VERCEL}`);
+logger.info('env.runtime', { appMode: process.env.APP_MODE || 'PROD', vercel: !!process.env.VERCEL });

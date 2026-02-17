@@ -1,6 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import IORedis from 'ioredis';
 import dotenv from 'dotenv';
+import { logger } from './lib/logger';
 
 dotenv.config();
 
@@ -10,10 +11,10 @@ const connection = new IORedis({
     maxRetriesPerRequest: null
 });
 
-console.log('🚀 Worker Process Starting...');
+logger.info('worker.starting');
 
 const logWorker = new Worker('logs', async (job: Job) => {
-    console.log(`[LOG] Processing log ${job.id}:`, JSON.stringify(job.data, null, 2));
+    logger.info('worker.logs.processing', { jobId: job.id, data: job.data });
     
     // EVENT SOURCING (Phase 3)
     // 1. Append to Event Store
@@ -48,35 +49,35 @@ const logWorker = new Worker('logs', async (job: Job) => {
                 last_updated_at: new Date()
             }
         });
-        console.log(`[ES] Event persisted and Projection updated for ${streamId}`);
+        logger.info('worker.event_sourcing.persisted', { streamId });
     } catch (e) {
-        console.error('[ES] Failed to persist event:', e);
+        logger.error('worker.event_sourcing.persist_failed', e);
         // Retry logic handled by BullMQ
         throw e;
     }
 }, { connection });
 
 const notificationWorker = new Worker('notifications', async (job: Job) => {
-    console.log(`[NOTIFY] Sending notification ${job.id}:`, job.data);
+    logger.info('worker.notifications.processing', { jobId: job.id, data: job.data });
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 100));
 }, { connection });
 
 const ritualWorker = new Worker('rituals', async (job: Job) => {
-    console.log(`[RITUAL] Processing ritual ${job.id}:`, job.data);
+    logger.info('worker.rituals.processing', { jobId: job.id, data: job.data });
     // Simulate heavy calculation
     await new Promise(resolve => setTimeout(resolve, 200));
 }, { connection });
 
 const metricsWorker = new Worker('metrics', async (job: Job) => {
-    console.log(`[METRICS] Aggregating metrics ${job.id}:`, job.data);
+    logger.info('worker.metrics.processing', { jobId: job.id, data: job.data });
     await new Promise(resolve => setTimeout(resolve, 30));
 }, { connection });
 
-logWorker.on('completed', job => console.log(`[LOG] Job ${job.id} completed`));
-logWorker.on('failed', (job, err) => console.log(`[LOG] Job ${job?.id} failed: ${err.message}`));
+logWorker.on('completed', job => logger.info('worker.logs.completed', { jobId: job.id }));
+logWorker.on('failed', (job, err) => logger.warn('worker.logs.failed', { jobId: job?.id, error: err }));
 
-notificationWorker.on('completed', job => console.log(`[NOTIFY] Job ${job.id} completed`));
-ritualWorker.on('completed', job => console.log(`[RITUAL] Job ${job.id} completed`));
+notificationWorker.on('completed', job => logger.info('worker.notifications.completed', { jobId: job.id }));
+ritualWorker.on('completed', job => logger.info('worker.rituals.completed', { jobId: job.id }));
 
-console.log('✅ Workers are listening for jobs!');
+logger.info('worker.listening');

@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma';
 import { NotificationDispatcher } from './notification.dispatcher';
+import { logger } from '../lib/logger';
 
 export interface NotificationEvent {
   type: string;
@@ -7,7 +8,7 @@ export interface NotificationEvent {
   targetUserId: string;
   entityType: string;
   entityId: string;
-  data?: any;
+  data?: unknown;
 }
 
 // Mapping: Event Type -> Notification Title/Message
@@ -135,7 +136,7 @@ export class NotificationEngine {
     const template = EVENT_TEMPLATES[event.type];
     
     if (!template) {
-      console.warn(`[NotificationEngine] Unknown event type: ${event.type}`);
+      logger.warn('notification_engine.unknown_event_type', { type: event.type });
       return;
     }
 
@@ -145,7 +146,7 @@ export class NotificationEngine {
     const targetUserId = String(event.targetUserId || '').trim();
     if (!UUID_REGEX.test(targetUserId)) {
       if (!isQuietRuntime()) {
-        console.warn('[NotificationEngine] Skipping notification for non-UUID target:', targetUserId);
+        logger.warn('notification_engine.skip_non_uuid_target', { targetUserId });
       }
       return;
     }
@@ -156,7 +157,7 @@ export class NotificationEngine {
     }).catch(() => null);
     if (!profile?.id) {
       if (!isQuietRuntime()) {
-        console.warn('[NotificationEngine] Skipping notification for unknown target profile:', targetUserId);
+        logger.warn('notification_engine.skip_unknown_target_profile', { targetUserId });
       }
       return;
     }
@@ -186,7 +187,7 @@ export class NotificationEngine {
         },
       });
     } catch (err) {
-      console.error('[NotificationEngine] Dispatch failed:', err);
+      logger.error('notification_engine.dispatch_failed', err);
     }
   }
 

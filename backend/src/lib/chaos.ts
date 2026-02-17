@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from './logger';
 
 export const chaosMiddleware = (req: Request, res: Response, next: NextFunction) => {
     // Check if Chaos Mode is enabled via ENV or Header
@@ -10,7 +11,7 @@ export const chaosMiddleware = (req: Request, res: Response, next: NextFunction)
     // Simulate network lag typical of 3G/4G
     if (Math.random() < 0.3) {
         const delay = Math.floor(Math.random() * 2000) + 200; // 200ms to 2200ms
-        console.warn(`[CHAOS] Injecting latency: ${delay}ms`);
+        logger.warn('chaos.latency_injected', { delayMs: delay });
         setTimeout(next, delay);
         return;
     }
@@ -18,7 +19,7 @@ export const chaosMiddleware = (req: Request, res: Response, next: NextFunction)
     // 2. ERROR INJECTION (10% probability)
     // Simulate random service failures (500)
     if (Math.random() < 0.1) {
-        console.error(`[CHAOS] Injecting 500 Error for ${req.path}`);
+        logger.error('chaos.error_injected', { path: req.path });
         res.status(500).json({ 
             error: "Chaos Monkey struck!",
             code: "INTERNAL_CHAOS_ERROR" 

@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { logger } from './logger';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ class DatabaseManager {
   private readClient: SupabaseClient;
 
   private constructor() {
-    console.log('🔌 Initializing Database Connections (CQRS Mode)...');
+    logger.info('db_manager.initializing');
     
     // Primary (Write) Connection
     this.writeClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
@@ -28,8 +29,7 @@ class DatabaseManager {
       auth: { persistSession: false }
     });
 
-    console.log('✅ CQRS: Write Path -> Master');
-    console.log('✅ CQRS: Read Path -> Replica Pool');
+    logger.info('db_manager.cqrs_ready', { write: 'master', read: 'replica_pool' });
   }
 
   public static getInstance(): DatabaseManager {

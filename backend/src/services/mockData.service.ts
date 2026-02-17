@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker';
+import { logger } from '../lib/logger';
 
 export interface MockUser {
     id: string;
@@ -27,7 +28,7 @@ class MockDataService {
     }
 
     private generateDataset() {
-        console.log('🌱 Generating Enterprise Demo Dataset (SUPER PROMPT MODE)...');
+        logger.info('mockdata.generating');
 
         // Reset
         this.seekers = [];
@@ -91,7 +92,7 @@ class MockDataService {
             });
         }
         
-        console.log(`✅ Enterprise Dataset Ready: ${this.seekers.length} Seekers, ${this.guardians.length} Guardians, ${this.sanctuaries.length} Sanctuaries.`);
+        logger.info('mockdata.ready', { seekers: this.seekers.length, guardians: this.guardians.length, sanctuaries: this.sanctuaries.length });
     }
 
     public getSeekers() { return this.seekers; }
