@@ -306,7 +306,10 @@ export class AuthService {
     logger.info('auth.login_attempt', { email });
     const normalizedEmail = email.trim().toLowerCase();
 
-    const user = await prisma.user.findUnique({
+    // NOTE: Some environments may authenticate successfully via Supabase Auth API
+    // while the local DB query by email returns null (legacy users, email mismatch,
+    // partial migrations). Never assume the DB record exists.
+    const userByEmail = await prisma.user.findUnique({
       where: { email: normalizedEmail },
       include: {
         profile: {
@@ -327,8 +330,8 @@ export class AuthService {
       logger.warn('auth.login_supabase_failed', { message: authError?.message });
       // Fallback for VERY old users that might only be in Prisma but not Supabase Auth
       // (Though my repair script should have fixed this)
-      if (user.encrypted_password) {
-        const isValidManual = await bcrypt.compare(password, user.encrypted_password);
+      if (userByEmail?.encrypted_password) {
+        const isValidManual = await bcrypt.compare(password, userByEmail.encrypted_password);
         if (isValidManual) {
            logger.warn('auth.login_manual_fallback_success');
         } else {
@@ -340,6 +343,28 @@ export class AuthService {
     }
     
     logger.debug('auth.login_verified');
+
+    // Prefer the DB snapshot we already fetched, but if it's missing try loading by the
+    // Supabase user id (works even if email in auth.users is NULL/mismatched).
+    const supabaseUserId = String(authData.user.id || '').trim();
+    const user = userByEmail || await prisma.user.findUnique({
+      where: { id: supabaseUserId },
+      include: {
+        profile: {
+          include: { profile_roles: true },
+        },
+      },
+    }).catch(err => {
+      logger.error('auth.login_user_lookup_by_id_failed', err);
+      throw new AppError(`Erro de conexão com banco de dados: ${err.message}`, 500);
+    });
+
+    if (!user) {
+      // Credentials verified against Supabase, but we could not load user from the DB.
+      // Return an operational error (not a 500) so the client doesn't see "Internal Server Error".
+      logger.warn('auth.login_user_missing_after_supabase', { email: normalizedEmail, supabaseUserId });
+      throw new AppError('Conta não encontrada no banco. Tente novamente mais tarde ou contate o suporte.', 401, 'USER_NOT_FOUND');
+    }
 
     // Auto-create profile if user authenticated but profile is missing (incomplete registration)
     if (!user.profile) {
