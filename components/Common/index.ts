@@ -23,3 +23,4 @@ export * from './CameraWidget';
 export * from './NotificationDrawer';
 export * from './CalendarWidget';
 export * from './WalletSplit';
+export * from './PresenceBadge';

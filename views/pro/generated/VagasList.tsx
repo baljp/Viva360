@@ -1,27 +1,59 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { ChevronLeft, Briefcase, MapPin, Building, Search, X, CheckCircle, Clock, DollarSign } from 'lucide-react';
+import { ChevronLeft, Briefcase, MapPin, Building, Search, X, CheckCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
 import { PortalView, ZenToast } from '../../../components/Common';
+import { api } from '../../../services/api';
 
 export default function VagasList() {
   const { go, back } = useGuardiaoFlow();
   const [selectedVacancy, setSelectedVacancy] = useState<any>(null);
   const [showToast, setShowToast] = useState(false);
+  const [vacancies, setVacancies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [applying, setApplying] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  const vacancies = [
-      { id: 1, title: 'Terapeuta Holístico Senior', space: 'Santuário Gaia', location: 'São Paulo, SP', type: 'Presencial', salary: 'R$ 4k - 6k', description: 'Buscamos um guardião experiente para liderar nossos rituais de lua cheia e atendimentos individuais.' },
-      { id: 2, title: 'Instrutor de Yoga', space: 'Zen Space', location: 'Remoto', type: 'Híbrido', salary: 'R$ 120/h', description: 'Aulas online e presenciais. Foco em Hatha e Vinyasa.' },
-      { id: 3, title: 'Psicólogo Transpessoal', space: 'Casa Alma', location: 'Rio de Janeiro', type: 'Presencial', salary: 'A combinar', description: 'Atendimento clínico com abordagem integrativa.' },
-  ];
+  useEffect(() => {
+    setLoading(true);
+    api.spaces.getVacancies().then((data: any) => {
+      const list = Array.isArray(data) ? data : (data?.vacancies || []);
+      setVacancies(list.map((v: any) => ({
+        id: v.id,
+        title: v.title || v.name || 'Vaga sem título',
+        space: v.spaceName || v.space_name || v.space || 'Santuário',
+        location: v.location || 'Não informado',
+        type: v.type || v.modality || 'Presencial',
+        salary: v.salary || v.compensation || 'A combinar',
+        description: v.description || '',
+        status: v.status || 'OPEN',
+      })));
+    }).catch(() => {
+      // Fallback so UI isn't empty if backend is down
+      setVacancies([]);
+    }).finally(() => setLoading(false));
+  }, []);
 
-  const handleApply = () => {
-    setShowToast(true);
-    setTimeout(() => {
+  const filtered = vacancies.filter(v =>
+    !searchTerm || v.title.toLowerCase().includes(searchTerm.toLowerCase()) || v.space.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleApply = async () => {
+    if (!selectedVacancy) return;
+    setApplying(true);
+    try {
+      await api.recruitment.apply(String(selectedVacancy.id), 'Tenho interesse nesta oportunidade.');
+      setShowToast(true);
+      setTimeout(() => {
         setSelectedVacancy(null);
         setShowToast(false);
-        // In a real app, call API here
-    }, 2000);
+      }, 2000);
+    } catch (err: any) {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2500);
+    } finally {
+      setApplying(false);
+    }
   };
 
   return (

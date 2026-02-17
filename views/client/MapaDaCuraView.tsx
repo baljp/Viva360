@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ViewState, Professional, User } from '../../types';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
-import { PortalView, DynamicAvatar, ZenToast, ZenSkeleton, ZenEmptyState } from '../../components/Common';
+import { PortalView, DynamicAvatar, ZenToast, ZenSkeleton, ZenEmptyState, PresenceBadge } from '../../components/Common';
 import { useJourneyEngine } from '../../src/hooks/useJourneyEngine';
 import { Play, Search, MapPin, Sparkle, Sun, Moon, Wind, Clock, Star, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { MicroJourneyModal } from './map/MicroJourneyModal';
@@ -245,7 +245,10 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between">
                                                 <h4 className="font-bold text-nature-900 text-sm truncate">{pro.name}</h4>
-                                                <div className="flex items-center gap-1"><Star size={10} className="fill-amber-400 text-amber-400"/><span className="text-[10px] font-bold text-nature-600">{pro.rating}</span></div>
+                                                <div className="flex items-center gap-2">
+                                                  <PresenceBadge status={isOnline ? 'ONLINE' : 'OFFLINE'} />
+                                                  <div className="flex items-center gap-1"><Star size={10} className="fill-amber-400 text-amber-400"/><span className="text-[10px] font-bold text-nature-600">{pro.rating}</span></div>
+                                                </div>
                                             </div>
                                             <p className="text-[10px] text-nature-400 uppercase font-bold tracking-wider truncate mb-1">{(pro.specialty || []).slice(0,2).join(' • ')}</p>
                                             <div className="flex items-center gap-2 text-nature-300">

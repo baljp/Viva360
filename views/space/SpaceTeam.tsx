@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Users, Search, Timer, CheckCircle, Star, ChevronRight, UserPlus, Zap, Crown, Shield, Sprout, Share2, Calendar } from 'lucide-react';
 import { ViewState, Professional } from '../../types';
-import { PortalView, DynamicAvatar, ZenToast } from '../../components/Common';
+import { PortalView, DynamicAvatar, PresenceBadge, ZenToast } from '../../components/Common';
+import { usePresenceMap } from '../../src/hooks/usePresenceMap';
 
 interface SpaceTeamProps {
     view: ViewState;
@@ -46,6 +47,9 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
         if (activeFilter === 'dom') return Array.isArray(professional.specialty) && professional.specialty.length > 0;
         return true;
     });
+
+    const filteredIds = useMemo(() => filteredTeam.map((p: any) => String(p.id || '')).filter(Boolean), [filteredTeam]);
+    const presenceById = usePresenceMap(filteredIds, { pollMs: 30000, maxBatch: 80 });
 
     return (
         <PortalView title="Círculo de Guardiões" subtitle="GESTÃO DE EQUIPE" onBack={() => flow.go('EXEC_DASHBOARD')}>
@@ -122,6 +126,9 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                                     <p className="text-[9px] text-nature-400 font-bold uppercase mt-0.5">
                                         {(pro.roleLabel || (pro.karma > 800 ? 'Mestre' : 'Guardião'))} · {pro.specialty && pro.specialty.length > 0 ? pro.specialty[0] : 'Iniciante'}
                                     </p>
+                                    <div className="mt-2">
+                                      <PresenceBadge status={(presenceById[String(pro.id)] as any) || 'UNKNOWN'} />
+                                    </div>
                                     <div className="flex items-center gap-1.5 mt-1.5">
                                         <span className={`w-1.5 h-1.5 rounded-full ${pro.isOccupied ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>
                                         <span className={`text-[9px] font-bold ${pro.isOccupied ? 'text-rose-500' : 'text-emerald-600'}`}>
