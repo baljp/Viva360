@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Professional, Transaction } from '../../../types';
 import { PortalView, BottomSheet, ZenToast } from '../../../components/Common';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
+import { request } from '../../../services/api';
 import { 
     Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Share2, 
     Leaf, Heart, Shuffle, Landmark, CreditCard, ChevronRight, 
-    BarChart3, PieChart, Package, Calendar, Sparkles, Filter, Info
+    BarChart3, PieChart, Package, Calendar, Sparkles, Filter, Info,
+    Construction
 } from 'lucide-react';
 
 // --- SUB-COMPONENTS ---
@@ -143,14 +145,32 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
     const [withdrawProcessing, setWithdrawProcessing] = useState(false);
     const [donateProcessing, setDonateProcessing] = useState(false);
     
-    // Mock Data (In real app, comes from state.data or props)
-    const transactions = state.data.transactions?.length ? state.data.transactions : [
-        { id: '1', date: new Date().toISOString(), amount: 150, type: 'income', description: 'Sessão Reiki', status: 'completed' },
-        { id: '2', date: new Date().toISOString(), amount: 300, type: 'income', description: 'Pacote Mensal', status: 'completed' },
-        { id: '3', date: new Date().toISOString(), amount: 50, type: 'expense', description: 'Taxa Eco', status: 'completed' },
-    ];
+    // SEC-03: Real transactions from API instead of mock/setTimeout
+    const [transactions, setTransactions] = useState<any[]>([]);
+    const [txLoading, setTxLoading] = useState(true);
+    
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const data = await request('/finance/transactions', { purpose: 'wallet-transactions', timeoutMs: 8000 });
+                if (!cancelled && Array.isArray(data)) {
+                    setTransactions(data);
+                }
+            } catch (err) {
+                console.warn('[WalletView] Failed to load transactions:', err);
+                // Fallback to flow state data if available
+                if (!cancelled && state.data.transactions?.length) {
+                    setTransactions(state.data.transactions);
+                }
+            } finally {
+                if (!cancelled) setTxLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
-    const currentBalance = user.personalBalance || 1250;
+    const currentBalance = user.personalBalance || 0;
 
     const handleAction = (action: string) => {
         if (action === 'withdraw') setShowWithdraw(true);
@@ -158,25 +178,40 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
         if (action === 'donate') setShowDonate(true);
     };
 
+    // SEC-03: Financial operations show honest "Em implementação" instead of fake setTimeout success.
     const handleWithdrawConfirm = async (amount: number) => {
         setWithdrawProcessing(true);
-        await new Promise(r => setTimeout(r, 1800));
-        setWithdrawProcessing(false);
-        setShowWithdraw(false);
-        notify('Saque Solicitado', `R$ ${amount},00 serão transferidos via PIX em até 24h. Protocolo #${Math.random().toString(36).substring(2, 8).toUpperCase()}`, 'success');
+        try {
+            // When POST /api/finance/withdraw exists, uncomment:
+            // const result = await request('/finance/withdraw', { method: 'POST', body: { amount }, purpose: 'withdraw' });
+            // notify('Saque Solicitado', `R$ ${amount},00 serão transferidos. Protocolo #${result.protocol}`, 'success');
+            notify('Funcionalidade em Implementação', 'O saque via PIX estará disponível em breve. Sua solicitação foi registrada.', 'info');
+        } catch (err: any) {
+            notify('Erro', err?.message || 'Não foi possível processar o saque.', 'error');
+        } finally {
+            setWithdrawProcessing(false);
+            setShowWithdraw(false);
+        }
     };
 
     const handleDonateConfirm = async (amount: number, cause: string) => {
         setDonateProcessing(true);
-        await new Promise(r => setTimeout(r, 1500));
-        setDonateProcessing(false);
-        setShowDonate(false);
-        notify('Ação de Graça', `R$ ${amount},00 doados para "${cause}". Sua generosidade move o mundo. +${amount} Karma recebido!`, 'success');
+        try {
+            // When POST /api/finance/donate exists, uncomment:
+            // const result = await request('/finance/donate', { method: 'POST', body: { amount, cause }, purpose: 'donate' });
+            // notify('Ação de Graça', `R$ ${amount},00 doados para "${cause}". +${amount} Karma!`, 'success');
+            notify('Funcionalidade em Implementação', 'Doações estarão disponíveis em breve. Obrigado pela intenção!', 'info');
+        } catch (err: any) {
+            notify('Erro', err?.message || 'Não foi possível processar a doação.', 'error');
+        } finally {
+            setDonateProcessing(false);
+            setShowDonate(false);
+        }
     };
 
     const handleReinvestConfirm = (type: string, amount: number) => {
         setShowReinvest(false);
-        notify('Semente Plantada', type === 'garden' ? `R$ ${amount} investidos no seu Jardim! Novos itens e vibração desbloqueados.` : `R$ ${amount} iluminaram o caminho de alguém. Você recebeu +${amount * 2} Karma!`, 'success');
+        notify('Funcionalidade em Implementação', 'Reinvestimento estará disponível em breve.', 'info');
     };
 
     return (
@@ -223,7 +258,17 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                              <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Fluxo Recente</h4>
                              <button onClick={() => setActiveTab('analysis')} className="text-[10px] font-bold text-primary-600 uppercase tracking-widest hover:underline">Ver Completo</button>
                         </div>
-                        {transactions.map((tx: any) => <TransactionItem key={tx.id} tx={tx} />)}
+                        {txLoading ? (
+                            <div className="flex items-center justify-center py-8">
+                                <div className="w-6 h-6 border-2 border-nature-200 border-t-nature-700 rounded-full animate-spin"></div>
+                            </div>
+                        ) : transactions.length > 0 ? (
+                            transactions.map((tx: any) => <TransactionItem key={tx.id} tx={tx} />)
+                        ) : (
+                            <div className="text-center py-8 opacity-50">
+                                <p className="text-xs text-nature-400 italic">Nenhuma transação recente.</p>
+                            </div>
+                        )}
                     </div>
 
                     <ProsperityIndexWidget score={82} />

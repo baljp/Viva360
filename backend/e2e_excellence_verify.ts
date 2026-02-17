@@ -6,7 +6,8 @@ const API_URL = 'http://localhost:3000/api';
 async function runExcellenceE2E() {
     console.log('🚀 Starting Excellence Layer E2E Verification...');
 
-    const adminToken = 'admin-excellence-2026'; // Unique token for final verification
+    // SEC-01: Read mock token from env var, never hardcoded.
+    const adminToken = process.env.MOCK_AUTH_TOKEN || 'test-token-e2e';
     const headers = { Authorization: `Bearer ${adminToken}` };
 
     try {

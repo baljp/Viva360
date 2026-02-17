@@ -7,8 +7,12 @@ import { createApiDomains } from './api/domains';
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 const AUTH_TOKEN_KEY = 'viva360.auth.token';
 const MOCK_USER_KEY = 'viva360.mock_user';
-const MOCK_AUTH_TOKEN = 'admin-excellence-2026';
+// SEC-01: Mock token read from env var, never hardcoded in source code.
+const MOCK_AUTH_TOKEN = String(import.meta.env.VITE_MOCK_AUTH_TOKEN || '').trim();
 const SESSION_MODE_KEY = 'viva360.session.mode';
+const TEST_MODE_ACTIVATION_KEY = 'viva360.test_mode.active';
+// DATA-01: Unified mock flag — single source of truth.
+const MOCK_ENABLED = String(import.meta.env.VITE_MOCK_ENABLED || '').trim().toLowerCase() === 'true';
 const TEST_MODE_ACTIVATION_KEY = 'viva360.test_mode.active';
 const OAUTH_EXPECTED_EMAIL_KEY = 'viva360.oauth.expected_email';
 const OAUTH_INTENT_KEY = 'viva360.oauth.intent';
@@ -136,8 +140,10 @@ const isLocalDevRuntime = () => {
     if (typeof window === 'undefined') return false;
     return window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 };
-const isTestRuntimeAllowed = () => !IS_PROD_BUILD && (isSupabaseMock || (TEST_MODE_ENABLED && isLocalDevRuntime()));
+// DATA-01: Simplified mock eligibility — single flag instead of chain of localStorage + env checks.
+const isTestRuntimeAllowed = () => !IS_PROD_BUILD && MOCK_ENABLED && (isSupabaseMock || (TEST_MODE_ENABLED && isLocalDevRuntime()));
 const isTestModeActivated = () => {
+    if (!MOCK_ENABLED) return false;
     const activation = localStorage.getItem(TEST_MODE_ACTIVATION_KEY) === '1';
     const currentMode = getSessionMode() === 'mock';
     return activation || currentMode;
@@ -148,7 +154,7 @@ const activateTestMode = () => {
 const clearTestMode = () => {
     localStorage.removeItem(TEST_MODE_ACTIVATION_KEY);
 };
-const canUseMockSession = () => isTestRuntimeAllowed() && isTestModeActivated();
+const canUseMockSession = () => MOCK_ENABLED && isTestRuntimeAllowed() && isTestModeActivated();
 
 const getSessionMode = (): 'mock' | 'real' | null => {
     const value = localStorage.getItem(SESSION_MODE_KEY);
@@ -224,6 +230,9 @@ const createMockUser = (email: string, role?: UserRole, name?: string): User => 
 const saveMockSession = (user: User) => {
     if (!isTestRuntimeAllowed()) {
         throw new Error('Modo teste indisponível neste ambiente.');
+    }
+    if (!MOCK_AUTH_TOKEN) {
+        throw new Error('Mock token não configurado (VITE_MOCK_AUTH_TOKEN).');
     }
     activateTestMode();
     setSessionMode('mock');
@@ -519,7 +528,7 @@ const buildOracleFallbackCard = (mood: string) => {
 
 const getHeader = () => {
     const isMockSession = canUseMockSession() && getSessionMode() === 'mock' && !!localStorage.getItem(MOCK_USER_KEY);
-    const token = localStorage.getItem(AUTH_TOKEN_KEY) || (isMockSession ? MOCK_AUTH_TOKEN : '');
+    const token = localStorage.getItem(AUTH_TOKEN_KEY) || (isMockSession && MOCK_AUTH_TOKEN ? MOCK_AUTH_TOKEN : '');
     return {
         'Content-Type': 'application/json',
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -981,7 +990,7 @@ export const api = {
             const payload = decodeJwtPayload(token);
             if (!payload?.email) return null;
 
-            const isMockToken = token === MOCK_AUTH_TOKEN;
+            const isMockToken = MOCK_AUTH_TOKEN && token === MOCK_AUTH_TOKEN;
             if (isMockToken && !canUseMockSession()) {
                 clearMockArtifacts();
                 localStorage.removeItem(SESSION_MODE_KEY);

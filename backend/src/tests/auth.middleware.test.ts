@@ -50,13 +50,17 @@ describe('auth.middleware mock token gating', () => {
     process.env = { ...originalEnv };
   });
 
+  // SEC-01: Mock token is now read from MOCK_AUTH_TOKEN env var
+  const TEST_MOCK_TOKEN = 'test-mock-token-vitest';
+
   it('aceita token de mock apenas em runtime de teste com APP_MODE=MOCK', async () => {
     process.env.NODE_ENV = 'test';
     process.env.APP_MODE = 'MOCK';
     process.env.ENABLE_TEST_MODE = 'true';
+    process.env.MOCK_AUTH_TOKEN = TEST_MOCK_TOKEN;
 
     const authenticateUser = await loadMiddleware();
-    const req: any = { headers: { authorization: 'Bearer admin-excellence-2026' } };
+    const req: any = { headers: { authorization: `Bearer ${TEST_MOCK_TOKEN}` } };
     const res = makeRes();
     const next = vi.fn();
 
@@ -66,21 +70,23 @@ describe('auth.middleware mock token gating', () => {
     expect(req.user).toMatchObject({ role: 'ADMIN', email: 'admin@viva360.com' });
   });
 
-  it('bloqueia token de mock em produção mesmo com APP_MODE=MOCK', async () => {
+  it('bloqueia token de mock em produção mesmo com APP_MODE=MOCK (DATA-02)', async () => {
     process.env.NODE_ENV = 'production';
     process.env.APP_MODE = 'MOCK';
     process.env.ENABLE_TEST_MODE = 'true';
     process.env.JWT_SECRET = 'test-production-secret';
+    process.env.MOCK_AUTH_TOKEN = TEST_MOCK_TOKEN;
 
     const authenticateUser = await loadMiddleware();
-    const req: any = { headers: { authorization: 'Bearer admin-excellence-2026' } };
+    const req: any = { headers: { authorization: `Bearer ${TEST_MOCK_TOKEN}` } };
     const res = makeRes();
     const next = vi.fn();
 
     await authenticateUser(req, res, next);
 
     expect(next).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ error: expect.stringMatching(/Invalid|expired/i) }));
+    // DATA-02: Production explicitly returns 403 for mock tokens
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'MOCK_TOKEN_BLOCKED' }));
   });
 });

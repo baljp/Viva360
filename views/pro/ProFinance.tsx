@@ -4,10 +4,32 @@ import { ViewState, Professional, Transaction } from '../../types';
 import { TrendingUp, Filter, ArrowUpRight, ArrowDownRight, Share2 } from 'lucide-react';
 import { PortalView } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { request } from '../../services/api';
 
-export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions = [] }) => {
+export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions: propTransactions = [] }) => {
     const { go, notify } = useGuardiaoFlow();
     const [txFilter, setTxFilter] = React.useState<'all' | 'income' | 'expense'>('all');
+    const [transactions, setTransactions] = React.useState<Transaction[]>(propTransactions);
+    const [txLoading, setTxLoading] = React.useState(!propTransactions.length);
+
+    // SEC-03: Fetch real transactions from API instead of relying on mock/props only
+    React.useEffect(() => {
+        if (propTransactions.length > 0) return; // Props already provided
+        let cancelled = false;
+        (async () => {
+            try {
+                const data = await request('/finance/transactions', { purpose: 'pro-finance', timeoutMs: 8000 });
+                if (!cancelled && Array.isArray(data)) {
+                    setTransactions(data);
+                }
+            } catch (err) {
+                console.warn('[ProFinance] Failed to load transactions:', err);
+            } finally {
+                if (!cancelled) setTxLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
     const chartData = [1200, 1500, 1100, 1800, 1600, 2100, 1840];
     const maxVal = Math.max(...chartData);
@@ -61,7 +83,11 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
                     <Filter size={14} className="text-nature-400"/>
                 </button>
             </div>
-            {filteredTransactions.length > 0 ? filteredTransactions.map(tx => (
+            {txLoading ? (
+                <div className="flex items-center justify-center py-10">
+                    <div className="w-6 h-6 border-2 border-nature-200 border-t-nature-700 rounded-full animate-spin"></div>
+                </div>
+            ) : filteredTransactions.length > 0 ? filteredTransactions.map(tx => (
                 <div key={tx.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between group">
                     <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
@@ -87,8 +113,8 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
         </div>
 
         <button onClick={() => {
-            notify('Preparando Relatório', 'Gerando seu relatório de abundância...', 'info');
-            setTimeout(() => notify('Relatório Pronto', 'Seu PDF foi gerado e está disponível para download.', 'success'), 2000);
+            // SEC-03: Honest feedback instead of fake setTimeout success.
+            notify('Funcionalidade em Implementação', 'O relatório PDF estará disponível em breve.', 'info');
         }} className="w-full py-5 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-white transition-all"><Share2 size={16}/> Baixar Relatório Mensal</button>
       </div>
     </PortalView>

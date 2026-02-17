@@ -55,13 +55,16 @@ export const test = base.extend<JourneyFixtures>({
 
       console.log(`[E2E] Injecting mock session for ${role} (${mockUser.email})...`);
       
+      // SEC-01: Read mock token from env var, never hardcoded.
+      const mockAuthToken = process.env.MOCK_AUTH_TOKEN || 'test-token-e2e';
+
       // Inject mock session BEFORE navigation
-      await page.addInitScript((user) => {
+      await page.addInitScript(({ user, token }) => {
         // Set mock user in localStorage (this is how the API checks auth in mock mode)
         window.localStorage.setItem('viva360.mock_user', JSON.stringify(user));
         window.localStorage.setItem('viva360.session.mode', 'mock');
         window.localStorage.setItem('viva360.test_mode.active', '1');
-        window.localStorage.setItem('viva360.auth.token', 'admin-excellence-2026');
+        window.localStorage.setItem('viva360.auth.token', token);
         
         // Disable Smart Tutorial for tests
         window.localStorage.setItem('viva360_smart_tutorial_seen', 'true');
@@ -72,7 +75,7 @@ export const test = base.extend<JourneyFixtures>({
            window.localStorage.setItem(`viva360_tutorial_seen_client-${i}`, 'true');
         }
         window.localStorage.setItem('viva360_tutorial_seen_mock-user-id', 'true');
-      }, mockUser);
+      }, { user: mockUser, token: mockAuthToken });
 
       // Navigate directly to the dashboard (skipping login)
       await page.goto(dashboardUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });

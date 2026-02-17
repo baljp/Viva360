@@ -26,8 +26,15 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 
 const TEST_ADMIN_USER_ID = '11111111-1111-4111-8111-111111111111';
 const isProd = process.env.NODE_ENV === 'production';
+
+// SEC-01: Mock token read from env var, never hardcoded in source.
+// SEC-02 + DATA-02: In production, mock tokens are ALWAYS rejected regardless of any other flag.
+const MOCK_AUTH_TOKEN = String(process.env.MOCK_AUTH_TOKEN || '').trim();
+const mockFlagEnabled = String(process.env.MOCK_ENABLED || '').trim().toLowerCase() === 'true'
+  || String(process.env.APP_MODE || '').toUpperCase() === 'MOCK';
 const isMockTokenEnabled = !isProd
-  && String(process.env.APP_MODE || '').toUpperCase() === 'MOCK'
+  && !!MOCK_AUTH_TOKEN
+  && mockFlagEnabled
   && (String(process.env.ENABLE_TEST_MODE || '').toLowerCase() === 'true' || process.env.NODE_ENV === 'test');
 
 const resolveUserId = (candidate?: string) => {
@@ -53,8 +60,13 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     return res.status(401).json({ error: 'Invalid Authorization header format' });
   }
 
+  // DATA-02: Explicitly reject any mock token in production, even if flags are misconfigured.
+  if (isProd && MOCK_AUTH_TOKEN && token === MOCK_AUTH_TOKEN) {
+    return res.status(403).json({ error: 'Mock tokens are forbidden in production.', code: 'MOCK_TOKEN_BLOCKED' });
+  }
+
   // Support for strict E2E mock token only outside production.
-  if (isMockTokenEnabled && token === 'admin-excellence-2026') {
+  if (isMockTokenEnabled && MOCK_AUTH_TOKEN && token === MOCK_AUTH_TOKEN) {
     req.user = {
       id: TEST_ADMIN_USER_ID,
       userId: TEST_ADMIN_USER_ID,
