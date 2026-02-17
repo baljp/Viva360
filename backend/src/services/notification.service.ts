@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma';
 import { isMockMode } from './supabase.service';
+import { logger } from '../lib/logger';
 
 // For Notifications, given its simplicity, we might merge Repo logic here for now
 // or keep it strictly separated. Let's start with Service encapsulating Prisma.
@@ -35,7 +36,7 @@ export class NotificationService {
         try {
             await notificationQueue.add('send_push', { userId, title, message });
         } catch (e) {
-            console.error(`❌ [NOTIF] queue failed:`, e);
+            logger.warn('notification.queue_failed', e);
         }
     }
 

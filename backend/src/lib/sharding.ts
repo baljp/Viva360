@@ -1,4 +1,5 @@
 import prisma from './prisma';
+import { logger } from './logger';
 
 // Simple CRC32-like hash function for demo purposes
 const hashString = (s: string) => {
@@ -32,7 +33,7 @@ export const getShardForUser = (userId: string) => {
 
 export const getPrismaForShard = (userId: string) => {
     const shard = getShardForUser(userId);
-    console.log(`[SHARDING] Routing user ${userId} to Shard ${shard.index}`);
+    logger.debug('sharding.route', { shardIndex: shard.index });
     // Return default prisma for now, as we don't have 4 databases running.
     // In production: return shards[shard.index];
     return prisma;

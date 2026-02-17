@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { logger } from './logger';
 
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
 const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379');
@@ -8,13 +9,13 @@ const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NA
 const isMock = process.env.MOCK_MODE === 'true' || isServerless;
 
 if (isServerless) {
-    console.log('⚡ Running in serverless mode - Redis disabled');
+    logger.info('redis.serverless_disabled');
 }
 
 // Mock Redis Class
 class MockRedis {
   private counters = new Map<string, number>();
-  on(event: string, cb: any) { 
+  on(event: string, cb: (...args: unknown[]) => void) { 
       if (event === 'connect') setTimeout(cb, 0); 
       return this; 
   }
@@ -46,10 +47,10 @@ export const redisSubscriber = isMock ? new MockRedis() as any : new Redis({
 });
 
 if (!isMock) {
-    redisConnection.on('connect', () => console.log('✅ Redis Connected'));
-    redisConnection.on('error', (err: any) => console.error('❌ Redis Connection Error:', err));
+    redisConnection.on('connect', () => logger.info('redis.connected'));
+    redisConnection.on('error', (err: unknown) => logger.error('redis.error', err));
 } else {
-    console.log('⚠️  Redis in MOCK MODE');
+    logger.info('redis.mock_mode');
 }
 
 export const isRedisEnabled = !isMock;

@@ -1,5 +1,7 @@
 
 // Using web-push library logic (mocked for now)
+import { logger } from '../lib/logger';
+
 export interface PushSubscriptionMock {
     endpoint: string;
     keys: {
@@ -21,10 +23,11 @@ export class PushService {
     }
 
     async sendNotification(subscription: PushSubscriptionMock, payload: string) {
-        console.log(`\n🔔 [PUSH NOTIFICATION]`);
-        console.log(`   Endpoint: ${subscription.endpoint.substring(0, 30)}...`);
-        console.log(`   Payload: ${payload}`);
-        console.log(`   ✅ Sent via [MOCK_WEB_PUSH]`);
+        logger.info('push.send', {
+          endpointPrefix: subscription.endpoint.substring(0, 30),
+          payloadLength: typeof payload === 'string' ? payload.length : 0,
+          transport: 'MOCK_WEB_PUSH',
+        });
         return true;
     }
 }

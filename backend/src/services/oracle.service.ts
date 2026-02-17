@@ -2,6 +2,7 @@ import prisma, { prismaRead } from '../lib/prisma';
 // @ts-ignore
 import { OracleMessage } from '@prisma/client';
 import { AppError } from '../lib/AppError';
+import { logger } from '../lib/logger';
 
 interface OracleContext {
     mood: string;
@@ -132,7 +133,7 @@ export class OracleService {
             });
         } catch (e) {
             // Do not block card reveal if history persistence fails.
-            console.warn('Oracle history persistence failed:', e);
+            logger.warn('oracle.history_persist_failed', e);
         }
 
         return winner;
@@ -224,7 +225,7 @@ export class OracleService {
             if (this.isSafeFallbackRuntime() && this.isDbUnavailableError(e)) {
                 return this.getFallbackByContext('neutral');
             }
-            console.error('Fallback error:', e);
+            logger.error('oracle.fallback_error', e);
             return null;
         }
     }

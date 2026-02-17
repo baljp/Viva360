@@ -3,6 +3,7 @@ import { emailService } from './email.service';
 import { whatsappService } from './whatsapp.service';
 import { pushService } from './push.service';
 import prisma from '../lib/prisma'; // Assuming we save in-app notifications to DB
+import { logger } from '../lib/logger';
 
 export type NotificationChannel = 'EMAIL' | 'WHATSAPP' | 'PUSH' | 'IN_APP';
 
@@ -11,23 +12,23 @@ export interface NotificationPayload {
     title: string;
     message: string;
     channels: NotificationChannel[];
-    metadata?: any;
+    metadata?: unknown;
 }
 
 export class NotificationDispatcher {
     
     static async dispatch(payload: NotificationPayload) {
         if (process.env.SUPABASE_URL?.includes('mock')) {
-            console.log(`\n📢 [MOCK DISPATCHER] Notify User: ${payload.userId}`);
+            logger.info('notification.dispatch', { userId: payload.userId, mode: 'mock' });
         } else {
-            console.log(`\n📢 [DISPATCHER] Notify User: ${payload.userId}`);
+            logger.info('notification.dispatch', { userId: payload.userId, mode: 'real' });
         }
 
         const results = await Promise.all(payload.channels.map(async (channel) => {
             // Mock Preferences Check
             // In a real scenario, this would check a 'UserPreferences' table
             if (payload.userId === 'user-no-email' && channel === 'EMAIL') {
-                console.log('   🚫 [PREFS] Blocked EMAIL for user-no-email');
+                logger.info('notification.preference_blocked', { userId: payload.userId, channel });
                 return { channel, status: 'skipped', reason: 'User Preference' };
             }
 
@@ -67,12 +68,12 @@ export class NotificationDispatcher {
                     case 'IN_APP':
                         // Save to Database
                         // await prisma.notification.create(...)
-                        console.log(`   📝 [IN_APP] Saved to database: ${payload.title}`);
+                        logger.info('notification.in_app_saved', { userId: payload.userId, title: payload.title });
                         break;
                 }
                 return { channel, status: 'sent' };
             } catch (error) {
-                console.error(`   ❌ Failed to send ${channel}`, error);
+                logger.error('notification.send_failed', { channel, userId: payload.userId, error });
                 return { channel, status: 'failed', error };
             }
         }));

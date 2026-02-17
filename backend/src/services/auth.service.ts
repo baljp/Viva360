@@ -215,7 +215,7 @@ export class AuthService {
     let userId: string;
 
     if (existing && !existing.profile) {
-      console.log('[AuthService] Orphan user found, updating credentials via Supabase Admin...');
+      logger.info('auth.register_orphan_user_update');
       const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(existing.id, {
         password: password,
         email_confirm: true,
@@ -223,13 +223,13 @@ export class AuthService {
       });
 
       if (updateError) {
-        console.error('[AuthService] Supabase updateUserById failed:', updateError);
+        logger.error('auth.register_supabase_update_failed', updateError);
         throw new AppError(`Erro ao atualizar credenciais: ${updateError.message}`, 500, 'AUTH_UPDATE_FAILED');
       }
       
       userId = existing.id;
     } else {
-      console.log('[AuthService] Creating new user via Supabase Admin SDK...');
+      logger.info('auth.register_supabase_create_user');
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: normalizedEmail,
         password: password,
@@ -238,7 +238,7 @@ export class AuthService {
       });
 
       if (authError) {
-        console.error('[AuthService] Supabase createUser failed:', authError);
+        logger.error('auth.register_supabase_create_failed', authError);
         if (authError.message.includes('already registered')) {
             throw new AppError('Este e-mail já está em uso.', 409, 'EMAIL_ALREADY_EXISTS');
         }
@@ -246,15 +246,15 @@ export class AuthService {
       }
 
       if (!authData.user) {
-        console.error('[AuthService] Supabase returned no user object');
+        logger.error('auth.register_supabase_missing_user');
         throw new AppError('Falha ao criar conta de usuário.', 500, 'AUTH_USER_CREATION_FAILED');
       }
 
       userId = authData.user.id;
-      console.log('[AuthService] User created with ID:', userId);
+      logger.info('auth.register_user_created');
     }
 
-    console.log('[AuthService] Creating Profile in database...');
+    logger.info('auth.register_profile_create');
     try {
         const profile = await prisma.profile.create({
         data: {
@@ -268,7 +268,7 @@ export class AuthService {
             multiplier: 1,
         },
         });
-        console.log('[AuthService] Profile created.');
+        logger.info('auth.register_profile_created');
 
         await prisma.profileRole.upsert({
         where: {
@@ -286,7 +286,7 @@ export class AuthService {
         
         await AuthService.markAllowlistAsUsed(normalizedEmail, userId);
 
-        console.log('[AuthService] Generating session...');
+        logger.debug('auth.register_generate_session');
         return AuthService.generateSession({
         id: userId,
         email: normalizedEmail,
@@ -296,14 +296,14 @@ export class AuthService {
         },
         });
     } catch (dbError: any) {
-        console.error('[AuthService] Database profile creation failed:', dbError);
+        logger.error('auth.register_profile_create_failed', dbError);
         // Clean up user from Supabase if profile creation fails? maybe later.
         throw new AppError(`Erro ao criar perfil no banco de dados: ${dbError.message}`, 500, 'DB_ERROR');
     }
   }
 
   static async login(email: string, password: string) {
-    console.log('[AuthService] Login attempt for:', email);
+    logger.info('auth.login_attempt', { email });
     const normalizedEmail = email.trim().toLowerCase();
 
     const user = await prisma.user.findUnique({
@@ -314,7 +314,7 @@ export class AuthService {
         },
       },
     }).catch(err => {
-        console.error('[AuthService] Login Prisma findUnique error:', err);
+        logger.error('auth.login_user_lookup_failed', err);
         throw new AppError(`Erro de conexão com banco de dados: ${err.message}`, 500);
     });
 
@@ -324,13 +324,13 @@ export class AuthService {
     });
 
     if (authError || !authData.user) {
-      console.warn('[AuthService] Supabase native login failed:', authError?.message);
+      logger.warn('auth.login_supabase_failed', { message: authError?.message });
       // Fallback for VERY old users that might only be in Prisma but not Supabase Auth
       // (Though my repair script should have fixed this)
       if (user.encrypted_password) {
         const isValidManual = await bcrypt.compare(password, user.encrypted_password);
         if (isValidManual) {
-           console.log('[AuthService] Valid manual bcrypt fallback. User likely missing in Supabase Auth but exists in Prisma.');
+           logger.warn('auth.login_manual_fallback_success');
         } else {
            throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
         }
@@ -339,11 +339,11 @@ export class AuthService {
       }
     }
     
-    console.log('[AuthService] Credentials verified. Checking profile...');
+    logger.debug('auth.login_verified');
 
     // Auto-create profile if user authenticated but profile is missing (incomplete registration)
     if (!user.profile) {
-      console.log('[AuthService] Missing profile, auto-creating...');
+      logger.info('auth.login_autocreate_profile');
       const metadata = typeof user.raw_user_meta_data === 'object' && user.raw_user_meta_data
         ? user.raw_user_meta_data as Record<string, unknown>
         : {};
@@ -378,7 +378,7 @@ export class AuthService {
             profile: { ...profile, profile_roles: [{ role: finalRole }] },
           });
       } catch (e: any) {
-          console.error('[AuthService] Failed to auto-create profile:', e);
+          logger.error('auth.login_autocreate_profile_failed', e);
            throw new AppError(`Erro ao criar perfil automático: ${e.message}`, 500);
       }
     }
@@ -633,7 +633,7 @@ export class AuthService {
   }
 
    static async selectActiveRole(userId: string, requestedRole: string) {
-    console.log(`[AuthService] selectActiveRole userId=${userId} requestedRole=${requestedRole}`);
+    logger.info('auth.select_active_role', { requestedRole });
     const role = defaultRole(requestedRole);
     const current = await AuthService.listRolesForUser(userId);
 
@@ -645,7 +645,7 @@ export class AuthService {
       where: { id: userId },
       data: { active_role: role, role },
     }).catch(err => {
-      console.error(`[AuthService] prisma.profile.update failed:`, err);
+      logger.error('auth.select_active_role_update_failed', err);
       throw err;
     });
 

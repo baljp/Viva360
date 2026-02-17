@@ -1,5 +1,6 @@
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
+import { logger } from '../lib/logger';
 
 const REDACTED = '[REDACTED]';
 const sensitiveKeyPattern = /(password|secret|token|authorization|cookie|jwt|email|phone|cpf|ssn|content|note|anamnesis|record)/i;
@@ -55,25 +56,38 @@ export class AuditService {
     
     // 1. Mock Mode: Log to console
     if (isMockMode()) {
-      console.log(`[AUDIT] User: ${userId} | Action: ${action} | Resource: ${resource} | Status: ${status} | Details: ${sanitizedDetails}`);
+      logger.info('audit.access', {
+        userId,
+        action,
+        resource,
+        status,
+        details: sanitizedDetails,
+        mode: 'mock',
+      });
       return; 
     }
 
     // 2. Real Mode: Persist to DB
     try {
-      console.log(`[DB-AUDIT] User: ${userId} | Action: ${action} | Resource: ${resource}`);
+      logger.info('audit.db_access', { userId, action, resource });
     } catch (e) {
-      console.error('[AUDIT FAIL]', e);
+      logger.error('audit.db_access_failed', e);
     }
   }
 
   /**
    * Log an event to the audit_events table (Event Sourcing Light)
    */
-  async log(actorId: string, action: string, entityType: string, entityId: string, payload?: any): Promise<void> {
+  async log(actorId: string, action: string, entityType: string, entityId: string, payload?: unknown): Promise<void> {
     const sanitizedPayload = sanitizePayload(payload || {});
     if (isMockMode()) {
-      console.log(`[AUDIT] Actor: ${actorId} | Action: ${action} | Entity: ${entityType}:${entityId}`);
+      logger.info('audit.event', {
+        actorId,
+        action,
+        entityType,
+        entityId,
+        mode: 'mock',
+      });
       return;
     }
 
@@ -89,7 +103,13 @@ export class AuditService {
       });
     } catch (e) {
       // Fallback to console if table doesn't exist yet
-      console.log(`[AUDIT] Actor: ${actorId} | Action: ${action} | Entity: ${entityType}:${entityId}`, sanitizedPayload);
+      logger.warn('audit.event_fallback', {
+        actorId,
+        action,
+        entityType,
+        entityId,
+        payload: sanitizedPayload,
+      });
     }
   }
 

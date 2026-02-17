@@ -1,5 +1,6 @@
 // Diagnostic Minimal App — captures import errors on boot
 import express from 'express';
+import { logger } from './lib/logger';
 
 const app = express();
 app.use(express.json());
@@ -19,7 +20,7 @@ try {
     authRouter = mod.default || mod;
 } catch (err: any) {
     bootError = `[BOOT_CRASH] ${err.message}\n${err.stack}`;
-    console.error(bootError);
+    logger.error('boot.minimal_auth_router_import_failed', { bootError });
 }
 
 // Diagnostic endpoint to expose the boot error

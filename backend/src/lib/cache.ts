@@ -1,5 +1,6 @@
 import Redis from 'ioredis';
 import dotenv from 'dotenv';
+import { logger } from './logger';
 dotenv.config();
 
 // Create Redis Client
@@ -14,7 +15,7 @@ const redis = new Redis({
 });
 
 redis.on('error', (err) => {
-  if (process.env.NODE_ENV !== 'test') console.warn('Redis Error:', err.message);
+  if (process.env.NODE_ENV !== 'test') logger.warn('cache.redis_error', { message: (err as any)?.message || String(err) });
 });
 
 export const cacheGet = async (key: string): Promise<any | null> => {

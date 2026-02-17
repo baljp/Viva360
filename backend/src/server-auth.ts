@@ -7,6 +7,7 @@ import profileRoutes from './routes/profile.routes';
 import { chaosMiddleware } from './lib/chaos';
 import register, { httpRequestDurationMicroseconds, httpRequestErrors } from './lib/metrics';
 import { initTelemetry } from './lib/instrumentation';
+import { logger } from './lib/logger';
 
 initTelemetry();
 dotenv.config();
@@ -47,5 +48,5 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Auth Service running on port ${PORT}`);
+    logger.info('server_auth.listening', { port: PORT });
 });
