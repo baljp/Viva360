@@ -435,7 +435,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
                 <div className="h-[70%] relative overflow-hidden bg-black flex items-center justify-center">
                     <div className="w-full h-full max-w-md relative">
-                        <CameraWidget onCapture={handleCapture} variant="POST" />
+                        <CameraWidget onCapture={handleCapture} variant="STORY" />
                         {/* Premium Crop Guide */}
                         <div className="absolute inset-0 border-[2px] border-white/10 m-8 rounded-[2rem] pointer-events-none"></div>
                     </div>

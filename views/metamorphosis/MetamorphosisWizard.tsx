@@ -426,7 +426,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                         
                         <div className="h-[70%] w-full relative overflow-hidden bg-black flex items-center justify-center">
                             <div className="w-full h-full max-w-md relative">
-                                <CameraWidget onCapture={handleCapture} variant="POST" />
+                                <CameraWidget onCapture={handleCapture} variant="STORY" />
                                 {/* Premium Viewport Overlay */}
                                 <div className="absolute inset-0 pointer-events-none border-[1.5rem] border-black/10 flex items-center justify-center">
                                     <div className="w-full h-full border border-white/20 rounded-[2rem]"></div>
