@@ -13,7 +13,6 @@ const SESSION_MODE_KEY = 'viva360.session.mode';
 const TEST_MODE_ACTIVATION_KEY = 'viva360.test_mode.active';
 // DATA-01: Unified mock flag — single source of truth.
 const MOCK_ENABLED = String(import.meta.env.VITE_MOCK_ENABLED || '').trim().toLowerCase() === 'true';
-const TEST_MODE_ACTIVATION_KEY = 'viva360.test_mode.active';
 const OAUTH_EXPECTED_EMAIL_KEY = 'viva360.oauth.expected_email';
 const OAUTH_INTENT_KEY = 'viva360.oauth.intent';
 const OAUTH_ROLE_KEY = 'viva360.oauth.role';
