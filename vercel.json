@@ -53,6 +53,39 @@
       }
     },
     {
+      "src": "backend/src/tribe.fn.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "backend/prisma/schema.prisma",
+          "node_modules/.prisma/client/**",
+          "node_modules/@prisma/client/**"
+        ]
+      }
+    },
+    {
+      "src": "backend/src/marketplace.fn.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "backend/prisma/schema.prisma",
+          "node_modules/.prisma/client/**",
+          "node_modules/@prisma/client/**"
+        ]
+      }
+    },
+    {
+      "src": "backend/src/checkout.fn.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "backend/prisma/schema.prisma",
+          "node_modules/.prisma/client/**",
+          "node_modules/@prisma/client/**"
+        ]
+      }
+    },
+    {
       "src": "api/ping.ts",
       "use": "@vercel/node"
     }
@@ -73,6 +106,18 @@
     {
       "src": "/api/chat/(.*)",
       "dest": "backend/src/chat.fn.ts"
+    },
+    {
+      "src": "/api/tribe/(.*)",
+      "dest": "backend/src/tribe.fn.ts"
+    },
+    {
+      "src": "/api/marketplace/(.*)",
+      "dest": "backend/src/marketplace.fn.ts"
+    },
+    {
+      "src": "/api/checkout/(.*)",
+      "dest": "backend/src/checkout.fn.ts"
     },
     {
       "src": "/api/(.*)",
