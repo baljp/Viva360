@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
 import { asyncHandler } from '../middleware/async.middleware';
+import { logger } from '../lib/logger';
 
 const MOCK_REVIEWS = [
     { id: 'r1', authorName: 'Julia S.', rating: 9.8, comment: 'Sessão transformadora! Energia incrível.', date: new Date(Date.now() - 2 * 86400000).toISOString(), targetName: 'Ana Luz', targetType: 'guardian' },
@@ -139,4 +140,67 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
         : 0;
 
     return res.json({ averageRating, totalReviews, recommendRate, guardianAverage });
+});
+
+/**
+ * POST /reviews
+ * FLOW-05: Submit a service evaluation as an event.
+ * Body: { rating, comment?, tags?, targetId, targetName?, targetType?, spaceId? }
+ */
+export const createReview = asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({ error: 'Autenticação necessária.' });
+    }
+
+    const { rating, comment, tags, targetId, targetName, targetType, spaceId } = req.body;
+
+    if (rating == null || typeof Number(rating) !== 'number' || Number(rating) < 0 || Number(rating) > 10) {
+        return res.status(400).json({ error: 'rating é obrigatório e deve ser entre 0 e 10.' });
+    }
+    if (!targetId && !spaceId) {
+        return res.status(400).json({ error: 'targetId ou spaceId é obrigatório.' });
+    }
+
+    const safeRating = Math.round(Number(rating) * 10) / 10;
+    const safeComment = String(comment || '').trim().slice(0, 2000);
+    const safeTags = Array.isArray(tags) ? tags.map((t: unknown) => String(t).trim()).filter(Boolean).slice(0, 10) : [];
+    const safeTargetType = ['guardian', 'space'].includes(String(targetType)) ? String(targetType) : 'guardian';
+
+    const eventPayload = {
+        authorId: userId,
+        authorName: req.user?.email || 'Anônimo',
+        rating: safeRating,
+        comment: safeComment,
+        tags: safeTags,
+        targetId: targetId || spaceId,
+        targetName: String(targetName || '').trim() || undefined,
+        targetType: safeTargetType,
+        spaceId: spaceId || targetId,
+    };
+
+    if (isMockMode()) {
+        logger.info('review.created_mock', { userId, rating: safeRating });
+        return res.status(201).json({
+            id: `mock-review-${Date.now()}`,
+            ...eventPayload,
+            created_at: new Date().toISOString(),
+        });
+    }
+
+    const event = await prisma.event.create({
+        data: {
+            stream_id: userId,
+            type: 'REVIEW_SUBMITTED',
+            payload: eventPayload,
+        },
+    });
+
+    logger.info('review.created', { userId, eventId: event.id, rating: safeRating });
+
+    return res.status(201).json({
+        id: event.id,
+        ...eventPayload,
+        created_at: event.created_at,
+    });
 });

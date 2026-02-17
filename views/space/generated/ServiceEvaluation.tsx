@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
 import { PortalView, ZenToast, DynamicAvatar } from '../../../components/Common';
-import { Star, ThumbsUp, MessageCircle, Send, Heart, Award } from 'lucide-react';
+import { Star, ThumbsUp, MessageCircle, Send, Heart, Award, Loader2 } from 'lucide-react';
+import { api } from '../../../services/api';
 
 export default function ServiceEvaluation() {
-    const { back, go } = useSantuarioFlow();
+    const { back, go, notify } = useSantuarioFlow();
     const [rating, setRating] = useState(9.8);
     const [comment, setComment] = useState('');
     const [tags, setTags] = useState<string[]>([]);
     const [submitted, setSubmitted] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
 
     const availableTags = ['Empatia Profunda', 'Ambiente Sagrado', 'Pontualidade', 'Energia Elevada', 'Clareza', 'Transformador'];
 
@@ -20,9 +22,27 @@ export default function ServiceEvaluation() {
         }
     };
 
-    const handleSubmit = () => {
-        setSubmitted(true);
-        setTimeout(() => go('EXEC_DASHBOARD'), 2000);
+    // FLOW-05: Real POST /reviews instead of setTimeout mock
+    const handleSubmit = async () => {
+        if (submitting) return;
+        setSubmitting(true);
+        try {
+            await api.account.reviews.create({
+                rating: Math.round(rating * 10) / 10,
+                comment: comment.trim() || undefined,
+                tags: tags.length > 0 ? tags : undefined,
+                targetId: 'current-session-target', // TODO: pass real targetId from flow state
+                targetType: 'guardian',
+            });
+            setSubmitted(true);
+            // Navigate after showing success screen
+            setTimeout(() => go('EXEC_DASHBOARD'), 2500);
+        } catch (err: any) {
+            const msg = err?.message || 'Não foi possível enviar a avaliação.';
+            notify?.('Erro', msg, 'error');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     if (submitted) {
@@ -111,9 +131,11 @@ export default function ServiceEvaluation() {
 
                 <button 
                     onClick={handleSubmit}
-                    className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl hover:bg-black transition-all flex items-center justify-center gap-3"
+                    disabled={submitting}
+                    className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
                 >
-                    <Send size={18} /> Enviar Avaliação
+                    {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                    {submitting ? 'Enviando...' : 'Enviar Avaliação'}
                 </button>
 
             </div>
