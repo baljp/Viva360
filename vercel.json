@@ -15,8 +15,40 @@
         "includeFiles": [
           "backend/prisma/schema.prisma",
           "node_modules/.prisma/client/**",
-          "node_modules/@prisma/client/**",
-          "node_modules/prisma/**"
+          "node_modules/@prisma/client/**"
+        ]
+      }
+    },
+    {
+      "src": "backend/src/health.fn.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "backend/prisma/schema.prisma",
+          "node_modules/.prisma/client/**",
+          "node_modules/@prisma/client/**"
+        ]
+      }
+    },
+    {
+      "src": "backend/src/auth.fn.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "backend/prisma/schema.prisma",
+          "node_modules/.prisma/client/**",
+          "node_modules/@prisma/client/**"
+        ]
+      }
+    },
+    {
+      "src": "backend/src/chat.fn.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "backend/prisma/schema.prisma",
+          "node_modules/.prisma/client/**",
+          "node_modules/@prisma/client/**"
         ]
       }
     },
@@ -29,6 +61,18 @@
     {
       "src": "/api/ping",
       "dest": "api/ping.ts"
+    },
+    {
+      "src": "/api/health",
+      "dest": "backend/src/health.fn.ts"
+    },
+    {
+      "src": "/api/auth/(.*)",
+      "dest": "backend/src/auth.fn.ts"
+    },
+    {
+      "src": "/api/chat/(.*)",
+      "dest": "backend/src/chat.fn.ts"
     },
     {
       "src": "/api/(.*)",
