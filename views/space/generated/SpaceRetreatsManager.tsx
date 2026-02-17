@@ -30,10 +30,12 @@ export default function SpaceRetreatsManager() {
 
     const retreats = useMemo(() => {
         const list = events
-            .filter((e: any) => String(e.type || '').toLowerCase() === 'retreat')
             .map((e: any) => {
                 let meta: any = {};
                 try { meta = e.details ? JSON.parse(e.details) : {}; } catch { /* ignore malformed details */ }
+                const rawType = String(e.type || '').toLowerCase();
+                const kind = String(meta.kind || '').toLowerCase();
+                const isRetreat = rawType === 'retreat' || kind === 'retreat';
                 const start = e.start_time ? new Date(e.start_time) : null;
                 const end = e.end_time ? new Date(e.end_time) : null;
                 const dates = start
@@ -54,8 +56,12 @@ export default function SpaceRetreatsManager() {
                     image: meta.image || 'https://images.unsplash.com/photo-1545167622-3a6ac15600f3?q=80&w=600',
                     raw: e,
                     meta,
+                    _isRetreat: isRetreat,
+                    _enrolled: enrolled,
+                    _capacity: capacity,
                 };
-            });
+            })
+            .filter((e: any) => e._isRetreat);
         if (list.length > 0) return list;
         return [
             { id: 'demo-1', title: 'Despertar da Consciência', dates: '12-15 Nov', spots: '8/12', revenue: 'R$ 15k', status: 'draft', image: 'https://images.unsplash.com/photo-1528642474498-1af0c17fd8c3?q=80&w=600' },
@@ -118,7 +124,10 @@ export default function SpaceRetreatsManager() {
                             </div>
                             
                             <div className="w-full bg-nature-50 h-2 rounded-full overflow-hidden mb-4">
-                                <div className="bg-indigo-500 h-full rounded-full" style={{ width: '60%' }}></div>
+                                <div
+                                    className="bg-indigo-500 h-full rounded-full"
+                                    style={{ width: `${Math.min(100, Math.round(((retreat as any)._enrolled || 0) / Math.max(1, (retreat as any)._capacity || 0) * 100))}%` }}
+                                ></div>
                             </div>
                             
                             <div className="flex justify-between items-center">

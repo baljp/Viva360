@@ -116,9 +116,10 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
 
   let imageUrl: string | null = null;
   if (payload.imageBase64) {
-    // If Cloudinary is configured, store URL; otherwise persist base64 as last-resort.
+    // If Cloudinary is configured, store URL; otherwise persist the data URL as a last-resort
+    // so the UX "Alterar Foto" actually works in environments without external storage.
     const uploaded = await CloudinaryService.uploadImage(payload.imageBase64, 'viva360/rooms');
-    imageUrl = uploaded || null;
+    imageUrl = uploaded || payload.imageBase64;
   }
 
   const nextMetaUpdates: any = {};

@@ -120,12 +120,12 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
         <div className="min-h-screen bg-[#f8faf9] pb-32">
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
-            <header className="bg-gradient-to-br from-indigo-900 to-purple-900 px-6 pt-10 pb-6 relative overflow-hidden">
+            <header className="bg-gradient-to-br from-indigo-900 to-purple-900 px-6 pt-7 pb-5 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                 <button onClick={back} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-6 active:scale-95">←</button>
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-3xl font-serif italic text-white">Eventos</h1>
+                        <h1 className="text-2xl font-serif italic text-white">Eventos</h1>
                         <p className="text-indigo-200/70 text-xs font-bold uppercase tracking-widest mt-1">Ritmos do Calendário Sagrado</p>
                     </div>
 	                    <button
