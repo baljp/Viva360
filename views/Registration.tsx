@@ -129,7 +129,9 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const handleGoogleRegister = async () => {
         setIsLoading(true);
         try {
-            await api.auth.registerWithGoogle(UserRole.CLIENT, formData.email);
+            const candidate = String(formData.email || '').trim().toLowerCase();
+            const expected = candidate.includes('@') ? candidate : undefined;
+            await api.auth.registerWithGoogle(UserRole.CLIENT, expected);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
@@ -202,7 +204,9 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const handleGoogleRegister = async () => {
         setIsLoading(true);
         try {
-            await api.auth.registerWithGoogle(UserRole.PROFESSIONAL, formData.email);
+            const candidate = String(formData.email || '').trim().toLowerCase();
+            const expected = candidate.includes('@') ? candidate : undefined;
+            await api.auth.registerWithGoogle(UserRole.PROFESSIONAL, expected);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
@@ -272,7 +276,9 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const handleGoogleRegister = async () => {
         setIsLoading(true);
         try {
-            await api.auth.registerWithGoogle(UserRole.SPACE, formData.email);
+            const candidate = String(formData.email || '').trim().toLowerCase();
+            const expected = candidate.includes('@') ? candidate : undefined;
+            await api.auth.registerWithGoogle(UserRole.SPACE, expected);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
