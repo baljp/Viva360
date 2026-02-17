@@ -16,7 +16,7 @@ const MOCK_REVIEWS = [
  */
 export const getReviews = asyncHandler(async (req: Request, res: Response) => {
     const rawSpaceId = req.params.spaceId;
-    const spaceId = rawSpaceId === 'me' ? String((req as any).user?.userId || '') : rawSpaceId;
+    const spaceId = rawSpaceId === 'me' ? String(req.user?.userId || '') : rawSpaceId;
     const type = String(req.query.type || 'all').toLowerCase();
     const page = Math.max(1, Number(req.query.page) || 1);
     const limit = Math.min(50, Math.max(1, Number(req.query.limit) || 10));
@@ -38,7 +38,7 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
     }
 
     // Query events of type REVIEW_SUBMITTED for this space
-    const where: any = {
+    const where: { type: string; payload: Record<string, unknown> } = {
         type: 'REVIEW_SUBMITTED',
         payload: { path: ['spaceId'], equals: spaceId },
     };
@@ -60,27 +60,28 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
             `SELECT COUNT(*) as count FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 ${typeFilter}`,
             spaceId
         ),
-        prisma.$queryRawUnsafe<Array<any>>(
+        prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(
             `SELECT id, payload, created_at FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 ${typeFilter} ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
             spaceId, limit, skip
         ),
     ]);
 
     const total = Number(countResult?.[0]?.count || 0);
-    const reviews = events.map((e: any) => {
-        const p = typeof e.payload === 'string' ? JSON.parse(e.payload) : e.payload;
+    const reviews = events.map((e) => {
+        const payload = (e as any).payload;
+        const p = typeof payload === 'string' ? JSON.parse(payload) : payload;
         return {
-            id: e.id,
+            id: String((e as any).id || ''),
             authorName: p.authorName || 'Anônimo',
             rating: Number(p.rating || 0),
             comment: p.comment || '',
-            date: e.created_at,
+            date: (e as any).created_at,
             targetName: p.targetName || '',
             targetType: p.targetType || 'guardian',
         };
     });
 
-    const ratings = reviews.map((r: any) => r.rating).filter((r: number) => r > 0);
+    const ratings = reviews.map((r) => r.rating).filter((r: number) => r > 0);
     const averageRating = ratings.length > 0
         ? +(ratings.reduce((s: number, r: number) => s + r, 0) / ratings.length).toFixed(1)
         : 0;
@@ -94,7 +95,7 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
  */
 export const getReviewSummary = asyncHandler(async (req: Request, res: Response) => {
     const rawSpaceId = req.params.spaceId;
-    const spaceId = rawSpaceId === 'me' ? String((req as any).user?.userId || '') : rawSpaceId;
+    const spaceId = rawSpaceId === 'me' ? String(req.user?.userId || '') : rawSpaceId;
 
     if (isMockMode()) {
         return res.json({
@@ -105,13 +106,14 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
         });
     }
 
-    const events = await prisma.$queryRawUnsafe<Array<any>>(
+    const events = await prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(
         `SELECT payload FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1`,
         spaceId
     );
 
-    const ratings = events.map((e: any) => {
-        const p = typeof e.payload === 'string' ? JSON.parse(e.payload) : e.payload;
+    const ratings = events.map((e) => {
+        const payload = (e as any).payload;
+        const p = typeof payload === 'string' ? JSON.parse(payload) : payload;
         return Number(p.rating || 0);
     }).filter((r: number) => r > 0);
 

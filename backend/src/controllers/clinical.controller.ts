@@ -6,7 +6,7 @@ import { isMockMode } from '../services/supabase.service';
 const INTERVENTION_EVENT_TYPE = 'CLINICAL_INTERVENTION';
 
 export const saveIntervention = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
   const payload = req.body || {};
 
   if (isMockMode()) {
@@ -36,7 +36,7 @@ export const saveIntervention = asyncHandler(async (req: Request, res: Response)
 });
 
 export const listInterventions = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
 
   if (isMockMode()) {
     return res.json([]);
@@ -60,4 +60,3 @@ export const listInterventions = asyncHandler(async (req: Request, res: Response
 
   return res.json(data);
 });
-

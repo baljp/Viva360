@@ -5,6 +5,7 @@ import { AuditService } from '../services/audit.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { notificationEngine } from '../services/notificationEngine.service';
 import { z } from 'zod';
+import { logger } from '../lib/logger';
 
 const createRecordSchema = z.object({
     patientId: z.string().min(2),
@@ -134,8 +135,8 @@ const emitRecordNotifications = async (params: {
 };
 
 export const createNote = asyncHandler(async (req: Request, res: Response) => {
-    const proId = String((req as any).user?.userId || '').trim();
-    const userRole = normalizeRole((req as any).user?.role);
+    const proId = String(req.user?.userId || '').trim();
+    const userRole = normalizeRole(req.user?.role);
     const mockRuntime = isMockMode();
     if (!proId) return res.status(401).json({ error: 'Unauthorized' });
     if (userRole !== 'PROFESSIONAL') {
@@ -184,18 +185,18 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
         type,
         content,
     }).catch((error) => {
-        console.warn('[Records] Failed to emit notifications:', String((error as any)?.message || error));
+        logger.warn('records.emit_notifications_failed', { message: (error as any)?.message || String(error) });
     });
 
     return res.status(201).json(record);
 });
 
 export const listNotes = asyncHandler(async (req: Request, res: Response) => {
-    const requestorId = String((req as any).user?.userId || '').trim();
+    const requestorId = String(req.user?.userId || '').trim();
     const queryPatientId = req.query?.patientId as string | undefined;
     const paramPatientId = req.params?.patientId as string | undefined;
     const targetPatientId = queryPatientId || paramPatientId || requestorId;
-    const userRole = normalizeRole((req as any).user?.role);
+    const userRole = normalizeRole(req.user?.role);
     const mockRuntime = isMockMode();
 
     if (!requestorId || !targetPatientId) {
@@ -205,7 +206,7 @@ export const listNotes = asyncHandler(async (req: Request, res: Response) => {
     // 2. Permission Check (Mock ACL)
     // LGPD ABSOLUTE RULE: ADMIN CANNOT VIEW RECORDS
     if (userRole === 'ADMIN') {
-        console.warn(`🛑 [SECURITY] Admin ${requestorId} attempted to access PRONTUÁRIO. ACCESS DENIED.`);
+        logger.warn('lgpd.admin_records_access_denied', { requestorId });
         return res.status(403).json({ error: 'LGPD_VIOLATION: Admin cannot access sensitive health records.' });
     }
 
@@ -228,7 +229,7 @@ export const listNotes = asyncHandler(async (req: Request, res: Response) => {
         ]);
     }
 
-    const where: any = { patient_id: targetPatientId };
+    const where: Record<string, unknown> = { patient_id: targetPatientId };
     if (userRole === 'PROFESSIONAL' && targetPatientId !== requestorId) {
         where.professional_id = requestorId;
     }
@@ -244,8 +245,8 @@ export const listNotes = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const updateNote = asyncHandler(async (req: Request, res: Response) => {
-    const actorId = String((req as any).user?.userId || '').trim();
-    const userRole = normalizeRole((req as any).user?.role);
+    const actorId = String(req.user?.userId || '').trim();
+    const userRole = normalizeRole(req.user?.role);
     const recordId = String(req.params?.recordId || '').trim();
     const mockRuntime = isMockMode();
     if (!actorId) return res.status(401).json({ error: 'Unauthorized' });
@@ -288,7 +289,7 @@ export const updateNote = asyncHandler(async (req: Request, res: Response) => {
         type: updated.type,
         content: updated.content,
     }).catch((error) => {
-        console.warn('[Records] Failed to emit notifications:', String((error as any)?.message || error));
+        logger.warn('records.emit_notifications_failed', { message: (error as any)?.message || String(error) });
     });
 
     await AuditService.logAccess(actorId, `record:${recordId}`, 'UPDATE_RECORD', 'SUCCESS', `Type: ${updated.type}`);
@@ -296,8 +297,8 @@ export const updateNote = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const grantAccess = asyncHandler(async (req: Request, res: Response) => {
-    const patientId = String((req as any).user?.userId || '').trim();
-    const userRole = normalizeRole((req as any).user?.role);
+    const patientId = String(req.user?.userId || '').trim();
+    const userRole = normalizeRole(req.user?.role);
     const professionalId = String(req.body?.professionalId || '').trim();
     const mockRuntime = isMockMode();
 
@@ -356,8 +357,8 @@ export const grantAccess = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const revokeAccess = asyncHandler(async (req: Request, res: Response) => {
-    const patientId = String((req as any).user?.userId || '').trim();
-    const userRole = normalizeRole((req as any).user?.role);
+    const patientId = String(req.user?.userId || '').trim();
+    const userRole = normalizeRole(req.user?.role);
     const { professionalId } = req.body || {};
     const mockRuntime = isMockMode();
 
@@ -408,7 +409,7 @@ export const revokeAccess = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const exportData = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
 
     await AuditService.logAccess(userId, 'all_data', 'EXPORT_DATA', 'SUCCESS');
 

@@ -164,7 +164,7 @@ const buildCheckoutResponse = (params: {
 });
 
 const runCheckout = async (req: Request, res: Response, options?: { strictContextual?: boolean }) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
   const { amount, description, receiverId, items, contextType, contextRef } = req.body; // items: [{ id, price, type }]
   const normalizedAmount = Number(amount || 0);
   const normalizedContext = resolveContextType(contextType);

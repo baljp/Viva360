@@ -1,6 +1,7 @@
 import prisma from '../lib/prisma';
 import { notificationEngine } from './notificationEngine.service';
 import { auditService } from './audit.service';
+import type { ProfileLink as PrismaProfileLink } from '@prisma/client';
 
 export type LinkType = 'tribo' | 'paciente' | 'escambo' | 'equipe' | 'bazar';
 export type LinkStatus = 'pending' | 'accepted' | 'active';
@@ -14,7 +15,7 @@ export class ProfileLinkService {
     sourceId: string,
     targetId: string,
     type: LinkType
-  ): Promise<any> {
+  ): Promise<PrismaProfileLink> {
     // Check if link already exists
     const existing = await prisma.profileLink.findFirst({
       where: {

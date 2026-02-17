@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
+import { logger } from '../lib/logger';
 
 // --- SCHEMAS ---
 const createRoomSchema = z.object({
@@ -140,7 +141,7 @@ export const createInvite = asyncHandler(async (req: Request, res: Response) => 
         });
         return res.json({ id: invite.id, code: invite.code, expires: '7 days', usage: 0, maxUsage: invite.max_usage });
     } catch (e: any) {
-        console.warn('SpaceInvite table not available, returning ephemeral code:', e.message);
+        logger.warn('space.invite_table_missing', { message: e?.message });
         return res.json({ code, expires: '7 days', usage: 0, maxUsage: uses, _ephemeral: true });
     }
 });
@@ -155,7 +156,7 @@ export const getContract = asyncHandler(async (req: Request, res: Response) => {
             include: { space: { select: { name: true } }, guardian: { select: { name: true } } },
             orderBy: { created_at: 'desc' }
         });
-    } catch (e: any) { console.warn('Contract query failed:', e.message); }
+    } catch (e: any) { logger.warn('space.contract_query_failed', { message: e?.message }); }
 
     if (contract) {
         const now = new Date();
