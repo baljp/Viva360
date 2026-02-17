@@ -1,3 +1,4 @@
+import { logger } from '../lib/logger';
 
 interface ValidatedEmail {
   to: string;
@@ -19,8 +20,11 @@ export class EmailService {
   }
 
   async send(email: ValidatedEmail): Promise<boolean> {
-    console.log(`\n📧 [EMAIL SERVICE] Sending to ${email.to}`);
-    console.log(`   Subject: ${email.subject}`);
+    logger.info('email.send', {
+      to: email.to,
+      subject: email.subject,
+      template: email.template,
+    });
     
     // RENDER TEMPLATE (Simple simulation for now)
     let body = "";
@@ -48,8 +52,12 @@ export class EmailService {
       `;
     }
 
-    console.log(`   Body Preview:\n${body}\n`);
-    console.log(`   ✅ Sent via [MOCK_TRANSPORT]`);
+    logger.debug('email.rendered', {
+      template: email.template,
+      // Avoid logging the full body (can contain PII/tokens).
+      bodyLength: body.length,
+    });
+    logger.info('email.sent', { transport: 'MOCK_TRANSPORT' });
     
     // In production, integrate NodeMailer or Resend here
     return true;

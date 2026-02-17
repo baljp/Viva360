@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
 import { AppError } from '../lib/AppError';
 import { supabaseAdmin, supabase } from './supabase.service';
+import { logger } from '../lib/logger';
 
 const ALLOWED_ROLES = new Set(['CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN']);
 
@@ -121,15 +122,15 @@ export class AuthService {
   }
 
   static async register(email: string, password: string, name: string, role: string = 'CLIENT') {
-    console.log('[AuthService] Checking authorization for:', email);
+    logger.debug('auth.register_authorization_check', { email });
     const normalizedEmail = email.trim().toLowerCase();
     
     let authorization;
     try {
         authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
-        console.log('[AuthService] Authorization status:', JSON.stringify(authorization));
+        logger.debug('auth.register_authorization_status', { email: normalizedEmail, authorization });
     } catch (err: any) {
-        console.error('[AuthService] Failed to getAuthorizationStatus:', err);
+        logger.error('auth.register_authorization_failed', err);
         throw new AppError(`Erro interno ao verificar autorização: ${err.message}`, 500);
     }
 
@@ -147,7 +148,7 @@ export class AuthService {
     const preferredRole = requestedRole || normalizeRole(authorization.role) || 'CLIENT';
     const finalRole = defaultRole(preferredRole);
 
-    console.log('[AuthService] Checking existing user for:', normalizedEmail);
+    logger.debug('auth.register_check_existing', { email: normalizedEmail });
     const existing = await prisma.user.findUnique({
       where: { email: normalizedEmail },
       include: {
@@ -156,12 +157,12 @@ export class AuthService {
         },
       },
     }).catch(err => {
-        console.error('[AuthService] Prisma findUnique failed:', err);
+        logger.error('auth.register_user_lookup_failed', err);
         throw new AppError(`Erro de banco de dados (User Check): ${err.message}`, 500);
     });
 
     if (existing?.profile) {
-      console.log('[AuthService] User exists with profile');
+      logger.debug('auth.register_user_exists_with_profile', { email: normalizedEmail, userId: existing.id });
       const existingRoles = await AuthService.getRolesByProfile(existing.profile.id, existing.profile.role);
       if (existingRoles.includes(finalRole)) {
         throw new AppError(

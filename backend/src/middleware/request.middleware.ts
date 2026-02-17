@@ -24,17 +24,18 @@ export const attachRequestContext = (req: Request, res: Response, next: NextFunc
   const startedAt = Date.now();
   res.on('finish', () => {
     const durationMs = Date.now() - startedAt;
+    const isProd = process.env.NODE_ENV === 'production';
     logger.info('http_request', {
       requestId,
       method: req.method,
       route: req.originalUrl || req.url,
       status: res.statusCode,
       durationMs,
-      ip: req.ip,
-      userAgent: req.headers['user-agent'],
+      // Avoid logging raw identifiers in production logs.
+      ip: isProd ? '[REDACTED]' : req.ip,
+      userAgent: isProd ? '[REDACTED]' : req.headers['user-agent'],
     });
   });
 
   next();
 };
-

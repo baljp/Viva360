@@ -6,6 +6,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 import { AppError } from '../lib/AppError';
+import { logger } from '../lib/logger';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -213,8 +214,10 @@ const runCheckout = async (req: Request, res: Response, options?: { strictContex
        
        // UPGRADE: 9.2 Inventory Logic
        if (items) {
-           console.log(`   📉 [INVENTORY] Deducting stock for ${items.length} items...`);
-           items.forEach((i: any) => console.log(`      - Item ${i.id}: Stock -1`));
+           logger.info('inventory.deduct_mock', {
+             count: Array.isArray(items) ? items.length : 0,
+             items: Array.isArray(items) ? items.map((i: any) => ({ id: i?.id })) : [],
+           });
        }
 
        const mockResult = {

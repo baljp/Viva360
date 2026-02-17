@@ -1,4 +1,5 @@
 import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
+import { logger } from './logger';
 
 // Auto-detect serverless environment - skip heavy SDK in serverless
 const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
@@ -13,25 +14,29 @@ export const sdk = {
 export const logSaturation = () => {
     const usage = process.memoryUsage();
     if (usage.heapUsed > usage.heapTotal * 0.8) {
-        console.warn('⚠️ [SATURATION ALERT] Heap memory approaching threshold');
+        logger.warn('saturation_alert', {
+          heapUsed: usage.heapUsed,
+          heapTotal: usage.heapTotal,
+          rss: usage.rss,
+        });
     }
 };
 
 export const initTelemetry = () => {
     if (isServerless) {
-        console.log('⚡ OpenTelemetry skipped in serverless mode');
+        logger.debug('telemetry_skipped_serverless');
         return;
     }
     
     // In non-serverless mode, we could load full SDK here
     // For now, keeping it lightweight for all environments
-    console.log('📡 Telemetry initialized (lightweight mode)');
+    logger.info('telemetry_initialized', { mode: 'lightweight' });
 };
 
 // Graceful shutdown - no-op in serverless
 if (!isServerless) {
     process.on('SIGTERM', () => {
-      console.log('Tracing terminated');
+      logger.info('telemetry_sigterm');
       process.exit(0);
     });
 }

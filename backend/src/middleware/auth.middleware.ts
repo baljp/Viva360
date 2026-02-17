@@ -4,11 +4,20 @@ import { JWT_SECRET } from '../lib/secrets';
 import { supabaseAdmin } from '../services/supabase.service';
 import prisma from '../lib/prisma';
 
+export type AuthUser = {
+  id: string;
+  userId: string;
+  email?: string | null;
+  role: string;
+  activeRole: string;
+  roles: string[];
+};
+
 // Extend Express Request type to include user
 declare global {
   namespace Express {
     interface Request {
-      user?: any; 
+      user?: AuthUser;
     }
   }
 }
@@ -46,7 +55,14 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
 
   // Support for strict E2E mock token only outside production.
   if (isMockTokenEnabled && token === 'admin-excellence-2026') {
-    req.user = { id: TEST_ADMIN_USER_ID, userId: TEST_ADMIN_USER_ID, role: 'ADMIN', email: 'admin@viva360.com' };
+    req.user = {
+      id: TEST_ADMIN_USER_ID,
+      userId: TEST_ADMIN_USER_ID,
+      email: 'admin@viva360.com',
+      role: 'ADMIN',
+      activeRole: 'ADMIN',
+      roles: ['ADMIN'],
+    };
     return next();
   }
 
@@ -105,21 +121,30 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     }
 
     // Fallback path: internal JWT emitted by /auth/login
-    const payload = jwt.verify(token, JWT_SECRET) as any;
-    const userId = resolveUserId(payload?.userId || payload?.id || payload?.sub);
+    const payload = jwt.verify(token, JWT_SECRET) as Record<string, unknown>;
+    const userId = resolveUserId(
+      (payload?.userId as string) ||
+        (payload?.id as string) ||
+        (payload?.sub as string),
+    );
     if (!userId) {
       return unauthorized(res, 'Invalid token payload');
     }
 
+    const payloadRole = normalizeRole((payload?.activeRole as string) || (payload?.role as string));
+    const safeRole = payloadRole || 'CLIENT';
+    const payloadRoles = Array.isArray(payload?.roles)
+      ? (payload.roles as unknown[]).map((entry) => normalizeRole(String(entry))).filter(Boolean)
+      : [];
+    const roles = payloadRoles.length ? payloadRoles : [safeRole];
+
     req.user = {
       id: userId,
       userId,
-      email: payload?.email,
-      role: normalizeRole(payload?.activeRole || payload?.role) || 'CLIENT',
-      activeRole: normalizeRole(payload?.activeRole || payload?.role) || 'CLIENT',
-      roles: Array.isArray(payload?.roles)
-        ? payload.roles.map((entry: unknown) => normalizeRole(String(entry))).filter(Boolean)
-        : [normalizeRole(payload?.activeRole || payload?.role) || 'CLIENT'],
+      email: typeof payload?.email === 'string' ? payload.email : undefined,
+      role: safeRole,
+      activeRole: safeRole,
+      roles,
     };
     return next();
   } catch (err) {
