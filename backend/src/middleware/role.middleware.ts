@@ -8,7 +8,7 @@ export const requireRoles = (...roles: Role[]) => {
   const allowed = new Set(roles.map((role) => normalizeRole(role)));
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const role = normalizeRole((req as any).user?.role);
+    const role = normalizeRole(req.user?.role);
     if (!role || !allowed.has(role)) {
       return res.status(403).json({
         error: 'Forbidden: insufficient role',
@@ -21,8 +21,8 @@ export const requireRoles = (...roles: Role[]) => {
 
 export const requireSameUserOrAdmin = (getTargetUserId: (req: Request) => string | undefined) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const role = normalizeRole((req as any).user?.role);
-    const authUserId = String((req as any).user?.userId || (req as any).user?.id || '');
+    const role = normalizeRole(req.user?.role);
+    const authUserId = String(req.user?.userId || req.user?.id || '');
     const targetUserId = String(getTargetUserId(req) || '');
 
     if (role === 'ADMIN' || (authUserId && targetUserId && authUserId === targetUserId)) {
@@ -35,4 +35,3 @@ export const requireSameUserOrAdmin = (getTargetUserId: (req: Request) => string
     });
   };
 };
-

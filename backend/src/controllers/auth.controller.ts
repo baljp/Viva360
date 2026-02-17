@@ -6,6 +6,7 @@ import { isMockMode } from '../services/supabase.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { JWT_SECRET } from '../lib/secrets';
 import prisma from '../lib/prisma';
+import { logger } from '../lib/logger';
 
 const MOCK_TEST_PASSWORD = '123456';
 const STRICT_MOCK_TEST_USERS: Record<string, { id: string; role: 'CLIENT' | 'PROFESSIONAL' | 'SPACE' | 'ADMIN'; name: string }> = {
@@ -117,7 +118,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
         subject: 'Bem-vindo ao Viva360 - Sua Jornada Começa Agora 🌿',
         template: 'WELCOME',
         context: { name }
-      }).catch(err => console.error('Email Error:', err));
+      }).catch(err => logger.warn('email.welcome_send_failed', err));
     });
 
     return res.status(201).json(data);

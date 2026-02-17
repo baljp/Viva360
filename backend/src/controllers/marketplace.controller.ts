@@ -5,7 +5,7 @@ import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
-  const ownerId = (req as any).user?.userId;
+  const ownerId = req.user?.userId;
   const { name, price, category, type, image, description, eventDate, hostName, spotsLeft, karmaReward } = req.body;
 
   const product = await marketplaceService.createProduct({
@@ -32,8 +32,8 @@ export const listProducts = asyncHandler(async (req: Request, res: Response) => 
 
 export const deleteProduct = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
-    const requesterId = (req as any).user?.userId;
-    const role = String((req as any).user?.role || '').toUpperCase();
+    const requesterId = req.user?.userId;
+    const role = String(req.user?.role || '').toUpperCase();
 
     if (!isMockMode() && role !== 'ADMIN') {
       const product = await prisma.product.findUnique({
@@ -55,7 +55,7 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const purchaseProduct = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
+    const userId = req.user?.userId;
     const { product_id, amount, description } = req.body;
 
     const transaction = await marketplaceService.purchaseProduct({

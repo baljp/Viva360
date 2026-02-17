@@ -18,7 +18,7 @@ const inviteResponseSchema = z.object({
 });
 
 export const inviteMember = asyncHandler(async (req: Request, res: Response) => {
-  const hubId = (req as any).user?.userId;
+  const hubId = req.user?.userId;
   const payload = inviteSchema.parse(req.body || {});
   const expiresAt = payload.expiresInHours
     ? new Date(Date.now() + payload.expiresInHours * 60 * 60 * 1000)
@@ -59,14 +59,14 @@ export const inviteMember = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const listInvites = asyncHandler(async (req: Request, res: Response) => {
-  const hubId = (req as any).user?.userId;
+  const hubId = req.user?.userId;
   
   const invites = await tribeService.listInvites(hubId);
   return res.json(invites);
 });
 
 export const listMembers = asyncHandler(async (req: Request, res: Response) => {
-  const hubId = (req as any).user?.userId;
+  const hubId = req.user?.userId;
 
   const members = await tribeService.listMembers(hubId);
   return res.json(members);
@@ -74,14 +74,14 @@ export const listMembers = asyncHandler(async (req: Request, res: Response) => {
 
 export const joinTribe = asyncHandler(async (req: Request, res: Response) => {
     const { vacancyId } = req.body;
-    const proId = (req as any).user?.userId;
+    const proId = req.user?.userId;
 
     const result = await tribeService.joinTribe(proId, vacancyId);
     return res.json(result);
 });
 
 export const syncVibration = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId || req.user?.id;
+    const userId = req.user?.userId || req.user?.id;
     const { reward = 10 } = req.body || {};
 
     if (!userId) {
@@ -122,8 +122,8 @@ export const syncVibration = asyncHandler(async (req: Request, res: Response) =>
 export const respondInvite = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { decision } = inviteResponseSchema.parse(req.body || {});
-  const actorId = String((req as any).user?.userId || '').trim();
-  const actorEmail = String((req as any).user?.email || '').trim().toLowerCase();
+  const actorId = String(req.user?.userId || '').trim();
+  const actorEmail = String(req.user?.email || '').trim().toLowerCase();
 
   const invite = await tribeService.respondInvite(id, decision, actorEmail);
   const actionReceipt = await interactionReceiptService.upsert({

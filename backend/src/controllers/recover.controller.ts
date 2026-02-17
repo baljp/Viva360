@@ -4,6 +4,7 @@ import { emailService } from '../services/email.service';
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
 import { asyncHandler } from '../middleware/async.middleware';
+import { logger } from '../lib/logger';
 
 
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
@@ -26,7 +27,7 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
         subject: 'Recupere seu Acesso ao Santuário 🗝️',
         template: 'RECOVERY',
         context: { link, name: user.email } // Using email as name fallback
-    }).catch(console.error);
+    }).catch((err) => logger.warn('email.recovery_send_failed', err));
 
     return res.json({ message: "Elo de recuperação enviado para seu e-mail." });
 });

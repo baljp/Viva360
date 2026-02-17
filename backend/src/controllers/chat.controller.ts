@@ -4,7 +4,7 @@ import { chatService } from '../services/chat.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 
 export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
-  const senderId = (req as any).user?.userId;
+  const senderId = req.user?.userId;
   const { receiverId, content } = req.body;
 
   if (!receiverId || !content) {
@@ -33,7 +33,7 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getHistory = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
   const { otherUserId } = req.query;
 
   if (typeof otherUserId !== 'string') return res.status(400).json({error: 'Missing otherUserId'});
@@ -46,7 +46,7 @@ export const getHistory = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const listRooms = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
   const contextType = typeof req.query.contextType === 'string' ? req.query.contextType : '';
   const contextId = typeof req.query.contextId === 'string' ? req.query.contextId : '';
   const rooms = await chatService.getChatsForProfile(userId, {
@@ -63,7 +63,7 @@ export const getRoomMessages = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const sendRoomMessage = asyncHandler(async (req: Request, res: Response) => {
-  const senderId = (req as any).user?.userId;
+  const senderId = req.user?.userId;
   const { roomId } = req.params;
   const { content } = req.body;
 
@@ -88,7 +88,7 @@ export const sendRoomMessage = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const joinRoom = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
   const { type, contextId } = req.body || {};
 
   const safeType = String(type || '').trim();

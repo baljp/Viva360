@@ -6,6 +6,7 @@ import prisma from '../lib/prisma';
 import { CloudinaryService } from '../services/cloudinary.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { oracleService } from '../services/oracle.service';
+import { logger } from '../lib/logger';
 
 // In-memory mock DB
 const METAMORPHOSIS_DB: Record<string, any[]> = {};
@@ -106,7 +107,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     }
 
     // ASYNC
-    logsQueue.add('emotional_log', entry).catch((err: unknown) => console.error('Queue Error:', err));
+    logsQueue.add('emotional_log', entry).catch((err: unknown) => logger.warn('queue.logs_add_failed', err));
 
     return res.json({ success: true, entry });
 });
