@@ -56,3 +56,8 @@ server.log
 .github_sync_log
 gh_status.txt
 push_log.txt
+
+# DX-03: Generated log files
+verify_log*.txt
+backend/verify_log*.txt
+*.log.txt
