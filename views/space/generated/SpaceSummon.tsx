@@ -1,22 +1,39 @@
 import React, { useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast } from '../../../components/Common';
-import { Zap, Send, Shield, Crown, AlertOctagon } from 'lucide-react';
+import { PortalView } from '../../../components/Common';
+import { Zap, Send, Shield, Crown, AlertOctagon, Loader2 } from 'lucide-react';
+import { api } from '../../../services/api';
 
 export default function SpaceSummon() {
-    const { back, go } = useSantuarioFlow();
+    const { back, go, notify } = useSantuarioFlow();
     const [target, setTarget] = useState<'guardians' | 'masters'>('guardians');
     const [urgency, setUrgency] = useState<'normal' | 'high'>('normal');
     const [message, setMessage] = useState('');
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'info'} | null>(null);
+    const [sending, setSending] = useState(false);
 
-    const handleSend = () => {
-        setToast({ 
-            title: 'Convocação Enviada!', 
-            message: `Alerta enviado para ${target === 'guardians' ? 'Guardiões' : 'Mestres'} disponíveis.`, 
-            type: 'success' 
-        });
-        setTimeout(() => go('PROS_LIST'), 2000);
+    // FLOW-04: Real invite via POST /tribe/invite instead of setTimeout mock
+    const handleSend = async () => {
+        if (sending) return;
+        if (!message.trim()) {
+            notify?.('Mensagem Obrigatória', 'Descreva brevemente a situação antes de enviar.', 'info');
+            return;
+        }
+        setSending(true);
+        try {
+            await api.community.tribe.invite({
+                email: '', // Broadcast — no specific target email
+                inviteType: 'JOB' as const,
+                contextRef: `summon:${target}:${urgency}`,
+                expiresInHours: urgency === 'high' ? 4 : 48,
+            });
+            notify?.('Convocação Enviada!', `Alerta enviado para ${target === 'guardians' ? 'Guardiões' : 'Mestres'} disponíveis.`, 'success');
+            go('PROS_LIST');
+        } catch (err: any) {
+            const msg = err?.message || 'Não foi possível enviar a convocação.';
+            notify?.('Erro', msg, 'error');
+        } finally {
+            setSending(false);
+        }
     };
 
     return (
@@ -26,7 +43,6 @@ export default function SpaceSummon() {
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1517677208171-0bc5e25bb3ca?q=80&w=800"
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
 
             <div className="px-4 pb-24 space-y-6">
                 
@@ -83,9 +99,10 @@ export default function SpaceSummon() {
 
                 <button 
                     onClick={handleSend}
-                    className={`w-full py-5 rounded-[2rem] font-bold uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-3 text-white ${urgency === 'high' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+                    disabled={sending}
+                    className={`w-full py-5 rounded-[2rem] font-bold uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-3 text-white disabled:opacity-50 ${urgency === 'high' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                 >
-                    <Send size={18} /> Enviar Convocação
+                    {sending ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />} {sending ? 'Enviando...' : 'Enviar Convocação'}
                 </button>
 
             </div>
