@@ -2,11 +2,11 @@
 export const registerServiceWorker = async () => {
     if ('serviceWorker' in navigator) {
         try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            console.log('✅ [SW] Registered:', registration.scope);
+            // Service worker registration is handled by vite-plugin-pwa.
+            // Here we only wait for it to become ready (best-effort).
+            const registration = await navigator.serviceWorker.ready;
             return registration;
         } catch (error) {
-            console.error('❌ [SW] Registration failed:', error);
             return null;
         }
     }
@@ -15,7 +15,6 @@ export const registerServiceWorker = async () => {
 
 export const requestNotificationPermission = async () => {
     if (!('Notification' in window)) {
-        console.warn('⚠️ Notifications not supported');
         return false;
     }
 
@@ -25,12 +24,10 @@ export const requestNotificationPermission = async () => {
 
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
-        console.log('✅ [SW] Permission granted!');
         // Here we would get the subscription pushManager.subscribe()
         // and send it to backend
         return true;
     }
 
-    console.warn('⚠️ [SW] Permission denied');
     return false;
 };
