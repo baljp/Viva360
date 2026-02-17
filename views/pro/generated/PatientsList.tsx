@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
 import { Search, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
@@ -6,6 +6,33 @@ import { api } from '../../../services/api';
 
 export default function PatientsList() {
   const { go, state, selectPatient } = useGuardiaoFlow();
+  const [myId, setMyId] = useState<string>('');
+  const [linkEmail, setLinkEmail] = useState('');
+  const [linkSending, setLinkSending] = useState(false);
+  const [linkError, setLinkError] = useState('');
+  const [linkSuccess, setLinkSuccess] = useState('');
+  const [patientLinks, setPatientLinks] = useState<any[]>([]);
+  const [linksLoading, setLinksLoading] = useState(false);
+
+  const loadLinks = async () => {
+    setLinksLoading(true);
+    try {
+      const links = await api.links.getMyLinks();
+      const list = Array.isArray(links) ? links : [];
+      setPatientLinks(list.filter((l) => String(l?.type || '').toLowerCase() === 'paciente'));
+    } catch {
+      setPatientLinks([]);
+    } finally {
+      setLinksLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    api.auth.getCurrentSession().then((u) => {
+      if (u?.id) setMyId(String(u.id));
+    });
+    loadLinks().catch(() => undefined);
+  }, []);
 
   const patients = useMemo(() => {
       const map = new Map<string, any>();
@@ -126,25 +153,108 @@ export default function PatientsList() {
            )}
         </div>
 
-        {/* INVITE BUTTON */}
-        <div className="px-2 mt-4 pb-32">
-            <button 
-                onClick={async () => {
-                    try {
-                        const invite = await api.invites.create({ kind: 'guardian', targetRole: 'CLIENT' } as any);
-                        const url = String((invite as any)?.url || window.location.origin);
-                        const text = encodeURIComponent(`Olá! Gostaria de convidar você para iniciar sua jornada terapêutica comigo no Viva360. 🌱\n\nAcesse aqui: ${url}`);
-                        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
-                    } catch {
-                        // Silent fallback: keep UX simple in this generated screen.
-                        const text = encodeURIComponent(`Olá! Gostaria de convidar você para iniciar sua jornada terapêutica comigo no Viva360. 🌱\n\nAcesse aqui: ${window.location.origin}`);
-                        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
-                    }
-                }}
-                className="w-full bg-[#25D366] text-white py-5 rounded-[2rem] shadow-lg flex items-center justify-center gap-3 active:scale-95 transition-all font-bold uppercase tracking-widest text-[10px]"
+        {/* INTERNAL LINK INVITE (Guardian -> Buscador) */}
+        <div className="px-2 mt-4 pb-32 space-y-4">
+          <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h4 className="text-sm font-bold text-nature-900">Vincular Buscador</h4>
+                <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">
+                  Envia convite interno e aparece na Central do Buscador
+                </p>
+              </div>
+              <button
+                onClick={() => loadLinks().catch(() => undefined)}
+                className="px-4 py-2 rounded-2xl bg-nature-50 border border-nature-100 text-nature-500 text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+              >
+                {linksLoading ? 'Atualizando...' : 'Atualizar'}
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[9px] font-bold text-nature-400 uppercase tracking-widest px-2">E-mail do Buscador</label>
+              <input
+                value={linkEmail}
+                onChange={(e) => setLinkEmail(e.target.value)}
+                placeholder="buscador@exemplo.com"
+                className="w-full p-4 bg-nature-50 rounded-2xl border border-nature-100 outline-none focus:ring-2 focus:ring-emerald-100 transition-all font-medium text-nature-900"
+              />
+            </div>
+
+            {linkError && (
+              <div className="bg-rose-50 border border-rose-100 rounded-2xl p-3 text-[10px] font-bold text-rose-700 uppercase tracking-widest">
+                {linkError}
+              </div>
+            )}
+            {linkSuccess && (
+              <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-3 text-[10px] font-bold text-emerald-700 uppercase tracking-widest">
+                {linkSuccess}
+              </div>
+            )}
+
+            <button
+              onClick={async () => {
+                setLinkError('');
+                setLinkSuccess('');
+                const email = String(linkEmail || '').trim().toLowerCase();
+                if (!email.includes('@')) {
+                  setLinkError('Informe um e-mail valido.');
+                  return;
+                }
+                setLinkSending(true);
+                try {
+                  const profile = await api.profiles.lookupByEmail(email);
+                  if (!profile?.id) {
+                    setLinkError('Buscador nao encontrado.');
+                    return;
+                  }
+                  await api.links.create(String(profile.id), 'paciente');
+                  setLinkSuccess('Convite interno enviado. Aguarde o aceite do Buscador.');
+                  setLinkEmail('');
+                  await loadLinks();
+                } catch (e: any) {
+                  setLinkError(e?.message || 'Falha ao enviar convite.');
+                } finally {
+                  setLinkSending(false);
+                }
+              }}
+              disabled={linkSending}
+              className="w-full bg-nature-900 text-white py-5 rounded-[2rem] shadow-lg flex items-center justify-center gap-3 active:scale-95 transition-all font-bold uppercase tracking-widest text-[10px] disabled:opacity-60 disabled:scale-100"
             >
-                <MessageCircle size={18}/> Convidar Almas (WhatsApp)
+              <MessageCircle size={18} /> {linkSending ? 'Enviando...' : 'Enviar Convite Interno'}
             </button>
+          </div>
+
+          {/* Linked + Pending snapshot */}
+          {patientLinks.length > 0 && (
+            <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-3">
+              <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Vinculos</h4>
+              {patientLinks.slice(0, 6).map((link) => {
+                const source = (link as any)?.source || {};
+                const target = (link as any)?.target || {};
+                const other = String(source?.id || '') === myId ? target : source;
+                const status = String((link as any)?.status || '').toUpperCase();
+                return (
+                  <div key={String(link.id)} className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-nature-50 border border-nature-100">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-nature-900 truncate">{other?.name || 'Buscador'}</p>
+                      <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mt-1 truncate">
+                        {status === 'PENDING' ? 'Pendente de aceite' : 'Vinculado'}
+                      </p>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${status === 'PENDING' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-700'}`}>
+                      {status || 'OK'}
+                    </span>
+                  </div>
+                );
+              })}
+              {patientLinks.length > 6 && (
+                <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">
+                  +{patientLinks.length - 6} outros vinculos
+                </p>
+              )}
+            </div>
+          )}
         </div>
     </PortalView>
   );

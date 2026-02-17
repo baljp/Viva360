@@ -7,13 +7,33 @@ import { PortalView } from '../../../components/Common';
 import { MicroInteraction } from '../../../components/MicroInteraction';
 
 export default function CheckoutScreen() {
-  const { go, back, reset } = useBuscadorFlow();
+  const { go, jump, back, reset, state, selectTribeRoomContext } = useBuscadorFlow();
   const [method, setMethod] = useState<'card' | 'pix' | 'direct'>('card');
   const [loading, setLoading] = useState(false);
   const [showPixQR, setShowPixQR] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('Sua semente foi plantada com sucesso. A abundância retorna a você.');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const postCheckout = (() => {
+    try {
+      const intent = localStorage.getItem('viva360.post_checkout.intent');
+      const contextId = localStorage.getItem('viva360.post_checkout.contextId');
+      const amount = Number(localStorage.getItem('viva360.post_checkout.amount') || '0');
+      const description = String(localStorage.getItem('viva360.post_checkout.description') || '').trim();
+      return {
+        intent: intent || null,
+        contextId: contextId || null,
+        amount: Number.isFinite(amount) ? amount : 0,
+        description: description || null,
+      };
+    } catch {
+      return { intent: null, contextId: null, amount: 0, description: null };
+    }
+  })();
+
+  const isHealingCircleCheckout =
+    postCheckout.intent === 'healing_circle' || state.tribeRoomContext?.type === 'healing_circle';
 
   const handlePayment = async () => {
     if (method === 'pix' && !showPixQR) {
@@ -26,17 +46,21 @@ export default function CheckoutScreen() {
     try {
         // Mocking a slight delay for ritualistic feel
         await new Promise(resolve => setTimeout(resolve, 2000));
-        
-        const response = await api.payment.checkout(
-            150.00, 
-            'Troca Energética - Viva360', 
-            'pro_001',
-            {
-                contextType: method === 'direct' ? 'TRIBO' : 'BAZAR',
-                contextRef: method === 'direct' ? 'tribe-direct-flow' : 'bazar-checkout-flow',
-                items: [{ id: 'checkout-guided-service', price: 150, type: 'service' }],
-            }
-        );
+
+        const amount = isHealingCircleCheckout && postCheckout.amount > 0 ? postCheckout.amount : 150.0;
+        const description = isHealingCircleCheckout && postCheckout.description
+          ? postCheckout.description
+          : 'Troca Energética - Viva360';
+        const contextType = isHealingCircleCheckout ? 'TRIBO' : (method === 'direct' ? 'TRIBO' : 'BAZAR');
+        const contextRef = isHealingCircleCheckout
+          ? `healing_circle:${postCheckout.contextId || ''}`.replace(/:$/, '')
+          : (method === 'direct' ? 'tribe-direct-flow' : 'bazar-checkout-flow');
+
+        const response = await api.payment.checkout(amount, description, 'pro_001', {
+          contextType,
+          contextRef,
+          items: [{ id: 'checkout-guided-service', price: amount, type: 'service' }],
+        });
 
         const confirmationCode = String(response?.confirmation?.confirmationId || '').slice(0, 8).toUpperCase();
         if (response?.code !== 'CHECKOUT_CONFIRMED') {
@@ -72,6 +96,24 @@ export default function CheckoutScreen() {
                 message={successMessage}
                 onClose={() => {
                     setShowSuccess(false);
+                    if (isHealingCircleCheckout) {
+                      // Clear intent and go straight to the circle room after checkout.
+                      try {
+                        localStorage.removeItem('viva360.post_checkout.intent');
+                        localStorage.removeItem('viva360.post_checkout.contextId');
+                        localStorage.removeItem('viva360.post_checkout.amount');
+                        localStorage.removeItem('viva360.post_checkout.description');
+                      } catch {
+                        // ignore
+                      }
+
+                      if (!state.tribeRoomContext || state.tribeRoomContext.type !== 'healing_circle') {
+                        selectTribeRoomContext({ type: 'healing_circle', contextId: postCheckout.contextId || undefined });
+                      }
+                      jump('TRIBE_INTERACTION');
+                      return;
+                    }
+
                     go('PAYMENT_SUCCESS');
                 }} 
               />

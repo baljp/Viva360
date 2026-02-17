@@ -6,7 +6,7 @@ import { Sparkles, CalendarCheck, Home, History, CheckCircle2, X } from 'lucide-
 import confetti from 'canvas-confetti';
 
 export default function PaymentSuccess() {
-  const { go, jump, reset, selectTribeRoomContext } = useBuscadorFlow();
+  const { go, jump, reset, selectTribeRoomContext, state } = useBuscadorFlow();
 
   useEffect(() => {
     confetti({
@@ -28,6 +28,9 @@ export default function PaymentSuccess() {
       return { intent: null, contextId: null };
     }
   })();
+  const shouldShowHealingCircleEntry =
+    postIntent.intent === 'healing_circle' || state.tribeRoomContext?.type === 'healing_circle';
+  const healingCircleContextId = postIntent.contextId || state.tribeRoomContext?.contextId || null;
 
   return (
     <div className="min-h-screen bg-nature-950 flex flex-col items-center justify-center p-6 animate-in fade-in duration-700 relative overflow-hidden">
@@ -86,18 +89,20 @@ export default function PaymentSuccess() {
               >
                  <Home size={18} /> Voltar ao Core
               </button>
-              {postIntent.intent === 'healing_circle' && (
+              {shouldShowHealingCircleEntry && (
                 <button
                   onClick={() => {
                     try {
                       localStorage.removeItem('viva360.post_checkout.intent');
                       localStorage.removeItem('viva360.post_checkout.contextId');
+                      localStorage.removeItem('viva360.post_checkout.amount');
+                      localStorage.removeItem('viva360.post_checkout.description');
                     } catch {
                       // ignore
                     }
                     selectTribeRoomContext({
                       type: 'healing_circle',
-                      contextId: postIntent.contextId || undefined,
+                      contextId: healingCircleContextId || undefined,
                     });
                     jump('TRIBE_INTERACTION');
                   }}

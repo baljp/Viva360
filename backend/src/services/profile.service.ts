@@ -42,6 +42,13 @@ export class ProfileService {
         }
         return await profileRepository.findAllByRole(role);
     }
+
+    async lookupByEmail(email: string) {
+        if (isMockMode()) {
+            return null;
+        }
+        return await profileRepository.findByEmail(email);
+    }
 }
 
 export const profileService = new ProfileService();

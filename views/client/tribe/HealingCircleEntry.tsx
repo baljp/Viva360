@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { User, Event } from '../../../types';
-import { PortalView, BottomSheet, DynamicAvatar } from '../../../components/Common';
+import { PortalView } from '../../../components/Common';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { api } from '../../../services/api';
-import { Users, Clock, MapPin, Sparkles, Heart, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
+import { Users, Clock, Sparkles, Heart, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
@@ -59,6 +59,8 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
         try {
             localStorage.setItem('viva360.post_checkout.intent', 'healing_circle');
             localStorage.setItem('viva360.post_checkout.contextId', String(event.id));
+            localStorage.setItem('viva360.post_checkout.amount', String(event.price || 0));
+            localStorage.setItem('viva360.post_checkout.description', String(event.title || 'Círculo de Cura'));
         } catch {
             // ignore
         }
@@ -69,8 +71,25 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
     if (loading || !event) return <div className="h-full flex items-center justify-center"><AnimatePresence><motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }} className="text-primary-500"><Sparkles size={32}/></motion.div></AnimatePresence></div>;
 
     return (
-        <PortalView title="Círculo de Cura" subtitle="RITUAL COLETIVO" onBack={back}>
-            <div className="flex flex-col h-full bg-slate-950 overflow-y-auto no-scrollbar">
+        <PortalView
+            title="Círculo de Cura"
+            subtitle="RITUAL COLETIVO"
+            onBack={back}
+            footer={
+                <div className="space-y-3">
+                    <button
+                        onClick={handleJoin}
+                        className="w-full py-5 bg-white text-slate-950 rounded-[2rem] font-bold uppercase tracking-widest text-[11px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                        Contribuir e Entrar no Círculo <ChevronRight size={18} />
+                    </button>
+                    <p className="text-center text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                        Vagas limitadas por sessão
+                    </p>
+                </div>
+            }
+        >
+            <div className="flex flex-col h-full bg-slate-950 rounded-[2.5rem] overflow-hidden">
                 
                 {/* Hero / Cover */}
                 <div className="relative h-72 flex-none">
@@ -91,7 +110,7 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
                 </div>
 
                 {/* Info Grid */}
-                <div className="px-8 space-y-8 pb-32">
+                <div className="px-8 space-y-8 pb-10">
                     
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white/5 border border-white/10 rounded-3xl p-4 flex flex-col gap-2">
@@ -154,16 +173,6 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
 
                 </div>
 
-                {/* Footer Action */}
-                <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent">
-                    <button 
-                        onClick={handleJoin}
-                        className="w-full py-5 bg-white text-slate-950 rounded-[2rem] font-bold uppercase tracking-widest text-[11px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3"
-                    >
-                        Contribuir e Entrar no Círculo <ChevronRight size={18}/>
-                    </button>
-                    <p className="text-center text-[10px] text-slate-500 mt-4 uppercase tracking-widest font-bold">Vagas limitadas por sessão</p>
-                </div>
             </div>
         </PortalView>
     );

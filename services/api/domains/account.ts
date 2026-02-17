@@ -65,6 +65,22 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     },
   },
 
+  profiles: {
+    lookupByEmail: async (email: string): Promise<{ id: string; name?: string; email?: string; role?: string; avatar?: string } | null> => {
+      const normalized = String(email || '').trim().toLowerCase();
+      if (!normalized) return null;
+      try {
+        return await request(`/profiles/lookup?email=${encodeURIComponent(normalized)}`, {
+          purpose: 'profiles-lookup',
+          timeoutMs: 7000,
+          retries: 0,
+        });
+      } catch {
+        return null;
+      }
+    },
+  },
+
   professionals: {
     list: async (): Promise<Professional[]> => {
       try {

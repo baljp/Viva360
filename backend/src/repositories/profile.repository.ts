@@ -23,6 +23,23 @@ export class ProfileRepository {
         return data;
     }
 
+    async findByEmail(email: string) {
+        const normalizedEmail = String(email || '').trim().toLowerCase();
+        if (!normalizedEmail) return null;
+
+        const { data, error } = await supabaseAdmin
+            .from('profiles')
+            .select('*')
+            .eq('email', normalizedEmail)
+            .single();
+
+        if (error) {
+            if (error.code === 'PGRST116') return null;
+            throw error;
+        }
+        return data;
+    }
+
     async update(id: string, updates: UpdateProfileData) {
         const { data, error } = await supabaseAdmin
             .from('profiles')

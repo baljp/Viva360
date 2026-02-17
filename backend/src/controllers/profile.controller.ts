@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import { supabaseAdmin, isMockMode } from '../services/supabase.service';
 import { z } from 'zod';
 import { asyncHandler } from '../middleware/async.middleware';
 import { profileService } from '../services/profile.service';
@@ -33,4 +32,36 @@ export const listProfiles = asyncHandler(async (req: Request, res: Response) => 
     
     const profiles = await profileService.listProfiles(role);
     return res.json(profiles);
+});
+
+const lookupSchema = z.object({
+    email: z.string().email(),
+});
+
+export const lookupProfile = asyncHandler(async (req: any, res: Response) => {
+    const requesterRole = String(req.user?.role || '').toUpperCase();
+    // Prevent email enumeration for regular users.
+    if (!['PROFESSIONAL', 'ADMIN'].includes(requesterRole)) {
+        return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const { email } = lookupSchema.parse(req.query || {});
+    const profile = await profileService.lookupByEmail(email);
+    if (!profile) {
+        return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    const role = String((profile as any).role || '').toUpperCase();
+    // For Guardian -> Buscador internal linking, we only allow looking up Buscadores here.
+    if (role !== 'CLIENT') {
+        return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    return res.json({
+        id: (profile as any).id,
+        name: (profile as any).name,
+        email: (profile as any).email,
+        role: (profile as any).role,
+        avatar: (profile as any).avatar,
+    });
 });

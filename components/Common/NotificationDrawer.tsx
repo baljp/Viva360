@@ -1,13 +1,42 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Sparkles, Wallet, AlertCircle, MessageSquare, Bell, X, Check } from 'lucide-react';
 import { Notification } from '../../types';
+import { api } from '../../services/api';
 
 export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void, notifications: Notification[], onMarkAsRead: (id: string) => void, onMarkAllRead: () => void }> = ({ isOpen, onClose, notifications, onMarkAsRead, onMarkAllRead }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'ritual' | 'finance' | 'alert'>('all');
-
-  if (!isOpen) return null;
+  const [pendingLinks, setPendingLinks] = useState<any[]>([]);
+  const [loadingLinks, setLoadingLinks] = useState(false);
+  const [linksError, setLinksError] = useState<string>('');
 
   const filteredNotifications = notifications.filter(n => activeFilter === 'all' || n.type === activeFilter);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    let mounted = true;
+    const load = async () => {
+      setLoadingLinks(true);
+      setLinksError('');
+      try {
+        const raw = await api.links.getPendingRequests();
+        const list = Array.isArray(raw) ? raw : [];
+        // Only show link requests that can be actioned here.
+        const normalized = list.filter((l) => l && l.id && l.status === 'pending');
+        if (mounted) setPendingLinks(normalized);
+      } catch (e: any) {
+        if (mounted) setLinksError(e?.message || 'Falha ao carregar convites.');
+      } finally {
+        if (mounted) setLoadingLinks(false);
+      }
+    };
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   // Configurações visuais por tipo de notificação
   const typeConfig: Record<string, { icon: any, color: string, bg: string }> = {
@@ -58,6 +87,81 @@ export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void
 
         {/* Lista de Notificações */}
         <div className="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar bg-primary-50/30">
+          {/* Pending Link Requests (actionable) */}
+          <div className="space-y-3">
+            <div className="px-1 flex items-center justify-between">
+              <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Convites Pendentes</h4>
+              {loadingLinks && <span className="text-[10px] text-nature-300 font-bold uppercase tracking-widest">Carregando...</span>}
+            </div>
+            {linksError && (
+              <div className="bg-rose-50 border border-rose-100 rounded-2xl p-3 text-[10px] font-bold text-rose-700 uppercase tracking-widest">
+                {linksError}
+              </div>
+            )}
+            {!loadingLinks && !linksError && pendingLinks.length === 0 && (
+              <div className="bg-white border border-nature-100 rounded-2xl p-4 text-[10px] text-nature-400 font-bold uppercase tracking-widest">
+                Nenhum convite aguardando aceite.
+              </div>
+            )}
+            {pendingLinks.map((link) => {
+              const source = (link as any)?.source || {};
+              const linkType = String((link as any)?.type || '').toLowerCase();
+              const label =
+                linkType === 'paciente'
+                  ? 'Vinculo com Guardiao'
+                  : linkType === 'tribo'
+                    ? 'Convite de Tribo'
+                    : 'Convite de Conexao';
+              return (
+                <div key={String(link.id)} className="bg-white border border-primary-200 rounded-3xl p-5 shadow-sm">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+                      <Bell size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="font-bold text-xs text-nature-900 truncate">{label}</h5>
+                      <p className="text-[11px] text-nature-500 mt-1 leading-relaxed line-clamp-2">
+                        {source?.name ? `${source.name} quer se vincular com voce.` : 'Uma conexao foi solicitada.'}
+                      </p>
+                      <div className="flex gap-2 mt-4">
+                        <button
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            try {
+                              await api.links.accept(String(link.id));
+                              setPendingLinks((prev) => prev.filter((x) => String((x as any)?.id) !== String(link.id)));
+                            } catch (err: any) {
+                              setLinksError(err?.message || 'Falha ao aceitar convite.');
+                            }
+                          }}
+                          className="flex-1 py-3 rounded-2xl bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+                        >
+                          Aceitar
+                        </button>
+                        <button
+                          onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            try {
+                              await api.links.reject(String(link.id));
+                              setPendingLinks((prev) => prev.filter((x) => String((x as any)?.id) !== String(link.id)));
+                            } catch (err: any) {
+                              setLinksError(err?.message || 'Falha ao recusar convite.');
+                            }
+                          }}
+                          className="flex-1 py-3 rounded-2xl bg-white text-nature-500 border border-nature-200 text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
+                        >
+                          Recusar
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
           {filteredNotifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-center space-y-4 opacity-50">
                   <Bell size={40} className="text-nature-300" />

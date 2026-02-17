@@ -214,9 +214,13 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
 
                     {/* Journey Selection Modal */}
                     {activeModal === 'journey' && (
-                        <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-12 sm:items-center sm:p-0">
-                            <div className="fixed inset-0 bg-nature-900/60 backdrop-blur-md transition-opacity" />
-                            <div className="relative bg-white rounded-[3rem] p-8 w-full max-w-lg shadow-2xl animate-in slide-in-from-bottom duration-500">
+                        // NOTE: Must sit above PortalView (z-[150]) to avoid stacked headers/buttons at boot.
+                        <div className="fixed inset-0 z-[320] flex items-end justify-center px-4 pb-12 sm:items-center sm:p-0">
+                            <div
+                                className="absolute inset-0 bg-nature-900/60 backdrop-blur-md transition-opacity"
+                                onClick={() => setActiveModal(null)}
+                            />
+                            <div className="relative z-10 bg-white rounded-[3rem] p-8 w-full max-w-lg shadow-2xl animate-in slide-in-from-bottom duration-500">
                                 <button 
                                     onClick={() => setActiveModal(null)}
                                     className="absolute top-8 right-8 p-3 bg-nature-50 text-nature-400 rounded-2xl hover:bg-nature-100 transition-colors z- relative"
@@ -256,9 +260,10 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
 
                     {/* Tribe Integration Modal */}
                     {activeModal === 'tribe' && (
-                        <div className="fixed inset-0 z-[100] flex items-end justify-center px-4 pb-12 sm:items-center sm:p-0">
-                             <div className="fixed inset-0 bg-indigo-900/60 backdrop-blur-md transition-opacity" onClick={() => setActiveModal(null)} />
-                             <div className="relative bg-white rounded-[3rem] p-8 w-full max-w-lg shadow-2xl animate-in slide-in-from-bottom duration-500 space-y-6">
+                        // NOTE: Must sit above PortalView (z-[150]) to avoid stacked headers/buttons at boot.
+                        <div className="fixed inset-0 z-[320] flex items-end justify-center px-4 pb-12 sm:items-center sm:p-0">
+                             <div className="absolute inset-0 bg-indigo-900/60 backdrop-blur-md transition-opacity" onClick={() => setActiveModal(null)} />
+                             <div className="relative z-10 bg-white rounded-[3rem] p-8 w-full max-w-lg shadow-2xl animate-in slide-in-from-bottom duration-500 space-y-6">
                                 <button 
                                     onClick={() => setActiveModal(null)}
                                     className="absolute top-8 right-8 p-3 bg-nature-50 text-nature-400 rounded-2xl hover:bg-nature-100 transition-colors z-20"
