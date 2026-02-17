@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import { logger } from '../lib/logger';
 
 dotenv.config();
 
@@ -39,28 +40,32 @@ let adminClient: SupabaseClient | null = null;
 const effectiveKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY || 'dummy-key-for-initialization';
 const effectiveUrl = SUPABASE_URL || 'https://placeholder.supabase.co';
 
-console.log(`[Supabase Service] Initializing with URL: ${effectiveUrl} (Source: ${SUPABASE_URL ? 'Standard' : 'VITE_ Fallback'})`);
-console.log(`[Supabase Service] Mode: ${APP_MODE}`);
+logger.info('supabase.init', {
+  mode: APP_MODE,
+  hasSupabaseUrl: !!SUPABASE_URL,
+  hasAnonKey: !!SUPABASE_ANON_KEY,
+  hasServiceRoleKey: !!SUPABASE_SERVICE_ROLE_KEY,
+});
 
 
 try {
   if (isProd) {
       if (!SUPABASE_URL) {
-        console.error('🚨 [Supabase Service] FATAL: SUPABASE_URL missing in production.');
+        logger.error('supabase.missing_url_prod');
         // throw new Error('SUPABASE_URL missing in production.');
       }
       if (!SUPABASE_SERVICE_ROLE_KEY) {
-        console.error('🚨 [Supabase Service] FATAL: SUPABASE_SERVICE_ROLE_KEY missing in production.');
+        logger.error('supabase.missing_service_role_prod');
         // throw new Error('SUPABASE_SERVICE_ROLE_KEY missing in production.');
       }
   }
 
   if (!SUPABASE_URL) {
-      console.error('🚨 Backend: SUPABASE_URL missing. Auth operations will fail.');
+      logger.warn('supabase.missing_url');
   }
 
   if (!SUPABASE_SERVICE_ROLE_KEY && !SUPABASE_ANON_KEY) {
-      console.error('🚨 Backend: No Supabase keys configured. Auth operations will fail.');
+      logger.warn('supabase.missing_keys');
   }
   
   // Safe initialization
@@ -73,7 +78,7 @@ try {
     auth: { autoRefreshToken: false, persistSession: false },
   });
 } catch (e) {
-  console.error("Failed to init Supabase clients:", e);
+  logger.error('supabase.init_failed', e);
   // Fallback dummy client to prevent crash
   adminClient = {
       auth: {

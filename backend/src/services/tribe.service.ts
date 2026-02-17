@@ -1,6 +1,7 @@
 import { tribeRepository, InviteCreateData } from '../repositories/tribe.repository';
 import crypto from 'crypto';
 import { interactionService } from './interaction.service';
+import { logger } from '../lib/logger';
 
 export class TribeService {
     async inviteMember(hubId: string, email: string, options?: { inviteType?: string; targetRole?: string; expiresAt?: Date | null; contextRef?: string | null }) {
@@ -33,8 +34,8 @@ export class TribeService {
             interactionService.logInteractionFailure('tribe.invite', error, { hubId, email });
         }
 
-        // Mock Email
-        console.log(`[EMAIL] Invite sent to ${email} with token ${token}`);
+        // Mock email dispatch. Token is considered sensitive and will be redacted by logger.
+        logger.info('tribe.invite_created', { hubId, email, token, inviteId: invite.id });
         
         return invite;
     }
