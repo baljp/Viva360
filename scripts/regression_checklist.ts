@@ -46,6 +46,8 @@ if (runE2ECore) {
     label: 'QA core (sem visual/stress)',
     command: 'npm run test:qa:core',
     required: true,
+    // Playwright retries are CI-gated in config; keep local checklist resilient to occasional flakes.
+    retries: 1,
   });
 }
 

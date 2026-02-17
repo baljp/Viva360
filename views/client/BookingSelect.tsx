@@ -1,16 +1,37 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Professional } from '../../types';
 import { MessageCircle, Star } from 'lucide-react';
-import { DynamicAvatar, PortalView, ZenSkeleton } from '../../components/Common';
+import { DynamicAvatar, PortalView, PresenceBadge, ZenSkeleton } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { api } from '../../services/api';
 
 export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }) => {
     const { go, state, selectDate } = useBuscadorFlow();
+    const [presence, setPresence] = useState<'ONLINE' | 'OFFLINE' | 'UNKNOWN'>('UNKNOWN');
     
     // Find selected pro from context state or props
     const contextPro = state.data.pros.find(p => p.id === state.selectedProfessionalId);
     const pro = contextPro || (Array.isArray(pros) ? pros[0] : null);
+
+    useEffect(() => {
+        let cancelled = false;
+        if (!pro?.id) return;
+        const load = async () => {
+            try {
+                const status = await api.presence.getStatus(pro.id);
+                if (!cancelled) setPresence((status || 'OFFLINE') as any);
+            } catch {
+                if (!cancelled) setPresence('UNKNOWN');
+            }
+        };
+        load();
+        const t = window.setInterval(load, 30000);
+        return () => {
+            cancelled = true;
+            window.clearInterval(t);
+        };
+    }, [pro?.id]);
 
     if (!pro) return (
         <PortalView title="Guardião" subtitle="BUSCANDO..." onBack={() => go('BOOKING_SEARCH')}>
@@ -37,6 +58,9 @@ export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }
                 <div>
                     <h3 className="text-2xl font-serif italic text-nature-900">{pro.name}</h3>
                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">{(pro.specialty || []).join(' • ')}</p>
+                    <div className="mt-3">
+                        <PresenceBadge status={presence} />
+                    </div>
                 </div>
                 <div className="flex gap-4">
                     <button 

@@ -42,7 +42,7 @@ for (const flow of flowRegistry) {
     continue;
   }
 
-  if (!flow.endpoints.length) {
+  if (!flow.clientOnly && !flow.endpoints.length) {
     findings.push({ level: 'ERROR', flowId: flow.id, message: 'Flow sem endpoints mapeados.' });
   }
 

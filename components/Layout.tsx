@@ -1,11 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { User, UserRole, ViewState, Notification } from '../types';
+import React, { useState } from 'react';
+import { User, UserRole, ViewState } from '../types';
 import { Home, Compass, ShoppingBag, User as UserIcon, LogOut, Activity, Building, Users, Wallet, Calendar, Sun, Settings, Heart, Flower, Bell, Briefcase, Zap, Sparkles, Book } from 'lucide-react';
 import { AuroraBackground, NotificationDrawer } from './Common';
-import { api } from '../services/api';
 import { isDemoMode, isMockMode } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { useNotifications } from '../src/contexts/NotificationContext';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -166,15 +166,13 @@ const BottomNav: React.FC<Omit<LayoutProps, 'children'>> = ({ user, currentView,
 };
 
 const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, onLogout, shouldHideNav }) => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
-
-    useEffect(() => { if (user) api.notifications.list().then(setNotifications); }, [user]);
+    const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
 
     return (
         <div className="h-[100dvh] w-full bg-[#f8faf9] flex relative text-nature-800 font-sans overflow-hidden">
             <AuroraBackground />
-            {!shouldHideNav && <Sidebar user={user} currentView={currentView} setView={setView} onLogout={onLogout} unreadCount={notifications.filter(n => !n.read).length} onOpenNotifications={() => setIsNotifOpen(true)} />}
+            {!shouldHideNav && <Sidebar user={user} currentView={currentView} setView={setView} onLogout={onLogout} unreadCount={unreadCount} onOpenNotifications={() => setIsNotifOpen(true)} />}
             <div className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
                 <main className="flex-1 w-full h-full relative overflow-hidden">
                     <div id="viva360-main-scroll" className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth">
@@ -186,11 +184,9 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
                 {!shouldHideNav && <BottomNav user={user} currentView={currentView} setView={setView} onLogout={onLogout} />}
             </div>
             <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onMarkAsRead={(id) => {
-                setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-                if (user) api.notifications.markAsRead(id).catch(() => {});
+                markAsRead(id).catch(() => {});
             }} onMarkAllRead={() => {
-                setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-                if (user) api.notifications.markAllAsRead().catch(() => {});
+                markAllRead().catch(() => {});
             }} />
             
             {/* Mock indicator removed */}

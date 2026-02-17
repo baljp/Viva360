@@ -76,8 +76,10 @@ export const santuarioTransitions: Record<SantuarioState, SantuarioState[]> = {
   ROOM_EDIT: ['ROOM_DETAILS', 'ROOMS_STATUS'],
   ROOM_AGENDA: ['ROOM_DETAILS', 'ROOMS_STATUS'],
   SERVICE_EVALUATION: ['EXEC_DASHBOARD'],
-  PREDICTIVE_OCCUPANCY: ['EXEC_DASHBOARD'],
+  // Predictive view has a CTA to jump into room agenda (see PredictiveOccupancy.tsx).
+  PREDICTIVE_OCCUPANCY: ['EXEC_DASHBOARD', 'ROOM_AGENDA'],
   AUDIT_LOG: ['GOVERNANCE', 'EXEC_DASHBOARD'],
-  RADIANCE_DRILLDOWN: ['EXEC_DASHBOARD'],
+  // Radiance drilldown links to audit log for "Ver Histórico" CTA.
+  RADIANCE_DRILLDOWN: ['EXEC_DASHBOARD', 'AUDIT_LOG'],
   END: ['START']
 };

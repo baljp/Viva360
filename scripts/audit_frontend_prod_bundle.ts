@@ -9,6 +9,7 @@ type Finding = {
 
 const strictMode = process.argv.includes('--strict');
 const distAssets = path.resolve(process.cwd(), 'dist', 'assets');
+const distIndexHtml = path.resolve(process.cwd(), 'dist', 'index.html');
 const findings: Finding[] = [];
 
 const pushFinding = (finding: Finding) => findings.push(finding);
@@ -30,6 +31,23 @@ if (jsFiles.length === 0) {
 }
 
 let foundProductionModeLiteral = false;
+let foundProductionSignal = false;
+
+const confirmProductionFromIndexHtml = () => {
+  if (!fs.existsSync(distIndexHtml)) return false;
+  const html = fs.readFileSync(distIndexHtml, 'utf8');
+
+  // Vite dev server injects /@vite/client. Production build should not.
+  if (html.includes('/@vite/client')) return false;
+
+  // Production build should reference hashed asset output.
+  const hasHashedEntry = /\/assets\/index-[A-Za-z0-9_-]+\.js/.test(html);
+  return hasHashedEntry;
+};
+
+if (confirmProductionFromIndexHtml()) {
+  foundProductionSignal = true;
+}
 
 for (const filePath of jsFiles) {
   const content = fs.readFileSync(filePath, 'utf8');
@@ -45,6 +63,7 @@ for (const filePath of jsFiles) {
 
   if (/MODE:"production"/.test(content)) {
     foundProductionModeLiteral = true;
+    foundProductionSignal = true;
   }
 
   if (/MODE:"production"[\s\S]{0,240}PROD:!1/.test(content) || /MODE:"production"[\s\S]{0,240}PROD:false/.test(content)) {
@@ -64,11 +83,13 @@ for (const filePath of jsFiles) {
   }
 }
 
-if (!foundProductionModeLiteral && jsFiles.length > 0) {
+// MODE:"production" literal only exists if code references import.meta.env.MODE.
+// Use index.html heuristics as a stable production signal instead of failing hard.
+if (!foundProductionSignal && jsFiles.length > 0) {
   pushFinding({
     level: 'ERROR',
     file: 'dist/assets',
-    reason: 'Não foi possível confirmar MODE=production no bundle gerado.',
+    reason: 'Não foi possível confirmar que o bundle é de produção (faltam sinais: index.html hashed assets e ausência de /@vite/client).',
   });
 }
 
