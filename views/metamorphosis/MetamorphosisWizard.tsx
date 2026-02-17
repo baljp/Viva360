@@ -55,6 +55,15 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         };
     }, []);
 
+    // FLOW-08: Cancel ritual — clean up all side effects and return to DASHBOARD
+    const cancelRitual = () => {
+        if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
+        if (ritualDelayRef.current) clearTimeout(ritualDelayRef.current);
+        setIsProcessing(false);
+        setShowSoulReveal(false);
+        flow.go('DASHBOARD');
+    };
+
     // Step 1: Mood Selection
     const handleMoodSelect = (m: string) => {
         setMood(m);
@@ -372,7 +381,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             title="Card da Alma" 
             subtitle="RITUAL DE PRESENÇA" 
             onBack={() => step > 1 ? setStep(step - 1) : flow.back()}
-            onClose={onClose || (() => flow.reset())}
+            onClose={onClose || cancelRitual}
             heroImage={step === 1 ? "https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=800" : undefined}
         >
             {showSoulReveal && drewCard && photo && (
@@ -412,6 +421,11 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                                 );
                             })}
                         </div>
+                        <div className="px-4 pb-6">
+                            <button onClick={cancelRitual} className="w-full py-3 text-nature-400 text-[10px] font-bold uppercase tracking-widest hover:text-rose-500 transition-colors">
+                                <X size={14} className="inline mr-2 -mt-0.5" />Cancelar Ritual
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -421,7 +435,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                         <div className="h-[10%] flex items-center justify-between w-full px-8 pt-4">
                              <button onClick={() => setStep(1)} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><ArrowRight className="rotate-180" size={20}/></button>
                              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400">Metamorfose</p>
-                             <button onClick={onClose || (() => flow.reset())} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><X size={20}/></button>
+                             <button onClick={cancelRitual} className="p-3 rounded-full text-white/60 hover:text-rose-400 transition-colors" title="Cancelar Ritual"><X size={20}/></button>
                         </div>
                         
                         <div className="h-[70%] w-full relative overflow-hidden bg-black flex items-center justify-center">
@@ -460,6 +474,9 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                             className="mt-8 px-5 py-3 rounded-2xl border border-nature-200 bg-white text-[10px] font-bold uppercase tracking-widest text-nature-500 hover:bg-nature-50 transition-all"
                         >
                             Continuar agora
+                        </button>
+                        <button onClick={cancelRitual} className="mt-4 text-nature-400 text-[10px] font-bold uppercase tracking-widest hover:text-rose-500 transition-colors">
+                            <X size={14} className="inline mr-1 -mt-0.5" />Cancelar Ritual
                         </button>
                     </div>
                 )}
@@ -510,6 +527,9 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                             </button>
                             <button onClick={() => setStep(5)} className="py-4 bg-emerald-500 text-white rounded-2xl flex items-center justify-center gap-2 font-bold uppercase text-[9px] tracking-widest active:scale-95 transition-all">
                                 <CheckCircle size={16} /> Concluir Ritual
+                            </button>
+                            <button onClick={cancelRitual} className="col-span-2 py-3 text-nature-400 text-[10px] font-bold uppercase tracking-widest hover:text-rose-500 transition-colors">
+                                <X size={14} className="inline mr-1 -mt-0.5" />Cancelar Ritual
                             </button>
                         </div>
                     </div>
