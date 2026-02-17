@@ -5,26 +5,11 @@ import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initMonitoring } from './lib/monitoring';
 import './src/index.css'; // Global Design System
+import { installBootRecovery } from './src/boot/bootRecovery';
 
-// Get environment safely
-const getIsProd = () => {
-  try {
-    const env = (import.meta as any).env;
-    if (!env) return false;
-    return env.PROD === true || env.MODE === 'production';
-  } catch (e) {
-    return false;
-  }
-};
-
-// Registro do Service Worker para PWA (apenas em produção real processada por Vite)
-if ('serviceWorker' in navigator && getIsProd()) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { type: 'module' })
-      .then(reg => console.log('SW Registered', reg))
-      .catch(err => console.error('SW Registration Failed', err));
-  });
-}
+// Recovery guard to avoid "blank screen" after SW/cached-chunk mismatches.
+// NOTE: Service worker registration is already handled by vite-plugin-pwa (registerSW.js).
+installBootRecovery();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -45,3 +30,6 @@ root.render(
     </ErrorBoundary>
   </React.StrictMode>
 );
+
+// Used by boot recovery watchdog as a signal that hydration succeeded.
+(window as any).__VIVA360_MOUNTED__ = true;
