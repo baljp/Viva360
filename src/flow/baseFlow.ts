@@ -18,14 +18,19 @@ export type BaseFlowAction<T> =
     | { type: 'JUMP'; payload: T };
 
 export const createFlowReducer = <T>() => {
+    const isTransitionPayload = (payload: unknown): payload is { nextState: T; history: T[] } => {
+        if (payload == null) return false;
+        if (typeof payload !== 'object') return false;
+        return ('nextState' in payload) && ('history' in payload);
+    };
     return (state: BaseFlowState<T>, action: BaseFlowAction<T>): BaseFlowState<T> => {
         switch (action.type) {
             case 'TRANSITION':
-                if (typeof action.payload === 'object' && action.payload !== null && 'nextState' in action.payload) {
+                if (isTransitionPayload(action.payload)) {
                     return {
                         ...state,
-                        currentState: (action.payload as any).nextState,
-                        history: (action.payload as any).history,
+                        currentState: action.payload.nextState,
+                        history: action.payload.history,
                         error: null,
                     };
                 }

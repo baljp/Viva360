@@ -120,12 +120,12 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
         <div className="min-h-screen bg-[#f8faf9] pb-32">
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
-            <header className="bg-gradient-to-br from-indigo-900 to-purple-900 px-6 pt-7 pb-5 relative overflow-hidden">
+            <header className="bg-gradient-to-br from-indigo-900 to-purple-900 px-6 pt-4 pb-2 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
-                <button onClick={back} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-6 active:scale-95">←</button>
+                <button onClick={back} className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white mb-2 active:scale-95">←</button>
                 <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-serif italic text-white">Eventos</h1>
+                        <h1 className="text-xl font-serif italic text-white">Eventos</h1>
                         <p className="text-indigo-200/70 text-xs font-bold uppercase tracking-widest mt-1">Ritmos do Calendário Sagrado</p>
                     </div>
 	                    <button
@@ -143,10 +143,10 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
             </header>
 
             {/* Filters */}
-            <div className="px-4 -mt-4 mb-4">
+            <div className="px-4 -mt-2 mb-4">
                 <div className="flex p-1 bg-white rounded-2xl border border-nature-100 shadow-sm">
                     {(['all', 'upcoming', 'completed'] as const).map(f => (
-                        <button key={f} onClick={() => setFilter(f)} className={`flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${filter === f ? 'bg-nature-900 text-white shadow-md' : 'text-nature-400'}`}>
+                        <button key={f} onClick={() => setFilter(f)} className={`flex-1 py-2.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${filter === f ? 'bg-nature-900 text-white shadow-md' : 'text-nature-400'}`}>
                             {f === 'all' ? 'Todos' : f === 'upcoming' ? 'Próximos' : 'Concluídos'}
                         </button>
                     ))}
@@ -156,16 +156,16 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                 <div className="px-4 space-y-4">
                 {/* Stats */}
                 <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
-                        <span className="text-xl font-bold text-nature-900">{events.filter(e => e.status === 'upcoming').length}</span>
+                    <div className="bg-white p-2.5 rounded-2xl border border-nature-100 text-center">
+                        <span className="text-lg font-bold text-nature-900">{events.filter(e => e.status === 'upcoming').length}</span>
                         <p className="text-[9px] font-bold text-nature-400 uppercase mt-1">Próximos</p>
                     </div>
-                    <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
-                        <span className="text-xl font-bold text-nature-900">{events.reduce((a, e) => a + e.enrolled, 0)}</span>
+                    <div className="bg-white p-2.5 rounded-2xl border border-nature-100 text-center">
+                        <span className="text-lg font-bold text-nature-900">{events.reduce((a, e) => a + e.enrolled, 0)}</span>
                         <p className="text-[9px] font-bold text-nature-400 uppercase mt-1">Inscritos</p>
                     </div>
-                    <div className="bg-white p-4 rounded-2xl border border-nature-100 text-center">
-                        <span className="text-xl font-bold text-emerald-600">
+                    <div className="bg-white p-2.5 rounded-2xl border border-nature-100 text-center">
+                        <span className="text-lg font-bold text-emerald-600">
                             {events.length ? Math.round(events.reduce((a, e) => a + (e.enrolled / Math.max(1, e.capacity)), 0) / events.length * 100) : 0}%
                         </span>
                         <p className="text-[9px] font-bold text-nature-400 uppercase mt-1">Ocupação</p>
