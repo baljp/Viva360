@@ -20,6 +20,7 @@ import marketplaceRoutes from './marketplace.routes';
 import recordsRoutes from './records.routes';
 import usersRoutes from './users.routes';
 import invitesRoutes from './invites.routes';
+import reviewsRoutes from './reviews.routes';
 
 import { rateLimiter } from '../middleware/rateLimiter';
 import { swrMiddleware } from '../middleware/swr.middleware';
@@ -59,6 +60,7 @@ router.use('/alchemy', authenticateUser, alchemyRoutes);
 router.use('/marketplace', authenticateUser, swrMiddleware(1, 59), marketplaceRoutes);
 router.use('/oracle', authenticateUser, oracleRoutes);
 router.use('/records', authenticateUser, recordsRoutes);
+router.use('/reviews', authenticateUser, reviewsRoutes);
 router.use('/journal', authenticateUser, journalRoutes);
 router.use('/clinical', authenticateUser, clinicalRoutes);
 router.use('/audit', authenticateUser, auditRoutes);

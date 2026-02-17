@@ -210,14 +210,11 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       }
     },
     create: async (review: any) => {
-      try {
-        return await request('/reviews', {
-          method: 'POST',
-          body: JSON.stringify(review),
-        });
-      } catch {
-        return review;
-      }
+      // FLOW-05: Let errors propagate so UI can show feedback
+      return await request('/reviews', {
+        method: 'POST',
+        body: JSON.stringify(review),
+      });
     },
   },
 });
