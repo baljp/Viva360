@@ -100,7 +100,7 @@ const GuardiaoFlowContext = createContext<{
     back: () => void;
     reset: () => void;
     refreshData: (userId: string) => Promise<void>;
-    notify: (title: string, message: string, type?: 'info' | 'success' | 'warning') => void;
+    notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
     selectAppointment: (apt: Appointment) => void;
     selectPatient: (payload: { id: string; name?: string } | null) => void;
 } | undefined>(undefined);
