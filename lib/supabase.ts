@@ -78,7 +78,10 @@ export const getOAuthRedirectUrl = (): string => {
         currentOrigin: runtimeOrigin,
         allowedOrigins: oauthAllowedOrigins,
         defaultPath: '/login',
-        enforceSameOrigin: true,
+        // In Vercel preview deployments, the runtime origin changes per deploy and is
+        // typically not allowlisted in Supabase. In production runtime, prefer the
+        // configured redirect URL (stable domain) even when origins differ.
+        enforceSameOrigin: APP_MODE !== 'PROD',
         productionRuntime: APP_MODE === 'PROD',
     });
     return result.redirectUrl;
@@ -91,7 +94,7 @@ export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } 
         currentOrigin: runtimeOrigin,
         allowedOrigins: oauthAllowedOrigins,
         defaultPath: '/login',
-        enforceSameOrigin: true,
+        enforceSameOrigin: APP_MODE !== 'PROD',
         productionRuntime: APP_MODE === 'PROD',
     });
     issues.push(...policy.issues);
