@@ -110,7 +110,7 @@ export default function SpaceEventCreate() {
                 try { localStorage.removeItem('viva360.space.event_create.type'); } catch { /* ignore */ }
                 selectEvent(null);
                 setToast({ title: isEditing ? 'Vivência Atualizada' : 'Vivência Publicada', message: 'O calendário sagrado foi atualizado.', type: 'success' });
-                setTimeout(() => go('EVENTS_MANAGE'), 900);
+                setTimeout(() => go(eventType === 'retreat' ? 'RETREATS_MANAGE' : 'EVENTS_MANAGE'), 900);
             } catch (e: any) {
                 setToast({ title: 'Falha ao Publicar', message: e?.message || 'Não foi possível criar o evento.', type: 'error' });
             } finally {
