@@ -52,6 +52,9 @@ describe('runtime guard', () => {
     process.env.APP_MODE = 'PROD';
     process.env.ENABLE_TEST_MODE = 'false';
     process.env.VITE_ENABLE_TEST_MODE = 'false';
+    // SEC-01/DATA-01: These must NOT be set in production
+    delete process.env.MOCK_AUTH_TOKEN;
+    delete process.env.MOCK_ENABLED;
 
     expect(getCriticalProdConfigIssues()).toEqual([]);
     expect(assertCriticalProdConfig()).toEqual([]);
