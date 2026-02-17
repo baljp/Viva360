@@ -748,6 +748,12 @@ export const api = {
 
             // If the user typed an email, use it to decide whether this should be treated as
             // registration or login (existing accounts should not be blocked).
+            //
+            // IMPORTANT: Even when we end up "logging in" (account already exists),
+            // this call can be initiated from role-specific registration screens
+            // (e.g. "Sou Guardiao"). In that case we still want to *enable* the
+            // requested role after OAuth completes. We persist the requested role
+            // in localStorage and handle the role upgrade in getCurrentSession().
             let intent: 'register' | 'login' = 'register';
             if (normalizedExpectedEmail) {
                 const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
@@ -767,11 +773,9 @@ export const api = {
                 localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
             }
             localStorage.setItem(OAUTH_INTENT_KEY, intent);
-            if (intent === 'register') {
-                localStorage.setItem(OAUTH_ROLE_KEY, normalizeRole(role));
-            } else {
-                localStorage.removeItem(OAUTH_ROLE_KEY);
-            }
+            // Persist requested role even when intent becomes "login" (existing account),
+            // so we can enable/switch to that role after OAuth returns.
+            localStorage.setItem(OAUTH_ROLE_KEY, normalizeRole(role));
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: 'google',
@@ -916,6 +920,29 @@ export const api = {
                     // If still not allowed but not blocked, proceed anyway — user authenticated via Google
                     if (!eligibility.allowed) {
                         console.warn('[OAuth] Eligibility not fully resolved, proceeding with session:', eligibility);
+                    }
+
+                    // Role upgrade path: If OAuth was triggered from a role-specific register screen but
+                    // the account already existed, we proceed as login. After session is established,
+                    // enable the requested role and switch active role.
+                    //
+                    // This avoids dead-ends like: user selects "Sou Guardiao" -> Google -> account exists -> stuck as CLIENT.
+                    if (oauthIntent === 'login' && oauthRole) {
+                        const alreadyHasRole = Array.isArray(eligibility.roles) && eligibility.roles.includes(oauthRole);
+                        if (!alreadyHasRole) {
+                            try {
+                                await api.auth.addRole(oauthRole as UserRole);
+                                await api.auth.selectRole(oauthRole as UserRole);
+                                // Refresh eligibility snapshot (best-effort) so resolved roles reflect the upgrade.
+                                try {
+                                    eligibility = await fetchLoginEligibility(sessionEmail);
+                                } catch {
+                                    // ignore - we'll still proceed with the base session
+                                }
+                            } catch (roleErr) {
+                                console.warn('[OAuth] Role upgrade failed:', roleErr);
+                            }
+                        }
                     }
 
                     const metadataRoleValue = String((session.user.user_metadata as any)?.role || '').trim();
