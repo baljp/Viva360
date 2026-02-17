@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { User, DailyRitualSnap, MoodType } from '../../../types';
 import { Camera, ArrowRight, Heart, Sparkles, Droplet, Check, Share2, X, Sun, Download, Instagram, TrendingUp } from 'lucide-react';
 import { CameraWidget, ZenToast } from '../../../components/Common';
+import type { CameraCaptureResult } from '../../../components/Common/CameraWidget';
 import { SoulCard } from '../../../src/components/SoulCard';
 import { phraseService } from '../../../services/phraseService';
 import { gardenService } from '../../../services/gardenService';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { dataUrlToBlob } from '../../../src/utils/dataUrl';
+import { buildLocalImageKey, idbImages } from '../../../src/utils/idbImageStore';
 
 interface DailyRitualWizardProps {
     user: User;
@@ -33,6 +35,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({ 
         mood: 'SERENO', image: '', intention: '', gratitude: ''
     });
+    const [capture, setCapture] = useState<CameraCaptureResult | null>(null);
     const [canvasRef] = useState(() => React.createRef<HTMLCanvasElement>());
     const [isGenerating, setIsGenerating] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -45,12 +48,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
         setStep('INTENTION');
     };
 
-    const handleCapture = (image: string) => {
-        if (!image || image.length < 100) {
-            console.error("Capture failed: Empty image data");
-            return;
-        }
-        setData(prev => ({ ...prev, image }));
+    const handleCapture = (result: CameraCaptureResult) => {
+        setCapture(result);
+        setData(prev => ({ ...prev, image: result.displayUrl }));
         setStep('CAPTURE_REVIEW');
     };
 
@@ -72,6 +72,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
         if (isSaving) return;
         setIsSaving(true);
         try {
+            if (!capture) {
+                throw new Error('Foto não capturada.');
+            }
             // 1. Save to Soul Journal
             await api.journal.create({
                 date: new Date().toISOString().split('T')[0],
@@ -83,14 +86,23 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             // 2. Calculate rewards & create snap
             const reward = gardenService.calculateWateringReward(user);
             const phrases = phraseService.getPhrases(data.mood, 'JARDIM');
+            const snapId = `ritual_${Date.now()}`;
             const newSnap: DailyRitualSnap = {
-                id: Date.now().toString(),
+                id: snapId,
                 date: new Date().toISOString(),
-                image: data.image,
+                // Keep lightweight thumb for immediate UI; full image stays local on the device.
+                image: capture.thumbDataUrl,
                 mood: data.mood,
                 note: data.intention,
                 phrases: phrases
             };
+
+            // 2.1 Persist full image locally (Instagram-grade dimensions; zero network).
+            try {
+                await idbImages.put(buildLocalImageKey(snapId), capture.fullBlob);
+            } catch (e) {
+                console.warn('[DailyRitualWizard] idbImages.put failed', e);
+            }
 
             // 3. Update user with snap + rewards
             const updatedUser: User = {
@@ -105,8 +117,13 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
             // 4. Persist to backend (profile + evolution snapshot)
             await Promise.all([
-                api.users.update(updatedUser),
-                api.metamorphosis.checkIn(data.mood, `ritual_${newSnap.id}`, data.image)
+                // Strip heavy image payload before sending. Images are device-local (IndexedDB).
+                api.users.update({
+                    ...(updatedUser as any),
+                    snaps: (updatedUser.snaps || []).map((s) => ({ ...(s as any), image: '' })),
+                }),
+                // Metamorphosis stores a tiny thumb (CDN) for cross-device list; full stays local.
+                api.metamorphosis.checkIn(data.mood, snapId, capture.thumbDataUrl)
             ]);
         } catch (error) {
             console.error("Auto-save snap failed:", error);
@@ -418,7 +435,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
                 <div className="h-[70%] relative overflow-hidden bg-black flex items-center justify-center">
                     <div className="w-full h-full max-w-md relative">
-                        <CameraWidget onCapture={handleCapture} />
+                        <CameraWidget onCapture={handleCapture} variant="POST" />
                         {/* Premium Crop Guide */}
                         <div className="absolute inset-0 border-[2px] border-white/10 m-8 rounded-[2rem] pointer-events-none"></div>
                     </div>

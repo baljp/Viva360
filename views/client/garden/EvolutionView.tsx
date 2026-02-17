@@ -3,6 +3,14 @@ import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
 import { ChevronRight, TrendingUp, TrendingDown, Minus, Plus } from 'lucide-react';
 import { useEvolution } from '../../../src/hooks/useEvolution';
+import { useIdbImageUrl } from '../../../src/hooks/useIdbImageUrl';
+import { buildLocalImageKey } from '../../../src/utils/idbImageStore';
+
+const SnapThumb: React.FC<{ snap: any }> = ({ snap }) => {
+    const key = snap?.id ? buildLocalImageKey(String(snap.id)) : null;
+    const src = useIdbImageUrl(key, snap?.image || '');
+    return <img src={src || snap?.image} alt="Snap" className="w-16 h-16 rounded-xl object-cover" />;
+};
 
 export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
     const { actions, data } = useEvolution(user);
@@ -102,7 +110,7 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                         <h4 className="font-serif italic text-nature-900 px-2">Linha do Tempo</h4>
                         {data.recentSnaps.map(snap => (
                             <button key={snap.id} onClick={() => go('TIME_LAPSE_EXPERIENCE')} className="w-full p-4 bg-white rounded-2xl border border-white shadow-sm flex items-center gap-4 group active:scale-95 transition-all">
-                                <img src={snap.image} alt="Snap" className="w-16 h-16 rounded-xl object-cover" />
+                                <SnapThumb snap={snap} />
                                 <div className="text-left flex-1">
                                     <div className="flex justify-between items-center mb-1">
                                         <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">{new Date(snap.date).toLocaleDateString()}</p>

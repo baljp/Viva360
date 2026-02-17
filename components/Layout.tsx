@@ -66,7 +66,8 @@ const canonicalPathForView = (user: User | null, view: ViewState): string | null
             case ViewState.CLIENT_HOME: return '/client/home';
             case ViewState.CLIENT_JOURNEY: return '/client/journey';
             case ViewState.CLIENT_EXPLORE: return '/client/explore';
-            case ViewState.CLIENT_TRIBO: return '/client/tribo';
+            // Route is `/client/tribe` (see views/InviteLanding.tsx + views/client flow map).
+            case ViewState.CLIENT_TRIBO: return '/client/tribe';
             default: return null;
         }
     }

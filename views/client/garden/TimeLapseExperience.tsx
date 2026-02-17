@@ -3,6 +3,8 @@ import { Play, Pause, Calendar, Share2, X, ChevronLeft, ChevronRight } from 'luc
 import { PortalView } from '../../../components/Common';
 import { User } from '../../../types';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useIdbImageUrl } from '../../../src/hooks/useIdbImageUrl';
+import { buildLocalImageKey } from '../../../src/utils/idbImageStore';
 
 export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();
@@ -18,6 +20,8 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
 
     const snaps = user.snaps || [];
     const activeSnap = snaps[currentIndex];
+    const activeKey = activeSnap?.id ? buildLocalImageKey(String(activeSnap.id)) : null;
+    const activeSrc = useIdbImageUrl(activeKey, activeSnap?.image || '');
 
     const cyclePeriod = () => {
         setPeriod((current) => {
@@ -143,12 +147,12 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
     // EFFECT: Draw to Canvas when activeSnap changes (for recording)
     // Moved to top level to avoid conditional hook call
     useEffect(() => {
-         if(canvasRef.current && activeSnap) {
+         if(canvasRef.current && activeSnap && activeSrc) {
              const ctx = canvasRef.current.getContext('2d');
              if(ctx) {
                  const img = new Image();
                  img.crossOrigin = "anonymous";
-                 img.src = activeSnap.image;
+                 img.src = activeSrc;
                  img.onload = () => {
                      ctx.drawImage(img, 0, 0, canvasRef.current!.width, canvasRef.current!.height);
                      // Draw overlays
@@ -160,7 +164,7 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                  }
              }
          }
-    }, [activeSnap]);
+    }, [activeSnap, activeSrc]);
 
     if (!snaps.length) {
         return (
@@ -206,7 +210,7 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
             <div className="flex-1 relative flex items-center justify-center overflow-hidden">
                 {/* Image Display */}
                 <img 
-                    src={activeSnap.image} 
+                    src={activeSrc || activeSnap.image} 
                     className="w-full h-full object-cover opacity-80 transition-opacity duration-1000" 
                     alt="Ritual Snapshot"
                 />

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Heart, Activity, Coffee, Moon, Sun, ArrowRight, CheckCircle, Smile, Frown, Meh, CloudRain, Zap, Battery, X, Share2, Download, ShieldCheck, Sparkles, Wind, Droplets, Mountain } from 'lucide-react';
 import { PortalView, CameraWidget } from '../../components/Common';
+import type { CameraCaptureResult } from '../../components/Common/CameraWidget';
 import { ViewState, User } from '../../types';
 import { api } from '../../services/api';
 import { MOOD_ELEMENTS } from '../../src/data/metamorphosisData';
@@ -8,6 +9,7 @@ import { phraseService } from '../../services/phraseService';
 import { useSoulCards } from '../../src/hooks/useSoulCards';
 import { SoulCardReveal } from './SoulCardReveal';
 import { dataUrlToBlob } from '../../src/utils/dataUrl';
+import { buildLocalImageKey, idbImages } from '../../src/utils/idbImageStore';
 
 const MOODS = [
     { id: 'Feliz', icon: Sun, element: 'Fogo' },
@@ -30,7 +32,8 @@ const ELEMENT_ICONS = {
 export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) => void, onClose?: () => void, user?: User }> = ({ flow, setView, onClose, user }) => {
     const [step, setStep] = useState(1);
     const [mood, setMood] = useState('');
-    const [photo, setPhoto] = useState<string | null>(null);
+    const [photo, setPhoto] = useState<CameraCaptureResult | null>(null);
+    const [photoHash, setPhotoHash] = useState<string | null>(null);
     const [result, setResult] = useState<any>(null);
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
     const [isProcessing, setIsProcessing] = useState(false);
@@ -60,20 +63,27 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     };
 
     // Step 2: Photo Capture
-    const handleCapture = (photoUrl: string) => {
-        setPhoto(photoUrl);
+    const handleCapture = async (capture: CameraCaptureResult) => {
+        const hash = `hash_${Date.now()}`;
+        setPhotoHash(hash);
+        setPhoto(capture);
         setStep(3);
-        processMetamorphosis(photoUrl);
+        try {
+            await idbImages.put(buildLocalImageKey(hash), capture.fullBlob);
+        } catch (e) {
+            console.warn('[MetamorphosisWizard] idbImages.put failed', e);
+        }
+        processMetamorphosis(hash, capture);
     };
 
     // Step 3: Premium Processing Experience
-    const processMetamorphosis = async (photoUrl: string) => {
+    const processMetamorphosis = async (hash: string, capture: CameraCaptureResult) => {
         setIsProcessing(true);
-        const photoHash = 'hash_' + Date.now(); 
         const fallbackEntry = {
             id: Date.now(),
             mood,
-            photoThumb: photoUrl,
+            photoThumb: capture.displayUrl,
+            photoHash: hash,
             quote: cardPhrase,
             timestamp: new Date().toISOString()
         };
@@ -87,14 +97,15 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         }, 12000);
         
         try {
-            const entry = await api.metamorphosis.checkIn(mood, photoHash, photoUrl);
+            const entry = await api.metamorphosis.checkIn(mood, hash, capture.thumbDataUrl);
             if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
             
             // Longer delay for ritualistic feel
             ritualDelayRef.current = setTimeout(() => {
                 const card = performDraw(1, mood); // Mock streak 1 for now
                 setDrewCard(card);
-                setResult(entry);
+                // Keep local high-quality photo for UI/canvas.
+                setResult({ ...(entry as any), photoThumb: capture.displayUrl, photoHash: hash });
                 setIsProcessing(false);
                 setShowSoulReveal(true);
                 // setStep(4) will be triggered after reveal closes
@@ -116,7 +127,8 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         setResult((prev: any) => prev || {
             id: Date.now(),
             mood,
-            photoThumb: photo,
+            photoThumb: photo.displayUrl,
+            photoHash: photoHash || undefined,
             quote: cardPhrase || phraseService.getPhrase(mood || 'Calmo', 'CARD'),
             timestamp: new Date().toISOString(),
         });
@@ -366,7 +378,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             {showSoulReveal && drewCard && photo && (
                 <SoulCardReveal 
                     card={drewCard} 
-                    userPhoto={photo} 
+                    userPhoto={photo.displayUrl} 
                     onClose={() => {
                         setShowSoulReveal(false);
                         setStep(4);
@@ -414,7 +426,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                         
                         <div className="h-[70%] w-full relative overflow-hidden bg-black flex items-center justify-center">
                             <div className="w-full h-full max-w-md relative">
-                                <CameraWidget onCapture={handleCapture} />
+                                <CameraWidget onCapture={handleCapture} variant="POST" />
                                 {/* Premium Viewport Overlay */}
                                 <div className="absolute inset-0 pointer-events-none border-[1.5rem] border-black/10 flex items-center justify-center">
                                     <div className="w-full h-full border border-white/20 rounded-[2rem]"></div>

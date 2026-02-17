@@ -36,8 +36,16 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
 
     if (!mood) return res.status(400).json({ error: 'Mood is required' });
 
-    // Asset Optimization: Upload to CDN
-    const optimizedPhotoUrl = photoThumb ? await CloudinaryService.uploadImage(photoThumb) : null;
+    // Asset Optimization: Upload to CDN (best-effort; never block check-in persistence).
+    let optimizedPhotoUrl: string | null = null;
+    if (photoThumb) {
+        try {
+            optimizedPhotoUrl = await CloudinaryService.uploadImage(photoThumb);
+        } catch (e) {
+            logger.warn('metamorphosis.photo_upload_failed', e);
+            optimizedPhotoUrl = null;
+        }
+    }
 
     const normalizedMood = normalizeMood(mood);
 
@@ -158,7 +166,8 @@ export const getEvolution = asyncHandler(async (req: Request, res: Response) => 
         mood: (e.payload as any).mood,
         quote: (e.payload as any).quote,
         reflection: (e.payload as any).reflection,
-        photoThumb: (e.payload as any).photoThumb || (e.payload as any).thumb || (e.payload as any).image || null
+        photoThumb: (e.payload as any).photoThumb || (e.payload as any).thumb || (e.payload as any).image || null,
+        photoHash: (e.payload as any).photoHash || (e.payload as any).hash || null,
     }));
 
     return res.json({

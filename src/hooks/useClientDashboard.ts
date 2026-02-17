@@ -3,6 +3,8 @@ import { User, DailyRitualSnap, ViewState } from '../../types';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
 import { useBuscadorFlow } from '../flow/BuscadorFlowContext';
+import type { CameraCaptureResult } from '../../components/Common/CameraWidget';
+import { idbImages, buildLocalImageKey } from '../utils/idbImageStore';
 
 export const useClientDashboard = (
     user: User, 
@@ -101,19 +103,37 @@ export const useClientDashboard = (
         }
     }, [user, updateUser]);
 
-    const handleCapture = useCallback(async (image: string) => {
+    const handleCapture = useCallback(async (capture: CameraCaptureResult) => {
+          const snapId = `dash_${Date.now()}`;
+          const localKey = buildLocalImageKey(snapId);
+
+          // Local high-quality storage (device only).
+          try {
+              await idbImages.put(localKey, capture.fullBlob);
+          } catch (e) {
+              console.warn('[useClientDashboard] idbImages.put failed', e);
+          }
+
           const newSnap: DailyRitualSnap = {
-              id: Date.now().toString(),
+              id: snapId,
               date: new Date().toISOString(),
-              image,
+              // Keep a light thumb for immediate UI; backend payload will be stripped to avoid data bloat.
+              image: capture.thumbDataUrl,
               mood: 'SERENO', 
               note: 'Registro de Metamorfose'
           };
-          const updatedUser = { ...user, snaps: [newSnap, ...(user.snaps || [])] };
-          const res = await api.users.update(updatedUser);
-          updateUser(res);
+          const updatedUserLocal = { ...user, snaps: [newSnap, ...(user.snaps || [])] };
+          updateUser(updatedUserLocal);
           setActiveModal(null);
           setRitualToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada no Akasha." });
+
+          // Persist without heavy image payload (images are local-only).
+          const payloadUser: User = {
+              ...(updatedUserLocal as any),
+              snaps: (updatedUserLocal.snaps || []).map((s) => ({ ...(s as any), image: '' })),
+          };
+          const saved = await api.users.update(payloadUser);
+          updateUser({ ...(saved as any), snaps: updatedUserLocal.snaps });
     }, [user, updateUser]);
 
     return {

@@ -6,6 +6,7 @@ import { api } from '../../../services/api';
 import { gardenService } from '../../../services/gardenService';
 import { Calendar as CalendarIcon, Filter, Search } from 'lucide-react';
 import { SoulCard } from '../../../src/components/SoulCard';
+import { buildLocalImageKey } from '../../../src/utils/idbImageStore';
 
 export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();
@@ -18,11 +19,20 @@ export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
         api.metamorphosis.getEvolution().then(res => {
             const entries = res.entries || [];
             // Map common fields and ensure valid dates
-            const mapped = entries.map((e: any) => ({
-                ...e,
-                image: e.image || e.photoThumb || '',
-                date: e.timestamp || e.date || new Date().toISOString()
-            }));
+            const mapped = entries.map((e: any) => {
+                const photoHash = String(e.photoHash || e.hash || '').trim() || null;
+                return {
+                    id: e.id || photoHash || `${Date.now()}_${Math.random()}`,
+                    mood: e.mood || 'SERENO',
+                    // SoulCard uses `note` for the quote overlay.
+                    note: e.reflection || e.quote || e.note || '',
+                    // Fallback image (CDN thumb) if local full image isn't present.
+                    image: e.photoThumb || e.thumb || e.image || '',
+                    date: e.timestamp || e.date || new Date().toISOString(),
+                    timeSlot: e.timeSlot || 'Ritual',
+                    localImageKey: photoHash ? buildLocalImageKey(photoHash) : undefined,
+                };
+            });
             setSnaps(mapped);
             setIsLoading(false);
         }).catch(err => {

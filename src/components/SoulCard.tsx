@@ -2,6 +2,8 @@ import React, { useRef } from 'react';
 import { DailyRitualSnap } from '../../types';
 import { Droplet, Wind, Flame, Mountain, Sparkles, X, Share2, ChevronUp } from 'lucide-react';
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
+import { useIdbImageUrl } from '../hooks/useIdbImageUrl';
+import { buildLocalImageKey } from '../utils/idbImageStore';
 
 interface SoulCardProps {
     snap: DailyRitualSnap;
@@ -73,6 +75,8 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
     };
 
     const visuals = getElementVisuals();
+    const localImageKey = (snap as any)?.localImageKey || (snap?.id ? buildLocalImageKey(String(snap.id)) : null);
+    const resolvedSrc = useIdbImageUrl(localImageKey, (snap as any)?.image || (snap as any)?.photoThumb || '');
 
     return (
         <motion.div
@@ -95,9 +99,9 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
             {/* 3. PHOTO (PROTAGONIST) */}
             <div className={`absolute inset-0 z-0`}>
                 <div className="relative w-full h-full overflow-hidden">
-                    {snap.image ? (
+                    {resolvedSrc ? (
                         <img 
-                            src={snap.image} 
+                            src={resolvedSrc} 
                             crossOrigin="anonymous"
                             className="w-full h-full object-cover" 
                             style={{ transform: "translateZ(10px)" }} 

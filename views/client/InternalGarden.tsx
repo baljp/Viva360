@@ -7,6 +7,8 @@ import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { DailyRitualWizard } from './garden/DailyRitualWizard';
 import { generateShareCanvas, shareToSocial } from '../../src/utils/sharing';
+import { useIdbImageUrl } from '../../src/hooks/useIdbImageUrl';
+import { buildLocalImageKey } from '../../src/utils/idbImageStore';
 
 export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
     const { go, back } = useBuscadorFlow();
@@ -18,6 +20,8 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
     const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', status.status, user.plantType || 'oak');
     const evolution = gardenService.calculateEvolution(user);
     const evolutionState = gardenService.getEvolutionState(evolution.total);
+    const latestSnap = (user.snaps || [])[0];
+    const latestSnapSrc = useIdbImageUrl(latestSnap?.id ? buildLocalImageKey(String(latestSnap.id)) : null, latestSnap?.image || '');
 
     const handleRitualComplete = (updatedUser: User) => {
         updateUser(updatedUser);
@@ -173,7 +177,6 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
 
                             <button 
                                 onClick={async () => {
-                                    const latestSnap = (user.snaps || [])[0];
                                     const stageLabel = `${user.plantStage?.toUpperCase() || 'SEMENTE'} DE ${gardenService.getPlantLabel(user.plantType || 'oak').toUpperCase()}`;
                                     let inviteUrl: string | undefined;
                                     try {
@@ -186,7 +189,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                                         title: 'Meu Jardim da Alma',
                                         subtitle: stageLabel,
                                         message: `${evolutionState.label} • Vitalidade ${status.health}%\n\nVem plantar a sua semente comigo.`,
-                                        imageUrl: latestSnap?.image || 'https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=1080',
+                                        imageUrl: latestSnapSrc || latestSnap?.image || 'https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=1080',
                                         accentColor: '#10b981', // Emerald for Garden
                                         footer: 'FLORESCENDO NO VIVA360',
                                         date: new Date().toLocaleDateString('pt-BR'),
