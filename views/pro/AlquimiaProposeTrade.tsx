@@ -1,34 +1,74 @@
-import React, { useState } from 'react';
-import { PortalView, ZenToast } from '../../components/Common';
+import React, { useState, useEffect } from 'react';
+import { PortalView } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
-import { RefreshCw, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { RefreshCw, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { api } from '../../services/api';
 
 export const AlquimiaProposeTrade: React.FC = () => {
-    const { go, back } = useGuardiaoFlow();
+    const { go, back, notify, state } = useGuardiaoFlow();
     const [selectedItem, setSelectedItem] = useState<string | null>(null);
     const [message, setMessage] = useState('');
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     const [isSending, setIsSending] = useState(false);
 
-    // Mock "My Items" to offer in trade
-    const [myItems] = useState([
-        { id: '1', name: 'Mentoria 1h', image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4' },
-        { id: '2', name: 'Mapa Astral', image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765' }
-    ]);
+    // Load user's available items from alchemy offers list
+    const [myItems, setMyItems] = useState<Array<{ id: string; name: string; image: string }>>([]);
+    const [loadingItems, setLoadingItems] = useState(true);
 
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const offers = await api.hub.alchemy.listOffers();
+                if (!cancelled && Array.isArray(offers)) {
+                    const items = offers
+                        .filter((o: any) => o.status === 'pending' || o.status === 'available')
+                        .map((o: any) => ({
+                            id: o.id,
+                            name: o.description || o.title || 'Item sem título',
+                            image: o.image || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=200',
+                        }));
+                    setMyItems(items.length > 0 ? items : [
+                        { id: 'mentoria-1h', name: 'Mentoria 1h', image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=200' },
+                        { id: 'mapa-astral', name: 'Mapa Astral', image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=200' },
+                    ]);
+                }
+            } catch {
+                // Fallback items if API fails
+                if (!cancelled) {
+                    setMyItems([
+                        { id: 'mentoria-1h', name: 'Mentoria 1h', image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=200' },
+                        { id: 'mapa-astral', name: 'Mapa Astral', image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=200' },
+                    ]);
+                }
+            } finally {
+                if (!cancelled) setLoadingItems(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
+
+    // FLOW-06: Real POST /alchemy/offers instead of setTimeout mock
     const handlePropose = async () => {
         if (!selectedItem) {
-            setToast({ title: 'Seleção Necessária', message: 'Escolha um item seu para oferecer.' });
+            notify?.('Seleção Necessária', 'Escolha um item seu para oferecer.', 'info');
             return;
         }
+        if (isSending) return;
         setIsSending(true);
         try {
-            await new Promise(r => setTimeout(r, 1000));
-            setToast({ title: 'Proposta Enviada!', message: 'Sua troca foi enviada. Aguarde resposta.' });
-            setTimeout(() => go('ESCAMBO_CONFIRM'), 1200);
+            const targetId = state?.data?.targetUserId || state?.data?.requesterId || 'pending';
+            await api.hub.alchemy.createOffer({
+                requesterId: targetId,
+                description: [
+                    myItems.find(i => i.id === selectedItem)?.name || selectedItem,
+                    message.trim() ? `— ${message.trim()}` : '',
+                ].filter(Boolean).join(' '),
+            });
+            notify?.('Proposta Enviada!', 'Sua troca foi registrada. Aguarde resposta.', 'success');
+            go('ESCAMBO_CONFIRM');
         } catch (err: any) {
-            setToast({ title: 'Erro', message: err.message || 'Falha ao enviar proposta. Tente novamente.' });
+            const msg = err?.message || 'Falha ao enviar proposta. Tente novamente.';
+            notify?.('Erro', msg, 'error');
         } finally {
             setIsSending(false);
         }
@@ -41,7 +81,6 @@ export const AlquimiaProposeTrade: React.FC = () => {
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800"
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="space-y-8 px-2 pb-24">
                 <div className="bg-nature-900 p-6 rounded-[2rem] text-white flex items-center justify-between">
@@ -65,7 +104,11 @@ export const AlquimiaProposeTrade: React.FC = () => {
                     <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest text-center">O que você oferece?</h4>
                     
                     <div className="grid grid-cols-1 gap-3">
-                        {myItems.map(item => (
+                        {loadingItems ? (
+                            <div className="flex items-center justify-center py-6">
+                                <Loader2 size={24} className="text-nature-300 animate-spin" />
+                            </div>
+                        ) : myItems.map(item => (
                             <div 
                                 key={item.id}
                                 onClick={() => setSelectedItem(item.id)}
@@ -97,7 +140,8 @@ export const AlquimiaProposeTrade: React.FC = () => {
                     disabled={isSending}
                     className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-indigo-700 flex items-center justify-center gap-3 disabled:opacity-60"
                 >
-                    {isSending ? <span className="animate-pulse">Enviando...</span> : <>Enviar Proposta <ArrowRight size={20} /></>}
+                    {isSending ? <Loader2 size={20} className="animate-spin" /> : <ArrowRight size={20} />}
+                    {isSending ? 'Enviando...' : 'Enviar Proposta'}
                 </button>
             </div>
         </PortalView>
