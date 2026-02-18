@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
-import { PortalView, ZenToast } from '../../components/Common';
+import { PortalView } from '../../components/Common';
 import { MicroInteraction } from '../../components/MicroInteraction';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
@@ -16,11 +16,10 @@ interface RoutineStep {
 }
 
 export const RitualsView: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
-    const { go, back } = useBuscadorFlow();
+    const { go, back, notify} = useBuscadorFlow();
     const [morningRoutine, setMorningRoutine] = useState<RoutineStep[]>([]);
     const [nightRoutine, setNightRoutine] = useState<RoutineStep[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'info' | 'error' } | null>(null);
     const [activeInteraction, setActiveInteraction] = useState<{ title: string; message: string; icon: any } | null>(null);
 
     useEffect(() => {
@@ -154,7 +153,6 @@ export const RitualsView: React.FC<{ user: User, updateUser: (u: User) => void, 
             onClose={onClose || back}
             heroImage="https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=800"
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             {activeInteraction && (
                 <div className="fixed inset-0 z-[600] flex items-center justify-center pointer-events-none">

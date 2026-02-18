@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView, DynamicAvatar, ZenToast } from '../../components/Common';
+import { PortalView, DynamicAvatar } from '../../components/Common';
 import { Heart, Shield, Calendar, ChevronRight } from 'lucide-react';
 import { api } from '../../services/api';
 
@@ -25,8 +25,7 @@ const readCachedPatient = (): CachedPatient | null => {
 };
 
 export const SpacePatientProfile: React.FC = () => {
-  const { state, back, go } = useSantuarioFlow();
-  const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'info' | 'error' } | null>(null);
+  const { state, back, go, notify} = useSantuarioFlow();
   const [detail, setDetail] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -35,11 +34,7 @@ export const SpacePatientProfile: React.FC = () => {
 
   useEffect(() => {
     if (!patientId) {
-      setToast({
-        title: 'Paciente não selecionado',
-        message: 'Volte ao Portal de Almas e selecione um buscador.',
-        type: 'info',
-      });
+      notify('Paciente não selecionado', 'Volte ao Portal de Almas e selecione um buscador.', 'info');
     }
   }, [patientId]);
 
@@ -81,7 +76,6 @@ export const SpacePatientProfile: React.FC = () => {
       onClose={() => go('EXEC_DASHBOARD')}
       heroImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=1200"
     >
-      {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
 
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">

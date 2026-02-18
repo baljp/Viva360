@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast, DynamicAvatar } from '../../../components/Common';
+import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Search, Filter, Heart, Sparkles, TrendingUp, Calendar, Shield, MapPin, ChevronRight, UserPlus, MessageCircle } from 'lucide-react';
 import { api } from '../../../services/api';
 
 const SpacePatients: React.FC = () => {
-  const { go, selectPatient } = useSantuarioFlow();
+  const { go, selectPatient, notify} = useSantuarioFlow();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'stable' | 'attention'>('all');
-  const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [patientsData, setPatientsData] = useState<any[] | null>(null);
 
@@ -86,7 +85,7 @@ const SpacePatients: React.FC = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    setToast({ title: 'Resumo gerado', message: 'O relatório dos pacientes foi exportado.' });
+    notify('Resumo gerado', 'O relatório dos pacientes foi exportado.', 'info');
   };
 
   return (
@@ -96,7 +95,7 @@ const SpacePatients: React.FC = () => {
         onClose={() => go('EXEC_DASHBOARD')}
         heroImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800"
     >
-        {toast ? <ZenToast toast={toast} onClose={() => setToast(null)} /> : null}
+
         <div className="space-y-6">
             {/* 1. HERO STATS */}
             <div className="bg-nature-900 rounded-[3.5rem] p-8 text-white relative overflow-hidden shadow-2xl">

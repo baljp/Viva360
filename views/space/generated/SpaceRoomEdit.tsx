@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast } from '../../../components/Common';
+import { PortalView } from '../../../components/Common';
 import { Save, Trash2, Camera, UploadCloud } from 'lucide-react';
 import { api } from '../../../services/api';
 
 export default function SpaceRoomEdit() {
-    const { state, back, go } = useSantuarioFlow();
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success'|'info'} | null>(null);
+    const { state, back, go, notify} = useSantuarioFlow();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -35,7 +34,7 @@ export default function SpaceRoomEdit() {
     const handleSave = () => {
         const id = state.selectedRoomId;
         if (!id) {
-            setToast({ title: 'Selecione um Altar', message: 'Volte e escolha um altar para editar.', type: 'info' });
+            notify('Selecione um Altar', 'Volte e escolha um altar para editar.', 'info');
             return;
         }
         setIsSaving(true);
@@ -52,10 +51,10 @@ export default function SpaceRoomEdit() {
                     payload.imageBase64 = imagePreview;
                 }
                 await api.spaces.updateRoom(id, payload);
-                setToast({ title: 'Altar Atualizado', message: 'As alterações foram salvas na egrégora.', type: 'success' });
+                notify('Altar Atualizado', 'As alterações foram salvas na egrégora.', 'success');
                 setTimeout(() => go('ROOMS_STATUS'), 900);
             } catch (e: any) {
-                setToast({ title: 'Falha ao salvar', message: e?.message || 'Não foi possível atualizar o altar.', type: 'info' });
+                notify('Falha ao salvar', e?.message || 'Não foi possível atualizar o altar.', 'error');
             } finally {
                 setIsSaving(false);
             }
@@ -67,7 +66,7 @@ export default function SpaceRoomEdit() {
     };
 
     const handleDeleteRoom = () => {
-        setToast({ title: 'Altar removido', message: 'O espaço foi removido da grade ativa.', type: 'info' });
+        notify('Altar removido', 'O espaço foi removido da grade ativa.', 'info');
         setTimeout(() => go('ROOMS_STATUS'), 1500);
     };
 
@@ -104,7 +103,6 @@ export default function SpaceRoomEdit() {
             onBack={back}
             heroImage={imagePreview && !imagePreview.startsWith('data:') ? imagePreview : 'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=800'}
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="space-y-6 px-4 pb-24">
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm text-center relative overflow-hidden group">
@@ -125,9 +123,9 @@ export default function SpaceRoomEdit() {
                                 try {
                                     const dataUrl = await resizeToDataUrl(file);
                                     setImagePreview(dataUrl);
-                                    setToast({ title: 'Imagem pronta', message: 'Salve para aplicar a nova foto.', type: 'info' });
+                                    notify('Imagem pronta', 'Salve para aplicar a nova foto.', 'info');
                                 } catch (err: any) {
-                                    setToast({ title: 'Falha na imagem', message: err?.message || 'Não foi possível carregar a foto.', type: 'info' });
+                                    notify('Falha na imagem', err?.message || 'Não foi possível carregar a foto.', 'error');
                                 } finally {
                                     // Allow re-selecting the same file.
                                     e.currentTarget.value = '';

@@ -1,18 +1,17 @@
 
 import React, { useEffect, useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { PortalView, BottomSheet, ZenToast } from '../../../components/Common';
+import { PortalView, BottomSheet } from '../../../components/Common';
 import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X } from 'lucide-react';
 import { api } from '../../../services/api';
 import { Transaction } from '../../../types';
 
 export default function PaymentHistoryScreen() {
-    const { back } = useBuscadorFlow();
+    const { back, notify} = useBuscadorFlow();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'expense' | 'income'>('all');
     const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'error' | 'info'} | null>(null);
 
     const fetchData = async () => {
         setLoading(true);
@@ -23,7 +22,7 @@ export default function PaymentHistoryScreen() {
                 setTransactions(summary.transactions || []);
             }
         } catch {
-            setToast({ title: "Erro", message: "Não foi possível carregar seu histórico.", type: 'error' });
+            notify('Erro', 'Não foi possível carregar seu histórico.', 'error');
             setTransactions([]);
         } finally {
             setLoading(false);
@@ -38,7 +37,6 @@ export default function PaymentHistoryScreen() {
 
     return (
         <PortalView title="Financeiro" subtitle="SEUS PAGAMENTOS" onBack={back}>
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <div className="space-y-6">
                 
                 {/* Summary Card */}

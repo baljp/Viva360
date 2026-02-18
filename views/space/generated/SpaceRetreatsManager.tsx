@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast, BottomSheet } from '../../../components/Common';
+import { PortalView, BottomSheet } from '../../../components/Common';
 import { Calendar, Users, Plus, ArrowRight, Edit3, Trash2 } from 'lucide-react';
 import { api } from '../../../services/api';
 
 export default function SpaceRetreatsManager() {
-    const { back, go, selectEvent } = useSantuarioFlow();
-    const [toast, setToast] = useState<any>(null);
+    const { back, go, selectEvent, notify} = useSantuarioFlow();
     const [isLoading, setIsLoading] = useState(true);
     const [events, setEvents] = useState<any[]>([]);
     const [selected, setSelected] = useState<any | null>(null);
@@ -84,7 +83,6 @@ export default function SpaceRetreatsManager() {
                 </button>
             }
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <div className="space-y-6 px-4 pb-24">
                 {isLoading ? (
                     [1,2].map((i) => (
@@ -184,9 +182,9 @@ export default function SpaceRetreatsManager() {
                                     try {
                                         await api.spaces.updateEvent(selected.id, { details: JSON.stringify(nextMeta) });
                                         setEvents((prev) => prev.map((e) => e.id === selected.id ? ({ ...e, details: JSON.stringify(nextMeta) }) : e));
-                                        setToast({ title: 'Retiro cancelado', message: 'O calendário sagrado foi atualizado.', type: 'info' });
+                                        notify('Retiro cancelado', 'O calendário sagrado foi atualizado.', 'info');
                                     } catch {
-                                        setToast({ title: 'Falha ao cancelar', message: 'Tente novamente.', type: 'error' });
+                                        notify('Falha ao cancelar', 'Tente novamente.', 'error');
                                     } finally {
                                         setSelected(null);
                                     }

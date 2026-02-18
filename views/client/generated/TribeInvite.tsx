@@ -1,19 +1,18 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Users, Share2, Copy, Crown, Star, Sparkles, Send } from 'lucide-react';
-import { ZenToast } from '../../../components/Common';
+
 import { shareToSocial } from '../../../src/utils/sharing';
 import { dataUrlToBlob } from '../../../src/utils/dataUrl';
 import { api } from '../../../services/api';
 
 export default function TribeInvite() {
-  const { go, back } = useBuscadorFlow();
+  const { go, back, notify} = useBuscadorFlow();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [inviteImage, setInviteImage] = useState<string | null>(null);
   const [inviteLink, setInviteLink] = useState<string>(() => `${window.location.origin}/invite`);
   const [inviterName, setInviterName] = useState<string>('Viva360');
-  const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
   const INVITE_TEXT = `Olá! Estou te convidando para fazer parte da minha Tribo de Evolução no Viva360. Vamos expandir nossa consciência juntos. 🌿✨\n\n${inviteLink}`;
 
@@ -152,14 +151,13 @@ export default function TribeInvite() {
           });
       } catch (e) {
           console.error(e);
-          setToast({ title: "Erro no Compartilhamento", message: "Tente copiar o link manualmente.", type: "error" });
+          notify('Erro no Compartilhamento', 'Tente copiar o link manualmente.', 'error');
       }
   };
 
   /* Actions */
   return (
     <div className="min-h-screen bg-indigo-950 flex flex-col items-center p-6 relative overflow-hidden">
-       {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
        {/* Background Effects */}
        <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
            <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[40%] bg-indigo-600/20 blur-[100px] rounded-full"></div>
@@ -203,7 +201,7 @@ export default function TribeInvite() {
                </button>
                <button onClick={() => { 
                    navigator.clipboard.writeText(inviteLink); 
-                   setToast({ title: "Link Copiado", message: "Espalhe a luz com sua tribo.", type: "success" });
+                   notify('Link Copiado', 'Espalhe a luz com sua tribo.', 'success');
                 }} className="py-4 bg-indigo-900/50 border border-indigo-500/30 text-indigo-200 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase tracking-widest active:scale-95 transition-all w-full">
                    <Copy size={18} /> Copiar
                </button>

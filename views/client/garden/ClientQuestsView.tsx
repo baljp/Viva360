@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, DailyQuest } from '../../../types';
-import { PortalView, ZenToast } from '../../../components/Common';
+import { PortalView } from '../../../components/Common';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { api } from '../../../services/api';
 import { CheckCheck, Activity, Flame, Gift, Sparkles, TrendingUp, Star, Zap, Award, Lock, Trophy } from 'lucide-react';
@@ -15,9 +15,8 @@ const DEFAULT_QUESTS: DailyQuest[] = [
 ];
 
 export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
-    const { go, back } = useBuscadorFlow();
+    const { go, back, notify} = useBuscadorFlow();
     const [quests, setQuests] = useState<DailyQuest[]>(user.dailyQuests?.length ? user.dailyQuests : DEFAULT_QUESTS);
-    const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
     const [animatingId, setAnimatingId] = useState<string | null>(null);
     const [showAchievements, setShowAchievements] = useState(false);
 
@@ -61,7 +60,7 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
             };
             updateUser(updatedUser);
 
-            setToast({ title: `+${karmaGain} Karma`, message: `${quest.label} concluída!` });
+            notify(`+${karmaGain} Karma`, `${quest.label} concluída!`, 'success');
 
             setTimeout(() => {
                 setAnimatingId(null);
@@ -72,7 +71,6 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
 
     return (
         <PortalView title="Missões do Dia" subtitle="JORNADA DIÁRIA" onBack={back}>
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <div className="px-4 pb-32 space-y-6">
 
                 {/* Progress Hero */}

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, ViewState } from '../../types';
 import { Droplet, Heart, Users, Sparkles, TrendingUp, History, Info, Leaf, Share2, X } from 'lucide-react';
-import { PortalView, ZenToast } from '../../components/Common';
+import { PortalView } from '../../components/Common';
 import { gardenService, GardenStatus } from '../../services/gardenService';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
@@ -11,11 +11,10 @@ import { useIdbImageUrl } from '../../src/hooks/useIdbImageUrl';
 import { buildLocalImageKey } from '../../src/utils/idbImageStore';
 
 export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
-    const { go, back } = useBuscadorFlow();
+    const { go, back, notify} = useBuscadorFlow();
     const [status, setStatus] = useState<{ status: GardenStatus; health: number; recoveryNeeded: boolean }>(gardenService.getPlantStatus(user));
     const [isRitualActive, setIsRitualActive] = useState(false);
     const [activeModal, setActiveModal] = useState<'journey' | 'tribe' | null>(!user.plantType ? 'journey' : null);
-    const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
     const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', status.status, user.plantType || 'oak');
     const evolution = gardenService.calculateEvolution(user);
@@ -27,13 +26,13 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
         updateUser(updatedUser);
         setStatus(gardenService.getPlantStatus(updatedUser));
         setIsRitualActive(false);
-        setToast({ title: "Ciclo Concluído", message: "Seu jardim floresce com sua presença." });
+        notify('Ciclo Concluído', 'Seu jardim floresce com sua presença.', 'info');
     };
 
     const handleTribeAction = (action: 'BLESSING' | 'UNION' | 'PACT') => {
         setActiveModal(null);
         if (action === 'BLESSING') {
-            setToast({ title: "Pedido Enviado", message: "Sua tribo foi notificada da sua necessidade de apoio." });
+            notify('Pedido Enviado', 'Sua tribo foi notificada da sua necessidade de apoio.', 'info');
         } else if (action === 'UNION') {
             go('TRIBE_INTERACTION');
         } else if (action === 'PACT') {
@@ -56,13 +55,10 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
         try {
             await api.users.update(updatedUser);
         } catch {
-            setToast({
-                title: 'Jornada iniciada localmente',
-                message: 'Sincronizando seu jardim. Tente novamente se não atualizar.',
-            });
+            notify('Jornada iniciada localmente', 'Sincronizando seu jardim. Tente novamente se não atualizar.', 'info');
             return;
         }
-        setToast({ title: 'Jornada Iniciada', message: `Sua semente de ${gardenService.getPlantLabel(updatedUser.plantType || 'oak')} foi plantada.` });
+        notify('Jornada Iniciada', `Sua semente de ${gardenService.getPlantLabel(updatedUser.plantType || 'oak')} foi plantada.`, 'success');
     };
 
     // Helper text for Vitality
@@ -81,7 +77,6 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
             onClose={onClose || (() => go('DASHBOARD'))} 
             heroImage="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800"
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             {isRitualActive ? (
                 <DailyRitualWizard user={user} updateUser={handleRitualComplete} onClose={() => setIsRitualActive(false)} />

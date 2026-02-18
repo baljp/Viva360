@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { User } from '../../types';
 import { Building2, MapPin, Star, Clock, Users, Phone, Globe, Heart, Calendar, Shield, ChevronRight, Share2 } from 'lucide-react';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
-import { DynamicAvatar, ZenToast } from '../../components/Common';
+import { DynamicAvatar } from '../../components/Common';
 
 export const SantuarioProfileView: React.FC<{ user: User }> = ({ user }) => {
-    const { go, back } = useGuardiaoFlow();
-    const [toast, setToast] = useState<any>(null);
+    const { go, back, notify} = useGuardiaoFlow();
 
     const space = {
         id: 's1',
@@ -35,13 +34,12 @@ export const SantuarioProfileView: React.FC<{ user: User }> = ({ user }) => {
 
     return (
         <div className="min-h-screen bg-[#f8faf9] pb-32">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="relative h-64">
                 <img src={space.image} className="w-full h-full object-cover" alt={space.name || 'Santuário'} />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                 <button onClick={back} className="absolute top-12 left-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all">←</button>
-                <button onClick={() => setToast({ title: 'Link Copiado', message: 'Compartilhe este santuário', type: 'success' })} className="absolute top-12 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all"><Share2 size={16} /></button>
+                <button onClick={() => notify('Link Copiado', 'Compartilhe este santuário', 'success')} className="absolute top-12 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white active:scale-95 transition-all"><Share2 size={16} /></button>
                 <div className="absolute bottom-6 left-6 right-6">
                     <div className="flex items-center gap-2 mb-2">
                         <span className="px-3 py-1 bg-emerald-500/20 backdrop-blur-md rounded-full text-[9px] font-black text-emerald-200 uppercase tracking-widest border border-emerald-400/30">Vínculo Ativo</span>

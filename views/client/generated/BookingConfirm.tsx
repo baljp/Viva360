@@ -2,13 +2,12 @@
 import React, { useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Check, Calendar, Clock, MapPin, Sparkles, Smartphone, Loader2 } from 'lucide-react';
-import { PortalView, DynamicAvatar, ZenToast } from '../../../components/Common';
+import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { api } from '../../../services/api';
 
 export default function BookingConfirm({ onClose }: { onClose?: () => void }) {
-  const { state, go, back, reset } = useBuscadorFlow();
+  const { state, go, back, reset, notify} = useBuscadorFlow();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [toast, setToast] = useState<{title: string, message: string} | null>(null);
   
   // Find selected professional
   const pro = state.data.pros.find(p => p.id === state.selectedProfessionalId);
@@ -35,9 +34,9 @@ export default function BookingConfirm({ onClose }: { onClose?: () => void }) {
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
-        setToast({ title: "Sincronizado", message: "Arquivo da agenda gerado para importar no celular ou desktop." });
+        notify('Sincronizado', 'Arquivo da agenda gerado para importar no celular ou desktop.', 'info');
       } catch (error: any) {
-        setToast({ title: "Falha na sincronização", message: error?.message || "Não foi possível sincronizar sua agenda agora." });
+        notify('Falha na sincronização', error?.message || 'Não foi possível sincronizar sua agenda agora.', 'error');
       } finally {
         setIsSyncing(false);
       }
@@ -80,7 +79,6 @@ export default function BookingConfirm({ onClose }: { onClose?: () => void }) {
           </div>
         )}
     >
-      {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
 
       <div className="flex flex-col items-center animate-in fade-in duration-500 pb-8">
          {/* Guardian Preview */}

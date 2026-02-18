@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast } from '../../components/Common';
+import { PortalView } from '../../components/Common';
 import { Plus, Edit3, Image as ImageIcon, ChevronRight, Calendar, Settings, Clock, Users, Sun, PenTool, CheckCircle, AlertTriangle, Hammer } from 'lucide-react';
 
 export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData }) => {
-    const { state, go, selectRoom } = useSantuarioFlow();
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'warning' | 'info'} | null>(null);
+    const { state, go, selectRoom, notify} = useSantuarioFlow();
 
     useEffect(() => {
         // Best-effort refresh when the screen mounts (e.g. after editing a room).
@@ -57,13 +56,11 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
     ];
 
     const handleAction = (action: string) => {
-        setToast({ title: 'Ação Iniciada', message: `Processando: ${action}`, type: 'info' });
-        setTimeout(() => setToast(null), 3000);
+        notify('Ação Iniciada', `Processando: ${action}`, 'info');
     };
 
     return (
         <PortalView title="Mundo Físico" subtitle="GESTÃO DE ESPAÇOS" onBack={() => go('EXEC_DASHBOARD')} heroImage="https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=800">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="space-y-6">
                 

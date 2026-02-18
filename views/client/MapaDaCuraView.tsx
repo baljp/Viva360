@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ViewState, Professional, User } from '../../types';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
-import { PortalView, DynamicAvatar, ZenToast, ZenSkeleton, ZenEmptyState, PresenceBadge } from '../../components/Common';
+import { PortalView, DynamicAvatar, ZenSkeleton, ZenEmptyState, PresenceBadge } from '../../components/Common';
 import { useJourneyEngine } from '../../src/hooks/useJourneyEngine';
 import { Play, Search, MapPin, Sparkle, Sun, Moon, Wind, Clock, Star, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { MicroJourneyModal } from './map/MicroJourneyModal';
@@ -17,12 +17,11 @@ interface MapaDaCuraProps {
 }
 
 export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading, user, updateUser, onClose }) => {
-    const { go, selectProfessional } = useBuscadorFlow();
+    const { go, selectProfessional, notify} = useBuscadorFlow();
     const navigate = useNavigate();
     const { journey, context: journeyContext } = useJourneyEngine(user);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeMicroJourney, setActiveMicroJourney] = useState<any>(null);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     
     const [activeGuardians, setActiveGuardians] = useState<Record<string, any>>({});
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
@@ -87,7 +86,6 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
             onBack={handleExit}
             onClose={onClose || handleExit}
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             {activeMicroJourney && (
                 <MicroJourneyModal 
@@ -97,7 +95,7 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
                     onComplete={(u) => {
                         updateUser(u);
                         setActiveMicroJourney(null);
-                        setToast({ title: "Jornada Concluída", message: "Seu jardim floresce com sua dedicação." });
+                        notify('Jornada Concluída', 'Seu jardim floresce com sua dedicação.', 'info');
                     }} 
                 />
             )}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../../../types';
-import { PortalView, DynamicAvatar, ZenToast } from '../../../components/Common';
+import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { Flame, Star, Users, Send, CheckCircle2, Zap, Heart, Wind, Sun, Moon, Leaf, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,12 +27,11 @@ const MOCK_MEMBERS = [
 ];
 
 export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
-    const { back, jump } = useBuscadorFlow();
+    const { back, jump, notify} = useBuscadorFlow();
     const [step, setStep] = useState<'PARTNER' | 'PACT' | 'CUSTOM' | 'SUCCESS'>('PARTNER');
     const [selectedPartner, setSelectedPartner] = useState<any>(null);
     const [selectedPact, setSelectedPact] = useState<any>(null);
     const [customPact, setCustomPact] = useState('');
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     const [inviteLoading, setInviteLoading] = useState(false);
 
     const handleSelectPartner = (p: any) => {
@@ -64,7 +63,7 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
             );
             window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
         } catch {
-            setToast({ title: 'Falha ao gerar convite', message: 'Não foi possível abrir o portal de convite agora.' });
+            notify('Falha ao gerar convite', 'Não foi possível abrir o portal de convite agora.', 'info');
         } finally {
             setInviteLoading(false);
         }
@@ -72,7 +71,6 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
 
     return (
         <PortalView title="Pacto de Alma" subtitle="REDE DE SUSTENTAÇÃO" onBack={back}>
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <div className="flex flex-col h-full bg-nature-50 p-6">
                 

@@ -1,23 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { User, DailyJournalEntry, MoodType } from '../../../types';
-import { PortalView, ZenToast } from '../../../components/Common';
+import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { Book, Lock, TrendingUp, Calendar, Heart, ArrowRight, Video, Plus, Share2 } from 'lucide-react';
+import { Book, Lock, TrendingUp, Calendar, Heart, ArrowRight, Video, Plus, Share2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { generateShareCanvas, shareToSocial } from '../../../src/utils/sharing';
 
 export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
-    const { go } = useBuscadorFlow();
+    const { go, notify} = useBuscadorFlow();
     const [entries, setEntries] = useState<DailyJournalEntry[]>([]);
     const [stats, setStats] = useState<{ total: number; streak: number } | null>(null);
-    const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'error' | 'info' } | null>(null);
+    const [loadingJournal, setLoadingJournal] = useState(true);
 
     useEffect(() => {
         const load = async () => {
-            const list = await api.journal.list();
-            setEntries(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-            setStats({ total: list.length, streak: 0 }); // Mock streak for now
+            try {
+                const list = await api.journal.list();
+                setEntries(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+                setStats({ total: list.length, streak: 0 });
+            } catch {
+                notify?.('Erro', 'Não foi possível carregar o diário.', 'warning');
+            } finally {
+                setLoadingJournal(false);
+            }
         };
         load();
     }, [user.id]);
@@ -59,7 +65,7 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
             });
 
             if (!blob) {
-                setToast({ title: 'Compartilhamento', message: 'Não foi possível gerar o card para compartilhar.', type: 'error' });
+                notify('Compartilhamento', 'Não foi possível gerar o card para compartilhar.', 'error');
                 return;
             }
 
@@ -70,14 +76,13 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                 filename: `viva360-diario-${entry.id}.jpg`,
             });
         } catch (error) {
-            setToast({ title: 'Compartilhamento', message: 'Não foi possível compartilhar agora. Tente novamente.', type: 'error' });
+            notify('Compartilhamento', 'Não foi possível compartilhar agora. Tente novamente.', 'error');
         }
     };
 
     return (
         <PortalView title="Diário da Alma" subtitle="MEMÓRIA EMOCIONAL" onBack={() => go('DASHBOARD')}>
             <div className="flex flex-col h-full bg-nature-50">
-                {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
                 
                 {/* Header Metrics */}
                 <div className="px-6 py-6 bg-white border-b border-nature-100 flex justify-between items-center shadow-sm z-10">
@@ -99,7 +104,12 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                     {/* Timeline Line */}
                     <div className="absolute left-10 top-0 bottom-0 w-px bg-nature-200" />
 
-                    {entries.length === 0 ? (
+                    {loadingJournal ? (
+                        <div className="flex flex-col items-center justify-center h-64 gap-3 text-nature-400">
+                            <Loader2 size={28} className="animate-spin" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Carregando diário...</span>
+                        </div>
+                    ) : entries.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-64 text-center space-y-4 opacity-50">
                             <Book size={48} className="text-nature-300" />
                             <p className="font-serif italic text-nature-900">Seu diário ainda está em branco.</p>

@@ -2,17 +2,16 @@
 import React, { useState, useMemo } from 'react';
 import { Professional, User } from '../../types';
 import { Activity, Brain, Sparkle, Search, MapPin, Clock, ChevronRight, Star, ShieldCheck, Play, ArrowUpRight } from 'lucide-react';
-import { DynamicAvatar, PortalView, ZenToast } from '../../components/Common';
+import { DynamicAvatar, PortalView } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { SPECIALTIES } from '../../constants'; 
 import { MicroJourneyModal } from './map/MicroJourneyModal';
 
 export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolean, user: User, updateUser: (u: User) => void }> = ({ pros = [], isLoading = false, user, updateUser }) => {
-    const { go, selectProfessional } = useBuscadorFlow();
+    const { go, selectProfessional, notify} = useBuscadorFlow();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string>("Tudo");
     const [activeJourney, setActiveJourney] = useState<'Corpo' | 'Mente' | 'Espírito' | null>(null);
-    const [toast, setToast] = useState<{ title: string; message: string } | null>(null);
 
     const filteredPros = useMemo(() => {
         if (!Array.isArray(pros)) return [];
@@ -25,7 +24,7 @@ export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolea
     const handleJourneyComplete = (updatedUser: User) => {
         updateUser(updatedUser);
         setActiveJourney(null);
-        setToast({ title: "Jardim Nutrido", message: "Sua micro-jornada fortaleceu sua essência." });
+        notify('Jardim Nutrido', 'Sua micro-jornada fortaleceu sua essência.', 'info');
     };
 
     const orientation = useMemo(() => {
@@ -47,7 +46,6 @@ export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolea
             onBack={() => go('DASHBOARD')}
             heroImage="https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=800"
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             {activeJourney && (
                 <MicroJourneyModal type={activeJourney} user={user} onClose={() => setActiveJourney(null)} onComplete={handleJourneyComplete} />

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast } from '../../components/Common';
+import { PortalView } from '../../components/Common';
 import { Calendar, ChevronRight, Shield } from 'lucide-react';
 import { api } from '../../services/api';
 
 export const SpacePatientRecords: React.FC = () => {
-  const { state, back, go } = useSantuarioFlow();
-  const [toast, setToast] = useState<{ title: string; message: string; type?: 'info' | 'error' } | null>(null);
+  const { state, back, go, notify} = useSantuarioFlow();
   const [loading, setLoading] = useState(false);
   const [sessions, setSessions] = useState<any[]>([]);
 
@@ -16,7 +15,7 @@ export const SpacePatientRecords: React.FC = () => {
     let mounted = true;
     const load = async () => {
       if (!patientId) {
-        setToast({ title: 'Paciente não selecionado', message: 'Volte e selecione um buscador.', type: 'info' });
+        notify('Paciente não selecionado', 'Volte e selecione um buscador.', 'info');
         return;
       }
       setLoading(true);
@@ -42,7 +41,6 @@ export const SpacePatientRecords: React.FC = () => {
       onClose={() => go('EXEC_DASHBOARD')}
       heroImage="https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=1200"
     >
-      {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
       <div className="space-y-4">
         <div className="bg-amber-50 p-6 rounded-[2.5rem] border border-amber-100 flex items-start gap-4">
           <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-amber-500 shadow-sm shrink-0">

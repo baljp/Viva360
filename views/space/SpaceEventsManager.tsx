@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { User } from '../../types';
 import { Calendar, Plus, Clock, MapPin, Users, Edit3, Trash2 } from 'lucide-react';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
-import { ZenToast, BottomSheet } from '../../components/Common';
+import { BottomSheet } from '../../components/Common';
 import { api } from '../../services/api';
 
 interface SpaceEvent {
@@ -22,8 +22,7 @@ interface SpaceEvent {
 }
 
 export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
-    const { go, back, selectEvent } = useSantuarioFlow();
-    const [toast, setToast] = useState<any>(null);
+    const { go, back, selectEvent, notify} = useSantuarioFlow();
     const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('all');
     const [selectedEvent, setSelectedEvent] = useState<SpaceEvent | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -118,7 +117,6 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
 
     return (
         <div className="min-h-screen bg-[#f8faf9] pb-32">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             
             <header className="bg-gradient-to-br from-indigo-900 to-purple-900 px-6 pt-4 pb-2 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
@@ -269,9 +267,9 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
                                     try {
                                         await api.spaces.updateEvent(selectedEvent.id, { details: JSON.stringify(nextMeta) });
                                         setEvents((prev) => prev.map((e) => e.id === selectedEvent.id ? ({ ...e, status: 'cancelled', _meta: nextMeta }) : e));
-                                        setToast({ title: 'Evento Cancelado', message: 'O calendário sagrado foi atualizado.', type: 'warning' });
+                                        notify('Evento Cancelado', 'O calendário sagrado foi atualizado.', 'warning');
                                     } catch {
-                                        setToast({ title: 'Falha ao Cancelar', message: 'Tente novamente.', type: 'error' });
+                                        notify('Falha ao Cancelar', 'Tente novamente.', 'error');
                                     } finally {
                                         setSelectedEvent(null);
                                     }

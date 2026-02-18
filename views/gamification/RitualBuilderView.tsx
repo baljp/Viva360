@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Sun, Moon, CheckCircle, GripVertical, Droplets, Book, BatteryCharging, Coffee, Music, Wind } from 'lucide-react';
+import { Plus, Trash2, Sun, Moon, CheckCircle, GripVertical, Droplets, Book, BatteryCharging, Coffee, Music, Wind, Loader2 } from 'lucide-react';
 import { PortalView } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
@@ -10,9 +10,11 @@ export const RitualBuilderView: React.FC<{ setView: (v: ViewState) => void }> = 
     const [period, setPeriod] = useState<'morning' | 'night'>('morning');
     const [steps, setSteps] = useState<any[]>([]);
     const [newStep, setNewStep] = useState('');
+    const [loadingSteps, setLoadingSteps] = useState(true);
 
     useEffect(() => {
-        api.rituals.get(period).then(setSteps);
+        setLoadingSteps(true);
+        api.rituals.get(period).then(setSteps).finally(() => setLoadingSteps(false));
     }, [period]);
 
     const handleAdd = () => {
@@ -44,7 +46,12 @@ export const RitualBuilderView: React.FC<{ setView: (v: ViewState) => void }> = 
                 </div>
 
                 <div className="space-y-3">
-                    {steps.map((step, idx) => {
+                    {loadingSteps ? (
+                        <div className="flex flex-col items-center justify-center py-12 gap-3 text-nature-400">
+                            <Loader2 size={24} className="animate-spin" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest">Carregando rituais...</span>
+                        </div>
+                    ) : steps.map((step, idx) => {
                         const Icon = ICONS[step.icon] || Sun;
                         return (
                             <div key={step.id} className="bg-white p-4 rounded-2xl border border-nature-100 flex items-center gap-4 animate-in slide-in-from-bottom duration-300" style={{ animationDelay: `${idx * 50}ms` }}>

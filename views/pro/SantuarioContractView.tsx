@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
-import { Shield, FileText, Calendar, DollarSign, Clock, CheckCircle2, AlertTriangle, Download, Sparkles } from 'lucide-react';
+import { Shield, FileText, Calendar, DollarSign, Clock, CheckCircle2, AlertTriangle, Download, Sparkles, Loader2 } from 'lucide-react';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { ZenToast, BottomSheet } from '../../components/Common';
 
@@ -35,7 +35,7 @@ export const SantuarioContractView: React.FC<{ user: User }> = ({ user }) => {
         </div>
     );
 
-    if (!contract) return <div className="min-h-screen bg-[#f8faf9] flex items-center justify-center text-nature-400">Carregando Contrato...</div>;
+    if (!contract) return <div className="min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center gap-3 text-nature-400"><Loader2 size={28} className="animate-spin" /><span className="text-xs font-bold uppercase tracking-widest">Carregando Contrato...</span></div>;
 
 
     const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
