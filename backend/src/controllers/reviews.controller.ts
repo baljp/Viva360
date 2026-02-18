@@ -51,19 +51,17 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
         };
     }
 
-    // For complex JSON filtering we use a raw approach
-    const typeFilter = type !== 'all'
-        ? `AND payload->>'targetType' = '${type === 'guardian' ? 'guardian' : 'space'}'`
-        : '';
+    // MOD-06: Fully parameterized queries — no string interpolation in SQL
+    const targetType = type !== 'all' ? (type === 'guardian' ? 'guardian' : 'space') : 'all';
 
     const [countResult, events] = await Promise.all([
         prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
-            `SELECT COUNT(*) as count FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 ${typeFilter}`,
-            spaceId
+            `SELECT COUNT(*) as count FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 AND ($2 = 'all' OR payload->>'targetType' = $2)`,
+            spaceId, targetType
         ),
         prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(
-            `SELECT id, payload, created_at FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 ${typeFilter} ORDER BY created_at DESC LIMIT $2 OFFSET $3`,
-            spaceId, limit, skip
+            `SELECT id, payload, created_at FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 AND ($2 = 'all' OR payload->>'targetType' = $2) ORDER BY created_at DESC LIMIT $3 OFFSET $4`,
+            spaceId, targetType, limit, skip
         ),
     ]);
 

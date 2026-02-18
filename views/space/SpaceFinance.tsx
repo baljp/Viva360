@@ -13,8 +13,11 @@ interface SpaceFinanceProps {
 export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, transactions, flow }) => {
     const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'warning' | 'info'} | null>(null);
 
-    const handleAction = (action: string) => {
-        setToast({ title: 'Ação Iniciada', message: `Processando: ${action}`, type: 'info' });
+    // MOD-04: Route specific actions to real views or honest feedback
+    const navigateTo = (screen: string) => flow.go(screen);
+
+    const showImplementing = (feature: string) => {
+        setToast({ title: 'Em Implementação', message: `${feature} estará disponível em breve.`, type: 'info' });
         setTimeout(() => setToast(null), 3000);
     };
 
@@ -57,7 +60,7 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm relative overflow-hidden">
                     <div className="flex justify-between items-center mb-6">
                         <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2"><BarChart3 size={14}/> Ocupação Semanal</h4>
-                        <button onClick={() => handleAction('Ver Agenda')} className="text-[10px] font-bold text-indigo-600 hover:underline">Ver detalhada</button>
+                        <button onClick={() => navigateTo('AGENDA_OVERVIEW')} className="text-[10px] font-bold text-indigo-600 hover:underline">Ver detalhada</button>
                     </div>
                     <div className="space-y-4">
                         {[
@@ -98,11 +101,11 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                     </div>
                     <div className="flex gap-2">
                         {[
-                            { label: 'Abrir Horários', icon: Calendar },
-                            { label: 'Criar Evento', icon: Users },
-                            { label: 'Bloquear', icon: AlertTriangle }
+                            { label: 'Abrir Horários', icon: Calendar, action: () => navigateTo('AGENDA_OVERVIEW') },
+                            { label: 'Criar Evento', icon: Users, action: () => navigateTo('EVENT_CREATE') },
+                            { label: 'Bloquear', icon: AlertTriangle, action: () => showImplementing('Bloqueio de horários') }
                         ].map(act => (
-                            <button key={act.label} onClick={() => handleAction(act.label)} className="flex-1 py-3 border border-nature-100 rounded-xl flex flex-col items-center gap-1 hover:bg-nature-50 transition-colors active:scale-95">
+                            <button key={act.label} onClick={act.action} className="flex-1 py-3 border border-nature-100 rounded-xl flex flex-col items-center gap-1 hover:bg-nature-50 transition-colors active:scale-95">
                                 <act.icon size={14} className="text-nature-400" />
                                 <span className="text-[9px] font-bold text-nature-600 uppercase tracking-tight">{act.label}</span>
                             </button>
@@ -161,16 +164,11 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                     </div>
                     <div className="flex flex-col gap-3 pt-2">
                         <div className="grid grid-cols-2 gap-3">
-                            <button onClick={() => handleAction('Ver Extrato')} className="py-3 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold text-indigo-600 uppercase hover:bg-indigo-50 transition-colors">Ver Extrato</button>
-                            <button onClick={() => handleAction('Solicitar Saque')} className="py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors active:scale-95">Solicitar Saque</button>
+                            <button onClick={() => navigateTo('FINANCE_OVERVIEW')} className="py-3 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold text-indigo-600 uppercase hover:bg-indigo-50 transition-colors">Ver Extrato</button>
+                            <button onClick={() => showImplementing('Solicitação de saque')} className="py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors active:scale-95">Solicitar Saque</button>
                         </div>
                         <button 
-                            onClick={() => {
-                                handleAction('Gerando Relatório...');
-                                setTimeout(() => {
-                                    setToast({ title: 'Sucesso', message: 'Relatório Mensal consolidado e enviado para o e-mail cadastrado.', type: 'success' });
-                                }, 2000);
-                            }} 
+                            onClick={() => showImplementing('Exportação contábil')}
                             className="w-full py-3 bg-nature-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-colors"
                         >
                             Exportar p/ Contabilidade

@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { buildCorsOptions } from './lib/corsConfig';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import ritualsRoutes from './routes/rituals.routes';
@@ -17,7 +18,7 @@ const app = express();
 const PORT = process.env.PORT || 3002;
 
 app.use(helmet());
-app.use(cors());
+app.use(cors(buildCorsOptions()));
 app.use(express.json());
 
 // Metrics
