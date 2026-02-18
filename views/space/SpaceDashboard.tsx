@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
 import { 
-    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy, Lock, Moon
+    Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy, Lock, Moon, Loader2
 } from 'lucide-react';
+import { api, request } from '../../services/api';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 import { SPACE_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../utils/gamification';
@@ -194,7 +195,56 @@ const OperationsTab = ({ go }: any) => (
     </div>
 );
 
-const ManagementTab = ({ go, revenue, teamSize }: any) => (
+const ManagementTab = ({ go, revenue, teamSize }: any) => {
+    const [exporting, setExporting] = useState(false);
+
+    // MOD-03: Real financial data export instead of 'Mock Financial Data Export'
+    const handleExportCycle = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (exporting) return;
+        setExporting(true);
+        try {
+            const data = await request('/finance/transactions', { purpose: 'finance-export' });
+            const transactions = Array.isArray(data) ? data : data?.transactions || [];
+
+            const headers = ['Data', 'Tipo', 'Descrição', 'Valor (R$)', 'Status'];
+            const rows = transactions.map((t: any) => [
+                t.created_at ? new Date(t.created_at).toLocaleDateString('pt-BR') : '-',
+                t.type || t.contextType || '-',
+                t.description || '-',
+                typeof t.amount === 'number' ? t.amount.toFixed(2) : '0.00',
+                t.status || 'completed',
+            ]);
+
+            const csvContent = [
+                `Fechamento Viva360 - ${new Date().toLocaleDateString('pt-BR')}`,
+                '',
+                headers.join(','),
+                ...rows.map((r: string[]) => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')),
+                '',
+                `Total de transações: ${rows.length}`,
+            ].join('\n');
+
+            const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `fechamento_viva360_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } catch {
+            const blob = new Blob(['Erro ao exportar dados. Tente novamente.'], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `erro_export_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* LOGICAL GROUPING: FINANCIAL HUB */}
         <div className="bg-white rounded-[3rem] p-6 border border-nature-100 shadow-sm space-y-6">
@@ -255,15 +305,17 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => (
                      </div>
                  </div>
                  <button 
-                    onClick={(e) => { e.stopPropagation(); const handleExportCycle = () => { const blob = new Blob(['Mock Financial Data Export'], { type: 'text/csv' }); const url = window.URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `fechamento_viva360_${new Date().toISOString().split('T')[0]}.csv`; a.click(); }; handleExportCycle(); }} 
-                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-emerald-700 active:scale-95 transition-all"
+                    onClick={handleExportCycle}
+                    disabled={exporting}
+                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50"
                 >
-                    Exportar
+                    {exporting ? <Loader2 size={14} className="animate-spin" /> : 'Exportar'}
                 </button>
             </div>
         </div>
     </div>
-);
+    );
+};
 
 const GrowthTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">

@@ -44,9 +44,6 @@ export default function CheckoutScreen() {
     setLoading(true);
     setErrorMessage('');
     try {
-        // Mocking a slight delay for ritualistic feel
-        await new Promise(resolve => setTimeout(resolve, 2000));
-
         const amount = isHealingCircleCheckout && postCheckout.amount > 0 ? postCheckout.amount : 150.0;
         const description = isHealingCircleCheckout && postCheckout.description
           ? postCheckout.description
@@ -56,7 +53,10 @@ export default function CheckoutScreen() {
           ? `healing_circle:${postCheckout.contextId || ''}`.replace(/:$/, '')
           : (method === 'direct' ? 'tribe-direct-flow' : 'bazar-checkout-flow');
 
-        const response = await api.payment.checkout(amount, description, 'pro_001', {
+        // MOD-01: Use real provider ID from flow state instead of hardcoded 'pro_001'
+        const providerId = state.selectedProfessionalId || undefined;
+
+        const response = await api.payment.checkout(amount, description, providerId, {
           contextType,
           contextRef,
           items: [{ id: 'checkout-guided-service', price: amount, type: 'service' }],
@@ -75,7 +75,6 @@ export default function CheckoutScreen() {
         
         setShowSuccess(true);
     } catch (error: any) {
-        console.error("Payment failed", error);
         setErrorMessage(error?.message || 'Não foi possível concluir sua oferenda agora.');
     } finally {
         setLoading(false);

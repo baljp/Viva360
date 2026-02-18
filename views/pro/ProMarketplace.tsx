@@ -12,10 +12,11 @@ export const ProMarketplace: React.FC<{
     myProducts?: Product[], 
     refreshData?: () => void 
 }> = ({ user, myProducts = [], refreshData = () => {} }) => {
-    const { go } = useGuardiaoFlow();
+    const { go, notify } = useGuardiaoFlow();
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [activeTab, setActiveTab] = useState<'manage' | 'explore'>('manage');
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success'|'info'} | null>(null);
+    const [toast, setToast] = useState<{title: string, message: string, type?: 'success'|'info'|'warning'} | null>(null);
+    const [buyingId, setBuyingId] = useState<string | null>(null);
 
     const handleAddProduct = async (pData: any) => {
         await api.marketplace.create({ ...pData, ownerId: user.id });
@@ -24,13 +25,25 @@ export const ProMarketplace: React.FC<{
         setTimeout(() => setToast(null), 3000);
     };
 
-    const handleBuy = (product: Product) => {
-        setToast({ title: 'Interesse Enviado', message: `O vendedor de "${product.name}" foi notificado.`, type: 'success' });
-        setTimeout(() => setToast(null), 3000);
+    // MOD-02: Real POST /marketplace/purchase instead of toast-only
+    const handleBuy = async (product: Product) => {
+        if (buyingId) return;
+        setBuyingId(product.id);
+        try {
+            await api.marketplace.purchase(product.id, product.price, product.name);
+            setToast({ title: 'Interesse Registrado', message: `O vendedor de "${product.name}" foi notificado via plataforma.`, type: 'success' });
+            setTimeout(() => setToast(null), 3000);
+        } catch (err: any) {
+            const msg = err?.message || 'Não foi possível registrar interesse.';
+            notify?.('Erro', msg, 'error');
+        } finally {
+            setBuyingId(null);
+        }
     };
 
+    // MOD-02: Honest feedback — highlight/save feature not yet backed by API
     const handleSaveProduct = (product: Product) => {
-        setToast({ title: 'Item destacado', message: `"${product.name}" foi marcado para destaque.`, type: 'info' });
+        setToast({ title: 'Em Implementação', message: `O destaque de produtos estará disponível em breve.`, type: 'info' });
         setTimeout(() => setToast(null), 3000);
     };
 

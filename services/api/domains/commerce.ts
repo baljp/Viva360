@@ -66,6 +66,14 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
         return false;
       }
     },
+    // MOD-02: Real purchase via POST /marketplace/purchase
+    purchase: async (productId: string, amount: number, description?: string) => {
+      return await request('/marketplace/purchase', {
+        method: 'POST',
+        purpose: 'marketplace-purchase',
+        body: JSON.stringify({ product_id: productId, amount, description }),
+      });
+    },
   },
 
   admin: {
