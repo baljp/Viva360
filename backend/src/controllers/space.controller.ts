@@ -38,7 +38,8 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
         SELECT COALESCE(SUM(amount), 0)::numeric as total FROM public.transactions WHERE status = 'completed'
       `;
       revenue = Number((result as any)?.[0]?.total || 0);
-    } catch {
+    } catch (err) {
+      logger.warn('getAnalytics: revenue query failed, using estimate', { error: String(err) });
       revenue = totalAppointments * 180;
     }
 
@@ -54,7 +55,7 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
     try {
       const reviews = await prisma.review.findMany({ select: { rating: true } });
       if (reviews.length > 0) avgRating = reviews.reduce((acc: number, r: any) => acc + Number(r.rating), 0) / reviews.length;
-    } catch {}
+    } catch (err) { logger.warn('getAnalytics: avgRating query failed', { error: String(err) }); }
 
     let avgDuration = 50;
     try {
@@ -62,7 +63,7 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
         SELECT COALESCE(AVG(duration_min), 50)::int as avg_dur FROM public.appointments WHERE duration_min > 0
       `;
       avgDuration = Number((result as any)?.[0]?.avg_dur || 50);
-    } catch {}
+    } catch (err) { logger.warn('getAnalytics: avgDuration query failed', { error: String(err) }); }
 
     let topGuardians: any[] = [];
     try {
@@ -76,7 +77,7 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
         revenue: `R$ ${(Number(g.revenue || 0) / 1000).toFixed(1)}k`,
         rating: avgRating > 0 ? avgRating.toFixed(1) : '5.0'
       }));
-    } catch {}
+    } catch (err) { logger.warn('getAnalytics: topGuardians query failed', { error: String(err) }); }
 
     let roomOccupancy: any[] = [];
     try {
@@ -85,7 +86,7 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
         name: r.name, pct: Math.min(100, r.session_count ? Math.round((r.session_count / 150) * 100) : 0),
         sessions: r.session_count || 0
       }));
-    } catch {}
+    } catch (err) { logger.warn('getAnalytics: roomOccupancy query failed', { error: String(err) }); }
 
     return res.json({
       appointments: totalAppointments, revenue, guardians: activeGuardians, occupancy,
@@ -107,7 +108,7 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
     try {
       const gr = reviews.filter((r: any) => !String(r.target_id || '').toLowerCase().includes('sala'));
       if (gr.length > 0) avgGuardian = gr.reduce((acc: number, r: any) => acc + Number(r.rating), 0) / gr.length;
-    } catch {}
+    } catch (err) { logger.warn('getReviews: avgGuardian calc failed', { error: String(err) }); }
 
     return res.json({
         average: avg.toFixed(1), count, recommends,

@@ -360,14 +360,11 @@ export const ProDashboard: React.FC<{
                         </div>
                         <div className="divide-y divide-nature-50">
                             {[
-                                { rank: 1, name: 'Dra. Marina', karma: 320, avatar: 'M', color: 'bg-amber-100 text-amber-700 ring-amber-300' },
-                                { rank: 2, name: user.name, karma: user.karma || 180, avatar: user.name.charAt(0), color: 'bg-emerald-100 text-emerald-700 ring-emerald-300' },
-                                { rank: 3, name: 'Dr. Rafael', karma: 150, avatar: 'R', color: 'bg-indigo-100 text-indigo-700 ring-indigo-300' },
-                                { rank: 4, name: 'Terapeuta Ana', karma: 120, avatar: 'A', color: 'bg-rose-50 text-rose-600 ring-rose-200' },
+                                { rank: 1, name: user.name, karma: user.karma || 0, avatar: user.name.charAt(0), color: 'bg-emerald-100 text-emerald-700 ring-emerald-300', isUser: true },
                             ].map((g) => (
-                                <div key={g.rank} className={`flex items-center gap-4 px-6 py-4 ${g.name === user.name ? 'bg-emerald-50/50' : ''}`}>
-                                    <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-black ${g.rank <= 3 ? 'bg-amber-100 text-amber-700' : 'bg-nature-50 text-nature-400'}`}>
-                                        {g.rank <= 3 ? ['🥇','🥈','🥉'][g.rank-1] : g.rank}
+                                <div key={g.rank} className={`flex items-center gap-4 px-6 py-4 bg-emerald-50/50`}>
+                                    <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black bg-amber-100 text-amber-700">
+                                        🥇
                                     </span>
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ring-2 ${g.color}`}>
                                         {g.avatar}
@@ -376,11 +373,12 @@ export const ProDashboard: React.FC<{
                                         <h5 className="font-bold text-nature-900 text-sm">{g.name}</h5>
                                         <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">{g.karma} Karma</p>
                                     </div>
-                                    {g.name === user.name && (
-                                        <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-1 rounded-lg uppercase">Você</span>
-                                    )}
+                                    <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-1 rounded-lg uppercase">Você</span>
                                 </div>
                             ))}
+                            <div className="px-6 py-4 text-center">
+                                <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">Ranking completo disponível quando mais guardiões participarem</p>
+                            </div>
                         </div>
                     </div>
 
