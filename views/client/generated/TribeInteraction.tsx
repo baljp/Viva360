@@ -194,7 +194,8 @@ export default function TribeInteraction() {
            </button>
        </header>
 
-       <div className="flex-1 p-6 overflow-y-auto space-y-6 pb-32">
+       {/* Keep enough space for the composer + mobile bottom nav */}
+       <div className="flex-1 p-6 overflow-y-auto space-y-6 pb-[calc(18rem+env(safe-area-inset-bottom))]">
            {isConnecting && (
              <div className="bg-white border border-slate-100 rounded-2xl p-4 text-slate-500 text-xs font-medium italic">
                Sincronizando sala...
@@ -241,7 +242,8 @@ export default function TribeInteraction() {
            ))}
        </div>
 
-       <div className="p-4 bg-white border-t border-slate-100 fixed bottom-0 w-full pb-8">
+       {/* Composer: lift above the floating mobile bottom nav and respect safe-area */}
+       <div className="p-4 bg-white border-t border-slate-100 fixed inset-x-0 z-[250] lg:bottom-0 bottom-[calc(5.25rem+env(safe-area-inset-bottom))] pb-[calc(1rem+env(safe-area-inset-bottom))]">
            {/* Energy Selector */}
            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
                {ENERGIES.map(e => (
@@ -273,7 +275,14 @@ export default function TribeInteraction() {
                   }}
                   className={`flex-1 bg-transparent border-none outline-none px-4 text-sm ${selectedEnergy ? 'text-indigo-600 font-medium italic' : ''}`} 
                />
-               <button aria-label="Enviar mensagem" disabled={isConnecting || !!joinError} onClick={handleSend} className="p-3 bg-indigo-600 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"><Send size={18}/></button>
+               <button
+                 aria-label="Enviar mensagem"
+                 disabled={isConnecting || !!joinError}
+                 onClick={handleSend}
+                 className="p-3 bg-indigo-600 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+               >
+                 <Send size={18} />
+               </button>
            </div>
        </div>
     </div>

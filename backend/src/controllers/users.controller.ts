@@ -282,8 +282,13 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
 
     const snaps = (events || []).map((event) => {
         const payload = event.payload as any;
+        const photoHash = String(payload?.photoHash || payload?.hash || '').trim();
+        const stableId = photoHash || String(event.id);
         return {
-            id: String(event.id),
+            // Use photoHash as the stable identifier when available so the frontend can
+            // resolve the device-local (IndexedDB) image with `buildLocalImageKey(id)`.
+            id: stableId,
+            photoHash: photoHash || null,
             date: event.created_at,
             mood: String(payload?.mood || 'SERENO'),
             image: payload?.photoThumb || payload?.thumb || payload?.image || '',

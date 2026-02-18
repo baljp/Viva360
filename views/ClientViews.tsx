@@ -73,8 +73,11 @@ export const ClientViews: React.FC<{
         [ViewState.CLIENT_ORACLE]: ['ORACLE_PORTAL', 'ORACLE_SHUFFLE', 'ORACLE_REVEAL', 'ORACLE_HISTORY'],
         [ViewState.CLIENT_JOURNEY]: ['EVOLUTION', 'EVOLUTION_ANALYTICS', 'EVOLUTION_ACHIEVEMENTS', 'EVOLUTION_HISTORY', 'EVOLUTION_TIMELAPSE', 'TIME_LAPSE_EXPERIENCE', 'GARDEN_VIEW', 'HISTORY', 'EVO_GRIMOIRE'],
         [ViewState.CLIENT_METAMORPHOSIS]: ['METAMORPHOSIS_CHECKIN', 'METAMORPHOSIS_CAMERA', 'METAMORPHOSIS_MESSAGE', 'METAMORPHOSIS_RITUAL', 'METAMORPHOSIS_FEEDBACK'],
-        [ViewState.CLIENT_TRIBO]: ['TRIBE_DASH', 'TRIBE_INVITE', 'TRIBE_INTERACTION', 'OFFLINE_RETREAT', 'HEALING_CIRCLE', 'CHAT_LIST', 'CHAT_ROOM', 'SOUL_PACT'],
-        [ViewState.CLIENT_EXPLORE]: ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM'],
+        // Checkout can be entered from multiple places (e.g. Healing Circle inside Tribo).
+        // Keep it inside the cluster to avoid Router->Flow forcing a bounce back to TRIBE_DASH.
+        [ViewState.CLIENT_TRIBO]: ['TRIBE_DASH', 'TRIBE_INVITE', 'TRIBE_INTERACTION', 'OFFLINE_RETREAT', 'HEALING_CIRCLE', 'CHAT_LIST', 'CHAT_ROOM', 'SOUL_PACT', 'CHECKOUT', 'PAYMENT_SUCCESS'],
+        // Booking flow can end in checkout; preserve it while URL remains /client/explore.
+        [ViewState.CLIENT_EXPLORE]: ['BOOKING_SEARCH', 'BOOKING_SELECT', 'BOOKING_CONFIRM', 'CHECKOUT', 'PAYMENT_SUCCESS'],
         [ViewState.CLIENT_PRO_DETAILS]: ['BOOKING_SELECT'],
         [ViewState.CLIENT_MARKETPLACE]: ['MARKETPLACE'], // Specific cluster for marketplace
     };

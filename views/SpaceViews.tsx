@@ -91,6 +91,17 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
 
     useFlowSync({ state: flowState, go, jump }, view, '/space', map, clusters, spaceStateRoutes as Record<string, string>);
 
+    // Guard-rail: ensure the flow state matches the current router view.
+    // This prevents rare cases where the URL changes (sidebar navigation) but the flow remains on a previous screen.
+    useEffect(() => {
+        const target = map[view];
+        if (!target) return;
+        const allowed = clusters[view];
+        if (allowed?.includes(flowState.currentState)) return;
+        if (flowState.currentState === target) return;
+        jump(target);
+    }, [view, flowState.currentState, jump]);
+
      // Initial Data Fetch
      useEffect(() => {
         if (user.id) {
