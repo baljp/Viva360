@@ -1,5 +1,10 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const FE_PORT = Number(process.env.PW_FE_PORT || '5173');
+const BE_PORT = Number(process.env.PW_BE_PORT || '3001');
+const MOCK_TOKEN = String(process.env.MOCK_AUTH_TOKEN || 'viva360_test_mock_token_2026').trim();
+process.env.MOCK_AUTH_TOKEN = MOCK_TOKEN;
+
 export default defineConfig({
   testDir: './tests',
   testMatch: ['smoke*.spec.ts'],
@@ -9,7 +14,7 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: `http://127.0.0.1:${FE_PORT}`,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -21,14 +26,14 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'env -u NO_COLOR npm run dev:api:test',
-      url: 'http://localhost:3001/api/ping',
+      command: `env -u NO_COLOR HOST=127.0.0.1 MOCK_AUTH_TOKEN=${MOCK_TOKEN} PORT=${BE_PORT} NODE_ENV=test APP_MODE=MOCK ENABLE_TEST_MODE=true npm run dev:api:test`,
+      url: `http://127.0.0.1:${BE_PORT}/api/ping`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
     {
-      command: 'env -u NO_COLOR VITE_APP_MODE=MOCK VITE_ENABLE_TEST_MODE=true npm run dev',
-      url: 'http://localhost:5173',
+      command: `env -u NO_COLOR VITE_API_PROXY_TARGET=http://127.0.0.1:${BE_PORT} VITE_APP_MODE=MOCK VITE_ENABLE_TEST_MODE=true VITE_MOCK_ENABLED=true VITE_MOCK_AUTH_TOKEN=${MOCK_TOKEN} VITE_DEV_HOST=127.0.0.1 npm run dev -- --host 127.0.0.1 --port ${FE_PORT}`,
+      url: `http://127.0.0.1:${FE_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },

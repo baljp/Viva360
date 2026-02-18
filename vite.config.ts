@@ -66,7 +66,10 @@ export default defineConfig({
     },
   },
   server: {
-    host: true,
+    // Default to loopback for stability in sandboxed environments; opt-in to LAN binding.
+    host: String(process.env.VITE_BIND_ALL || '').trim().toLowerCase() === 'true'
+      ? true
+      : (process.env.VITE_DEV_HOST || '127.0.0.1'),
     proxy: {
       '/api': {
         // Allow QA to run backend on a dedicated port to avoid conflicts (EADDRINUSE)

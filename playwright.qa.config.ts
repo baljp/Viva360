@@ -3,6 +3,8 @@ import path from 'path';
 
 const QA_BE_PORT = Number(process.env.PW_BE_PORT || '3101');
 const QA_FE_PORT = Number(process.env.PW_FE_PORT || '5174');
+const MOCK_TOKEN = String(process.env.MOCK_AUTH_TOKEN || 'viva360_test_mock_token_2026').trim();
+process.env.MOCK_AUTH_TOKEN = MOCK_TOKEN;
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -54,13 +56,13 @@ export default defineConfig({
   /* Run backend + frontend before QA tests */
   webServer: [
     {
-      command: `env -u NO_COLOR STRICT_RECORD_CONSENT=true JWT_SECRET=viva360_test_jwt_secret_2026 PORT=${QA_BE_PORT} npm run dev:api:test`,
+      command: `env -u NO_COLOR HOST=127.0.0.1 MOCK_AUTH_TOKEN=${MOCK_TOKEN} STRICT_RECORD_CONSENT=true JWT_SECRET=viva360_test_jwt_secret_2026 PORT=${QA_BE_PORT} npm run dev:api:test`,
       url: `http://127.0.0.1:${QA_BE_PORT}/api/ping`,
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },
     {
-      command: `env -u NO_COLOR VITE_API_PROXY_TARGET=http://127.0.0.1:${QA_BE_PORT} VITE_APP_MODE=MOCK VITE_ENABLE_TEST_MODE=true npm run dev -- --host 127.0.0.1 --port ${QA_FE_PORT}`,
+      command: `env -u NO_COLOR VITE_API_PROXY_TARGET=http://127.0.0.1:${QA_BE_PORT} VITE_APP_MODE=MOCK VITE_ENABLE_TEST_MODE=true VITE_MOCK_ENABLED=true VITE_MOCK_AUTH_TOKEN=${MOCK_TOKEN} npm run dev -- --host 127.0.0.1 --port ${QA_FE_PORT}`,
       url: `http://127.0.0.1:${QA_FE_PORT}`,
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,

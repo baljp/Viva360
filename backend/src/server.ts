@@ -4,7 +4,13 @@ import os from 'os';
 import app from './app';
 import { logger } from './lib/logger';
 
-const PORT = process.env.PORT || 3000;
+// IMPORTANT: Node treats a string "3001" as a pipe name, not a TCP port.
+// Normalize numeric ports to a number to avoid `listen EPERM` in sandboxed envs.
+const rawPort = (process.env.PORT || '').trim();
+const PORT: number | string = rawPort
+  ? (/^\d+$/.test(rawPort) ? Number(rawPort) : rawPort)
+  : 3000;
+const HOST = (process.env.HOST || process.env.BIND_HOST || '').trim() || null;
 const numCPUs = os.cpus().length;
 
 if (cluster.isPrimary && process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'production') { 
@@ -20,28 +26,19 @@ if (cluster.isPrimary && process.env.NODE_ENV !== 'test' && process.env.NODE_ENV
   });
 } else {
   // Worker Process or Direct Process
-  const server = app.listen(PORT, () => {
-    logger.info('server.listening', { port: PORT, pid: process.pid });
-  });
-
-  // Middleware Registration (Circuit Breaker)
-  // Dynamic import or require if app.use is not exposed here.
-  // Actually, app is imported. We should attach it to app, but app is already exported from ./app.
-  // It's better to add this in app.ts, but `server.ts` controls the process.
-  // Let's modify app.ts instead? No, app.ts handles middleware.
-  // Wait, `app` is imported from `./app`. We can manipulate it before listen if needed, 
-  // but standard practice is in app.ts.
-  // Checking `app.ts` content first would be safer, but user asked for server.ts updates in plan.
-  // Assuming I can't see app.ts, I will try to use it here or check app.ts.
-  
-  // Checking app.ts is safer. I'll read it.
+  const server = HOST
+    ? app.listen(PORT, HOST, () => {
+        logger.info('server.listening', { port: PORT, host: HOST, pid: process.pid });
+      })
+    : app.listen(PORT, () => {
+        logger.info('server.listening', { port: PORT, pid: process.pid });
+      });
 
   process.on('SIGTERM', () => {
     server.close(() => {
       logger.info('server.sigterm');
     });
   });
-
 
   // Prevent crash on unhandled errors
   process.on('uncaughtException', (err) => {
