@@ -10,6 +10,7 @@ import { useSoulCards } from '../../src/hooks/useSoulCards';
 import { SoulCardReveal } from './SoulCardReveal';
 import { dataUrlToBlob } from '../../src/utils/dataUrl';
 import { buildLocalImageKey, idbImages } from '../../src/utils/idbImageStore';
+import { useObjectUrl } from '../../src/hooks/useObjectUrl';
 
 const MOODS = [
     { id: 'Feliz', icon: Sun, element: 'Fogo' },
@@ -47,6 +48,13 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     const ritualDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const soulCardUserId = String(user?.id || 'user_current').trim() || 'user_current';
     const { performDraw } = useSoulCards(soulCardUserId);
+    const photoPreviewUrl = useObjectUrl(photo?.fullBlob || null);
+
+    useEffect(() => {
+        if (!photoPreviewUrl) return;
+        // Keep result photo thumb synced to the locally captured high-quality blob URL.
+        setResult((prev: any) => (prev ? { ...prev, photoThumb: photoPreviewUrl } : prev));
+    }, [photoPreviewUrl]);
 
     useEffect(() => {
         return () => {
@@ -91,7 +99,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         const fallbackEntry = {
             id: Date.now(),
             mood,
-            photoThumb: capture.displayUrl,
+            photoThumb: capture.thumbDataUrl,
             photoHash: hash,
             quote: cardPhrase,
             timestamp: new Date().toISOString()
@@ -114,7 +122,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 const card = performDraw(1, mood); // Mock streak 1 for now
                 setDrewCard(card);
                 // Keep local high-quality photo for UI/canvas.
-                setResult({ ...(entry as any), photoThumb: capture.displayUrl, photoHash: hash });
+                setResult({ ...(entry as any), photoThumb: capture.thumbDataUrl, photoHash: hash });
                 setIsProcessing(false);
                 setShowSoulReveal(true);
                 // setStep(4) will be triggered after reveal closes
@@ -136,7 +144,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         setResult((prev: any) => prev || {
             id: Date.now(),
             mood,
-            photoThumb: photo.displayUrl,
+            photoThumb: photo.thumbDataUrl,
             photoHash: photoHash || undefined,
             quote: cardPhrase || phraseService.getPhrase(mood || 'Calmo', 'CARD'),
             timestamp: new Date().toISOString(),
@@ -387,7 +395,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             {showSoulReveal && drewCard && photo && (
                 <SoulCardReveal 
                     card={drewCard} 
-                    userPhoto={photo.displayUrl} 
+                    userPhoto={photoPreviewUrl || photo.thumbDataUrl} 
                     onClose={() => {
                         setShowSoulReveal(false);
                         setStep(4);

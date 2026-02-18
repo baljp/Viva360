@@ -10,6 +10,7 @@ import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { dataUrlToBlob } from '../../../src/utils/dataUrl';
 import { buildLocalImageKey, idbImages } from '../../../src/utils/idbImageStore';
+import { useObjectUrl } from '../../../src/hooks/useObjectUrl';
 
 interface DailyRitualWizardProps {
     user: User;
@@ -42,6 +43,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
     const [isSaving, setIsSaving] = useState(false);
+    const capturePreviewUrl = useObjectUrl(capture?.fullBlob || null);
 
     const handleMoodSelect = (mood: MoodType) => {
         setData({ ...data, mood });
@@ -50,9 +52,16 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     const handleCapture = (result: CameraCaptureResult) => {
         setCapture(result);
-        setData(prev => ({ ...prev, image: result.displayUrl }));
+        // Immediate thumb for instant feedback; will be replaced by object URL when ready.
+        setData(prev => ({ ...prev, image: result.thumbDataUrl }));
         setStep('CAPTURE_REVIEW');
     };
+
+    React.useEffect(() => {
+        if (capturePreviewUrl) {
+            setData(prev => ({ ...prev, image: capturePreviewUrl }));
+        }
+    }, [capturePreviewUrl]);
 
     const handleIntentionSubmit = () => {
         setStep('GRATITUDE');

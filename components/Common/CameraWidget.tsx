@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Camera, ImageIcon } from 'lucide-react';
 
 export type CameraCaptureResult = {
-  displayUrl: string;
   fullBlob: Blob;
   thumbDataUrl: string;
   width: number;
@@ -19,9 +18,10 @@ export const CameraWidget: React.FC<{
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const lastObjectUrlRef = useRef<string | null>(null);
 
   const [camError, setCamError] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [flash, setFlash] = useState(false);
 
   useEffect(() => { 
       let mediaStream: MediaStream | null = null;
@@ -99,6 +99,8 @@ export const CameraWidget: React.FC<{
       if (!videoRef.current || !canvasRef.current) return;
       const ctx = canvasRef.current.getContext('2d', { alpha: false });
       if (!ctx) return;
+      if (isCapturing) return;
+      setIsCapturing(true);
 
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
@@ -134,14 +136,16 @@ export const CameraWidget: React.FC<{
       drawCover(tctx, canvasRef.current, w, h, tw, th);
       const thumbDataUrl = thumbCanvas.toDataURL('image/jpeg', 0.82);
 
-      const displayUrl = URL.createObjectURL(fullBlob);
-      if (lastObjectUrlRef.current) URL.revokeObjectURL(lastObjectUrlRef.current);
-      lastObjectUrlRef.current = displayUrl;
+      // Quick shutter flash for premium feedback.
+      setFlash(true);
+      setTimeout(() => setFlash(false), 140);
 
-      onCapture({ displayUrl, fullBlob, thumbDataUrl, width: w, height: h });
+      onCapture({ fullBlob, thumbDataUrl, width: w, height: h });
     } catch (e) {
       console.error('[CameraWidget] capture failed', e);
       setCamError('Não foi possível capturar a foto. Tente novamente ou use o upload.');
+    } finally {
+      setIsCapturing(false);
     }
   };
 
@@ -175,11 +179,7 @@ export const CameraWidget: React.FC<{
                   drawCover(tctx, canvasRef.current, w, h, tw, th);
                   const thumbDataUrl = thumbCanvas.toDataURL('image/jpeg', 0.82);
 
-                  const displayUrl = URL.createObjectURL(fullBlob);
-                  if (lastObjectUrlRef.current) URL.revokeObjectURL(lastObjectUrlRef.current);
-                  lastObjectUrlRef.current = displayUrl;
-
-                  onCapture({ displayUrl, fullBlob, thumbDataUrl, width: w, height: h });
+                  onCapture({ fullBlob, thumbDataUrl, width: w, height: h });
               } finally {
                   URL.revokeObjectURL(url);
               }
@@ -187,12 +187,6 @@ export const CameraWidget: React.FC<{
           img.src = url;
       }
   };
-
-  useEffect(() => {
-    return () => {
-      if (lastObjectUrlRef.current) URL.revokeObjectURL(lastObjectUrlRef.current);
-    };
-  }, []);
 
   return (
     <div className="flex flex-col h-full bg-black rounded-[3rem] overflow-hidden">
@@ -214,6 +208,12 @@ export const CameraWidget: React.FC<{
               />
           )}
           <canvas ref={canvasRef} className="hidden" />
+
+          {/* Shutter flash + processing state */}
+          {flash && <div className="absolute inset-0 bg-white/70 pointer-events-none z-30" />}
+          {isCapturing && (
+            <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px] pointer-events-none z-20" />
+          )}
           
           {/* Aesthetic Overlays (Instagram Mode) */}
           {!camError && (
