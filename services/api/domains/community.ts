@@ -33,20 +33,12 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       }
     },
     markAsRead: async (id: string) => {
-      try {
-        await request(`/notifications/${id}/read`, { method: 'POST' });
-        return true;
-      } catch {
-        return true;
-      }
+      await request(`/notifications/${id}/read`, { method: 'POST' });
+      return true;
     },
     markAllAsRead: async () => {
-      try {
-        await request('/notifications/read-all', { method: 'POST' });
-        return true;
-      } catch {
-        return true;
-      }
+      await request('/notifications/read-all', { method: 'POST' });
+      return true;
     },
   },
 
@@ -59,22 +51,14 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       }
     },
     createPost: async (content: string, type: 'insight' | 'question' | 'celebration') => {
-      try {
-        return await request('/tribe/posts', {
-          method: 'POST',
-          body: JSON.stringify({ content, type }),
-        });
-      } catch {
-        return { id: `pt_${Date.now()}`, content, type };
-      }
+      return await request('/tribe/posts', {
+        method: 'POST',
+        body: JSON.stringify({ content, type }),
+      });
     },
     likePost: async (id: string) => {
-      try {
-        await request(`/tribe/posts/${id}/like`, { method: 'POST' });
-        return true;
-      } catch {
-        return true;
-      }
+      await request(`/tribe/posts/${id}/like`, { method: 'POST' });
+      return true;
     },
     syncVibration: async (_userId: string, reward: number = 10) => {
       try {
@@ -218,15 +202,11 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       }
     },
     sendMessage: async (roomId: string, content: string) => {
-      try {
-        await request(`/chat/rooms/${roomId}/messages`, {
-          method: 'POST',
-          body: JSON.stringify({ content }),
-        });
-        return true;
-      } catch {
-        return false;
-      }
+      await request(`/chat/rooms/${roomId}/messages`, {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      });
+      return true;
     },
   },
 });

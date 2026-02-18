@@ -59,15 +59,11 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       }
     },
     create: async (product: any) => {
-      try {
-        return await request('/marketplace/products', {
-          method: 'POST',
-          purpose: 'marketplace-create',
-          body: JSON.stringify(product),
-        });
-      } catch {
-        return { ...product, id: `prod_${Date.now()}` };
-      }
+      return await request('/marketplace/products', {
+        method: 'POST',
+        purpose: 'marketplace-create',
+        body: JSON.stringify(product),
+      });
     },
     delete: async (id: string) => {
       try {

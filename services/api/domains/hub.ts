@@ -128,15 +128,11 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       }
     },
     createVacancy: async (vacancy: any) => {
-      try {
-        return await request('/rooms/vacancies', {
-          method: 'POST',
-          purpose: 'space-vacancy-create',
-          body: JSON.stringify(vacancy),
-        });
-      } catch {
-        return vacancy;
-      }
+      return await request('/rooms/vacancies', {
+        method: 'POST',
+        purpose: 'space-vacancy-create',
+        body: JSON.stringify(vacancy),
+      });
     },
     getTransactions: async () => {
       try {
@@ -153,14 +149,10 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       }
     },
     voteProposal: async (id: string, vote: 'for' | 'against') => {
-      try {
-        return await request(`/spaces/proposals/${id}/vote`, {
-          method: 'POST',
-          body: JSON.stringify({ vote }),
-        });
-      } catch {
-        return { success: true };
-      }
+      return await request(`/spaces/proposals/${id}/vote`, {
+        method: 'POST',
+        body: JSON.stringify({ vote }),
+      });
     },
     getEvents: async () => {
       try {
@@ -181,33 +173,21 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       }
     },
     createEvent: async (event: any) => {
-      try {
-        return await request('/calendar', {
-          method: 'POST',
-          purpose: 'space-events-create',
-          body: JSON.stringify(event),
-        });
-      } catch {
-        return { ...event, id: `evt_${Date.now()}` };
-      }
+      return await request('/calendar', {
+        method: 'POST',
+        purpose: 'space-events-create',
+        body: JSON.stringify(event),
+      });
     },
     updateEvent: async (eventId: string, patch: any) => {
-      try {
-        return await request(`/calendar/${eventId}`, {
-          method: 'PATCH',
-          purpose: 'space-events-update',
-          body: JSON.stringify(patch),
-        });
-      } catch {
-        return { ...patch, id: eventId, _offline: true };
-      }
+      return await request(`/calendar/${eventId}`, {
+        method: 'PATCH',
+        purpose: 'space-events-update',
+        body: JSON.stringify(patch),
+      });
     },
     deleteEvent: async (eventId: string) => {
-      try {
-        return await request(`/calendar/${eventId}`, { method: 'DELETE', purpose: 'space-events-delete' });
-      } catch {
-        return { id: eventId, deleted: false, _offline: true };
-      }
+      return await request(`/calendar/${eventId}`, { method: 'DELETE', purpose: 'space-events-delete' });
     },
     syncCalendar: async () => {
       return await request('/calendar/sync', {

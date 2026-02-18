@@ -16,14 +16,11 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       }
     },
     update: async (user: User) => {
-      try {
-        return await request(`/users/${user.id}`, {
-          method: 'PUT',
-          body: JSON.stringify(user),
-        });
-      } catch {
-        return user;
-      }
+      // TRIAGE: errors must propagate so UI shows feedback
+      return await request(`/users/${user.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(user),
+      });
     },
     checkIn: async (_uid: string, reward: number = 50) => {
       let payload: any;
@@ -94,14 +91,10 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       }
     },
     updateNotes: async (pid: string, proId: string, content: string) => {
-      try {
-        return await request(`/professionals/${proId}/notes`, {
-          method: 'POST',
-          body: JSON.stringify({ patientId: pid, content }),
-        });
-      } catch {
-        return true;
-      }
+      return await request(`/professionals/${proId}/notes`, {
+        method: 'POST',
+        body: JSON.stringify({ patientId: pid, content }),
+      });
     },
     getNotes: async (pid: string, proId: string) => {
       try {
@@ -111,21 +104,13 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       }
     },
     grantAccess: async (pid: string) => {
-      try {
-        return await request(`/professionals/access/${pid}`, { method: 'POST' });
-      } catch {
-        return true;
-      }
+      return await request(`/professionals/access/${pid}`, { method: 'POST' });
     },
     revokeAccess: async (professionalId: string) => {
-      try {
-        return await request('/records/revoke', {
-          method: 'POST',
-          body: JSON.stringify({ professionalId }),
-        });
-      } catch {
-        return true;
-      }
+      return await request('/records/revoke', {
+        method: 'POST',
+        body: JSON.stringify({ professionalId }),
+      });
     },
     getRecordAccessList: async () => [],
     applyToVacancy: async (_vid: string) => ({ success: true }),
@@ -154,14 +139,10 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       }
     },
     create: async (record: any) => {
-      try {
-        return await request('/records', {
-          method: 'POST',
-          body: JSON.stringify(record),
-        });
-      } catch {
-        return record;
-      }
+      return await request('/records', {
+        method: 'POST',
+        body: JSON.stringify(record),
+      });
     },
     update: async (recordId: string, patch: { content?: string; type?: 'anamnesis' | 'session' }) => {
       return await request(`/records/${recordId}`, {
@@ -194,14 +175,10 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       }
     },
     create: async (apt: Appointment) => {
-      try {
-        return await request('/appointments', {
-          method: 'POST',
-          body: JSON.stringify(apt),
-        });
-      } catch {
-        return apt;
-      }
+      return await request('/appointments', {
+        method: 'POST',
+        body: JSON.stringify(apt),
+      });
     },
     reschedule: async (appointmentId: string, data: { date: string; time: string; service_name?: string }) => {
       return await request(`/appointments/${appointmentId}/reschedule`, {
