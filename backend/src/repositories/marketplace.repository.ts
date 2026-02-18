@@ -28,7 +28,12 @@ export class MarketplaceRepository {
     }
 
     async findAll(where: Prisma.ProductWhereInput = {}) {
-        return await prisma.product.findMany({ where });
+        return await prisma.product.findMany({
+            where,
+            include: {
+                owner: { select: { id: true, name: true, avatar: true, role: true, active_role: true } },
+            },
+        });
     }
 
     async delete(id: string) {

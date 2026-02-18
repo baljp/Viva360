@@ -26,7 +26,7 @@ export class MarketplaceService {
         });
     }
 
-    async listProducts(ownerId?: string) {
+    async listProducts(ownerId?: string, category?: string) {
         if (isMockMode()) {
             let mocks = [
                 { id: 'p1', name: 'Sessão Reiki', price: 150, category: 'Healing', type: 'service', image: 'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=400', owner_id: 'pro-1', karmaReward: 50 },
@@ -37,10 +37,18 @@ export class MarketplaceService {
             if (ownerId) {
                 mocks = mocks.filter(p => p.owner_id === ownerId);
             }
+            if (category) {
+                const normalized = String(category).trim().toLowerCase();
+                mocks = mocks.filter(p => String((p as any).category || '').trim().toLowerCase() === normalized);
+            }
             return mocks;
         }
 
-        const where = ownerId ? { owner_id: String(ownerId) } : {};
+        const where: any = {};
+        if (ownerId) where.owner_id = String(ownerId);
+        if (category) {
+            where.category = { equals: String(category), mode: 'insensitive' };
+        }
         const products = await marketplaceRepository.findAll(where);
         
         return products.map(p => ({

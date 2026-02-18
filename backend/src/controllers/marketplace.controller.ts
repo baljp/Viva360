@@ -24,9 +24,9 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const listProducts = asyncHandler(async (req: Request, res: Response) => {
-  const { ownerId } = req.query;
+  const { ownerId, category } = req.query as any;
 
-  const products = await marketplaceService.listProducts(ownerId as string);
+  const products = await marketplaceService.listProducts(ownerId as string, category as string);
   return res.json(products);
 });
 

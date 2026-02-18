@@ -51,7 +51,7 @@ export const lookupProfile = asyncHandler(async (req: any, res: Response) => {
         return res.status(404).json({ error: 'Profile not found' });
     }
 
-    const role = String((profile as any).role || '').toUpperCase();
+    const role = String((profile as any).active_role || (profile as any).role || '').toUpperCase();
     // For Guardian -> Buscador internal linking, we only allow looking up Buscadores here.
     if (role !== 'CLIENT') {
         return res.status(404).json({ error: 'Profile not found' });

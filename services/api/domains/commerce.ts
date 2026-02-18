@@ -29,9 +29,13 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
   },
 
   marketplace: {
-    listAll: async (): Promise<Product[]> => {
+    list: async (opts?: { ownerId?: string; category?: string }): Promise<Product[]> => {
+      const params = new URLSearchParams();
+      if (opts?.ownerId) params.set('ownerId', String(opts.ownerId));
+      if (opts?.category) params.set('category', String(opts.category));
+      const qs = params.toString();
       try {
-        return await request('/marketplace/products', {
+        return await request(`/marketplace/products${qs ? `?${qs}` : ''}`, {
           purpose: 'marketplace-list',
           timeoutMs: 6000,
           retries: 1,
@@ -40,9 +44,16 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
         return [];
       }
     },
+    listAll: async (): Promise<Product[]> => {
+      return await request('/marketplace/products', {
+        purpose: 'marketplace-list',
+        timeoutMs: 6000,
+        retries: 1,
+      }).catch(() => []);
+    },
     listByOwner: async (oid: string) => {
       try {
-        return await request(`/marketplace/products?ownerId=${oid}`, { purpose: 'marketplace-owner-list' });
+        return await request(`/marketplace/products?ownerId=${encodeURIComponent(String(oid))}`, { purpose: 'marketplace-owner-list' });
       } catch {
         return [];
       }

@@ -178,6 +178,16 @@ export const listVacancies = asyncHandler(async (req: Request, res: Response) =>
         ]);
     }
     
-    const vacancies = await prisma.vacancy.findMany();
-    return res.json(vacancies);
+    try {
+        const vacancies = await prisma.vacancy.findMany();
+        return res.json(vacancies);
+    } catch (error: any) {
+        // If the table/columns are missing (common when DB wasn't migrated yet),
+        // degrade gracefully to an empty list so the UI can show an honest empty state.
+        const code = String(error?.code || '');
+        if (code === 'P2021' || code === 'P2022') {
+            return res.json([]);
+        }
+        throw error;
+    }
 });

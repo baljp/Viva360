@@ -9,12 +9,23 @@ export const AlquimiaProposeTrade: React.FC = () => {
     const [selectedItem, setSelectedItem] = useState<string | null>(null);
     const [message, setMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
+    const [target, setTarget] = useState<{ id: string; name: string; offer: string } | null>(null);
 
     // Load user's available items from alchemy offers list
     const [myItems, setMyItems] = useState<Array<{ id: string; name: string; image: string }>>([]);
     const [loadingItems, setLoadingItems] = useState(true);
 
     useEffect(() => {
+        // Resolve target (set by Rede Viva mural / other entry points).
+        try {
+            const id = String(localStorage.getItem('viva360.escambo.target_id') || '').trim();
+            const name = String(localStorage.getItem('viva360.escambo.target_name') || '').trim();
+            const offer = String(localStorage.getItem('viva360.escambo.target_offer') || '').trim();
+            if (id) setTarget({ id, name: name || 'Guardião', offer: offer || 'Oferta' });
+        } catch {
+            // ignore
+        }
+
         let cancelled = false;
         (async () => {
             try {
@@ -27,19 +38,10 @@ export const AlquimiaProposeTrade: React.FC = () => {
                             name: o.description || o.title || 'Item sem título',
                             image: o.image || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=200',
                         }));
-                    setMyItems(items.length > 0 ? items : [
-                        { id: 'mentoria-1h', name: 'Mentoria 1h', image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=200' },
-                        { id: 'mapa-astral', name: 'Mapa Astral', image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=200' },
-                    ]);
+                    setMyItems(items);
                 }
             } catch {
-                // Fallback items if API fails
-                if (!cancelled) {
-                    setMyItems([
-                        { id: 'mentoria-1h', name: 'Mentoria 1h', image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=200' },
-                        { id: 'mapa-astral', name: 'Mapa Astral', image: 'https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=200' },
-                    ]);
-                }
+                if (!cancelled) setMyItems([]);
             } finally {
                 if (!cancelled) setLoadingItems(false);
             }
@@ -49,6 +51,12 @@ export const AlquimiaProposeTrade: React.FC = () => {
 
     // FLOW-06: Real POST /alchemy/offers instead of setTimeout mock
     const handlePropose = async () => {
+        const targetId = target?.id || '';
+        if (!targetId) {
+            notify?.('Destino Necessário', 'Volte ao Mural e selecione um guardião para propor a troca.', 'info');
+            go('ESCAMBO_MARKET');
+            return;
+        }
         if (!selectedItem) {
             notify?.('Seleção Necessária', 'Escolha um item seu para oferecer.', 'info');
             return;
@@ -56,7 +64,6 @@ export const AlquimiaProposeTrade: React.FC = () => {
         if (isSending) return;
         setIsSending(true);
         try {
-            const targetId = state?.data?.targetUserId || state?.data?.requesterId || 'pending';
             await api.hub.alchemy.createOffer({
                 requesterId: targetId,
                 description: [
@@ -86,8 +93,8 @@ export const AlquimiaProposeTrade: React.FC = () => {
                 <div className="bg-nature-900 p-6 rounded-[2rem] text-white flex items-center justify-between">
                     <div>
                         <p className="text-[10px] font-bold uppercase opacity-70 tracking-widest mb-1">Item Desejado</p>
-                        <h3 className="font-serif italic text-xl">Cristal de Quartzo Rosa</h3>
-                        <p className="text-xs text-emerald-300 mt-1">por Ana Silva</p>
+                        <h3 className="font-serif italic text-xl">{target?.offer || 'Oferta selecionada'}</h3>
+                        <p className="text-xs text-emerald-300 mt-1">por {target?.name || 'Guardião'}</p>
                     </div>
                     <div className="w-16 h-16 bg-white/10 rounded-2xl">
                         <img src="https://images.unsplash.com/photo-1602755295717-d5d143c65c08?q=80&w=200" className="w-full h-full object-cover rounded-2xl" alt="Item desejado" />
@@ -107,6 +114,11 @@ export const AlquimiaProposeTrade: React.FC = () => {
                         {loadingItems ? (
                             <div className="flex items-center justify-center py-6">
                                 <Loader2 size={24} className="text-nature-300 animate-spin" />
+                            </div>
+                        ) : myItems.length === 0 ? (
+                            <div className="bg-white border border-nature-100 rounded-[2rem] p-6 text-center">
+                                <p className="text-sm text-nature-700 font-bold">Nenhum item disponível para oferecer</p>
+                                <p className="text-xs text-nature-400 mt-2">Crie sua Alquimia no Bazar para usar como oferta em trocas.</p>
                             </div>
                         ) : myItems.map(item => (
                             <div 

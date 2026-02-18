@@ -33,9 +33,10 @@ export default function VagasList() {
     (async () => {
       try {
         const data = await api.hub.spaces.getVacancies();
-        if (!cancelled && Array.isArray(data)) {
-          setVacancies(data.map((v: any) => ({
-            id: v.id,
+        if (!cancelled) {
+          const list = Array.isArray(data) ? data : [];
+          setVacancies(list.map((v: any) => ({
+            id: String(v.id),
             title: v.title || 'Sem título',
             space: v.space_name || v.space || '',
             location: v.location || 'Não informado',
@@ -47,7 +48,11 @@ export default function VagasList() {
         }
       } catch (err: any) {
         console.warn('[VagasList] Failed to load vacancies:', err);
-        if (!cancelled) setError('Não foi possível carregar as vagas.');
+        // Degrade gracefully: keep the UX usable and allow an empty-state instead of a forever-sync.
+        if (!cancelled) {
+          setVacancies([]);
+          setError(null);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -98,7 +103,32 @@ export default function VagasList() {
        ) : error ? (
            <div className="text-center py-16 px-4">
                <p className="text-sm text-rose-500 mb-3">{error}</p>
-               <button onClick={() => { setError(null); setLoading(true); api.hub.spaces.getVacancies().then(d => { if (Array.isArray(d)) setVacancies(d); }).catch(() => setError('Falha ao recarregar.')).finally(() => setLoading(false)); }} className="text-xs text-indigo-600 font-bold uppercase">Tentar novamente</button>
+               <button
+                 onClick={() => {
+                   setError(null);
+                   setLoading(true);
+                   api.hub.spaces
+                     .getVacancies()
+                     .then((d) => {
+                       const list = Array.isArray(d) ? d : [];
+                       setVacancies(list.map((v: any) => ({
+                         id: String(v.id),
+                         title: v.title || 'Sem título',
+                         space: v.space_name || v.space || '',
+                         location: v.location || 'Não informado',
+                         type: v.type || v.modality || 'Presencial',
+                         salary: v.salary || v.compensation || 'A combinar',
+                         description: v.description || '',
+                         specialties: v.specialties || [],
+                       })));
+                     })
+                     .catch(() => setError('Falha ao recarregar.'))
+                     .finally(() => setLoading(false));
+                 }}
+                 className="text-xs text-indigo-600 font-bold uppercase"
+               >
+                 Tentar novamente
+               </button>
            </div>
        ) : filtered.length === 0 ? (
            <div className="text-center py-16 opacity-50">

@@ -62,10 +62,7 @@ export default function SpaceRetreatsManager() {
                 };
             })
             .filter((e: any) => e._isRetreat);
-        if (list.length > 0) return list;
-        return [
-            { id: 'demo-1', title: 'Despertar da Consciência', dates: '12-15 Nov', spots: '8/12', revenue: 'R$ 15k', status: 'draft', image: 'https://images.unsplash.com/photo-1528642474498-1af0c17fd8c3?q=80&w=600' },
-        ];
+        return list;
     }, [events]);
 
     return (
@@ -99,6 +96,16 @@ export default function SpaceRetreatsManager() {
                             </div>
                         </div>
                     ))
+                ) : retreats.length === 0 ? (
+                    <div className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm p-8 text-center">
+                        <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
+                            <Calendar size={28} />
+                        </div>
+                        <h3 className="font-serif italic text-xl text-nature-900">Nenhum retiro criado ainda</h3>
+                        <p className="text-sm text-nature-500 mt-2 leading-relaxed">
+                            Quando você criar seu primeiro retiro, ele aparecerá aqui com vagas, datas e organização do fluxo.
+                        </p>
+                    </div>
                 ) : retreats.map(retreat => (
                     <div
                         key={retreat.id}

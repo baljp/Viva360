@@ -118,7 +118,11 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
     },
     getVacancies: async () => {
       try {
-        return await request('/rooms/vacancies', { purpose: 'space-vacancies' });
+        return await request('/rooms/vacancies', {
+          purpose: 'space-vacancies',
+          timeoutMs: 6000,
+          retries: 0,
+        });
       } catch {
         return [];
       }
