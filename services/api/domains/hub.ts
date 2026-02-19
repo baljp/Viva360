@@ -69,7 +69,8 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
     getRooms: async () => {
       try {
         return await request('/rooms/real-time', { purpose: 'space-rooms' });
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getRooms]', err);
         return [];
       }
     },
@@ -88,15 +89,14 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
               specialty,
               reviewCount: Number((g as any).reviewCount || (g as any).review_count || 0),
               rating: Number((g as any).rating || 0),
-              // Some UIs rely on these flags; when backend doesn't provide presence, default to "available".
               isOccupied: Boolean((g as any).isOccupied || false),
               roleLabel: Number((g as any).karma || 0) > 800 ? 'Mestre' : 'Guardião',
             };
           });
         }
-        // Backward compat for older backends.
         return await request('/profiles?role=PROFESSIONAL', { purpose: 'space-team-legacy' });
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getTeam]', err);
         return [];
       }
     },
@@ -105,14 +105,16 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
         const result = await request('/spaces/patients', { purpose: 'space-patients' });
         if (Array.isArray((result as any)?.patients)) return (result as any).patients;
         return [];
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getPatients]', err);
         return [];
       }
     },
     getPatient: async (patientId: string) => {
       try {
         return await request(`/spaces/patients/${patientId}`, { purpose: 'space-patient-detail' });
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getPatient]', err);
         return null;
       }
     },
@@ -123,7 +125,8 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
           timeoutMs: 6000,
           retries: 0,
         });
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getVacancies]', err);
         return [];
       }
     },
@@ -137,14 +140,16 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
     getTransactions: async () => {
       try {
         return await request('/finance/transactions', { purpose: 'space-transactions' });
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getTransactions]', err);
         return [];
       }
     },
     getProposals: async () => {
       try {
         return await request('/spaces/proposals');
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getProposals]', err);
         return [];
       }
     },
@@ -161,14 +166,16 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
           timeoutMs: 6000,
           retries: 1,
         });
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getEvents]', err);
         return [];
       }
     },
     getEvent: async (eventId: string) => {
       try {
         return await request(`/calendar/${eventId}`, { purpose: 'space-event-detail', timeoutMs: 6000, retries: 1 });
-      } catch {
+      } catch (err) {
+        console.error('[hub.spaces.getEvent]', err);
         return null;
       }
     },

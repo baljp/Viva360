@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
-import { isMockMode } from '../services/supabase.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { z } from 'zod';
 import { CloudinaryService } from '../services/cloudinary.service';
@@ -30,12 +29,6 @@ const serializeRoomMeta = (existing: string | null | undefined, updates: any) =>
 };
 
 export const getRealTime = asyncHandler(async (req: Request, res: Response) => {
-  if (isMockMode()) {
-    return res.json([
-      { id: 'mock-room-1', name: 'Sala Hera', status: 'available', next_booking: null },
-      { id: 'mock-room-2', name: 'Sala Zeus', status: 'occupied', next_booking: '14:00' }
-    ]);
-  }
   const hubId = getUserIdCompat(req);
   // Filter rooms by hub (space) by default.
   const rooms = await prisma.room.findMany({
@@ -54,14 +47,6 @@ export const getRealTime = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
-  if (isMockMode()) {
-    return res.json({
-      total_rooms: 10,
-      occupied_rate: 45,
-      revenue_today: 1250.00
-    });
-  }
-
   // Aggregate data
   const totalRooms = await prisma.room.count();
   const occupied = await prisma.room.count({ where: { status: 'occupied' } });
@@ -76,10 +61,6 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
 export const updateStatus = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status } = req.body;
-  
-  if (isMockMode() || id === 'dummy_id') {
-      return res.json({ id, status, success: true, mock: true });
-  }
 
   const room = await prisma.room.update({
     where: { id },
@@ -103,10 +84,6 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
 
   if (!id) return res.status(400).json({ error: 'Missing room id' });
   if (!hubId) return res.status(401).json({ error: 'Unauthorized' });
-
-  if (isMockMode() || id === 'dummy_id') {
-    return res.json({ id, ...payload, success: true, mock: true });
-  }
 
   const room = await prisma.room.findUnique({ where: { id } });
   if (!room) return res.status(404).json({ error: 'Room not found' });
@@ -145,19 +122,7 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const createVacancy = asyncHandler(async (req: Request, res: Response) => {
-    const { title, description, specialties, availability } = req.body; // Added availability
-    
-    if (isMockMode()) {
-        return res.status(201).json({
-            id: 'mock-vacancy-id',
-            title,
-            description,
-            specialties,
-            availability,
-            spaceId: (req as any).user?.id || 'mock-space-id',
-            created_at: new Date().toISOString()
-        });
-    }
+    const { title, description, specialties, availability } = req.body;
 
     const vacancy = await prisma.vacancy.create({
         data: {
@@ -171,13 +136,6 @@ export const createVacancy = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const listVacancies = asyncHandler(async (req: Request, res: Response) => {
-    if (isMockMode()) {
-        return res.json([
-            { id: 'v1', title: 'Psicólogo(a) Clínico', description: 'Atendimento de segunda a sexta', specialties: ['Psicologia'] },
-            { id: 'v2', title: 'Massoterapeuta', description: 'Sala equipada disponível', specialties: ['Massagem'] }
-        ]);
-    }
-    
     try {
         const vacancies = await prisma.vacancy.findMany();
         return res.json(vacancies);

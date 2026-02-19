@@ -40,7 +40,8 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
           timeoutMs: 6000,
           retries: 1,
         });
-      } catch {
+      } catch (err) {
+        console.error('[commerce.list]', err);
         return [];
       }
     },
@@ -54,7 +55,8 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
     listByOwner: async (oid: string) => {
       try {
         return await request(`/marketplace/products?ownerId=${encodeURIComponent(String(oid))}`, { purpose: 'marketplace-owner-list' });
-      } catch {
+      } catch (err) {
+        console.error('[commerce.listByOwner]', err);
         return [];
       }
     },
@@ -69,7 +71,8 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         await request(`/marketplace/products/${id}`, { method: 'DELETE', purpose: 'marketplace-delete' });
         return true;
-      } catch {
+      } catch (err) {
+        console.error('[commerce.delete]', err);
         return false;
       }
     },
@@ -87,14 +90,16 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
     getDashboard: async () => {
       try {
         return await request('/admin/dashboard');
-      } catch {
+      } catch (err) {
+        console.error('[commerce.getDashboard]', err);
         return { totalUsers: 0, activeUsers: 0, revenue: 0, systemHealth: { status: 'unknown' } };
       }
     },
     listUsers: async () => {
       try {
         return await request('/admin/users');
-      } catch {
+      } catch (err) {
+        console.error('[commerce.listUsers]', err);
         return [];
       }
     },
@@ -102,35 +107,40 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
     getMetrics: async () => {
       try {
         return await request('/admin/metrics');
-      } catch {
+      } catch (err) {
+        console.error('[commerce.getMetrics]', err);
         return {};
       }
     },
     getMarketplaceOffers: async () => {
       try {
         return await request('/admin/marketplace/offers');
-      } catch {
+      } catch (err) {
+        console.error('[commerce.getMarketplaceOffers]', err);
         return [];
       }
     },
     getGlobalFinance: async () => {
       try {
         return await request('/admin/finance/global');
-      } catch {
+      } catch (err) {
+        console.error('[commerce.getGlobalFinance]', err);
         return {};
       }
     },
     getLgpdAudit: async () => {
       try {
         return await request('/admin/lgpd/audit');
-      } catch {
+      } catch (err) {
+        console.error('[commerce.getLgpdAudit]', err);
         return [];
       }
     },
     getSystemHealth: async () => {
       try {
         return await request('/admin/system/health');
-      } catch {
+      } catch (err) {
+        console.error('[commerce.getSystemHealth]', err);
         return {};
       }
     },

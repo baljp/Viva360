@@ -19,8 +19,9 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
     // 2. Generate Recovery Token (JWT valid for 1h)
     const token = jwt.sign({ email, purpose: 'recovery' }, JWT_SECRET, { expiresIn: '1h' });
 
-    // 3. Send Email
-    const link = `http://localhost:3000/reset-password?token=${token}`; // Should use Frontend URL Env Var
+    // 3. Send Email — use production frontend URL
+    const frontendUrl = (process.env.VITE_SUPABASE_AUTH_REDIRECT_URL || process.env.FRONTEND_URL || 'https://viva360.vercel.app/login').replace(/\/login\/?$/, '');
+    const link = `${frontendUrl}/reset-password?token=${token}`;
     
     emailService.send({
         to: email,

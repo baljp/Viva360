@@ -1,5 +1,10 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
+import { logger } from '../lib/logger';
+
+// ⚠️ TRIAGE: No Prisma "Routine" model exists yet.
+// Data is in-memory only — lost on every Vercel cold start.
+// TODO: Create a "routines" table or store as JSON on Profile to persist.
 
 type RoutineStep = {
     id: string;
@@ -25,6 +30,7 @@ const ROUTINES_BY_USER: Record<string, Record<string, RoutineStep[]>> = {};
 const resolveUserRoutines = (userId: string) => {
     if (!ROUTINES_BY_USER[userId]) {
         ROUTINES_BY_USER[userId] = createDefaultRoutines();
+        logger.warn('rituals: serving default routines (in-memory, not persisted)', { userId });
     }
     return ROUTINES_BY_USER[userId];
 };
@@ -34,7 +40,6 @@ export const getRoutine = asyncHandler(async (req: Request, res: Response) => {
     const { type } = req.query;
     const routineType = ((type as string) || req.params.period || 'morning').toLowerCase();
     const routines = resolveUserRoutines(userId);
-
     return res.json(routines[routineType] || []);
 });
 
@@ -57,7 +62,8 @@ export const saveRoutine = asyncHandler(async (req: Request, res: Response) => {
         completed: Boolean(step?.completed),
     }));
 
-    return res.json({ success: true, message: 'Ritual cristalizado com sucesso.' });
+    logger.warn('rituals: saved in-memory only — will be lost on cold start', { userId, routineType });
+    return res.json({ success: true, message: 'Ritual cristalizado com sucesso.', _ephemeral: true });
 });
 
 export const toggleRoutine = asyncHandler(async (req: Request, res: Response) => {

@@ -1,15 +1,11 @@
 import { Request, Response } from 'express';
 import { DeterministicEngine, Mood } from '../lib/determinism';
 import { logsQueue } from '../lib/queue';
-import { isMockMode } from '../services/supabase.service';
 import prisma from '../lib/prisma';
 import { CloudinaryService } from '../services/cloudinary.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { oracleService } from '../services/oracle.service';
 import { logger } from '../lib/logger';
-
-// In-memory mock DB
-const METAMORPHOSIS_DB: Record<string, any[]> = {};
 
 const normalizeMood = (input: string): Mood => {
     const value = String(input || '').trim().toLowerCase();
@@ -49,23 +45,16 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
 
     const normalizedMood = normalizeMood(mood);
 
-    // 1. Retrieve History
-    const runtimeHistory = METAMORPHOSIS_DB[userId] || [];
-    let recentMoods = runtimeHistory.map((h) => normalizeMood(String(h.mood || '')));
-    if (!isMockMode()) {
-        const previousEvents = await prisma.event.findMany({
-            where: { stream_id: userId, type: 'MOOD_LOGGED' },
-            orderBy: { created_at: 'desc' },
-            take: 10,
-            select: { payload: true },
-        }).catch(() => []);
-        const dbMoods = previousEvents
-            .map((event) => normalizeMood(String((event.payload as any)?.mood || '')))
-            .filter(Boolean);
-        if (dbMoods.length > 0) {
-            recentMoods = dbMoods;
-        }
-    }
+    // 1. Retrieve History from DB
+    const previousEvents = await prisma.event.findMany({
+        where: { stream_id: userId, type: 'MOOD_LOGGED' },
+        orderBy: { created_at: 'desc' },
+        take: 10,
+        select: { payload: true },
+    }).catch(() => []);
+    const recentMoods = previousEvents
+        .map((event) => normalizeMood(String((event.payload as any)?.mood || '')))
+        .filter(Boolean) as Mood[];
 
     // 2. Run Deterministic Engine
     const recommendation = DeterministicEngine.process(normalizedMood, recentMoods as Mood[]);
@@ -81,12 +70,8 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         ...recommendation
     };
 
-    if (!METAMORPHOSIS_DB[userId]) METAMORPHOSIS_DB[userId] = [];
-    METAMORPHOSIS_DB[userId].push(entry);
-
-    // PERSISTENCE (Non-Mock)
-    if (!isMockMode()) {
-        await prisma.$transaction(async (tx) => {
+    // 3. Persist to DB
+    await prisma.$transaction(async (tx) => {
             // 1. Create Event
             await tx.event.create({
                 data: {
@@ -112,7 +97,6 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
                 }
             });
         });
-    }
 
     // ASYNC
     logsQueue.add('emotional_log', entry).catch((err: unknown) => logger.warn('queue.logs_add_failed', err));
@@ -126,18 +110,6 @@ export const getEvolution = asyncHandler(async (req: Request, res: Response) => 
 
     if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    if (isMockMode()) {
-        const userHistory = METAMORPHOSIS_DB[userId] || [];
-        return res.json({
-            entries: userHistory,
-            totalEntries: userHistory.length,
-            lastMood: userHistory[userHistory.length-1]?.mood || 'Neutral',
-            streak: 3, 
-            evolutionScore: 850,
-            readFrom: 'In-Memory Store (Mock)'
-        });
     }
 
     const [projection, events] = await Promise.all([

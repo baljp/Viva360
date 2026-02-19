@@ -11,7 +11,8 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     getById: async (id: string) => {
       try {
         return await request(`/users/${id}`);
-      } catch {
+      } catch (err) {
+        console.error('[account.users.getById]', err);
         return null;
       }
     },
@@ -33,6 +34,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           body: JSON.stringify({ reward }),
         });
       } catch (error: any) {
+        console.error('[account.checkIn]', err);
         const status = Number(error?.status || 0);
         const code = String(error?.code || error?.details?.code || '').toUpperCase();
         if (status === 409 || code === 'CHECKIN_ALREADY_DONE') {
@@ -72,7 +74,8 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           timeoutMs: 7000,
           retries: 0,
         });
-      } catch {
+      } catch (err) {
+        console.error('[account.lookupByEmail]', err);
         return null;
       }
     },
@@ -86,7 +89,8 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           timeoutMs: 6000,
           retries: 1,
         });
-      } catch {
+      } catch (err) {
+        console.error('[account.list]', err);
         return [];
       }
     },
@@ -99,7 +103,8 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     getNotes: async (pid: string, proId: string) => {
       try {
         return await request(`/professionals/${proId}/notes/${pid}`);
-      } catch {
+      } catch (err) {
+        console.error('[account.getNotes]', err);
         return [];
       }
     },
@@ -124,7 +129,8 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           ...(summary || {}),
           transactions: Array.isArray(transactions) ? transactions : [],
         };
-      } catch {
+      } catch (err) {
+        console.error('[account.getFinanceSummary]', err);
         return { balance: 0, transactions: [] };
       }
     },
@@ -134,7 +140,8 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     list: async (patientId: string) => {
       try {
         return await request(`/records/${patientId}`);
-      } catch {
+      } catch (err) {
+        console.error('[account.list]', err);
         return [];
       }
     },
@@ -170,7 +177,8 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         })) as Appointment[];
         if (role === 'PROFESSIONAL') return normalized.filter((a: Appointment) => a.professionalId === uid);
         return normalized.filter((a: Appointment) => a.clientId === uid);
-      } catch {
+      } catch (err) {
+        console.error('[account.list]', err);
         return [];
       }
     },
@@ -198,7 +206,8 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     list: async () => {
       try {
         return await request('/reviews');
-      } catch {
+      } catch (err) {
+        console.error('[account.list]', err);
         return [];
       }
     },

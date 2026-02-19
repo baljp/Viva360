@@ -1,15 +1,21 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
-
+import prisma from '../lib/prisma';
 import { oracleService } from '../services/oracle.service';
 
-// Mock DB/Service calls for context until authentic User/Profile services are fully typed/linked
 const getUserContext = async (userId: string, moodBody: string) => {
-    // In real app, fetch from Profile/GardenService
+    const profile = await prisma.profile.findUnique({
+        where: { id: userId },
+        select: { plant_xp: true, plant_stage: true },
+    }).catch(() => null);
+
     return {
         mood: moodBody || 'sereno',
-        gardenStatus: { health: 80, waterNeeded: false }, // Mock
-        metamorphosisPhase: 'germinacao' // Mock
+        gardenStatus: {
+            health: Math.min(100, (profile?.plant_xp || 0)),
+            waterNeeded: (profile?.plant_xp || 0) < 20,
+        },
+        metamorphosisPhase: profile?.plant_stage || 'seed',
     };
 };
 
@@ -19,9 +25,6 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
     const { mood } = req.body;
-
-    // Simulate "shuffling" delay for UX
-    await new Promise(r => setTimeout(r, 1500));
 
     const context = await getUserContext(userId, mood);
     const card = await oracleService.drawCard(userId, context);
@@ -34,10 +37,10 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
         drawId: Date.now().toString(),
         card: {
             id: card.id,
-            name: 'Oráculo Viva360', // Generic title or from Category
+            name: 'Oráculo Viva360',
             insight: (card as any).text || (card as any).message,
             element: card.element,
-            intensity: 'Média', // Could calculate based on depth
+            intensity: 'Média',
             category: card.category
         },
         drawnAt: new Date().toISOString(),

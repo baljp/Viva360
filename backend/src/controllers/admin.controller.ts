@@ -1,93 +1,135 @@
 import { Request, Response } from 'express';
-import { isMockMode } from '../services/supabase.service';
+import prisma from '../lib/prisma';
 import { AuditService } from '../services/audit.service';
 import { asyncHandler } from '../middleware/async.middleware';
+import { logger } from '../lib/logger';
 
-// 1. Overview
+// 1. Overview — real counts from DB
 export const getDashboard = asyncHandler(async (req: Request, res: Response) => {
-    await AuditService.logAccess(req.body.adminId, 'dashboard', 'VIEW_DASHBOARD', 'SUCCESS');
+    const adminId = (req as any).user?.userId || req.body.adminId;
+    await AuditService.logAccess(adminId, 'dashboard', 'VIEW_DASHBOARD', 'SUCCESS');
+
+    const [totalUsers, newUsersToday, activeEvents] = await Promise.all([
+        prisma.profile.count(),
+        prisma.profile.count({
+            where: { created_at: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
+        }),
+        prisma.calendarEvent.count().catch(() => 0),
+    ]);
+
     res.json({
-        totalUsers: 15420,
-        newUsersToday: 45,
-        activeEvents: 12,
-        revenueToday: 12500.50,
-        scaling: {
-            readiness: "78%",
-            status: "Scalable with Adjustments",
-            target: "50,000 Users"
-        },
-        alerts: [{ level: 'warn', msg: 'API Latency > 200ms' }]
+        totalUsers,
+        newUsersToday,
+        activeEvents,
+        revenueToday: null, // TODO: aggregate from Transaction table when finance is wired
+        alerts: [],
     });
 });
 
 // 2. Users (Governance)
 export const listUsers = asyncHandler(async (req: Request, res: Response) => {
-    // Only basic data, NO sensitive info
-    res.json([
-        { id: 'u1', name: 'Alice', role: 'CLIENT', status: 'active', registered: '2025-01-01' },
-        { id: 'u2', name: 'Bob', role: 'PROFESSIONAL', status: 'blocked', registered: '2025-02-15' }
-    ]);
+    const users = await prisma.profile.findMany({
+        select: { id: true, name: true, role: true, created_at: true },
+        orderBy: { created_at: 'desc' },
+        take: 100,
+    });
+    res.json(users.map(u => ({
+        id: u.id,
+        name: u.name || 'Sem nome',
+        role: u.role || 'CLIENT',
+        status: 'active',
+        registered: u.created_at?.toISOString() || null,
+    })));
 });
 
 export const blockUser = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.params.id;
-    await AuditService.logAccess(req.body.adminId, `user:${userId}`, 'BLOCK_USER', 'SUCCESS');
-    res.json({ success: true, message: `User ${userId} blocked successfully.` });
+    const adminId = (req as any).user?.userId || req.body.adminId;
+    // TODO: Add a "blocked" column to Profile when user management is fully implemented
+    await AuditService.logAccess(adminId, `user:${userId}`, 'BLOCK_USER', 'SUCCESS');
+    logger.warn('blockUser called but no blocked column exists yet', { adminId, targetUserId: userId });
+    res.json({ success: true, message: `User ${userId} block logged (pending full implementation).` });
 });
 
-// 3. Seekers (Metrics)
+// 3-5. Metrics — real aggregates
 export const getSeekerMetrics = asyncHandler(async (req: Request, res: Response) => {
-    res.json({ total: 12000, activeMonthly: 8500, avgSessions: 2.4 });
+    const total = await prisma.profile.count({ where: { role: 'CLIENT' } });
+    res.json({ total, activeMonthly: null, avgSessions: null });
 });
 
-// 4. Guardians (Metrics)
 export const getGuardianMetrics = asyncHandler(async (req: Request, res: Response) => {
-    res.json({ total: 500, avgOccupancy: '85%', avgRating: 4.8 });
+    const total = await prisma.profile.count({ where: { role: 'PROFESSIONAL' } });
+    const avgRating = await prisma.profile.aggregate({
+        where: { role: 'PROFESSIONAL' },
+        _avg: { rating: true },
+    });
+    res.json({ total, avgOccupancy: null, avgRating: Number(avgRating._avg.rating || 0).toFixed(1) });
 });
 
-// 5. Sanctuaries (Metrics)
 export const getSanctuaryMetrics = asyncHandler(async (req: Request, res: Response) => {
-    res.json({ total: 50, eventsActive: 120, avgRevenue: 15000 });
+    const total = await prisma.profile.count({ where: { role: 'SPACE' } });
+    const eventsActive = await prisma.calendarEvent.count().catch(() => 0);
+    res.json({ total, eventsActive, avgRevenue: null });
 });
 
 export const getMetrics = asyncHandler(async (req: Request, res: Response) => {
+    const [clients, pros, spaces, events] = await Promise.all([
+        prisma.profile.count({ where: { role: 'CLIENT' } }),
+        prisma.profile.count({ where: { role: 'PROFESSIONAL' } }),
+        prisma.profile.count({ where: { role: 'SPACE' } }),
+        prisma.calendarEvent.count().catch(() => 0),
+    ]);
     res.json({
-        seekers: { total: 12000, activeMonthly: 8500, avgSessions: 2.4 },
-        guardians: { total: 500, avgOccupancy: '85%', avgRating: 4.8 },
-        sanctuaries: { total: 50, eventsActive: 120, avgRevenue: 15000 },
+        seekers: { total: clients, activeMonthly: null, avgSessions: null },
+        guardians: { total: pros, avgOccupancy: null, avgRating: null },
+        sanctuaries: { total: spaces, eventsActive: events, avgRevenue: null },
     });
 });
 
-// 6. Marketplace (Moderation)
+
+// 6. Marketplace (Moderation) — real pending offers
 export const getMarketplaceOffers = asyncHandler(async (req: Request, res: Response) => {
-    res.json([
-        { id: 'off1', title: 'Retiro Espiritual', status: 'pending_approval', seller: 'Santuário Luz' }
-    ]);
+    const offers = await prisma.product.findMany({
+        select: { id: true, name: true, owner_id: true },
+        take: 50,
+        orderBy: { created_at: 'desc' },
+    }).catch(() => []);
+    res.json(offers);
 });
 
-// 7. Finance (Global)
+// 7. Finance (Global) — real aggregates
 export const getGlobalFinance = asyncHandler(async (req: Request, res: Response) => {
+    const totalRevenue = await prisma.transaction.aggregate({
+        _sum: { amount: true },
+    }).catch(() => ({ _sum: { amount: null } }));
     res.json({
-        totalRevenue: 5400000,
-        churnRate: '1.2%',
-        inadimplencia: '2.5%'
+        totalRevenue: Number(totalRevenue._sum?.amount || 0),
+        churnRate: null,
+        inadimplencia: null,
     });
 });
 
-// 8. Governance (LGPD)
+// 8. Governance (LGPD) — real audit trail
 export const getLgpdAudit = asyncHandler(async (req: Request, res: Response) => {
-    // Returns logs of who accessed what data (Meta-data only)
-    res.json([
-        { actor: 'Dr. Silva', action: 'READ_RECORD', target: 'Patient X', timestamp: new Date().toISOString() }
-    ]);
+    const events = await prisma.auditEvent.findMany({
+        orderBy: { created_at: 'desc' },
+        take: 50,
+        select: { actor_id: true, action: true, entity_type: true, created_at: true },
+    }).catch(() => []);
+    res.json(events.map(e => ({
+        actor: e.actor_id,
+        action: e.action,
+        target: e.entity_type,
+        timestamp: e.created_at?.toISOString(),
+    })));
 });
 
 // 9. System
-export const getSystemHealth = asyncHandler(async (req: Request, res: Response) => {
+export const getSystemHealth = asyncHandler(async (_req: Request, res: Response) => {
+    const dbOk = await prisma.$queryRaw`SELECT 1`.then(() => true).catch(() => false);
     res.json({
-        cpu: '45%',
-        memory: '60%',
-        uptime: '99.99%',
-        apiStatus: 'healthy'
+        database: dbOk ? 'healthy' : 'degraded',
+        apiStatus: 'healthy',
+        uptime: process.uptime(),
     });
 });

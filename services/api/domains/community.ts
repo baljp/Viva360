@@ -28,7 +28,8 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
     list: async () => {
       try {
         return await request('/notifications');
-      } catch {
+      } catch (err) {
+        console.error('[community.list]', err);
         return [];
       }
     },
@@ -46,7 +47,8 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
     listPosts: async () => {
       try {
         return await request('/tribe/posts');
-      } catch {
+      } catch (err) {
+        console.error('[community.listPosts]', err);
         return [];
       }
     },
@@ -66,7 +68,8 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
           method: 'POST',
           body: JSON.stringify({ reward }),
         });
-      } catch {
+      } catch (err) {
+        console.error('[community.syncVibration]', err);
         return { success: false };
       }
     },
@@ -97,14 +100,16 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
     getMyLinks: async () => {
       try {
         return await request('/links/me');
-      } catch {
+      } catch (err) {
+        console.error('[community.getMyLinks]', err);
         return [];
       }
     },
     getPendingRequests: async () => {
       try {
         return await request('/links/pending');
-      } catch {
+      } catch (err) {
+        console.error('[community.getPendingRequests]', err);
         return [];
       }
     },
@@ -113,7 +118,8 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         const params = type ? `?type=${type}` : '';
         const result = await request(`/links/check/${targetId}${params}`);
         return result.hasLink || false;
-      } catch {
+      } catch (err) {
+        console.error('[community.checkLink]', err);
         return false;
       }
     },
@@ -126,21 +132,24 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
     goOnline: async () => {
       try {
         return await request('/presence/online', { method: 'POST' });
-      } catch {
+      } catch (err) {
+        console.error('[community.goOnline]', err);
         return { status: 'ONLINE' };
       }
     },
     goOffline: async () => {
       try {
         return await request('/presence/offline', { method: 'POST' });
-      } catch {
+      } catch (err) {
+        console.error('[community.goOffline]', err);
         return { status: 'OFFLINE' };
       }
     },
     ping: async () => {
       try {
         return await request('/presence/ping', { method: 'POST' });
-      } catch {
+      } catch (err) {
+        console.error('[community.ping]', err);
         return { status: 'ONLINE' };
       }
     },
@@ -148,7 +157,8 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         const result = await request('/presence');
         return result.online || [];
-      } catch {
+      } catch (err) {
+        console.error('[community.listActive]', err);
         return [];
       }
     },
@@ -156,7 +166,8 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         const result = await request(`/presence/${guardianId}`);
         return result.status || 'OFFLINE';
-      } catch {
+      } catch (err) {
+        console.error('[community.getStatus]', err);
         return 'OFFLINE';
       }
     },
@@ -166,7 +177,8 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
           method: 'POST',
           body: JSON.stringify({ guardianIds }),
         });
-      } catch {
+      } catch (err) {
+        console.error('[community.getBatch]', err);
         const result: Record<string, string> = {};
         guardianIds.forEach((id) => {
           result[id] = 'OFFLINE';
@@ -190,14 +202,16 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         if (filters?.contextId) query.set('contextId', filters.contextId);
         const suffix = query.toString() ? `?${query.toString()}` : '';
         return await request(`/chat/rooms${suffix}`);
-      } catch {
+      } catch (err) {
+        console.error('[community.listRooms]', err);
         return [];
       }
     },
     getMessages: async (roomId: string) => {
       try {
         return await request(`/chat/rooms/${roomId}/messages`);
-      } catch {
+      } catch (err) {
+        console.error('[community.getMessages]', err);
         return [];
       }
     },

@@ -1,5 +1,4 @@
 import { v2 as cloudinary } from 'cloudinary';
-import { isMockMode } from './supabase.service';
 import { logger } from '../lib/logger';
 
 cloudinary.config({
@@ -16,12 +15,7 @@ export class CloudinaryService {
   static async uploadImage(imagePath: string, folder: string = 'viva360/metamorphosis') {
     if (!imagePath) return imagePath;
 
-    if (isMockMode()) {
-      return imagePath;
-    }
-
-    // In production-like environments, if Cloudinary is not configured,
-    // keep the original image instead of replacing with placeholder.
+    // If Cloudinary is not configured, keep the original image path.
     if (!process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_CLOUD_NAME) {
       return imagePath;
     }

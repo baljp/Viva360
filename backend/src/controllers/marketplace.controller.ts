@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { marketplaceService } from '../services/marketplace.service';
 import prisma from '../lib/prisma';
-import { isMockMode } from '../services/supabase.service';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const ownerId = req.user?.userId;
@@ -35,7 +34,7 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response) =>
     const requesterId = req.user?.userId;
     const role = String(req.user?.role || '').toUpperCase();
 
-    if (!isMockMode() && role !== 'ADMIN') {
+    if (role !== 'ADMIN') {
       const product = await prisma.product.findUnique({
         where: { id },
         select: { owner_id: true },

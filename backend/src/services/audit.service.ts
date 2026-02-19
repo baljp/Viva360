@@ -1,5 +1,4 @@
 import prisma from '../lib/prisma';
-import { isMockMode } from '../services/supabase.service';
 import { logger } from '../lib/logger';
 
 const REDACTED = '[REDACTED]';
@@ -17,80 +16,40 @@ const sanitizeText = (input?: string) => {
 const sanitizePayload = (input: unknown, depth = 0): unknown => {
   if (depth > 4) return REDACTED;
   if (input == null) return input;
-
-  if (typeof input === 'string') {
-    return sanitizeText(input);
-  }
-
-  if (Array.isArray(input)) {
-    return input.map((item) => sanitizePayload(item, depth + 1));
-  }
-
+  if (typeof input === 'string') return sanitizeText(input);
+  if (Array.isArray(input)) return input.map((item) => sanitizePayload(item, depth + 1));
   if (typeof input === 'object') {
     const value = input as Record<string, unknown>;
     const next: Record<string, unknown> = {};
     Object.keys(value).forEach((key) => {
-      if (sensitiveKeyPattern.test(key)) {
-        next[key] = REDACTED;
-        return;
-      }
+      if (sensitiveKeyPattern.test(key)) { next[key] = REDACTED; return; }
       next[key] = sanitizePayload(value[key], depth + 1);
     });
     return next;
   }
-
   return input;
 };
 
 export class AuditService {
-  
-  /**
-   * Log an access event or action.
-   * @param userId The actor performing the action
-   * @param resource The target resource (e.g., 'record:123')
-   * @param action The action taken (e.g., 'READ', 'WRITE')
-   * @param status 'SUCCESS' or 'FAILURE'
-   */
   static async logAccess(userId: string, resource: string, action: string, status: 'SUCCESS' | 'FAILURE' = 'SUCCESS', details?: string) {
     const sanitizedDetails = sanitizeText(details);
-    
-    // 1. Mock Mode: Log to console
-    if (isMockMode()) {
-      logger.info('audit.access', {
-        userId,
-        action,
-        resource,
-        status,
-        details: sanitizedDetails,
-        mode: 'mock',
-      });
-      return; 
-    }
-
-    // 2. Real Mode: Persist to DB
     try {
-      logger.info('audit.db_access', { userId, action, resource });
+      await prisma.auditEvent.create({
+        data: {
+          actor_id: userId,
+          action,
+          entity_type: 'ACCESS',
+          entity_id: resource,
+          payload: { status, details: sanitizedDetails } as any,
+        },
+      });
     } catch (e) {
-      logger.error('audit.db_access_failed', e);
+      logger.warn('audit.logAccess_fallback', { userId, action, resource, status, error: (e as any)?.message });
     }
   }
 
-  /**
-   * Log an event to the audit_events table (Event Sourcing Light)
-   */
   async log(actorId: string, action: string, entityType: string, entityId: string, payload?: unknown): Promise<void> {
     const sanitizedPayload = sanitizePayload(payload || {});
-    if (isMockMode()) {
-      logger.info('audit.event', {
-        actorId,
-        action,
-        entityType,
-        entityId,
-        mode: 'mock',
-      });
-      return;
-    }
-
     try {
       await prisma.auditEvent.create({
         data: {
@@ -102,20 +61,10 @@ export class AuditService {
         },
       });
     } catch (e) {
-      // Fallback to console if table doesn't exist yet
-      logger.warn('audit.event_fallback', {
-        actorId,
-        action,
-        entityType,
-        entityId,
-        payload: sanitizedPayload,
-      });
+      logger.warn('audit.event_fallback', { actorId, action, entityType, entityId, payload: sanitizedPayload });
     }
   }
 
-  /**
-   * Get audit events for an entity
-   */
   async getEventsForEntity(entityType: string, entityId: string, limit: number = 50): Promise<any[]> {
     try {
       return await prisma.auditEvent.findMany({
@@ -123,14 +72,12 @@ export class AuditService {
         orderBy: { created_at: 'desc' },
         take: limit,
       });
-    } catch {
+    } catch (err) {
+      logger.warn('audit.getEventsForEntity_failed', err);
       return [];
     }
   }
 
-  /**
-   * Get audit events by actor
-   */
   async getEventsByActor(actorId: string, limit: number = 50): Promise<any[]> {
     try {
       return await prisma.auditEvent.findMany({
@@ -138,7 +85,8 @@ export class AuditService {
         orderBy: { created_at: 'desc' },
         take: limit,
       });
-    } catch {
+    } catch (err) {
+      logger.warn('audit.getEventsByActor_failed', err);
       return [];
     }
   }
