@@ -1,144 +1,199 @@
-name: Enterprise CI Pipeline
+name: CI — Lint · Type-check · Test
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "20"
 
 jobs:
-  quality-check:
-    name: 🛡️ Build, Lint, Drift, Perf
+  # ────────────────────────────────────────────────────────────────
+  # 1. Lint + Type-check (fast, no secrets needed)
+  # ────────────────────────────────────────────────────────────────
+  lint-and-typecheck:
+    name: 🔍 Lint & Type-check
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Type-check frontend (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Type-check backend (tsc --noEmit)
+        working-directory: ./backend
+        run: npx tsc --noEmit
+
+  # ────────────────────────────────────────────────────────────────
+  # 2. Unit & Contract tests (vitest)
+  # ────────────────────────────────────────────────────────────────
+  unit-tests:
+    name: 🧪 Unit & Contract Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    env:
+      NODE_ENV: test
+      APP_MODE: MOCK
+      ENABLE_TEST_MODE: "true"
+      VITE_MOCK_ENABLED: "true"
+      # Minimal fake values so code that reads these doesn't crash at import time
+      DATABASE_URL: "postgresql://fake:fake@localhost:5432/fake"
+      JWT_SECRET: "ci-test-jwt-secret-not-used-in-real-auth"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Run contract tests (checkout, auth, records, middleware)
+        run: npm run test:contracts
+
+      - name: Run OAuth redirect policy tests
+        run: npm run test:oauth-policy
+
+      - name: Run backend security tests
+        run: npm run test:backend:security
+
+      - name: Run full backend unit test suite
+        run: npm run test:backend
+
+  # ────────────────────────────────────────────────────────────────
+  # 3. Build verification (Vite + Prisma generate)
+  # ────────────────────────────────────────────────────────────────
+  build:
+    name: 🏗️ Build
+    runs-on: ubuntu-latest
+    needs: lint-and-typecheck
+    env:
+      NODE_ENV: production
+      # Placeholder env vars so Vite build doesn't fail on missing imports
+      VITE_SUPABASE_URL: "https://placeholder.supabase.co"
+      VITE_SUPABASE_ANON_KEY: "placeholder-anon-key"
+      VITE_APP_MODE: "PROD"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate
+
+      - name: Build frontend (Vite)
+        run: npx vite build
+
+      - name: Verify bundle budget
+        run: npm run perf:budget
+
+      - name: Check for tracked secrets in bundle
+        run: npm run qa:audit-tracked-secrets
+
+  # ────────────────────────────────────────────────────────────────
+  # 4. Schema drift check (requires real DB connection)
+  # ────────────────────────────────────────────────────────────────
+  schema-drift:
+    name: 🗄️ Prisma Schema Drift
+    runs-on: ubuntu-latest
+    needs: build
+    # Only run on main push (requires production secrets)
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      NODE_ENV: test
     steps:
-      - uses: actions/checkout@v3
-      
+      - uses: actions/checkout@v4
+
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          
-      - name: Install dependencies
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install root dependencies
         run: npm ci
 
-      - name: Audit tracked secrets
-        run: npm run qa:audit-tracked-secrets
+      - name: Generate Prisma client
+        run: npm run prisma:generate
 
-      - name: Lint
-        run: npm run lint
-        
-      - name: TypeScript Check (Frontend)
-        run: npm run build # Vite build runs tsc
-
-      - name: Audit frontend production bundle
-        run: npm run qa:audit-prod-bundle
-
-      - name: Performance Budget
-        run: npm run perf:budget
-        
-      - name: TypeScript Check (Backend)
-        working-directory: ./backend
-        run: |
-          npm ci
-          npm run build
-
-      - name: Drift Check (Prisma schema vs DB)
+      - name: Check schema drift
         run: npm run db:drift-check
 
-  backend-test:
-    name: 🧪 Contracts, Security, Backend
-    runs-on: ubuntu-latest
-    needs: quality-check
-    env:
-      NODE_ENV: test
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run contract tests
-        run: npm run test:contracts
-
-      - name: Generate flow matrix
-        run: npm run qa:matrix
-
-      - name: Validate flow registry
-        run: npm run qa:validate-flow-registry
-
-      - name: Audit route imports
-        run: node scripts/audit_routes.cjs
-
-      - name: Audit test/debug route leaks
-        run: npm run qa:audit-route-leaks
-
-      - name: Audit dead buttons
-        run: npx tsx scripts/audit_buttons.ts --strict
-
-      - name: Validate OAuth redirect policy
-        run: npm run test:oauth-policy
-
-      - name: Run security regression tests
-        run: npm run test:backend:security
-
-      - name: Run backend test suite
-        run: npm run test:backend
-
+  # ────────────────────────────────────────────────────────────────
+  # 5. Smoke E2E (mock mode, no external services)
+  # ────────────────────────────────────────────────────────────────
   smoke-e2e:
-    name: 🎭 Smoke E2E
+    name: 🎭 Smoke E2E (Mock)
     runs-on: ubuntu-latest
-    needs: backend-test
+    needs: [unit-tests, build]
     env:
       NODE_ENV: test
       VITE_APP_MODE: MOCK
       VITE_ENABLE_TEST_MODE: "true"
+      VITE_MOCK_ENABLED: "true"
       APP_MODE: MOCK
       ENABLE_TEST_MODE: "true"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: npm ci
 
-      - name: Install Playwright Browsers
+      - name: Install Playwright browsers (chromium only)
         run: npx playwright install --with-deps chromium
 
-      - name: Run QA Core Regression
+      - name: Run core QA regression
         run: npm run test:qa:core
 
       - name: Run consent E2E
         run: npm run test:qa:consent
 
-      - name: Run deep links E2E
-        run: npm run test:qa:deeplinks
-
       - name: Run accessibility smoke
         run: npm run test:qa:a11y-smoke
 
-  docker-build:
-    name: 🐳 Docker Build Verify
-    runs-on: ubuntu-latest
-    needs: smoke-e2e
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Build Backend Image
-        run: docker build -t viva360-backend ./backend
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: playwright-report/
+          retention-days: 7

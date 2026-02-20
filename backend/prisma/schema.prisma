@@ -117,6 +117,9 @@ model Profile {
   contracts_as_guardian Contract[]    @relation("GuardianContracts")
   space_invites         SpaceInvite[] @relation("SpaceInvites")
 
+  // Routines
+  routines Routine[]
+
   @@map("profiles")
   @@schema("public") // Prisma default is public but explicit is better
 }
@@ -649,6 +652,26 @@ model SpaceInvite {
   @@index([code])
   @@index([space_id])
   @@map("space_invites")
+  @@schema("public")
+}
+
+// --------------------------------------------------------
+// Routines (Rituais diários do Buscador)
+// --------------------------------------------------------
+
+model Routine {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  type       String   // 'morning' | 'night' | etc.
+  steps      Json     // RoutineStep[]
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @updatedAt @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, type])
+  @@index([user_id])
+  @@map("routines")
   @@schema("public")
 }
 

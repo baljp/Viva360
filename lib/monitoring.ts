@@ -19,13 +19,23 @@ export const initMonitoring = () => {
         Sentry.init({
             dsn,
             environment,
+            release: import.meta.env.VITE_APP_VERSION || undefined,
             integrations: [
                 Sentry.browserTracingIntegration(),
-                Sentry.replayIntegration(),
+                Sentry.replayIntegration({
+                    maskAllText: false,
+                    blockAllMedia: false,
+                }),
             ],
             tracesSampleRate: Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.2,
             replaysSessionSampleRate: Number.isFinite(replaysSessionSampleRate) ? replaysSessionSampleRate : 0.01,
             replaysOnErrorSampleRate: Number.isFinite(replaysOnErrorSampleRate) ? replaysOnErrorSampleRate : 1,
+            // Ignore known noise
+            ignoreErrors: [
+                'ResizeObserver loop limit exceeded',
+                'Non-Error promise rejection captured',
+                /Loading chunk \d+ failed/,
+            ],
         });
     }
 
