@@ -1,5 +1,4 @@
 import prisma, { prismaRead } from '../lib/prisma';
-// @ts-ignore
 import { OracleMessage } from '@prisma/client';
 import { AppError } from '../lib/AppError';
 import { logger } from '../lib/logger';
@@ -50,7 +49,7 @@ export class OracleService {
             created_at: new Date('2026-01-01T00:00:00.000Z'),
         },
     ];
-    
+
     // Core Algorithm: Select the best card based on context
     async drawCard(userId: string, context: OracleContext): Promise<OracleMessage | null> {
         const safeUserId = this.normalizeUserId(userId);
@@ -98,10 +97,10 @@ export class OracleService {
         // 2. Score Candidates
         const scoredCandidates = candidates.map(card => {
             let score = 0;
-            
+
             // A. Mood Match (30%)
             if (card.moods.includes(normalizedMood) || card.moods.includes(context.mood)) score += 30;
-            
+
             // B. Garden/Element Match (25%)
             const targetElement = context.gardenStatus.waterNeeded ? 'Agua' : 'Terra';
             if (card.element === targetElement) score += 25;
@@ -113,7 +112,7 @@ export class OracleService {
             score *= Number(card.weight);
 
             // E. Random noise for variety
-            score += Math.random() * 10; 
+            score += Math.random() * 10;
 
             return { card, score };
         });

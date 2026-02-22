@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
 import { PortalView } from '../../../components/Common';
-import { 
+import {
     Activity, Clock, Brain, Sprout, Plus, Sparkles, Leaf, TrendingUp
 } from 'lucide-react';
 import { api } from '../../../services/api';
@@ -14,15 +14,15 @@ const TimelineCard: React.FC<{ event: any }> = ({ event }) => (
         </div>
         <div className="pb-8 flex-1">
             <div className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm relative group-hover:border-nature-300 transition-colors">
-                 <div className="flex justify-between items-start mb-2">
-                     <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg ${event.type === 'crisis' ? 'bg-rose-50 text-rose-600' : 'bg-nature-50 text-nature-500'}`}>{event.type}</span>
-                     <span className="text-[10px] text-nature-300 font-bold">{new Date(event.date).toLocaleDateString()}</span>
-                 </div>
-                 <h4 className="font-bold text-nature-900 text-sm mb-1">{event.title}</h4>
-                 <div className="flex items-center gap-2">
-                     <Activity size={12} className={event.mood === 'Ansioso' ? 'text-rose-400' : 'text-emerald-400'} />
-                     <span className="text-[10px] text-nature-400 font-bold uppercase">{event.mood}</span>
-                 </div>
+                <div className="flex justify-between items-start mb-2">
+                    <span className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg ${event.type === 'crisis' ? 'bg-rose-50 text-rose-600' : 'bg-nature-50 text-nature-500'}`}>{event.type}</span>
+                    <span className="text-[10px] text-nature-300 font-bold">{new Date(event.date).toLocaleDateString()}</span>
+                </div>
+                <h4 className="font-bold text-nature-900 text-sm mb-1">{event.title}</h4>
+                <div className="flex items-center gap-2">
+                    <Activity size={12} className={event.mood === 'Ansioso' ? 'text-rose-400' : 'text-emerald-400'} />
+                    <span className="text-[10px] text-nature-400 font-bold uppercase">{event.mood}</span>
+                </div>
             </div>
         </div>
     </div>
@@ -66,9 +66,9 @@ const RecordModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (dat
                     </div>
                     <div className="flex gap-4 pt-4">
                         <button onClick={onClose} className="flex-1 py-4 bg-nature-100 text-nature-600 rounded-2xl font-bold uppercase tracking-widest text-xs">Cancelar</button>
-                        <button 
+                        <button
                             disabled={!title}
-                            onClick={() => onSave({ title, mood, content, date: new Date().toISOString(), type: 'session' })} 
+                            onClick={() => onSave({ title, mood, content, date: new Date().toISOString(), type: 'session' })}
                             className="flex-[2] py-4 bg-emerald-600 text-white rounded-2xl font-bold uppercase tracking-widest text-xs shadow-lg disabled:opacity-50"
                         >
                             Gravar Evolução
@@ -80,13 +80,13 @@ const RecordModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (dat
     );
 };
 
-const Check = ({ size }: any) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const Check = ({ size }: any) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>;
 
 const InterventionCard: React.FC<{ title: string, outcome: string, type: string }> = ({ title, outcome, type }) => (
     <div className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm mb-3">
         <div className="flex gap-4 items-center">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${type === 'pratica' ? 'bg-indigo-50 text-indigo-500' : 'bg-emerald-50 text-emerald-500'}`}>
-                {type === 'pratica' ? <Sparkles size={20}/> : <Leaf size={20}/>}
+                {type === 'pratica' ? <Sparkles size={20} /> : <Leaf size={20} />}
             </div>
             <div>
                 <h4 className="font-bold text-nature-900 text-sm">{title}</h4>
@@ -100,7 +100,7 @@ export default function PatientEvolutionView() {
     const { go, notify, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'timeline' | 'patterns' | 'interventions' | 'plan'>('timeline');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+
     useEffect(() => {
         if (state.currentState === 'PATIENT_PLAN') {
             setActiveTab('plan');
@@ -138,7 +138,29 @@ export default function PatientEvolutionView() {
     };
 
     useEffect(() => {
-        fetchRecords();
+        let cancelled = false;
+        setLoading(true);
+        if (!PATIENT_ID) {
+            setRecords([]);
+            setLoading(false);
+            return;
+        }
+        api.records.list(PATIENT_ID)
+            .then((data) => {
+                if (cancelled) return;
+                const normalized = (data || []).map((item: any) => ({
+                    id: item.id,
+                    type: item.type || 'session',
+                    title: item.type === 'anamnesis' ? 'Anamnese Clínica' : 'Sessão Terapêutica',
+                    date: item.created_at || item.date || new Date().toISOString(),
+                    mood: 'Registrado',
+                    content: item.content || '',
+                }));
+                setRecords(normalized.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            })
+            .catch(() => { if (!cancelled) setRecords([]); })
+            .finally(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
     }, [PATIENT_ID]);
 
     const handleAddEvent = async (data: any) => {
@@ -167,9 +189,9 @@ export default function PatientEvolutionView() {
     };
 
     return (
-        <PortalView 
-            title="Prontuário Evolutivo" 
-            subtitle="JORNADA DA ALMA" 
+        <PortalView
+            title="Prontuário Evolutivo"
+            subtitle="JORNADA DA ALMA"
             onBack={() => go('PATIENT_PROFILE')}
             heroImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800"
             footer={
@@ -188,7 +210,7 @@ export default function PatientEvolutionView() {
                     { id: 'interventions', label: 'Intervenções', icon: Sprout }, // Fixed Icon
                     { id: 'plan', label: 'Plano Vivo', icon: Activity },
                 ].map(tab => (
-                    <button 
+                    <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`px-4 py-3 rounded-2xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-nature-900 text-white border-nature-900 shadow-lg' : 'bg-white text-nature-400 border-nature-100'}`}
@@ -206,7 +228,7 @@ export default function PatientEvolutionView() {
                     )}
                 </div>
             )}
-            
+
             {/* Keeping other tabs static for now as they are complex views */}
             {/* ... patterns, interventions, plan logic ... */}
 
@@ -225,12 +247,12 @@ export default function PatientEvolutionView() {
                     </div>
 
                     <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
-                         <h5 className="font-bold text-nature-900 text-xs uppercase tracking-widest mb-4 flex items-center gap-2"><Brain size={16} className="text-nature-400"/> Padrões Recorrentes (IA)</h5>
-                         <div className="flex flex-wrap gap-2">
-                             <span className="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-[9px] font-bold uppercase border border-rose-100">Gatilho: Rejeição</span>
-                             <span className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-bold uppercase border border-indigo-100">Força: Resiliência</span>
-                             <span className="px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-[9px] font-bold uppercase border border-amber-100">Ciclo: Lunar</span>
-                         </div>
+                        <h5 className="font-bold text-nature-900 text-xs uppercase tracking-widest mb-4 flex items-center gap-2"><Brain size={16} className="text-nature-400" /> Padrões Recorrentes (IA)</h5>
+                        <div className="flex flex-wrap gap-2">
+                            <span className="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-[9px] font-bold uppercase border border-rose-100">Gatilho: Rejeição</span>
+                            <span className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-bold uppercase border border-indigo-100">Força: Resiliência</span>
+                            <span className="px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-[9px] font-bold uppercase border border-amber-100">Ciclo: Lunar</span>
+                        </div>
                     </div>
                 </div>
             )}
@@ -243,7 +265,7 @@ export default function PatientEvolutionView() {
                 </div>
             )}
 
-             {activeTab === 'plan' && (
+            {activeTab === 'plan' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-[2.5rem] border border-emerald-100 text-center">
                         <Sprout size={32} className="mx-auto text-emerald-600 mb-3" />
@@ -252,21 +274,21 @@ export default function PatientEvolutionView() {
                     </div>
 
                     <div className="space-y-3">
-                         <div className="flex justify-between items-center px-1">
-                             <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Micro-Metas da Semana</h4>
-                             <button onClick={() => setActiveTab('patterns')} className="p-1 bg-nature-50 rounded text-nature-400"><TrendingUp size={14}/></button>
+                        <div className="flex justify-between items-center px-1">
+                            <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Micro-Metas da Semana</h4>
+                            <button onClick={() => setActiveTab('patterns')} className="p-1 bg-nature-50 rounded text-nature-400"><TrendingUp size={14} /></button>
                         </div>
                         {[
                             { title: 'Diário da Gratidão (3x)', done: true },
                             { title: 'Caminhada na Natureza', done: false },
                             { title: 'Ritual do Sono', done: true }
                         ].map((goal, i) => (
-                             <div key={i} className={`p-4 rounded-2xl border flex items-center gap-3 ${goal.done ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-nature-100'}`}>
-                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${goal.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-nature-300'}`}>
-                                     {goal.done && <Check size={12} />}
-                                 </div>
-                                 <span className={`text-xs font-bold ${goal.done ? 'text-emerald-800 line-through opacity-70' : 'text-nature-700'}`}>{goal.title}</span>
-                             </div>
+                            <div key={i} className={`p-4 rounded-2xl border flex items-center gap-3 ${goal.done ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-nature-100'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${goal.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-nature-300'}`}>
+                                    {goal.done && <Check size={12} />}
+                                </div>
+                                <span className={`text-xs font-bold ${goal.done ? 'text-emerald-800 line-through opacity-70' : 'text-nature-700'}`}>{goal.title}</span>
+                            </div>
                         ))}
                     </div>
 
