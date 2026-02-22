@@ -28,7 +28,7 @@ export const CartDrawer: React.FC<{
              <div className="p-3 bg-primary-900 text-white rounded-2xl"><ShoppingBag size={20}/></div>
              <h3 className="text-xl font-serif italic text-nature-900">Sua Sacola</h3>
           </div>
-          <button onClick={onClose} className="p-3 bg-nature-50 rounded-2xl text-nature-300 active:scale-90 transition-all"><X size={20}/></button>
+          <button onClick={onClose} aria-label="Fechar carrinho" className="p-3 bg-nature-50 rounded-2xl text-nature-300 active:scale-90 transition-all"><X size={20}/></button>
         </header>
 
         <div className="flex-1 overflow-y-auto no-scrollbar p-6 space-y-6">
@@ -49,7 +49,7 @@ export const CartDrawer: React.FC<{
                                     <h4 className="font-bold text-nature-900 text-xs truncate break-words line-clamp-2 leading-tight">{item.name}</h4>
                                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">R$ {(item.price || 0).toFixed(2)}</p>
                                 </div>
-                                <button onClick={() => onRemove(item.id)} className="p-2 text-rose-300 hover:text-rose-500 transition-colors shrink-0"><Trash2 size={16}/></button>
+                                <button onClick={() => onRemove(item.id)} aria-label="Remover item" className="p-2 text-rose-300 hover:text-rose-500 transition-colors shrink-0"><Trash2 size={16}/></button>
                             </div>
                         ))}
                     </div>
@@ -68,7 +68,7 @@ export const CartDrawer: React.FC<{
                                     <h4 className="font-bold text-nature-900 text-xs truncate break-words line-clamp-2 leading-tight">{item.name}</h4>
                                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mt-1">R$ {(item.price || 0).toFixed(2)}</p>
                                 </div>
-                                <button onClick={() => onRemove(item.id)} className="p-2 text-rose-300 hover:text-rose-500 transition-colors shrink-0"><Trash2 size={16}/></button>
+                                <button onClick={() => onRemove(item.id)} aria-label="Remover item" className="p-2 text-rose-300 hover:text-rose-500 transition-colors shrink-0"><Trash2 size={16}/></button>
                             </div>
                         ))}
                     </div>

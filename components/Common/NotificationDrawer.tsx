@@ -62,7 +62,7 @@ export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void
                  <p className="text-[10px] text-nature-400 font-bold uppercase tracking-[0.2em] mt-1">Notificações</p>
              </div>
           </div>
-          <button onClick={onClose} className="p-3 bg-nature-50 rounded-2xl text-nature-400 hover:text-nature-900 transition-colors"><X size={20}/></button>
+          <button onClick={onClose} aria-label="Fechar notificações" className="p-3 bg-nature-50 rounded-2xl text-nature-400 hover:text-nature-900 transition-colors"><X size={20}/></button>
         </header>
 
         {/* Filtros / Abas */}

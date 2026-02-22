@@ -214,7 +214,7 @@ export const SmartTutorial: React.FC<{ user: User | null }> = ({ user }) => {
                         <div className={`p-3 rounded-2xl ${step.color.includes('bg-white') ? 'bg-nature-50' : 'bg-white/10'}`}>
                             {step.icon}
                         </div>
-                        <button onClick={finishTutorial} className="p-2 opacity-50 hover:opacity-100"><X size={20}/></button>
+                        <button onClick={finishTutorial} aria-label="Fechar tutorial" className="p-2 opacity-50 hover:opacity-100"><X size={20}/></button>
                     </div>
 
                     <h3 className="text-xl font-bold font-serif italic mb-2">{step.title}</h3>

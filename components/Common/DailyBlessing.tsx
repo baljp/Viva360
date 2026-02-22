@@ -48,7 +48,7 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: numbe
                 {/* Rarity Glow */}
                 <div className={`absolute -top-10 -right-10 w-32 h-32 blur-3xl rounded-full opacity-20 ${wisdom.rarity === 'Legendary' ? 'bg-amber-400' : wisdom.rarity === 'Epic' ? 'bg-indigo-400' : 'bg-primary-400'}`}></div>
                 
-                <button onClick={() => setDismissed(true)} className="absolute top-4 right-4 p-2 text-nature-300 hover:text-nature-900 transition-colors z-20"><X size={16}/></button>
+                <button onClick={() => setDismissed(true)} aria-label="Dispensar bênção" className="absolute top-4 right-4 p-2 text-nature-300 hover:text-nature-900 transition-colors z-20"><X size={16}/></button>
                 
                 <div className="flex items-center gap-5 relative z-10">
                     <div className="relative">

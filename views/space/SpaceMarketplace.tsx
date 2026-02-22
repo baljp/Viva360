@@ -102,9 +102,9 @@ export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setVie
                                                 </div>
                                                 <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest mb-3">{prod.category} • {prod.type === 'physical' ? 'Em Estoque' : 'Digital'}</p>
                                                 <div className="flex gap-2 justify-end">
-                                                    <button onClick={() => handlePreviewProduct(prod)} className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><Eye size={14}/></button>
-                                                    <button onClick={() => handleRefreshProduct(prod)} className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><RefreshCw size={14}/></button>
-                                                    <button onClick={() => handleDeleteProduct(prod.id)} className="p-2 bg-rose-50 text-rose-300 rounded-xl hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
+                                                    <button aria-label="Pré-visualizar produto" onClick={() => handlePreviewProduct(prod)} className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><Eye size={14}/></button>
+                                                    <button aria-label="Atualizar produto" onClick={() => handleRefreshProduct(prod)} className="p-2 bg-nature-50 text-nature-400 rounded-xl hover:text-nature-900 transition-colors"><RefreshCw size={14}/></button>
+                                                    <button aria-label="Excluir produto" onClick={() => handleDeleteProduct(prod.id)} className="p-2 bg-rose-50 text-rose-300 rounded-xl hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
                                                 </div>
                                             </div>
                                         </div>

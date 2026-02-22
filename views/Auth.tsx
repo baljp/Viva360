@@ -20,13 +20,13 @@ const OnboardingCarousel: React.FC = () => {
             text: 'Conecte-se com sua essência e encontre o equilíbrio entre corpo, mente e energia.'
         },
         {
-            image: 'https://images.unsplash.com/photo-1600618528240-fb9fc964b853?q=80&w=1200&auto=format&fit=crop', 
+            image: 'https://images.unsplash.com/photo-1600618528240-fb9fc964b853?q=80&w=1200&auto=format&fit=crop',
             subtitle: 'Santuários',
             title: 'Espaços que curam e acolhem.',
             text: 'Descubra refúgios seguros e guardiões preparados para guiar sua evolução.'
         },
         {
-            image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop', 
+            image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=1200&auto=format&fit=crop',
             subtitle: 'Ecos',
             title: 'A cura acontece em comunidade.',
             text: 'Troque experiências, envie boas vibrações e cresça junto com o ecossistema.'
@@ -38,26 +38,26 @@ const OnboardingCarousel: React.FC = () => {
     useEffect(() => {
         const timer = setTimeout(() => {
             setCurrentSlide((prev) => (prev + 1) % slides.length);
-        }, 6000); 
+        }, 6000);
         return () => clearTimeout(timer);
     }, [currentSlide, slides.length]);
 
     return (
-        <div className="absolute inset-0 w-full h-full bg-[#1a211d]"> 
+        <div className="absolute inset-0 w-full h-full bg-[#1a211d]">
             {slides.map((slide, index) => (
                 <div key={index} className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}>
                     <div className="absolute inset-0 overflow-hidden">
-                        <img 
-                            src={slide.image} 
+                        <img
+                            src={slide.image}
                             crossOrigin="anonymous"
                             onError={(e) => { e.currentTarget.src = 'https://placehold.co/1200x800/1a211d/FFF?text=Viva360'; }}
-                            className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${index === currentSlide ? 'scale-110' : 'scale-100'}`} 
-                            alt="Onboarding" 
+                            className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-out ${index === currentSlide ? 'scale-110' : 'scale-100'}`}
+                            alt="Onboarding"
                         />
                     </div>
                     {/* Gradiente mais escuro no topo para garantir contraste do texto */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/20 to-[#1a211d] opacity-90"></div>
-                    
+
                     {/* Texto reposicionado e aumentado */}
                     <div className="absolute top-[12%] left-0 p-8 w-full text-left z-20">
                         <div className="inline-block px-4 py-1.5 mb-5 rounded-full border border-white/30 bg-white/10 backdrop-blur-md shadow-lg">
@@ -111,10 +111,10 @@ const ForgotPasswordForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         <div className="bg-[#f4f7f5] rounded-t-[3rem] w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col h-[60vh]">
             <div className="p-8">
                 <div className="w-12 h-1.5 bg-nature-200 rounded-full mx-auto opacity-50 mb-6"></div>
-                
+
                 <header className="flex justify-between items-center mb-6">
                     <h3 className="text-2xl font-serif italic text-nature-900">Recuperar Acesso</h3>
-                    <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200"><X size={20}/></button>
+                    <button aria-label="Fechar" onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200"><X size={20} /></button>
                 </header>
 
                 {!success ? (
@@ -123,11 +123,11 @@ const ForgotPasswordForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                             Digite seu e-mail para recebermos um elo de recuperação.
                         </p>
                         <div className="space-y-2">
-                             <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 transition-all">
-                                <Mail size={18} className="text-nature-400 shrink-0"/>
-                                <input 
+                            <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 transition-all">
+                                <Mail size={18} className="text-nature-400 shrink-0" />
+                                <input
                                     type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                                    className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm" 
+                                    className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm"
                                     placeholder="seu@email.com"
                                 />
                             </div>
@@ -171,7 +171,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         } catch (err: any) {
             console.error(err);
             let msg = err.message || 'Erro ao sintonizar.';
-            
+
             // Detect specific error types
             if (msg.includes('Invalid login') || msg.includes('Invalid credentials')) {
                 msg = '🔐 A harmonia falhou. Verifique seu e-mail e senha.';
@@ -182,7 +182,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
             } else if (msg.includes('not confirmed') || msg.includes('Email not confirmed')) {
                 msg = '📧 Email não confirmado. Verifique sua caixa de entrada para ativar sua jornada.';
             }
-            
+
             setError(msg);
             setLoading(false);
         }
@@ -201,20 +201,20 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
             }
         } catch (err: any) {
             if (err.message !== 'REDIRECTING_TO_GOOGLE') {
-               console.error(err);
-               
-               // Detect DNS/network errors
-               if (err.message?.includes('DNS') || 
-                   err.message?.includes('NXDOMAIN') || 
-                   err.message?.includes('network') ||
-                   err.message?.includes('fetch')) {
-                   setError('⚠️ Erro de rede detectado. Verifique se as URLs de redirect estão configuradas no painel do Supabase (Authentication → URL Configuration). Desenvolvimento: http://localhost:5173');
-               } else if (err.message?.includes('redirect')) {
-                   setError('🔒 Erro de redirect. Certifique-se de que sua URL está autorizada no Supabase Dashboard.');
-               } else {
-                   setError(err.message || 'Falha na conexão com Google. Tente novamente ou use e-mail/senha.');
-               }
-               setLoading(false);
+                console.error(err);
+
+                // Detect DNS/network errors
+                if (err.message?.includes('DNS') ||
+                    err.message?.includes('NXDOMAIN') ||
+                    err.message?.includes('network') ||
+                    err.message?.includes('fetch')) {
+                    setError('⚠️ Erro de rede detectado. Verifique se as URLs de redirect estão configuradas no painel do Supabase (Authentication → URL Configuration). Desenvolvimento: http://localhost:5173');
+                } else if (err.message?.includes('redirect')) {
+                    setError('🔒 Erro de redirect. Certifique-se de que sua URL está autorizada no Supabase Dashboard.');
+                } else {
+                    setError(err.message || 'Falha na conexão com Google. Tente novamente ou use e-mail/senha.');
+                }
+                setLoading(false);
             }
         }
     };
@@ -223,26 +223,26 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
 
     return (
         <div className="bg-[#f4f7f5] rounded-t-[3rem] w-full relative z-50 animate-in slide-in-from-bottom duration-300 shadow-2xl flex flex-col h-[85dvh] max-h-[85dvh]">
-            
+
             <div className="flex-none p-8 pb-4">
                 <div className="w-12 h-1.5 bg-nature-200 rounded-full mx-auto opacity-50 mb-6"></div>
-                
-                    <header className="flex justify-between items-center mb-6">
-                        <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <h3 className="text-2xl font-serif italic text-nature-900">Entrar no Fluxo</h3>
-                            </div>
-                            {isMockMode && (
-                                <div className="bg-amber-100 border border-amber-300 rounded p-2 text-[10px] text-amber-800 max-w-xs mt-2">
-                                    <p className="font-bold">⚠️ MODO MOCK ATIVO (Sem Backend)</p>
-                                    <p>URL Supabase: {envStatus.hasUrl ? '✅ OK' : '❌ NÃO DEFINIDA'}</p>
-                                    <p>Anon Key: {envStatus.hasKey ? '✅ OK' : '❌ NÃO DEFINIDA'}</p>
-                                    <p className="opacity-50 mt-1">Isso impede login real. Configure Vercel Vars.</p>
-                                </div>
-                            )}
+
+                <header className="flex justify-between items-center mb-6">
+                    <div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <h3 className="text-2xl font-serif italic text-nature-900">Entrar no Fluxo</h3>
                         </div>
-                        <button onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20}/></button>
-                    </header>
+                        {isMockMode && (
+                            <div className="bg-amber-100 border border-amber-300 rounded p-2 text-[10px] text-amber-800 max-w-xs mt-2">
+                                <p className="font-bold">⚠️ MODO MOCK ATIVO (Sem Backend)</p>
+                                <p>URL Supabase: {envStatus.hasUrl ? '✅ OK' : '❌ NÃO DEFINIDA'}</p>
+                                <p>Anon Key: {envStatus.hasKey ? '✅ OK' : '❌ NÃO DEFINIDA'}</p>
+                                <p className="opacity-50 mt-1">Isso impede login real. Configure Vercel Vars.</p>
+                            </div>
+                        )}
+                    </div>
+                    <button aria-label="Fechar" onClick={onBack} className="p-2 bg-nature-100 rounded-full text-nature-500 hover:bg-nature-200 active:scale-95 transition-all"><X size={20} /></button>
+                </header>
 
 
                 {/* Demo mode interactive section removed */}
@@ -250,16 +250,16 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
 
             <div className="flex-1 overflow-y-auto px-8 pb-12 no-scrollbar">
                 <form onSubmit={handleSubmit} className="space-y-6 pt-2">
-                    
-                        <button 
-                            type="button"
-                            onClick={handleGoogleLogin}
-                            disabled={loading}
-                            className="w-full bg-white border border-nature-200 text-nature-900 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-sm active:scale-95 transition-all hover:bg-nature-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
-                        >
-                            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-                            Continuar com Google
-                        </button>
+
+                    <button
+                        type="button"
+                        onClick={handleGoogleLogin}
+                        disabled={loading}
+                        className="w-full bg-white border border-nature-200 text-nature-900 py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-sm active:scale-95 transition-all hover:bg-nature-50 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                    >
+                        <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                        Continuar com Google
+                    </button>
 
                     <div className="relative flex py-2 items-center">
                         <div className="flex-grow border-t border-nature-100"></div>
@@ -270,13 +270,13 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-nature-500 uppercase tracking-wider ml-2">E-mail</label>
                         <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all">
-                            <Mail size={18} className="text-nature-400 shrink-0"/>
-                            <input 
-                                type="email" 
+                            <Mail size={18} className="text-nature-400 shrink-0" />
+                            <input
+                                type="email"
                                 required={true}
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
-                                className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm" 
+                                className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm"
                                 placeholder="seu@email.com"
                             />
                         </div>
@@ -284,16 +284,16 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                     <div className="space-y-2">
                         <label className="text-xs font-bold text-nature-500 uppercase tracking-wider ml-2">Senha</label>
                         <div className="bg-white p-4 rounded-2xl border border-nature-200 flex items-center gap-3 focus-within:border-primary-500 focus-within:ring-2 focus-within:ring-primary-100 transition-all">
-                            <Lock size={18} className="text-nature-400 shrink-0"/>
-                            <input 
-                                type={showPassword ? "text" : "password"} 
+                            <Lock size={18} className="text-nature-400 shrink-0" />
+                            <input
+                                type={showPassword ? "text" : "password"}
                                 required={true}
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
-                                className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm" 
+                                className="w-full bg-transparent outline-none text-nature-900 font-medium text-sm"
                                 placeholder="••••••••"
                             />
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
                                 className="text-nature-400 hover:text-nature-600 transition-colors p-1"
@@ -310,20 +310,20 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
                         </div>
                     )}
 
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         disabled={loading}
                         className="w-full bg-nature-900 text-white py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all hover:bg-black disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2 mt-4"
                     >
-                        {loading ? <span className="animate-pulse">Sintonizando...</span> : <>Entrar no Fluxo <LogIn size={16}/></>}
+                        {loading ? <span className="animate-pulse">Sintonizando...</span> : <>Entrar no Fluxo <LogIn size={16} /></>}
                     </button>
-                    
-                        <div className="text-center pt-2">
-                            <button type="button" onClick={() => setShowForgot(true)} className="text-xs text-primary-600 font-bold hover:underline">
-                                Perdeu o elo de acesso? Recuperar Harmonia
-                            </button>
-                        </div>
-                    
+
+                    <div className="text-center pt-2">
+                        <button type="button" onClick={() => setShowForgot(true)} className="text-xs text-primary-600 font-bold hover:underline">
+                            Perdeu o elo de acesso? Recuperar Harmonia
+                        </button>
+                    </div>
+
                     <div className="h-12"></div>
                 </form>
             </div>
@@ -336,45 +336,45 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
 
     // OAuth Callback Check
     useEffect(() => {
-                const checkSession = async () => {
-                    try {
-                        const { data } = await supabase.auth.getSession();
-                        if (data.session) {
-                            const user = await api.auth.getCurrentSession();
-                            if (user) onLogin(user);
-                        }
-                    } catch (err) {
-                        await api.auth.logout();
-                    }
-                };
+        const checkSession = async () => {
+            try {
+                const { data } = await supabase.auth.getSession();
+                if (data.session) {
+                    const user = await api.auth.getCurrentSession();
+                    if (user) onLogin(user);
+                }
+            } catch (err) {
+                await api.auth.logout();
+            }
+        };
         checkSession();
     }, []);
 
     return (
         <div className="relative h-screen w-full bg-[#1a211d] overflow-hidden flex flex-col justify-end">
             <OnboardingCarousel />
-            
+
             <div className="absolute top-[calc(1rem+env(safe-area-inset-top))] left-1/2 -translate-x-1/2 z-30 animate-in fade-in zoom-in duration-1000">
                 {/* Logo Removed */}
             </div>
-            
+
             <div className="relative z-30 p-8 pb-[calc(2rem+env(safe-area-inset-bottom))] w-full bg-gradient-to-t from-[#1a211d] via-[#1a211d] to-transparent pt-32">
-                 <div className="flex flex-col gap-4">
-                    <button 
+                <div className="flex flex-col gap-4">
+                    <button
                         onClick={() => setShowLogin(true)}
                         className="w-full bg-white text-nature-900 py-5 rounded-[2rem] font-bold uppercase tracking-widest text-xs shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95 transition-all hover:bg-nature-50 flex items-center justify-center gap-3"
                     >
                         Já Iniciei a Jornada <ArrowRight size={16} />
                     </button>
-                    
-                    <button 
+
+                    <button
                         onClick={() => setView(ViewState.REGISTER)}
                         className="w-full bg-white/10 backdrop-blur-md border border-white/20 text-white py-5 rounded-[2rem] font-bold uppercase tracking-widest text-xs hover:bg-white/20 active:scale-95 transition-all"
                     >
                         Dar o Primeiro Passo (Cadastro)
                     </button>
                 </div>
-                
+
                 <p className="text-center text-[10px] text-nature-400 mt-8 opacity-60">
                     Ao entrar, você concorda com nossos Termos de Harmonia e Política de Privacidade.
                 </p>

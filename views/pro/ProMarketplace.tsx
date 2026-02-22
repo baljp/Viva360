@@ -109,8 +109,8 @@ export const ProMarketplace: React.FC<{
                                     <div className="flex items-center justify-between mt-3">
                                         <div className="flex items-center gap-1.5 text-emerald-600"><Award size={10}/><span className="text-[9px] font-bold uppercase">+{prod.karmaReward} Karma</span></div>
                                         <div className="flex gap-2">
-                                            <button onClick={() => handleSaveProduct(prod)} className="p-2 bg-nature-50 text-nature-300 rounded-lg hover:text-nature-900 transition-colors"><Save size={14}/></button>
-                                            <button onClick={() => api.marketplace.delete(prod.id).then(refreshData)} className="p-2 bg-rose-50 text-rose-300 rounded-lg hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
+                                            <button aria-label="Salvar produto" onClick={() => handleSaveProduct(prod)} className="p-2 bg-nature-50 text-nature-300 rounded-lg hover:text-nature-900 transition-colors"><Save size={14}/></button>
+                                            <button aria-label="Excluir produto" onClick={() => api.marketplace.delete(prod.id).then(refreshData)} className="p-2 bg-rose-50 text-rose-300 rounded-lg hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
                                         </div>
                                     </div>
                                 </div>

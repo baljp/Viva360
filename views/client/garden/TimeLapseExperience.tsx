@@ -202,7 +202,7 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                              <p className="text-[10px] opacity-70">{new Date(activeSnap.date).toLocaleDateString()}</p>
                         </div>
                     </div>
-                    <button onClick={() => go('EVOLUTION')} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X size={24}/></button>
+                    <button aria-label="Fechar" onClick={() => go('EVOLUTION')} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X size={24}/></button>
                 </div>
             </div>
 

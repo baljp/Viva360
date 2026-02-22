@@ -63,7 +63,7 @@ export const RitualBuilderView: React.FC<{ setView: (v: ViewState) => void }> = 
                                     <h4 className="font-bold text-nature-900 text-sm">{step.title}</h4>
                                     <p className="text-[10px] text-nature-400 uppercase font-bold">{step.duration} min</p>
                                 </div>
-                                <button onClick={() => handleRemove(step.id)} className="p-2 text-rose-300 hover:text-rose-500 transition-colors"><Trash2 size={16}/></button>
+                                <button aria-label="Remover passo" onClick={() => handleRemove(step.id)} className="p-2 text-rose-300 hover:text-rose-500 transition-colors"><Trash2 size={16}/></button>
                             </div>
                         );
                     })}

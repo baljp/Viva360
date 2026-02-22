@@ -118,7 +118,7 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Log
 
              {/* Input Area */}
              <div className="p-3 bg-white flex items-center gap-2 shadow-inner">
-                 <button onClick={handleOpenAttachmentPicker} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"><Paperclip size={20}/></button>
+                 <button aria-label="Anexar arquivo" onClick={handleOpenAttachmentPicker} className="p-2 text-gray-500 hover:bg-gray-100 rounded-full"><Paperclip size={20}/></button>
                  <input ref={attachmentInputRef} type="file" className="hidden" onChange={handleAttachmentSelected} />
                  <input 
                     value={input}
