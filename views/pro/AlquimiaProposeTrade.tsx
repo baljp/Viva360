@@ -97,7 +97,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
                         <p className="text-xs text-emerald-300 mt-1">por {target?.name || 'Guardião'}</p>
                     </div>
                     <div className="w-16 h-16 bg-white/10 rounded-2xl">
-                        <img src="https://images.unsplash.com/photo-1602755295717-d5d143c65c08?q=80&w=200" className="w-full h-full object-cover rounded-2xl" alt="Item desejado" />
+                        <img src="https://images.unsplash.com/photo-1602755295717-d5d143c65c08?q=80&w=200" className="w-full h-full object-cover rounded-2xl" alt="Item desejado" loading="lazy" />
                     </div>
                 </div>
 

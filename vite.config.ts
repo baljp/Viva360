@@ -5,12 +5,12 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   // Enterprise Configuration: Base '/' for Vercel Root Deployment
-  base: '/', 
+  base: '/',
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-            includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
       manifest: {
         name: 'Viva360 - Ecossistema Holístico',
         short_name: 'Viva360',
@@ -45,6 +45,7 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: false, // Security: Hide source code in production
     minify: 'terser',
+    cssCodeSplit: true,
     terserOptions: {
       compress: {
         drop_console: true, // Performance: Remove logs in prod
@@ -55,9 +56,13 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-router-dom')) return 'vendor-core';
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor-core';
+            // UI/Animation — framer-motion + lucide in the same async chunk
             if (id.includes('framer-motion') || id.includes('lucide-react')) return 'vendor-ui';
-            if (id.includes('axios') || id.includes('zod') || id.includes('supabase-js')) return 'vendor-data';
+            // Data/Auth layer
+            if (id.includes('supabase') || id.includes('zod') || id.includes('axios')) return 'vendor-data';
+            // Monitoring — loaded last, non-blocking
+            if (id.includes('@sentry')) return 'vendor-monitoring';
             return 'vendor-misc';
           }
           return undefined;

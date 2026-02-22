@@ -23,23 +23,24 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
     const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
-    // Load Data
+    // Load Data — cancelled guard prevents setState on unmounted component
     useEffect(() => {
-        api.metamorphosis.getEvolution().then(data => {
-            const list = data.entries || [];
-            const sorted = [...list].map(e => ({
-                ...e,
-                timestamp: e.timestamp || e.date || new Date().toISOString(),
-                photoThumb: e.photoThumb || e.image || ''
-            })).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-            
-            setEntries(sorted);
-            setLoading(false);
-            if (sorted.length > 0) setIsPlaying(true);
-        }).catch(err => {
-            console.error("TimeLapse Loading Error:", err);
-            setLoading(false);
-        });
+        let cancelled = false;
+        api.metamorphosis.getEvolution()
+            .then(data => {
+                if (cancelled) return;
+                const list = data.entries || [];
+                const sorted = [...list].map(e => ({
+                    ...e,
+                    timestamp: e.timestamp || e.date || new Date().toISOString(),
+                    photoThumb: e.photoThumb || e.image || ''
+                })).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+                setEntries(sorted);
+                setLoading(false);
+                if (sorted.length > 0) setIsPlaying(true);
+            })
+            .catch(() => { if (!cancelled) setLoading(false); });
+        return () => { cancelled = true; };
     }, []);
 
     // CANVAS DRAWING (The Engine)
@@ -52,14 +53,14 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
         const W = 1080;
         const H = format === 'STORY' ? 1920 : 1350;
-        
+
         // Ensure standard size
         if (canvas.width !== W) canvas.width = W;
         if (canvas.height !== H) canvas.height = H;
 
         // Clean
         ctx.fillStyle = '#1a1a1a';
-        const garden = gardenSnaps.find(s => 
+        const garden = gardenSnaps.find(s =>
             new Date(s.date).toDateString() === new Date(entry.timestamp).toDateString()
         );
 
@@ -72,17 +73,17 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             imgGarden.crossOrigin = "anonymous";
             imgGarden.src = garden.image;
         }
-        
+
         // Dynamic Zoom Effect based on progress (Ken Burns)
-        const zoom = 1 + (progress / 200); 
-        
+        const zoom = 1 + (progress / 200);
+
         const draw = () => {
             // --- LAYER 0: JARDIM (BACKGROUND STATE) ---
             if (garden && imgGarden.complete) {
                 const gScale = Math.max(W / imgGarden.width, H / imgGarden.height) * zoom;
                 const gx = (W - imgGarden.width * gScale) / 2;
                 const gy = (H - imgGarden.height * gScale) / 2;
-                
+
                 ctx.save();
                 ctx.filter = 'blur(20px) saturate(0.5) brightness(0.6)'; // Contemplative / Subtle
                 ctx.drawImage(imgGarden, gx, gy, imgGarden.width * gScale, imgGarden.height * gScale);
@@ -105,7 +106,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
             // --- IG QUALITY PIPELINE (SOUL CARD) ---
             ctx.save();
-            
+
             // Rounded Clip for Card
             const r = 40;
             ctx.beginPath();
@@ -132,7 +133,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             ctx.restore();
 
             // --- LAYER 2: OVERLAY & TEXT ---
-            
+
             // Grain/Noise
             const grainCanvas = document.createElement('canvas');
             grainCanvas.width = 128;
@@ -142,9 +143,9 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             for (let i = 0; i < gData.data.length; i += 4) {
                 const val = Math.random() * 255;
                 gData.data[i] = val;
-                gData.data[i+1] = val;
-                gData.data[i+2] = val;
-                gData.data[i+3] = 15;
+                gData.data[i + 1] = val;
+                gData.data[i + 2] = val;
+                gData.data[i + 3] = 15;
             }
             gCtx.putImageData(gData, 0, 0);
             ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat')!;
@@ -155,40 +156,40 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             // Text Overlay
             ctx.textAlign = 'center';
             ctx.fillStyle = '#fff';
-            
+
             // Mood Badge
             ctx.font = 'bold 40px sans-serif';
             ctx.shadowColor = 'rgba(0,0,0,0.5)';
             ctx.shadowBlur = 10;
-            ctx.fillText(entry.mood?.toUpperCase() || 'JORNADA', W/2, H - 500);
+            ctx.fillText(entry.mood?.toUpperCase() || 'JORNADA', W / 2, H - 500);
 
             // Quote - Premium Serif
             ctx.font = 'italic 58px "Playfair Display", serif';
             const words = (entry.quote || '').split(' ');
             let line = '';
             let lineY = H - 400;
-            for(let n = 0; n < words.length; n++) {
+            for (let n = 0; n < words.length; n++) {
                 const testLine = line + words[n] + ' ';
                 if (ctx.measureText(testLine).width > 900 && n > 0) {
-                    ctx.fillText(line, W/2, lineY);
+                    ctx.fillText(line, W / 2, lineY);
                     line = words[n] + ' ';
                     lineY += 80;
                 } else {
                     line = testLine;
                 }
             }
-            ctx.fillText(line, W/2, lineY);
+            ctx.fillText(line, W / 2, lineY);
             ctx.shadowBlur = 0;
 
             // Date
             ctx.font = '30px monospace';
             ctx.fillStyle = 'rgba(255,255,255,0.7)';
-            ctx.fillText(new Date(entry.timestamp).toLocaleDateString(), W/2, H - 150);
-            
+            ctx.fillText(new Date(entry.timestamp).toLocaleDateString(), W / 2, H - 150);
+
             // Brand
             ctx.font = 'bold 30px sans-serif';
-            ctx.fillStyle = '#fbbf24'; 
-            ctx.fillText('VIVA360', W/2, 100);
+            ctx.fillStyle = '#fbbf24';
+            ctx.fillText('VIVA360', W / 2, 100);
         };
 
         imgCard.onload = () => {
@@ -210,7 +211,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
         if (!entries.length || !isPlaying) return;
 
         const TICK = 30; // ~30fps update
-        
+
         progressInterval.current = setInterval(() => {
             const slideDuration = Math.max(2000, Math.min(4000, 30000 / entries.length));
             setProgress(prev => {
@@ -237,14 +238,14 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
     // Initial Draw Force
     useEffect(() => {
-        if(entries[currentIndex]) drawFrame(entries, currentIndex, 0);
+        if (entries[currentIndex]) drawFrame(entries, currentIndex, 0);
     }, [currentIndex, entries, gardenSnaps]); // Added gardenSnaps to dependencies
 
 
     // RECORDER
     const startRecording = () => {
         if (!canvasRef.current) return;
-        
+
         try {
             setIsRecording(true);
             setCurrentIndex(0);
@@ -252,8 +253,8 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             setIsPlaying(true);
             chunksRef.current = [];
 
-            const stream = canvasRef.current.captureStream(30); 
-            
+            const stream = canvasRef.current.captureStream(30);
+
             // Detect Supported MimeType
             const mimeTypes = [
                 'video/mp4;codecs=h264',
@@ -264,7 +265,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             ];
             const selectedMime = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
 
-             if (!selectedMime) {
+            if (!selectedMime) {
                 console.warn("Nenhum formato de vídeo suportado encontrado. Tentando default.");
             }
 
@@ -273,7 +274,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                 : { videoBitsPerSecond: 10_000_000 };
 
             const recorder = new MediaRecorder(stream, options);
-            
+
             recorder.ondataavailable = (e) => {
                 if (e.data.size > 0) chunksRef.current.push(e.data);
             };
@@ -282,9 +283,9 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                 const blob = new Blob(chunksRef.current, { type: selectedMime || 'video/webm' });
                 setRecordedBlob(blob);
                 setIsRecording(false);
-                setActiveModal('share_video'); 
+                setActiveModal('share_video');
             };
-            
+
             recorder.onerror = (e) => {
                 console.error("Recording Error:", e);
                 setIsRecording(false);
@@ -308,7 +309,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
     const shareVideo = async (platform: 'whatsapp' | 'instagram' | 'download' | 'generic' = 'generic') => {
         if (!recordedBlob) return;
-        
+
         const mimeType = recordedBlob.type || 'video/webm';
         const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
         const filename = `viva360-story-${Date.now()}.${extension}`;
@@ -367,21 +368,21 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             {/* The Stage (Canvas is visible here for "Preview" and hidden capture) */}
             <div className="flex-1 relative flex items-center justify-center bg-gray-900 overflow-hidden">
-                <canvas 
-                    ref={canvasRef} 
-                    className="h-full object-contain shadow-2xl" 
+                <canvas
+                    ref={canvasRef}
+                    className="h-full object-contain shadow-2xl"
                     style={{ aspectRatio: '9/16' }}
                 />
             </div>
 
             {/* Header / Progress Overlay */}
             <div className="absolute top-0 left-0 right-0 z-20 p-6 pt-12 bg-gradient-to-b from-black/80 to-transparent">
-                 <div className="flex gap-1 mb-4">
+                <div className="flex gap-1 mb-4">
                     {entries.map((_, idx) => (
                         <div key={idx} className="h-1 flex-1 bg-white/30 rounded-full overflow-hidden">
-                            <div 
+                            <div
                                 className={`h-full bg-white transition-all ease-linear ${idx === currentIndex ? 'duration-[50ms]' : 'duration-0'}`}
-                                style={{ width: idx < currentIndex ? '100%' : idx === currentIndex ? `${progress}%` : '0%' }} 
+                                style={{ width: idx < currentIndex ? '100%' : idx === currentIndex ? `${progress}%` : '0%' }}
                             />
                         </div>
                     ))}
@@ -390,7 +391,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                     <div className="flex flex-col">
                         <h4 className="font-bold text-sm text-white">Minha História</h4>
                         <div className="flex gap-2 mt-2">
-                             {(['STORY', 'POST'] as const).map(f => (
+                            {(['STORY', 'POST'] as const).map(f => (
                                 <button
                                     key={f}
                                     onClick={() => setFormat(f)}
@@ -402,7 +403,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <button 
+                        <button
                             onClick={async () => {
                                 if (!canvasRef.current) return;
                                 const blob = await new Promise<Blob | null>(res => canvasRef.current!.toBlob(res, 'image/png'));
@@ -412,7 +413,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                                     await navigator.share({
                                         title: 'Um momento da minha jornada Viva360',
                                         files: [file]
-                                    }).catch(() => {});
+                                    }).catch(() => { });
                                 } else {
                                     const url = URL.createObjectURL(blob);
                                     const a = document.createElement('a');
@@ -423,47 +424,48 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                             }}
                             className="p-2 bg-white/10 hover:bg-white/20 rounded-full flex items-center gap-2 px-4 transition-all"
                         >
-                            <Share2 size={18}/> <span className="text-[10px] font-bold uppercase tracking-widest">Snap</span>
+                            <Share2 size={18} /> <span className="text-[10px] font-bold uppercase tracking-widest">Snap</span>
                         </button>
-                        <button onClick={() => flow.go('DASHBOARD')} className="p-2 hover:bg-white/10 rounded-full"><X size={24}/></button>
+                        <button onClick={() => flow.go('DASHBOARD')} className="p-2 hover:bg-white/10 rounded-full"><X size={24} /></button>
                     </div>
                 </div>
             </div>
 
             {/* Controls */}
             <div className="p-8 bg-black flex flex-col gap-6">
-                <audio 
+                {/* Audio source from env; defaults to empty (silent) if not configured */}
+                <audio
                     ref={audioRef}
-                    src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" 
+                    src={(import.meta as any).env?.VITE_TIMELAPSE_AUDIO_URL || ''}
                     loop
-                    autoPlay
+                    preload="none"
                 />
-                
+
                 {isRecording && (
                     <div className="flex items-center justify-center gap-2 text-rose-500 animate-pulse mb-2">
                         <div className="w-2 h-2 bg-rose-600 rounded-full"></div>
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Sincronizando Áudio & Alma...</span>
                     </div>
                 )}
-                
+
                 <div className="flex items-center justify-between mb-2">
-                     <div className="flex items-center gap-3">
-                         <Music size={16} className="text-white/40" />
-                         <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Zen Soundtrack • 432Hz</span>
-                     </div>
-                     <input 
-                        type="range" 
-                        min="0" 
-                        max="1" 
-                        step="0.01" 
-                        value={volume} 
+                    <div className="flex items-center gap-3">
+                        <Music size={16} className="text-white/40" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Zen Soundtrack • 432Hz</span>
+                    </div>
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={volume}
                         onChange={(e) => {
                             const v = parseFloat(e.target.value);
                             setVolume(v);
                             if (audioRef.current) audioRef.current.volume = v;
                         }}
                         className="w-24 accent-white"
-                     />
+                    />
                 </div>
 
                 <div className="flex justify-between items-center bg-white/5 p-4 rounded-[2rem] border border-white/10">
@@ -474,10 +476,10 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                             else audioRef.current.play();
                         }
                     }} className="p-4 bg-white/10 rounded-full hover:bg-white/20 transition-colors">
-                        {isPlaying ? <Pause size={24} fill="white"/> : <Play size={24} fill="white"/>}
+                        {isPlaying ? <Pause size={24} fill="white" /> : <Play size={24} fill="white" />}
                     </button>
-                    
-                    <button 
+
+                    <button
                         onClick={startRecording}
                         disabled={isRecording}
                         className="flex-1 mx-6 py-5 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 rounded-full font-bold uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 shadow-2xl shadow-orange-900/40 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale"
@@ -490,7 +492,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                         {isRecording ? 'Processando...' : 'Fazer Vídeo da Jornada'}
                     </button>
                 </div>
-                
+
                 {!isRecording && (
                     <p className="text-center text-[9px] text-white/40 uppercase tracking-widest">
                         Gere um vídeo épico para compartilhar sua evolução
@@ -498,12 +500,12 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                 )}
             </div>
 
-             {/* SHARE MODAL */}
-             {activeModal === 'share_video' && (
+            {/* SHARE MODAL */}
+            {activeModal === 'share_video' && (
                 <div className="absolute inset-0 z-[60] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in zoom-in-95 duration-300">
                     <h3 className="text-3xl font-serif italic text-white mb-4 text-center">Sua História está Pronta! ✨</h3>
                     <p className="text-white/60 text-sm mb-12 text-center max-w-xs">Reviva e compartilhe seus momentos de evolução.</p>
-                    
+
                     <div className="space-y-3 w-full max-w-sm">
                         <button onClick={() => shareVideo('whatsapp')} className="w-full py-5 bg-[#25D366] text-white rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all text-sm">
                             <Share2 size={20} /> Compartilhar no WhatsApp
