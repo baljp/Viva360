@@ -183,8 +183,33 @@ export const revokeAccess = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const exportData = asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.user?.userId;
+    const userId = String(req.user?.userId || '').trim();
+    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
     await AuditService.logAccess(userId, 'all_data', 'EXPORT_DATA', 'SUCCESS');
-    // TODO: Implement real LGPD data export
-    return res.status(501).json({ error: 'Exportação de dados LGPD em implementação.' });
+
+    const [profile, records, transactions] = await Promise.all([
+        prisma.profile.findUnique({
+            where: { id: userId },
+            select: { id: true, name: true, email: true, role: true, created_at: true },
+        }),
+        prisma.record.findMany({
+            where: { patient_id: userId },
+            select: { id: true, type: true, created_at: true },
+            orderBy: { created_at: 'desc' },
+        }),
+        prisma.transaction.findMany({
+            where: { user_id: userId },
+            select: { id: true, amount: true, description: true, status: true, date: true },
+            orderBy: { date: 'desc' },
+            take: 200,
+        }).catch(() => []),
+    ]);
+
+    return res.json({
+        exportedAt: new Date().toISOString(),
+        profile,
+        records: records.map(r => ({ ...r, content: '[REDACTED — disponível sob solicitação]' })),
+        transactions: transactions.map(t => ({ ...t, amount: Number(t.amount), date: t.date?.toISOString() })),
+    });
 });

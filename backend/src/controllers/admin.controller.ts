@@ -9,19 +9,26 @@ export const getDashboard = asyncHandler(async (req: Request, res: Response) => 
     const adminId = (req as any).user?.userId || req.body.adminId;
     await AuditService.logAccess(adminId, 'dashboard', 'VIEW_DASHBOARD', 'SUCCESS');
 
-    const [totalUsers, newUsersToday, activeEvents] = await Promise.all([
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const [totalUsers, newUsersToday, activeEvents, revenueTodayAgg] = await Promise.all([
         prisma.profile.count(),
         prisma.profile.count({
             where: { created_at: { gte: new Date(new Date().setHours(0, 0, 0, 0)) } },
         }),
         prisma.calendarEvent.count().catch(() => 0),
+        prisma.transaction.aggregate({
+            _sum: { amount: true },
+            where: { date: { gte: startOfDay } },
+        }).catch(() => ({ _sum: { amount: null } })),
     ]);
 
     res.json({
         totalUsers,
         newUsersToday,
         activeEvents,
-        revenueToday: null, // TODO: aggregate from Transaction table when finance is wired
+        revenueToday: Number(revenueTodayAgg._sum?.amount || 0),
         alerts: [],
     });
 });

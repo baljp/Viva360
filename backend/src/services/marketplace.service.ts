@@ -1,4 +1,5 @@
 import { marketplaceRepository, CreateProductData } from '../repositories/marketplace.repository';
+import prisma from '../lib/prisma';
 
 export class MarketplaceService {
     async createProduct(data: CreateProductData & { eventDate?: string, hostName?: string, spotsLeft?: number, karmaReward?: number }) {
@@ -20,7 +21,7 @@ export class MarketplaceService {
             where.category = { equals: String(category), mode: 'insensitive' };
         }
         const products = await marketplaceRepository.findAll(where);
-        
+
         return products.map(p => ({
             ...p,
             price: Number(p.price)
@@ -33,8 +34,17 @@ export class MarketplaceService {
     }
 
     async purchaseProduct(data: { product_id: string; amount: number; description: string; user_id: string }) {
-        // TODO: Implement real payment logic (Prisma transaction)
-        return { id: 'tx-real-placeholder', status: 'PENDING' };
+        // Create a persisted Transaction record atomically
+        const tx = await prisma.transaction.create({
+            data: {
+                amount: data.amount,
+                description: data.description || `Purchase: ${data.product_id}`,
+                type: 'PURCHASE',
+                status: 'PENDING',
+                user_id: data.user_id,
+            },
+        });
+        return { id: tx.id, status: tx.status };
     }
 }
 
