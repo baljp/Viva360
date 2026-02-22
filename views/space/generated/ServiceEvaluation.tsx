@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
-import { PortalView, ZenToast, DynamicAvatar } from '../../../components/Common';
+import { PortalView, ZenToast, DynamicAvatar, InteractiveButton } from '../../../components/Common';
 import { Star, ThumbsUp, MessageCircle, Send, Heart, Award, Loader2 } from 'lucide-react';
 import { api } from '../../../services/api';
 
@@ -136,14 +136,16 @@ export default function ServiceEvaluation() {
                     </div>
                 </div>
 
-                <button
+                <InteractiveButton
+                    variant="primary"
+                    size="lg"
                     onClick={handleSubmit}
                     disabled={submitting}
-                    className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="w-full rounded-[2rem] flex items-center justify-center gap-3"
                 >
                     {submitting ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
                     {submitting ? 'Enviando...' : 'Enviar Avaliação'}
-                </button>
+                </InteractiveButton>
 
             </div>
         </PortalView>

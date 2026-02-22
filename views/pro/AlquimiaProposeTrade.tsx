@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PortalView } from '../../components/Common';
+import { PortalView, InteractiveButton } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { RefreshCw, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { api } from '../../services/api';
@@ -147,14 +147,16 @@ export const AlquimiaProposeTrade: React.FC = () => {
                     />
                 </div>
 
-                <button
+                <InteractiveButton
+                    variant="primary"
+                    size="lg"
                     onClick={handlePropose}
                     disabled={isSending}
-                    className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-indigo-700 flex items-center justify-center gap-3 disabled:opacity-60"
+                    className="w-full rounded-[2rem] flex items-center justify-center gap-3"
                 >
                     {isSending ? <Loader2 size={20} className="animate-spin" /> : <ArrowRight size={20} />}
                     {isSending ? 'Enviando...' : 'Enviar Proposta'}
-                </button>
+                </InteractiveButton>
             </div>
         </PortalView>
     );

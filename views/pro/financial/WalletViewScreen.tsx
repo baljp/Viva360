@@ -263,8 +263,20 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                             <button onClick={() => setActiveTab('analysis')} className="text-[10px] font-bold text-primary-600 uppercase tracking-widest hover:underline">Ver Completo</button>
                         </div>
                         {txLoading ? (
-                            <div className="flex items-center justify-center py-8">
-                                <div className="w-6 h-6 border-2 border-nature-200 border-t-nature-700 rounded-full animate-spin"></div>
+                            <div className="space-y-3">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex items-center gap-4 animate-pulse">
+                                        <div className="w-12 h-12 rounded-2xl bg-nature-100 shrink-0" />
+                                        <div className="flex-1 space-y-2">
+                                            <div className="h-3 bg-nature-100 rounded-full w-3/4" />
+                                            <div className="h-2.5 bg-nature-50 rounded-full w-1/2" />
+                                        </div>
+                                        <div className="space-y-2 text-right">
+                                            <div className="h-3 bg-nature-100 rounded-full w-16" />
+                                            <div className="h-2 bg-nature-50 rounded-full w-10 ml-auto" />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         ) : transactions.length > 0 ? (
                             transactions.map((tx: any) => <TransactionItem key={tx.id} tx={tx} />)
