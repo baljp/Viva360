@@ -126,10 +126,14 @@ export default function ServiceEvaluation() {
                 <div className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
                     <textarea
                         value={comment}
-                        onChange={(e) => setComment(e.target.value)}
+                        onChange={(e) => setComment(e.target.value.slice(0, 300))}
                         placeholder="Deixe um recado para o Mestre (opcional)..."
                         className="w-full h-32 p-2 bg-transparent outline-none text-sm text-nature-700 resize-none placeholder:text-nature-300"
+                        maxLength={300}
                     />
+                    <div className={`text-right text-[10px] font-bold uppercase tracking-wider pt-1 border-t border-nature-50 mt-1 transition-colors ${comment.length >= 270 ? 'text-rose-400' : comment.length >= 200 ? 'text-amber-500' : 'text-nature-300'}`}>
+                        {comment.length}/300
+                    </div>
                 </div>
 
                 <button

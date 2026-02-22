@@ -112,8 +112,8 @@ export default function PatientsList() {
             <h4 className="text-[10px] font-bold text-rose-500 uppercase tracking-widest pl-2 flex items-center gap-2">
               <Zap size={12} className="fill-rose-500" /> Necessitam de Cuidado
             </h4>
-            {criticalPatients.map((p) => (
-              <div key={p.id} onClick={() => { selectPatient({ id: String(p.id), name: p.name }); go('PATIENT_PROFILE'); }} className="bg-rose-50/50 p-5 rounded-[2.5rem] border border-rose-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer group animate-in slide-in-from-bottom-2">
+            {criticalPatients.map((p, i) => (
+              <div key={p.id} onClick={() => { selectPatient({ id: String(p.id), name: p.name }); go('PATIENT_PROFILE'); }} className="bg-rose-50/50 p-5 rounded-[2.5rem] border border-rose-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer group animate-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 80}ms` }}>
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-rose-400 relative">
                     <Flower size={24} />

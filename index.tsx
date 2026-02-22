@@ -9,6 +9,7 @@ import { initMonitoring } from './lib/monitoring';
 import './src/index.css'; // Global Design System
 import { installBootRecovery } from './src/boot/bootRecovery';
 import { initDeathClickTracker } from './src/utils/deathClickTracker';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 // Recovery guard to avoid "blank screen" after SW/cached-chunk mismatches.
 // NOTE: Service worker registration is already handled by vite-plugin-pwa (registerSW.js).
@@ -69,6 +70,7 @@ root.render(
       <ErrorBoundary>
         <BrowserRouter>
           <App />
+          <OfflineIndicator />
         </BrowserRouter>
       </ErrorBoundary>
     </Sentry.ErrorBoundary>

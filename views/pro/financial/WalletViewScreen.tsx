@@ -3,9 +3,10 @@ import { Professional, Transaction } from '../../../types';
 import { PortalView, BottomSheet, ZenToast } from '../../../components/Common';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
 import { request } from '../../../services/api';
-import { 
-    Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Share2, 
-    Leaf, Heart, Shuffle, Landmark, CreditCard, ChevronRight, 
+import { useCountUp } from '../../../src/hooks/useCountUp';
+import {
+    Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Share2,
+    Leaf, Heart, Shuffle, Landmark, CreditCard, ChevronRight,
     BarChart3, PieChart, Package, Calendar, Sparkles, Filter, Info,
     Construction
 } from 'lucide-react';
@@ -35,34 +36,37 @@ const ProsperityIndexWidget: React.FC<{ score: number }> = ({ score }) => (
     </div>
 );
 
-const EnergyFlowCard: React.FC<{ balance: number, onAction: (action: string) => void }> = ({ balance, onAction }) => (
-    <div className="bg-[#1a1f1d] p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden group">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
-        <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]"></div>
-        
-        <div className="relative z-10">
-            <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-400 mb-2 flex items-center gap-2">
-                <Leaf size={12} /> Energia em Fluxo
-            </p>
-            <h2 className="text-5xl font-serif italic mb-8">R$ {balance.toFixed(2).replace('.', ',')}</h2>
-            
-            <div className="grid grid-cols-3 gap-3">
-                <button onClick={() => onAction('withdraw')} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95">
-                    <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400"><ArrowDownRight size={16}/></div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider">Sacar</span>
-                </button>
-                <button onClick={() => onAction('reinvest')} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95">
-                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400"><Shuffle size={16}/></div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider">Reinvestir</span>
-                </button>
-                <button onClick={() => onAction('donate')} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95">
-                    <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-400"><Heart size={16}/></div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider">Doar</span>
-                </button>
+const EnergyFlowCard: React.FC<{ balance: number, onAction: (action: string) => void }> = ({ balance, onAction }) => {
+    const animatedBalance = useCountUp(balance, 1200, 2);
+    return (
+        <div className="bg-[#1a1f1d] p-8 rounded-[3rem] text-white shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+            <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-emerald-500/10 rounded-full blur-[80px]"></div>
+
+            <div className="relative z-10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-emerald-400 mb-2 flex items-center gap-2">
+                    <Leaf size={12} /> Energia em Fluxo
+                </p>
+                <h2 className="text-5xl font-serif italic mb-8">R$ {animatedBalance}</h2>
+
+                <div className="grid grid-cols-3 gap-3">
+                    <button onClick={() => onAction('withdraw')} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400"><ArrowDownRight size={16} /></div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider">Sacar</span>
+                    </button>
+                    <button onClick={() => onAction('reinvest')} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95">
+                        <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400"><Shuffle size={16} /></div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider">Reinvestir</span>
+                    </button>
+                    <button onClick={() => onAction('donate')} className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95">
+                        <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-400"><Heart size={16} /></div>
+                        <span className="text-[9px] font-bold uppercase tracking-wider">Doar</span>
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const ProjectionWidget: React.FC<{ day7: number, day30: number }> = ({ day7, day30 }) => (
     <div className="grid grid-cols-2 gap-4">
@@ -87,7 +91,7 @@ const TransactionItem: React.FC<{ tx: Transaction }> = ({ tx }) => (
     <div className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group hover:border-emerald-200 transition-colors">
         <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
-                {tx.type === 'income' ? <ArrowUpRight size={20}/> : <ArrowDownRight size={20}/>}
+                {tx.type === 'income' ? <ArrowUpRight size={20} /> : <ArrowDownRight size={20} />}
             </div>
             <div>
                 <h4 className="font-bold text-nature-900 text-sm">{tx.description}</h4>
@@ -123,10 +127,10 @@ const ReinvestModal: React.FC<{ isOpen: boolean, onClose: () => void, balance: n
                     </button>
                     <button onClick={() => onConfirm('scholarship', 150)} className="bg-indigo-50 p-4 rounded-3xl border border-indigo-100 text-left hover:bg-indigo-100 transition-colors">
                         <div className="flex items-center justify-between mb-2">
-                             <span className="font-bold text-indigo-800 text-xs uppercase tracking-widest">Bolsa Terapêutica</span>
-                             <Heart size={16} className="text-indigo-500" />
+                            <span className="font-bold text-indigo-800 text-xs uppercase tracking-widest">Bolsa Terapêutica</span>
+                            <Heart size={16} className="text-indigo-500" />
                         </div>
-                         <p className="text-[10px] text-indigo-600 leading-tight">Financeie 1 sessão para alguém em vulnerabilidade.</p>
+                        <p className="text-[10px] text-indigo-600 leading-tight">Financeie 1 sessão para alguém em vulnerabilidade.</p>
                     </button>
                 </div>
             </div>
@@ -144,11 +148,11 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
     const [showDonate, setShowDonate] = useState(false);
     const [withdrawProcessing, setWithdrawProcessing] = useState(false);
     const [donateProcessing, setDonateProcessing] = useState(false);
-    
+
     // SEC-03: Real transactions from API instead of mock/setTimeout
     const [transactions, setTransactions] = useState<any[]>([]);
     const [txLoading, setTxLoading] = useState(true);
-    
+
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -215,9 +219,9 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
     };
 
     return (
-        <PortalView 
-            title="Santuário Financeiro" 
-            subtitle="GESTÃO CONSCIENTE" 
+        <PortalView
+            title="Santuário Financeiro"
+            subtitle="GESTÃO CONSCIENTE"
             onBack={() => go('DASHBOARD')}
             heroImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=800"
             headerRight={
@@ -232,7 +236,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                     { id: 'analysis', label: 'Análise Profunda', icon: BarChart3 },
                     { id: 'services', label: 'Serviços', icon: Package },
                 ].map(tab => (
-                    <button 
+                    <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
                         className={`px-4 py-3 rounded-2xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-nature-900 text-white border-nature-900 shadow-lg' : 'bg-white text-nature-400 border-nature-100'}`}
@@ -245,18 +249,18 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
             {activeTab === 'overview' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <EnergyFlowCard balance={currentBalance} onAction={handleAction} />
-                    
+
                     <div className="space-y-2">
                         <div className="flex justify-between items-center px-1">
-                             <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Projeção & Insight</h4>
+                            <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Projeção & Insight</h4>
                         </div>
                         <ProjectionWidget day7={currentBalance + 450} day30={currentBalance * 4} />
                     </div>
 
                     <div className="space-y-3">
-                         <div className="flex justify-between items-center px-1">
-                             <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Fluxo Recente</h4>
-                             <button onClick={() => setActiveTab('analysis')} className="text-[10px] font-bold text-primary-600 uppercase tracking-widest hover:underline">Ver Completo</button>
+                        <div className="flex justify-between items-center px-1">
+                            <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Fluxo Recente</h4>
+                            <button onClick={() => setActiveTab('analysis')} className="text-[10px] font-bold text-primary-600 uppercase tracking-widest hover:underline">Ver Completo</button>
                         </div>
                         {txLoading ? (
                             <div className="flex items-center justify-center py-8">
@@ -277,43 +281,43 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
 
             {activeTab === 'analysis' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                     <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 relative overflow-hidden">
+                    <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 relative overflow-hidden">
                         <h4 className="font-serif italic text-xl text-nature-900 mb-6">Evolução Mensal</h4>
                         {/* Fake Simple Chart using CSS/Flex */}
-                         <div className="flex items-end gap-3 h-40 px-2 pb-2">
+                        <div className="flex items-end gap-3 h-40 px-2 pb-2">
                             {[40, 60, 45, 80, 70, 90, 100].map((h, i) => (
                                 <div key={i} className="flex-1 bg-indigo-50 rounded-t-xl relative group hover:bg-indigo-100 transition-colors" style={{ height: `${h}%` }}>
-                                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-nature-900 text-white text-[9px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">R$ {h * 40}</div>
+                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-nature-900 text-white text-[9px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">R$ {h * 40}</div>
                                 </div>
                             ))}
-                         </div>
-                         <div className="flex justify-between mt-2 text-[9px] font-bold text-nature-400 uppercase">
-                             <span>Sem 1</span><span>Sem 2</span><span>Sem 3</span><span>Sem 4</span>
-                         </div>
-                     </div>
+                        </div>
+                        <div className="flex justify-between mt-2 text-[9px] font-bold text-nature-400 uppercase">
+                            <span>Sem 1</span><span>Sem 2</span><span>Sem 3</span><span>Sem 4</span>
+                        </div>
+                    </div>
 
-                     <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
-                             <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Ticket Médio</p>
-                             <h4 className="text-2xl font-serif text-nature-900">R$ 180</h4>
+                            <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Ticket Médio</p>
+                            <h4 className="text-2xl font-serif text-nature-900">R$ 180</h4>
                         </div>
-                         <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
-                             <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Taxa de Retorno</p>
-                             <h4 className="text-2xl font-serif text-nature-900">68%</h4>
+                        <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
+                            <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Taxa de Retorno</p>
+                            <h4 className="text-2xl font-serif text-nature-900">68%</h4>
                         </div>
-                     </div>
+                    </div>
                 </div>
             )}
 
             {activeTab === 'services' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                     <div className="text-center py-10 space-y-4 bg-white/50 rounded-[3rem] border border-dashed border-nature-200">
-                         <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm text-nature-300">
-                             <Package size={24} />
-                         </div>
-                         <p className="text-xs text-nature-500 italic max-w-xs mx-auto">Crie jornadas, pacotes e rituais para aumentar seu impacto e previsibilidade.</p>
-                         <button onClick={() => { go('ALQUIMIA_CREATE'); }} className="bg-nature-900 text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Criar Nova Jornada</button>
-                     </div>
+                    <div className="text-center py-10 space-y-4 bg-white/50 rounded-[3rem] border border-dashed border-nature-200">
+                        <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm text-nature-300">
+                            <Package size={24} />
+                        </div>
+                        <p className="text-xs text-nature-500 italic max-w-xs mx-auto">Crie jornadas, pacotes e rituais para aumentar seu impacto e previsibilidade.</p>
+                        <button onClick={() => { go('ALQUIMIA_CREATE'); }} className="bg-nature-900 text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-transform">Criar Nova Jornada</button>
+                    </div>
                 </div>
             )}
 
