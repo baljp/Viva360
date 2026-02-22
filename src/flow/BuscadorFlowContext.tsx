@@ -30,7 +30,7 @@ type FlowAction =
     | { type: 'SELECT_PROFESSIONAL'; payload: string | null }
     | { type: 'SELECT_DATE'; payload: Date | null }
     | { type: 'SET_TRIBE_ROOM_CONTEXT'; payload: { type: 'support_room' | 'healing_circle'; contextId?: string } | null }
-    | { type: 'SHOW_RITUAL'; payload: { title: string; message: string; type?: 'success' | 'info' | 'error' } }
+    | { type: 'SHOW_RITUAL'; payload: { title: string; message: string; type?: 'success' | 'info' | 'error' | 'warning' } }
     | { type: 'CLEAR_RITUAL' };
 
 // Initial State Factory
@@ -110,7 +110,7 @@ const BuscadorFlowContext = createContext<{
     selectProfessional: (id: string | null) => void;
     selectDate: (date: Date | null) => void;
     selectTribeRoomContext: (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) => void;
-    notify: (title: string, message: string, type?: 'success' | 'info' | 'error') => void;
+    notify: (title: string, message: string, type?: 'success' | 'info' | 'error' | 'warning') => void;
 } | undefined>(undefined);
 
 // Provider Component
@@ -139,16 +139,16 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     const go = (target: BuscadorState) => {
         dispatch({ type: 'SET_LOADING', payload: true });
-        
+
         // Immediate visual feedback for gamification
         if (target === 'METAMORPHOSIS_FEEDBACK') {
-            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Karma +10', message: 'Evolução registrada.' }});
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Karma +10', message: 'Evolução registrada.' } });
         }
         if (target === 'ORACLE_REVEAL') {
-            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Sabedoria Adquirida', message: 'O Oráculo revelou novos véus.' }});
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Sabedoria Adquirida', message: 'O Oráculo revelou novos véus.' } });
         }
         if (target === 'PAYMENT_SUCCESS') {
-            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Troca Energética', message: 'O fluxo foi concluído com honra.' }});
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Troca Energética', message: 'O fluxo foi concluído com honra.' } });
         }
 
         dispatch({ type: 'TRANSITION', payload: target });
@@ -162,22 +162,22 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const selectDate = (date: Date | null) => dispatch({ type: 'SELECT_DATE', payload: date });
     const selectTribeRoomContext = (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) =>
         dispatch({ type: 'SET_TRIBE_ROOM_CONTEXT', payload: ctx });
-    const notify = (title: string, message: string, type: 'success' | 'info' | 'error' = 'success') => {
+    const notify = (title: string, message: string, type: 'success' | 'info' | 'error' | 'warning' = 'success') => {
         // Retiro Offline silences in-app notifications (toasts/ritual cards) while active.
         if (isInAppMuted()) return;
         dispatch({ type: 'SHOW_RITUAL', payload: { title, message, type } });
     };
 
     return (
-        <BuscadorFlowContext.Provider value={{ 
-            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, selectTribeRoomContext, notify 
+        <BuscadorFlowContext.Provider value={{
+            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, selectTribeRoomContext, notify
         }}>
             {children}
             {state.ritualCompletion && (
-                <RitualCompletionCard 
-                    title={state.ritualCompletion.title} 
-                    message={state.ritualCompletion.message} 
-                    onClose={() => dispatch({ type: 'CLEAR_RITUAL' })} 
+                <RitualCompletionCard
+                    title={state.ritualCompletion.title}
+                    message={state.ritualCompletion.message}
+                    onClose={() => dispatch({ type: 'CLEAR_RITUAL' })}
                 />
             )}
         </BuscadorFlowContext.Provider>

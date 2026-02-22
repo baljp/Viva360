@@ -24,3 +24,4 @@ export * from './NotificationDrawer';
 export * from './CalendarWidget';
 export * from './WalletSplit';
 export * from './PresenceBadge';
+export * from './InteractiveButton';

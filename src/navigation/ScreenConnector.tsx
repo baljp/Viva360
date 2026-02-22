@@ -32,11 +32,11 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
                 </div>
                 <h3 className="text-2xl font-serif italic text-nature-900 mb-4">Sintonização Necessária</h3>
                 <p className="text-sm text-nature-500 max-w-xs leading-relaxed mb-8">
-                    Seu fluxo de energia encontrou um ponto de quietude. <br/>
+                    Seu fluxo de energia encontrou um ponto de quietude. <br />
                     Vamos voltar ao centro para retomar sua jornada.
                 </p>
-                <button 
-                    onClick={() => flow.reset()} 
+                <button
+                    onClick={() => flow.reset()}
                     className="px-8 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all"
                 >
                     Voltar ao Centro
@@ -45,14 +45,50 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
         );
     }
 
+    // Dynamic transition based on profile
+    const getTransition = () => {
+        switch (profile) {
+            case 'BUSCADOR': // Ethereal / Spiritual fade
+                return {
+                    initial: { opacity: 0, scale: 0.98, filter: "blur(4px)" },
+                    animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
+                    exit: { opacity: 0, scale: 1.02, filter: "blur(4px)" },
+                    transition: { duration: 0.4, ease: "easeOut" }
+                };
+            case 'GUARDIAO': // Grounded / Professional slide
+                return {
+                    initial: { opacity: 0, y: 15 },
+                    animate: { opacity: 1, y: 0 },
+                    exit: { opacity: 0, y: -15 },
+                    transition: { duration: 0.3, ease: "easeOut" }
+                };
+            case 'SANTUARIO': // Enterprise / Structured slide-x
+                return {
+                    initial: { opacity: 0, x: 20 },
+                    animate: { opacity: 1, x: 0 },
+                    exit: { opacity: 0, x: -20 },
+                    transition: { duration: 0.3, ease: "circOut" }
+                };
+            default:
+                return {
+                    initial: { opacity: 0 },
+                    animate: { opacity: 1 },
+                    exit: { opacity: 0 },
+                    transition: { duration: 0.2 }
+                };
+        }
+    };
+
+    const animConfig = getTransition();
+
     return (
         <AnimatePresence mode="wait">
             <motion.div
                 key={currentState}
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -10 }}
-                transition={{ duration: 0.05 }}
+                initial={animConfig.initial}
+                animate={animConfig.animate}
+                exit={animConfig.exit}
+                transition={animConfig.transition}
                 className="w-full h-full"
             >
                 <React.Suspense fallback={
@@ -60,12 +96,12 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
                         <div className="w-8 h-8 border-4 border-nature-200 border-t-nature-900 rounded-full animate-spin"></div>
                     </div>
                 }>
-                    <ScreenComponent 
-                        user={user} 
-                        updateUser={updateUser} 
-                        setView={setView} 
+                    <ScreenComponent
+                        user={user}
+                        updateUser={updateUser}
+                        setView={setView}
                         flow={flow}
-                        {...rest} 
+                        {...rest}
                     />
                 </React.Suspense>
             </motion.div>

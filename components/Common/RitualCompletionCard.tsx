@@ -2,17 +2,17 @@ import React, { useEffect } from 'react';
 import { Sparkles, Droplets } from 'lucide-react';
 import { MoodType } from '../../types';
 
-export const RitualCompletionCard: React.FC<{ 
-    isOpen: boolean, 
-    onClose: () => void, 
-    title: string, 
+export const RitualCompletionCard: React.FC<{
+    isOpen: boolean,
+    onClose: () => void,
+    title: string,
     message: string,
     mood?: MoodType
 }> = ({ isOpen, onClose, title, message, mood = 'SERENO' }) => {
-    useEffect(() => { 
+    useEffect(() => {
         if (isOpen) {
-            const timer = setTimeout(onClose, 2500); 
-            return () => clearTimeout(timer); 
+            const timer = setTimeout(onClose, 2500);
+            return () => clearTimeout(timer);
         }
     }, [isOpen, onClose]);
 
@@ -29,7 +29,7 @@ export const RitualCompletionCard: React.FC<{
     };
 
     return (
-        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-[280px] animate-in slide-in-from-bottom-8 fade-in duration-500 pointer-events-none">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+2rem)] left-1/2 -translate-x-1/2 z-[1000] w-[90%] max-w-[280px] animate-in slide-in-from-bottom-8 fade-in duration-500 pointer-events-none">
             <div className={`bg-gradient-to-br ${moodGradients[mood]} backdrop-blur-xl p-5 rounded-[1.5rem] shadow-2xl border border-white/20 flex flex-col items-center text-center gap-2 pointer-events-auto`}>
                 <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-white shadow-[0_0_15px_rgba(255,255,255,0.3)]">
                     {title.toLowerCase().includes('nutri') || title.toLowerCase().includes('rega') ? <Droplets size={16} /> : <Sparkles size={16} />}
