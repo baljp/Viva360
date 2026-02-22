@@ -13,7 +13,7 @@ const PORT: number | string = rawPort
 const HOST = (process.env.HOST || process.env.BIND_HOST || '').trim() || null;
 const numCPUs = os.cpus().length;
 
-if (cluster.isPrimary && process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'production') { 
+if (cluster.isPrimary && process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'production') {
   logger.warn('server.cluster_primary', { pid: process.pid, numCPUs });
 
   for (let i = 0; i < numCPUs; i++) {
@@ -27,12 +27,12 @@ if (cluster.isPrimary && process.env.NODE_ENV !== 'test' && process.env.NODE_ENV
 } else {
   // Worker Process or Direct Process
   const server = HOST
-    ? app.listen(PORT, HOST, () => {
-        logger.info('server.listening', { port: PORT, host: HOST, pid: process.pid });
-      })
+    ? app.listen(Number(PORT), HOST, () => {
+      logger.info('server.listening', { port: PORT, host: HOST, pid: process.pid });
+    })
     : app.listen(PORT, () => {
-        logger.info('server.listening', { port: PORT, pid: process.pid });
-      });
+      logger.info('server.listening', { port: PORT, pid: process.pid });
+    });
 
   process.on('SIGTERM', () => {
     server.close(() => {
@@ -42,10 +42,10 @@ if (cluster.isPrimary && process.env.NODE_ENV !== 'test' && process.env.NODE_ENV
 
   // Prevent crash on unhandled errors
   process.on('uncaughtException', (err) => {
-      logger.error('🔥 UNCAUGHT EXCEPTION:', err);
+    logger.error('🔥 UNCAUGHT EXCEPTION:', err);
   });
 
   process.on('unhandledRejection', (reason) => {
-      logger.error('🔥 UNHANDLED REJECTION:', reason);
+    logger.error('🔥 UNHANDLED REJECTION:', reason);
   });
 }

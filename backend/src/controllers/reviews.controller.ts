@@ -92,3 +92,35 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
 
     return res.json({ averageRating, totalReviews, recommendRate, guardianAverage });
 });
+
+/**
+ * POST /reviews
+ * Submit a new service review.
+ * Body: { spaceId, targetType, targetName, authorName, rating, comment }
+ */
+export const createReview = asyncHandler(async (req: Request, res: Response) => {
+    const userId = String(req.user?.userId || '');
+    const { spaceId, targetType, targetName, authorName, rating, comment } = req.body;
+
+    if (!spaceId || !rating) {
+        return res.status(400).json({ error: 'spaceId and rating are required.' });
+    }
+
+    const numericRating = Math.min(10, Math.max(1, Number(rating) || 0));
+
+    await prisma.$executeRawUnsafe(
+        `INSERT INTO public.events (type, payload, created_at) VALUES ('REVIEW_SUBMITTED', $1::jsonb, NOW())`,
+        JSON.stringify({
+            spaceId,
+            userId,
+            targetType: targetType || 'guardian',
+            targetName: targetName || '',
+            authorName: authorName || 'Anônimo',
+            rating: numericRating,
+            comment: comment || '',
+        })
+    );
+
+    logger.info('reviews.created', { spaceId, userId, rating: numericRating });
+    return res.status(201).json({ success: true, rating: numericRating });
+});
