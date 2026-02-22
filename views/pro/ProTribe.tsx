@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Professional } from '../../types';
 import { Search, Plus, ArrowRightLeft, Filter, MessageCircle, Loader2, Sparkles, X } from 'lucide-react';
-import { PortalView, ZenToast, BottomSheet } from '../../components/Common';
+import { PortalView, ZenToast, BottomSheet, InteractiveButton } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
 import { api } from '../../services/api';
 
@@ -127,17 +127,17 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
             footer={
                 activeTab === 'market' ? (
                     <div className="flex gap-2">
-                        <button onClick={cycleFilter} className="flex-1 py-4 bg-indigo-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg flex items-center justify-center gap-2">
+                        <InteractiveButton variant="primary" size="lg" onClick={cycleFilter} className="flex-1 rounded-2xl flex items-center justify-center gap-2">
                             <Filter size={14} /> Filtrar
-                        </button>
-                        <button onClick={() => setActiveTab('my-offers')} className="flex-1 py-4 bg-white border border-nature-100 text-nature-900 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-sm">
+                        </InteractiveButton>
+                        <InteractiveButton variant="secondary" size="lg" onClick={() => setActiveTab('my-offers')} className="flex-1 rounded-2xl">
                             Minhas Ofertas
-                        </button>
+                        </InteractiveButton>
                     </div>
                 ) : (
-                    <button onClick={() => setActiveTab('market')} className="w-full py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg">
+                    <InteractiveButton variant="primary" size="lg" onClick={() => setActiveTab('market')} className="w-full rounded-2xl">
                         Voltar ao Mural
-                    </button>
+                    </InteractiveButton>
                 )
             }
         >

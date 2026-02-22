@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { Search, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle } from 'lucide-react';
+import { Search, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle, RefreshCw } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';
+import { usePullToRefresh } from '../../../src/hooks/usePullToRefresh';
 
 export default function PatientsList() {
   const { go, state, selectPatient } = useGuardiaoFlow();
@@ -75,8 +76,26 @@ export default function PatientsList() {
   const criticalPatients = patients.filter((patient) => patient.progress < 20);
   const flourishingPatients = patients.filter((patient) => !criticalPatients.includes(patient));
 
+  const { handlers: pullHandlers, pullDistance, isRefreshing } = usePullToRefresh({
+    onRefresh: loadLinks,
+    threshold: 64,
+  });
+
   return (
     <PortalView title="Meu Jardim" subtitle="ALMAS EM JORNADA" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=800">
+
+      {/* Pull-to-refresh indicator */}
+      {(pullDistance > 0 || isRefreshing) && (
+        <div
+          className="flex items-center justify-center py-2 transition-all duration-300"
+          style={{ height: `${Math.min(pullDistance, 64)}px`, opacity: Math.min(pullDistance / 48, 1) }}
+        >
+          <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-nature-400 ${isRefreshing ? 'opacity-100' : ''}`}>
+            <RefreshCw size={14} className={isRefreshing ? 'animate-spin text-emerald-500' : ''} style={{ transform: `rotate(${pullDistance * 3}deg)` }} />
+            {isRefreshing ? 'Atualizando...' : 'Solte para atualizar'}
+          </div>
+        </div>
+      )}
 
       <div className="px-2 mb-8 animate-in slide-in-from-bottom-4 duration-700">
         <div className="bg-nature-900 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden">
