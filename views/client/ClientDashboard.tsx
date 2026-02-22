@@ -6,15 +6,18 @@ import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
 import { useClientDashboard } from '../../src/hooks/useClientDashboard';
+import { useCountUp } from '../../src/hooks/useCountUp';
 
-export const ClientDashboard: React.FC<{ 
-    user: User, 
-    setView: (v: ViewState) => void, 
+export const ClientDashboard: React.FC<{
+    user: User,
+    setView: (v: ViewState) => void,
     updateUser: (u: User) => void,
-    data?: any 
+    data?: any
 }> = React.memo(({ user, setView, updateUser, data }) => {
     const { state, actions } = useClientDashboard(user, updateUser, setView);
     const { go } = actions;
+    const animatedKarma = useCountUp(user.karma || 0);
+    const animatedStreak = useCountUp(user.streak || 0, 700);
     // Destructure state for easier access in JSX
     const { toast, ritualToast, activeModal, showNotifications, notifications, gardenStatus, plantVisuals } = state;
 
@@ -23,7 +26,7 @@ export const ClientDashboard: React.FC<{
         // Simple animation trigger or toast when karma changes significantly
         // This ensures the user feels the update even if the UI refresh is subtle
         if (user.karma > 0) {
-             // Karma sync completed
+            // Karma sync completed
         }
     }, [user.karma]);
 
@@ -31,33 +34,33 @@ export const ClientDashboard: React.FC<{
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-24">
             {toast && <ZenToast toast={toast} onClose={() => actions.setToast(null)} />}
             {ritualToast && (
-                <RitualCompletionCard 
-                    isOpen={!!ritualToast} 
-                    onClose={() => actions.setRitualToast(null)} 
+                <RitualCompletionCard
+                    isOpen={!!ritualToast}
+                    onClose={() => actions.setRitualToast(null)}
                     title={ritualToast.title}
                     message={ritualToast.message}
                     mood={user.lastMood || 'SERENO'}
                 />
             )}
-            <NotificationDrawer 
-                isOpen={showNotifications} 
-                onClose={() => actions.setShowNotifications(false)} 
-                notifications={notifications as any} 
-                onMarkAsRead={actions.handleMarkAsRead} 
-                onMarkAllRead={actions.handleMarkAllRead} 
+            <NotificationDrawer
+                isOpen={showNotifications}
+                onClose={() => actions.setShowNotifications(false)}
+                notifications={notifications as any}
+                onMarkAsRead={actions.handleMarkAsRead}
+                onMarkAllRead={actions.handleMarkAllRead}
             />
-            
+
             {/* MODAIS */}
             <BottomSheet isOpen={activeModal === 'camera'} onClose={() => actions.setActiveModal(null)} title="Novo Rito de Passagem">
-                 <div className="h-[60vh] -mx-4">
-                     <CameraWidget onCapture={actions.handleCapture} />
-                 </div>
+                <div className="h-[60vh] -mx-4">
+                    <CameraWidget onCapture={actions.handleCapture} />
+                </div>
             </BottomSheet>
 
             {/* Invite flow is handled by TRIBE_INVITE screen */}
 
             <DailyBlessing user={user} onCheckIn={actions.handleDailyCheckIn} />
-            
+
             <header className="flex items-center justify-between mt-8 mb-6 px-6 flex-none relative overflow-hidden">
 
                 <div className="flex items-center gap-4">
@@ -68,12 +71,12 @@ export const ClientDashboard: React.FC<{
                     <div><p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">Sua Jornada até aqui,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1 max-w-[140px] truncate">{user.name.split(' ')[0]}</h2></div>
                 </div>
                 <div className="flex items-center gap-3">
-                     <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><MessageCircle size={20}/></button>
-                     <button onClick={() => actions.setShowNotifications(true)} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all relative">
-                         <Bell size={20}/>
-                         {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>}
-                     </button>
-                     <div onClick={() => go('KARMA_WALLET')} className="px-4 py-2 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100 cursor-pointer hover:bg-nature-50 transition-colors"><Sparkles size={16} className="text-amber-400" /><span className="text-xs font-bold text-nature-900">{user.karma}</span></div>
+                    <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><MessageCircle size={20} /></button>
+                    <button onClick={() => actions.setShowNotifications(true)} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all relative">
+                        <Bell size={20} />
+                        {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>}
+                    </button>
+                    <div onClick={() => go('KARMA_WALLET')} className="px-4 py-2 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100 cursor-pointer hover:bg-nature-50 transition-colors"><Sparkles size={16} className="text-amber-400" /><span className="text-xs font-bold text-nature-900">{animatedKarma}</span></div>
                 </div>
             </header>
 
@@ -92,26 +95,26 @@ export const ClientDashboard: React.FC<{
                                 <div className="px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[8px] font-bold text-white/70 uppercase tracking-widest border border-white/10">{gardenStatus.status}</div>
                             </div>
                         </div>
-                         <div>
-                              <div className="flex justify-between items-end mb-4">
-                                 <div className="space-y-1">
+                        <div>
+                            <div className="flex justify-between items-end mb-4">
+                                <div className="space-y-1">
                                     <p className="text-[10px] font-black text-white/50 uppercase tracking-[0.4em]">Núcleo da Vida</p>
                                     <h3 className="text-4xl font-serif italic text-white drop-shadow-2xl">Semente da Essência</h3>
-                                 </div>
-                                 <button 
-                                    onClick={(e) => { 
-                                        e.stopPropagation(); 
+                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
                                         actions.handleWaterPlant();
                                     }}
                                     className="p-4 bg-white text-nature-900 rounded-[1.5rem] border border-white/30 hover:bg-emerald-50 active:scale-90 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.3)] flex items-center justify-center gap-2 group/btn"
-                                 >
+                                >
                                     <Droplet size={20} className="text-emerald-600 group-hover/btn:animate-bounce" />
                                     <span className="text-[10px] uppercase font-black tracking-widest">Nutrir</span>
-                                 </button>
-                              </div>
-                              <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm p-[2px] border border-white/10">
+                                </button>
+                            </div>
+                            <div className="w-full h-2.5 bg-white/20 rounded-full overflow-hidden backdrop-blur-sm p-[2px] border border-white/10">
                                 <div className={`h-full rounded-full transition-all duration-1000 shadow-[0_0_15px_rgba(255,255,255,0.5)] ${gardenStatus.health < 30 ? 'bg-gradient-to-r from-rose-400 to-rose-600' : 'bg-gradient-to-r from-emerald-300 to-white'}`} style={{ width: `${gardenStatus.health}%` }}></div>
-                             </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -119,29 +122,29 @@ export const ClientDashboard: React.FC<{
                 {/* SESSÃO 1: RITUAIS DE PODER */}
                 <div className="space-y-4">
                     <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
-                        <Sparkles size={14}/> Sincronicidade
+                        <Sparkles size={14} /> Sincronicidade
                     </h4>
-                    
+
                     {/* ORACLE HERO WIDGET */}
                     <div id="portal-oracle" onClick={() => go('ORACLE_PORTAL')} className="bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden group cursor-pointer mb-4">
-                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -translate-y-10 translate-x-10 group-hover:bg-indigo-500/30 transition-all duration-700"></div>
-                         <div className="relative z-10 flex items-center gap-6">
-                              <div className="w-20 h-24 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-inner flex flex-col items-center justify-center gap-2 group-hover:scale-105 transition-transform">
-                                  <Sparkles size={24} className="text-indigo-300" />
-                                  <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Carta do Dia</span>
-                              </div>
-                              <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-2">
-                                      <span className="px-2 py-0.5 bg-indigo-500/30 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-indigo-400/30">Energia Ativa</span>
-                                      <span className="text-[9px] opacity-60">Sincronicidade detectada</span>
-                                  </div>
-                                  <h3 className="font-serif italic text-2xl leading-tight mb-1">Revelar Mensagem</h3>
-                                  <p className="text-xs text-indigo-100/70 line-clamp-2">O universo tem uma resposta baseada na sua energia de hoje.</p>
-                              </div>
-                              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white group-hover:text-indigo-900 transition-all">
-                                  <div className="w-0 h-0 border-l-[6px] border-l-current border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5"></div>
-                              </div>
-                         </div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -translate-y-10 translate-x-10 group-hover:bg-indigo-500/30 transition-all duration-700"></div>
+                        <div className="relative z-10 flex items-center gap-6">
+                            <div className="w-20 h-24 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-inner flex flex-col items-center justify-center gap-2 group-hover:scale-105 transition-transform">
+                                <Sparkles size={24} className="text-indigo-300" />
+                                <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Carta do Dia</span>
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="px-2 py-0.5 bg-indigo-500/30 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-indigo-400/30">Energia Ativa</span>
+                                    <span className="text-[9px] opacity-60">Sincronicidade detectada</span>
+                                </div>
+                                <h3 className="font-serif italic text-2xl leading-tight mb-1">Revelar Mensagem</h3>
+                                <p className="text-xs text-indigo-100/70 line-clamp-2">O universo tem uma resposta baseada na sua energia de hoje.</p>
+                            </div>
+                            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white group-hover:text-indigo-900 transition-all">
+                                <div className="w-0 h-0 border-l-[6px] border-l-current border-t-[4px] border-t-transparent border-b-[4px] border-b-transparent ml-0.5"></div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -158,7 +161,7 @@ export const ClientDashboard: React.FC<{
                             <h4 className="text-lg font-serif italic mt-0.5">Conquiste seu Karma</h4>
                         </div>
                         <div className="text-right">
-                            <span className="block text-2xl font-black">{user.streak || 0}</span>
+                            <span className="block text-2xl font-black">{animatedStreak}</span>
                             <span className="text-[9px] font-bold uppercase tracking-widest text-amber-100">dias</span>
                         </div>
                     </div>
@@ -179,60 +182,60 @@ export const ClientDashboard: React.FC<{
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
-                         <div onClick={() => go('METAMORPHOSIS_CHECKIN')} className="bg-nature-25 p-5 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col items-center justify-center gap-3 active:scale-95 transition-all text-center h-40 cursor-pointer hover:shadow-md group">
-                             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-nature-600 shadow-sm group-hover:scale-110 transition-transform"><Zap size={24}/></div>
-                             <div>
+                        <div onClick={() => go('METAMORPHOSIS_CHECKIN')} className="bg-nature-25 p-5 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col items-center justify-center gap-3 active:scale-95 transition-all text-center h-40 cursor-pointer hover:shadow-md group">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-nature-600 shadow-sm group-hover:scale-110 transition-transform"><Zap size={24} /></div>
+                            <div>
                                 <span className="text-[10px] font-black uppercase text-nature-900 tracking-wider">Novo Registro</span>
                                 <p className="text-[8px] text-nature-400 uppercase font-bold mt-1">Check-in Vital</p>
-                             </div>
-                         </div>
-                         <div onClick={() => go('EVOLUTION_TIMELAPSE')} className="bg-nature-25 p-5 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col items-center justify-center gap-3 active:scale-95 transition-all text-center h-40 cursor-pointer hover:shadow-md group">
-                             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform"><Compass size={24}/></div>
-                             <div>
+                            </div>
+                        </div>
+                        <div onClick={() => go('EVOLUTION_TIMELAPSE')} className="bg-nature-25 p-5 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col items-center justify-center gap-3 active:scale-95 transition-all text-center h-40 cursor-pointer hover:shadow-md group">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform"><Compass size={24} /></div>
+                            <div>
                                 <span className="text-[10px] font-black uppercase text-nature-900 tracking-wider">Time Lapse</span>
                                 <p className="text-[8px] text-nature-400 uppercase font-bold mt-1">Linha do Tempo</p>
-                             </div>
-                         </div>
-                         <div onClick={() => go('CLIENT_JOURNAL')} className="bg-nature-25 p-5 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col items-center justify-center gap-3 active:scale-95 transition-all text-center h-40 cursor-pointer hover:shadow-md group">
-                             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-rose-600 shadow-sm group-hover:scale-110 transition-transform"><Book size={24}/></div>
-                             <div>
+                            </div>
+                        </div>
+                        <div onClick={() => go('CLIENT_JOURNAL')} className="bg-nature-25 p-5 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col items-center justify-center gap-3 active:scale-95 transition-all text-center h-40 cursor-pointer hover:shadow-md group">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-rose-600 shadow-sm group-hover:scale-110 transition-transform"><Book size={24} /></div>
+                            <div>
                                 <span className="text-[10px] font-black uppercase text-nature-900 tracking-wider">Diário da Alma</span>
                                 <p className="text-[8px] text-nature-400 uppercase font-bold mt-1">Registros Íntimos</p>
-                             </div>
-                         </div>
-                         <div onClick={() => go('EVOLUTION')} className="bg-nature-25 p-5 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col items-center justify-center gap-3 active:scale-95 transition-all text-center h-40 cursor-pointer hover:shadow-md group">
-                             <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-amber-600 shadow-sm group-hover:scale-110 transition-transform"><Sparkles size={24}/></div>
-                             <div>
+                            </div>
+                        </div>
+                        <div onClick={() => go('EVOLUTION')} className="bg-nature-25 p-5 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col items-center justify-center gap-3 active:scale-95 transition-all text-center h-40 cursor-pointer hover:shadow-md group">
+                            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-amber-600 shadow-sm group-hover:scale-110 transition-transform"><Sparkles size={24} /></div>
+                            <div>
                                 <span className="text-[10px] font-black uppercase text-nature-900 tracking-wider">Metamorfose</span>
                                 <p className="text-[8px] text-nature-400 uppercase font-bold mt-1">Ver Minha Evolução</p>
-                             </div>
-                         </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* SESSÃO 2: CONEXÕES ÁLMICAS */}
                 <div className="space-y-4">
                     <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
-                        <Users size={14}/> Conexões Álmicas
+                        <Users size={14} /> Conexões Álmicas
                     </h4>
                     <div className="grid grid-cols-2 gap-3">
-                        <PortalCard 
+                        <PortalCard
                             id="portal-tribe"
-                            title="Minha Tribo" 
-                            subtitle="COMUNIDADE" 
-                            icon={Users} 
-                            bgImage="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=600" 
-                            onClick={() => go('TRIBE_DASH')} 
+                            title="Minha Tribo"
+                            subtitle="COMUNIDADE"
+                            icon={Users}
+                            bgImage="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?q=80&w=600"
+                            onClick={() => go('TRIBE_DASH')}
                             delay={300}
                         />
-                        <PortalCard 
+                        <PortalCard
                             id="portal-map"
-                            title="Mapa da Cura" 
-                            subtitle="EXPLORAR" 
-                            icon={Compass} 
-                            bgImage="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?q=80&w=600" 
-                            onClick={() => go('BOOKING_SEARCH')} 
-                            delay={350} 
+                            title="Mapa da Cura"
+                            subtitle="EXPLORAR"
+                            icon={Compass}
+                            bgImage="https://images.unsplash.com/photo-1569336415962-a4bd9f69cd83?q=80&w=600"
+                            onClick={() => go('BOOKING_SEARCH')}
+                            delay={350}
                         />
                     </div>
                 </div>
@@ -240,26 +243,26 @@ export const ClientDashboard: React.FC<{
                 {/* SESSÃO 3: RECURSOS */}
                 <div className="space-y-4">
                     <h4 className="px-2 text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-2">
-                        <ShoppingBag size={14}/> Recursos
+                        <ShoppingBag size={14} /> Recursos
                     </h4>
                     <div className="grid grid-cols-2 gap-3">
-                        <PortalCard 
+                        <PortalCard
                             id="portal-abundance"
-                            title="Abundância" 
-                            subtitle="CICLOS DE TROCA" 
-                            icon={Wallet} 
-                            bgImage="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=600" 
-                            onClick={() => go('PAYMENT_HISTORY')} 
-                            delay={400} 
+                            title="Abundância"
+                            subtitle="CICLOS DE TROCA"
+                            icon={Wallet}
+                            bgImage="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?q=80&w=600"
+                            onClick={() => go('PAYMENT_HISTORY')}
+                            delay={400}
                         />
-                         <PortalCard 
+                        <PortalCard
                             id="portal-marketplace"
-                            title="Santuário de Ofertas" 
-                            subtitle="RECURSOS DE CURA" 
-                            icon={ShoppingBag} 
-                            bgImage="https://images.unsplash.com/photo-1601314167099-232775b3d6fd?q=80&w=800" 
-                            onClick={() => go('MARKETPLACE')} 
-                            delay={450} 
+                            title="Santuário de Ofertas"
+                            subtitle="RECURSOS DE CURA"
+                            icon={ShoppingBag}
+                            bgImage="https://images.unsplash.com/photo-1601314167099-232775b3d6fd?q=80&w=800"
+                            onClick={() => go('MARKETPLACE')}
+                            delay={450}
                         />
                     </div>
                 </div>

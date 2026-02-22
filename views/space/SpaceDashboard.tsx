@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
-import { 
+import {
     Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy, Lock, Moon, Loader2
 } from 'lucide-react';
 import { api, request } from '../../services/api';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
 import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
 import { SPACE_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../utils/gamification';
+import { useCountUp } from '../../src/hooks/useCountUp';
 
 // --- COMPONENTS ---
 
@@ -14,31 +15,31 @@ const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: num
     const { go } = useSantuarioFlow();
     return (
         <button onClick={() => go('RADIANCE_DRILLDOWN')} className="w-full text-left bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#020617] rounded-[3rem] p-8 text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden group mb-8 active:scale-[0.98] transition-all outline-none border border-white/5">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] -translate-y-24 translate-x-12 animate-pulse-slow"></div>
-        <div className="relative z-10 flex justify-between items-center">
-             <div className="space-y-2">
-                 <div className="flex items-center gap-3">
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-300/60">Radiance Score</p>
-                    <div className="bg-emerald-500/10 backdrop-blur-md px-2.5 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
-                        <TrendingUp size={10} className="text-emerald-400"/>
-                        <span className="text-[10px] font-black text-emerald-400">+{trend}%</span>
+            <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] -translate-y-24 translate-x-12 animate-pulse-slow"></div>
+            <div className="relative z-10 flex justify-between items-center">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-indigo-300/60">Radiance Score</p>
+                        <div className="bg-emerald-500/10 backdrop-blur-md px-2.5 py-1 rounded-full border border-emerald-500/20 flex items-center gap-1.5">
+                            <TrendingUp size={10} className="text-emerald-400" />
+                            <span className="text-[10px] font-black text-emerald-400">+{trend}%</span>
+                        </div>
                     </div>
-                 </div>
-                 <h3 className="text-7xl font-serif italic text-white drop-shadow-2xl leading-none">{score}<span className="text-2xl not-italic opacity-30 ml-2">/100</span></h3>
-                 <p className="text-[10px] font-bold text-indigo-200/40 uppercase tracking-widest">Sintonia do Santuário</p>
-             </div>
-             <div className="text-right flex flex-col items-end gap-6">
-                 <div className="flex -space-x-3 transition-transform group-hover:-translate-x-2">
-                     {[1,2,3].map(i => <div key={i} className="w-10 h-10 rounded-full border-2 border-[#1e1b4b] bg-indigo-200/80 backdrop-blur-sm shadow-lg"></div>)}
-                     <div className="w-10 h-10 rounded-full border-2 border-[#1e1b4b] bg-nature-800 text-white flex items-center justify-center text-[10px] font-black shadow-lg">12+</div>
-                 </div>
-                 <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-2xl border border-white/5 backdrop-blur-md group-hover:bg-white/10 transition-all">
-                    <Info size={12} className="text-indigo-300" />
-                    <p className="text-[10px] font-black uppercase text-indigo-100/80 tracking-widest">Detalhes do Fluxo</p>
-                 </div>
-             </div>
-        </div>
-    </button>
+                    <h3 className="text-7xl font-serif italic text-white drop-shadow-2xl leading-none">{score}<span className="text-2xl not-italic opacity-30 ml-2">/100</span></h3>
+                    <p className="text-[10px] font-bold text-indigo-200/40 uppercase tracking-widest">Sintonia do Santuário</p>
+                </div>
+                <div className="text-right flex flex-col items-end gap-6">
+                    <div className="flex -space-x-3 transition-transform group-hover:-translate-x-2">
+                        {[1, 2, 3].map(i => <div key={i} className="w-10 h-10 rounded-full border-2 border-[#1e1b4b] bg-indigo-200/80 backdrop-blur-sm shadow-lg"></div>)}
+                        <div className="w-10 h-10 rounded-full border-2 border-[#1e1b4b] bg-nature-800 text-white flex items-center justify-center text-[10px] font-black shadow-lg">12+</div>
+                    </div>
+                    <div className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-2xl border border-white/5 backdrop-blur-md group-hover:bg-white/10 transition-all">
+                        <Info size={12} className="text-indigo-300" />
+                        <p className="text-[10px] font-black uppercase text-indigo-100/80 tracking-widest">Detalhes do Fluxo</p>
+                    </div>
+                </div>
+            </div>
+        </button>
     );
 };
 
@@ -66,8 +67,8 @@ const RadianceDetailsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: (
                             <div>
                                 <h4 className="font-bold text-nature-900 text-sm">{m.label}</h4>
                                 <div className="flex gap-1 mt-1">
-                                    {[1,2,3,4,5].map(dot => (
-                                        <div key={dot} className={`w-1.5 h-1.5 rounded-full ${dot <= (m.value/20) ? m.color.replace('text-', 'bg-') : 'bg-nature-100'}`}></div>
+                                    {[1, 2, 3, 4, 5].map(dot => (
+                                        <div key={dot} className={`w-1.5 h-1.5 rounded-full ${dot <= (m.value / 20) ? m.color.replace('text-', 'bg-') : 'bg-nature-100'}`}></div>
                                     ))}
                                 </div>
                             </div>
@@ -84,7 +85,7 @@ const RadianceDetailsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: (
 const QuickStat = ({ label, value, icon: Icon, color }: any) => (
     <div className="bg-white p-4 rounded-3xl border border-nature-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all">
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color} bg-opacity-10 text-opacity-100`}>
-             <Icon size={20} className={color.replace('bg-', 'text-')} />
+            <Icon size={20} className={color.replace('bg-', 'text-')} />
         </div>
         <div>
             <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">{label}</p>
@@ -142,54 +143,54 @@ const OperationsTab = ({ go }: any) => (
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-            <PortalCard 
+            <PortalCard
                 id="portal-agenda"
-                title="Agenda Viva" 
-                subtitle="RITMOS DO TEMPLO" 
-                icon={Calendar} 
+                title="Agenda Viva"
+                subtitle="RITMOS DO TEMPLO"
+                icon={Calendar}
                 bgImage="https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=600"
                 onClick={() => go('AGENDA_OVERVIEW')}
             />
-            <PortalCard 
+            <PortalCard
                 id="portal-rooms"
-                title="Altares" 
-                subtitle="GEOMETRIA SAGRADA" 
-                icon={DoorOpen} 
+                title="Altares"
+                subtitle="GEOMETRIA SAGRADA"
+                icon={DoorOpen}
                 bgImage="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=600"
                 onClick={() => go('ROOMS_STATUS')}
                 delay={100}
             />
-             <PortalCard 
+            <PortalCard
                 id="portal-events"
-                title="Eventos" 
-                subtitle="RITOS COLETIVOS" 
-                icon={Sparkles} 
+                title="Eventos"
+                subtitle="RITOS COLETIVOS"
+                icon={Sparkles}
                 bgImage="https://images.unsplash.com/photo-1528644490543-950c4dfceb28?q=80&w=600"
                 onClick={() => go('EVENTS_MANAGE')}
                 delay={200}
             />
-            <PortalCard 
+            <PortalCard
                 id="portal-retreats"
-                title="Retiros" 
-                subtitle="IMERSÃO PROFUNDA" 
-                icon={Moon} 
+                title="Retiros"
+                subtitle="IMERSÃO PROFUNDA"
+                icon={Moon}
                 bgImage="https://images.unsplash.com/photo-1545389336-cf090694435e?q=80&w=600"
                 onClick={() => go('RETREATS_MANAGE')}
                 delay={300}
             />
         </div>
         <div onClick={() => go('PATIENTS_LIST')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex justify-between items-center cursor-pointer hover:border-indigo-200 transition-all group">
-             <div className="flex items-center gap-4">
-                 <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><Heart size={24}/></div>
-                 <div>
-                     <h4 className="font-bold text-nature-900 text-lg">Buscadores</h4>
-                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Portal de Almas</p>
-                 </div>
-             </div>
-             <div className="text-right">
-                 <span className="text-2xl font-bold text-nature-900">450</span>
-                 <p className="text-[9px] text-emerald-500 font-bold uppercase">Active</p>
-             </div>
+            <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform"><Heart size={24} /></div>
+                <div>
+                    <h4 className="font-bold text-nature-900 text-lg">Buscadores</h4>
+                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Portal de Almas</p>
+                </div>
+            </div>
+            <div className="text-right">
+                <span className="text-2xl font-bold text-nature-900">450</span>
+                <p className="text-[9px] text-emerald-500 font-bold uppercase">Active</p>
+            </div>
         </div>
 
     </div>
@@ -197,6 +198,8 @@ const OperationsTab = ({ go }: any) => (
 
 const ManagementTab = ({ go, revenue, teamSize }: any) => {
     const [exporting, setExporting] = useState(false);
+    const animatedRevenue = useCountUp(Number(revenue) || 0, 1000, 2);
+    const animatedTeam = useCountUp(Number(teamSize) || 0, 700);
 
     // MOD-03: Real financial data export instead of 'Mock Financial Data Export'
     const handleExportCycle = async (e: React.MouseEvent) => {
@@ -245,114 +248,114 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => {
     };
 
     return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        {/* LOGICAL GROUPING: FINANCIAL HUB */}
-        <div className="bg-white rounded-[3rem] p-6 border border-nature-100 shadow-sm space-y-6">
-            <div className="flex items-center gap-3 px-2">
-                <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                    <Wallet size={20} />
-                </div>
-                <h3 className="text-lg font-serif italic text-nature-900">Hub Financeiro</h3>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div onClick={() => go('FINANCE_OVERVIEW')} className="bg-nature-25 p-6 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col gap-4 cursor-pointer hover:shadow-md transition-all group">
-                    <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
-                        <TrendingUp size={24} />
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* LOGICAL GROUPING: FINANCIAL HUB */}
+            <div className="bg-white rounded-[3rem] p-6 border border-nature-100 shadow-sm space-y-6">
+                <div className="flex items-center gap-3 px-2">
+                    <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                        <Wallet size={20} />
                     </div>
-                    <div>
-                        <p className="text-[9px] font-black uppercase text-nature-400 tracking-widest mb-1">Abundância (Mês)</p>
-                        <h4 className="text-2xl font-black text-nature-900 leading-none">R$ {revenue}</h4>
-                    </div>
+                    <h3 className="text-lg font-serif italic text-nature-900">Hub Financeiro</h3>
                 </div>
 
-                <div onClick={() => go('PROS_LIST')} className="bg-nature-25 p-6 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col gap-4 cursor-pointer hover:shadow-md transition-all group">
-                    <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
-                        <Users size={24} />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div onClick={() => go('FINANCE_OVERVIEW')} className="bg-nature-25 p-6 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col gap-4 cursor-pointer hover:shadow-md transition-all group">
+                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                            <TrendingUp size={24} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black uppercase text-nature-400 tracking-widest mb-1">Abundância (Mês)</p>
+                            <h4 className="text-2xl font-black text-nature-900 leading-none">R$ {animatedRevenue}</h4>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-[9px] font-black uppercase text-nature-400 tracking-widest mb-1">Equipe de Guardiões</p>
-                        <h4 className="text-2xl font-black text-nature-900 leading-none">{teamSize} Membros</h4>
+
+                    <div onClick={() => go('PROS_LIST')} className="bg-nature-25 p-6 rounded-[2.5rem] border border-nature-50 shadow-sm flex flex-col gap-4 cursor-pointer hover:shadow-md transition-all group">
+                        <div className="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+                            <Users size={24} />
+                        </div>
+                        <div>
+                            <p className="text-[9px] font-black uppercase text-nature-400 tracking-widest mb-1">Equipe de Guardiões</p>
+                            <h4 className="text-2xl font-black text-nature-900 leading-none">{animatedTeam} Membros</h4>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-                 <div onClick={() => go('AUDIT_LOG')} className="bg-[#0f172a] text-white p-6 rounded-[2.5rem] shadow-xl flex flex-col justify-between cursor-pointer relative overflow-hidden group border border-white/5 active:scale-95 transition-all">
-                      <div className="relative z-10">
-                          <Shield size={24} className="text-indigo-400 mb-4"/>
-                          <h4 className="font-bold text-lg leading-tight">Proteção</h4>
-                          <p className="text-[9px] text-indigo-300/60 font-black uppercase tracking-widest mt-1">Trilha de Auditoria</p>
-                      </div>
-                      <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
-                 </div>
-                 <div onClick={() => go('TEAM_SUMMON')} className="bg-rose-50 text-rose-900 p-6 rounded-[2.5rem] border border-rose-100 shadow-sm flex flex-col justify-between cursor-pointer relative overflow-hidden active:scale-95 transition-all hover:bg-rose-100">
-                      <div className="relative z-10">
-                          <Zap size={24} className="text-rose-500 mb-4"/>
-                          <h4 className="font-bold text-lg leading-tight">Convocar</h4>
-                          <p className="text-[9px] text-rose-400 font-bold uppercase tracking-widest mt-1">Alerta Círculo</p>
-                      </div>
-                      <div className="absolute right-0 top-0 w-24 h-24 bg-rose-200/20 rounded-full blur-xl -translate-y-8 translate-x-8"></div>
-                 </div>
-            </div>
+                <div className="grid grid-cols-2 gap-4">
+                    <div onClick={() => go('AUDIT_LOG')} className="bg-[#0f172a] text-white p-6 rounded-[2.5rem] shadow-xl flex flex-col justify-between cursor-pointer relative overflow-hidden group border border-white/5 active:scale-95 transition-all">
+                        <div className="relative z-10">
+                            <Shield size={24} className="text-indigo-400 mb-4" />
+                            <h4 className="font-bold text-lg leading-tight">Proteção</h4>
+                            <p className="text-[9px] text-indigo-300/60 font-black uppercase tracking-widest mt-1">Trilha de Auditoria</p>
+                        </div>
+                        <div className="absolute right-0 top-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
+                    </div>
+                    <div onClick={() => go('TEAM_SUMMON')} className="bg-rose-50 text-rose-900 p-6 rounded-[2.5rem] border border-rose-100 shadow-sm flex flex-col justify-between cursor-pointer relative overflow-hidden active:scale-95 transition-all hover:bg-rose-100">
+                        <div className="relative z-10">
+                            <Zap size={24} className="text-rose-500 mb-4" />
+                            <h4 className="font-bold text-lg leading-tight">Convocar</h4>
+                            <p className="text-[9px] text-rose-400 font-bold uppercase tracking-widest mt-1">Alerta Círculo</p>
+                        </div>
+                        <div className="absolute right-0 top-0 w-24 h-24 bg-rose-200/20 rounded-full blur-xl -translate-y-8 translate-x-8"></div>
+                    </div>
+                </div>
 
-            <div className="bg-nature-50 p-4 rounded-3xl border border-nature-100 flex items-center justify-between group">
-                 <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm group-hover:rotate-12 transition-transform"><FileText size={20}/></div>
-                     <div>
-                         <h4 className="font-bold text-nature-900 text-sm">Fechamento de Ciclo</h4>
-                         <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">Suma da Abundância (CSV)</p>
-                     </div>
-                 </div>
-                 <button 
-                    onClick={handleExportCycle}
-                    disabled={exporting}
-                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50"
-                >
-                    {exporting ? <Loader2 size={14} className="animate-spin" /> : 'Exportar'}
-                </button>
+                <div className="bg-nature-50 p-4 rounded-3xl border border-nature-100 flex items-center justify-between group">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm group-hover:rotate-12 transition-transform"><FileText size={20} /></div>
+                        <div>
+                            <h4 className="font-bold text-nature-900 text-sm">Fechamento de Ciclo</h4>
+                            <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">Suma da Abundância (CSV)</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={handleExportCycle}
+                        disabled={exporting}
+                        className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md hover:bg-emerald-700 active:scale-95 transition-all disabled:opacity-50"
+                    >
+                        {exporting ? <Loader2 size={14} className="animate-spin" /> : 'Exportar'}
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
     );
 };
 
 const GrowthTab = ({ go }: any) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div onClick={() => go('VAGAS_LIST')} className="bg-indigo-900 p-8 rounded-[3.5rem] shadow-xl flex items-center gap-6 cursor-pointer hover:bg-black transition-all group relative overflow-hidden">
-             <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
-             <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-white"><Briefcase size={32}/></div>
-             <div className="flex-1 relative z-10">
-                 <h4 className="text-2xl font-serif italic text-white leading-tight">Mural de Vagas</h4>
-                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mt-1">Expansão de Guardiões</p>
-             </div>
-             <div className="px-4 py-2 bg-white text-indigo-900 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-indigo-400 group-hover:text-white transition-colors">Ver Mural</div>
+            <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
+            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-white"><Briefcase size={32} /></div>
+            <div className="flex-1 relative z-10">
+                <h4 className="text-2xl font-serif italic text-white leading-tight">Mural de Vagas</h4>
+                <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mt-1">Expansão de Guardiões</p>
+            </div>
+            <div className="px-4 py-2 bg-white text-indigo-900 rounded-full text-[10px] font-black uppercase tracking-widest group-hover:bg-indigo-400 group-hover:text-white transition-colors">Ver Mural</div>
         </div>
 
         <div onClick={() => go('MARKETPLACE_MANAGE')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition-all">
-             <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600"><ShoppingBag size={22}/></div>
-             <div className="flex-1">
-                 <h4 className="font-bold text-nature-900 text-lg">Bazar do Santuário</h4>
-                 <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Produtos & Serviços</p>
-             </div>
-             <ChevronRight size={16} className="text-nature-300"/>
+            <div className="w-12 h-12 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600"><ShoppingBag size={22} /></div>
+            <div className="flex-1">
+                <h4 className="font-bold text-nature-900 text-lg">Bazar do Santuário</h4>
+                <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Produtos & Serviços</p>
+            </div>
+            <ChevronRight size={16} className="text-nature-300" />
         </div>
 
         <div onClick={() => go('PREDICTIVE_OCCUPANCY')} className="bg-indigo-900 p-6 rounded-[2.5rem] shadow-xl flex items-center gap-4 cursor-pointer hover:bg-black transition-all group">
-             <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white"><Zap size={22} className="animate-pulse"/></div>
-             <div className="flex-1">
-                 <h4 className="font-bold text-white">Sintonização Espacial</h4>
-                 <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">Visão do Futuro (IA Phoenix)</p>
-             </div>
-             <ChevronRight size={20} className="text-white opacity-40 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all"/>
+            <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-white"><Zap size={22} className="animate-pulse" /></div>
+            <div className="flex-1">
+                <h4 className="font-bold text-white">Sintonização Espacial</h4>
+                <p className="text-[10px] text-indigo-200 font-bold uppercase tracking-widest">Visão do Futuro (IA Phoenix)</p>
+            </div>
+            <ChevronRight size={20} className="text-white opacity-40 group-hover:opacity-100 transform group-hover:translate-x-1 transition-all" />
         </div>
 
         <div onClick={() => go('REPUTATION_OVERVIEW')} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center gap-4 cursor-pointer hover:shadow-md transition-all">
-             <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><Award size={22}/></div>
-             <div className="flex-1">
-                 <h4 className="font-bold text-nature-900">Reputação</h4>
-                 <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Avaliações & Feedback</p>
-             </div>
+            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><Award size={22} /></div>
+            <div className="flex-1">
+                <h4 className="font-bold text-nature-900">Reputação</h4>
+                <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Avaliações & Feedback</p>
+            </div>
         </div>
 
         {/* CONQUISTAS DO SANTUÁRIO - Dynamic */}
@@ -384,8 +387,8 @@ const GrowthTab = ({ go }: any) => (
 
 // --- MAIN COMPONENT ---
 
-export const SpaceDashboard: React.FC<{ 
-    user: User, 
+export const SpaceDashboard: React.FC<{
+    user: User,
     rooms?: SpaceRoom[],
     team?: Professional[],
     vacancies?: Vacancy[],
@@ -409,7 +412,7 @@ export const SpaceDashboard: React.FC<{
     const handleMarkAllRead = () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     };
-    
+
     // Dynamic Radiance Score Calculation
     const revenue = Transactions
         .filter(t => t.type === 'income')
@@ -423,51 +426,51 @@ export const SpaceDashboard: React.FC<{
 
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-32">
-            <NotificationDrawer 
-                isOpen={showNotifications} 
-                onClose={() => setShowNotifications(false)} 
-                notifications={notifications as any} 
-                onMarkAsRead={handleMarkAsRead} 
-                onMarkAllRead={handleMarkAllRead} 
+            <NotificationDrawer
+                isOpen={showNotifications}
+                onClose={() => setShowNotifications(false)}
+                notifications={notifications as any}
+                onMarkAsRead={handleMarkAsRead}
+                onMarkAllRead={handleMarkAllRead}
             />
-            
+
             {/* Header */}
             <header className="flex items-center justify-between mt-8 mb-6 px-6 relative">
-                 <div className="flex items-center gap-3">
-                     <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-lg" />
-                     <div>
-                         <p className="text-[9px] font-bold text-nature-400 uppercase tracking-[0.2em]">Santuário</p>
-                         <h2 className="text-xl font-serif italic text-nature-900 leading-none">{user.name}</h2>
-                     </div>
-                 </div>
-                 <div className="flex items-center gap-2">
-                    <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all outline-none"><MessageCircle size={18}/></button>
+                <div className="flex items-center gap-3">
+                    <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-lg" />
+                    <div>
+                        <p className="text-[9px] font-bold text-nature-400 uppercase tracking-[0.2em]">Santuário</p>
+                        <h2 className="text-xl font-serif italic text-nature-900 leading-none">{user.name}</h2>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all outline-none"><MessageCircle size={18} /></button>
                     <button onClick={() => setShowNotifications(true)} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all relative">
-                        <Bell size={18}/>
+                        <Bell size={18} />
                         {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white"></span>}
                     </button>
-                    <button onClick={() => go('GOVERNANCE')} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all outline-none"><Settings size={18}/></button>
-                 </div>
+                    <button onClick={() => go('GOVERNANCE')} className="p-2.5 bg-white rounded-xl border border-nature-100 text-nature-400 shadow-sm active:scale-95 transition-all outline-none"><Settings size={18} /></button>
+                </div>
             </header>
 
             <div className="px-4">
-                <RadianceHero score={radianceScore} trend={trend} onOpenModal={() => {}} />
+                <RadianceHero score={radianceScore} trend={trend} onOpenModal={() => { }} />
 
                 {/* TABS NAVIGATION */}
                 <div className="flex p-1.5 bg-white rounded-[2rem] border border-nature-100 shadow-sm mb-6 sticky top-4 z-20">
-                    <button 
+                    <button
                         onClick={() => setActiveTab('ops')}
                         className={`flex-1 py-3 rounded-3xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'ops' ? 'bg-nature-900 text-white shadow-md' : 'text-nature-400 hover:bg-nature-50'}`}
                     >
                         Ritmos do Templo
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab('admin')}
                         className={`flex-1 py-3 rounded-3xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'admin' ? 'bg-nature-900 text-white shadow-md' : 'text-nature-400 hover:bg-nature-50'}`}
                     >
                         Abundância & Zelo
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab('growth')}
                         className={`flex-1 py-3 rounded-3xl text-[10px] font-bold uppercase tracking-widest transition-all ${activeTab === 'growth' ? 'bg-nature-900 text-white shadow-md' : 'text-nature-400 hover:bg-nature-50'}`}
                     >
