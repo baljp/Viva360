@@ -100,7 +100,7 @@ const GuardiaoFlowContext = createContext<{
     back: () => void;
     reset: () => void;
     refreshData: (userId: string) => Promise<void>;
-    notify: (title: string, message: string, type?: 'info' | 'success' | 'warning') => void;
+    notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
     selectAppointment: (apt: Appointment) => void;
     selectPatient: (payload: { id: string; name?: string } | null) => void;
 } | undefined>(undefined);
@@ -118,14 +118,14 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
                 api.marketplace.listByOwner(userId),
                 api.professionals.getFinanceSummary(userId)
             ]);
-            dispatch({ 
-                type: 'SET_DATA', 
-                payload: { 
-                    appointments: apts, 
-                    vacancies: vacs, 
-                    myProducts: prods, 
-                    transactions: txData.transactions 
-                } 
+            dispatch({
+                type: 'SET_DATA',
+                payload: {
+                    appointments: apts,
+                    vacancies: vacs,
+                    myProducts: prods,
+                    transactions: txData.transactions
+                }
             });
         } catch (e) {
             console.error('Failed to fetch Guardiao data', e);
@@ -137,16 +137,16 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     const go = (target: GuardiaoState) => {
         dispatch({ type: 'SET_LOADING', payload: true });
-        
+
         // Immediate visual feedback or Notification Hooks
         if (target === 'ESCAMBO_CONFIRM') {
             dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Elo Estabelecido', message: 'Seu chamado ecoou na teia.' } });
         }
         if (target === 'SANTUARIO_CONTRACT') {
-             dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Raizes Firmas', message: 'Seu vínculo com o Santuário floresceu.' } });
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Raizes Firmas', message: 'Seu vínculo com o Santuário floresceu.' } });
         }
         if (target === 'VAGA_APPLY') {
-             dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Intenção Semeada', message: 'Sua prontidão foi registrada no portal.' } });
+            dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Intenção Semeada', message: 'Sua prontidão foi registrada no portal.' } });
         }
 
         dispatch({ type: 'TRANSITION', payload: target });
@@ -172,28 +172,27 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         <GuardiaoFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, notify, selectAppointment, selectPatient }}>
             {children}
             {state.ritualCompletion && (
-                <RitualCompletionCard 
-                    title={state.ritualCompletion.title} 
-                    message={state.ritualCompletion.message} 
-                    onClose={() => dispatch({ type: 'CLEAR_RITUAL' })} 
+                <RitualCompletionCard
+                    title={state.ritualCompletion.title}
+                    message={state.ritualCompletion.message}
+                    onClose={() => dispatch({ type: 'CLEAR_RITUAL' })}
                 />
             )}
             {state.notification && (
                 <div className="fixed top-20 left-0 right-0 z-[1000] px-4 animate-in slide-in-from-top duration-500">
-                     <div className={`p-4 rounded-2xl shadow-2xl border flex items-center gap-3 backdrop-blur-xl ${
-                         state.notification.type === 'success' ? 'bg-emerald-50/90 border-emerald-100 text-emerald-900' :
-                         state.notification.type === 'error' ? 'bg-rose-50/90 border-rose-100 text-rose-900' :
-                         'bg-white/90 border-nature-100 text-nature-900'
-                     }`}>
-                         <Sparkles size={20} className={state.notification.type === 'success' ? 'text-emerald-500' : 'text-nature-400'} />
-                         <div className="flex-1">
-                             <h4 className="font-bold text-xs">{state.notification.title}</h4>
-                             <p className="text-[10px] opacity-70">{state.notification.message}</p>
-                         </div>
-                         <button onClick={() => dispatch({ type: 'CLEAR_NOTIFICATION' })} className="p-1 hover:bg-black/5 rounded-lg transition-colors">
-                             <X size={16} />
-                         </button>
-                     </div>
+                    <div className={`p-4 rounded-2xl shadow-2xl border flex items-center gap-3 backdrop-blur-xl ${state.notification.type === 'success' ? 'bg-emerald-50/90 border-emerald-100 text-emerald-900' :
+                            state.notification.type === 'error' ? 'bg-rose-50/90 border-rose-100 text-rose-900' :
+                                'bg-white/90 border-nature-100 text-nature-900'
+                        }`}>
+                        <Sparkles size={20} className={state.notification.type === 'success' ? 'text-emerald-500' : 'text-nature-400'} />
+                        <div className="flex-1">
+                            <h4 className="font-bold text-xs">{state.notification.title}</h4>
+                            <p className="text-[10px] opacity-70">{state.notification.message}</p>
+                        </div>
+                        <button onClick={() => dispatch({ type: 'CLEAR_NOTIFICATION' })} className="p-1 hover:bg-black/5 rounded-lg transition-colors">
+                            <X size={16} />
+                        </button>
+                    </div>
                 </div>
             )}
         </GuardiaoFlowContext.Provider>

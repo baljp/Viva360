@@ -27,7 +27,7 @@ export default function ServiceEvaluation() {
         if (submitting) return;
         setSubmitting(true);
         try {
-            await api.account.reviews.create({
+            await api.reviews.create({
                 rating: Math.round(rating * 10) / 10,
                 comment: comment.trim() || undefined,
                 tags: tags.length > 0 ? tags : undefined,
@@ -61,14 +61,14 @@ export default function ServiceEvaluation() {
     }
 
     return (
-        <PortalView 
-            title="Avaliação da Jornada" 
-            subtitle="FEEDBACK SAGRADO" 
+        <PortalView
+            title="Avaliação da Jornada"
+            subtitle="FEEDBACK SAGRADO"
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?q=80&w=800"
         >
             <div className="px-4 pb-24 -mt-10 relative z-10 space-y-6">
-                
+
                 {/* Entity Card */}
                 <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-nature-100 text-center relative overflow-hidden">
                     <div className="w-20 h-20 rounded-2xl bg-nature-100 mx-auto mb-3 shadow-lg">
@@ -81,19 +81,19 @@ export default function ServiceEvaluation() {
                 {/* Rating Slider */}
                 <div className="bg-white p-8 rounded-[2.5rem] border border-nature-100 shadow-sm text-center">
                     <h4 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-6">Nota da Experiência</h4>
-                    
+
                     <div className="relative mb-8">
                         <div className="text-6xl font-bold text-indigo-900 font-serif flex items-center justify-center gap-2">
                             {rating.toFixed(1)} <span className="text-2xl text-nature-300">/ 10</span>
                         </div>
                     </div>
 
-                    <input 
-                        type="range" 
-                        min="0" 
-                        max="10" 
-                        step="0.1" 
-                        value={rating} 
+                    <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        step="0.1"
+                        value={rating}
                         onChange={(e) => setRating(Number(e.target.value))}
                         className="w-full h-2 bg-nature-100 rounded-lg appearance-none cursor-pointer accent-indigo-600"
                     />
@@ -108,7 +108,7 @@ export default function ServiceEvaluation() {
                     <h4 className="text-xs font-bold text-nature-400 uppercase tracking-widest px-2">O que mais marcou?</h4>
                     <div className="flex flex-wrap gap-2">
                         {availableTags.map(tag => (
-                            <button 
+                            <button
                                 key={tag}
                                 onClick={() => toggleTag(tag)}
                                 className={`px-4 py-3 rounded-xl text-xs font-bold border transition-all ${tags.includes(tag) ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' : 'bg-white text-nature-500 border-nature-100 hover:border-indigo-200'}`}
@@ -121,7 +121,7 @@ export default function ServiceEvaluation() {
 
                 {/* Comment */}
                 <div className="bg-white p-4 rounded-[2rem] border border-nature-100 shadow-sm focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
-                    <textarea 
+                    <textarea
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Deixe um recado para o Mestre (opcional)..."
@@ -129,7 +129,7 @@ export default function ServiceEvaluation() {
                     />
                 </div>
 
-                <button 
+                <button
                     onClick={handleSubmit}
                     disabled={submitting}
                     className="w-full py-5 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50"
@@ -140,5 +140,5 @@ export default function ServiceEvaluation() {
 
             </div>
         </PortalView>
-    );    
+    );
 }

@@ -51,7 +51,7 @@ export default function ChatListScreen() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.community.chat.listRooms();
+      const data = await api.chat.listRooms();
       const normalized = Array.isArray(data) ? data.map(mapApiRoom) : [];
       setRooms(normalized);
     } catch (err: any) {
@@ -165,9 +165,8 @@ export default function ChatListScreen() {
                 <div
                   key={room.id}
                   onClick={() => go('CHAT_ROOM')}
-                  className={`p-4 flex items-center gap-4 hover:bg-nature-50 cursor-pointer transition-colors ${
-                    i !== regularRooms.length - 1 ? 'border-b border-nature-50' : ''
-                  }`}
+                  className={`p-4 flex items-center gap-4 hover:bg-nature-50 cursor-pointer transition-colors ${i !== regularRooms.length - 1 ? 'border-b border-nature-50' : ''
+                    }`}
                 >
                   <DynamicAvatar user={{ name: other.name, avatar: other.avatar } as any} size="md" />
                   <div className="flex-1 min-w-0">
@@ -179,9 +178,8 @@ export default function ChatListScreen() {
                         </span>
                       )}
                     </div>
-                    <p className={`text-xs truncate ${
-                      room.unreadCount > 0 ? 'font-bold text-nature-800' : 'text-nature-400'
-                    }`}>
+                    <p className={`text-xs truncate ${room.unreadCount > 0 ? 'font-bold text-nature-800' : 'text-nature-400'
+                      }`}>
                       {lastMsg?.content || 'Inicie a conversa'}
                     </p>
                   </div>

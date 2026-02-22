@@ -1,4 +1,5 @@
-import type { User, UserRole } from '../../types';
+import type { User } from '../../types';
+import { UserRole } from '../../types';
 import {
   API_URL,
   AUTH_TOKEN_KEY,

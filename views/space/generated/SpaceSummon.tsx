@@ -20,7 +20,7 @@ export default function SpaceSummon() {
         }
         setSending(true);
         try {
-            await api.community.tribe.invite({
+            await api.tribe.invite({
                 email: '', // Broadcast — no specific target email
                 inviteType: 'JOB' as const,
                 contextRef: `summon:${target}:${urgency}`,
@@ -37,27 +37,27 @@ export default function SpaceSummon() {
     };
 
     return (
-        <PortalView 
-            title="Convocar Círculo" 
-            subtitle="ALERTA RÁPIDO" 
+        <PortalView
+            title="Convocar Círculo"
+            subtitle="ALERTA RÁPIDO"
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1517677208171-0bc5e25bb3ca?q=80&w=800"
         >
 
             <div className="px-4 pb-24 space-y-6">
-                
+
                 {/* Target Selection */}
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
                     <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Quem você precisa?</h3>
                     <div className="grid grid-cols-2 gap-4">
-                        <button 
+                        <button
                             onClick={() => setTarget('guardians')}
                             className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-3 ${target === 'guardians' ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white border-nature-100'}`}
                         >
                             <Shield size={24} className={target === 'guardians' ? 'text-indigo-600' : 'text-nature-300'} />
                             <span className={`text-xs font-bold uppercase ${target === 'guardians' ? 'text-indigo-900' : 'text-nature-500'}`}>Guardiões</span>
                         </button>
-                        <button 
+                        <button
                             onClick={() => setTarget('masters')}
                             className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-3 ${target === 'masters' ? 'bg-amber-50 border-amber-500 ring-1 ring-amber-500' : 'bg-white border-nature-100'}`}
                         >
@@ -71,17 +71,17 @@ export default function SpaceSummon() {
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
                     <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Urgência</h3>
                     <div className="flex gap-4">
-                        <button 
+                        <button
                             onClick={() => setUrgency('normal')}
                             className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all ${urgency === 'normal' ? 'bg-nature-900 text-white border-nature-900' : 'bg-white text-nature-400 border-nature-100'}`}
                         >
                             Normal
                         </button>
-                        <button 
+                        <button
                             onClick={() => setUrgency('high')}
                             className={`flex-1 py-3 px-4 rounded-xl text-xs font-bold uppercase tracking-widest border transition-all flex items-center justify-center gap-2 ${urgency === 'high' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-rose-400 border-rose-100'}`}
                         >
-                            <AlertOctagon size={14}/> Alta
+                            <AlertOctagon size={14} /> Alta
                         </button>
                     </div>
                 </div>
@@ -89,7 +89,7 @@ export default function SpaceSummon() {
                 {/* Message */}
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
                     <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Mensagem</h3>
-                     <textarea 
+                    <textarea
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
                         placeholder="Descreva brevemente a situação..."
@@ -97,7 +97,7 @@ export default function SpaceSummon() {
                     />
                 </div>
 
-                <button 
+                <button
                     onClick={handleSend}
                     disabled={sending}
                     className={`w-full py-5 rounded-[2rem] font-bold uppercase tracking-widest shadow-xl transition-all flex items-center justify-center gap-3 text-white disabled:opacity-50 ${urgency === 'high' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}

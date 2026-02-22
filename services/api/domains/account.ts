@@ -34,7 +34,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           body: JSON.stringify({ reward }),
         });
       } catch (error: any) {
-        console.error('[account.checkIn]', err);
+        console.error('[account.checkIn]', error);
         const status = Number(error?.status || 0);
         const code = String(error?.code || error?.details?.code || '').toUpperCase();
         if (status === 409 || code === 'CHECKIN_ALREADY_DONE') {

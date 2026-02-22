@@ -29,7 +29,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
         let cancelled = false;
         (async () => {
             try {
-                const offers = await api.hub.alchemy.listOffers();
+                const offers = await api.alchemy.listOffers();
                 if (!cancelled && Array.isArray(offers)) {
                     const items = offers
                         .filter((o: any) => o.status === 'pending' || o.status === 'available')
@@ -64,7 +64,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
         if (isSending) return;
         setIsSending(true);
         try {
-            await api.hub.alchemy.createOffer({
+            await api.alchemy.createOffer({
                 requesterId: targetId,
                 description: [
                     myItems.find(i => i.id === selectedItem)?.name || selectedItem,
@@ -82,13 +82,13 @@ export const AlquimiaProposeTrade: React.FC = () => {
     };
 
     return (
-        <PortalView 
-            title="Propor Troca" 
-            subtitle="FLUXO DE ABUNDÂNCIA" 
+        <PortalView
+            title="Propor Troca"
+            subtitle="FLUXO DE ABUNDÂNCIA"
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=800"
         >
-            
+
             <div className="space-y-8 px-2 pb-24">
                 <div className="bg-nature-900 p-6 rounded-[2rem] text-white flex items-center justify-between">
                     <div>
@@ -109,7 +109,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
 
                 <div className="space-y-4">
                     <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest text-center">O que você oferece?</h4>
-                    
+
                     <div className="grid grid-cols-1 gap-3">
                         {loadingItems ? (
                             <div className="flex items-center justify-center py-6">
@@ -121,7 +121,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
                                 <p className="text-xs text-nature-400 mt-2">Crie sua Alquimia no Bazar para usar como oferta em trocas.</p>
                             </div>
                         ) : myItems.map(item => (
-                            <div 
+                            <div
                                 key={item.id}
                                 onClick={() => setSelectedItem(item.id)}
                                 className={`p-4 rounded-[2rem] border flex items-center gap-4 cursor-pointer transition-all ${selectedItem === item.id ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-200' : 'bg-white border-nature-100'}`}
@@ -131,7 +131,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
                                     <h5 className="font-bold text-nature-900">{item.name}</h5>
                                     <p className="text-[10px] text-nature-400 font-bold uppercase">Disponível</p>
                                 </div>
-                                {selectedItem === item.id && <CheckCircle2 className="text-indigo-500" size={24}/>}
+                                {selectedItem === item.id && <CheckCircle2 className="text-indigo-500" size={24} />}
                             </div>
                         ))}
                     </div>
@@ -139,7 +139,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
 
                 <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-nature-400 pl-4">Mensagem (Opcional)</label>
-                    <textarea 
+                    <textarea
                         value={message}
                         onChange={e => setMessage(e.target.value)}
                         placeholder="Olá, gostaria de trocar sua arte pelo meu serviço..."
@@ -147,7 +147,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
                     />
                 </div>
 
-                <button 
+                <button
                     onClick={handlePropose}
                     disabled={isSending}
                     className="w-full py-5 bg-indigo-600 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all hover:bg-indigo-700 flex items-center justify-center gap-3 disabled:opacity-60"

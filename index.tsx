@@ -8,10 +8,14 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { initMonitoring } from './lib/monitoring';
 import './src/index.css'; // Global Design System
 import { installBootRecovery } from './src/boot/bootRecovery';
+import { initDeathClickTracker } from './src/utils/deathClickTracker';
 
 // Recovery guard to avoid "blank screen" after SW/cached-chunk mismatches.
 // NOTE: Service worker registration is already handled by vite-plugin-pwa (registerSW.js).
 installBootRecovery();
+
+// Dev-only: track buttons/CTAs that have no attached handler.
+initDeathClickTracker();
 
 // ── Sentry: init before render so the first route transition is captured ──────
 initMonitoring();
