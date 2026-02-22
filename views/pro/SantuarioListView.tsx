@@ -18,7 +18,7 @@ interface SantuarioItem {
 }
 
 export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
-    const { go, back, notify} = useGuardiaoFlow();
+    const { go, back, notify } = useGuardiaoFlow();
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
 
@@ -59,14 +59,16 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
     ]);
 
     useEffect(() => {
+        let cancelled = false;
         const load = async () => {
             try {
                 const data = await api.spaces.list();
-                if (data?.length) setSantuarios(data);
+                if (!cancelled && data?.length) setSantuarios(data);
             } catch (e) { /* use mock */ }
-            finally { setLoading(false); }
+            finally { if (!cancelled) setLoading(false); }
         };
         load();
+        return () => { cancelled = true; };
     }, []);
 
     const filtered = santuarios.filter(s =>
@@ -82,7 +84,7 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
 
     return (
         <div className="min-h-screen bg-[#f8faf9] pb-32">
-            
+
             <header className="bg-gradient-to-br from-nature-900 to-emerald-900 px-6 pt-14 pb-10 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                 <button onClick={back} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-6 active:scale-95 transition-all">←</button>
@@ -91,13 +93,13 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
                     <h1 className="text-3xl font-serif italic text-white">Meus Santuários</h1>
                 </div>
                 <p className="text-emerald-200/70 text-xs font-bold uppercase tracking-widest">Espaços onde sua luz se manifesta</p>
-                
+
                 <div className="mt-6 flex items-center gap-3 bg-white/10 backdrop-blur-md rounded-2xl px-4 py-3 border border-white/10">
                     <Search size={16} className="text-white/50" />
-                    <input 
-                        value={search} 
+                    <input
+                        value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="Buscar santuário..." 
+                        placeholder="Buscar santuário..."
                         className="bg-transparent flex-1 text-white text-sm outline-none placeholder:text-white/30"
                     />
                 </div>
@@ -107,7 +109,7 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
                 {filtered.map(s => {
                     const cfg = statusConfig[s.status];
                     return (
-                        <div 
+                        <div
                             key={s.id}
                             onClick={() => go('SANTUARIO_PROFILE')}
                             className="bg-white rounded-[2.5rem] overflow-hidden border border-nature-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
@@ -137,8 +139,8 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
                                     </div>
                                 </div>
                                 <div className="flex gap-1">
-                                    {s.specialties.slice(0, 2).map((sp, i) => (
-                                        <span key={i} className="px-2 py-0.5 bg-nature-50 rounded-lg text-[9px] font-bold text-nature-500 uppercase">{sp}</span>
+                                    {s.specialties.slice(0, 2).map((sp) => (
+                                        <span key={sp} className="px-2 py-0.5 bg-nature-50 rounded-lg text-[9px] font-bold text-nature-500 uppercase">{sp}</span>
                                     ))}
                                 </div>
                             </div>
@@ -153,7 +155,7 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
                     </div>
                 )}
 
-                <button 
+                <button
                     onClick={() => {
                         notify('Busca Ativada', 'Procurando santuários próximos à sua frequência...', 'info');
                     }}

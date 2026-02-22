@@ -5,12 +5,15 @@ import { Star, ThumbsUp, MessageCircle, Send, Heart, Award, Loader2 } from 'luci
 import { api } from '../../../services/api';
 
 export default function ServiceEvaluation() {
-    const { back, go, notify } = useSantuarioFlow();
+    const { back, go, notify, state } = useSantuarioFlow();
     const [rating, setRating] = useState(9.8);
     const [comment, setComment] = useState('');
     const [tags, setTags] = useState<string[]>([]);
     const [submitted, setSubmitted] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+
+    // Resolve the professional being evaluated from flow state
+    const selectedProId = String((state as any)?.selectedPro?.id || '').trim();
 
     const availableTags = ['Empatia Profunda', 'Ambiente Sagrado', 'Pontualidade', 'Energia Elevada', 'Clareza', 'Transformador'];
 
@@ -31,7 +34,7 @@ export default function ServiceEvaluation() {
                 rating: Math.round(rating * 10) / 10,
                 comment: comment.trim() || undefined,
                 tags: tags.length > 0 ? tags : undefined,
-                targetId: 'current-session-target', // TODO: pass real targetId from flow state
+                targetId: selectedProId || undefined,
                 targetType: 'guardian',
             });
             setSubmitted(true);

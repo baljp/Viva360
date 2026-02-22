@@ -1,5 +1,4 @@
 import prisma from '../lib/prisma';
-// @ts-ignore
 import { Prisma } from '@prisma/client';
 
 export interface CreateProductData {
