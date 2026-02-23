@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
-import { ChevronRight, TrendingUp, TrendingDown, Minus, Plus } from 'lucide-react';
+import { ChevronRight, TrendingUp, TrendingDown, Minus, Plus, Medal } from 'lucide-react';
 import { useEvolution } from '../../../src/hooks/useEvolution';
 import { useIdbImageUrl } from '../../../src/hooks/useIdbImageUrl';
 import { buildLocalImageKey } from '../../../src/utils/idbImageStore';
@@ -26,13 +26,13 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
     return (
         <PortalView title="Evolução" subtitle="SUA JORNADA VIVA" onBack={() => go('GARDEN_VIEW')} heroImage="https://images.unsplash.com/photo-1470252649378-b736a029c69d?q=80&w=800">
             <div className="flex flex-col h-full bg-nature-50/30">
-                
+
                 <div className="px-6 pt-8 flex justify-between items-center">
                     <div className="text-left">
                         <h3 className="text-4xl font-serif italic text-nature-900 mb-2">🌳 Sua Jornada</h3>
                         <p className="text-xs text-nature-500 uppercase tracking-[0.2em] font-bold">Estado Evolutivo</p>
                     </div>
-                    <button 
+                    <button
                         onClick={() => go('METAMORPHOSIS_CHECKIN')}
                         className="bg-nature-900 text-white p-4 rounded-2xl shadow-xl active:scale-95 transition-all flex flex-col items-center gap-1"
                     >
@@ -45,9 +45,9 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                 <div className="mt-8 overflow-x-auto pb-8 scrollbar-hide">
                     <div className="flex px-6 gap-4 min-w-max">
                         {layers.map((layer) => (
-                            <button 
+                            <button
                                 key={layer.id}
-                                onClick={() => go('EVOLUTION_HISTORY')} 
+                                onClick={() => go('EVOLUTION_HISTORY')}
                                 className="w-64 bg-white p-6 rounded-[2.5rem] border border-white shadow-xl shadow-nature-900/5 flex flex-col items-center text-center group active:scale-95 transition-all"
                             >
                                 <div className="w-full flex justify-between items-center mb-6">
@@ -63,8 +63,8 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                                 <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest mb-6">{layer.period}</p>
 
                                 <div className="w-full h-1 bg-nature-50 rounded-full overflow-hidden mb-6">
-                                    <div 
-                                        className="h-full bg-nature-900 transition-all duration-1000" 
+                                    <div
+                                        className="h-full bg-nature-900 transition-all duration-1000"
                                         style={{ width: `${layer.progress}%` }}
                                     />
                                 </div>
@@ -96,7 +96,7 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                     <button onClick={() => go('EVOLUTION_ACHIEVEMENTS')} className="w-full p-6 bg-white rounded-[2rem] border border-white shadow-sm flex items-center justify-between group active:bg-nature-50 transition-colors">
                         <div className="flex items-center gap-4">
                             <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-500">
-                                <Minus size={24} /> {/* Placeholder for Star/Medal */}
+                                <Medal size={24} />
                             </div>
                             <div className="text-left">
                                 <h4 className="font-bold text-sm text-nature-900">Conquistas & Marcos</h4>
@@ -105,7 +105,7 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                         </div>
                         <ChevronRight size={20} className="text-nature-300 group-hover:translate-x-1 transition-transform" />
                     </button>
-                    
+
                     <div className="space-y-4">
                         <h4 className="font-serif italic text-nature-900 px-2">Linha do Tempo</h4>
                         {data.recentSnaps.map(snap => (

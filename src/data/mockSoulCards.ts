@@ -6,6 +6,8 @@ export interface SoulCard {
     message: string;
     visualTheme: string; // CSS class or color code
     xpReward: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export const MOCK_SOUL_CARDS: SoulCard[] = [

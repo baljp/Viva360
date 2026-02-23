@@ -1,5 +1,5 @@
-import { SoulCardEngine } from '../src/engines/SoulCardEngine';
-import { MOCK_SOUL_CARDS } from '../src/data/mockSoulCards';
+import { SoulCardEngine } from '../../src/engines/SoulCardEngine';
+import { MOCK_SOUL_CARDS } from '../../src/data/mockSoulCards';
 
 const auditOracle = (iterations: number = 1000) => {
     console.log(`\n🧠 AUDITING ORACLE: ${iterations} DRAWS...`);
@@ -10,9 +10,9 @@ const auditOracle = (iterations: number = 1000) => {
         legendary: 0
     };
     const cardHits: Record<string, number> = {};
-    
+
     const startTime = Date.now();
-    for(let i = 0; i < iterations; i++) {
+    for (let i = 0; i < iterations; i++) {
         const card = SoulCardEngine.drawCard(1, 'Calmo');
         stats[card.rarity]++;
         cardHits[card.id] = (cardHits[card.id] || 0) + 1;
@@ -21,7 +21,7 @@ const auditOracle = (iterations: number = 1000) => {
 
     console.table(stats);
     console.log(`⏱ Average Latency: ${(endTime - startTime) / iterations}ms`);
-    
+
     // Check for collisions/repetition
     const repeatRate = Object.values(cardHits).filter(v => v > 1).length / MOCK_SOUL_CARDS.length;
     console.log(`🔄 Unique Card Coverage: ${((Object.keys(cardHits).length / MOCK_SOUL_CARDS.length) * 100).toFixed(1)}%`);
@@ -29,7 +29,7 @@ const auditOracle = (iterations: number = 1000) => {
 
 const auditMetamorphosis = (entries: number = 100) => {
     console.log(`\n🌿 AUDITING METAMORPHOSIS: ${entries} ENTRIES...`);
-    
+
     const startTime = Date.now();
     const mockEntries = Array.from({ length: entries }, (_, i) => ({
         id: i,

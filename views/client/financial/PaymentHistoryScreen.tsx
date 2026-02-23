@@ -2,12 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
 import { PortalView, BottomSheet } from '../../../components/Common';
-import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X } from 'lucide-react';
+import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X, Download } from 'lucide-react';
 import { api } from '../../../services/api';
 import { Transaction } from '../../../types';
 
 export default function PaymentHistoryScreen() {
-    const { back, notify} = useBuscadorFlow();
+    const { back, notify } = useBuscadorFlow();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'expense' | 'income'>('all');
@@ -38,28 +38,28 @@ export default function PaymentHistoryScreen() {
     return (
         <PortalView title="Financeiro" subtitle="SEUS PAGAMENTOS" onBack={back}>
             <div className="space-y-6">
-                
+
                 {/* Summary Card */}
                 <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-white shadow-xl relative overflow-hidden">
-                   <div className="relative z-10">
-                       <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Investido</p>
-                       <h2 className="text-3xl font-serif">R$ {totalExpense.toFixed(2).replace('.', ',')}</h2>
-                       <div className="mt-4 flex gap-3 flex-wrap">
-                           <div className="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm flex items-center gap-2">
-                               <Receipt size={14} className="text-emerald-400"/>
-                               <span className="text-[10px] font-bold">{transactions.length} Transações</span>
-                           </div>
-                           {totalIncome > 0 && (
-                               <div className="bg-emerald-500/20 px-3 py-1.5 rounded-lg backdrop-blur-sm flex items-center gap-2">
-                                   <ArrowDownLeft size={14} className="text-emerald-400"/>
-                                   <span className="text-[10px] font-bold text-emerald-300">+R$ {totalIncome.toFixed(2).replace('.', ',')}</span>
-                               </div>
-                           )}
-                       </div>
-                   </div>
-                   <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
-                       <Receipt size={200} />
-                   </div>
+                    <div className="relative z-10">
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mb-1">Total Investido</p>
+                        <h2 className="text-3xl font-serif">R$ {totalExpense.toFixed(2).replace('.', ',')}</h2>
+                        <div className="mt-4 flex gap-3 flex-wrap">
+                            <div className="bg-white/10 px-3 py-1.5 rounded-lg backdrop-blur-sm flex items-center gap-2">
+                                <Receipt size={14} className="text-emerald-400" />
+                                <span className="text-[10px] font-bold">{transactions.length} Transações</span>
+                            </div>
+                            {totalIncome > 0 && (
+                                <div className="bg-emerald-500/20 px-3 py-1.5 rounded-lg backdrop-blur-sm flex items-center gap-2">
+                                    <ArrowDownLeft size={14} className="text-emerald-400" />
+                                    <span className="text-[10px] font-bold text-emerald-300">+R$ {totalIncome.toFixed(2).replace('.', ',')}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="absolute right-0 bottom-0 opacity-10 transform translate-x-1/4 translate-y-1/4">
+                        <Receipt size={200} />
+                    </div>
                 </div>
 
                 {/* Filter Tabs + Refresh */}
@@ -88,14 +88,14 @@ export default function PaymentHistoryScreen() {
                 <div className="space-y-3">
                     {loading ? (
                         <div className="space-y-3">
-                            {[1,2,3].map(i => <div key={i} className="h-20 bg-nature-50 rounded-2xl animate-pulse" />)}
+                            {[1, 2, 3].map(i => <div key={i} className="h-20 bg-nature-50 rounded-2xl animate-pulse" />)}
                         </div>
                     ) : filtered.length === 0 ? (
                         <div className="p-12 text-center text-nature-400 text-xs italic">Nenhuma transação encontrada.</div>
                     ) : (
                         filtered.map(tx => (
-                            <div 
-                                key={tx.id} 
+                            <div
+                                key={tx.id}
                                 onClick={() => setSelectedTx(tx)}
                                 className="bg-white p-4 rounded-2xl shadow-sm border border-nature-50 flex items-center gap-4 cursor-pointer hover:bg-nature-50/50 active:scale-[0.98] transition-all"
                             >
@@ -148,6 +148,26 @@ export default function PaymentHistoryScreen() {
                                 <span className="text-sm font-bold text-nature-900">{selectedTx.type === 'expense' ? 'Investimento' : 'Retorno'}</span>
                             </div>
                         </div>
+
+                        <button
+                            onClick={() => {
+                                // Stub for PDF Download (txt generation for now)
+                                const content = `Viva360 - Comprovante de Transação\n--------------------------------\nData: ${new Date(selectedTx.date).toLocaleString('pt-BR')}\nValor: R$ ${selectedTx.amount.toFixed(2).replace('.', ',')}\nDescrição: ${selectedTx.description}\nTipo: ${selectedTx.type === 'expense' ? 'Investimento' : 'Retorno'}\nStatus: ${selectedTx.status.toUpperCase()}\nID da Transação: ${selectedTx.id}`;
+                                const blob = new Blob([content], { type: 'text/plain' });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `comprovante-viva360-${selectedTx.id?.slice(0, 8)}.txt`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                notify('Comprovante Gerado', 'Seu comprovante foi baixado com sucesso.', 'success');
+                            }}
+                            className="w-full mt-6 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            <Download size={16} /> Baixar Comprovante
+                        </button>
                     </div>
                 )}
             </BottomSheet>

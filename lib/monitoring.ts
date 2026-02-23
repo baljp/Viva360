@@ -16,6 +16,9 @@ export const initMonitoring = () => {
     if (!dsn) {
         console.info("[Monitoring] Sentry DSN ausente. Observabilidade remota desativada.");
     } else {
+        const activeSampleRate = Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.2;
+        const enforcedSampleRate = environment === 'production' ? Math.max(activeSampleRate, 0.1) : activeSampleRate;
+
         Sentry.init({
             dsn,
             environment,
@@ -27,7 +30,7 @@ export const initMonitoring = () => {
                     blockAllMedia: false,
                 }),
             ],
-            tracesSampleRate: Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.2,
+            tracesSampleRate: enforcedSampleRate,
             replaysSessionSampleRate: Number.isFinite(replaysSessionSampleRate) ? replaysSessionSampleRate : 0.01,
             replaysOnErrorSampleRate: Number.isFinite(replaysOnErrorSampleRate) ? replaysOnErrorSampleRate : 1,
             // Ignore known noise
@@ -96,8 +99,8 @@ export const initMonitoringLegacy = () => {
             Sentry.browserTracingIntegration(),
             Sentry.replayIntegration(),
         ],
-        tracesSampleRate: 1.0, 
-        replaysSessionSampleRate: 0.1, 
+        tracesSampleRate: 1.0,
+        replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1.0,
     });
 };

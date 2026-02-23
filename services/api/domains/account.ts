@@ -62,6 +62,12 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
 
       return { ...payload, ok: true };
     },
+    exportData: async (id: string) => {
+      // Support for LGPD Art. 18 data export
+      return await request(`/users/me/export`, {
+        purpose: 'lgpd-export',
+      });
+    },
   },
 
   profiles: {
