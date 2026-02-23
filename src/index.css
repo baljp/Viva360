@@ -112,7 +112,8 @@
   }
 
   .card-functional {
-    @apply bg-white border border-nature-100 shadow-soft transition-all;
+    @apply bg-white border border-nature-100 transition-all;
+    box-shadow: var(--shadow-soft);
     border-radius: var(--radius-md);
     padding: var(--space-4);
   }
@@ -171,7 +172,8 @@
 
   /* MICRO-INTERACTION CONTAINER */
   .micro-interaction-container {
-    @apply fixed left-1/2 -translate-x-1/2 z-[500] w-[90%] max-w-[320px] bg-white/80 backdrop-blur-2xl border border-white shadow-elegant animate-in slide-in-from-bottom-8 pointer-events-none;
+    @apply fixed left-1/2 -translate-x-1/2 z-[500] w-[90%] max-w-[320px] bg-white/80 backdrop-blur-2xl border border-white animate-in pointer-events-none;
+    box-shadow: var(--shadow-elegant);
     height: 25vh;
     border-radius: var(--radius-xl);
     padding: var(--space-6);
