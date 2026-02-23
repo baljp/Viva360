@@ -154,25 +154,14 @@
       animation: splash-pulse 2s ease-in-out infinite;
     }
 
-    /* Desktop: center the mobile app in a phone-like frame */
+    /* Desktop width removed - allow full width */
     @media (min-width: 1024px) {
-      body {
-        background-color: #1a211d;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-
       #root {
-        max-width: 480px;
+        max-width: 100%;
         width: 100%;
         height: 100dvh;
-        margin: 0 auto;
+        margin: 0;
         overflow: hidden;
-        border-radius: 12px;
-        box-shadow: 0 0 80px rgba(0, 0, 0, 0.5);
-        position: relative;
       }
     }
   </style>
