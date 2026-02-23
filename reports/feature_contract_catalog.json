@@ -1,0 +1,1440 @@
+{
+  "generatedAt": "2026-02-23T22:02:39.546Z",
+  "source": {
+    "flowRegistry": "src/flow/registry.ts",
+    "matrixReport": "reports/screen_button_flow_matrix.json"
+  },
+  "totals": {
+    "flows": 39,
+    "clientOnly": 8,
+    "persistedValidated": 4,
+    "mixedOrPartial": 27,
+    "unclassified": 0
+  },
+  "catalog": [
+    {
+      "id": "buscador_ritual_diario",
+      "profile": "BUSCADOR",
+      "title": "Ritual diário com check-in e retorno ao histórico",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "METAMORPHOSIS_CHECKIN",
+        "METAMORPHOSIS_CAMERA",
+        "METAMORPHOSIS_MESSAGE",
+        "METAMORPHOSIS_FEEDBACK",
+        "HISTORY"
+      ],
+      "endpoints": [
+        "/api/metamorphosis/checkin",
+        "/api/users/checkin"
+      ],
+      "expectedFinal": "HISTORY",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 36,
+          "P2": 5
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback"
+        ],
+        "matrixEntries": 41
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "HISTORY",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_metamorfose_karma_timelapse",
+      "profile": "BUSCADOR",
+      "title": "Metamorfose + karma + time-lapse",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "EVOLUTION",
+        "EVOLUTION_TIMELAPSE",
+        "TIME_LAPSE_EXPERIENCE"
+      ],
+      "endpoints": [
+        "/api/metamorphosis/evolution",
+        "/api/oracle/history"
+      ],
+      "expectedFinal": "TIME_LAPSE_EXPERIENCE",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 31,
+          "P2": 5
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback"
+        ],
+        "matrixEntries": 36
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "TIME_LAPSE_EXPERIENCE",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_busca_agenda_confirmacao",
+      "profile": "BUSCADOR",
+      "title": "Busca + agendamento + confirmação + notificação",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "BOOKING_SEARCH",
+        "BOOKING_SELECT",
+        "BOOKING_CONFIRM",
+        "CHECKOUT",
+        "PAYMENT_SUCCESS"
+      ],
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/checkout/pay",
+        "/api/notifications/*"
+      ],
+      "expectedFinal": "PAYMENT_SUCCESS",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 7,
+          "P2": 7
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado"
+        ],
+        "matrixEntries": 14
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "PAYMENT_SUCCESS",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_marketplace_checkout",
+      "profile": "BUSCADOR",
+      "title": "Marketplace + carrinho + checkout + recibo",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "MARKETPLACE",
+        "CHECKOUT",
+        "PAYMENT_SUCCESS",
+        "PAYMENT_HISTORY"
+      ],
+      "endpoints": [
+        "/api/marketplace/products",
+        "/api/checkout/pay"
+      ],
+      "expectedFinal": "PAYMENT_HISTORY",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 2,
+          "P2": 9
+        },
+        "escopos": [
+          "critico_validado",
+          "leitura_tolerante_fallback"
+        ],
+        "matrixEntries": 11
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "PAYMENT_HISTORY",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_tribo_convite",
+      "profile": "BUSCADOR",
+      "title": "Tribo convite e interação",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "clientOnly": false,
+      "screens": [
+        "TRIBE_DASH",
+        "TRIBE_INVITE",
+        "TRIBE_DASH",
+        "TRIBE_INTERACTION",
+        "CHAT_ROOM"
+      ],
+      "endpoints": [
+        "/api/tribe/*",
+        "/api/chat/*"
+      ],
+      "expectedFinal": "CHAT_ROOM",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 13
+        },
+        "escopos": [
+          "critico_validado"
+        ],
+        "matrixEntries": 13
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "CHAT_ROOM",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_retiro_offline",
+      "profile": "BUSCADOR",
+      "title": "Tribo: Retiro Offline (silenciar in-app) com retorno seguro",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "TRIBE_DASH",
+        "OFFLINE_RETREAT",
+        "TRIBE_DASH"
+      ],
+      "endpoints": [
+        "/api/tribe/sync",
+        "/api/notifications/*"
+      ],
+      "expectedFinal": "TRIBE_DASH",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 1,
+          "P2": 7
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada"
+        ],
+        "matrixEntries": 8
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "TRIBE_DASH",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_pacto_de_alma",
+      "profile": "BUSCADOR",
+      "title": "Tribo: Pacto de Alma + convite para ampliar a tribo",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "TRIBE_DASH",
+        "SOUL_PACT",
+        "TRIBE_DASH"
+      ],
+      "endpoints": [
+        "/api/invites/create",
+        "/api/tribe/*"
+      ],
+      "expectedFinal": "TRIBE_DASH",
+      "fallbackScreen": "TRIBE_DASH",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 1,
+          "P2": 7
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada"
+        ],
+        "matrixEntries": 8
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "TRIBE_DASH",
+        "rollbackPath": "TRIBE_DASH"
+      }
+    },
+    {
+      "id": "buscador_circulo_de_cura_checkout",
+      "profile": "BUSCADOR",
+      "title": "Tribo: Participar do Círculo de Cura (evento + checkout)",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "TRIBE_DASH",
+        "HEALING_CIRCLE",
+        "CHECKOUT",
+        "PAYMENT_SUCCESS"
+      ],
+      "endpoints": [
+        "/api/calendar",
+        "/api/checkout/pay"
+      ],
+      "expectedFinal": "PAYMENT_SUCCESS",
+      "fallbackScreen": "TRIBE_DASH",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 1,
+          "P2": 14
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada"
+        ],
+        "matrixEntries": 15
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "PAYMENT_SUCCESS",
+        "rollbackPath": "TRIBE_DASH"
+      }
+    },
+    {
+      "id": "buscador_missoes_diarias",
+      "profile": "BUSCADOR",
+      "title": "Jornada: Missões do dia (client-only) com saída para Karma",
+      "contractType": "CLIENT_ONLY",
+      "clientOnly": true,
+      "screens": [
+        "DASHBOARD",
+        "CLIENT_QUESTS",
+        "KARMA_WALLET"
+      ],
+      "endpoints": [],
+      "expectedFinal": "KARMA_WALLET",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 14,
+          "P2": 11
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback",
+          "client_only_intencional"
+        ],
+        "matrixEntries": 25
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
+        "userVisibleOutcome": "KARMA_WALLET",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_grimorio_colecao",
+      "profile": "BUSCADOR",
+      "title": "Jornada: Grimório da Alma (client-only) com retorno ao core",
+      "contractType": "CLIENT_ONLY",
+      "clientOnly": true,
+      "screens": [
+        "GARDEN_VIEW",
+        "EVO_GRIMOIRE",
+        "DASHBOARD"
+      ],
+      "endpoints": [],
+      "expectedFinal": "DASHBOARD",
+      "fallbackScreen": "GARDEN_VIEW",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 14,
+          "P2": 15
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback",
+          "client_only_intencional"
+        ],
+        "matrixEntries": 29
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
+        "userVisibleOutcome": "DASHBOARD",
+        "rollbackPath": "GARDEN_VIEW"
+      }
+    },
+    {
+      "id": "buscador_oraculo_completo",
+      "profile": "BUSCADOR",
+      "title": "Oráculo completo: portal, embaralhar, revelação e histórico",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "ORACLE_PORTAL",
+        "ORACLE_SHUFFLE",
+        "ORACLE_REVEAL",
+        "ORACLE_HISTORY"
+      ],
+      "endpoints": [
+        "/api/oracle/*"
+      ],
+      "expectedFinal": "ORACLE_HISTORY",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 14,
+          "P2": 13
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback"
+        ],
+        "matrixEntries": 27
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "ORACLE_HISTORY",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_jornada_analitica_e_journal",
+      "profile": "BUSCADOR",
+      "title": "Jornada analítica, histórico expandido e diário do buscador",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "HISTORY",
+        "EVOLUTION",
+        "EVOLUTION_ANALYTICS",
+        "EVOLUTION_ACHIEVEMENTS",
+        "EVOLUTION_HISTORY",
+        "CLIENT_JOURNAL"
+      ],
+      "endpoints": [
+        "/api/metamorphosis/*",
+        "/api/oracle/history"
+      ],
+      "expectedFinal": "CLIENT_JOURNAL",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 49,
+          "P2": 7
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback"
+        ],
+        "matrixEntries": 56
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "CLIENT_JOURNAL",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_chat_social",
+      "profile": "BUSCADOR",
+      "title": "Tribo e chat social: lista, novo chat, sala e ajustes",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "TRIBE_DASH",
+        "CHAT_LIST",
+        "CHAT_NEW",
+        "CHAT_ROOM",
+        "CHAT_SETTINGS"
+      ],
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "expectedFinal": "CHAT_ROOM",
+      "fallbackScreen": "TRIBE_DASH",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 14,
+          "P2": 19
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback"
+        ],
+        "matrixEntries": 33
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "CHAT_ROOM",
+        "rollbackPath": "TRIBE_DASH"
+      }
+    },
+    {
+      "id": "buscador_metamorfose_ritual_retorno",
+      "profile": "BUSCADOR",
+      "title": "Ritual de metamorfose com retorno ao dashboard",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "METAMORPHOSIS_CHECKIN",
+        "METAMORPHOSIS_RITUAL",
+        "DASHBOARD"
+      ],
+      "endpoints": [
+        "/api/metamorphosis/*"
+      ],
+      "expectedFinal": "DASHBOARD",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 19,
+          "P2": 4
+        },
+        "escopos": [
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback"
+        ],
+        "matrixEntries": 23
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "DASHBOARD",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "buscador_shell_e_config",
+      "profile": "BUSCADOR",
+      "title": "Shell do buscador: entrada, configurações e encerramento de fluxo",
+      "contractType": "CLIENT_ONLY",
+      "clientOnly": true,
+      "screens": [
+        "START",
+        "DASHBOARD",
+        "SETTINGS",
+        "END"
+      ],
+      "endpoints": [],
+      "expectedFinal": "SETTINGS",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 14,
+          "P2": 21
+        },
+        "escopos": [
+          "client_only_intencional",
+          "critico_validado",
+          "backend_esperado_sem_evidencia_automatizada",
+          "leitura_tolerante_fallback"
+        ],
+        "matrixEntries": 35
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
+        "userVisibleOutcome": "SETTINGS",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_escambo",
+      "profile": "GUARDIAO",
+      "title": "Escambo guardião↔guardião",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "clientOnly": false,
+      "screens": [
+        "ESCAMBO_MARKET",
+        "ESCAMBO_PROPOSE",
+        "ESCAMBO_CONFIRM"
+      ],
+      "endpoints": [
+        "/api/alchemy/offers/*",
+        "/api/chat/*"
+      ],
+      "expectedFinal": "ESCAMBO_CONFIRM",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 8
+        },
+        "escopos": [
+          "critico_validado"
+        ],
+        "matrixEntries": 8
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "ESCAMBO_CONFIRM",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_prontuario_consentido",
+      "profile": "GUARDIAO",
+      "title": "Acesso a prontuário consentido",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "clientOnly": false,
+      "screens": [
+        "PATIENTS_LIST",
+        "PATIENT_PROFILE",
+        "PATIENT_RECORDS"
+      ],
+      "endpoints": [
+        "/api/records/*"
+      ],
+      "expectedFinal": "PATIENT_RECORDS",
+      "fallbackScreen": "PATIENTS_LIST",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 6
+        },
+        "escopos": [
+          "critico_validado"
+        ],
+        "matrixEntries": 6
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "PATIENT_RECORDS",
+        "rollbackPath": "PATIENTS_LIST"
+      }
+    },
+    {
+      "id": "guardiao_intervencao_clinica",
+      "profile": "GUARDIAO",
+      "title": "Guardião: criar intervenção clínica personalizada",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "CUSTOM_INTERVENTION",
+        "DASHBOARD"
+      ],
+      "endpoints": [
+        "/api/clinical/interventions"
+      ],
+      "expectedFinal": "DASHBOARD",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 7,
+          "P2": 6
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado"
+        ],
+        "matrixEntries": 13
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "DASHBOARD",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_alquimia_criar_oferta",
+      "profile": "GUARDIAO",
+      "title": "Guardião: criar oferta (Alquimia) com retorno ao marketplace",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "ALQUIMIA_CREATE",
+        "ESCAMBO_MARKET"
+      ],
+      "endpoints": [
+        "/api/marketplace/products"
+      ],
+      "expectedFinal": "ESCAMBO_MARKET",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 6,
+          "P2": 12
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado"
+        ],
+        "matrixEntries": 18
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "ESCAMBO_MARKET",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_agenda_video",
+      "profile": "GUARDIAO",
+      "title": "Agenda guardião: preparar, confirmar, editar e conduzir sessão",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "START",
+        "DASHBOARD",
+        "AGENDA_VIEW",
+        "AGENDA_CONFIRM",
+        "AGENDA_EDIT",
+        "VIDEO_PREP",
+        "VIDEO_SESSION"
+      ],
+      "endpoints": [
+        "/api/appointments/*"
+      ],
+      "expectedFinal": "VIDEO_SESSION",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 24,
+          "P2": 12
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado"
+        ],
+        "matrixEntries": 36
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "VIDEO_SESSION",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_financeiro_expandido",
+      "profile": "GUARDIAO",
+      "title": "Guardião: visão financeira com drilldown e dashboard financeiro",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "FINANCE_OVERVIEW",
+        "FINANCE_DETAILS",
+        "FINANCIAL_DASHBOARD"
+      ],
+      "endpoints": [
+        "/api/finance/*"
+      ],
+      "expectedFinal": "FINANCIAL_DASHBOARD",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 10,
+          "P2": 6
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado"
+        ],
+        "matrixEntries": 16
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "FINANCIAL_DASHBOARD",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_tribo_chat",
+      "profile": "GUARDIAO",
+      "title": "Guardião: tribo e chat com retorno seguro",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "TRIBE_PRO",
+        "TRIBE_CHAT",
+        "CHAT_LIST",
+        "CHAT_ROOM"
+      ],
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "expectedFinal": "CHAT_ROOM",
+      "fallbackScreen": "TRIBE_PRO",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 6,
+          "P2": 18
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado"
+        ],
+        "matrixEntries": 24
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "CHAT_ROOM",
+        "rollbackPath": "TRIBE_PRO"
+      }
+    },
+    {
+      "id": "guardiao_vagas_completas",
+      "profile": "GUARDIAO",
+      "title": "Guardião: vagas, detalhes e candidatura",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "VAGAS_LIST",
+        "VAGA_DETAILS",
+        "VAGA_APPLY"
+      ],
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "expectedFinal": "VAGA_APPLY",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 6,
+          "P2": 12
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado"
+        ],
+        "matrixEntries": 18
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "VAGA_APPLY",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_santuarios_parceria",
+      "profile": "GUARDIAO",
+      "title": "Guardião: descobrir santuários e formalizar vínculo",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "DASHBOARD",
+        "SANTUARIO_LIST",
+        "SANTUARIO_PROFILE",
+        "SANTUARIO_CONTRACT"
+      ],
+      "endpoints": [
+        "/api/spaces/*"
+      ],
+      "expectedFinal": "SANTUARIO_CONTRACT",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 12,
+          "P2": 6
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado"
+        ],
+        "matrixEntries": 18
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "SANTUARIO_CONTRACT",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_paciente_plano_e_trade",
+      "profile": "GUARDIAO",
+      "title": "Guardião: plano terapêutico e estado de troca de escambo",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "clientOnly": false,
+      "screens": [
+        "PATIENTS_LIST",
+        "PATIENT_PLAN",
+        "ESCAMBO_MARKET",
+        "ESCAMBO_TRADE",
+        "ESCAMBO_CONFIRM"
+      ],
+      "endpoints": [
+        "/api/alchemy/*",
+        "/api/records/*"
+      ],
+      "expectedFinal": "ESCAMBO_CONFIRM",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 0,
+          "P2": 11
+        },
+        "escopos": [
+          "critico_validado"
+        ],
+        "matrixEntries": 11
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "ESCAMBO_CONFIRM",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "guardiao_shell_e_config",
+      "profile": "GUARDIAO",
+      "title": "Shell do guardião: entrada, dashboard e configurações",
+      "contractType": "CLIENT_ONLY",
+      "clientOnly": true,
+      "screens": [
+        "START",
+        "DASHBOARD",
+        "SETTINGS",
+        "END"
+      ],
+      "endpoints": [],
+      "expectedFinal": "SETTINGS",
+      "fallbackScreen": "DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 0,
+          "P1": 12,
+          "P2": 14
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "client_only_intencional"
+        ],
+        "matrixEntries": 26
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
+        "userVisibleOutcome": "SETTINGS",
+        "rollbackPath": "DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_vagas_entrevista",
+      "profile": "SANTUARIO",
+      "title": "Vaga santuário -> candidatos/entrevista",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "VAGAS_LIST",
+        "VAGA_CANDIDATES"
+      ],
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "expectedFinal": "VAGA_CANDIDATES",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 12,
+          "P2": 7
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 22
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "VAGA_CANDIDATES",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_operacao_completa",
+      "profile": "SANTUARIO",
+      "title": "Operação do hub: equipe, salas, agenda, financeiro",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "PROS_LIST",
+        "EXEC_DASHBOARD",
+        "ROOMS_STATUS",
+        "EXEC_DASHBOARD",
+        "AGENDA_OVERVIEW",
+        "EXEC_DASHBOARD",
+        "FINANCE_OVERVIEW"
+      ],
+      "endpoints": [
+        "/api/spaces/*",
+        "/api/rooms/*",
+        "/api/finance/*"
+      ],
+      "expectedFinal": "FINANCE_OVERVIEW",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 5,
+          "P1": 25,
+          "P2": 3
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 33
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "FINANCE_OVERVIEW",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_inteligencia_preditiva",
+      "profile": "SANTUARIO",
+      "title": "Santuário: Ocupação preditiva (client-only) com saída para agenda",
+      "contractType": "CLIENT_ONLY",
+      "clientOnly": true,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "PREDICTIVE_OCCUPANCY",
+        "ROOM_AGENDA"
+      ],
+      "endpoints": [],
+      "expectedFinal": "ROOM_AGENDA",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 14,
+          "P2": 5
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento",
+          "client_only_intencional"
+        ],
+        "matrixEntries": 22
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
+        "userVisibleOutcome": "ROOM_AGENDA",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_auditoria_interna",
+      "profile": "SANTUARIO",
+      "title": "Santuário: trilha de auditoria (client-only) com retorno à governança",
+      "contractType": "CLIENT_ONLY",
+      "clientOnly": true,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "RADIANCE_DRILLDOWN",
+        "AUDIT_LOG",
+        "GOVERNANCE"
+      ],
+      "endpoints": [],
+      "expectedFinal": "GOVERNANCE",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 12,
+          "P2": 8
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento",
+          "client_only_intencional"
+        ],
+        "matrixEntries": 23
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
+        "userVisibleOutcome": "GOVERNANCE",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_pacientes_operacao",
+      "profile": "SANTUARIO",
+      "title": "Santuário: atendimento interno de pacientes e agenda local",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "START",
+        "EXEC_DASHBOARD",
+        "PATIENTS_LIST",
+        "PATIENT_PROFILE",
+        "PATIENT_RECORDS",
+        "AGENDA_EDIT"
+      ],
+      "endpoints": [
+        "/api/records/*",
+        "/api/appointments/*"
+      ],
+      "expectedFinal": "PATIENT_RECORDS",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 24,
+          "P2": 13
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 40
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "PATIENT_RECORDS",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_time_e_avaliacao_servico",
+      "profile": "SANTUARIO",
+      "title": "Santuário: equipe, convite/summon, performance e avaliação de serviço",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "PROS_LIST",
+        "PRO_PROFILE",
+        "PRO_PERFORMANCE",
+        "TEAM_SUMMON",
+        "TEAM_INVITE",
+        "SERVICE_EVALUATION"
+      ],
+      "endpoints": [
+        "/api/spaces/*",
+        "/api/reviews/*"
+      ],
+      "expectedFinal": "SERVICE_EVALUATION",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 27,
+          "P2": 3
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 33
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "SERVICE_EVALUATION",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_salaseestrutura_expandida",
+      "profile": "SANTUARIO",
+      "title": "Santuário: gestão de salas com criação, detalhe e edição",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "ROOMS_STATUS",
+        "ROOM_CREATE",
+        "ROOM_DETAILS",
+        "ROOM_EDIT",
+        "ROOM_AGENDA"
+      ],
+      "endpoints": [
+        "/api/rooms/*"
+      ],
+      "expectedFinal": "ROOM_EDIT",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 6,
+          "P1": 23,
+          "P2": 3
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 32
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "ROOM_EDIT",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_financeiro_expandido",
+      "profile": "SANTUARIO",
+      "title": "Santuário: financeiro com repasses e projeções",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "FINANCE_OVERVIEW",
+        "FINANCE_REPASSES",
+        "FINANCE_FORECAST"
+      ],
+      "endpoints": [
+        "/api/finance/*"
+      ],
+      "expectedFinal": "FINANCE_FORECAST",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 17,
+          "P2": 3
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 23
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "FINANCE_FORECAST",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_marketplace_eventos_retiros",
+      "profile": "SANTUARIO",
+      "title": "Santuário: gestão de marketplace, eventos e retiros",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "MARKETPLACE_MANAGE",
+        "MARKETPLACE_CREATE",
+        "EVENTS_MANAGE",
+        "EVENT_CREATE",
+        "RETREATS_MANAGE"
+      ],
+      "endpoints": [
+        "/api/marketplace/*",
+        "/api/events/*"
+      ],
+      "expectedFinal": "RETREATS_MANAGE",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 5,
+          "P1": 19,
+          "P2": 3
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 27
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "RETREATS_MANAGE",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_recrutamento_completo",
+      "profile": "SANTUARIO",
+      "title": "Santuário: criação de vaga e análise de candidatos",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "VAGAS_LIST",
+        "VAGA_CREATE",
+        "VAGA_CANDIDATES"
+      ],
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "expectedFinal": "VAGA_CANDIDATES",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 12,
+          "P2": 8
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 23
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "VAGA_CANDIDATES",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_analytics_reputacao_chat",
+      "profile": "SANTUARIO",
+      "title": "Santuário: reputação, analytics e comunicação interna",
+      "contractType": "MISTO_OU_PARCIAL",
+      "clientOnly": false,
+      "screens": [
+        "EXEC_DASHBOARD",
+        "REPUTATION_OVERVIEW",
+        "ANALYTICS_DASH",
+        "CHAT_LIST",
+        "CHAT_ROOM"
+      ],
+      "endpoints": [
+        "/api/chat/*",
+        "/api/analytics/*"
+      ],
+      "expectedFinal": "CHAT_ROOM",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 14,
+          "P2": 6
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 23
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
+        "userVisibleOutcome": "CHAT_ROOM",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_shell_e_encerramento",
+      "profile": "SANTUARIO",
+      "title": "Shell do santuário: entrada e encerramento de fluxo",
+      "contractType": "CLIENT_ONLY",
+      "clientOnly": true,
+      "screens": [
+        "START",
+        "EXEC_DASHBOARD",
+        "END"
+      ],
+      "endpoints": [],
+      "expectedFinal": "EXEC_DASHBOARD",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 23,
+          "P2": 7
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento",
+          "client_only_intencional"
+        ],
+        "matrixEntries": 33
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
+        "userVisibleOutcome": "EXEC_DASHBOARD",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    },
+    {
+      "id": "santuario_avaliacao_servico",
+      "profile": "SANTUARIO",
+      "title": "Santuário: avaliação de serviço (client-only) com retorno ao dashboard",
+      "contractType": "CLIENT_ONLY",
+      "clientOnly": true,
+      "screens": [
+        "PRO_PROFILE",
+        "SERVICE_EVALUATION",
+        "EXEC_DASHBOARD"
+      ],
+      "endpoints": [],
+      "expectedFinal": "EXEC_DASHBOARD",
+      "fallbackScreen": "EXEC_DASHBOARD",
+      "persistence": {
+        "counts": {
+          "P0": 3,
+          "P1": 16,
+          "P2": 3
+        },
+        "escopos": [
+          "backend_esperado_sem_evidencia_automatizada",
+          "critico_validado",
+          "leitura_tolerante_fallback",
+          "alto_risco_sem_mapeamento"
+        ],
+        "matrixEntries": 22
+      },
+      "productContract": {
+        "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
+        "userVisibleOutcome": "EXEC_DASHBOARD",
+        "rollbackPath": "EXEC_DASHBOARD"
+      }
+    }
+  ]
+}

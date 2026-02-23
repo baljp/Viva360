@@ -46,6 +46,10 @@ jobs:
       - name: Run regression checklist
         run: npm run qa:regression-checklist
 
+      - name: Generate feature contract catalog
+        if: always()
+        run: npm run qa:feature-contract-catalog
+
       - name: Stamp run-specific copies of checklist artifacts
         if: always()
         run: |
@@ -71,8 +75,9 @@ jobs:
             reports/nightly/
             reports/screen_button_flow_matrix.json
             reports/screen_button_flow_matrix.md
+            reports/feature_contract_catalog.json
+            reports/feature_contract_catalog.md
             reports/flow_registry_validation.json
             reports/orphan_screen_audit.json
             qa/logs/
             qa/reports/playwright-report/
-

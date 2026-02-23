@@ -8,6 +8,7 @@ import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 import { isInAppMuted } from '../utils/inAppMute';
 import { BuscadorFlowContextStore } from './BuscadorFlowContextStore';
+import { trackFlowTelemetry } from './flowTelemetry';
 
 // Define Context State
 interface FlowContextState extends BaseFlowState<BuscadorState> {
@@ -119,8 +120,19 @@ const BuscadorFlowContext = BuscadorFlowContextStore as React.Context<BuscadorFl
 // Provider Component
 export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
+    useEffect(() => {
+        trackFlowTelemetry({
+            profile: 'BUSCADOR',
+            flow: 'core',
+            action: 'state',
+            status: 'state_change',
+            to: state.currentState,
+        });
+    }, [state.currentState]);
 
     const refreshData = async () => {
+        const startedAt = performance.now();
+        trackFlowTelemetry({ profile: 'BUSCADOR', flow: 'core', action: 'refreshData', status: 'attempt', from: state.currentState });
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
             const [pros, products] = await Promise.all([
@@ -128,9 +140,27 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
                 api.marketplace.listAll()
             ]);
             dispatch({ type: 'SET_DATA', payload: { pros, products } });
+            trackFlowTelemetry({
+                profile: 'BUSCADOR',
+                flow: 'core',
+                action: 'refreshData',
+                status: 'success',
+                from: state.currentState,
+                durationMs: Math.round(performance.now() - startedAt),
+                meta: { pros: pros.length, products: products.length },
+            });
         } catch (e) {
             console.error('Failed to fetch Buscador data', e);
             dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar dados do Jardim.' });
+            trackFlowTelemetry({
+                profile: 'BUSCADOR',
+                flow: 'core',
+                action: 'refreshData',
+                status: 'error',
+                from: state.currentState,
+                durationMs: Math.round(performance.now() - startedAt),
+                errorMessage: e instanceof Error ? e.message : 'refreshData failed',
+            });
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }
@@ -141,6 +171,14 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     }, []);
 
     const go = (target: BuscadorState) => {
+        trackFlowTelemetry({
+            profile: 'BUSCADOR',
+            flow: 'core',
+            action: 'go',
+            status: 'attempt',
+            from: state.currentState,
+            to: target,
+        });
         dispatch({ type: 'SET_LOADING', payload: true });
 
         // Immediate visual feedback for gamification
@@ -158,9 +196,18 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         dispatch({ type: 'SET_LOADING', payload: false });
     };
 
-    const jump = (target: BuscadorState) => dispatch({ type: 'JUMP', payload: target });
-    const back = () => dispatch({ type: 'BACK' });
-    const reset = () => dispatch({ type: 'RESET' });
+    const jump = (target: BuscadorState) => {
+        trackFlowTelemetry({ profile: 'BUSCADOR', flow: 'core', action: 'jump', status: 'attempt', from: state.currentState, to: target });
+        dispatch({ type: 'JUMP', payload: target });
+    };
+    const back = () => {
+        trackFlowTelemetry({ profile: 'BUSCADOR', flow: 'core', action: 'back', status: 'attempt', from: state.currentState });
+        dispatch({ type: 'BACK' });
+    };
+    const reset = () => {
+        trackFlowTelemetry({ profile: 'BUSCADOR', flow: 'core', action: 'reset', status: 'attempt', from: state.currentState, to: 'START' });
+        dispatch({ type: 'RESET' });
+    };
     const selectProfessional = (id: string | null) => dispatch({ type: 'SELECT_PROFESSIONAL', payload: id });
     const selectDate = (date: Date | null) => dispatch({ type: 'SELECT_DATE', payload: date });
     const selectTribeRoomContext = (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) =>

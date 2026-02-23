@@ -68,7 +68,7 @@ export const ClientDashboard: React.FC<{
                         <DynamicAvatar user={user} size="md" className="border-4 border-white shadow-xl relative z-10 cursor-pointer group-hover:scale-105 transition-transform" />
                         <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-emerald-500 border-4 border-white rounded-full flex items-center justify-center z-20 pointer-events-none shadow-md animate-pulse"><Zap size={10} className="text-white fill-white" /></div>
                     </div>
-                    <div><p className="text-[10px] font-bold text-nature-400 uppercase tracking-[0.3em]">Sua Jornada até aqui,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1 max-w-[140px] truncate">{user.name.split(' ')[0]}</h2></div>
+                    <div><p className="text-[10px] font-bold text-nature-700 uppercase tracking-[0.3em]">Sua Jornada até aqui,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1 max-w-[140px] truncate">{user.name.split(' ')[0]}</h2></div>
                 </div>
                 <div className="flex items-center gap-3">
                     <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><MessageCircle size={20} /></button>
@@ -126,7 +126,20 @@ export const ClientDashboard: React.FC<{
                     </h4>
 
                     {/* ORACLE HERO WIDGET */}
-                    <div id="portal-oracle" onClick={() => go('ORACLE_PORTAL')} className="bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden group cursor-pointer mb-4">
+                    <div
+                        id="portal-oracle"
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Revelar Mensagem do Oráculo"
+                        onClick={() => go('ORACLE_PORTAL')}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                go('ORACLE_PORTAL');
+                            }
+                        }}
+                        className="bg-gradient-to-br from-indigo-900 via-purple-900 to-nature-900 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden group cursor-pointer mb-4"
+                    >
                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl -translate-y-10 translate-x-10 group-hover:bg-indigo-500/30 transition-all duration-700"></div>
                         <div className="relative z-10 flex items-center gap-6">
                             <div className="w-20 h-24 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 shadow-inner flex flex-col items-center justify-center gap-2 group-hover:scale-105 transition-transform">

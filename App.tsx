@@ -5,18 +5,15 @@ import { User, ViewState, Professional, CartItem, Product } from './types';
 import Layout from './components/Layout';
 import { api } from './services/api';
 import { ZenToast } from './components/Common';
-import { BuscadorFlowProvider } from './src/flow/BuscadorFlowContext';
-import { GuardiaoFlowProvider } from './src/flow/GuardiaoFlowContext';
-import { SantuarioFlowProvider } from './src/flow/SantuarioFlowContext';
 import { NotificationProvider } from './src/contexts/NotificationContext';
 import { ChatProvider } from './src/contexts/ChatContext';
 
 // Lazy Load Views
 const Auth = lazyWithRetry(() => import('./views/Auth'), 'Auth');
 const ResetPasswordView = lazyWithRetry(() => import('./views/ResetPassword').then(m => ({ default: m.ResetPasswordView })), 'ResetPasswordView');
-const ClientViews = lazyWithRetry(() => import('./views/ClientViews').then(module => ({ default: module.ClientViews })), 'ClientViews');
-const ProViews = lazyWithRetry(() => import('./views/ProViews').then(module => ({ default: module.ProViews })), 'ProViews');
-const SpaceViews = lazyWithRetry(() => import('./views/SpaceViews').then(module => ({ default: module.SpaceViews })), 'SpaceViews');
+const ClientRouteShell = lazyWithRetry(() => import('./views/routes/ClientRouteShell').then(module => ({ default: module.ClientRouteShell })), 'ClientRouteShell');
+const ProRouteShell = lazyWithRetry(() => import('./views/routes/ProRouteShell').then(module => ({ default: module.ProRouteShell })), 'ProRouteShell');
+const SpaceRouteShell = lazyWithRetry(() => import('./views/routes/SpaceRouteShell').then(module => ({ default: module.SpaceRouteShell })), 'SpaceRouteShell');
 const SettingsViews = lazyWithRetry(() => import('./views/SettingsViews').then(module => ({ default: module.SettingsViews })), 'SettingsViews');
 const RegistrationViews = lazyWithRetry(() => import('./views/Registration').then(module => ({ default: module.RegistrationViews })), 'RegistrationViews');
 const InviteLanding = lazyWithRetry(() => import('./views/InviteLanding'), 'InviteLanding');
@@ -226,16 +223,14 @@ const App: React.FC = () => {
                     {/* Client Routes */}
                     <Route path="/client/*" element={(
                         <RequireRole user={currentUser} role="CLIENT">
-                            <BuscadorFlowProvider>
-                                <ClientViews 
-                                    user={currentUser!} 
-                                    view={currentView} 
-                                    setView={setView} 
-                                    updateUser={handleUpdateUser} 
-                                    onAddToCart={addToCart} 
-                                    onLogout={handleLogout}
-                                />
-                            </BuscadorFlowProvider>
+                            <ClientRouteShell 
+                                user={currentUser!} 
+                                view={currentView} 
+                                setView={setView} 
+                                updateUser={handleUpdateUser} 
+                                onAddToCart={addToCart} 
+                                onLogout={handleLogout}
+                            />
                         </RequireRole>
                     )} />
 
@@ -258,9 +253,7 @@ const App: React.FC = () => {
                     {/* Pro Routes */}
                     <Route path="/pro/*" element={(
                         <RequireRole user={currentUser} role="PROFESSIONAL">
-                            <GuardiaoFlowProvider>
-                                <ProViews user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} onLogout={handleLogout} />
-                            </GuardiaoFlowProvider>
+                            <ProRouteShell user={currentUser as Professional} view={currentView} setView={setView} updateUser={handleUpdateUser} onLogout={handleLogout} />
                         </RequireRole>
                     )} />
                     
@@ -268,9 +261,7 @@ const App: React.FC = () => {
 
                     <Route path="/space/*" element={(
                         <RequireRole user={currentUser} role="SPACE">
-                            <SantuarioFlowProvider>
-                                <SpaceViews user={currentUser!} view={currentView} setView={setView} onLogout={handleLogout} />
-                            </SantuarioFlowProvider>
+                            <SpaceRouteShell user={currentUser!} view={currentView} setView={setView} onLogout={handleLogout} />
                         </RequireRole>
                     )} />
 

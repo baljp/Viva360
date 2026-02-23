@@ -56,6 +56,12 @@
     -webkit-font-smoothing: antialiased;
   }
 
+  :focus-visible {
+    outline: 2px solid var(--green-viva);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(63, 143, 107, 0.18);
+  }
+
   h1,
   h2,
   h3,
@@ -231,4 +237,19 @@
 
 .animate-shine {
   animation: shine 3s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

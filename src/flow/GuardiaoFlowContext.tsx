@@ -8,6 +8,7 @@ import { api } from '../../services/api';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 import { GuardiaoFlowContextStore } from './GuardiaoFlowContextStore';
+import { trackFlowTelemetry } from './flowTelemetry';
 
 // Define Context State
 interface GuardiaoContextState extends BaseFlowState<GuardiaoState> {
@@ -110,9 +111,20 @@ const GuardiaoFlowContext = GuardiaoFlowContextStore as React.Context<GuardiaoFl
 
 export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
+    useEffect(() => {
+        trackFlowTelemetry({
+            profile: 'GUARDIAO',
+            flow: 'core',
+            action: 'state',
+            status: 'state_change',
+            to: state.currentState,
+        });
+    }, [state.currentState]);
 
     const refreshData = async (userId: string) => {
         if (!userId) return;
+        const startedAt = performance.now();
+        trackFlowTelemetry({ profile: 'GUARDIAO', flow: 'core', action: 'refreshData', status: 'attempt', from: state.currentState, meta: { userId } });
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
             const [apts, vacs, prods, txData] = await Promise.all([
@@ -130,15 +142,34 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
                     transactions: txData.transactions
                 }
             });
+            trackFlowTelemetry({
+                profile: 'GUARDIAO',
+                flow: 'core',
+                action: 'refreshData',
+                status: 'success',
+                from: state.currentState,
+                durationMs: Math.round(performance.now() - startedAt),
+                meta: { appointments: apts.length, vacancies: vacs.length, myProducts: prods.length },
+            });
         } catch (e) {
             console.error('Failed to fetch Guardiao data', e);
             dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar dados do portal.' });
+            trackFlowTelemetry({
+                profile: 'GUARDIAO',
+                flow: 'core',
+                action: 'refreshData',
+                status: 'error',
+                from: state.currentState,
+                durationMs: Math.round(performance.now() - startedAt),
+                errorMessage: e instanceof Error ? e.message : 'refreshData failed',
+            });
         } finally {
             dispatch({ type: 'SET_LOADING', payload: false });
         }
     };
 
     const go = (target: GuardiaoState) => {
+        trackFlowTelemetry({ profile: 'GUARDIAO', flow: 'core', action: 'go', status: 'attempt', from: state.currentState, to: target });
         dispatch({ type: 'SET_LOADING', payload: true });
 
         // Immediate visual feedback or Notification Hooks
@@ -157,10 +188,19 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     };
 
     // Allows deep linking / sidebar navigation to realign the flow even when engine transition graph is strict.
-    const jump = (target: GuardiaoState) => dispatch({ type: 'JUMP', payload: target });
+    const jump = (target: GuardiaoState) => {
+        trackFlowTelemetry({ profile: 'GUARDIAO', flow: 'core', action: 'jump', status: 'attempt', from: state.currentState, to: target });
+        dispatch({ type: 'JUMP', payload: target });
+    };
 
-    const back = () => dispatch({ type: 'BACK' });
-    const reset = () => dispatch({ type: 'RESET' });
+    const back = () => {
+        trackFlowTelemetry({ profile: 'GUARDIAO', flow: 'core', action: 'back', status: 'attempt', from: state.currentState });
+        dispatch({ type: 'BACK' });
+    };
+    const reset = () => {
+        trackFlowTelemetry({ profile: 'GUARDIAO', flow: 'core', action: 'reset', status: 'attempt', from: state.currentState, to: 'START' });
+        dispatch({ type: 'RESET' });
+    };
 
     const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
         dispatch({ type: 'NOTIFY', payload: { title, message, type } });

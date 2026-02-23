@@ -25,6 +25,7 @@ const runE2ECore = String(process.env.SKIP_E2E_CORE || '').toLowerCase() !== 'tr
 
 const checks: Check[] = [
   { id: 'matrix', label: 'Matriz Tela x Botao x Fluxo', command: 'npm run qa:matrix', required: true },
+  { id: 'feature-contract-catalog', label: 'Catálogo clientOnly vs persistido', command: 'npm run qa:feature-contract-catalog', required: true },
   { id: 'flow-registry', label: 'Validação do Flow Registry', command: 'npm run qa:validate-flow-registry', required: true },
   { id: 'tracked-secrets', label: 'Auditoria de secrets versionados', command: 'npm run qa:audit-tracked-secrets', required: true },
   { id: 'prod-bundle', label: 'Auditoria de bundle frontend em production', command: 'npm run build && npm run qa:audit-prod-bundle', required: true },
@@ -37,6 +38,7 @@ const checks: Check[] = [
   { id: 'consent-e2e', label: 'E2E consentimento grant/revoke prontuario', command: 'npm run test:qa:consent', required: true },
   { id: 'deeplinks-e2e', label: 'E2E deep links por perfil', command: 'npm run test:qa:deeplinks', required: true },
   { id: 'a11y-smoke', label: 'QA acessibilidade smoke', command: 'npm run test:qa:a11y-smoke', required: true },
+  { id: 'a11y-operational', label: 'QA acessibilidade operacional (WCAG)', command: 'npm run test:qa:a11y-operational', required: false, retries: 1 },
   { id: 'links-assets', label: 'Auditoria de links e imagens', command: 'npm run test:audit', required: true, retries: 1 },
 ];
 

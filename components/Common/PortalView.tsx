@@ -17,12 +17,14 @@ export const PortalView: React.FC<{
     const resolvedClose = onClose || (showCloseWithBack && onBack ? onBack : undefined);
     const dialogRef = useRef<HTMLDivElement>(null);
     const previousFocusRef = useRef<HTMLElement | null>(null);
+    const previousFocusIdRef = useRef<string | null>(null);
     const titleId = useId();
     const subtitleId = useId();
     const dialogLabel = useMemo(() => `${title} ${subtitle}`.trim(), [title, subtitle]);
 
     useEffect(() => {
         previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        previousFocusIdRef.current = previousFocusRef.current?.id || null;
         const dialog = dialogRef.current;
         if (!dialog) return;
         const focusFirst = () => {
@@ -34,7 +36,23 @@ export const PortalView: React.FC<{
         const raf = requestAnimationFrame(focusFirst);
         return () => {
             cancelAnimationFrame(raf);
-            previousFocusRef.current?.focus?.();
+            let attempts = 0;
+            const restoreFocus = () => {
+                attempts += 1;
+                const previousEl = previousFocusRef.current;
+                if (previousEl && document.contains(previousEl)) {
+                    previousEl.focus?.();
+                    return;
+                }
+                const fallbackId = previousFocusIdRef.current;
+                const fallbackEl = fallbackId ? document.getElementById(fallbackId) : null;
+                if (fallbackEl) {
+                    fallbackEl.focus?.();
+                    return;
+                }
+                if (attempts < 5) window.setTimeout(restoreFocus, 25);
+            };
+            window.setTimeout(restoreFocus, 0);
         };
     }, [title, subtitle]);
 
