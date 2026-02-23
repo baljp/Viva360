@@ -8,12 +8,12 @@ import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../src/contexts/NotificationContext';
 
 interface LayoutProps {
-  children: React.ReactNode;
-  user: User | null;
-  currentView: ViewState;
-  setView: (view: ViewState) => void;
-  onLogout: () => void;
-  shouldHideNav?: boolean;
+    children: React.ReactNode;
+    user: User | null;
+    currentView: ViewState;
+    setView: (view: ViewState) => void;
+    onLogout: () => void;
+    shouldHideNav?: boolean;
 }
 
 const scrollMainContentToTop = () => {
@@ -27,7 +27,7 @@ const scrollMainContentToTop = () => {
 
 const navItemsDefinition = (user: User | null) => {
     if (!user) return [];
-    switch(user.role) {
+    switch (user.role) {
         case UserRole.CLIENT: return [
             { id: ViewState.CLIENT_HOME, label: 'Início', icon: Home },
             { id: ViewState.CLIENT_JOURNEY, label: 'Jornada', icon: Sun },
@@ -37,13 +37,13 @@ const navItemsDefinition = (user: User | null) => {
         ];
         case UserRole.PROFESSIONAL: return [
             { id: ViewState.PRO_HOME, label: 'Início', icon: Home },
-            { id: ViewState.PRO_PATIENTS, label: 'Jardim', icon: Flower }, 
+            { id: ViewState.PRO_PATIENTS, label: 'Jardim', icon: Flower },
             { id: ViewState.PRO_AGENDA, label: 'Agenda', icon: Calendar },
             { id: ViewState.SETTINGS, label: 'Perfil', icon: UserIcon },
         ];
         case UserRole.SPACE: return [
             { id: ViewState.SPACE_HOME, label: 'Hub', icon: Building },
-            { id: ViewState.SPACE_TEAM, label: 'Equipe', icon: Users }, 
+            { id: ViewState.SPACE_TEAM, label: 'Equipe', icon: Users },
             { id: ViewState.SPACE_RECRUITMENT, label: 'Vagas', icon: Briefcase },
             { id: ViewState.SETTINGS, label: 'Perfil', icon: UserIcon },
         ];
@@ -106,14 +106,14 @@ const Sidebar: React.FC<Omit<LayoutProps, 'children'> & { unreadCount: number, o
                     const active = currentView === item.id;
                     return (
 
-                        <button 
-                            key={item.id} 
+                        <button
+                            key={item.id}
                             onClick={() => {
                                 setView(item.id);
                                 const path = canonicalPathForView(user, item.id);
                                 if (path) navigate(path);
                                 scrollMainContentToTop();
-                            }} 
+                            }}
                             className={`flex items-center gap-4 p-5 rounded-[1.8rem] w-full text-left transition-all ${active ? 'bg-nature-900 text-white shadow-2xl' : 'text-nature-400 hover:bg-nature-50'}`}
                         >
                             <item.icon size={20} />
@@ -144,14 +144,14 @@ const BottomNav: React.FC<Omit<LayoutProps, 'children'>> = ({ user, currentView,
                 {navItems.map(item => {
                     const active = currentView === item.id;
                     return (
-                        <button 
-                            key={item.id} 
+                        <button
+                            key={item.id}
                             onClick={() => {
                                 setView(item.id);
                                 const path = canonicalPathForView(user, item.id);
                                 if (path) navigate(path);
                                 scrollMainContentToTop();
-                            }} 
+                            }}
                             className="flex-1 flex flex-col items-center justify-center h-full relative group outline-none focus:outline-none touch-manipulation"
                         >
                             <div className={`p-2.5 rounded-2xl transition-all duration-500 ease-out ${active ? 'bg-nature-900 text-white -translate-y-6 shadow-[0_15px_30px_rgba(0,0,0,0.2)] scale-110' : 'text-nature-400'}`}>
@@ -177,19 +177,19 @@ const Layout: React.FC<LayoutProps> = ({ children, user, currentView, setView, o
             <div className="flex-1 flex flex-col min-w-0 h-full relative overflow-hidden">
                 <main className="flex-1 w-full h-full relative overflow-hidden">
                     <div id="viva360-main-scroll" className="h-full w-full overflow-y-auto overflow-x-hidden overscroll-contain scroll-smooth">
-                        <div className={`w-full lg:max-w-5xl lg:mx-auto min-h-full ${shouldHideNav ? '' : 'pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-12 lg:pt-8'}`}>
-                            <div className={shouldHideNav ? "" : "px-4 lg:px-10"}>{children}</div>
+                        <div className={`w-full min-h-full ${shouldHideNav ? '' : 'pb-[calc(8rem+env(safe-area-inset-bottom))] lg:pb-12 lg:pt-8'}`}>
+                            <div className={shouldHideNav ? "w-full h-full" : "px-4 lg:px-10 w-full h-full"}>{children}</div>
                         </div>
                     </div>
                 </main>
                 {!shouldHideNav && <BottomNav user={user} currentView={currentView} setView={setView} onLogout={onLogout} />}
             </div>
             <NotificationDrawer isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} notifications={notifications} onMarkAsRead={(id) => {
-                markAsRead(id).catch(() => {});
+                markAsRead(id).catch(() => { });
             }} onMarkAllRead={() => {
-                markAllRead().catch(() => {});
+                markAllRead().catch(() => { });
             }} />
-            
+
             {/* Mock indicator removed */}
         </div>
     );
