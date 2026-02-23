@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { Search, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle, RefreshCw } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';

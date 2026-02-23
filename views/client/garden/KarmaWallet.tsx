@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { PortalView, ZenToast } from '../../../components/Common';
 import { Sparkles, TrendingUp, Gift, ShoppingBag, Users, Zap, History, Lock, ArrowRight, Award, Star } from 'lucide-react';
 import { User } from '../../../types';

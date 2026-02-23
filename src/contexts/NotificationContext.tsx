@@ -1,10 +1,11 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase, isMockMode } from '../../lib/supabase';
 import { api } from '../../services/api';
 import { Notification } from '../../types'; // Adjust path if needed
 import { ZenToast } from '../../components/Common';
 import { isInAppMuted, onInAppMuteChange } from '../utils/inAppMute';
+import { NotificationContextStore } from './NotificationContextStore';
 
 interface NotificationContextType {
     notifications: Notification[];
@@ -12,15 +13,8 @@ interface NotificationContextType {
     markAsRead: (id: string) => Promise<void>;
     markAllRead: () => Promise<void>;
 }
-
-const NotificationContext = createContext<NotificationContextType>({
-    notifications: [],
-    unreadCount: 0,
-    markAsRead: async () => {},
-    markAllRead: async () => {},
-});
-
-export const useNotifications = () => useContext(NotificationContext);
+export type { NotificationContextType };
+const NotificationContext = NotificationContextStore as React.Context<NotificationContextType>;
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [notifications, setNotifications] = useState<Notification[]>([]);

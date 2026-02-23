@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useId, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronRight, X } from 'lucide-react';
 import { ICON_SIZE } from './constants';
@@ -15,26 +15,90 @@ export const PortalView: React.FC<{
     heroImage?: string
 }> = ({ title, subtitle, onBack, onClose, showCloseWithBack = true, children, footer, headerRight, heroImage }) => {
     const resolvedClose = onClose || (showCloseWithBack && onBack ? onBack : undefined);
+    const dialogRef = useRef<HTMLDivElement>(null);
+    const previousFocusRef = useRef<HTMLElement | null>(null);
+    const titleId = useId();
+    const subtitleId = useId();
+    const dialogLabel = useMemo(() => `${title} ${subtitle}`.trim(), [title, subtitle]);
+
+    useEffect(() => {
+        previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+        const focusFirst = () => {
+            const focusables = dialog.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            );
+            (focusables[0] || dialog).focus();
+        };
+        const raf = requestAnimationFrame(focusFirst);
+        return () => {
+            cancelAnimationFrame(raf);
+            previousFocusRef.current?.focus?.();
+        };
+    }, [title, subtitle]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        if (e.key === 'Escape' && resolvedClose) {
+            e.preventDefault();
+            resolvedClose();
+            return;
+        }
+        if (e.key !== 'Tab') return;
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+        const focusables = Array.from(
+            dialog.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+        ).filter((el) => !el.hasAttribute('disabled') && el.tabIndex !== -1 && el.offsetParent !== null);
+        if (focusables.length === 0) {
+            e.preventDefault();
+            dialog.focus();
+            return;
+        }
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        const active = document.activeElement as HTMLElement | null;
+        if (!e.shiftKey && active === last) {
+            e.preventDefault();
+            first.focus();
+        } else if (e.shiftKey && (active === first || active === dialog)) {
+            e.preventDefault();
+            last.focus();
+        }
+    };
+
     const content = (
     <div className="fixed inset-0 z-[150] isolate pointer-events-none flex flex-col bg-nature-50 animate-in fade-in duration-200 h-full w-full lg:items-center lg:justify-center lg:bg-nature-900/40 lg:backdrop-blur-sm">
-        <div className="pointer-events-auto flex flex-col h-full w-full lg:max-w-xl lg:h-[90vh] lg:rounded-[3rem] lg:shadow-elegant lg:overflow-hidden lg:bg-nature-50 relative">
+        <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
+            aria-describedby={subtitleId}
+            aria-label={dialogLabel || title}
+            tabIndex={-1}
+            onKeyDown={handleKeyDown}
+            className="pointer-events-auto flex flex-col h-full w-full lg:max-w-xl lg:h-[90vh] lg:rounded-[3rem] lg:shadow-elegant lg:overflow-hidden lg:bg-nature-50 relative"
+        >
             <header className={`flex-none flex items-center justify-between px-6 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 z-20 transition-colors ${heroImage ? 'bg-transparent text-white absolute top-0 w-full' : 'bg-white border-b border-nature-100 shadow-sm relative'}`}>
                 <div className="flex items-center gap-4">
                     {onBack && (
-                        <button onClick={onBack} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
+                        <button aria-label="Voltar" onClick={onBack} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-nature-50 text-nature-600'}`}>
                             <ChevronRight className="rotate-180" size={ICON_SIZE.MD} />
                         </button>
                     )}
                     <div className="space-y-0.5">
-                        <h2 className={`text-lg font-serif italic leading-none ${heroImage ? 'text-white drop-shadow-md' : 'text-nature-900'}`}>{title}</h2>
-                        <p className={`text-[9px] uppercase tracking-[0.3em] font-bold ${heroImage ? 'text-white/80 drop-shadow-sm' : 'text-nature-400'}`}>{subtitle}</p>
+                        <h2 id={titleId} className={`text-lg font-serif italic leading-none ${heroImage ? 'text-white drop-shadow-md' : 'text-nature-900'}`}>{title}</h2>
+                        <p id={subtitleId} className={`text-[9px] uppercase tracking-[0.3em] font-bold ${heroImage ? 'text-white/80 drop-shadow-sm' : 'text-nature-400'}`}>{subtitle}</p>
                     </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
                     {headerRight}
                     {resolvedClose && (
-                        <button onClick={resolvedClose} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
+                        <button aria-label="Fechar" onClick={resolvedClose} className={`p-2.5 rounded-xl active:scale-90 transition-all shadow-sm ${heroImage ? 'bg-white/20 backdrop-blur-md text-white' : 'bg-rose-50 text-rose-400'}`}>
                             <X size={ICON_SIZE.MD} />
                         </button>
                     )}

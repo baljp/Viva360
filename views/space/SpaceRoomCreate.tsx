@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { ArrowLeft, Plus, Sparkles, Layout, Users, Wind, Sun, Moon } from 'lucide-react';
 import { api } from '../../services/api';
 

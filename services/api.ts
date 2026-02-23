@@ -1,4 +1,4 @@
-import { captureFrontendError } from '../lib/monitoring';
+import { captureFrontendError } from '../lib/frontendLogger';
 import { createRequestClient } from './api/requestClient';
 import { createApiDomains } from './api/domains';
 import { createAuthApi } from './api/auth';
@@ -40,4 +40,3 @@ export const api = {
     buildOracleFallbackCard,
   }),
 };
-

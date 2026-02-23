@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { User, DailyRitualSnap, ViewState } from '../../types';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
-import { useBuscadorFlow } from '../flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../flow/useBuscadorFlow';
 import type { CameraCaptureResult } from '../../components/Common/CameraWidget';
 import { idbImages, buildLocalImageKey } from '../utils/idbImageStore';
 

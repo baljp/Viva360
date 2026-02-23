@@ -35,7 +35,7 @@ import {
   MOCK_AUTH_TOKEN,
 } from './mock';
 import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOAuthRuntimeConfig } from '../../lib/supabase';
-import { captureFrontendMessage } from '../../lib/monitoring';
+import { captureFrontendMessage } from '../../lib/frontendLogger';
 
 type RequestFn = (path: string, opts?: any) => Promise<any>;
 
@@ -647,4 +647,3 @@ export const createAuthApi = (request: RequestFn) => {
     addRole: (role: UserRole) => Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }>;
   };
 };
-

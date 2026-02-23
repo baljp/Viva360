@@ -4,7 +4,7 @@ import { Sparkles, History, Share2 } from 'lucide-react';
 import { PortalView, ZenToast } from '../../components/Common';
 import { OracleCardPremium } from '../../src/components/OracleCardPremium';
 import { api } from '../../services/api';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { useOracle, OracleMessage } from '../../src/hooks/useOracle';
 
 export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {

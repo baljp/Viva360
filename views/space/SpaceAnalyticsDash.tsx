@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
 import { BarChart3, TrendingUp, TrendingDown, Users, Calendar, DollarSign, Star, Activity, Clock } from 'lucide-react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { api } from '../../services/api';
 
 interface MetricCard { label: string; value: string; change: number; icon: any; color: string; }

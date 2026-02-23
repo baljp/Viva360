@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PortalView } from '../../components/Common';
-import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { Plus, Sparkles, Clock, Star } from 'lucide-react';
 import { api } from '../../services/api';
 

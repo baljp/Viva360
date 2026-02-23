@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { CreditCard, Lock, ShieldCheck, Wallet, Loader2, CheckCircle, Smartphone, MessageCircle, ArrowRight, QrCode, Sparkles } from 'lucide-react';
 import { api } from '../../../services/api';
 import { PortalView } from '../../../components/Common';

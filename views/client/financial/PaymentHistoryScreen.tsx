@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { PortalView, BottomSheet } from '../../../components/Common';
 import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X, Download } from 'lucide-react';
 import { api } from '../../../services/api';

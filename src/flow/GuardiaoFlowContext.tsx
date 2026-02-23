@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import React, { useReducer, ReactNode, useEffect } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { GuardiaoState } from './guardiaoTypes';
 import { GuardiaoFlowEngine } from './GuardiaoFlowEngine';
@@ -7,6 +7,7 @@ import { Appointment, Vacancy, Product, Transaction, Professional, UserRole } fr
 import { api } from '../../services/api';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
+import { GuardiaoFlowContextStore } from './GuardiaoFlowContextStore';
 
 // Define Context State
 interface GuardiaoContextState extends BaseFlowState<GuardiaoState> {
@@ -93,7 +94,7 @@ const flowReducer = (state: GuardiaoContextState, action: FlowAction): GuardiaoC
     }
 }
 
-const GuardiaoFlowContext = createContext<{
+export type GuardiaoFlowContextValue = {
     state: GuardiaoContextState;
     go: (target: GuardiaoState) => void;
     jump: (target: GuardiaoState) => void;
@@ -103,7 +104,9 @@ const GuardiaoFlowContext = createContext<{
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
     selectAppointment: (apt: Appointment) => void;
     selectPatient: (payload: { id: string; name?: string } | null) => void;
-} | undefined>(undefined);
+};
+
+const GuardiaoFlowContext = GuardiaoFlowContextStore as React.Context<GuardiaoFlowContextValue | undefined>;
 
 export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
@@ -197,10 +200,4 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
             )}
         </GuardiaoFlowContext.Provider>
     );
-};
-
-export const useGuardiaoFlow = () => {
-    const context = useContext(GuardiaoFlowContext);
-    if (!context) throw new Error('useGuardiaoFlow must be used within GuardiaoFlowProvider');
-    return context;
 };

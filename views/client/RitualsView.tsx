@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
 import { PortalView } from '../../components/Common';
 import { MicroInteraction } from '../../components/MicroInteraction';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
 import { Sun, Moon, CheckCircle2, Circle, Sparkles, History, Info, ChevronRight, X } from 'lucide-react';

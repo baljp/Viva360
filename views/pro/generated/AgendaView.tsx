@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { Video, MoreHorizontal, Loader2, Smartphone } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';

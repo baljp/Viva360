@@ -3,7 +3,7 @@ import { PortalView } from '../../../components/Common';
 import { useSoulCards } from '../../../src/hooks/useSoulCards';
 import { User, ViewState } from '../../../types';
 import { Lock, Sparkles } from 'lucide-react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { MOCK_SOUL_CARDS } from '../../../src/data/mockSoulCards';
 
 export const CollectionGrimoire: React.FC<{ user: User }> = ({ user }) => {

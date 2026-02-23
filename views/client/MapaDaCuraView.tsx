@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ViewState, Professional, User } from '../../types';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { PortalView, DynamicAvatar, ZenSkeleton, ZenEmptyState, PresenceBadge } from '../../components/Common';
 import { useJourneyEngine } from '../../src/hooks/useJourneyEngine';
 import { Play, Search, MapPin, Sparkle, Sun, Moon, Wind, Clock, Star, ShieldCheck, ArrowUpRight } from 'lucide-react';

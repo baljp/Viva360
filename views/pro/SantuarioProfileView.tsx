@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
 import { Building2, MapPin, Star, Clock, Users, Phone, Globe, Heart, Calendar, Shield, ChevronRight, Share2 } from 'lucide-react';
-import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { DynamicAvatar } from '../../components/Common';
 
 export const SantuarioProfileView: React.FC<{ user: User }> = ({ user }) => {

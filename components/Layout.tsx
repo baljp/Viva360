@@ -5,7 +5,7 @@ import { Home, Compass, ShoppingBag, User as UserIcon, LogOut, Activity, Buildin
 import { AuroraBackground, NotificationDrawer } from './Common';
 import { isDemoMode, isMockMode } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
-import { useNotifications } from '../src/contexts/NotificationContext';
+import { useNotifications } from '../src/contexts/useNotifications';
 
 interface LayoutProps {
     children: React.ReactNode;

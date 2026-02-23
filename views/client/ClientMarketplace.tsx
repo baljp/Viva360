@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Product } from '../../types';
 import { PortalView, ZenSkeleton } from '../../components/Common';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { api } from '../../services/api';
 import { MarketplaceExplorer } from '../../components/MarketplaceExplorer';
 import { ShoppingBag, Sparkles, X } from 'lucide-react';

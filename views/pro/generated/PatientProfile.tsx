@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { ChevronLeft, FileText, Activity, Calendar, MoreVertical, Shield, MessageCircle } from 'lucide-react';
 
 export default function PatientProfile() {

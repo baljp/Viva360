@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useFlowSync } from '../src/hooks/useFlowSync';
 import { ViewState, Professional, User } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
-import { useGuardiaoFlow } from '../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../src/flow/useGuardiaoFlow';
 import { GuardiaoState } from '../src/flow/guardiaoTypes';
 import { ZenToast } from '../components/Common';
 
@@ -39,6 +39,7 @@ const proStateRoutes: Partial<Record<GuardiaoState, string>> = {
     SETTINGS: '/settings',
     CUSTOM_INTERVENTION: '/pro/patients',
     ALQUIMIA_CREATE: '/pro/marketplace',
+    END: '/pro/home',
 };
 
 export const ProViews: React.FC<{ 

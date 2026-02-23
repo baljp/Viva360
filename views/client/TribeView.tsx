@@ -3,7 +3,7 @@ import { User } from '../../types';
 import { Flame, Plus, Trophy, Heart, Moon } from 'lucide-react';
 import { PortalView, BottomSheet, DynamicAvatar, InteractiveButton } from '../../components/Common';
 import { ConstellationOrbit, GlobalMandala } from '../../components/SocialFeatures';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 
 export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
    const { go, back, selectTribeRoomContext } = useBuscadorFlow();

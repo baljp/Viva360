@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { User } from '../../types';
 import { Calendar, Plus, Clock, MapPin, Users, Edit3, Trash2 } from 'lucide-react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { BottomSheet } from '../../components/Common';
 import { api } from '../../services/api';
 

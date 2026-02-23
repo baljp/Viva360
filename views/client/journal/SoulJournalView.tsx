@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { User, DailyJournalEntry, MoodType } from '../../../types';
 import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Book, Lock, TrendingUp, Calendar, Heart, ArrowRight, Video, Plus, Share2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { generateShareCanvas, shareToSocial } from '../../../src/utils/sharing';

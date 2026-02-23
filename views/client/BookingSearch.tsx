@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { Professional, User } from '../../types';
 import { Activity, Brain, Sparkle, Search, MapPin, Clock, ChevronRight, Star, ShieldCheck, Play, ArrowUpRight } from 'lucide-react';
 import { DynamicAvatar, PortalView } from '../../components/Common';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { SPECIALTIES } from '../../constants'; 
 import { MicroJourneyModal } from './map/MicroJourneyModal';
 

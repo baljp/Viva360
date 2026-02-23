@@ -4,7 +4,7 @@ import { Sparkles, ArrowLeft, Calendar, BookOpen } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 import { OracleCardPremium } from '../../../src/components/OracleCardPremium';
 import { api } from '../../../services/api';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 
 export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();

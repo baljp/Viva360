@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../../../types';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Flame, Star, Users, Send, CheckCircle2, Zap, Heart, Wind, Sun, Moon, Leaf, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../../services/api';

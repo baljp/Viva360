@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
+import React, { useReducer, ReactNode } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { SantuarioState } from './santuarioTypes';
 import { SantuarioFlowEngine } from './SantuarioFlowEngine';
@@ -6,6 +6,7 @@ import { api } from '../../services/api';
 import { SpaceRoom, Professional, Vacancy, Transaction, Product } from '../../types';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
+import { SantuarioFlowContextStore } from './SantuarioFlowContextStore';
 
 interface SantuarioContextState extends BaseFlowState<SantuarioState> {
     engine: SantuarioFlowEngine;
@@ -119,7 +120,7 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
     }
 };
 
-const SantuarioFlowContext = createContext<{
+export type SantuarioFlowContextValue = {
     state: SantuarioContextState;
     go: (target: SantuarioState) => void;
     jump: (target: SantuarioState) => void;
@@ -131,7 +132,9 @@ const SantuarioFlowContext = createContext<{
     selectPatient: (patientId: string | null) => void;
     selectEvent: (eventId: string | null) => void;
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
-} | undefined>(undefined);
+};
+
+const SantuarioFlowContext = SantuarioFlowContextStore as React.Context<SantuarioFlowContextValue | undefined>;
 
 export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
@@ -237,10 +240,4 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
             )}
         </SantuarioFlowContext.Provider>
     );
-};
-
-export const useSantuarioFlow = () => {
-    const context = useContext(SantuarioFlowContext);
-    if (!context) throw new Error('useSantuarioFlow must be used within SantuarioFlowProvider');
-    return context;
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Calendar, Share2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 import { User } from '../../../types';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { useIdbImageUrl } from '../../../src/hooks/useIdbImageUrl';
 import { buildLocalImageKey } from '../../../src/utils/idbImageStore';
 

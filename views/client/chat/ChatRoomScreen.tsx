@@ -3,8 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ViewState, Message, ChatRoom } from '../../../types';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Send, Phone, Video, MoreVertical, Paperclip, Check, CheckCheck } from 'lucide-react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { useChat } from '../../../src/contexts/ChatContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
+import { useChat } from '../../../src/contexts/useChat';
 import { api } from '../../../services/api';
 
 export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Logic to get roomId via props from Connector

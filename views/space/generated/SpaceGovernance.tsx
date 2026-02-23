@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { ChevronLeft, Shield, AlertTriangle, FileText, Lock } from 'lucide-react';
 
 export default function SpaceGovernance() {

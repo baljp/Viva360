@@ -4,7 +4,7 @@ import { ViewState, Appointment, Professional, User } from '../types';
 import { Video, Mic, MicOff, VideoOff, X, FileText, User as UserIcon, Clock, ChevronLeft, Heart, Sparkles, MessageSquare, ShieldCheck, Share2, Wind, Ticket, History, Calendar as CalendarIcon, Tag, Wallet, Timer, ArrowUpRight, PlayCircle } from 'lucide-react';
 import { api } from '../services/api';
 import { DynamicAvatar, OrganicSkeleton, Card, PortalView } from '../components/Common';
-import { useGuardiaoFlow } from '../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../src/flow/useGuardiaoFlow';
 import { useOrdersList } from '../src/hooks/useOrdersList';
 
 // Fix: Added missing VideoSessionView component for tele-health ritual sessions

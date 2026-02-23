@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Professional } from '../../types';
 import { MessageCircle, Star } from 'lucide-react';
 import { DynamicAvatar, PortalView, PresenceBadge, ZenSkeleton } from '../../components/Common';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { api } from '../../services/api';
 
 export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }) => {

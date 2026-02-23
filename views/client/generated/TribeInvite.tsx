@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Users, Share2, Copy, Crown, Star, Sparkles, Send } from 'lucide-react';
 
 import { shareToSocial } from '../../../src/utils/sharing';

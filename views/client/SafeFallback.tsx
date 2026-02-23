@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { AlertCircle } from 'lucide-react';
 
 export const SafeFallback: React.FC = () => {

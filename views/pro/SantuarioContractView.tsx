@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
 import { Shield, FileText, Calendar, DollarSign, Clock, CheckCircle2, AlertTriangle, Download, Sparkles, Loader2 } from 'lucide-react';
-import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { ZenToast, BottomSheet } from '../../components/Common';
 
 import { api } from '../../services/api';

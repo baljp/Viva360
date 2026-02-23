@@ -3,7 +3,7 @@ import { User, ViewState } from '../../types';
 import { Droplet, Heart, Users, Sparkles, TrendingUp, History, Info, Leaf, Share2, X } from 'lucide-react';
 import { PortalView } from '../../components/Common';
 import { gardenService, GardenStatus } from '../../services/gardenService';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { api } from '../../services/api';
 import { DailyRitualWizard } from './garden/DailyRitualWizard';
 import { generateShareCanvas, shareToSocial } from '../../src/utils/sharing';

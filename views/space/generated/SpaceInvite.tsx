@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { PortalView } from '../../../components/Common';
 import { Share2, Copy, Shield, Sprout, Crown, Check, RefreshCw } from 'lucide-react';
 import { api } from '../../../services/api';

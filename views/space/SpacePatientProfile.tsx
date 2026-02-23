@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { PortalView, DynamicAvatar } from '../../components/Common';
 import { Heart, Shield, Calendar, ChevronRight } from 'lucide-react';
 import { api } from '../../services/api';

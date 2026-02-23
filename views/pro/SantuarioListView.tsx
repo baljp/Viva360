@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
 import { Building2, MapPin, Star, ChevronRight, Search, Plus, Sparkles, Shield, Users, Loader2 } from 'lucide-react';
-import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 
 import { api } from '../../services/api';
 

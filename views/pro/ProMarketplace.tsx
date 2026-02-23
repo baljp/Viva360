@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ViewState, Professional, Product } from '../../types';
 import { Plus, Star, Layers, ExternalLink, Award, Save, Trash2, ShoppingBag, Store } from 'lucide-react';
 import { PortalView, ProductFormModal, ZenToast } from '../../components/Common';
-import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { api } from '../../services/api';
 import { MarketplaceExplorer } from '../../components/MarketplaceExplorer';
 

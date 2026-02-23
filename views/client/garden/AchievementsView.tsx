@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Sparkles, Lock, CheckCircle2 } from 'lucide-react';
 
 export const AchievementsView: React.FC<{ user: User }> = ({ user }) => {

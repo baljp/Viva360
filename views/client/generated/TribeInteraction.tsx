@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Heart, Send, Flame, Droplet, Sprout, Wind, Eye, Zap, Handshake } from 'lucide-react';
 import { api } from '../../../services/api';
 

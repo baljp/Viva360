@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { api } from '../../../services/api';
 import { gardenService } from '../../../services/gardenService';
 import { Calendar as CalendarIcon, Filter, Search } from 'lucide-react';

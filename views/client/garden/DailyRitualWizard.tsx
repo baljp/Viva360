@@ -7,7 +7,7 @@ import { SoulCard } from '../../../src/components/SoulCard';
 import { phraseService } from '../../../services/phraseService';
 import { gardenService } from '../../../services/gardenService';
 import { api } from '../../../services/api';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { dataUrlToBlob } from '../../../src/utils/dataUrl';
 import { buildLocalImageKey, idbImages } from '../../../src/utils/idbImageStore';
 import { useObjectUrl } from '../../../src/hooks/useObjectUrl';

@@ -5,6 +5,16 @@
  */
 export const preloadRoleViews = (role: string) => {
     const roleUpper = role.toUpperCase();
+    const schedule = (fn: () => void, delayMs = 0) => {
+        if (typeof window !== 'undefined') {
+            const idle = (window as Window & { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback;
+            if (typeof idle === 'function') {
+                idle(fn, { timeout: Math.max(1500, delayMs || 1) });
+                return;
+            }
+        }
+        setTimeout(fn, delayMs);
+    };
     
     // Major views mapping
     const views: Record<string, () => Promise<any>> = {
@@ -16,10 +26,14 @@ export const preloadRoleViews = (role: string) => {
 
     const loader = views[roleUpper];
     if (loader) {
-        console.log(`[FlowLoader] Preloading views for role: ${roleUpper}`);
-        loader().catch(err => console.error(`[FlowLoader] Preload failed for ${roleUpper}`, err));
+        schedule(() => {
+            console.log(`[FlowLoader] Preloading views for role: ${roleUpper}`);
+            loader().catch(err => console.error(`[FlowLoader] Preload failed for ${roleUpper}`, err));
+        }, 600);
     }
 
     // Always preload settings as they are common
-    import('../../views/SettingsViews').catch(() => {});
+    schedule(() => {
+        import('../../views/SettingsViews').catch(() => {});
+    }, 1200);
 };

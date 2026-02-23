@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { useBuscadorFlow } from '../flow/BuscadorFlowContext';
-import { useGuardiaoFlow } from '../flow/GuardiaoFlowContext';
-import { useSantuarioFlow } from '../flow/SantuarioFlowContext';
+import { useBuscadorFlow } from '../flow/useBuscadorFlow';
+import { useGuardiaoFlow } from '../flow/useGuardiaoFlow';
+import { useSantuarioFlow } from '../flow/useSantuarioFlow';
 import { screenMap } from './screenMap';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Compass } from 'lucide-react';

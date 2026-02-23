@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { PortalView } from '../../components/Common';
 import { Calendar, ChevronRight, Shield } from 'lucide-react';
 import { api } from '../../services/api';

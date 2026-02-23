@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useEffect, useReducer, ReactNode } from 'react';
+import React, { useEffect, useReducer, ReactNode } from 'react';
 import { BuscadorState } from './types';
 import { BuscadorFlowEngine } from './BuscadorFlowEngine';
 import { Professional, Product } from '../../types';
@@ -7,6 +7,7 @@ import { api } from '../../services/api';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 import { isInAppMuted } from '../utils/inAppMute';
+import { BuscadorFlowContextStore } from './BuscadorFlowContextStore';
 
 // Define Context State
 interface FlowContextState extends BaseFlowState<BuscadorState> {
@@ -100,7 +101,7 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
 };
 
 // Create Context
-const BuscadorFlowContext = createContext<{
+export type BuscadorFlowContextValue = {
     state: FlowContextState;
     go: (target: BuscadorState) => void;
     jump: (target: BuscadorState) => void;
@@ -111,7 +112,9 @@ const BuscadorFlowContext = createContext<{
     selectDate: (date: Date | null) => void;
     selectTribeRoomContext: (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) => void;
     notify: (title: string, message: string, type?: 'success' | 'info' | 'error' | 'warning') => void;
-} | undefined>(undefined);
+};
+
+const BuscadorFlowContext = BuscadorFlowContextStore as React.Context<BuscadorFlowContextValue | undefined>;
 
 // Provider Component
 export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -182,13 +185,4 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
             )}
         </BuscadorFlowContext.Provider>
     );
-};
-
-// Hook
-export const useBuscadorFlow = () => {
-    const context = useContext(BuscadorFlowContext);
-    if (!context) {
-        throw new Error('useBuscadorFlow must be used within a BuscadorFlowProvider');
-    }
-    return context;
 };

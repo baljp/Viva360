@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { PortalView } from '../../../components/Common';
 import { Calendar, Clock, User, ChevronRight } from 'lucide-react';
 

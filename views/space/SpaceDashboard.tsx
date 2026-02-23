@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { api, request } from '../../services/api';
 import { PortalCard, ZenToast, Logo, DynamicAvatar, NotificationDrawer } from '../../components/Common';
-import { useSantuarioFlow } from '../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { SPACE_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../utils/gamification';
 import { useCountUp } from '../../src/hooks/useCountUp';
 

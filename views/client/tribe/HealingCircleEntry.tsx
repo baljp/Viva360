@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { User, Event } from '../../../types';
 import { PortalView } from '../../../components/Common';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { api } from '../../../services/api';
 import { Users, Clock, Sparkles, Heart, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';

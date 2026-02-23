@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { ChevronLeft, Briefcase, MapPin, Building, Search, X, CheckCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';

@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Professional } from '../../types';
 import { Search, Plus, ArrowRightLeft, Filter, MessageCircle, Loader2, Sparkles, X } from 'lucide-react';
 import { PortalView, ZenToast, BottomSheet, InteractiveButton } from '../../components/Common';
-import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { api } from '../../services/api';
 
 export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
@@ -80,7 +80,6 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
         const cancelled = { value: false };
         loadEscambo(cancelled).catch(() => undefined);
         return () => { cancelled.value = true; };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handlePropose = (item: any) => {

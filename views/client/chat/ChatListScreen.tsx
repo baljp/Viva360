@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { MessageCircle, Search, Flame, Loader } from 'lucide-react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
-import { useChat } from '../../../src/contexts/ChatContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
+import { useChat } from '../../../src/contexts/useChat';
 import { api } from '../../../services/api';
 
 interface ChatRoom {

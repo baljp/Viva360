@@ -1,7 +1,7 @@
 import React from 'react';
 import { User } from '../../../types';
 import { PortalView } from '../../../components/Common';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { gardenService } from '../../../services/gardenService';
 import { Heart, Zap, Users, Shield, Sparkles } from 'lucide-react';
 

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { ViewState, User, DailyRitualSnap } from '../../types';
 import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle, TrendingUp, Book } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, RitualCompletionCard, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
-import { useBuscadorFlow } from '../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
 import { useClientDashboard } from '../../src/hooks/useClientDashboard';

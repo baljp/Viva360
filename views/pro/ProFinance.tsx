@@ -3,7 +3,7 @@ import React from 'react';
 import { ViewState, Professional, Transaction } from '../../types';
 import { TrendingUp, Filter, ArrowUpRight, ArrowDownRight, Share2 } from 'lucide-react';
 import { PortalView } from '../../components/Common';
-import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { request } from '../../services/api';
 
 export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions: propTransactions = [] }) => {

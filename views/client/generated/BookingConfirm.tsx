@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Check, Calendar, Clock, MapPin, Sparkles, Smartphone, Loader2 } from 'lucide-react';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { api } from '../../../services/api';

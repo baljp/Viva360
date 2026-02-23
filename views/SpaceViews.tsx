@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useFlowSync } from '../src/hooks/useFlowSync';
 import { User, ViewState } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
-import { useSantuarioFlow } from '../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../src/flow/useSantuarioFlow';
 import { SantuarioState } from '../src/flow/santuarioTypes';
 import { ZenToast } from '../components/Common';
 
@@ -14,6 +14,7 @@ const spaceStateRoutes: Partial<Record<SantuarioState, string>> = {
     PRO_PERFORMANCE: '/space/team',
     TEAM_SUMMON: '/space/team',
     TEAM_INVITE: '/space/team',
+    SERVICE_EVALUATION: '/space/team',
     PATIENTS_LIST: '/space/home',
     PATIENT_PROFILE: '/space/home',
     PATIENT_RECORDS: '/space/home',
@@ -43,6 +44,7 @@ const spaceStateRoutes: Partial<Record<SantuarioState, string>> = {
     PREDICTIVE_OCCUPANCY: '/space/home',
     AUDIT_LOG: '/space/home',
     RADIANCE_DRILLDOWN: '/space/home',
+    END: '/space/home',
 };
 
 export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void, onLogout?: () => void }> = ({ user, view, setView, onLogout }) => {

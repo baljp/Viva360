@@ -1,5 +1,5 @@
 import React from 'react';
-import { useGuardiaoFlow } from '../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { Video, MessageCircle, Shield, ChevronLeft, Clock, User, Star } from 'lucide-react';
 import { PortalView } from '../../components/Common';
 

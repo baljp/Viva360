@@ -3,8 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { ViewState, Message, ChatRoom } from '../../../types';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Send, Phone, Video, MoreVertical, Paperclip, Check, CheckCheck, FileText, ClipboardList, Shield } from 'lucide-react';
-import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { useChat } from '../../../src/contexts/ChatContext';
+import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
+import { useChat } from '../../../src/contexts/useChat';
 import { api } from '../../../services/api';
 
 export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {

@@ -62,6 +62,9 @@ export const ZenToast: React.FC<{ toast: { title: string, message: string, type?
   return (
     <div
       data-testid="zen-toast"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
       className="fixed top-[max(env(safe-area-inset-top),0.75rem)] sm:top-[calc(env(safe-area-inset-top)+1rem)] left-0 right-0 mx-auto z-[1000] w-[92vw] sm:w-[90%] max-w-[360px] animate-in slide-in-from-top-10 fade-in duration-500 pointer-events-none px-1"
     >
       <div

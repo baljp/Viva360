@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { User } from '../../types';
 import { gardenService, TimeLayer } from '../../services/gardenService';
-import { useBuscadorFlow } from '../flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../flow/useBuscadorFlow';
 
 export const useEvolution = (user: User) => {
     const { go, back } = useBuscadorFlow();

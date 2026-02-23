@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { ViewState, ChatRoom } from '../../../types';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Search, Shield, Stethoscope, Users } from 'lucide-react';
-import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
-import { useChat } from '../../../src/contexts/ChatContext';
+import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
+import { useChat } from '../../../src/contexts/useChat';
 import { api } from '../../../services/api';
 
 // Adapted from ChatListScreen but for Pro

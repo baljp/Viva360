@@ -1,7 +1,8 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase, isMockMode } from '../../lib/supabase';
 import { api } from '../../services/api';
+import { ChatContextStore } from './ChatContextStore';
 
 // Define minimal types locally or import from types.ts
 export interface ChatMessage {
@@ -20,16 +21,8 @@ interface ChatContextType {
     getMessagesWith: (userId: string) => ChatMessage[];
     unreadCount: number;
 }
-
-const ChatContext = createContext<ChatContextType>({
-    messages: [],
-    sendMessage: async () => {},
-    markAsRead: async () => {},
-    getMessagesWith: () => [],
-    unreadCount: 0,
-});
-
-export const useChat = () => useContext(ChatContext);
+export type { ChatContextType };
+const ChatContext = ChatContextStore as React.Context<ChatContextType>;
 
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);

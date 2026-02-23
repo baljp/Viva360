@@ -1,6 +1,6 @@
 
 import React, { useEffect } from 'react';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Sparkles, CalendarCheck, Home, History, CheckCircle2, X } from 'lucide-react';
 
 import confetti from 'canvas-confetti';

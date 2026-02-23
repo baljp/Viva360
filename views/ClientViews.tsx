@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useFlowSync } from '../src/hooks/useFlowSync';
 import { ViewState, Product, User } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
-import { useBuscadorFlow } from '../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../src/flow/useBuscadorFlow';
 import { BuscadorState } from '../src/flow/types';
 import { ZenToast } from '../components/Common';
 
@@ -12,8 +12,11 @@ const clientStateRoutes: Partial<Record<BuscadorState, string>> = {
     DASHBOARD: '/client/home',
     SETTINGS: '/settings',
     MARKETPLACE: '/client/marketplace',
+    CHECKOUT: '/checkout',
+    PAYMENT_SUCCESS: '/checkout/success',
     PAYMENT_HISTORY: '/client/orders',
     KARMA_WALLET: '/client/home',
+    CLIENT_QUESTS: '/client/home',
     CLIENT_JOURNAL: '/client/journal',
     ORACLE_PORTAL: '/client/oracle',
     ORACLE_SHUFFLE: '/client/oracle',
@@ -41,8 +44,11 @@ const clientStateRoutes: Partial<Record<BuscadorState, string>> = {
 
     HEALING_CIRCLE: '/client/tribe',
     CHAT_LIST: '/client/tribe',
+    CHAT_NEW: '/client/tribe',
+    CHAT_SETTINGS: '/client/tribe',
     CHAT_ROOM: '/client/tribe',
     SOUL_PACT: '/client/tribe',
+    END: '/client/home',
     BOOKING_SEARCH: '/client/explore',
     BOOKING_SELECT: '/client/explore',
     BOOKING_CONFIRM: '/client/explore',

@@ -3,7 +3,6 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { User, ViewState, Professional, CartItem, Product } from './types';
 import Layout from './components/Layout';
-import { SmartTutorial } from './components/SmartTutorial';
 import { api } from './services/api';
 import { supabase, APP_MODE, validateOAuthRuntimeConfig } from './lib/supabase';
 import { ZenToast } from './components/Common';
@@ -27,6 +26,7 @@ const CheckoutScreen = lazyWithRetry(() => import('./components/Checkout').then(
 const SuccessScreen = lazyWithRetry(() => import('./components/Checkout').then(module => ({ default: module.SuccessScreen })), 'SuccessScreen');
 const OrdersListView = lazyWithRetry(() => import('./views/ServiceViews').then(module => ({ default: module.OrdersListView })), 'OrdersListView');
 const AdminViews = lazyWithRetry(() => import('./views/AdminViews').then(module => ({ default: module.AdminViews })), 'AdminViews');
+const SmartTutorial = lazyWithRetry(() => import('./components/SmartTutorial').then(module => ({ default: module.SmartTutorial })), 'SmartTutorial');
 import { NotFoundScreen } from './src/navigation/NotFoundScreen';
 import { preloadRoleViews } from './src/utils/loaderUtils';
 import { lazyWithRetry } from './src/utils/lazyWithRetry';
@@ -493,7 +493,9 @@ const App: React.FC = () => {
             <Suspense fallback={null}>
                 <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} items={cart} onRemove={removeFromCart} onProceed={() => {setIsCartOpen(false); navigate('/checkout');}} />
             </Suspense>
-            <SmartTutorial user={currentUser} />
+            <Suspense fallback={null}>
+                <SmartTutorial user={currentUser} />
+            </Suspense>
         </Layout>
         </ChatProvider>
       </NotificationProvider>

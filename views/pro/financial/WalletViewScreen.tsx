@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Professional, Transaction } from '../../../types';
 import { PortalView, BottomSheet, ZenToast } from '../../../components/Common';
-import { useGuardiaoFlow } from '../../../src/flow/GuardiaoFlowContext';
+import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { request } from '../../../services/api';
 import { useCountUp } from '../../../src/hooks/useCountUp';
 import {

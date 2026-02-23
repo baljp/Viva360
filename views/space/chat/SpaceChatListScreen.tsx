@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { ViewState, ChatRoom } from '../../../types';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Search, Shield, Stethoscope, Users, MessageCircle } from 'lucide-react';
-import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext'; 
-import { useChat } from '../../../src/contexts/ChatContext';
+import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow'; 
+import { useChat } from '../../../src/contexts/useChat';
 
 export default function SpaceChatListScreen() {
     const { go, back } = useSantuarioFlow(); 

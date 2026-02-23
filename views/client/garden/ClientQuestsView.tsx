@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, DailyQuest } from '../../../types';
 import { PortalView } from '../../../components/Common';
-import { useBuscadorFlow } from '../../../src/flow/BuscadorFlowContext';
+import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { api } from '../../../services/api';
 import { CheckCheck, Activity, Flame, Gift, Sparkles, TrendingUp, Star, Zap, Award, Lock, Trophy } from 'lucide-react';
 import { CLIENT_ACHIEVEMENTS, checkAchievements, getUserRank, CLIENT_RANKS, getRankProgress, getUnlockedCount } from '../../../utils/gamification';

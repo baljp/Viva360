@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSantuarioFlow } from '../../../src/flow/SantuarioFlowContext';
+import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Search, Filter, Heart, Sparkles, TrendingUp, Calendar, Shield, MapPin, ChevronRight, UserPlus, MessageCircle } from 'lucide-react';
 import { api } from '../../../services/api';
