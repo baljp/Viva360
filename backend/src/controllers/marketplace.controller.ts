@@ -3,6 +3,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { marketplaceService } from '../services/marketplace.service';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
+import { handleDbReadFallback } from '../lib/dbReadFallback';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const ownerId = req.user?.userId;
@@ -44,9 +45,17 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
 
 export const listProducts = asyncHandler(async (req: Request, res: Response) => {
   const { ownerId, category } = req.query as any;
-
-  const products = await marketplaceService.listProducts(ownerId as string, category as string);
-  return res.json(products);
+  try {
+    const products = await marketplaceService.listProducts(ownerId as string, category as string);
+    return res.json(products);
+  } catch (err) {
+    if (handleDbReadFallback(res, err, {
+      route: 'marketplace.listProducts',
+      userId: req.user?.userId,
+      fallbackPayload: [],
+    })) return;
+    throw err;
+  }
 });
 
 export const deleteProduct = asyncHandler(async (req: Request, res: Response) => {

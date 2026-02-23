@@ -52,6 +52,22 @@ if (runE2ECore) {
 }
 
 const results: CheckResult[] = [];
+const startedAt = new Date().toISOString();
+const processStartedMs = Date.now();
+const reportsDir = path.resolve(process.cwd(), 'reports');
+if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir, { recursive: true });
+const outJson = path.join(reportsDir, 'regression_checklist.json');
+const outMd = path.join(reportsDir, 'regression_checklist.md');
+const statusFile = path.join(reportsDir, 'regression_checklist.status.json');
+const tmpJson = `${outJson}.tmp`;
+const tmpMd = `${outMd}.tmp`;
+
+// Marker for CI/ops to detect interrupted runs vs completed artifacts.
+fs.writeFileSync(statusFile, JSON.stringify({
+  status: 'running',
+  generatedAt: startedAt,
+  pid: process.pid,
+}, null, 2), 'utf8');
 
 for (const check of checks) {
   const start = Date.now();
@@ -86,30 +102,46 @@ for (const check of checks) {
 }
 
 const failedRequired = results.filter((result) => result.required && !result.ok);
+const finishedAt = new Date().toISOString();
 const payload = {
-  generatedAt: new Date().toISOString(),
+  generatedAt: startedAt,
+  finishedAt,
+  completed: true,
+  durationMs: Date.now() - processStartedMs,
   ok: failedRequired.length === 0,
+  requiredTotal: results.filter((r) => r.required).length,
+  requiredPassed: results.filter((r) => r.required && r.ok).length,
+  failedRequiredIds: failedRequired.map((r) => r.id),
   checks: results,
 };
 
-const reportsDir = path.resolve(process.cwd(), 'reports');
-if (!fs.existsSync(reportsDir)) fs.mkdirSync(reportsDir, { recursive: true });
-
-const outJson = path.join(reportsDir, 'regression_checklist.json');
-const outMd = path.join(reportsDir, 'regression_checklist.md');
-fs.writeFileSync(outJson, JSON.stringify(payload, null, 2), 'utf8');
+fs.writeFileSync(tmpJson, JSON.stringify(payload, null, 2), 'utf8');
 
 const lines = [
   '# Regression Checklist',
   '',
-  `Gerado em: ${payload.generatedAt}`,
+  `Iniciado em: ${payload.generatedAt}`,
+  `Finalizado em: ${payload.finishedAt}`,
   `Status geral: ${payload.ok ? 'PASS' : 'FAIL'}`,
+  `Checks obrigatórios: ${payload.requiredPassed}/${payload.requiredTotal}`,
   '',
   '| Check | Status | Duracao (ms) | Comando |',
   '|---|---|---:|---|',
   ...results.map((result) => `| ${result.label} | ${result.ok ? 'PASS' : 'FAIL'} | ${result.durationMs} | \`${result.command}\` |`),
 ];
-fs.writeFileSync(outMd, `${lines.join('\n')}\n`, 'utf8');
+fs.writeFileSync(tmpMd, `${lines.join('\n')}\n`, 'utf8');
+
+fs.renameSync(tmpJson, outJson);
+fs.renameSync(tmpMd, outMd);
+fs.writeFileSync(statusFile, JSON.stringify({
+  status: payload.ok ? 'completed_pass' : 'completed_fail',
+  generatedAt: startedAt,
+  finishedAt,
+  completed: true,
+  ok: payload.ok,
+  requiredPassed: payload.requiredPassed,
+  requiredTotal: payload.requiredTotal,
+}, null, 2), 'utf8');
 
 console.log(`checklist: ${payload.ok ? 'PASS' : 'FAIL'}`);
 console.log(`checklist: ${outJson}`);

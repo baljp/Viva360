@@ -1,0 +1,78 @@
+name: Nightly Regression Checklist
+
+on:
+  schedule:
+    # 03:00 UTC daily
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-regression-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "20"
+  NODE_ENV: test
+  APP_MODE: MOCK
+  VITE_APP_MODE: MOCK
+  ENABLE_TEST_MODE: "true"
+  VITE_ENABLE_TEST_MODE: "true"
+  VITE_MOCK_ENABLED: "true"
+  STRICT_RECORD_CONSENT: "true"
+  JWT_SECRET: "nightly-regression-jwt-secret-local"
+  DATABASE_URL: "postgresql://fake:fake@localhost:5432/fake"
+
+jobs:
+  regression-checklist:
+    name: 🌙 Regression Checklist (Nightly)
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers (chromium only)
+        run: npx playwright install --with-deps chromium
+
+      - name: Run regression checklist
+        run: npm run qa:regression-checklist
+
+      - name: Stamp run-specific copies of checklist artifacts
+        if: always()
+        run: |
+          mkdir -p reports/nightly
+          stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+          for f in reports/regression_checklist.json reports/regression_checklist.md reports/regression_checklist.status.json; do
+            if [ -f "$f" ]; then
+              base="$(basename "$f")"
+              cp "$f" "reports/nightly/${stamp}_${base}"
+            fi
+          done
+
+      - name: Upload nightly regression artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-regression-${{ github.run_id }}
+          retention-days: 14
+          path: |
+            reports/regression_checklist.json
+            reports/regression_checklist.md
+            reports/regression_checklist.status.json
+            reports/nightly/
+            reports/screen_button_flow_matrix.json
+            reports/screen_button_flow_matrix.md
+            reports/flow_registry_validation.json
+            reports/orphan_screen_audit.json
+            qa/logs/
+            qa/reports/playwright-report/
+

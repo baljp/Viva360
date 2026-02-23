@@ -1,12 +1,17 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { notificationService } from '../services/notification.service';
+import { handleDbReadFallback } from '../lib/dbReadFallback';
 
 export const list = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
-  
-  const notifications = await notificationService.list(userId);
-  return res.json(notifications);
+  try {
+    const notifications = await notificationService.list(userId);
+    return res.json(notifications);
+  } catch (err) {
+    if (handleDbReadFallback(res, err, { route: 'notifications.list', userId, fallbackPayload: [] })) return;
+    throw err;
+  }
 });
 
 export const markAsRead = asyncHandler(async (req: Request, res: Response) => {
