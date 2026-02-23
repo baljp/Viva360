@@ -371,12 +371,12 @@ export const exportData = asyncHandler(async (req: Request, res: Response) => {
         appointmentsAsClient,
         appointmentsAsPro
     ] = await Promise.all([
-        prisma.event.findMany({ where: { stream_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
-        prisma.interactionReceipt.findMany({ where: { actor_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
-        prisma.transaction.findMany({ where: { user_id: userId, type: 'expense' }, orderBy: { date: 'desc' } }).catch(() => []),
-        prisma.transaction.findMany({ where: { user_id: userId, type: 'income' }, orderBy: { date: 'desc' } }).catch(() => []),
-        prisma.appointment.findMany({ where: { client_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
-        prisma.appointment.findMany({ where: { professional_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.event.findMany({ where: { stream_id: userId }, take: 100, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.interactionReceipt.findMany({ where: { actor_id: userId }, take: 100, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.transaction.findMany({ where: { user_id: userId, type: 'expense' }, take: 100, orderBy: { date: 'desc' } }).catch(() => []),
+        prisma.transaction.findMany({ where: { user_id: userId, type: 'income' }, take: 100, orderBy: { date: 'desc' } }).catch(() => []),
+        prisma.appointment.findMany({ where: { client_id: userId }, take: 100, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.appointment.findMany({ where: { professional_id: userId }, take: 100, orderBy: { created_at: 'desc' } }).catch(() => []),
     ]);
 
     // Build the consolidated export payload

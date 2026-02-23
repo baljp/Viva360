@@ -66,6 +66,7 @@ export class OracleService {
                     user_id: safeUserId,
                     drawn_at: { gte: sixtyDaysAgo }
                 },
+                take: 100,
                 select: { message_id: true }
             });
 
@@ -81,7 +82,8 @@ export class OracleService {
                         { category: 'consciencia' },
                         { element: this.getElementForMood(normalizedMood) }
                     ]
-                }
+                },
+                take: 200
             });
         } catch (error) {
             if (this.isSafeFallbackRuntime() && this.isDbUnavailableError(error)) {
