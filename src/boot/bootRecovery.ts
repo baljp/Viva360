@@ -1,18 +1,38 @@
-type RecoveryReason = 'chunk_load_error' | 'boot_timeout' | 'css_load_error';
+type RecoveryReason =
+  | 'chunk_load_error'
+  | 'boot_timeout'
+  | 'css_load_error'
+  | 'css_integrity_error';
 
-const RECOVERY_FLAG = 'viva360.boot_recovery.did_recover';
+const RECOVERY_ATTEMPTS_KEY = 'viva360.boot_recovery.attempts';
+const RECOVERY_MAX_ATTEMPTS = 2;
 
-function didRecoverAlready(): boolean {
+function getRecoveryAttempts(): number {
   try {
-    return sessionStorage.getItem(RECOVERY_FLAG) === '1';
+    const raw = sessionStorage.getItem(RECOVERY_ATTEMPTS_KEY) || '0';
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : 0;
   } catch {
-    return false;
+    return 0;
   }
 }
 
-function markRecovered(): void {
+function canRecover(): boolean {
+  return getRecoveryAttempts() < RECOVERY_MAX_ATTEMPTS;
+}
+
+function markRecoveryAttempt(): void {
   try {
-    sessionStorage.setItem(RECOVERY_FLAG, '1');
+    sessionStorage.setItem(RECOVERY_ATTEMPTS_KEY, String(getRecoveryAttempts() + 1));
+  } catch {
+    // ignore
+  }
+}
+
+function clearRecoveryMarkerOnHealthyBoot(): void {
+  try {
+    sessionStorage.removeItem(RECOVERY_ATTEMPTS_KEY);
+    sessionStorage.removeItem('viva360.boot_recovery.reason');
   } catch {
     // ignore
   }
@@ -40,8 +60,8 @@ async function clearServiceWorkersAndCaches(): Promise<void> {
 }
 
 async function recover(reason: RecoveryReason): Promise<void> {
-  if (didRecoverAlready()) return;
-  markRecovered();
+  if (!canRecover()) return;
+  markRecoveryAttempt();
 
   // Best-effort: ensure we don't keep serving stale precached assets.
   await clearServiceWorkersAndCaches();
@@ -53,8 +73,11 @@ async function recover(reason: RecoveryReason): Promise<void> {
     // ignore
   }
 
-  // Reload hard; Vercel serves latest index/assets on alias.
-  window.location.reload();
+  // Bust browser HTML cache on the current route. Plain reload is not always enough in Safari.
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set('__viva_recover__', String(Date.now()));
+  nextUrl.searchParams.set('__viva_recover_reason__', reason);
+  window.location.replace(nextUrl.toString());
 }
 
 function isLikelyChunkLoadFailure(message: string): boolean {
@@ -86,6 +109,105 @@ function hasCoreStylesLoaded(): boolean {
     return ok;
   } catch {
     return false;
+  }
+}
+
+function isDevRuntime(): boolean {
+  try {
+    return !!import.meta.env?.DEV;
+  } catch {
+    return false;
+  }
+}
+
+function getBundledCssHrefs(): string[] {
+  try {
+    const links = Array.from(
+      document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"][href]')
+    );
+    return links
+      .map(link => String(link.href || '').trim())
+      .filter(href => href.includes('/assets/') && href.includes('.css'));
+  } catch {
+    return [];
+  }
+}
+
+function hasBundledStylesheetAttached(): boolean {
+  try {
+    return Array.from(document.styleSheets).some(sheet => {
+      const href = String((sheet as CSSStyleSheet).href || '');
+      return href.includes('/assets/') && href.includes('.css');
+    });
+  } catch {
+    return false;
+  }
+}
+
+async function isStylesheetResponseHealthy(href: string): Promise<boolean> {
+  try {
+    const probeUrl = new URL(href, window.location.origin);
+    probeUrl.searchParams.set('__viva_css_probe__', String(Date.now()));
+    const res = await fetch(probeUrl.toString(), {
+      method: 'GET',
+      cache: 'no-store',
+      credentials: 'same-origin',
+    });
+    if (!res.ok) return false;
+
+    const contentType = String(res.headers.get('content-type') || '').toLowerCase();
+    if (!contentType.includes('text/css')) return false;
+
+    const snippet = (await res.text()).slice(0, 256).toLowerCase();
+    if (snippet.includes('<!doctype html') || snippet.includes('<html')) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function hasCssIntegrityProblem(): Promise<boolean> {
+  if (isDevRuntime()) return false;
+
+  const coreStylesOk = hasCoreStylesLoaded();
+  const bundledHrefs = getBundledCssHrefs();
+  const bundledSheetAttached = hasBundledStylesheetAttached();
+
+  // Healthy path: our design tokens/utilities are available and the built stylesheet is attached.
+  if (coreStylesOk && (bundledSheetAttached || bundledHrefs.length === 0)) {
+    return false;
+  }
+
+  // If no bundled CSS href exists in prod after mount, boot is suspicious.
+  if (bundledHrefs.length === 0) {
+    return true;
+  }
+
+  // Detect the common stale-cache failure mode: HTML is served for a missing hashed CSS asset.
+  const firstCssOk = await isStylesheetResponseHealthy(bundledHrefs[0]);
+  if (!firstCssOk) return true;
+
+  // If the file is healthy but styles still missing after mount, something is broken in bootstrap.
+  return !coreStylesOk || !bundledSheetAttached;
+}
+
+function cleanupRecoveryQuery(): void {
+  try {
+    const url = new URL(window.location.href);
+    let dirty = false;
+    if (url.searchParams.has('__viva_recover__')) {
+      url.searchParams.delete('__viva_recover__');
+      dirty = true;
+    }
+    if (url.searchParams.has('__viva_recover_reason__')) {
+      url.searchParams.delete('__viva_recover_reason__');
+      dirty = true;
+    }
+    if (dirty) {
+      window.history.replaceState({}, document.title, url.toString());
+    }
+  } catch {
+    // ignore
   }
 }
 
@@ -150,10 +272,26 @@ export function installBootRecovery(): void {
     window.setTimeout(() => {
       const mounted = (window as any).__VIVA360_MOUNTED__ === true;
       if (!mounted) return;
-      if (!hasCoreStylesLoaded()) {
-        void recover('css_load_error');
-      }
+      void (async () => {
+        if (await hasCssIntegrityProblem()) {
+          await recover('css_integrity_error');
+          return;
+        }
+        clearRecoveryMarkerOnHealthyBoot();
+        cleanupRecoveryQuery();
+      })();
     }, 1600);
+
+    // Safari/slow network guard: second pass catches late stylesheet failures after initial mount.
+    window.setTimeout(() => {
+      const mounted = (window as any).__VIVA360_MOUNTED__ === true;
+      if (!mounted) return;
+      void (async () => {
+        if (await hasCssIntegrityProblem()) {
+          await recover('css_integrity_error');
+        }
+      })();
+    }, 4200);
   };
 
   if (document.readyState === 'complete') {

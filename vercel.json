@@ -124,7 +124,7 @@
       "destination": "backend/src/app.ts"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!api(?:/|$)|assets(?:/|$)|.*\\..*).*)",
       "destination": "/index.html"
     }
   ],
