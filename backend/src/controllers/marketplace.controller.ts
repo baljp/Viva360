@@ -2,10 +2,30 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { marketplaceService } from '../services/marketplace.service';
 import prisma from '../lib/prisma';
+import { isMockMode } from '../services/supabase.service';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const ownerId = req.user?.userId;
   const { name, price, category, type, image, description, eventDate, hostName, spotsLeft, karmaReward } = req.body;
+
+  if (isMockMode()) {
+    const mockProduct = {
+      id: `mock-product-${Date.now()}`,
+      name: String(name || 'Produto Mock'),
+      price: Number(typeof price === 'string' ? parseFloat(price) : price || 0),
+      category: String(category || 'Healing'),
+      type: String(type || 'service'),
+      image: image || null,
+      description: description || '',
+      owner_id: String(ownerId || 'mock-owner'),
+      eventDate: eventDate || null,
+      hostName: hostName || null,
+      spotsLeft: typeof spotsLeft === 'number' ? spotsLeft : null,
+      karmaReward: typeof karmaReward === 'number' ? karmaReward : null,
+      created_at: new Date().toISOString(),
+    };
+    return res.status(201).json(mockProduct);
+  }
 
   const product = await marketplaceService.createProduct({
       name,
@@ -19,7 +39,7 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
       eventDate, hostName, spotsLeft, karmaReward
   });
 
-  return res.json(product);
+  return res.status(201).json(product);
 });
 
 export const listProducts = asyncHandler(async (req: Request, res: Response) => {

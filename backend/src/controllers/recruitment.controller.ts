@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
+import { isMockMode } from '../services/supabase.service';
 
 const applySchema = z.object({
   vacancyId: z.string().uuid().or(z.string().min(1)),
@@ -24,9 +25,67 @@ const decisionSchema = z.object({
 const normalizeRole = (value?: string) => String(value || '').trim().toUpperCase();
 const isAdmin = (role?: string) => normalizeRole(role) === 'ADMIN';
 
+type MockApplication = {
+  id: string;
+  vacancy_id: string;
+  candidate_id: string;
+  space_id: string;
+  notes: string | null;
+  status: string;
+  created_at: string;
+  decided_at?: string | null;
+  decided_by?: string | null;
+};
+
+type MockInterview = {
+  id: string;
+  application_id: string;
+  space_id: string;
+  guardian_id: string;
+  scheduled_for: string;
+  status: string;
+  response_note?: string | null;
+  responded_at?: string | null;
+};
+
+const mockRecruitmentStore = (() => {
+  const g = globalThis as any;
+  if (!g.__vivaMockRecruitmentStore) {
+    g.__vivaMockRecruitmentStore = {
+      applications: new Map<string, MockApplication>(),
+      interviews: new Map<string, MockInterview>(),
+    };
+  }
+  return g.__vivaMockRecruitmentStore as {
+    applications: Map<string, MockApplication>;
+    interviews: Map<string, MockInterview>;
+  };
+})();
+
 export const createApplication = asyncHandler(async (req: Request, res: Response) => {
   const userId = String((req as any).user?.userId || '').trim();
   const { vacancyId, notes } = applySchema.parse(req.body || {});
+
+  if (isMockMode()) {
+    const applicationId = `mock-app-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const application: MockApplication = {
+      id: applicationId,
+      vacancy_id: String(vacancyId),
+      candidate_id: userId || 'mock-candidate',
+      space_id: 'mock-space',
+      notes: notes || null,
+      status: 'APPLIED',
+      created_at: new Date().toISOString(),
+    };
+    mockRecruitmentStore.applications.set(applicationId, application);
+
+    const actionReceipt = await interactionReceiptService.upsert({
+      entityType: 'RECRUITMENT_APPLICATION', entityId: application.id, action: 'APPLY', actorId: application.candidate_id,
+      status: 'COMPLETED', nextStep: 'SPACE_REVIEW', requestId: req.requestId, payload: { vacancyId: application.vacancy_id, spaceId: application.space_id },
+    });
+
+    return res.status(201).json({ code: 'APPLICATION_CREATED', application, actionReceipt });
+  }
 
   const vacancy = await prisma.vacancy.findUnique({
     where: { id: String(vacancyId) },
@@ -68,6 +127,32 @@ export const scheduleInterview = asyncHandler(async (req: Request, res: Response
   const { id } = req.params;
   const { scheduledFor, guardianId } = scheduleInterviewSchema.parse(req.body || {});
 
+  if (isMockMode()) {
+    const application = mockRecruitmentStore.applications.get(String(id));
+    if (!application) return res.status(404).json({ error: 'Candidatura não encontrada.', code: 'APPLICATION_NOT_FOUND' });
+
+    const interviewId = `mock-int-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+    const interview: MockInterview = {
+      id: interviewId,
+      application_id: application.id,
+      space_id: application.space_id,
+      guardian_id: String(guardianId || application.candidate_id),
+      scheduled_for: new Date(scheduledFor).toISOString(),
+      status: 'PENDING_RESPONSE',
+      response_note: null,
+      responded_at: null,
+    };
+    mockRecruitmentStore.interviews.set(interviewId, interview);
+    application.status = 'INTERVIEW_INVITED';
+    mockRecruitmentStore.applications.set(application.id, application);
+
+    const actionReceipt = await interactionReceiptService.upsert({
+      entityType: 'INTERVIEW', entityId: interview.id, action: 'INVITE', actorId: actorId || 'mock-space', status: 'COMPLETED',
+      nextStep: 'GUARDIAN_RESPONSE', requestId: req.requestId, payload: { applicationId: application.id, guardianId: interview.guardian_id, scheduledFor: interview.scheduled_for },
+    });
+    return res.json({ code: 'INTERVIEW_INVITED', interview, actionReceipt });
+  }
+
   const application = await prisma.recruitmentApplication.findUnique({
     where: { id: String(id) },
     include: { vacancy: { select: { id: true, title: true, space_id: true } } },
@@ -103,6 +188,29 @@ export const respondInterview = asyncHandler(async (req: Request, res: Response)
   const { id } = req.params;
   const { decision, note } = interviewResponseSchema.parse(req.body || {});
 
+  if (isMockMode()) {
+    const interview = mockRecruitmentStore.interviews.get(String(id));
+    if (!interview) return res.status(404).json({ error: 'Entrevista não encontrada.', code: 'INTERVIEW_NOT_FOUND' });
+    const accepted = decision === 'ACCEPT';
+    const updatedInterview: MockInterview = {
+      ...interview,
+      status: accepted ? 'ACCEPTED' : 'DECLINED',
+      response_note: note || null,
+      responded_at: new Date().toISOString(),
+    };
+    mockRecruitmentStore.interviews.set(updatedInterview.id, updatedInterview);
+    const app = mockRecruitmentStore.applications.get(updatedInterview.application_id);
+    if (app) {
+      app.status = accepted ? 'INTERVIEW_ACCEPTED' : 'REJECTED';
+      mockRecruitmentStore.applications.set(app.id, app);
+    }
+    const actionReceipt = await interactionReceiptService.upsert({
+      entityType: 'INTERVIEW', entityId: updatedInterview.id, action: 'RESPOND', actorId: actorId || 'mock-guardian',
+      status: 'COMPLETED', nextStep: accepted ? 'SPACE_DECISION' : 'APPLICATION_CLOSED', requestId: req.requestId, payload: { decision, note: note || null },
+    });
+    return res.json({ code: accepted ? 'INTERVIEW_ACCEPTED' : 'INTERVIEW_DECLINED', interview: updatedInterview, actionReceipt });
+  }
+
   const interview = await prisma.interview.findUnique({ where: { id: String(id) }, include: { application: true } });
   if (!interview) return res.status(404).json({ error: 'Entrevista não encontrada.', code: 'INTERVIEW_NOT_FOUND' });
   if (interview.guardian_id !== actorId) return res.status(403).json({ error: 'Sem permissão para responder esta entrevista.', code: 'FORBIDDEN' });
@@ -132,6 +240,25 @@ export const decideApplication = asyncHandler(async (req: Request, res: Response
   const actorRole = String((req as any).user?.role || '').trim();
   const { id } = req.params;
   const { decision, note } = decisionSchema.parse(req.body || {});
+
+  if (isMockMode()) {
+    const application = mockRecruitmentStore.applications.get(String(id));
+    if (!application) return res.status(404).json({ error: 'Candidatura não encontrada.', code: 'APPLICATION_NOT_FOUND' });
+    const updated: MockApplication = {
+      ...application,
+      status: decision,
+      notes: note ? `${application.notes ? `${application.notes}\n` : ''}${note}` : application.notes,
+      decided_at: new Date().toISOString(),
+      decided_by: actorId || 'mock-space',
+    };
+    mockRecruitmentStore.applications.set(updated.id, updated);
+    const actionReceipt = await interactionReceiptService.upsert({
+      entityType: 'RECRUITMENT_APPLICATION', entityId: updated.id, action: 'DECIDE', actorId: actorId || 'mock-space',
+      status: 'COMPLETED', nextStep: decision === 'HIRED' ? 'ONBOARDING' : 'CLOSED', requestId: req.requestId,
+      payload: { decision, candidateId: updated.candidate_id },
+    });
+    return res.json({ code: decision === 'HIRED' ? 'APPLICATION_HIRED' : 'APPLICATION_REJECTED', application: updated, actionReceipt });
+  }
 
   const application = await prisma.recruitmentApplication.findUnique({
     where: { id: String(id) },
@@ -164,6 +291,24 @@ export const listApplications = asyncHandler(async (req: Request, res: Response)
   const userId = String((req as any).user?.userId || '').trim();
   const role = normalizeRole((req as any).user?.role);
   const scope = String(req.query.scope || '').trim().toLowerCase();
+
+  if (isMockMode()) {
+    const apps = Array.from(mockRecruitmentStore.applications.values());
+    const filtered = (scope === 'candidate' || role === 'PROFESSIONAL' || role === 'CLIENT')
+      ? apps.filter((a) => a.candidate_id === userId)
+      : apps.filter((a) => a.space_id === userId || role === 'ADMIN');
+    const interviewsByApp = new Map<string, MockInterview[]>();
+    Array.from(mockRecruitmentStore.interviews.values()).forEach((it) => {
+      const bucket = interviewsByApp.get(it.application_id) || [];
+      bucket.push(it);
+      interviewsByApp.set(it.application_id, bucket);
+    });
+    return res.json(filtered.map((a) => ({
+      ...a,
+      vacancy: { id: a.vacancy_id, title: 'Vaga Mock', status: 'OPEN' },
+      interviews: (interviewsByApp.get(a.id) || []).sort((x, y) => String(y.scheduled_for).localeCompare(String(x.scheduled_for))),
+    })));
+  }
 
   const where = (scope === 'candidate' || role === 'PROFESSIONAL' || role === 'CLIENT')
     ? { candidate_id: userId }

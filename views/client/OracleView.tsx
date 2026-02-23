@@ -41,7 +41,7 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
                         <button 
                             onClick={handleDraw}
                             disabled={isLoading}
-                            className="w-full max-w-sm py-6 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all relative overflow-hidden group"
+                            className="relative z-20 touch-manipulation w-full max-w-sm py-6 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest shadow-2xl hover:scale-105 active:scale-95 transition-all overflow-hidden group"
                         >
                             {isLoading ? (
                                 <span className="animate-pulse">Desembaralhando destino...</span>
@@ -58,7 +58,7 @@ export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }>
                         <div className="space-y-4 w-full max-w-sm animate-in fade-in slide-in-from-bottom">
                             <button 
                                 onClick={() => setShowCard(true)}
-                                className="w-full py-6 bg-white border border-nature-200 text-nature-900 rounded-[2rem] font-bold uppercase tracking-widest shadow-lg flex items-center justify-center gap-3 hover:bg-nature-50 transition-colors"
+                                className="relative z-20 touch-manipulation w-full py-6 bg-white border border-nature-200 text-nature-900 rounded-[2rem] font-bold uppercase tracking-widest shadow-lg flex items-center justify-center gap-3 hover:bg-nature-50 transition-colors"
                             >
                                 <Sparkles size={18} className="text-indigo-500" /> Ver Carta Revelada
                             </button>

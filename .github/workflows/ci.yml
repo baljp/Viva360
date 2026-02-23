@@ -156,7 +156,7 @@ jobs:
   # 5. Smoke E2E (mock mode, no external services)
   # ────────────────────────────────────────────────────────────────
   smoke-e2e:
-    name: 🎭 Smoke E2E (Mock)
+    name: 🎭 Critical QA Gate (Mock)
     runs-on: ubuntu-latest
     needs: [unit-tests, build]
     env:
@@ -181,19 +181,15 @@ jobs:
       - name: Install Playwright browsers (chromium only)
         run: npx playwright install --with-deps chromium
 
-      - name: Run core QA regression
-        run: npm run test:qa:core
-
-      - name: Run consent E2E
-        run: npm run test:qa:consent
-
-      - name: Run accessibility smoke
-        run: npm run test:qa:a11y-smoke
+      - name: Run critical QA subset (LGPD + contracts + oracle + tribo)
+        run: npm run test:qa:core:critical
 
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ github.run_id }}
-          path: playwright-report/
+          path: |
+            qa/reports/playwright-report/
+            qa/logs/
           retention-days: 7

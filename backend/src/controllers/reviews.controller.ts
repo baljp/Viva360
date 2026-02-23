@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
+import { isMockMode } from '../services/supabase.service';
 
 /**
  * GET /reviews/:spaceId
@@ -99,28 +100,72 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
  * Body: { spaceId, targetType, targetName, authorName, rating, comment }
  */
 export const createReview = asyncHandler(async (req: Request, res: Response) => {
-    const userId = String(req.user?.userId || '');
-    const { spaceId, targetType, targetName, authorName, rating, comment } = req.body;
-
-    if (!spaceId || !rating) {
-        return res.status(400).json({ error: 'spaceId and rating are required.' });
+    const userId = String(req.user?.userId || '').trim();
+    const userEmail = String(req.user?.email || '').trim();
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
     }
 
-    const numericRating = Math.min(10, Math.max(1, Number(rating) || 0));
+    const body = (req.body || {}) as any;
+    const spaceId = String(body.spaceId || '').trim();
+    const targetId = String(body.targetId || '').trim();
+    const targetType = String(body.targetType || (targetId ? 'guardian' : 'space')).trim().toLowerCase();
+    const targetName = String(body.targetName || '').trim();
+    const authorName = String(body.authorName || userEmail || 'Anônimo').trim();
+    const comment = typeof body.comment === 'string' ? body.comment : '';
+    const rawRating = Number(body.rating);
 
-    await prisma.$executeRawUnsafe(
-        `INSERT INTO public.events (type, payload, created_at) VALUES ('REVIEW_SUBMITTED', $1::jsonb, NOW())`,
-        JSON.stringify({
-            spaceId,
-            userId,
+    if (!Number.isFinite(rawRating)) {
+        return res.status(400).json({ error: 'rating inválido.', code: 'INVALID_RATING' });
+    }
+    if (rawRating < 0 || rawRating > 10) {
+        return res.status(400).json({ error: 'rating deve estar entre 0 e 10.', code: 'INVALID_RATING_RANGE' });
+    }
+    if (!spaceId && !targetId) {
+        return res.status(400).json({ error: 'targetId ou spaceId é obrigatório.', code: 'TARGET_REQUIRED' });
+    }
+
+    const numericRating = +rawRating.toFixed(1);
+    const resolvedSpaceId = spaceId || String(body.space_id || '').trim() || 'mock-space';
+
+    if (isMockMode()) {
+        const id = `mock-review-${Date.now()}`;
+        logger.info('reviews.created.mock', { id, resolvedSpaceId, userId, rating: numericRating });
+        return res.status(201).json({
+            id,
+            spaceId: resolvedSpaceId,
+            targetId: targetId || null,
             targetType: targetType || 'guardian',
             targetName: targetName || '',
-            authorName: authorName || 'Anônimo',
+            authorName,
             rating: numericRating,
-            comment: comment || '',
-        })
-    );
+            comment,
+            createdAt: new Date().toISOString(),
+        });
+    }
 
-    logger.info('reviews.created', { spaceId, userId, rating: numericRating });
-    return res.status(201).json({ success: true, rating: numericRating });
+    const payload = {
+        spaceId: resolvedSpaceId,
+        userId,
+        targetId: targetId || null,
+        targetType: targetType || 'guardian',
+        targetName: targetName || '',
+        authorName,
+        rating: numericRating,
+        comment,
+    };
+
+    const created = await (prisma as any).event.create({
+        data: {
+            stream_id: userId,
+            type: 'REVIEW_SUBMITTED',
+            payload,
+        },
+    });
+
+    logger.info('reviews.created', { spaceId: resolvedSpaceId, userId, rating: numericRating });
+    return res.status(201).json({
+        id: String((created as any)?.id || ''),
+        ...payload,
+    });
 });

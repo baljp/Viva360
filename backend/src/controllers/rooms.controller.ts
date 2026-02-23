@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { z } from 'zod';
 import { CloudinaryService } from '../services/cloudinary.service';
+import { isMockMode } from '../services/supabase.service';
 
 const getUserIdCompat = (req: Request): string =>
   String((req as any).user?.userId || (req as any).user?.id || '').trim();
@@ -147,6 +148,25 @@ export const createVacancy = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const listVacancies = asyncHandler(async (req: Request, res: Response) => {
+  if (isMockMode()) {
+    return res.json([
+      {
+        id: 'mock-vacancy-1',
+        title: 'Guardião de Reiki',
+        description: 'Atendimento integrativo com agenda flexível.',
+        specialties: ['Reiki'],
+        status: 'OPEN',
+      },
+      {
+        id: 'mock-vacancy-2',
+        title: 'Facilitador(a) de Yoga',
+        description: 'Turmas coletivas e práticas de alinhamento.',
+        specialties: ['Yoga'],
+        status: 'OPEN',
+      },
+    ]);
+  }
+
   try {
     const vacancies = await prisma.vacancy.findMany();
     return res.json(vacancies);
