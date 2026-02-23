@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../lib/logger';
+import crypto from 'crypto';
 
 const WAF_PATTERNS: { id: string; regex: RegExp }[] = [
     { id: 'xss_script', regex: /<script\b[^>]*>/i },
@@ -30,12 +31,16 @@ export const detectMaliciousPayload = (payload: string): string | null => {
 };
 
 export const securityHardening = (req: Request, res: Response, next: NextFunction) => {
+    // Generate nonce for strict CSP
+    const nonce = crypto.randomBytes(16).toString('base64');
+    res.locals.nonce = nonce;
+
     // 1. OWASP Compliance Headers
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;");
+    res.setHeader('Content-Security-Policy', `default-src 'self'; script-src 'self' 'nonce-${nonce}'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:;`);
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 

@@ -50,11 +50,22 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
   // Aggregate data
   const totalRooms = await prisma.room.count();
   const occupied = await prisma.room.count({ where: { status: 'occupied' } });
-  
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const revenueAgg = await prisma.transaction.aggregate({
+    _sum: { amount: true },
+    where: {
+      status: 'completed',
+      date: { gte: today },
+    },
+  });
+
   return res.json({
     total_rooms: totalRooms,
     occupied_rate: totalRooms > 0 ? (occupied / totalRooms) * 100 : 0,
-    revenue_today: 1250.00 // Mock for speed
+    revenue_today: Number(revenueAgg._sum?.amount || 0)
   });
 });
 
@@ -122,30 +133,30 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const createVacancy = asyncHandler(async (req: Request, res: Response) => {
-    const { title, description, specialties, availability } = req.body;
+  const { title, description, specialties, availability } = req.body;
 
-    const vacancy = await prisma.vacancy.create({
-        data: {
-            title,
-            description,
-            specialties: specialties || [],
-            space_id: req.user?.userId || 'unknown'
-        }
-    });
-    return res.status(201).json(vacancy);
+  const vacancy = await prisma.vacancy.create({
+    data: {
+      title,
+      description,
+      specialties: specialties || [],
+      space_id: req.user?.userId || 'unknown'
+    }
+  });
+  return res.status(201).json(vacancy);
 });
 
 export const listVacancies = asyncHandler(async (req: Request, res: Response) => {
-    try {
-        const vacancies = await prisma.vacancy.findMany();
-        return res.json(vacancies);
-    } catch (error: any) {
-        // If the table/columns are missing (common when DB wasn't migrated yet),
-        // degrade gracefully to an empty list so the UI can show an honest empty state.
-        const code = String(error?.code || '');
-        if (code === 'P2021' || code === 'P2022') {
-            return res.json([]);
-        }
-        throw error;
+  try {
+    const vacancies = await prisma.vacancy.findMany();
+    return res.json(vacancies);
+  } catch (error: any) {
+    // If the table/columns are missing (common when DB wasn't migrated yet),
+    // degrade gracefully to an empty list so the UI can show an honest empty state.
+    const code = String(error?.code || '');
+    if (code === 'P2021' || code === 'P2022') {
+      return res.json([]);
     }
+    throw error;
+  }
 });

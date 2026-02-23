@@ -36,7 +36,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
         return '';
     };
 
-    const loadEscambo = async () => {
+    const loadEscambo = async (cancelled = { value: false }) => {
         setLoading(true);
         setError(null);
         try {
@@ -58,20 +58,28 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
             });
             const allListings = (Array.isArray(all) ? all : []).map(toListing);
             const myList = (Array.isArray(mine) ? mine : []).map(toListing);
-            setMyListings(myList);
-            setGlobalListings(allListings.filter((l: any) => String(l.owner_id) && String(l.owner_id) !== String(user.id)));
+            if (!cancelled.value) {
+                setMyListings(myList);
+                setGlobalListings(allListings.filter((l: any) => String(l.owner_id) && String(l.owner_id) !== String(user.id)));
+            }
         } catch (e: any) {
             console.warn('[ProTribe] Failed to load escambo listings:', e);
-            setError('Não foi possível carregar o mural agora.');
-            setGlobalListings([]);
-            setMyListings([]);
+            if (!cancelled.value) {
+                setError('Não foi possível carregar o mural agora.');
+                setGlobalListings([]);
+                setMyListings([]);
+            }
         } finally {
-            setLoading(false);
+            if (!cancelled.value) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        loadEscambo().catch(() => undefined);
+        const cancelled = { value: false };
+        loadEscambo(cancelled).catch(() => undefined);
+        return () => { cancelled.value = true; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

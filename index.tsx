@@ -1,4 +1,5 @@
 // [DEPLOYMENT_HEARTBEAT]: 2026-01-28 14:55
+/// <reference types="vite-plugin-pwa/client" />
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import * as Sentry from '@sentry/react';
@@ -10,6 +11,18 @@ import './src/index.css'; // Global Design System
 import { installBootRecovery } from './src/boot/bootRecovery';
 import { initDeathClickTracker } from './src/utils/deathClickTracker';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { registerSW } from 'virtual:pwa-register';
+
+// Setup PWA Service Worker for automated cache invalidation post-deploy
+const updateSW = registerSW({
+  onNeedRefresh() {
+    // Automatically accept the new sw and reload the page to ensure clients always run the latest version
+    updateSW(true);
+  },
+  onOfflineReady() {
+    console.log('[PWA] Ready for offline use');
+  }
+});
 
 // Recovery guard to avoid "blank screen" after SW/cached-chunk mismatches.
 // NOTE: Service worker registration is already handled by vite-plugin-pwa (registerSW.js).

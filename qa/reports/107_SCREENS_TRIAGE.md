@@ -1,0 +1,126 @@
+# 107 Missing Screens / Placeholders Triage
+
+## 🔴 Real Gaps (46)
+- **views/SettingsViews.tsx:39** => `intentionPlaceholder: string;`
+- **views/SettingsViews.tsx:78** => `intentionPlaceholder: 'Ex: Acolher com presença e clareza.',`
+- **views/SettingsViews.tsx:121** => `intentionPlaceholder: 'Ex: Fortalecer acolhimento e expansão da equipe.',`
+- **views/SettingsViews.tsx:163** => `intentionPlaceholder: 'Ex: Encontrar clareza mental',`
+- **views/Registration.tsx:20** => `placeholder?: string;`
+- **views/Registration.tsx:35** => `className="w-full bg-white border border-nature-100 py-4 pl-14 pr-12 rounded-2xl text-sm focus:ring-2 focus:ring-primary`
+- **views/pro/ProDashboard.tsx:315** => `notify("Bênção Global Ativada", "Você enviou luz para todos os buscadores.", "success");`
+- **views/pro/SantuarioListView.tsx:101** => `className="bg-transparent flex-1 text-white text-sm outline-none placeholder:text-white/30"`
+- **views/pro/AlquimiaCreateOffer.tsx:89** => `className="w-full p-5 bg-white border border-nature-100 rounded-2xl focus:border-indigo-300 focus:ring-4 focus:ring-indi`
+- **views/pro/AlquimiaCreateOffer.tsx:130** => `className="w-full bg-transparent outline-none font-bold text-nature-900 placeholder:text-nature-200"`
+- **views/pro/CustomInterventionWizard.tsx:112** => `className="w-full p-4 bg-white border border-nature-100 rounded-2xl text-nature-900 placeholder:text-nature-300 focus:ou`
+- **views/pro/CustomInterventionWizard.tsx:196** => `className="flex-1 p-4 bg-white border border-nature-100 rounded-2xl text-nature-900 placeholder:text-nature-300 focus:ou`
+- **views/pro/CustomInterventionWizard.tsx:230** => `className="w-full p-4 bg-white border border-nature-100 rounded-[2rem] text-nature-900 placeholder:text-nature-300 focus`
+- **views/pro/chat/ProChatRoomScreen.tsx:139** => `className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-transparent focus:border-indigo-100 focus:bg-white outl`
+- **views/pro/chat/ProChatListScreen.tsx:24** => `const otherId = msg.sender_id === 'me' ? msg.receiver_id : msg.sender_id; // 'me' is placeholder logic, real will check`
+- **views/gamification/RitualBuilderView.tsx:70** => `className="flex-1 px-4 py-3 bg-transparent outline-none text-sm font-medium placeholder:text-nature-300"`
+- **views/space/SpaceTeam.tsx:83** => `className="w-full bg-white border border-nature-100 py-4 pl-14 pr-6 rounded-2xl text-xs font-medium shadow-sm outline-no`
+- **views/space/SpaceDashboard.tsx:138** => `<p className="text-[9px] font-bold text-indigo-200 uppercase tracking-widest mt-3">🏆 Recompensa: +200 Radiance para todo`
+- **views/space/SpaceEventsManager.tsx:68** => `{f === 'all' ? 'Todos' : f === 'upcoming' ? 'Próximos' : 'Concluídos'}`
+- **views/space/SpaceAuditLog.tsx:6** => `const [activeTab, setActiveTab] = useState<'Todos' | 'Contratos' | 'Financeiro' | 'Salas' | 'Equipe'>('Todos');`
+- **views/space/SpaceAuditLog.tsx:25** => `if (activeTab === 'Todos') return true;`
+- **views/space/SpaceAuditLog.tsx:75** => `className="w-full pl-12 pr-4 py-4 bg-white border border-nature-100 rounded-2xl shadow-sm focus:outline-none focus:ring-`
+- **views/space/SpaceAuditLog.tsx:80** => `{['Todos', 'Contratos', 'Financeiro', 'Salas', 'Equipe'].map((tab) => (`
+- **views/space/SpaceRecruitment.tsx:105** => `<p className="text-xs text-amber-700 italic px-4 leading-relaxed">Destaque suas vagas no topo do Mapa da Cura de todos o`
+- **views/space/SpaceRoomCreate.tsx:49** => `className="w-full p-6 bg-white border border-nature-100 rounded-[2rem] text-lg font-serif italic text-nature-900 placeho`
+- **views/space/SpaceCalendar.tsx:106** => `Todos`
+- **views/space/generated/ServiceEvaluation.tsx:108** => `className="w-full h-32 p-2 bg-transparent outline-none text-sm text-nature-700 resize-none placeholder:text-nature-300"`
+- **views/space/generated/SpacePatients.tsx:92** => `className="flex-1 bg-transparent border-none outline-none text-nature-900 placeholder:text-nature-300 text-sm font-mediu`
+- **views/space/generated/SpaceGovernance.tsx:29** => `Alvará de funcionamento válido até Dez/2026. Todos os terapeutas estão com documentação em dia.`
+- **views/client/chat/ChatRoomScreen.tsx:128** => `className="flex-1 bg-white px-4 py-2.5 rounded-2xl border-none outline-none text-sm placeholder:text-gray-400 focus:ring`
+- **views/client/financial/PaymentHistoryScreen.tsx:71** => `{ id: 'all', label: 'Todos' },`
+- **views/client/financial/CheckoutScreen.tsx:145** => `<button onClick={() => setShowPixQR(false)} className="mt-8 text-[10px] font-black text-nature-400 uppercase tracking-wi`
+- **views/client/garden/EvolutionView.tsx:91** => `<Minus size={24} /> {/* Placeholder for Star/Medal */}`
+- **views/client/garden/CollectionGrimoire.tsx:67** => `{/* Placeholder for missing cards (Gamification) */}`
+- **views/client/garden/DailyRitualWizard.tsx:478** => `className="w-full h-40 bg-white p-6 rounded-[2rem] border border-nature-100 outline-none text-lg text-nature-900 placeho`
+- **views/client/garden/DailyRitualWizard.tsx:507** => `className="w-full h-40 bg-white p-6 rounded-[2rem] border border-emerald-100 outline-none text-lg text-nature-900 placeh`
+- **components/Checkout.tsx:149** => `<p className="text-[10px] text-nature-400 uppercase tracking-widest mb-10">Tente novamente ou mude o método</p>`
+- **components/Checkout.tsx:230** => `<input value={address.street} onChange={e => setAddress({...address, street: e.target.value})} className="w-full p-4 bg-`
+- **components/Checkout.tsx:235** => `<input value={address.number} onChange={e => setAddress({...address, number: e.target.value})} className="w-full p-4 bg-`
+- **components/Checkout.tsx:239** => `<input value={address.zip} onChange={e => setAddress({...address, zip: e.target.value})} className="w-full p-4 bg-nature`
+- **components/Checkout.tsx:244** => `<input value={address.city} onChange={e => setAddress({...address, city: e.target.value})} className="w-full p-4 bg-natu`
+- **components/Checkout.tsx:312** => `<p className="font-bold uppercase text-primary-400 text-[9px] mb-1">Método</p>`
+- **components/Common/CameraWidget.tsx:127** => `{/* Viewport de Vídeo - Ocupa todo o espaço disponível MENOS a barra de controle */}`
+- **src/utils/dailyWisdom.ts:18** => `"cada respiração reconecta o seu ser ao todo",`
+- **src/hooks/useJourneyEngine.ts:61** => `mood: 'Sereno', // Dynamic placeholder`
+- **src/data/mockSoulCards.ts:13** => `{ id: 'c1', archetype: 'O Aprendiz', element: 'Terra', rarity: 'common', message: 'Todo mestre já foi um iniciante que n`
+
+## 🟢 False Positives (75)
+- **views/Auth.tsx:131** => `placeholder="seu@email.com"`
+- **views/Auth.tsx:276** => `placeholder="seu@email.com"`
+- **views/Auth.tsx:290** => `placeholder="••••••••"`
+- **views/SettingsViews.tsx:37** => `bioPlaceholder: string;`
+- **views/SettingsViews.tsx:76** => `bioPlaceholder: 'Descreva sua abordagem de cuidado e troca.',`
+- **views/SettingsViews.tsx:119** => `bioPlaceholder: 'Descreva propósito, estrutura e diferencial do seu hub.',`
+- **views/SettingsViews.tsx:161** => `bioPlaceholder: 'Dedico minha jornada a...',`
+- **views/SettingsViews.tsx:438** => `placeholder={roleConfig.profile.bioPlaceholder}`
+- **views/SettingsViews.tsx:451** => `placeholder={roleConfig.profile.intentionPlaceholder}`
+- **views/SettingsViews.tsx:544** => `placeholder="Digite a nova senha"`
+- **views/AdminViews.tsx:109** => `<input type="text" placeholder="Buscar por e-mail, nome ou ID..." className="w-full bg-white border border-nature-100 py`
+- **views/ServiceViews.tsx:106** => `placeholder="Anote seus insights aqui..."`
+- **views/ResetPassword.tsx:84** => `placeholder="No mínimo 6 caracteres"`
+- **views/ResetPassword.tsx:103** => `placeholder="Repita a senha"`
+- **views/Registration.tsx:160** => `<InputField icon={<UserIcon size={18}/>} type="text" placeholder="Nome Completo" value={formData.name} onChange={(e) =>`
+- **views/Registration.tsx:161** => `<InputField icon={<Mail size={18}/>} type="email" placeholder="Seu melhor e-mail" value={formData.email} onChange={(e) =`
+- **views/Registration.tsx:162** => `<InputField icon={<Lock size={18}/>} type="password" placeholder="Crie uma senha segura" value={formData.password} onCha`
+- **views/Registration.tsx:229** => `<InputField icon={<UserIcon size={18}/>} type="text" placeholder="Nome Profissional" value={formData.name} onChange={(e)`
+- **views/Registration.tsx:230** => `<InputField icon={<Mail size={18}/>} type="email" placeholder="E-mail de Contato" value={formData.email} onChange={(e) =`
+- **views/Registration.tsx:231** => `<InputField icon={<Lock size={18}/>} type="password" placeholder="Senha de Acesso" value={formData.password} onChange={(`
+- **views/Registration.tsx:235** => `<InputField icon={<Sparkles size={18}/>} type="text" placeholder="Especialidades (Ex: Reiki, Yoga)" onChange={(e) => set`
+- **views/Registration.tsx:236** => `<InputField icon={<MapPin size={18}/>} type="text" placeholder="Bairro de Atendimento" value={formData.location} onChang`
+- **views/Registration.tsx:299** => `<InputField icon={<Home size={18}/>} type="text" placeholder="Nome do Espaço" value={formData.name} onChange={(e) => set`
+- **views/Registration.tsx:300** => `<InputField icon={<Mail size={18}/>} type="email" placeholder="E-mail Administrativo" value={formData.email} onChange={(`
+- **views/Registration.tsx:301** => `<InputField icon={<Lock size={18}/>} type="password" placeholder="Senha Mestra" value={formData.password} onChange={(e)`
+- **views/Registration.tsx:305** => `<InputField icon={<MapPin size={18}/>} type="text" placeholder="Endereço Completo" value={formData.address} onChange={(e`
+- **views/pro/AlquimiaProposeTrade.tsx:85** => `placeholder="Olá, gostaria de trocar sua arte pelo meu serviço..."`
+- **views/pro/SantuarioListView.tsx:100** => `placeholder="Buscar santuário..."`
+- **views/pro/AlquimiaCreateOffer.tsx:88** => `placeholder="Ex: Óleo Ancestral de Lavanda"`
+- **views/pro/AlquimiaCreateOffer.tsx:129** => `placeholder={formData.type === 'service' ? '60 min' : '10 unid.'}`
+- **views/pro/AlquimiaCreateOffer.tsx:141** => `placeholder="Descreva a vibração e os benefícios..."`
+- **views/pro/CustomInterventionWizard.tsx:111** => `placeholder="Ex: Meditação da Chama Violeta"`
+- **views/pro/CustomInterventionWizard.tsx:195** => `placeholder="Adicionar ingrediente..."`
+- **views/pro/CustomInterventionWizard.tsx:229** => `placeholder="Descreva o passo a passo da intervenção..."`
+- **views/pro/ProTribe.tsx:96** => `<input type="text" placeholder="O que você procura hoje?" className="flex-1 bg-transparent border-none outline-none text`
+- **views/pro/generated/PatientEvolutionView.tsx:51** => `<input value={title} onChange={e => setTitle(e.target.value)} placeholder="Ex: Sessão de Alinhamento" className="w-full`
+- **views/pro/generated/PatientEvolutionView.tsx:65** => `<textarea rows={4} value={content} onChange={e => setContent(e.target.value)} placeholder="O que o espírito revelou hoje`
+- **views/pro/generated/PatientsList.tsx:62** => `<input type="text" placeholder="Buscar alma no jardim..." className="flex-1 bg-transparent border-none outline-none text`
+- **views/pro/generated/VagasList.tsx:34** => `<input type="text" placeholder="Cargo, cidade ou terapia..." className="flex-1 bg-transparent border-none outline-none t`
+- **views/pro/chat/ProChatRoomScreen.tsx:138** => `placeholder="Escreva uma mensagem..."`
+- **views/pro/chat/ProChatListScreen.tsx:73** => `placeholder="Buscar paciente..."`
+- **views/gamification/RitualBuilderView.tsx:69** => `placeholder="Novo hábito (ex: Yoga)"`
+- **views/space/SpaceTeam.tsx:82** => `placeholder="🔍 Buscar guardião, mestre ou facilitador..."`
+- **views/space/SpaceAuditLog.tsx:74** => `placeholder="Buscar por usuário, ação ou alvo..."`
+- **views/space/SpaceRoomCreate.tsx:48** => `placeholder="Ex: Sala Ametista, Jardim Zen..."`
+- **views/space/generated/ServiceEvaluation.tsx:107** => `placeholder="Deixe um recado para o Mestre (opcional)..."`
+- **views/space/generated/SpacePatients.tsx:91** => `placeholder="Buscar por sintonização ou alma..."`
+- **views/space/generated/SpaceEventCreate.tsx:55** => `placeholder="Ex: Círculo de Mulheres - Lua Nova"`
+- **views/space/generated/SpaceEventCreate.tsx:81** => `<input type="number" placeholder="Vagas" className="w-full outline-none font-bold text-nature-700 bg-transparent"/>`
+- **views/space/generated/SpaceEventCreate.tsx:100** => `<input type="number" placeholder="0,00" className="w-full outline-none text-lg font-bold text-nature-900 bg-transparent"`
+- **views/space/generated/SpaceSummon.tsx:79** => `placeholder="Descreva brevemente a situação..."`
+- **views/space/chat/SpaceChatRoomScreen.tsx:99** => `placeholder="Escreva sua mensagem..."`
+- **views/space/chat/SpaceChatListScreen.tsx:46** => `placeholder="Buscar conversa..."`
+- **views/client/BookingSearch.tsx:85** => `placeholder="Busque por técnica ou guardião..."`
+- **views/client/MapaDaCuraView.tsx:191** => `placeholder="Busque por emoção, técnica ou guardião..."`
+- **views/client/generated/TribeInteraction.tsx:125** => `placeholder="Compartilhe sua luz..."`
+- **views/client/chat/ChatListScreen.tsx:31** => `placeholder="Buscar alma ou pacto..."`
+- **views/client/chat/ChatRoomScreen.tsx:127** => `placeholder="Digite uma mensagem..."`
+- **views/client/garden/EmotionalHistory.tsx:61** => `<input value={query} onChange={(event) => setQuery(event.target.value)} type="text" placeholder="Buscar sentimento..." c`
+- **views/client/garden/DailyRitualWizard.tsx:477** => `placeholder="Ex: Respirar por 5 min, ouvir uma música..."`
+- **views/client/garden/DailyRitualWizard.tsx:506** => `placeholder="Sou grato por..."`
+- **views/client/tribe/SoulPactInteraction.tsx:176** => `placeholder="Ex: Enviar uma foto da natureza todos os dias ao meio-dia..."`
+- **components/Checkout.tsx:273** => `<input className="w-full p-4 bg-nature-50 rounded-2xl outline-none" placeholder="Número do Cartão"/>`
+- **components/Checkout.tsx:275** => `<input className="w-full p-4 bg-nature-50 rounded-2xl outline-none" placeholder="MM/AA"/>`
+- **components/Checkout.tsx:276** => `<input className="w-full p-4 bg-nature-50 rounded-2xl outline-none" placeholder="CVC"/>`
+- **components/Checkout.tsx:278** => `<input className="w-full p-4 bg-nature-50 rounded-2xl outline-none" placeholder="Nome Impresso"/>`
+- **components/MarketplaceExplorer.tsx:50** => `placeholder="Buscar itens sagrados..."`
+- **components/Common/VacancyFormModal.tsx:40** => `placeholder="Ex: Terapeuta Ayurveda"`
+- **components/Common/VacancyFormModal.tsx:50** => `placeholder="Descreva o que o Guardião irá realizar..."`
+- **components/Common/VacancyFormModal.tsx:61** => `placeholder="Adicionar (ex: Reiki)"`
+- **components/Common/ProductFormModal.tsx:51** => `<input value={name} onChange={e => setName(e.target.value)} placeholder="Ex: Cristal de Ametista ou Workshop de Breathwo`
+- **components/Common/ProductFormModal.tsx:61** => `<input value={category} onChange={e => setCategory(e.target.value)} placeholder="Ex: Pedras, Cura" className="w-full bg-`
+- **components/Common/ProductFormModal.tsx:75** => `<input value={symptomInput} onChange={e => setSymptomInput(e.target.value)} placeholder="Ex: Ansiedade" className="flex-`
+- **components/Common/ProductFormModal.tsx:85** => `<textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} placeholder="Descreva a energia de`
+- **components/Common/ReviewFormModal.tsx:58** => `placeholder="Compartilhe como você se sentiu..."`

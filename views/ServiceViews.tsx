@@ -36,9 +36,10 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
     // Prefer flow context navigation over browser history to avoid SPA inconsistencies.
     try {
       const guardiaoFlow = (useGuardiaoFlow as any)();
+      if (guardiaoFlow?.go) { guardiaoFlow.go('DASHBOARD'); return; }
       if (guardiaoFlow?.back) { guardiaoFlow.back(); return; }
     } catch { /* not in guardiao context */ }
-    window.history.back();
+    window.location.href = '/pro/home';
   });
 
   const jitsiDomain = (import.meta as any).env?.VITE_JITSI_DOMAIN || 'meet.jit.si';

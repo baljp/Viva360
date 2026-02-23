@@ -5,22 +5,22 @@ import { z } from 'zod';
 import prisma from '../lib/prisma';
 
 const checkInSchema = z.object({
-  reward: z.number().int().min(1).max(1500).optional()
+    reward: z.number().int().min(1).max(1500).optional()
 });
 
 const userUpdateSchema = z.object({
-  name: z.string().min(2).optional(),
-  bio: z.string().optional(),
-  avatar: z.string().url().optional(),
-  location: z.string().optional(),
-  specialty: z.array(z.string()).optional(),
-  karma: z.number().optional(),
-  streak: z.number().int().optional(),
-  multiplier: z.number().optional(),
-  plantStage: z.string().optional(),
-  plantXp: z.number().optional(),
-  plantHealth: z.number().min(0).max(100).optional(),
-  snaps: z.any().optional(),
+    name: z.string().min(2).optional(),
+    bio: z.string().optional(),
+    avatar: z.string().url().optional(),
+    location: z.string().optional(),
+    specialty: z.array(z.string()).optional(),
+    karma: z.number().optional(),
+    streak: z.number().int().optional(),
+    multiplier: z.number().optional(),
+    plantStage: z.string().optional(),
+    plantXp: z.number().optional(),
+    plantHealth: z.number().min(0).max(100).optional(),
+    snaps: z.any().optional(),
 });
 
 const isMissingTableOrColumnError = (error: unknown) => {
@@ -346,4 +346,60 @@ export const updateById = asyncHandler(async (req: Request, res: Response) => {
     }
 
     return res.json(data);
+});
+
+export const exportData = asyncHandler(async (req: Request, res: Response) => {
+    // LGPD Art. 18: Right to access data
+    const userId = String(req.user?.userId || req.user?.id || '').trim();
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized data export' });
+    }
+
+    // 1. Base Profile Data
+    const { data: profile, error: profileErr } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    // 2. Aggregate Data from Prisma
+    const [
+        events,
+        receipts,
+        transactionsAsClient,
+        transactionsAsPro,
+        appointmentsAsClient,
+        appointmentsAsPro
+    ] = await Promise.all([
+        prisma.event.findMany({ where: { stream_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.interactionReceipt.findMany({ where: { actor_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.transaction.findMany({ where: { client_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.transaction.findMany({ where: { pro_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.appointment.findMany({ where: { client_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
+        prisma.appointment.findMany({ where: { pro_id: userId }, orderBy: { created_at: 'desc' } }).catch(() => []),
+    ]);
+
+    // Build the consolidated export payload
+    const exportPayload = {
+        metadata: {
+            exportedAt: new Date().toISOString(),
+            version: '1.0',
+            legalBasis: 'LGPD Art. 18 - Direito de Acesso',
+        },
+        personalData: profile || null,
+        interactions: {
+            events,
+            receipts,
+        },
+        financials: {
+            sent: transactionsAsClient,
+            received: transactionsAsPro,
+        },
+        appointments: {
+            asClient: appointmentsAsClient,
+            asPro: appointmentsAsPro,
+        },
+    };
+
+    return res.json(exportPayload);
 });
