@@ -90,45 +90,42 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/ping",
-      "dest": "api/ping.ts"
+      "source": "/api/ping",
+      "destination": "api/ping.ts"
     },
     {
-      "src": "/api/health",
-      "dest": "backend/src/health.fn.ts"
+      "source": "/api/health",
+      "destination": "backend/src/health.fn.ts"
     },
     {
-      "src": "/api/auth/(.*)",
-      "dest": "backend/src/auth.fn.ts"
+      "source": "/api/auth/(.*)",
+      "destination": "backend/src/auth.fn.ts"
     },
     {
-      "src": "/api/chat/(.*)",
-      "dest": "backend/src/chat.fn.ts"
+      "source": "/api/chat/(.*)",
+      "destination": "backend/src/chat.fn.ts"
     },
     {
-      "src": "/api/tribe/(.*)",
-      "dest": "backend/src/tribe.fn.ts"
+      "source": "/api/tribe/(.*)",
+      "destination": "backend/src/tribe.fn.ts"
     },
     {
-      "src": "/api/marketplace/(.*)",
-      "dest": "backend/src/marketplace.fn.ts"
+      "source": "/api/marketplace/(.*)",
+      "destination": "backend/src/marketplace.fn.ts"
     },
     {
-      "src": "/api/checkout/(.*)",
-      "dest": "backend/src/checkout.fn.ts"
+      "source": "/api/checkout/(.*)",
+      "destination": "backend/src/checkout.fn.ts"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "backend/src/app.ts"
+      "source": "/api/(.*)",
+      "destination": "backend/src/app.ts"
     },
     {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "env": {

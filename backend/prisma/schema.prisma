@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearchPostgres"]
-  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x", "linux-arm64-openssl-3.0.x", "darwin-arm64"]
 }
 
 datasource db {
@@ -662,8 +662,8 @@ model SpaceInvite {
 model Routine {
   id         String   @id @default(uuid()) @db.Uuid
   user_id    String   @db.Uuid
-  type       String   // 'morning' | 'night' | etc.
-  steps      Json     // RoutineStep[]
+  type       String // 'morning' | 'night' | etc.
+  steps      Json // RoutineStep[]
   created_at DateTime @default(now()) @db.Timestamptz(6)
   updated_at DateTime @updatedAt @db.Timestamptz(6)
 
