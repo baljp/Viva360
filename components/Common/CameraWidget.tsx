@@ -85,6 +85,59 @@ export const CameraWidget: React.FC<{
     ctx.drawImage(source, sX, sY, sW, sH, 0, 0, dstW, dstH);
   };
 
+  const drawContain = (
+    ctx: CanvasRenderingContext2D,
+    source: CanvasImageSource,
+    srcW: number,
+    srcH: number,
+    dstW: number,
+    dstH: number,
+  ) => {
+    const scale = Math.min(dstW / srcW, dstH / srcH);
+    const drawW = Math.round(srcW * scale);
+    const drawH = Math.round(srcH * scale);
+    const dX = Math.round((dstW - drawW) / 2);
+    const dY = Math.round((dstH - drawH) / 2);
+    ctx.drawImage(source, 0, 0, srcW, srcH, dX, dY, drawW, drawH);
+  };
+
+  // Root-cause fix:
+  // Before, we always used a hard "cover" crop to force 9:16/4:5 which cuts a lot of content
+  // from landscape webcam/uploads. We now compose an Instagram-like canvas preserving the full
+  // photo (contain) over a blurred background fill.
+  const drawFramedPhoto = (
+    ctx: CanvasRenderingContext2D,
+    source: CanvasImageSource,
+    srcW: number,
+    srcH: number,
+    dstW: number,
+    dstH: number,
+  ) => {
+    ctx.save();
+    ctx.clearRect(0, 0, dstW, dstH);
+
+    // Background fill (cover) so the final asset keeps the requested story/post dimensions.
+    ctx.save();
+    ctx.filter = 'blur(20px) saturate(1.08) brightness(0.9)';
+    drawCover(ctx, source, srcW, srcH, dstW, dstH);
+    ctx.restore();
+
+    // Soft dim + vignette for a premium frame without harsh bars.
+    ctx.fillStyle = 'rgba(5, 10, 12, 0.28)';
+    ctx.fillRect(0, 0, dstW, dstH);
+    const vignette = ctx.createRadialGradient(dstW / 2, dstH / 2, Math.min(dstW, dstH) * 0.2, dstW / 2, dstH / 2, Math.max(dstW, dstH) * 0.75);
+    vignette.addColorStop(0, 'rgba(255,255,255,0)');
+    vignette.addColorStop(1, 'rgba(0,0,0,0.24)');
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, dstW, dstH);
+
+    // Foreground preserved (contain) with subtle inset shadow.
+    ctx.save();
+    drawContain(ctx, source, srcW, srcH, dstW, dstH);
+    ctx.restore();
+    ctx.restore();
+  };
+
   const canvasToBlob = (canvas: HTMLCanvasElement, type: string, quality: number) =>
     new Promise<Blob>((resolve, reject) => {
       canvas.toBlob(
@@ -115,7 +168,7 @@ export const CameraWidget: React.FC<{
       canvasRef.current.width = w;
       canvasRef.current.height = h;
       ctx.clearRect(0, 0, w, h);
-      drawCover(ctx, videoRef.current, vW, vH, w, h);
+      drawFramedPhoto(ctx, videoRef.current, vW, vH, w, h);
 
       // Stop stream immediately after capture
       const stream = videoRef.current.srcObject as MediaStream;
@@ -133,7 +186,7 @@ export const CameraWidget: React.FC<{
       if (!tctx) throw new Error('Falha ao gerar thumbnail.');
       tctx.imageSmoothingEnabled = true;
       tctx.imageSmoothingQuality = 'high';
-      drawCover(tctx, canvasRef.current, w, h, tw, th);
+      drawFramedPhoto(tctx, canvasRef.current, w, h, tw, th);
       const thumbDataUrl = thumbCanvas.toDataURL('image/jpeg', 0.82);
 
       // Quick shutter flash for premium feedback.
@@ -165,7 +218,7 @@ export const CameraWidget: React.FC<{
                   ctx.imageSmoothingEnabled = true;
                   ctx.imageSmoothingQuality = 'high';
                   ctx.clearRect(0, 0, w, h);
-                  drawCover(ctx, img, img.width, img.height, w, h);
+                  drawFramedPhoto(ctx, img, img.width, img.height, w, h);
 
                   const fullBlob = await canvasToBlob(canvasRef.current, 'image/jpeg', 0.9);
 
@@ -176,7 +229,7 @@ export const CameraWidget: React.FC<{
                   if (!tctx) return;
                   tctx.imageSmoothingEnabled = true;
                   tctx.imageSmoothingQuality = 'high';
-                  drawCover(tctx, canvasRef.current, w, h, tw, th);
+                  drawFramedPhoto(tctx, canvasRef.current, w, h, tw, th);
                   const thumbDataUrl = thumbCanvas.toDataURL('image/jpeg', 0.82);
 
                   onCapture({ fullBlob, thumbDataUrl, width: w, height: h });

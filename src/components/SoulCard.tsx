@@ -100,13 +100,22 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
             <div className={`absolute inset-0 z-0`}>
                 <div className="relative w-full h-full overflow-hidden">
                     {resolvedSrc ? (
-                        <img 
-                            src={resolvedSrc} 
-                            crossOrigin="anonymous"
-                            className="w-full h-full object-cover" 
-                            style={{ transform: "translateZ(10px)" }} 
-                            alt="Registro do ritual"
-                        />
+                        <>
+                            <img
+                                src={resolvedSrc}
+                                crossOrigin="anonymous"
+                                className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-40"
+                                alt=""
+                                aria-hidden
+                            />
+                            <img 
+                                src={resolvedSrc} 
+                                crossOrigin="anonymous"
+                                className="w-full h-full object-contain" 
+                                style={{ transform: "translateZ(10px)" }} 
+                                alt="Registro do ritual"
+                            />
+                        </>
                     ) : (
                         <div className="w-full h-full bg-slate-900 flex items-center justify-center">
                             <Sparkles size={48} className="text-white/5" />

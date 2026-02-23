@@ -250,11 +250,16 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                     drawRoundRect(photoX, photoY, photoW, photoH, 40);
                     ctx.clip();
                     
-                    const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
-                    const rx = photoX + (photoW - userImg.width * scale) / 2;
-                    const ry = photoY + (photoH - userImg.height * scale) / 2;
+                    const coverScale = Math.max(photoW / userImg.width, photoH / userImg.height);
+                    const coverRx = photoX + (photoW - userImg.width * coverScale) / 2;
+                    const coverRy = photoY + (photoH - userImg.height * coverScale) / 2;
+                    const containScale = Math.min(photoW / userImg.width, photoH / userImg.height);
+                    const containRx = photoX + (photoW - userImg.width * containScale) / 2;
+                    const containRy = photoY + (photoH - userImg.height * containScale) / 2;
+                    ctx.filter = `blur(14px) brightness(0.92) contrast(1.05) saturate(1.02)`; 
+                    ctx.drawImage(userImg, coverRx, coverRy, userImg.width * coverScale, userImg.height * coverScale);
                     ctx.filter = `brightness(1.05) contrast(1.1) saturate(1.1)`; 
-                    ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
+                    ctx.drawImage(userImg, containRx, containRy, userImg.width * containScale, userImg.height * containScale);
                     ctx.filter = 'none';
 
                     ctx.globalCompositeOperation = 'soft-light';

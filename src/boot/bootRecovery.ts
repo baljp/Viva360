@@ -1,4 +1,4 @@
-type RecoveryReason = 'chunk_load_error' | 'boot_timeout';
+type RecoveryReason = 'chunk_load_error' | 'boot_timeout' | 'css_load_error';
 
 const RECOVERY_FLAG = 'viva360.boot_recovery.did_recover';
 
@@ -68,6 +68,27 @@ function isLikelyChunkLoadFailure(message: string): boolean {
   );
 }
 
+function hasCoreStylesLoaded(): boolean {
+  try {
+    const rootStyles = getComputedStyle(document.documentElement);
+    const bgBase = rootStyles.getPropertyValue('--bg-base').trim();
+    if (bgBase) return true;
+
+    // Fallback sanity probe: Tailwind utilities should set display:none.
+    const probe = document.createElement('div');
+    probe.className = 'hidden fixed';
+    probe.style.position = 'absolute';
+    probe.style.pointerEvents = 'none';
+    document.body.appendChild(probe);
+    const computed = getComputedStyle(probe);
+    const ok = computed.display === 'none';
+    probe.remove();
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 export function installBootRecovery(): void {
   // 1) Catch typical chunk-load failures (usually stale SW cache after deploy).
   window.addEventListener('error', (event: Event) => {
@@ -77,15 +98,27 @@ export function installBootRecovery(): void {
 
     const target = anyEvent?.target;
     const src: string | undefined = target?.src;
+    const href: string | undefined = target?.href;
+    const tagName = String(target?.tagName || '').toUpperCase();
     if (src && typeof src === 'string' && src.includes('/assets/')) {
       void recover('chunk_load_error');
+      return;
+    }
+    // CSS asset failed to load (common on stale HTML -> hashed CSS mismatch after deploy).
+    if (tagName === 'LINK' && href && href.includes('/assets/') && href.includes('.css')) {
+      void recover('css_load_error');
+      return;
+    }
+    // Some browsers emit generic error events with only href for missing stylesheets.
+    if (!src && href && href.includes('/assets/') && href.includes('.css')) {
+      void recover('css_load_error');
       return;
     }
 
     if (msg && isLikelyChunkLoadFailure(msg)) {
       void recover('chunk_load_error');
     }
-  });
+  }, true);
 
   window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
     const reason = event.reason;
@@ -109,5 +142,23 @@ export function installBootRecovery(): void {
       void recover('boot_timeout');
     }
   }, 12000);
-}
 
+  // 3) CSS watchdog: React may mount with missing CSS if a hashed stylesheet 404s due stale cache.
+  // In that case the app "works" but looks broken (raw layout / huge images). Recover once.
+  const runCssSanityCheck = () => {
+    // Small delay lets the stylesheet load + React mount settle.
+    window.setTimeout(() => {
+      const mounted = (window as any).__VIVA360_MOUNTED__ === true;
+      if (!mounted) return;
+      if (!hasCoreStylesLoaded()) {
+        void recover('css_load_error');
+      }
+    }, 1600);
+  };
+
+  if (document.readyState === 'complete') {
+    runCssSanityCheck();
+  } else {
+    window.addEventListener('load', runCssSanityCheck, { once: true });
+  }
+}

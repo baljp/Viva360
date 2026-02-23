@@ -44,6 +44,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
     const [isSaving, setIsSaving] = useState(false);
     const capturePreviewUrl = useObjectUrl(capture?.fullBlob || null);
+    const previewAspectRatio = capture?.width && capture?.height ? `${capture.width} / ${capture.height}` : '9 / 16';
 
     const handleMoodSelect = (mood: MoodType) => {
         setData({ ...data, mood });
@@ -254,14 +255,19 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 drawRoundRect(photoX, photoY, photoW, photoH, 40);
                 ctx.clip();
                 
-                const scale = Math.max(photoW / userImg.width, photoH / userImg.height);
-                const rx = photoX + (photoW - userImg.width * scale) / 2;
-                const ry = photoY + (photoH - userImg.height * scale) / 2;
+                const coverScale = Math.max(photoW / userImg.width, photoH / userImg.height);
+                const coverRx = photoX + (photoW - userImg.width * coverScale) / 2;
+                const coverRy = photoY + (photoH - userImg.height * coverScale) / 2;
+                const containScale = Math.min(photoW / userImg.width, photoH / userImg.height);
+                const containRx = photoX + (photoW - userImg.width * containScale) / 2;
+                const containRy = photoY + (photoH - userImg.height * containScale) / 2;
 
                 // --- IG QUALITY PIPELINE (SOUL GARDEN - ATMOSPHERIC) ---
-                // 1. Base Image - Sharp & Natural
-                ctx.filter = `saturate(1.05) contrast(1.02)`; // Subtle pop, no blur
-                ctx.drawImage(userImg, rx, ry, userImg.width * scale, userImg.height * scale);
+                // 1. Fill background with a soft blur, then preserve the full photo in foreground.
+                ctx.filter = `blur(14px) saturate(1.05) contrast(1.02) brightness(0.9)`;
+                ctx.drawImage(userImg, coverRx, coverRy, userImg.width * coverScale, userImg.height * coverScale);
+                ctx.filter = `saturate(1.05) contrast(1.02)`;
+                ctx.drawImage(userImg, containRx, containRy, userImg.width * containScale, userImg.height * containScale);
                 ctx.filter = 'none';
 
                 // 2. Light Correction Overlay (Soft Light for atmosphere)
@@ -394,9 +400,15 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 
                 <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-12 p-8 max-w-6xl mx-auto w-full overflow-y-auto pb-24 md:pb-8">
                     {/* PHOTO PREVIEW - Elegant & Minimal */}
-                    <div className="relative w-full max-w-[320px] aspect-[3/4] bg-nature-900 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.2)] overflow-hidden border border-white/10 shrink-0">
+                    <div
+                        className="relative w-full max-w-[320px] bg-nature-900 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.2)] overflow-hidden border border-white/10 shrink-0"
+                        style={{ aspectRatio: previewAspectRatio }}
+                    >
                         {data.image ? (
-                            <img src={data.image} className="w-full h-full object-cover" alt="Sua Essência" />
+                            <>
+                                <img src={data.image} className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-45" alt="" aria-hidden />
+                                <img src={data.image} className="relative w-full h-full object-contain" alt="Sua Essência" />
+                            </>
                         ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center gap-6 p-8 text-center bg-gradient-to-br from-nature-800 to-black">
                                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
@@ -475,9 +487,15 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 </div>
 
                 <div className="flex-1 p-6 md:p-12 flex items-center justify-center overflow-hidden bg-black">
-                    <div className="relative h-full max-h-[80vh] aspect-[3/4] rounded-[3rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] group">
+                    <div
+                        className="relative h-full max-h-[80vh] rounded-[3rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] group"
+                        style={{ aspectRatio: previewAspectRatio }}
+                    >
                         {data.image ? (
-                            <img src={data.image} className="w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-105" alt="Prévia do Jardim da Alma" />
+                            <>
+                                <img src={data.image} className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-40" alt="" aria-hidden />
+                                <img src={data.image} className="relative w-full h-full object-contain transition-transform duration-[10000ms] group-hover:scale-[1.02]" alt="Prévia do Jardim da Alma" />
+                            </>
                         ) : (
                             <div className="w-full h-full bg-nature-900/50 flex flex-col items-center justify-center text-white/20 gap-4">
                                 <Camera size={48} />
