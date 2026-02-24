@@ -36,6 +36,8 @@ const checks: Check[] = [
   { id: 'route-leaks', label: 'Auditoria de vazamento de rotas teste/mock', command: 'npm run qa:audit-route-leaks', required: true },
   { id: 'mock-refs', label: 'Inventário/gate de referências mock', command: 'npm run qa:audit-mock-refs && npm run qa:mock-ref-gate', required: true },
   { id: 'console-usage', label: 'Auditoria/gate de console runtime', command: 'npm run qa:audit-console-usage && npm run qa:console-usage-gate', required: true },
+  { id: 'settimeout-usage', label: 'Auditoria/gate de setTimeout runtime', command: 'npm run qa:audit-settimeout-usage && npm run qa:settimeout-usage-gate', required: true },
+  { id: 'todo-usage', label: 'Auditoria/gate TODO/FIXME runtime', command: 'npm run qa:audit-todo-usage && npm run qa:todo-usage-gate', required: true },
   { id: 'buttons', label: 'Auditoria de botoes sem handler', command: 'npx tsx scripts/audit_buttons.ts --strict', required: true },
   { id: 'contracts', label: 'Contratos backend', command: 'npm run test:contracts', required: true },
   { id: 'oauth-policy', label: 'Política OAuth redirect/callback', command: 'npm run test:oauth-policy', required: true },

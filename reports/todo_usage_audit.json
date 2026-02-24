@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-02-24T16:58:49.378Z",
+  "totals": {
+    "allMatches": 13,
+    "runtime": 1
+  },
+  "runtimeMatches": [
+    {
+      "file": "backend/src/controllers/admin.controller.ts",
+      "line": 55,
+      "kind": "TODO",
+      "text": "// TODO: Add a \"blocked\" column to Profile when user management is fully implemented"
+    }
+  ],
+  "byFile": {
+    "backend/src/controllers/admin.controller.ts": 1
+  }
+}

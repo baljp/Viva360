@@ -51,7 +51,11 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) { // Log
     }, [activeRoomId, allMessages]); // Update when global messages change
 
     const scrollToBottom = () => {
-        setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                scrollRef.current?.scrollIntoView({ behavior: 'smooth' });
+            });
+        });
     };
 
     const handleSend = async () => {

@@ -47,6 +47,12 @@ jobs:
       - name: Audit console usage + gate
         run: npm run qa:audit-console-usage && npm run qa:console-usage-gate
 
+      - name: Audit setTimeout usage + gate
+        run: npm run qa:audit-settimeout-usage && npm run qa:settimeout-usage-gate
+
+      - name: Audit TODO/FIXME usage + gate
+        run: npm run qa:audit-todo-usage && npm run qa:todo-usage-gate
+
       - name: Lint (ESLint)
         run: npm run lint
 

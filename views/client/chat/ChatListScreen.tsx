@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PortalView, DynamicAvatar, DegradedRetryNotice } from '../../../components/Common';
 import { MessageCircle, Search, Flame, Loader } from 'lucide-react';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
@@ -41,12 +41,13 @@ function mapApiRoom(room: any): ChatRoom {
 
 export default function ChatListScreen() {
   const { go, back } = useBuscadorFlow();
-  const { getMessagesWith } = useChat();
+  const { messages } = useChat();
 
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
   const [search, setSearch] = useState('');
+  const realtimeRefreshTimer = useRef<number | null>(null);
 
   const loadRooms = useCallback(async () => {
     setLoading(true);
@@ -67,6 +68,22 @@ export default function ChatListScreen() {
   useEffect(() => {
     loadRooms();
   }, [loadRooms]);
+
+  useEffect(() => {
+    // ChatContext already receives Supabase realtime updates; revalidate room list with debounce.
+    if (realtimeRefreshTimer.current) {
+      window.clearTimeout(realtimeRefreshTimer.current);
+    }
+    realtimeRefreshTimer.current = window.setTimeout(() => {
+      loadRooms().catch(() => undefined);
+    }, 300);
+    return () => {
+      if (realtimeRefreshTimer.current) {
+        window.clearTimeout(realtimeRefreshTimer.current);
+        realtimeRefreshTimer.current = null;
+      }
+    };
+  }, [messages.length, loadRooms]);
 
   const filtered = rooms.filter(room => {
     if (!search.trim()) return true;
