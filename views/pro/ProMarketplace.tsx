@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { ViewState, Professional, Product } from '../../types';
 import { Plus, Star, Layers, ExternalLink, Award, Save, Trash2, ShoppingBag, Store } from 'lucide-react';
-import { PortalView, ProductFormModal, ZenToast } from '../../components/Common';
+import { PortalView, ProductFormModal } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { api } from '../../services/api';
 import { MarketplaceExplorer } from '../../components/MarketplaceExplorer';
+import { runConfirmedAction } from '../../src/utils/runConfirmedAction';
 
 export const ProMarketplace: React.FC<{ 
     user: Professional, 
@@ -15,14 +16,24 @@ export const ProMarketplace: React.FC<{
     const { go, notify } = useGuardiaoFlow();
     const [showAddProduct, setShowAddProduct] = useState(false);
     const [activeTab, setActiveTab] = useState<'manage' | 'explore'>('manage');
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success'|'info'|'warning'} | null>(null);
     const [buyingId, setBuyingId] = useState<string | null>(null);
 
     const handleAddProduct = async (pData: any) => {
-        await api.marketplace.create({ ...pData, ownerId: user.id });
-        refreshData();
-        setToast({ title: "Item Ancorado", message: "Sua nova alquimia foi adicionada.", type: 'success' });
-        setTimeout(() => setToast(null), 3000);
+        await runConfirmedAction({
+            action: () => api.marketplace.create({ ...pData, ownerId: user.id }),
+            refresh: () => Promise.resolve(refreshData()),
+            notify,
+            successToast: {
+                title: 'Item Ancorado',
+                message: 'Sua nova alquimia foi adicionada.',
+                type: 'success',
+            },
+            failToast: {
+                title: 'Falha no cadastro',
+                message: 'Não foi possível publicar o item.',
+                type: 'error',
+            },
+        });
     };
 
     // MOD-02: Real POST /marketplace/purchase instead of toast-only
@@ -30,12 +41,21 @@ export const ProMarketplace: React.FC<{
         if (buyingId) return;
         setBuyingId(product.id);
         try {
-            await api.marketplace.purchase(product.id, product.price, product.name);
-            setToast({ title: 'Interesse Registrado', message: `O vendedor de "${product.name}" foi notificado via plataforma.`, type: 'success' });
-            setTimeout(() => setToast(null), 3000);
-        } catch (err: any) {
-            const msg = err?.message || 'Não foi possível registrar interesse.';
-            notify?.('Erro', msg, 'error');
+            await runConfirmedAction({
+                action: () => api.marketplace.purchase(product.id, product.price, product.name),
+                refresh: () => Promise.resolve(refreshData()),
+                notify,
+                successToast: {
+                    title: 'Interesse Registrado',
+                    message: `O vendedor de "${product.name}" foi notificado via plataforma.`,
+                    type: 'success',
+                },
+                failToast: {
+                    title: 'Erro',
+                    message: (err) => (err as any)?.message || 'Não foi possível registrar interesse.',
+                    type: 'error',
+                },
+            });
         } finally {
             setBuyingId(null);
         }
@@ -43,8 +63,7 @@ export const ProMarketplace: React.FC<{
 
     // MOD-02: Honest feedback — highlight/save feature not yet backed by API
     const handleSaveProduct = (product: Product) => {
-        setToast({ title: 'Em Implementação', message: `O destaque de produtos estará disponível em breve.`, type: 'info' });
-        setTimeout(() => setToast(null), 3000);
+        notify('Em Implementação', 'O destaque de produtos estará disponível em breve.', 'info');
     };
 
     return (
@@ -60,8 +79,6 @@ export const ProMarketplace: React.FC<{
             ) : null
         }
     >
-        {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-        
         <div className="space-y-6">
             <div className="flex p-1 bg-nature-50 rounded-2xl">
                 <button onClick={() => setActiveTab('manage')} className={`flex-1 py-3 text-[10px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === 'manage' ? 'bg-white shadow-sm text-nature-900' : 'text-nature-400 hover:text-nature-600'}`}>
@@ -110,7 +127,28 @@ export const ProMarketplace: React.FC<{
                                         <div className="flex items-center gap-1.5 text-emerald-600"><Award size={10}/><span className="text-[9px] font-bold uppercase">+{prod.karmaReward} Karma</span></div>
                                         <div className="flex gap-2">
                                             <button aria-label="Salvar produto" onClick={() => handleSaveProduct(prod)} className="p-2 bg-nature-50 text-nature-300 rounded-lg hover:text-nature-900 transition-colors"><Save size={14}/></button>
-                                            <button aria-label="Excluir produto" onClick={() => api.marketplace.delete(prod.id).then(refreshData)} className="p-2 bg-rose-50 text-rose-300 rounded-lg hover:text-rose-600 transition-colors"><Trash2 size={14}/></button>
+                                            <button
+                                                aria-label="Excluir produto"
+                                                onClick={() => {
+                                                    void runConfirmedAction({
+                                                        action: () => api.marketplace.delete(prod.id),
+                                                        validateResult: (success) => success === true,
+                                                        refresh: () => Promise.resolve(refreshData()),
+                                                        notify,
+                                                        successToast: {
+                                                            title: 'Item removido',
+                                                            message: `\"${prod.name}\" foi removido do inventário.`,
+                                                            type: 'info',
+                                                        },
+                                                        failToast: {
+                                                            title: 'Falha na remoção',
+                                                            message: 'Não foi possível remover o item agora.',
+                                                            type: 'warning',
+                                                        },
+                                                    });
+                                                }}
+                                                className="p-2 bg-rose-50 text-rose-300 rounded-lg hover:text-rose-600 transition-colors"
+                                            ><Trash2 size={14}/></button>
                                         </div>
                                     </div>
                                 </div>

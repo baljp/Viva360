@@ -26,6 +26,32 @@ export type LoginEligibility = {
   nextAction?: string | null;
 };
 
+const mapProviderFallback = (rawFallback?: string): string | null => {
+  const fallback = String(rawFallback || '').trim();
+  const lower = fallback.toLowerCase();
+  if (!lower) return null;
+
+  if (lower.includes('email logins are disabled') || lower.includes('email login is disabled')) {
+    return 'Login por e-mail está desabilitado no provedor. Verifique Email/Password em Supabase Auth > Providers.';
+  }
+  if (lower.includes('email signups are disabled') || lower.includes('signup is disabled')) {
+    return 'Cadastro por e-mail está desabilitado no provedor. Verifique Email/Password em Supabase Auth > Providers.';
+  }
+  if (lower.includes('error sending confirmation email') || lower.includes('smtp')) {
+    return 'Falha no envio de e-mail. Verifique SMTP/From/Template no Supabase Auth e confirme domínio/remetente.';
+  }
+  if (lower.includes('redirect') && lower.includes('not allowed')) {
+    return 'Redirect de autenticação não permitido. Revise Site URL e Redirect URLs no Supabase Auth.';
+  }
+  if (lower.includes('email not confirmed')) {
+    return 'E-mail ainda não confirmado. Verifique a caixa de entrada/spam ou ajuste política de confirmação no Supabase Auth.';
+  }
+  if (lower.includes('invalid login credentials')) {
+    return 'Credenciais inválidas. Se o Google entra e senha não, confira se essa conta foi criada com senha e se Email/Password está habilitado.';
+  }
+  return null;
+};
+
 export const toDomainAuthMessage = (input: { code?: string | null; reason?: string | null; fallback?: string }): string => {
   const code = String(input.code || '').toUpperCase();
   const reason = String(input.reason || '').toUpperCase();
@@ -37,6 +63,8 @@ export const toDomainAuthMessage = (input: { code?: string | null; reason?: stri
   if (reason === 'MOCK_STRICT_ONLY') return 'No modo teste, use apenas e-mails pré-definidos.';
   if (code === 'EMAIL_NOT_AUTHORIZED' || reason === 'EMAIL_NOT_AUTHORIZED') return 'Conta não autorizada. Faça cadastro antes de entrar.';
   if (code === 'INVALID_CREDENTIALS') return 'Credenciais inválidas.';
+  const providerHint = mapProviderFallback(input.fallback);
+  if (providerHint) return providerHint;
   return input.fallback || 'Não foi possível concluir autenticação.';
 };
 
@@ -140,4 +168,3 @@ export const hydrateUserFromProfileApi = async (request: RequestFn, base: User):
     return base;
   }
 };
-

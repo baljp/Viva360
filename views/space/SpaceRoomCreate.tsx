@@ -3,6 +3,7 @@ import { User } from '../../types';
 import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { ArrowLeft, Plus, Sparkles, Layout, Users, Wind, Sun, Moon } from 'lucide-react';
 import { api } from '../../services/api';
+import { runConfirmedAction } from '../../src/utils/runConfirmedAction';
 
 export const SpaceRoomCreate: React.FC<{ user: User }> = ({ user }) => {
     const { go, notify } = useSantuarioFlow();
@@ -15,11 +16,22 @@ export const SpaceRoomCreate: React.FC<{ user: User }> = ({ user }) => {
         
         setLoading(true);
         try {
-            await api.spaces.createRoom({ name, type, capacity: 10 });
-            notify('Altar Consagrado', `O espaço "${name}" foi ativado com sucesso.`, 'success');
-            go('ROOMS_STATUS');
-        } catch (error) {
-            notify('Falha na Criação', 'Não foi possível criar o espaço.', 'error');
+            await runConfirmedAction({
+                action: () => api.spaces.createRoom({ name, type, capacity: 10 }),
+                refresh: () => api.spaces.getRooms(),
+                notify,
+                successToast: {
+                    title: 'Altar Consagrado',
+                    message: `O espaço "${name}" foi ativado com sucesso.`,
+                    type: 'success',
+                },
+                failToast: {
+                    title: 'Falha na Criação',
+                    message: 'Não foi possível criar o espaço.',
+                    type: 'error',
+                },
+                navigate: () => go('ROOMS_STATUS'),
+            });
         } finally {
             setLoading(false);
         }

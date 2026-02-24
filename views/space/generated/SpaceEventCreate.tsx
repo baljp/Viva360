@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
-import { PortalView, ZenToast } from '../../../components/Common';
+import { PortalView } from '../../../components/Common';
 import { Calendar, Users, Ticket, ArrowRight } from 'lucide-react';
 import { api } from '../../../services/api';
+import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
 
 export default function SpaceEventCreate() {
     const { back, go, notify, state, selectEvent } = useSantuarioFlow();
@@ -25,7 +26,6 @@ export default function SpaceEventCreate() {
     const [endDate, setEndDate] = useState<string>(new Date().toISOString().slice(0, 10));
     const [endTime, setEndTime] = useState<string>('10:30');
     const [submitting, setSubmitting] = useState(false);
-    const [toast, setToast] = useState<any>(null);
 
     const parseMeta = (details?: string | null) => {
         if (!details) return {};
@@ -62,7 +62,7 @@ export default function SpaceEventCreate() {
                 setEndTime(end.toISOString().slice(11, 16));
             } catch (e: any) {
                 if (!mounted) return;
-                setToast({ title: 'Falha ao carregar', message: e?.message || 'Não foi possível abrir este evento.', type: 'error' });
+                notify('Falha ao carregar', e?.message || 'Não foi possível abrir este evento.', 'error');
             } finally {
                 if (mounted) setSubmitting(false);
             }
@@ -73,50 +73,69 @@ export default function SpaceEventCreate() {
 
     const handleNext = () => {
         if (step < 2) return setStep(step + 1);
-        // Publish
+        if (!title.trim()) {
+            notify('Nome Necessário', 'Dê um nome à vivência.', 'warning');
+            return;
+        }
+
+        setSubmitting(true);
         (async () => {
-            if (!title.trim()) {
-                notify('Nome Necessário', 'Dê um nome à vivência.', 'warning');
+            const start = new Date(`${startDate}T${startTime}:00`);
+            const end = new Date(`${endDate}T${endTime}:00`);
+            const safeEnd = end.getTime() > start.getTime() ? end : new Date(start.getTime() + 60 * 60 * 1000);
+            const details = JSON.stringify({
+                kind: eventType,
+                capacity,
+                roomName,
+                price,
+            });
+
+            const result = await runConfirmedAction({
+                action: async () => {
+                    if (editingId) {
+                        await api.spaces.updateEvent(editingId, {
+                            title,
+                            start: start.toISOString(),
+                            end: safeEnd.toISOString(),
+                            type: eventType,
+                            details,
+                        } as any);
+                        return { eventId: editingId, mode: 'update' as const };
+                    }
+                    const created = await api.spaces.createEvent({
+                        title,
+                        start: start.toISOString(),
+                        end: safeEnd.toISOString(),
+                        type: eventType,
+                        details,
+                    } as any);
+                    return { eventId: String((created as any)?.id || ''), mode: 'create' as const };
+                },
+                refresh: () => api.spaces.getEvents(),
+                notify,
+                successToast: {
+                    title: isEditing ? 'Vivência Atualizada' : 'Vivência Publicada',
+                    message: 'O calendário sagrado foi atualizado.',
+                    type: 'success',
+                },
+                failToast: {
+                    title: 'Falha ao publicar',
+                    message: (e) => (e as any)?.message || 'Não foi possível criar o evento.',
+                    type: 'error',
+                },
+                onSuccess: () => {
+                    try { localStorage.removeItem('viva360.space.event_create.type'); } catch { /* ignore */ }
+                    selectEvent(null);
+                },
+                navigate: () => go(eventType === 'retreat' ? 'RETREATS_MANAGE' : 'EVENTS_MANAGE'),
+            });
+
+            if (!result.ok) {
                 return;
             }
-            setSubmitting(true);
-            try {
-                const start = new Date(`${startDate}T${startTime}:00`);
-                const end = new Date(`${endDate}T${endTime}:00`);
-                const safeEnd = end.getTime() > start.getTime() ? end : new Date(start.getTime() + 60 * 60 * 1000);
-                const details = JSON.stringify({
-                    kind: eventType,
-                    capacity,
-                    roomName,
-                    price,
-                });
-                if (editingId) {
-                    await api.spaces.updateEvent(editingId, {
-                        title,
-                        start: start.toISOString(),
-                        end: safeEnd.toISOString(),
-                        type: eventType,
-                        details,
-                    } as any);
-                } else {
-                    await api.spaces.createEvent({
-                        title,
-                        start: start.toISOString(),
-                        end: safeEnd.toISOString(),
-                        type: eventType,
-                        details,
-                    } as any);
-                }
-                try { localStorage.removeItem('viva360.space.event_create.type'); } catch { /* ignore */ }
-                selectEvent(null);
-                setToast({ title: isEditing ? 'Vivência Atualizada' : 'Vivência Publicada', message: 'O calendário sagrado foi atualizado.', type: 'success' });
-                setTimeout(() => go(eventType === 'retreat' ? 'RETREATS_MANAGE' : 'EVENTS_MANAGE'), 900);
-            } catch (e: any) {
-                setToast({ title: 'Falha ao Publicar', message: e?.message || 'Não foi possível criar o evento.', type: 'error' });
-            } finally {
-                setSubmitting(false);
-            }
-        })();
+        })().finally(() => {
+            setSubmitting(false);
+        });
     };
 
     return (
@@ -126,7 +145,6 @@ export default function SpaceEventCreate() {
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1528642474498-1af0c17fd8c3?q=80&w=800"
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <div className="space-y-6 px-4 pb-24">
                 
                 {/* Progress */}

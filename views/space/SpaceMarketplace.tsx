@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Plus, ShoppingBag, Store, Eye, RefreshCw, Trash2 } from 'lucide-react';
 import { ViewState, User, Product } from '../../types';
-import { PortalView, ProductFormModal, ZenToast } from '../../components/Common';
+import { PortalView, ProductFormModal } from '../../components/Common';
 import { api } from '../../services/api';
 import { MarketplaceExplorer } from '../../components/MarketplaceExplorer';
+import { runConfirmedAction } from '../../src/utils/runConfirmedAction';
 
 interface SpaceMarketplaceProps {
     view: ViewState;
@@ -16,37 +17,58 @@ interface SpaceMarketplaceProps {
 
 export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setView, user, myProducts, refreshData, flow }) => {
     const [showAddProduct, setShowAddProduct] = useState(false);
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'info' | 'warning'} | null>(null);
     const [activeTab, setActiveTab] = useState<'explore' | 'manage'>('explore');
     const [searchQuery, setSearchQuery] = useState('');
+    const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') =>
+      flow?.notify?.(title, message, type);
 
     const handleBuyWrapper = (product: Product) => {
-        setToast({ title: 'Interesse Enviado', message: `O vendedor de "${product.name}" foi notificado.`, type: 'success' });
-        setTimeout(() => setToast(null), 3000);
+        notify('Interesse Enviado', `O vendedor de "${product.name}" foi notificado.`, 'success');
     };
 
     const handleDeleteProduct = async (productId: string) => {
-        const success = await api.marketplace.delete(productId);
-        if (!success) {
-            setToast({ title: 'Falha na remoção', message: 'Não foi possível remover o item agora.', type: 'warning' });
-            return;
-        }
-        await refreshData();
-        setToast({ title: 'Item removido', message: 'O item foi retirado do seu bazar.', type: 'info' });
+        await runConfirmedAction({
+            action: () => api.marketplace.delete(productId),
+            validateResult: (success) => success === true,
+            refresh: () => Promise.resolve(refreshData()),
+            notify,
+            successToast: {
+                title: 'Item removido',
+                message: 'O item foi retirado do seu bazar.',
+                type: 'info',
+            },
+            failToast: {
+                title: 'Falha na remoção',
+                message: 'Não foi possível remover o item agora.',
+                type: 'warning',
+            },
+        });
     };
 
     const handlePreviewProduct = (product: Product) => {
-        setToast({ title: 'Pré-visualização', message: `Abrindo detalhes de "${product.name}".`, type: 'info' });
+        notify('Pré-visualização', `Abrindo detalhes de "${product.name}".`, 'info');
     };
 
     const handleRefreshProduct = async (product: Product) => {
-        await refreshData();
-        setToast({ title: 'Item sincronizado', message: `"${product.name}" foi atualizado com dados recentes.`, type: 'success' });
+        await runConfirmedAction({
+            action: async () => ({ ok: true }),
+            refresh: () => Promise.resolve(refreshData()),
+            notify,
+            successToast: {
+                title: 'Item sincronizado',
+                message: `"${product.name}" foi atualizado com dados recentes.`,
+                type: 'success',
+            },
+            failToast: {
+                title: 'Falha na sincronização',
+                message: 'Não foi possível atualizar a lista agora.',
+                type: 'error',
+            },
+        });
     };
 
     return (
         <>
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <PortalView 
                 title="Bazar do Santuário" 
                 subtitle="ECOSSITEMA DE TROCAS" 
@@ -120,13 +142,21 @@ export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setVie
                     )}
                 </div>
                 <ProductFormModal isOpen={showAddProduct} onClose={() => setShowAddProduct(false)} onSubmit={async (pData) => {
-                    try {
-                        await api.marketplace.create({ ...pData, ownerId: user.id });
-                        await refreshData();
-                        setToast({ title: "Item Ancorado", message: "Sua nova alquimia já está disponível no Bazar Global.", type: 'success' });
-                    } catch {
-                        setToast({ title: "Falha no cadastro", message: "Não foi possível publicar o item.", type: 'warning' });
-                    }
+                    await runConfirmedAction({
+                        action: () => api.marketplace.create({ ...pData, ownerId: user.id }),
+                        refresh: () => Promise.resolve(refreshData()),
+                        notify,
+                        successToast: {
+                            title: 'Item Ancorado',
+                            message: 'Sua nova alquimia já está disponível no Bazar Global.',
+                            type: 'success',
+                        },
+                        failToast: {
+                            title: 'Falha no cadastro',
+                            message: 'Não foi possível publicar o item.',
+                            type: 'warning',
+                        },
+                    });
                 }} />
             </PortalView>
         </>

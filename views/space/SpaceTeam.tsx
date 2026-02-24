@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Users, Search, Timer, CheckCircle, Star, ChevronRight, UserPlus, Zap, Crown, Shield, Sprout, Share2, Calendar } from 'lucide-react';
 import { ViewState, Professional } from '../../types';
-import { PortalView, DynamicAvatar, PresenceBadge, ZenToast } from '../../components/Common';
+import { PortalView, DynamicAvatar, PresenceBadge } from '../../components/Common';
 import { usePresenceMap } from '../../src/hooks/usePresenceMap';
 
 interface SpaceTeamProps {
@@ -19,8 +19,9 @@ const getNextSession = () => {
 
 export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     const [activeFilter, setActiveFilter] = useState<'all' | 'dom' | 'availability' | 'level'>('all');
+    const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') =>
+      flow?.notify?.(title, message, type);
 
     const teamArray = Array.isArray(team) ? team : [];
     const activeMestres = teamArray.filter((p: any) => (p.roleLabel || (p.karma > 800 ? 'Mestre' : 'Guardião')) === 'Mestre').length;
@@ -29,13 +30,11 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
     const facilitators = teamArray.filter((p: any) => Array.isArray(p.specialty) && p.specialty.length > 0).length;
 
     const handleInvite = (type: string) => {
-        setToast({ title: 'Link Gerado', message: `Convite para ${type} copiado.` });
-        setTimeout(() => setToast(null), 3000);
+        notify('Link Gerado', `Convite para ${type} copiado.`, 'success');
     };
 
     const handleSummon = (group: string) => {
-        setToast({ title: 'Convocação Enviada', message: `Notificação enviada para ${group} disponíveis.` });
-        setTimeout(() => setToast(null), 3000);
+        notify('Convocação Enviada', `Notificação enviada para ${group} disponíveis.`, 'success');
     };
 
     const filteredTeam = teamArray.filter((professional: any) => {
@@ -53,8 +52,6 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
 
     return (
         <PortalView title="Círculo de Guardiões" subtitle="GESTÃO DE EQUIPE" onBack={() => flow.go('EXEC_DASHBOARD')}>
-            {toast && <ZenToast toast={{...toast, type: 'success'}} onClose={() => setToast(null)} />}
-            
             <div className="space-y-6">
                 {/* 1. HEADER: STATUS DO CÍRCULO */}
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">

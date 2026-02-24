@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TrendingUp, ArrowUpRight, ArrowDownRight, BarChart3, Filter, Users, Wallet, AlertTriangle, Clock, Calendar, CheckCircle2 } from 'lucide-react';
 import { ViewState, Transaction } from '../../types';
-import { PortalView, ZenToast } from '../../components/Common';
+import { PortalView } from '../../components/Common';
 
 interface SpaceFinanceProps {
     view: ViewState;
@@ -11,20 +11,17 @@ interface SpaceFinanceProps {
 }
 
 export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, transactions, flow }) => {
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'warning' | 'info'} | null>(null);
-
     // MOD-04: Route specific actions to real views or honest feedback
     const navigateTo = (screen: string) => flow.go(screen);
+    const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') =>
+      flow?.notify?.(title, message, type);
 
     const showImplementing = (feature: string) => {
-        setToast({ title: 'Em Implementação', message: `${feature} estará disponível em breve.`, type: 'info' });
-        setTimeout(() => setToast(null), 3000);
+        notify('Em Implementação', `${feature} estará disponível em breve.`, 'info');
     };
 
     return (
         <PortalView title="Painel de Prosperidade" subtitle="GESTÃO FINANCEIRA & OPERACIONAL" onBack={() => flow.go('EXEC_DASHBOARD')}>
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-            
             <div className="space-y-6">
                 {/* 1. VISÃO GERAL (HEADER EXECUTIVO) */}
                 <div className="bg-nature-900 rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden">

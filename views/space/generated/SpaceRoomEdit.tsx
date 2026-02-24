@@ -3,9 +3,10 @@ import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { PortalView } from '../../../components/Common';
 import { Save, Trash2, Camera, UploadCloud } from 'lucide-react';
 import { api } from '../../../services/api';
+import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
 
 export default function SpaceRoomEdit() {
-    const { state, back, go, notify} = useSantuarioFlow();
+    const { state, back, go, notify } = useSantuarioFlow();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
@@ -50,11 +51,22 @@ export default function SpaceRoomEdit() {
                 if (imagePreview && imagePreview.startsWith('data:')) {
                     payload.imageBase64 = imagePreview;
                 }
-                await api.spaces.updateRoom(id, payload);
-                notify('Altar Atualizado', 'As alterações foram salvas na egrégora.', 'success');
-                setTimeout(() => go('ROOMS_STATUS'), 900);
-            } catch (e: any) {
-                notify('Falha ao salvar', e?.message || 'Não foi possível atualizar o altar.', 'error');
+                await runConfirmedAction({
+                    action: () => api.spaces.updateRoom(id, payload),
+                    refresh: () => api.spaces.getRooms(),
+                    notify,
+                    successToast: {
+                        title: 'Altar Atualizado',
+                        message: 'As alterações foram salvas na egrégora.',
+                        type: 'success',
+                    },
+                    failToast: {
+                        title: 'Falha ao salvar',
+                        message: (e) => (e as any)?.message || 'Não foi possível atualizar o altar.',
+                        type: 'error',
+                    },
+                    navigate: () => go('ROOMS_STATUS'),
+                });
             } finally {
                 setIsSaving(false);
             }

@@ -93,35 +93,39 @@
   "rewrites": [
     {
       "source": "/api/ping",
-      "destination": "api/ping.ts"
+      "destination": "/api/ping.ts"
     },
     {
       "source": "/api/health",
-      "destination": "backend/src/health.fn.ts"
+      "destination": "/backend/src/health.fn.ts"
     },
     {
       "source": "/api/auth/(.*)",
-      "destination": "backend/src/auth.fn.ts"
+      "destination": "/backend/src/auth.fn.ts"
     },
     {
       "source": "/api/chat/(.*)",
-      "destination": "backend/src/chat.fn.ts"
+      "destination": "/backend/src/chat.fn.ts"
     },
     {
       "source": "/api/tribe/(.*)",
-      "destination": "backend/src/tribe.fn.ts"
+      "destination": "/backend/src/tribe.fn.ts"
     },
     {
       "source": "/api/marketplace/(.*)",
-      "destination": "backend/src/marketplace.fn.ts"
+      "destination": "/backend/src/marketplace.fn.ts"
     },
     {
       "source": "/api/checkout/(.*)",
-      "destination": "backend/src/checkout.fn.ts"
+      "destination": "/backend/src/checkout.fn.ts"
     },
     {
       "source": "/api/(.*)",
-      "destination": "backend/src/app.ts"
+      "destination": "/backend/src/app.ts"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
     },
     {
       "source": "/((?!api(?:/|$)|assets(?:/|$)|.*\\..*).*)",

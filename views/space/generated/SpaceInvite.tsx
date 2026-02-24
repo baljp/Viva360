@@ -3,6 +3,7 @@ import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { PortalView } from '../../../components/Common';
 import { Share2, Copy, Shield, Sprout, Crown, Check, RefreshCw } from 'lucide-react';
 import { api } from '../../../services/api';
+import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
 
 export default function SpaceInvite() {
     const { back, notify } = useSantuarioFlow();
@@ -17,11 +18,20 @@ export default function SpaceInvite() {
     const generateInvite = async () => {
         setLoading(true); setInviteCode('');
         try {
-            const data = await api.spaces.createInvite({ role: roleMap[selectedRole], uses: 1 });
-            if (data?.code) setInviteCode(data.code);
-            else notify('Erro', 'Resposta inválida do servidor', 'error');
-        } catch { notify('Erro', 'Falha ao gerar convite', 'error'); }
-        finally { setLoading(false); }
+            await runConfirmedAction({
+                action: () => api.spaces.createInvite({ role: roleMap[selectedRole], uses: 1 }),
+                validateResult: (data) => !!(data as any)?.code,
+                notify,
+                failToast: {
+                    title: 'Erro',
+                    message: (err) => (err as any)?.message || 'Falha ao gerar convite',
+                    type: 'error',
+                },
+                onSuccess: ({ result }) => {
+                    setInviteCode(String((result as any).code));
+                },
+            });
+        } finally { setLoading(false); }
     };
 
     const handleCopy = () => {
@@ -37,12 +47,21 @@ export default function SpaceInvite() {
         setShareLoading(true);
         try {
             const rolePt = selectedRole === 'Guardian' ? 'Guardião' : selectedRole === 'Facilitator' ? 'Facilitador' : 'Mestre';
-            const invite = await api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: inviteCode } as any);
-            const url = String((invite as any)?.url || window.location.origin);
-            const text = `🌿 Convite Viva360\n\nVocê foi convidado para integrar o Santuário como *${rolePt}*.\n\nAcesse aqui: ${url}\n\n(Código de backup: *${inviteCode}*)`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
-        } catch {
-            notify('Erro', 'Falha ao gerar link de convite', 'error');
+            await runConfirmedAction({
+                action: () => api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: inviteCode } as any),
+                validateResult: (invite) => !!(invite as any)?.url,
+                notify,
+                failToast: {
+                    title: 'Erro',
+                    message: 'Falha ao gerar link de convite',
+                    type: 'error',
+                },
+                onSuccess: ({ result }) => {
+                    const url = String((result as any).url);
+                    const text = `🌿 Convite Viva360\n\nVocê foi convidado para integrar o Santuário como *${rolePt}*.\n\nAcesse aqui: ${url}\n\n(Código de backup: *${inviteCode}*)`;
+                    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
+                },
+            });
         } finally {
             setShareLoading(false);
         }

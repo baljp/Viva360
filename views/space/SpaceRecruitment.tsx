@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Briefcase, UserPlus, Users, ChevronRight, Award, Plus } from 'lucide-react';
 import { ViewState, User, Vacancy } from '../../types';
-import { PortalView, VacancyFormModal, ZenToast } from '../../components/Common';
+import { PortalView, VacancyFormModal } from '../../components/Common';
 import { api } from '../../services/api';
+import { runConfirmedAction } from '../../src/utils/runConfirmedAction';
 
 interface SpaceRecruitmentProps {
     view: ViewState;
@@ -15,12 +16,12 @@ interface SpaceRecruitmentProps {
 
 export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setView, user, vacancies, refreshData, flow }) => {
     const [showAddVacancy, setShowAddVacancy] = useState(false);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
     const [inviteLoading, setInviteLoading] = useState(false);
+    const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') =>
+      flow?.notify?.(title, message, type);
 
     return (
         <>
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <PortalView 
               title="Sincronia Mestra" 
               subtitle="EXPANSÃO DO CÍRCULO" 
@@ -50,21 +51,34 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                             if (inviteLoading) return;
                             setInviteLoading(true);
                             try {
-                                const codeRes = await api.spaces.createInvite({ role: 'GUARDIAN', uses: 1 });
-                                const code = String((codeRes as any)?.code || '').trim();
-                                if (!code) {
-                                    setToast({ title: 'Falha ao gerar convite', message: 'Código inválido do servidor.' });
-                                    return;
-                                }
-
-                                const invite = await api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: code } as any);
-                                const url = String((invite as any)?.url || window.location.origin);
-                                const text = encodeURIComponent(
-                                  `🌿 Olá! Convido você a ser um Guardião no Viva360 e integrar nosso Santuário. Vamos expandir a cura juntos? 🌱\n\nAcesse aqui: ${url}\n\n(Código de backup: ${code})`
-                                );
-                                window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
-                            } catch {
-                                setToast({ title: 'Falha ao gerar convite', message: 'Não foi possível abrir o portal de convite agora.' });
+                                await runConfirmedAction({
+                                    action: async () => {
+                                        const codeRes = await api.spaces.createInvite({ role: 'GUARDIAN', uses: 1 });
+                                        const code = String((codeRes as any)?.code || '').trim();
+                                        if (!code) throw new Error('Código inválido do servidor.');
+                                        const invite = await api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: code } as any);
+                                        const url = String((invite as any)?.url || '').trim();
+                                        if (!url) throw new Error('Link de convite inválido.');
+                                        return { code, url };
+                                    },
+                                    notify,
+                                    successToast: {
+                                        title: 'Convite Gerado',
+                                        message: 'Portal de convite validado e pronto para compartilhar.',
+                                        type: 'success',
+                                    },
+                                    failToast: {
+                                        title: 'Falha ao gerar convite',
+                                        message: (err) => (err as any)?.message || 'Não foi possível abrir o portal de convite agora.',
+                                        type: 'error',
+                                    },
+                                    onSuccess: ({ result }) => {
+                                        const text = encodeURIComponent(
+                                          `🌿 Olá! Convido você a ser um Guardião no Viva360 e integrar nosso Santuário. Vamos expandir a cura juntos? 🌱\n\nAcesse aqui: ${result.url}\n\n(Código de backup: ${result.code})`
+                                        );
+                                        window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+                                    },
+                                });
                             } finally {
                                 setInviteLoading(false);
                             }
@@ -106,7 +120,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                               <Users size={14}/>
                               <span className="text-[10px] font-bold uppercase tracking-tighter">{v.applicantsCount} Guardiões Inscritos</span>
                            </div>
-                           <button onClick={() => { setToast({ title: 'Candidaturas abertas', message: `Abrindo inscrições de ${v.title}.` }); flow.go('VAGA_CANDIDATES'); }} className="flex items-center gap-1.5 px-4 py-2 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
+                           <button onClick={() => { notify('Candidaturas abertas', `Abrindo inscrições de ${v.title}.`, 'info'); flow.go('VAGA_CANDIDATES'); }} className="flex items-center gap-1.5 px-4 py-2 bg-nature-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                               Sincronizar <ChevronRight size={12}/>
                            </button>
                         </div>
@@ -124,7 +138,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                     <h4 className="font-serif italic text-lg text-amber-900">Impulsione seu Santuário</h4>
                     <p className="text-xs text-amber-700 italic px-4 leading-relaxed">Destaque suas vagas no topo do Mapa da Cura de todos os Guardiões do Viva360.</p>
                     <button 
-                        onClick={() => setToast({ title: "Selo de Destaque", message: "Suas vagas agora brilham no topo do Mapa da Cura!" })}
+                        onClick={() => notify('Selo de Destaque', 'Suas vagas agora brilham no topo do Mapa da Cura!', 'success')}
                         className="px-6 py-3 bg-amber-500 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-lg active:scale-95 transition-all"
                     >
                         Ativar Selo de Destaque
@@ -132,13 +146,21 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                 </div>
               </div>
               <VacancyFormModal isOpen={showAddVacancy} onClose={() => setShowAddVacancy(false)} onSubmit={async (title, desc, specs) => {
-                  try {
-                      await api.spaces.createVacancy({ title, description: desc, specialties: specs, hubId: user.id });
-                      await refreshData();
-                      setToast({ title: "Oportunidade Criada", message: "O universo agora sabe que você busca novos guardiões." });
-                  } catch {
-                      setToast({ title: "Falha ao criar vaga", message: "Não foi possível registrar o manifesto agora." });
-                  }
+                  await runConfirmedAction({
+                      action: () => api.spaces.createVacancy({ title, description: desc, specialties: specs, hubId: user.id }),
+                      refresh: () => Promise.resolve(refreshData()),
+                      notify,
+                      successToast: {
+                          title: 'Oportunidade Criada',
+                          message: 'O universo agora sabe que você busca novos guardiões.',
+                          type: 'success',
+                      },
+                      failToast: {
+                          title: 'Falha ao criar vaga',
+                          message: 'Não foi possível registrar o manifesto agora.',
+                          type: 'error',
+                      },
+                  });
               }} />
             </PortalView>
         </>

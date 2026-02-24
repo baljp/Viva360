@@ -3,6 +3,7 @@ import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { PortalView } from '../../../components/Common';
 import { Zap, Send, Shield, Crown, AlertOctagon, Loader2 } from 'lucide-react';
 import { api } from '../../../services/api';
+import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
 
 export default function SpaceSummon() {
     const { back, go, notify } = useSantuarioFlow();
@@ -20,17 +21,27 @@ export default function SpaceSummon() {
         }
         setSending(true);
         try {
-            await api.tribe.invite({
-                email: '', // Broadcast — no specific target email
-                inviteType: 'JOB' as const,
-                contextRef: `summon:${target}:${urgency}`,
-                expiresInHours: urgency === 'high' ? 4 : 48,
+            await runConfirmedAction({
+                action: () =>
+                    api.tribe.invite({
+                        email: '', // Broadcast — no specific target email
+                        inviteType: 'JOB' as const,
+                        contextRef: `summon:${target}:${urgency}`,
+                        expiresInHours: urgency === 'high' ? 4 : 48,
+                    }),
+                notify,
+                successToast: {
+                    title: 'Convocação Enviada!',
+                    message: `Alerta enviado para ${target === 'guardians' ? 'Guardiões' : 'Mestres'} disponíveis.`,
+                    type: 'success',
+                },
+                failToast: {
+                    title: 'Erro',
+                    message: (err) => (err as any)?.message || 'Não foi possível enviar a convocação.',
+                    type: 'error',
+                },
+                navigate: () => go('PROS_LIST'),
             });
-            notify?.('Convocação Enviada!', `Alerta enviado para ${target === 'guardians' ? 'Guardiões' : 'Mestres'} disponíveis.`, 'success');
-            go('PROS_LIST');
-        } catch (err: any) {
-            const msg = err?.message || 'Não foi possível enviar a convocação.';
-            notify?.('Erro', msg, 'error');
         } finally {
             setSending(false);
         }
