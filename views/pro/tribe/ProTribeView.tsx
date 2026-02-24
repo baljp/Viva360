@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Professional } from '../../../types';
 import { Search, Plus, ArrowRightLeft, Filter, MessageCircle, Loader2, Sparkles, X } from 'lucide-react';
-import { PortalView, ZenToast, BottomSheet, InteractiveButton, DegradedRetryNotice } from '../../../components/Common';
+import { PortalView, BottomSheet, InteractiveButton, DegradedRetryNotice } from '../../../components/Common';
 import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { commerceApi } from '../../../services/api/commerceClient';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
@@ -12,8 +12,6 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
     const [activeTab, setActiveTab] = useState<'market' | 'my-offers'>('market');
     const [filter, setFilter] = useState('all');
     const [searchTerm, setSearchTerm] = useState('');
-
-    const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'info' | 'warning' | 'error' } | null>(null);
 
     const [loading, setLoading] = useState(true);
     const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
@@ -149,7 +147,6 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                 )
             }
         >
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <div className="space-y-6">
 
                 {/* HERO: CREDITS */}
@@ -418,12 +415,12 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                                     description: descriptionLines.join('\n\n'),
                                     image: 'https://images.unsplash.com/photo-1520975682031-a1e38a5a0b46?q=80&w=1200',
                                 });
-                                setToast({ title: 'Anúncio publicado', message: 'Sua oferta já aparece no Mural Global e nos seus anúncios.', type: 'success' });
+                                notify('Anúncio publicado', 'Sua oferta já aparece no Mural Global e nos seus anúncios.', 'success');
                                 setCreateOpen(false);
                                 setCreateData({ offer: '', wish: '', notes: '', credits: 120, kind: 'Mentoria' });
                                 await loadEscambo();
                             } catch (e: any) {
-                                setToast({ title: 'Falha ao publicar', message: e?.message || 'Tente novamente.', type: 'error' });
+                                notify('Falha ao publicar', e?.message || 'Tente novamente.', 'error');
                             } finally {
                                 setCreateSending(false);
                             }

@@ -8,7 +8,7 @@ import {
     Building, CreditCard, Wallet, Shield, MessageSquare, Megaphone, Smartphone as PhoneIcon,
     Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2, Trash2, Download
 } from 'lucide-react';
-import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit, PortalView, DegradedRetryNotice } from '../components/Common';
+import { DynamicAvatar, Card, VerifiedBadge, WalletSplit, PortalView, DegradedRetryNotice } from '../components/Common';
 import { authApi } from '../services/api/authProxy';
 import { accountApi } from '../services/api/accountClient';
 import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
@@ -17,6 +17,7 @@ import { SettingsToggle } from './settings/SettingsToggle';
 import { getSettingsRoleConfig, homeForRole, roleLabel } from './settings/settingsConfig';
 import { downloadJsonFile, normalizeSettingsTransactions } from './settings/settingsUtils';
 import { type FlowBridge, type PrivacyState, type SettingsNotifState, errorMessage } from './settings/settingsViewHelpers';
+import { useAppToast } from '../src/contexts/AppToastContext';
 
 interface SettingsProps {
     user: User;
@@ -30,7 +31,11 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
     user, view, setView, updateUser, onLogout, flow
 }) => {
     const roleConfig = getSettingsRoleConfig(user.role);
-    const [toast, setToast] = useState<{ title: string, message: string } | null>(null);
+    const { showToast, clearToast } = useAppToast();
+    const setToast = useCallback((next: { title: string; message: string } | null) => {
+        if (next) showToast(next);
+        else clearToast();
+    }, [showToast, clearToast]);
     const [showPass, setShowPass] = useState(false);
     const [privacyState, setPrivacyState] = useState<PrivacyState>({ tribe: true, patterns: false, history: true });
     const [notifPrefs, setNotifPrefs] = useState<SettingsNotifState>({ rituals: true, tribe: true, finance: true });
@@ -472,8 +477,6 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
 
     return (
         <div className="flex flex-col animate-in fade-in min-h-full w-full">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-
             <header className="flex items-center gap-8 mb-10 mt-6 px-4 flex-none">
                 <div className="relative group">
                     <div className="absolute inset-[-6px] bg-primary-300 blur-xl opacity-20 rounded-full"></div>

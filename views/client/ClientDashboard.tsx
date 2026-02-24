@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { ViewState, User, DailyRitualSnap } from '../../types';
 import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle, TrendingUp, Book } from 'lucide-react';
-import { DynamicAvatar, PortalCard, ZenToast, RitualCompletionCard, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
+import { DynamicAvatar, PortalCard, RitualCompletionCard, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { gardenService } from '../../services/gardenService';
 import { useClientDashboard } from '../../src/hooks/useClientDashboard';
@@ -18,7 +18,7 @@ export const ClientDashboard: React.FC<{
     const animatedKarma = useCountUp(user.karma || 0);
     const animatedStreak = useCountUp(user.streak || 0, 700);
     // Destructure state for easier access in JSX
-    const { toast, ritualToast, activeModal, showNotifications, notifications, notificationsReadIssue, gardenStatus, plantVisuals } = state;
+    const { ritualToast, activeModal, showNotifications, notifications, notificationsReadIssue, gardenStatus, plantVisuals } = state;
 
     // Feature: Karma Synchronization Visual Feedback
     React.useEffect(() => {
@@ -31,7 +31,6 @@ export const ClientDashboard: React.FC<{
 
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-24">
-            {toast && <ZenToast toast={toast} onClose={() => actions.setToast(null)} />}
             {ritualToast && (
                 <RitualCompletionCard
                     isOpen={!!ritualToast}

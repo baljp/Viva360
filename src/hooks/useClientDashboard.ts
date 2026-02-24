@@ -7,6 +7,7 @@ import { useBuscadorFlow } from '../flow/useBuscadorFlow';
 import type { CameraCaptureResult } from '../../components/Common/CameraWidget';
 import { idbImages, buildLocalImageKey } from '../utils/idbImageStore';
 import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
+import { useAppToast } from '../contexts/AppToastContext';
 
 export const useClientDashboard = (
     user: User, 
@@ -33,7 +34,11 @@ export const useClientDashboard = (
         };
     };
     const { go } = useBuscadorFlow();
-    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning'} | null>(null);
+    const { toast, showToast, clearToast } = useAppToast();
+    const setToast = useCallback((next: {title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning'} | null) => {
+        if (next) showToast(next);
+        else clearToast();
+    }, [showToast, clearToast]);
     const [ritualToast, setRitualToast] = useState<{title: string, message: string} | null>(null);
     const [activeModal, setActiveModal] = useState<'camera' | 'leaderboard' | null>(null);
     const [showNotifications, setShowNotifications] = useState(false);

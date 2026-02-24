@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { ViewState, UserRole, User, Professional } from '../types';
 import { User as UserIcon, Briefcase, Building, ChevronRight, ArrowLeft, Mail, Lock, Sparkles, Heart, Activity, Brain, MapPin, DollarSign, List, Home, Check, Leaf, Loader2 } from 'lucide-react';
-import { ZenToast } from '../components/Common';
 import { authApi } from '../services/api/authProxy';
+import { useAppToast } from '../src/contexts/AppToastContext';
 
 interface RegistrationProps {
     view: ViewState;
@@ -109,7 +109,7 @@ interface FormProps {
 const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', goals: [], therapyPreferences: '' });
     const [isLoading, setIsLoading] = useState(false);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const { showToast: setToast } = useAppToast();
 
     const handleRegister = async () => {
         setIsLoading(true);
@@ -149,7 +149,6 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
 
     return (
         <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-primary-50/50">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <header className="flex items-center gap-4 mb-8">
                 <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} /></button>
                 <div><h2 className="text-2xl font-serif italic text-nature-900">Sou Buscador</h2><p className="text-xs text-nature-400 font-medium">Inicie sua jornada de cura</p></div>
@@ -184,7 +183,7 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
 const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', specialty: [], pricePerSession: 150, location: '', bio: '', approach: '' });
     const [isLoading, setIsLoading] = useState(false);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const { showToast: setToast } = useAppToast();
 
     const handleRegister = async () => {
         setIsLoading(true);
@@ -220,7 +219,6 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
 
     return (
          <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-amber-50/30">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <header className="flex items-center gap-4 mb-8">
                 <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} /></button>
                 <div><h2 className="text-2xl font-serif italic text-nature-900">Sou Guardião</h2><p className="text-xs text-nature-400 font-medium">Ofereça seus dons ao mundo</p></div>
@@ -256,7 +254,7 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
 const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
     const [formData, setFormData] = useState({ name: '', email: '', password: '', address: '' });
     const [isLoading, setIsLoading] = useState(false);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const { showToast: setToast } = useAppToast();
 
     const handleRegister = async () => {
         setIsLoading(true);
@@ -292,7 +290,6 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
 
      return (
          <div className="min-h-full animate-in slide-in-from-right duration-500 pb-24 pt-4 px-6 bg-indigo-50/30">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             <header className="flex items-center gap-4 mb-8">
                 <button onClick={() => setView(ViewState.REGISTER)} className="p-3 bg-white rounded-2xl shadow-sm border border-nature-100 hover:scale-105 transition-transform"><ArrowLeft size={20} /></button>
                 <div><h2 className="text-2xl font-serif italic text-nature-900">Sou Santuário</h2><p className="text-xs text-nature-400 font-medium">Cadastre seu espaço de cura</p></div>

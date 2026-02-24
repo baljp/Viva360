@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Calendar, Share2, Download, ChevronLeft, ChevronRight, X, Music, Sparkles } from 'lucide-react';
-import { PortalView, ZenToast } from '../../components/Common';
+import { PortalView } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
+import { useAppToast } from '../../src/contexts/AppToastContext';
 
 export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => void }> = ({ flow, setView }) => {
+    const { showToast: setToast } = useAppToast();
     const [entries, setEntries] = useState<any[]>([]);
     const [isPlaying, setIsPlaying] = useState(false); // Start paused until loaded
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -21,7 +23,6 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     const audioRef = useRef<HTMLAudioElement>(null);
     const [volume, setVolume] = useState(0.5);
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
-    const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'error' | 'info' } | null>(null);
 
     // Load Data — cancelled guard prevents setState on unmounted component
     useEffect(() => {
@@ -365,7 +366,6 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
     return (
         <div className="fixed inset-0 z-50 bg-black text-white flex flex-col animate-in fade-in duration-500">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
             {/* The Stage (Canvas is visible here for "Preview" and hidden capture) */}
             <div className="flex-1 relative flex items-center justify-center bg-gray-900 overflow-hidden">
                 <canvas

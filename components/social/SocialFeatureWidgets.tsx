@@ -2,8 +2,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { User, DailyRitualSnap, ConstellationMember, MoodType, ConstellationPact } from '../../types';
 import { Sparkles, Heart, Wind, Zap, Users, UserPlus, Search, Droplets, Loader2, Plus, Camera, Calendar, Link, Send, Trophy, Flame, Play, Pause, SkipBack, SkipForward, Maximize2, Clock, CalendarDays, CalendarRange } from 'lucide-react';
-import { BottomSheet, ZenToast, DynamicAvatar } from '../Common';
+import { BottomSheet, DynamicAvatar } from '../Common';
 import { api } from '../../services/api';
+import { useAppToast } from '../../src/contexts/AppToastContext';
 
 // --- USER AURA (GAMIFICADA) ---
 export const UserAura: React.FC<{ user: User }> = ({ user }) => {
@@ -268,18 +269,17 @@ const DEFAULT_CONSTELLATION: ConstellationMember[] = [
 
 export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) => void, onInvite?: () => void }> = ({ user, onUpdateUser, onInvite }) => {
     const [selectedMember, setSelectedMember] = useState<ConstellationMember | null>(null);
-    const [toast, setToast] = useState<{title: string, msg: string} | null>(null);
+    const { showToast } = useAppToast();
     const members = (user?.constellation && user.constellation.length > 0) ? user.constellation : DEFAULT_CONSTELLATION;
 
     const handleSendVibe = (reward: number) => {
         onUpdateUser({ ...user, karma: (user.karma || 0) + reward });
-        setToast({ title: "Sincronia!", msg: `Energia enviada. Você recebeu +${reward} Karma.` });
+        showToast({ title: "Sincronia!", message: `Energia enviada. Você recebeu +${reward} Karma.` });
         setSelectedMember(null);
     };
 
     return (
         <div className="space-y-6">
-            {toast && <ZenToast toast={{ title: toast.title, message: toast.msg }} onClose={() => setToast(null)} />}
             <div className="bg-white p-6 rounded-[3.5rem] border border-nature-100 shadow-sm overflow-hidden">
                 <h3 className="font-bold text-nature-900 text-sm flex items-center gap-2 mb-6 px-2"><Users size={18} className="text-primary-600" /> Minha Tribo</h3>
                 <div className="flex gap-5 overflow-x-auto no-scrollbar pb-2">
@@ -290,7 +290,7 @@ export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) 
                             <span className="text-[10px] font-medium text-nature-500">{member.name.split(' ')[0]}</span>
                         </button>
                     ))}
-                    <button onClick={() => onInvite ? onInvite() : setToast({ title: "Convite aberto", msg: "Fluxo de convite da tribo será iniciado." })} className="w-16 h-16 rounded-full border-4 border-dashed border-nature-100 flex items-center justify-center text-nature-200 shrink-0 hover:bg-nature-50 transition-colors"><Plus size={24} /></button>
+                    <button onClick={() => onInvite ? onInvite() : showToast({ title: "Convite aberto", message: "Fluxo de convite da tribo será iniciado." })} className="w-16 h-16 rounded-full border-4 border-dashed border-nature-100 flex items-center justify-center text-nature-200 shrink-0 hover:bg-nature-50 transition-colors"><Plus size={24} /></button>
                 </div>
             </div>
             {user.activePact && <PactWidget pact={user.activePact} userAvatar={user.avatar} onSendLight={() => handleSendVibe(20)} />}

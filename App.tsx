@@ -8,6 +8,7 @@ import type { AuthRegisterInput } from './services/api/authProxy';
 import { ZenToast } from './components/Common';
 import { NotificationProvider } from './src/contexts/NotificationContext';
 import { ChatProvider } from './src/contexts/ChatContext';
+import { AppToastProvider } from './src/contexts/AppToastContext';
 
 // Lazy Load Views
 const Auth = lazyWithRetry(() => import('./views/Auth'), 'Auth');
@@ -76,7 +77,7 @@ const App: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [cart, setCart] = useState<CartItem[]>(loadCartFromStorage);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
+    const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning'} | null>(null);
 
     // Persist Cart
     useEffect(() => {
@@ -214,6 +215,7 @@ const App: React.FC = () => {
     return (
       <NotificationProvider>
         <ChatProvider>
+        <AppToastProvider toast={toast} setToast={setToast}>
         <Layout user={currentUser} currentView={currentView} setView={setView} onLogout={handleLogout} shouldHideNav={shouldHideNav}>
             <Suspense fallback={<PageLoader />}>
                 <Routes>
@@ -309,6 +311,7 @@ const App: React.FC = () => {
                 <SmartTutorial user={currentUser} />
             </Suspense>
         </Layout>
+        </AppToastProvider>
         </ChatProvider>
       </NotificationProvider>
     );

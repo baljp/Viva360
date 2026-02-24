@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
+import { useAppToast } from '../contexts/AppToastContext';
 
 // Shared type definition for consistency
 export interface OracleMessage {
@@ -12,10 +13,10 @@ export interface OracleMessage {
 }
 
 export const useOracle = (userId: string) => {
+    const { showToast, clearToast } = useAppToast();
     const [isLoading, setIsLoading] = useState(false);
     const [dailyCard, setDailyCard] = useState<OracleMessage | null>(null);
     const [showCard, setShowCard] = useState(false);
-    const [toast, setToast] = useState<{title: string, message: string} | null>(null);
 
     // Check for daily card on mount or user change
     useEffect(() => {
@@ -46,7 +47,7 @@ export const useOracle = (userId: string) => {
 
     const handleDraw = useCallback(async () => {
         setIsLoading(true);
-        setToast(null); 
+        clearToast();
         try {
             const res = await api.oracle.draw('sereno');
             
@@ -65,30 +66,27 @@ export const useOracle = (userId: string) => {
             setShowCard(true);
         } catch (e) {
             console.error("Oracle Draw Error:", e);
-            setToast({ 
+            showToast({
                 title: "Interferência Mística", 
                 message: "A conexão com o oráculo oscilou. Respire e tente novamente." 
             });
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [clearToast, showToast]);
 
     const closeCard = useCallback(() => setShowCard(false), []);
-    const clearToast = useCallback(() => setToast(null), []);
 
     return {
         state: {
             isLoading,
             dailyCard,
             showCard,
-            toast
         },
         actions: {
             handleDraw,
             setShowCard,
             closeCard,
-            clearToast
         }
     };
 };

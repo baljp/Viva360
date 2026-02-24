@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
 import { Sparkles, History, Share2 } from 'lucide-react';
-import { PortalView, ZenToast } from '../../components/Common';
+import { PortalView } from '../../components/Common';
 import { OracleCardPremium } from '../../src/components/OracleCardPremium';
 import { api } from '../../services/api';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
@@ -10,13 +10,11 @@ import { useOracle, OracleMessage } from '../../src/hooks/useOracle';
 export const OracleView: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
     const { go, back } = useBuscadorFlow();
     const { state, actions } = useOracle(user.id);
-    const { isLoading, dailyCard, showCard, toast } = state;
-    const { handleDraw, setShowCard, closeCard, clearToast } = actions;
+    const { isLoading, dailyCard, showCard } = state;
+    const { handleDraw, setShowCard, closeCard } = actions;
 
     return (
         <PortalView title="Oráculo Viva360" subtitle="GUIA SIMBÓLICO" onBack={back}>
-            {toast && <ZenToast toast={toast} onClose={clearToast} />}
-            
             <div className="flex flex-col h-full relative">
                 
                 {/* Mystic Atmosphere */}

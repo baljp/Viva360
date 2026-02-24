@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import { User } from '../../types';
 import { Shield, FileText, Calendar, DollarSign, Clock, CheckCircle2, AlertTriangle, Download, Sparkles, Loader2 } from 'lucide-react';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
-import { ZenToast, BottomSheet, DegradedRetryNotice } from '../../components/Common';
+import { BottomSheet, DegradedRetryNotice } from '../../components/Common';
 import { buildReadFailureCopy, isDegradedReadError } from '../../src/utils/readDegradedUX';
 
 import { api } from '../../services/api';
 
 export const SantuarioContractView: React.FC<{ user: User }> = ({ user }) => {
     const { go, back, notify } = useGuardiaoFlow();
-    const [toast, setToast] = useState<any>(null);
     const [showRenewModal, setShowRenewModal] = useState(false);
     const [contract, setContract] = useState<any>(null);
     const [noContract, setNoContract] = useState(false);
@@ -81,8 +80,6 @@ export const SantuarioContractView: React.FC<{ user: User }> = ({ user }) => {
 
     return (
         <div className="min-h-screen bg-[#f8faf9] pb-32">
-            {toast && <ZenToast toast={toast} onClose={() => setToast(null)} />}
-            
             <header className="bg-gradient-to-br from-nature-900 to-emerald-900 px-6 pt-14 pb-10 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                 <button onClick={back} className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white mb-6 active:scale-95">←</button>
