@@ -41,7 +41,7 @@ export class TribeService {
             token,
         });
         let emailDispatchStatus = 'sent';
-        if (!emailDispatch.ok) {
+        if ('reason' in emailDispatch) {
             emailDispatchStatus = emailDispatch.reason;
         }
         logger.info('tribe.invite_created', {
