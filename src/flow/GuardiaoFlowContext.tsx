@@ -9,6 +9,7 @@ import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 import { GuardiaoFlowContextStore } from './GuardiaoFlowContextStore';
 import { trackFlowTelemetry } from './flowTelemetry';
+import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
 
 // Define Context State
 interface GuardiaoContextState extends BaseFlowState<GuardiaoState> {
@@ -121,39 +122,71 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         });
     }, [state.currentState]);
 
+    const pushNotification = (payload: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' }) => {
+        dispatch({ type: 'NOTIFY', payload });
+        setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);
+    };
+
     const refreshData = async (userId: string) => {
         if (!userId) return;
         const startedAt = performance.now();
         trackFlowTelemetry({ profile: 'GUARDIAO', flow: 'core', action: 'refreshData', status: 'attempt', from: state.currentState, meta: { userId } });
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
-            const [apts, vacs, prods, txData] = await Promise.all([
+            const [aptsResult, vacsResult, prodsResult, txResult] = await Promise.allSettled([
                 api.appointments.list(userId, UserRole.PROFESSIONAL),
                 api.spaces.getVacancies(),
                 api.marketplace.listByOwner(userId),
                 api.professionals.getFinanceSummary(userId)
             ]);
+            const failedDomains: string[] = [];
+            const degradedDomains: string[] = [];
+            if (aptsResult.status === 'rejected') failedDomains.push('appointments');
+            if (vacsResult.status === 'rejected') failedDomains.push('vacancies');
+            if (prodsResult.status === 'rejected') {
+                failedDomains.push('marketplace');
+                if (isDegradedReadError(prodsResult.reason)) degradedDomains.push('marketplace');
+            }
+            if (txResult.status === 'rejected') {
+                failedDomains.push('finance');
+                if (isDegradedReadError(txResult.reason)) degradedDomains.push('finance');
+            }
             dispatch({
                 type: 'SET_DATA',
                 payload: {
-                    appointments: apts,
-                    vacancies: vacs,
-                    myProducts: prods,
-                    transactions: txData.transactions
+                    appointments: aptsResult.status === 'fulfilled' ? aptsResult.value : state.data.appointments,
+                    vacancies: vacsResult.status === 'fulfilled' ? vacsResult.value : state.data.vacancies,
+                    myProducts: prodsResult.status === 'fulfilled' ? prodsResult.value : state.data.myProducts,
+                    transactions: txResult.status === 'fulfilled' ? txResult.value.transactions : state.data.transactions
                 }
             });
+            if (failedDomains.length > 0) {
+                const copy = buildReadFailureCopy(degradedDomains.length ? degradedDomains : failedDomains, true);
+                dispatch({ type: 'SET_ERROR', payload: copy.message });
+                pushNotification({ title: copy.title, message: copy.message, type: 'warning' });
+            } else {
+                dispatch({ type: 'SET_ERROR', payload: null });
+            }
             trackFlowTelemetry({
                 profile: 'GUARDIAO',
                 flow: 'core',
                 action: 'refreshData',
-                status: 'success',
+                status: failedDomains.length > 0 ? 'error' : 'success',
                 from: state.currentState,
                 durationMs: Math.round(performance.now() - startedAt),
-                meta: { appointments: apts.length, vacancies: vacs.length, myProducts: prods.length },
+                meta: {
+                    appointments: aptsResult.status === 'fulfilled' ? aptsResult.value.length : state.data.appointments.length,
+                    vacancies: vacsResult.status === 'fulfilled' ? vacsResult.value.length : state.data.vacancies.length,
+                    myProducts: prodsResult.status === 'fulfilled' ? prodsResult.value.length : state.data.myProducts.length,
+                    partial: failedDomains.length > 0,
+                    failedDomains,
+                },
             });
         } catch (e) {
             console.error('Failed to fetch Guardiao data', e);
-            dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar dados do portal.' });
+            const copy = buildReadFailureCopy(['marketplace', 'finance'], false);
+            dispatch({ type: 'SET_ERROR', payload: copy.message });
+            pushNotification({ title: copy.title, message: copy.message, type: 'error' });
             trackFlowTelemetry({
                 profile: 'GUARDIAO',
                 flow: 'core',
@@ -203,9 +236,7 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     };
 
     const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
-        dispatch({ type: 'NOTIFY', payload: { title, message, type } });
-        // Auto-clear notification after 4 seconds
-        setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);
+        pushNotification({ title, message, type });
     };
 
     const selectAppointment = (apt: Appointment) => dispatch({ type: 'SELECT_APPOINTMENT', payload: apt });

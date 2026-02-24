@@ -26,6 +26,7 @@ const runE2ECore = String(process.env.SKIP_E2E_CORE || '').toLowerCase() !== 'tr
 const checks: Check[] = [
   { id: 'matrix', label: 'Matriz Tela x Botao x Fluxo', command: 'npm run qa:matrix', required: true },
   { id: 'feature-contract-catalog', label: 'Catálogo clientOnly vs persistido', command: 'npm run qa:feature-contract-catalog', required: true },
+  { id: 'feature-contract-gate', label: 'Gate parcial do catálogo (unclassified=0)', command: 'npm run qa:feature-contract-gate', required: true },
   { id: 'flow-registry', label: 'Validação do Flow Registry', command: 'npm run qa:validate-flow-registry', required: true },
   { id: 'tracked-secrets', label: 'Auditoria de secrets versionados', command: 'npm run qa:audit-tracked-secrets', required: true },
   { id: 'prod-bundle', label: 'Auditoria de bundle frontend em production', command: 'npm run build && npm run qa:audit-prod-bundle', required: true },

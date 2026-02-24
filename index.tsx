@@ -45,11 +45,14 @@ if (import.meta.env.DEV) {
 }
 
 // Monitoring is non-critical for first paint; defer to idle so the UI boots sooner.
-scheduleIdle(() => {
-  import('./lib/monitoring')
-    .then((m) => m.initMonitoring())
-    .catch((err) => console.warn('[Monitoring] Deferred init failed', err));
-});
+const shouldLoadMonitoring = Boolean(import.meta.env.VITE_SENTRY_DSN || import.meta.env.VITE_LOGROCKET_APP_ID);
+if (shouldLoadMonitoring) {
+  scheduleIdle(() => {
+    import('./lib/monitoring')
+      .then((m) => m.initMonitoring())
+      .catch((err) => console.warn('[Monitoring] Deferred init failed', err));
+  });
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

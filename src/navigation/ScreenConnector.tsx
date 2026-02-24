@@ -1,8 +1,5 @@
 
 import React from 'react';
-import { useBuscadorFlow } from '../flow/useBuscadorFlow';
-import { useGuardiaoFlow } from '../flow/useGuardiaoFlow';
-import { useSantuarioFlow } from '../flow/useSantuarioFlow';
 import { screenMap } from './screenMap';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Compass } from 'lucide-react';
@@ -17,8 +14,6 @@ interface ConnectorProps {
 
 export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> = ({ profile, user, flow, updateUser, setView, ...rest }) => {
     const currentState = flow.state.currentState;
-
-    console.log(`[ScreenConnector] profile=${profile} currentState=${currentState}`);
 
     // Resolve Screen Component
     const ProfileMap = screenMap[profile];
@@ -45,41 +40,7 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
         );
     }
 
-    // Dynamic transition based on profile
-    const getTransition = () => {
-        switch (profile) {
-            case 'BUSCADOR': // Ethereal / Spiritual fade
-                return {
-                    initial: { opacity: 0, scale: 0.98, filter: "blur(4px)" },
-                    animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
-                    exit: { opacity: 0, scale: 1.02, filter: "blur(4px)" },
-                    transition: { duration: 0.4, ease: "easeOut" }
-                };
-            case 'GUARDIAO': // Grounded / Professional slide
-                return {
-                    initial: { opacity: 0, y: 15 },
-                    animate: { opacity: 1, y: 0 },
-                    exit: { opacity: 0, y: -15 },
-                    transition: { duration: 0.3, ease: "easeOut" }
-                };
-            case 'SANTUARIO': // Enterprise / Structured slide-x
-                return {
-                    initial: { opacity: 0, x: 20 },
-                    animate: { opacity: 1, x: 0 },
-                    exit: { opacity: 0, x: -20 },
-                    transition: { duration: 0.3, ease: "circOut" }
-                };
-            default:
-                return {
-                    initial: { opacity: 0 },
-                    animate: { opacity: 1 },
-                    exit: { opacity: 0 },
-                    transition: { duration: 0.2 }
-                };
-        }
-    };
-
-    const animConfig = getTransition();
+    const animConfig = profileTransitions[profile] || profileTransitions.DEFAULT;
 
     return (
         <AnimatePresence mode="wait">
@@ -108,3 +69,30 @@ export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> 
         </AnimatePresence>
     );
 };
+
+const profileTransitions = {
+    BUSCADOR: {
+        initial: { opacity: 0, scale: 0.98, filter: "blur(4px)" },
+        animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
+        exit: { opacity: 0, scale: 1.02, filter: "blur(4px)" },
+        transition: { duration: 0.4, ease: "easeOut" as const }
+    },
+    GUARDIAO: {
+        initial: { opacity: 0, y: 15 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -15 },
+        transition: { duration: 0.3, ease: "easeOut" as const }
+    },
+    SANTUARIO: {
+        initial: { opacity: 0, x: 20 },
+        animate: { opacity: 1, x: 0 },
+        exit: { opacity: 0, x: -20 },
+        transition: { duration: 0.3, ease: "circOut" as const }
+    },
+    DEFAULT: {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        exit: { opacity: 0 },
+        transition: { duration: 0.2 }
+    }
+} as const;

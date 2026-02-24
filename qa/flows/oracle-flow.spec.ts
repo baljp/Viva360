@@ -1,5 +1,25 @@
 import { test, expect } from '../utils/mock-fixtures';
 
+const clickOraclePrimaryAction = async (page: import('@playwright/test').Page) => {
+  const actionPattern = /revelar carta do dia|ver carta revelada/i;
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    const actionButton = page.getByRole('button', { name: actionPattern }).first();
+    try {
+      await expect(actionButton).toBeVisible({ timeout: 5000 });
+      await actionButton.click({ timeout: 5000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 4) break;
+      await page.waitForTimeout(200);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Falha ao clicar ação do Oráculo');
+};
+
 test.describe('Oracle Flow', () => {
   test('deve abrir e revelar carta mesmo sem backend online', async ({ page, loginAs }) => {
     await loginAs('client');
@@ -16,14 +36,7 @@ test.describe('Oracle Flow', () => {
       page.getByRole('heading', { name: /Guia Diário|Oráculo Viva360/i }).first()
     ).toBeVisible({ timeout: 15000 });
 
-    const revealButton = page.getByRole('button', { name: /revelar carta do dia/i });
-    const openButton = page.getByRole('button', { name: /ver carta revelada/i });
-
-    if (await revealButton.isVisible()) {
-      await revealButton.click();
-    } else {
-      await openButton.click();
-    }
+    await clickOraclePrimaryAction(page);
 
     await expect(page.getByText('Toque para Sintonizar').or(page.getByRole('button', { name: /receber e fechar/i }))).toBeVisible({ timeout: 15000 });
 

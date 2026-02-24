@@ -5,6 +5,7 @@ import { gardenService } from '../../services/gardenService';
 import { useBuscadorFlow } from '../flow/useBuscadorFlow';
 import type { CameraCaptureResult } from '../../components/Common/CameraWidget';
 import { idbImages, buildLocalImageKey } from '../utils/idbImageStore';
+import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
 
 export const useClientDashboard = (
     user: User, 
@@ -20,17 +21,23 @@ export const useClientDashboard = (
     // Real Notifications Fetch
     const [notifications, setNotifications] = useState<any[]>([]);
 
+    const loadNotifications = useCallback(async () => {
+        try {
+            const data = await api.notifications.list();
+            setNotifications(data || []);
+        } catch (e) {
+            console.error("Failed to load notifications", e);
+            const copy = buildReadFailureCopy(
+                [isDegradedReadError(e) ? 'notifications' : 'notifications'],
+                false,
+            );
+            setToast({ title: copy.title, message: copy.message, type: 'warning' });
+        }
+    }, []);
+
     useEffect(() => {
-        const loadNotifications = async () => {
-            try {
-                const data = await api.notifications.list();
-                setNotifications(data || []);
-            } catch (e) {
-                console.error("Failed to load notifications", e);
-            }
-        };
         loadNotifications();
-    }, [user.id]);
+    }, [user.id, loadNotifications]);
 
     const handleMarkAsRead = useCallback(async (id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
@@ -151,6 +158,7 @@ export const useClientDashboard = (
             setRitualToast,
             setActiveModal,
             setShowNotifications,
+            loadNotifications,
             handleMarkAsRead,
             handleMarkAllRead,
             handleWaterPlant,

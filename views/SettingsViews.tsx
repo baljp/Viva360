@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit, PortalView } from '../components/Common';
 import { api } from '../services/api';
+import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
 import { supabase } from '../lib/supabase';
 
 interface SettingsProps {
@@ -239,6 +240,8 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
                 setTransactions(summary.transactions || []);
             }).catch(() => {
                 setTransactions([]);
+                const copy = buildReadFailureCopy(['finance'], false);
+                setToast({ title: copy.title, message: copy.message });
             }).finally(() => setTxLoading(false));
         }
     }, [view, user.id]);

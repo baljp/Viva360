@@ -1,38 +1,51 @@
-import * as Sentry from "@sentry/react";
-
 const dsn = import.meta.env.VITE_SENTRY_DSN;
 const environment = import.meta.env.MODE || "development";
 const tracesSampleRate = Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || 0.2);
 const replaysSessionSampleRate = Number(import.meta.env.VITE_SENTRY_REPLAYS_SESSION_SAMPLE_RATE || 0.01);
 const replaysOnErrorSampleRate = Number(import.meta.env.VITE_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE || 1);
 const logrocketId = import.meta.env.VITE_LOGROCKET_APP_ID;
+const enableTracing = String(import.meta.env.VITE_SENTRY_ENABLE_TRACING ?? 'true').toLowerCase() !== 'false';
+const enableReplay = String(import.meta.env.VITE_SENTRY_ENABLE_REPLAY ?? 'false').toLowerCase() === 'true';
 
 let initialized = false;
+let sentryModule: typeof import("@sentry/react") | null = null;
 
-export const initMonitoring = () => {
+const getSentry = async () => {
+    if (!sentryModule) {
+        sentryModule = await import("@sentry/react");
+    }
+    return sentryModule;
+};
+
+export const initMonitoring = async () => {
     if (initialized) return;
     initialized = true;
 
     if (!dsn) {
         console.info("[Monitoring] Sentry DSN ausente. Observabilidade remota desativada.");
     } else {
+        const Sentry = await getSentry();
         const activeSampleRate = Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.2;
         const enforcedSampleRate = environment === 'production' ? Math.max(activeSampleRate, 0.1) : activeSampleRate;
+        const integrations: any[] = [];
+        if (enableTracing) {
+            integrations.push(Sentry.browserTracingIntegration());
+        }
+        if (enableReplay) {
+            integrations.push(Sentry.replayIntegration({
+                maskAllText: false,
+                blockAllMedia: false,
+            }));
+        }
 
         Sentry.init({
             dsn,
             environment,
             release: import.meta.env.VITE_APP_VERSION || undefined,
-            integrations: [
-                Sentry.browserTracingIntegration(),
-                Sentry.replayIntegration({
-                    maskAllText: false,
-                    blockAllMedia: false,
-                }),
-            ],
-            tracesSampleRate: enforcedSampleRate,
-            replaysSessionSampleRate: Number.isFinite(replaysSessionSampleRate) ? replaysSessionSampleRate : 0.01,
-            replaysOnErrorSampleRate: Number.isFinite(replaysOnErrorSampleRate) ? replaysOnErrorSampleRate : 1,
+            integrations,
+            tracesSampleRate: enableTracing ? enforcedSampleRate : 0,
+            replaysSessionSampleRate: enableReplay && Number.isFinite(replaysSessionSampleRate) ? replaysSessionSampleRate : 0,
+            replaysOnErrorSampleRate: enableReplay && Number.isFinite(replaysOnErrorSampleRate) ? replaysOnErrorSampleRate : 0,
             // Ignore known noise
             ignoreErrors: [
                 'ResizeObserver loop limit exceeded',
@@ -53,8 +66,8 @@ export const initMonitoring = () => {
 };
 
 export const captureFrontendError = (error: unknown, context?: Record<string, unknown>) => {
-    if (dsn) {
-        Sentry.captureException(error, { extra: context });
+    if (dsn && sentryModule) {
+        sentryModule.captureException(error, { extra: context });
     }
     if (context) {
         console.error("[FrontendError]", error, context);
@@ -64,19 +77,19 @@ export const captureFrontendError = (error: unknown, context?: Record<string, un
 };
 
 export const captureFrontendMessage = (message: string, context?: Record<string, unknown>) => {
-    if (dsn) {
-        Sentry.captureMessage(message, { level: "warning", extra: context });
+    if (dsn && sentryModule) {
+        sentryModule.captureMessage(message, { level: "warning", extra: context });
     }
     console.warn("[FrontendMessage]", message, context || {});
 };
 
 export const setMonitoringUser = (user: { id?: string; email?: string; role?: string } | null) => {
-    if (!dsn) return;
+    if (!dsn || !sentryModule) return;
     if (!user) {
-        Sentry.setUser(null);
+        sentryModule.setUser(null);
         return;
     }
-    Sentry.setUser({
+    sentryModule.setUser({
         id: user.id,
         email: user.email,
         role: user.role,
@@ -90,17 +103,3 @@ declare global {
         };
     }
 }
-
-// Backward-compatible noop initialization signature preserved.
-export const initMonitoringLegacy = () => {
-    Sentry.init({
-        dsn: "https://examplePublicKey@o0.ingest.sentry.io/0",
-        integrations: [
-            Sentry.browserTracingIntegration(),
-            Sentry.replayIntegration(),
-        ],
-        tracesSampleRate: 1.0,
-        replaysSessionSampleRate: 0.1,
-        replaysOnErrorSampleRate: 1.0,
-    });
-};

@@ -9,6 +9,7 @@ import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 import { isInAppMuted } from '../utils/inAppMute';
 import { BuscadorFlowContextStore } from './BuscadorFlowContextStore';
 import { trackFlowTelemetry } from './flowTelemetry';
+import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
 
 // Define Context State
 interface FlowContextState extends BaseFlowState<BuscadorState> {
@@ -135,23 +136,49 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         trackFlowTelemetry({ profile: 'BUSCADOR', flow: 'core', action: 'refreshData', status: 'attempt', from: state.currentState });
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
-            const [pros, products] = await Promise.all([
+            const [prosResult, productsResult] = await Promise.allSettled([
                 api.professionals.list(),
                 api.marketplace.listAll()
             ]);
-            dispatch({ type: 'SET_DATA', payload: { pros, products } });
+            const failedDomains: string[] = [];
+            const degradedDomains: string[] = [];
+            const nextPros = prosResult.status === 'fulfilled' ? prosResult.value : state.data.pros;
+            const nextProducts = productsResult.status === 'fulfilled' ? productsResult.value : state.data.products;
+
+            if (prosResult.status === 'rejected') {
+                failedDomains.push('professionals');
+                if (isDegradedReadError(prosResult.reason)) degradedDomains.push('professionals');
+            }
+            if (productsResult.status === 'rejected') {
+                failedDomains.push('marketplace');
+                if (isDegradedReadError(productsResult.reason)) degradedDomains.push('marketplace');
+            }
+
+            dispatch({ type: 'SET_DATA', payload: { pros: nextPros, products: nextProducts } });
+            if (failedDomains.length > 0) {
+                const copy = buildReadFailureCopy(degradedDomains.length ? degradedDomains : failedDomains, true);
+                dispatch({ type: 'SET_ERROR', payload: copy.message });
+            } else {
+                dispatch({ type: 'SET_ERROR', payload: null });
+            }
             trackFlowTelemetry({
                 profile: 'BUSCADOR',
                 flow: 'core',
                 action: 'refreshData',
-                status: 'success',
+                status: failedDomains.length > 0 ? 'error' : 'success',
                 from: state.currentState,
                 durationMs: Math.round(performance.now() - startedAt),
-                meta: { pros: pros.length, products: products.length },
+                meta: {
+                    pros: nextPros.length,
+                    products: nextProducts.length,
+                    partial: failedDomains.length > 0,
+                    failedDomains,
+                },
             });
         } catch (e) {
             console.error('Failed to fetch Buscador data', e);
-            dispatch({ type: 'SET_ERROR', payload: 'Erro ao carregar dados do Jardim.' });
+            const copy = buildReadFailureCopy(['marketplace'], false);
+            dispatch({ type: 'SET_ERROR', payload: copy.message });
             trackFlowTelemetry({
                 profile: 'BUSCADOR',
                 flow: 'core',

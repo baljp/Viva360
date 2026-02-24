@@ -5,6 +5,7 @@ import { PortalView, BottomSheet } from '../../../components/Common';
 import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X, Download } from 'lucide-react';
 import { api } from '../../../services/api';
 import { Transaction } from '../../../types';
+import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
 export default function PaymentHistoryScreen() {
     const { back, notify } = useBuscadorFlow();
@@ -21,9 +22,12 @@ export default function PaymentHistoryScreen() {
                 const summary = await api.professionals.getFinanceSummary(user.id);
                 setTransactions(summary.transactions || []);
             }
-        } catch {
-            notify('Erro', 'Não foi possível carregar seu histórico.', 'error');
-            setTransactions([]);
+        } catch (error) {
+            const copy = buildReadFailureCopy(['finance'], transactions.length > 0);
+            notify(copy.title, copy.message, isDegradedReadError(error) ? 'warning' : 'error');
+            if (transactions.length === 0) {
+                setTransactions([]);
+            }
         } finally {
             setLoading(false);
         }

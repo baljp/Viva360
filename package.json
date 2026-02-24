@@ -43,6 +43,7 @@
     "test:debug": "env -u NO_COLOR -u FORCE_COLOR npx playwright test --config=playwright.qa.config.ts qa/flows/debug-guardiao.spec.ts",
     "qa:matrix": "npx tsx scripts/generate_flow_matrix.ts",
     "qa:feature-contract-catalog": "npx tsx scripts/generate_feature_contract_catalog.ts",
+    "qa:feature-contract-gate": "npx tsx scripts/check_feature_contract_catalog_gate.ts",
     "qa:validate-flow-registry": "npx tsx scripts/validate_flow_registry.ts",
     "qa:audit-orphan-screens": "npx tsx scripts/audit_orphan_screens.ts",
     "qa:audit-tracked-secrets": "npx tsx scripts/audit_tracked_secrets.ts --strict",

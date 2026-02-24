@@ -11,7 +11,7 @@ export type BaseFlowAction<T> =
     | { type: 'TRANSITION'; payload: T | { nextState: T; history: T[] } }
     | { type: 'BACK'; payload?: { prevState: T; history: T[] } }
     | { type: 'RESET'; payload?: BaseFlowState<T> }
-    | { type: 'SET_ERROR'; payload: string }
+    | { type: 'SET_ERROR'; payload: string | null }
     | { type: 'SET_LOADING'; payload: boolean }
     | { type: 'SHOW_RITUAL'; payload: { title: string; message: string } }
     | { type: 'CLEAR_RITUAL' }

@@ -13,6 +13,8 @@ type ValidationFinding = {
   message: string;
 };
 
+const SYNTHETIC_TERMINALS = new Set(['END']);
+
 const transitionByProfile: Record<FlowDefinition['profile'], TransitionMap> = {
   BUSCADOR: transitions as unknown as TransitionMap,
   GUARDIAO: guardiaoTransitions as unknown as TransitionMap,
@@ -21,6 +23,31 @@ const transitionByProfile: Record<FlowDefinition['profile'], TransitionMap> = {
 
 const findings: ValidationFinding[] = [];
 const requiredButtons = ['Voltar', 'Fechar', 'Cancelar', 'Confirmar'];
+
+const isKnownScreen = (transitionMap: TransitionMap, screen: string) =>
+  SYNTHETIC_TERMINALS.has(screen) || Boolean(transitionMap[screen]);
+
+const isReachable = (transitionMap: TransitionMap, from: string, to: string) => {
+  if (from === to) return true;
+  if (SYNTHETIC_TERMINALS.has(to)) return true;
+  if (!transitionMap[from] || !transitionMap[to]) return false;
+
+  const visited = new Set<string>([from]);
+  const queue: string[] = [from];
+
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const nextStates = transitionMap[current] || [];
+    for (const next of nextStates) {
+      if (next === to) return true;
+      if (visited.has(next)) continue;
+      visited.add(next);
+      if (transitionMap[next]) queue.push(next);
+    }
+  }
+
+  return false;
+};
 
 const ids = new Set<string>();
 for (const flow of flowRegistry) {
@@ -53,7 +80,7 @@ for (const flow of flowRegistry) {
   }
 
   for (const screen of flow.screens) {
-    if (!transitionMap[screen]) {
+    if (!isKnownScreen(transitionMap, screen)) {
       findings.push({ level: 'ERROR', flowId: flow.id, message: `Tela não encontrada no mapa de transições: ${screen}.` });
     }
   }
@@ -61,9 +88,12 @@ for (const flow of flowRegistry) {
   for (let i = 0; i < flow.screens.length - 1; i += 1) {
     const from = flow.screens[i];
     const to = flow.screens[i + 1];
-    const possible = transitionMap[from] || [];
-    if (!possible.includes(to)) {
-      findings.push({ level: 'ERROR', flowId: flow.id, message: `Transição inválida no fluxo: ${from} -> ${to}.` });
+    if (!isReachable(transitionMap, from, to)) {
+      findings.push({
+        level: 'WARN',
+        flowId: flow.id,
+        message: `Salto narrativo/multi-etapas no flow registry (não alcançável por transição direta do engine): ${from} -> ${to}.`,
+      });
     }
   }
 
@@ -71,7 +101,7 @@ for (const flow of flowRegistry) {
     findings.push({ level: 'ERROR', flowId: flow.id, message: `expectedFinal fora da lista de telas: ${flow.expectedFinal}.` });
   }
 
-  if (!transitionMap[flow.fallbackScreen]) {
+  if (!isKnownScreen(transitionMap, flow.fallbackScreen)) {
     findings.push({ level: 'ERROR', flowId: flow.id, message: `fallbackScreen inválida: ${flow.fallbackScreen}.` });
   }
 

@@ -8,6 +8,7 @@ import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 import { SantuarioFlowContextStore } from './SantuarioFlowContextStore';
 import { trackFlowTelemetry } from './flowTelemetry';
+import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
 
 interface SantuarioContextState extends BaseFlowState<SantuarioState> {
     engine: SantuarioFlowEngine;
@@ -149,42 +150,76 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         });
     }, [state.currentState]);
 
+    const pushNotification = (payload: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' }) => {
+        dispatch({ type: 'NOTIFY', payload });
+        setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);
+    };
+
     const refreshData = async (userId: string) => {
         if (!userId) return;
         const startedAt = performance.now();
         trackFlowTelemetry({ profile: 'SANTUARIO', flow: 'core', action: 'refreshData', status: 'attempt', from: state.currentState, meta: { userId } });
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
-            const [r, t, v, tx, prods] = await Promise.all([
+            const [rResult, tResult, vResult, txResult, prodsResult] = await Promise.allSettled([
                   api.spaces.getRooms(),
                   api.spaces.getTeam(),
                   api.spaces.getVacancies(),
                   api.spaces.getTransactions(),
                   api.marketplace.listByOwner(userId)
             ]);
+            const failedDomains: string[] = [];
+            const degradedDomains: string[] = [];
+            if (rResult.status === 'rejected') failedDomains.push('spaces');
+            if (tResult.status === 'rejected') failedDomains.push('team');
+            if (vResult.status === 'rejected') failedDomains.push('vacancies');
+            if (txResult.status === 'rejected') {
+                failedDomains.push('finance');
+                if (isDegradedReadError(txResult.reason)) degradedDomains.push('finance');
+            }
+            if (prodsResult.status === 'rejected') {
+                failedDomains.push('marketplace');
+                if (isDegradedReadError(prodsResult.reason)) degradedDomains.push('marketplace');
+            }
             
             dispatch({
                 type: 'SET_DATA',
                 payload: {
-                    rooms: r,
-                    team: t, 
-                    vacancies: v,
-                    transactions: tx,
-                    myProducts: prods
+                    rooms: rResult.status === 'fulfilled' ? rResult.value : state.data.rooms,
+                    team: tResult.status === 'fulfilled' ? tResult.value : state.data.team, 
+                    vacancies: vResult.status === 'fulfilled' ? vResult.value : state.data.vacancies,
+                    transactions: txResult.status === 'fulfilled' ? txResult.value : state.data.transactions,
+                    myProducts: prodsResult.status === 'fulfilled' ? prodsResult.value : state.data.myProducts
                 }
             });
+            if (failedDomains.length > 0) {
+                const copy = buildReadFailureCopy(degradedDomains.length ? degradedDomains : failedDomains, true);
+                dispatch({ type: 'SET_ERROR', payload: copy.message });
+                pushNotification({ title: copy.title, message: copy.message, type: 'warning' });
+            } else {
+                dispatch({ type: 'SET_ERROR', payload: null });
+            }
             trackFlowTelemetry({
                 profile: 'SANTUARIO',
                 flow: 'core',
                 action: 'refreshData',
-                status: 'success',
+                status: failedDomains.length > 0 ? 'error' : 'success',
                 from: state.currentState,
                 durationMs: Math.round(performance.now() - startedAt),
-                meta: { rooms: r.length, team: t.length, vacancies: v.length, products: prods.length },
+                meta: {
+                    rooms: rResult.status === 'fulfilled' ? rResult.value.length : state.data.rooms.length,
+                    team: tResult.status === 'fulfilled' ? tResult.value.length : state.data.team.length,
+                    vacancies: vResult.status === 'fulfilled' ? vResult.value.length : state.data.vacancies.length,
+                    products: prodsResult.status === 'fulfilled' ? prodsResult.value.length : state.data.myProducts.length,
+                    partial: failedDomains.length > 0,
+                    failedDomains,
+                },
             });
         } catch (e) {
             console.error('Failed to fetch Santuario data', e);
-            dispatch({ type: 'SET_ERROR', payload: 'Erro ao conectar aos altares.' });
+            const copy = buildReadFailureCopy(['marketplace', 'finance'], false);
+            dispatch({ type: 'SET_ERROR', payload: copy.message });
+            pushNotification({ title: copy.title, message: copy.message, type: 'error' });
             trackFlowTelemetry({
                 profile: 'SANTUARIO',
                 flow: 'core',
@@ -246,8 +281,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     };
 
     const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
-        dispatch({ type: 'NOTIFY', payload: { title, message, type } });
-        setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);
+        pushNotification({ title, message, type });
     };
 
     return (
