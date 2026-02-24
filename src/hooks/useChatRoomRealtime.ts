@@ -3,6 +3,7 @@ import { isMockMode, supabase } from '../../lib/supabase';
 
 type Params = {
   roomId?: string | null;
+  watchAllRooms?: boolean;
   enabled?: boolean;
   load: () => Promise<void>;
   fallbackPollMs?: number;
@@ -13,6 +14,7 @@ type Params = {
 
 export function useChatRoomRealtime({
   roomId,
+  watchAllRooms = false,
   enabled = true,
   load,
   fallbackPollMs = 4000,
@@ -32,7 +34,7 @@ export function useChatRoomRealtime({
   }, [realtimeStatus]);
 
   useEffect(() => {
-    if (!enabled || !roomId) {
+    if (!enabled || (!roomId && !watchAllRooms)) {
       setRealtimeStatus('idle');
       return;
     }
@@ -67,24 +69,24 @@ export function useChatRoomRealtime({
     if (!isMockMode) {
       try {
         channel = supabase
-          .channel(`chat-room:${roomId}`)
+          .channel(watchAllRooms ? 'chat-room:all' : `chat-room:${roomId}`)
           .on('postgres_changes', {
             event: 'INSERT',
             schema: 'public',
             table: 'chat_messages',
-            filter: `chat_id=eq.${roomId}`,
+            ...(watchAllRooms ? {} : { filter: `chat_id=eq.${roomId}` }),
           }, requestLoad)
           .on('postgres_changes', {
             event: 'UPDATE',
             schema: 'public',
             table: 'chat_messages',
-            filter: `chat_id=eq.${roomId}`,
+            ...(watchAllRooms ? {} : { filter: `chat_id=eq.${roomId}` }),
           }, requestLoad)
           .on('postgres_changes', {
             event: 'DELETE',
             schema: 'public',
             table: 'chat_messages',
-            filter: `chat_id=eq.${roomId}`,
+            ...(watchAllRooms ? {} : { filter: `chat_id=eq.${roomId}` }),
           }, requestLoad)
           .subscribe((status: string) => {
             if (!active) return;
@@ -129,6 +131,7 @@ export function useChatRoomRealtime({
     };
   }, [
     roomId,
+    watchAllRooms,
     enabled,
     load,
     fallbackPollMs,

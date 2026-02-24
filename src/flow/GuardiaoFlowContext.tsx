@@ -23,6 +23,7 @@ interface GuardiaoContextState extends BaseFlowState<GuardiaoState> {
     notification: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' } | null;
     selectedAppointment?: Appointment;
     selectedPatient?: { id: string; name?: string } | null;
+    selectedChatRoom?: { id: string; name?: string } | null;
 }
 
 // Actions
@@ -32,7 +33,8 @@ type FlowAction =
     | { type: 'NOTIFY'; payload: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' } }
     | { type: 'CLEAR_NOTIFICATION' }
     | { type: 'SELECT_APPOINTMENT'; payload: Appointment }
-    | { type: 'SELECT_PATIENT'; payload: { id: string; name?: string } | null };
+    | { type: 'SELECT_PATIENT'; payload: { id: string; name?: string } | null }
+    | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null };
 
 // Initial State Factory
 const createInitialState = (): GuardiaoContextState => ({
@@ -43,6 +45,7 @@ const createInitialState = (): GuardiaoContextState => ({
     error: null,
     notification: null,
     selectedPatient: null,
+    selectedChatRoom: null,
     data: {
         appointments: [],
         vacancies: [],
@@ -54,11 +57,16 @@ const createInitialState = (): GuardiaoContextState => ({
 
 // Reducer
 const baseReducer = createFlowReducer<GuardiaoState>();
+const isGuardiaoTransitionPayload = (payload: unknown): payload is { nextState: GuardiaoState; history: GuardiaoState[] } =>
+    !!payload && typeof payload === 'object' && 'nextState' in payload && 'history' in payload;
 const flowReducer = (state: GuardiaoContextState, action: FlowAction): GuardiaoContextState => {
     switch (action.type) {
         case 'TRANSITION': {
+            if (isGuardiaoTransitionPayload(action.payload)) {
+                return baseReducer(state, action) as GuardiaoContextState;
+            }
             const tempEngine = new GuardiaoFlowEngine(state.currentState, [...state.history]);
-            const success = tempEngine.transition(action.payload as any);
+            const success = tempEngine.transition(action.payload);
             if (success) {
                 return {
                     ...state,
@@ -91,8 +99,10 @@ const flowReducer = (state: GuardiaoContextState, action: FlowAction): GuardiaoC
             return { ...state, selectedAppointment: action.payload };
         case 'SELECT_PATIENT':
             return { ...state, selectedPatient: action.payload };
+        case 'SELECT_CHAT_ROOM':
+            return { ...state, selectedChatRoom: action.payload };
         default:
-            return baseReducer(state, action as any) as GuardiaoContextState;
+            return baseReducer(state, action as BaseFlowAction<GuardiaoState>) as GuardiaoContextState;
     }
 }
 
@@ -106,6 +116,7 @@ export type GuardiaoFlowContextValue = {
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
     selectAppointment: (apt: Appointment) => void;
     selectPatient: (payload: { id: string; name?: string } | null) => void;
+    selectChatRoom: (payload: { id: string; name?: string } | null) => void;
 };
 
 const GuardiaoFlowContext = GuardiaoFlowContextStore as React.Context<GuardiaoFlowContextValue | undefined>;
@@ -241,9 +252,10 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     const selectAppointment = (apt: Appointment) => dispatch({ type: 'SELECT_APPOINTMENT', payload: apt });
     const selectPatient = (payload: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_PATIENT', payload });
+    const selectChatRoom = (payload: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_CHAT_ROOM', payload });
 
     return (
-        <GuardiaoFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, notify, selectAppointment, selectPatient }}>
+        <GuardiaoFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, notify, selectAppointment, selectPatient, selectChatRoom }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard

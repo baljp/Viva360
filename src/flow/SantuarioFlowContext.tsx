@@ -25,6 +25,7 @@ interface SantuarioContextState extends BaseFlowState<SantuarioState> {
     selectedRoomId: string | null;
     selectedPatientId: string | null;
     selectedEventId: string | null;
+    selectedChatRoom: { id: string; name?: string } | null;
     // Mock Data for Admin Dashboard (standardized)
     adminStats: {
         activePros: number;
@@ -42,6 +43,7 @@ type FlowAction =
     | { type: 'SELECT_ROOM'; payload: string | null }
     | { type: 'SELECT_PATIENT'; payload: string | null }
     | { type: 'SELECT_EVENT'; payload: string | null }
+    | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null }
     | { type: 'CLEAR_NOTIFICATION' };
 
 const createInitialState = (): SantuarioContextState => ({
@@ -62,6 +64,7 @@ const createInitialState = (): SantuarioContextState => ({
     selectedRoomId: null,
     selectedPatientId: null,
     selectedEventId: null,
+    selectedChatRoom: null,
     adminStats: {
         activePros: 12,
         totalPatients: 450,
@@ -72,11 +75,16 @@ const createInitialState = (): SantuarioContextState => ({
 });
 
 const baseReducer = createFlowReducer<SantuarioState>();
+const isSantuarioTransitionPayload = (payload: unknown): payload is { nextState: SantuarioState; history: SantuarioState[] } =>
+    !!payload && typeof payload === 'object' && 'nextState' in payload && 'history' in payload;
 const flowReducer = (state: SantuarioContextState, action: FlowAction): SantuarioContextState => {
     switch (action.type) {
         case 'TRANSITION': {
+            if (isSantuarioTransitionPayload(action.payload)) {
+                return baseReducer(state, action) as SantuarioContextState;
+            }
             const tempEngine = new SantuarioFlowEngine(state.currentState, [...state.history]);
-            const success = tempEngine.transition(action.payload as any);
+            const success = tempEngine.transition(action.payload);
             
             if (success) {
                 return {
@@ -115,10 +123,12 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
             return { ...state, selectedPatientId: action.payload };
         case 'SELECT_EVENT':
             return { ...state, selectedEventId: action.payload };
+        case 'SELECT_CHAT_ROOM':
+            return { ...state, selectedChatRoom: action.payload };
         case 'CLEAR_NOTIFICATION':
             return { ...state, notification: null };
         default:
-            return baseReducer(state, action as any) as SantuarioContextState;
+            return baseReducer(state, action as BaseFlowAction<SantuarioState>) as SantuarioContextState;
     }
 };
 
@@ -133,6 +143,7 @@ export type SantuarioFlowContextValue = {
     selectRoom: (roomId: string | null) => void;
     selectPatient: (patientId: string | null) => void;
     selectEvent: (eventId: string | null) => void;
+    selectChatRoom: (chatRoom: { id: string; name?: string } | null) => void;
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 };
 
@@ -279,12 +290,16 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         dispatch({ type: 'SELECT_EVENT', payload: eventId });
     };
 
+    const selectChatRoom = (chatRoom: { id: string; name?: string } | null) => {
+        dispatch({ type: 'SELECT_CHAT_ROOM', payload: chatRoom });
+    };
+
     const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
         pushNotification({ title, message, type });
     };
 
     return (
-        <SantuarioFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectPro, selectRoom, selectPatient, selectEvent, notify }}>
+        <SantuarioFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectPro, selectRoom, selectPatient, selectEvent, selectChatRoom, notify }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard 

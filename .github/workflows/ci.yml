@@ -106,6 +106,9 @@ jobs:
       - name: Run full backend unit test suite
         run: npm run test:backend
 
+      - name: Coverage thresholds by layer (services, controllers, flow)
+        run: npm run test:coverage:layers
+
   # ────────────────────────────────────────────────────────────────
   # 3. Build verification (Vite + Prisma generate)
   # ────────────────────────────────────────────────────────────────

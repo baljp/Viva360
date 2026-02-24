@@ -92,7 +92,18 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
     useEffect(() => {
         let cancelled = false;
         const hydrateGamification = async () => {
-            const latest = await api.users.getById(user.id);
+            const [latestProfile, latestGamification] = await Promise.all([
+                api.users.getById(user.id),
+                api.gamification.getState(),
+            ]);
+            const latest = latestProfile ? {
+                ...latestProfile,
+                ...(latestGamification ? {
+                    dailyQuests: latestGamification.dailyQuests,
+                    achievements: latestGamification.achievements,
+                    grimoireMeta: latestGamification.grimoireMeta,
+                } : {}),
+            } : null;
             if (!latest || cancelled) return;
 
             const local = loadPersistedQuests(user);
@@ -132,7 +143,21 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
         persistQuests(user.id, quests);
     }, [user?.id, quests]);
 
-    const persistGamificationSnapshot = async (nextUser: User, nextQuests: DailyQuest[], nextAchievements: Achievement[]) => {
+    const persistGamificationState = async (
+        completedQuest: DailyQuest,
+        nextUser: User,
+        nextQuests: DailyQuest[],
+        nextAchievements: Achievement[],
+    ) => {
+        try {
+            const questResult = await api.gamification.completeQuest(completedQuest);
+            const achievementsResult = await api.gamification.syncAchievements(nextAchievements);
+            const latestState = achievementsResult?.state || questResult?.state || null;
+            if (latestState) return latestState;
+        } catch {
+            // fall through to legacy snapshot endpoint (best-effort)
+        }
+
         try {
             await api.users.update({
                 ...nextUser,
@@ -142,6 +167,7 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
         } catch {
             // non-blocking: local persistence remains source of UX continuity
         }
+        return null;
     };
 
     const handleComplete = async (questId: string) => {
@@ -174,8 +200,23 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
             const nextAchievements = checkAchievements(updatedUser as User, CLIENT_ACHIEVEMENTS);
             updateUser({ ...(updatedUser as User), achievements: nextAchievements });
             persistQuests(user.id, updated);
-            void persistGamificationSnapshot(updatedUser as User, updated, nextAchievements);
             setBackendSyncLabel('Sincronização pendente...');
+            void persistGamificationState({ ...quest, isCompleted: true }, updatedUser as User, updated, nextAchievements)
+                .then((state) => {
+                    if (!state) return;
+                    updateUser({
+                        ...(updatedUser as User),
+                        dailyQuests: state.dailyQuests,
+                        achievements: state.achievements,
+                        grimoireMeta: state.grimoireMeta,
+                    });
+                    setBackendSyncLabel(
+                        state.grimoireMeta.lastSyncedAt
+                            ? `Backend sincronizado em ${new Date(state.grimoireMeta.lastSyncedAt).toLocaleString('pt-BR')}`
+                            : 'Sincronizado com backend',
+                    );
+                })
+                .catch(() => undefined);
 
             notify(`+${karmaGain} Karma`, `${quest.label} concluída!`, 'success');
 

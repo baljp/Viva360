@@ -56,11 +56,16 @@ const createInitialState = (): FlowContextState => ({
 
 // Reducer
 const baseReducer = createFlowReducer<BuscadorState>();
+const isFlowTransitionPayload = (payload: unknown): payload is { nextState: BuscadorState; history: BuscadorState[] } =>
+    !!payload && typeof payload === 'object' && 'nextState' in payload && 'history' in payload;
 const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextState => {
     switch (action.type) {
         case 'TRANSITION': {
+            if (isFlowTransitionPayload(action.payload)) {
+                return baseReducer(state, action) as FlowContextState;
+            }
             const tempEngine = new BuscadorFlowEngine(state.currentState, [...state.history]);
-            const success = tempEngine.transition(action.payload as any); // payload is handled by base if needed, but here we need engine
+            const success = tempEngine.transition(action.payload); // payload is handled by base if needed, but here we need engine
             if (success) {
                 return {
                     ...state,
@@ -98,7 +103,7 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
         case 'SET_TRIBE_ROOM_CONTEXT':
             return { ...state, tribeRoomContext: action.payload };
         default:
-            return baseReducer(state, action as any) as FlowContextState;
+            return baseReducer(state, action as BaseFlowAction<BuscadorState>) as FlowContextState;
     }
 };
 

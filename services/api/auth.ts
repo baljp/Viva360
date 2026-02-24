@@ -1,6 +1,5 @@
 import type { User } from '../../types';
 import { UserRole } from '../../types';
-import type { RequestOptions } from './requestClient';
 import type { AuthApi, AuthRegisterInput } from './authProxy';
 import {
   API_URL,
@@ -17,7 +16,6 @@ import {
   inferRoleFromEmail,
   isLikelyNetworkError,
   normalizeEmail,
-  normalizeProfilePayload,
   normalizeRole,
   normalizeRoleList,
   setSessionMode,
@@ -44,135 +42,14 @@ import {
   normalizeAuthRoleMutationPayload,
   startGoogleOAuthRedirect,
 } from './authUtils';
-
-type RequestFn = <T = unknown>(path: string, opts?: RequestOptions) => Promise<T>;
-type SupabaseUserMetadata = { full_name?: string; avatar_url?: string; role?: string };
-
-type LoginEligibility = {
-  allowed: boolean;
-  role: UserRole | null;
-  roles?: UserRole[];
-  reason?: string | null;
-  canRegister?: boolean;
-  accountState?: string | null;
-  nextAction?: string | null;
-};
-
-const toDomainAuthMessage = (input: { code?: string | null; reason?: string | null; fallback?: string }): string => {
-  const code = String(input.code || '').toUpperCase();
-  const reason = String(input.reason || '').toUpperCase();
-  if (code === 'EMAIL_ALREADY_EXISTS') return 'Este e-mail já está cadastrado. Entre com ele ou use outro.';
-  if (code === 'ROLE_ALREADY_ACTIVE') return 'Este perfil já existe neste e-mail.';
-  if (code === 'REGISTRATION_INCOMPLETE' || reason === 'REGISTRATION_INCOMPLETE') return 'Seu cadastro está incompleto, finalize para entrar.';
-  if (reason === 'INVITE_APPROVED_PENDING_REGISTRATION') return 'Seu e-mail está aprovado para cadastro. Finalize o cadastro para entrar.';
-  if (reason === 'INVITE_PENDING_APPROVAL') return 'Seu convite está em análise. Aguarde aprovação para entrar.';
-  if (reason === 'MOCK_STRICT_ONLY') return 'No modo teste, use apenas e-mails pré-definidos.';
-  if (code === 'EMAIL_NOT_AUTHORIZED' || reason === 'EMAIL_NOT_AUTHORIZED') return 'Conta não autorizada. Faça cadastro antes de entrar.';
-  if (code === 'INVALID_CREDENTIALS') return 'Credenciais inválidas.';
-  return input.fallback || 'Não foi possível concluir autenticação.';
-};
-
-const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> => {
-  const normalized = normalizeEmail(email);
-  if (!normalized) return { allowed: false, role: null };
-
-  if (isSupabaseMock) {
-    if (isStrictTestEmail(normalized)) {
-      // Strict accounts are created by the backend in mock mode; treat as allowed.
-      return {
-        allowed: true,
-        role: inferRoleFromEmail(normalized),
-        roles: [inferRoleFromEmail(normalized)],
-        reason: 'MOCK_TEST_ACCOUNT',
-        canRegister: false,
-        accountState: 'ACTIVE',
-        nextAction: 'LOGIN',
-      };
-    }
-    return {
-      allowed: false,
-      role: null,
-      roles: [],
-      reason: 'MOCK_STRICT_ONLY',
-      canRegister: false,
-      accountState: 'NOT_AUTHORIZED',
-      nextAction: 'REQUEST_INVITE',
-    };
-  }
-
-  const response = await fetchWithTimeout(`${API_URL}/auth/precheck-login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: normalized }),
-    timeoutMs: 7000,
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) return { allowed: false, role: null };
-
-  const allowed = !!payload?.allowed;
-  const role = payload?.role ? normalizeRole(String(payload.role)) : null;
-  const roles = normalizeRoleList(Array.isArray(payload?.roles) ? payload.roles : role ? [role] : []);
-  return {
-    allowed,
-    role,
-    roles,
-    reason: payload?.reason ? String(payload.reason) : null,
-    canRegister: !!payload?.canRegister,
-    accountState: payload?.accountState ? String(payload.accountState) : null,
-    nextAction: payload?.nextAction ? String(payload.nextAction) : null,
-  };
-};
-
-const ensureOAuthProfile = async (accessToken: string, role: UserRole, name?: string) => {
-  const response = await fetchWithTimeout(`${API_URL}/auth/oauth/ensure-profile`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: JSON.stringify({
-      role: normalizeRole(role),
-      ...(name ? { name } : {}),
-    }),
-    timeoutMs: 9000,
-  });
-
-  if (!response.ok) {
-    const payload = await response.json().catch(() => ({}));
-    throw new Error(payload?.error || response.statusText || 'Falha ao criar perfil OAuth.');
-  }
-};
-
-const hydrateUserFromProfileApi = async (request: RequestFn, base: User): Promise<User> => {
-  const userId = String(base?.id || '').trim();
-  if (!userId) return base;
-
-  try {
-    const profilePayload = await request(`/users/${userId}`, {
-      purpose: 'session-hydration',
-      timeoutMs: 7000,
-      retries: 1,
-    });
-    const hydrated = normalizeProfilePayload(profilePayload || {});
-
-    const merged: User = {
-      ...base,
-      ...hydrated,
-      role: normalizeRole(base.activeRole || base.role || hydrated.activeRole || hydrated.role),
-      activeRole: normalizeRole(base.activeRole || base.role || hydrated.activeRole || hydrated.role),
-      roles: normalizeRoleList([
-        ...(base.roles || []),
-        ...(hydrated.roles || []),
-        base.activeRole || base.role,
-        hydrated.activeRole || hydrated.role,
-      ]),
-    };
-    if (!merged.roles || merged.roles.length === 0) merged.roles = [merged.activeRole || merged.role];
-    return merged;
-  } catch {
-    return base;
-  }
-};
+import {
+  type RequestFn,
+  type SupabaseUserMetadata,
+  ensureOAuthProfile,
+  fetchLoginEligibility,
+  hydrateUserFromProfileApi,
+  toDomainAuthMessage,
+} from './authDomainHelpers';
 
 export const createAuthApi = (request: RequestFn) => {
   const auth = {} as AuthApi;
@@ -578,16 +455,5 @@ export const createAuthApi = (request: RequestFn) => {
     return normalizeAuthRoleMutationPayload(payload, role);
   };
 
-  return auth as {
-    loginWithPassword: (email: string, password: string) => Promise<User>;
-    loginWithGoogle: (role?: UserRole, expectedEmail?: string) => Promise<User>;
-    registerWithGoogle: (role?: UserRole, expectedEmail?: string) => Promise<User>;
-    register: (data: any) => Promise<User>;
-    getCurrentSession: () => Promise<User | null>;
-    logout: () => Promise<void>;
-    deleteAccount: () => Promise<any>;
-    listRoles: () => Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }>;
-    selectRole: (role: UserRole) => Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }>;
-    addRole: (role: UserRole) => Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }>;
-  };
+  return auth;
 };

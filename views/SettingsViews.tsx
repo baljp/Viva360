@@ -14,8 +14,9 @@ import { accountApi } from '../services/api/accountClient';
 import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
 import { supabase } from '../lib/supabase';
 import { SettingsToggle } from './settings/SettingsToggle';
-import { getSettingsRoleConfig, homeForRole, roleLabel, type NotificationPrefKey } from './settings/settingsConfig';
+import { getSettingsRoleConfig, homeForRole, roleLabel } from './settings/settingsConfig';
 import { downloadJsonFile, normalizeSettingsTransactions } from './settings/settingsUtils';
+import { type FlowBridge, type PrivacyState, type SettingsNotifState, errorMessage } from './settings/settingsViewHelpers';
 
 interface SettingsProps {
     user: User;
@@ -24,20 +25,6 @@ interface SettingsProps {
     updateUser: (u: User) => void;
     onLogout?: () => void;
 }
-
-type FlowBridge = { go: (target: string) => void };
-type PrivacyState = { tribe: boolean; patterns: boolean; history: boolean };
-type SettingsNotifState = Record<NotificationPrefKey, boolean>;
-type UiError = { message?: string } | null | undefined;
-
-const errorMessage = (err: unknown, fallback: string) => {
-    if (err && typeof err === 'object' && 'message' in err) {
-        const message = (err as UiError)?.message;
-        if (typeof message === 'string' && message.trim()) return message;
-    }
-    return fallback;
-};
-
 
 export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
     user, view, setView, updateUser, onLogout, flow

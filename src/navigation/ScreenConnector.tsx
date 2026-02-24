@@ -3,20 +3,29 @@ import React from 'react';
 import { screenMap } from './screenMap';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Compass } from 'lucide-react';
+import type { User, ViewState } from '../../types';
+
+type ConnectorFlowLike = {
+    state: { currentState: string };
+    reset: () => void;
+    go?: (target: string) => void;
+    back?: () => void;
+    jump?: (target: string) => void;
+};
 
 interface ConnectorProps {
     profile: 'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO';
-    user: any; // User type
-    flow: any; // Flow Context
-    updateUser?: (u: any) => void;
-    setView?: (v: any) => void; // Legacy compatibility
+    user: User;
+    flow: ConnectorFlowLike;
+    updateUser?: (u: User) => void;
+    setView?: (v: ViewState) => void; // Legacy compatibility
 }
 
-export const ScreenConnector: React.FC<ConnectorProps & { [key: string]: any }> = ({ profile, user, flow, updateUser, setView, ...rest }) => {
+export const ScreenConnector: React.FC<ConnectorProps & Record<string, unknown>> = ({ profile, user, flow, updateUser, setView, ...rest }) => {
     const currentState = flow.state.currentState;
 
     // Resolve Screen Component
-    const ProfileMap = screenMap[profile];
+    const ProfileMap = (screenMap as Record<string, Record<string, React.ComponentType<Record<string, unknown>>>>)[profile];
     const ScreenComponent = ProfileMap ? ProfileMap[currentState] : null;
 
     if (!ScreenComponent) {

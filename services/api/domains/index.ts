@@ -5,6 +5,7 @@ import { createCommerceDomain } from './commerce';
 import { createCommunityDomain } from './community';
 import { createHubDomain } from './hub';
 import { createWellnessDomain, type OracleCachedEntry } from './wellness';
+import { createGamificationDomain } from './gamification';
 
 type DomainFactoryDeps = {
   request: DomainRequest;
@@ -23,6 +24,7 @@ export const createApiDomains = (deps: DomainFactoryDeps) => ({
   ...createCommerceDomain({ request: deps.request }),
   ...createCommunityDomain({ request: deps.request }),
   ...createHubDomain({ request: deps.request }),
+  ...createGamificationDomain({ request: deps.request }),
   ...createWellnessDomain({
     request: deps.request,
     getOracleCache: deps.getOracleCache,
