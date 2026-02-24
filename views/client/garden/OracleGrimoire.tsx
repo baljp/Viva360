@@ -6,16 +6,35 @@ import { OracleCardPremium } from '../../../src/components/OracleCardPremium';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 
+type OracleHistoryItem = {
+    drawId?: string;
+    drawnAt?: string;
+    date?: string;
+    card: {
+        id?: string;
+        name?: string;
+        category?: string;
+        insight?: string;
+        text?: string;
+        element?: string;
+    };
+};
+
 export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();
-    const [history, setHistory] = useState<any[]>([]);
+    const [history, setHistory] = useState<OracleHistoryItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedCard, setSelectedCard] = useState<any>(null);
+    const [selectedCard, setSelectedCard] = useState<OracleHistoryItem | null>(null);
 
     useEffect(() => {
-        api.oracle.history().then(data => {
+        api.oracle.history().then((data: unknown) => {
+            const historyList = Array.isArray(data) ? (data as OracleHistoryItem[]) : [];
             // Sort by date newest first
-            const sorted = (data || []).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            const sorted = [...historyList].sort((a, b) => {
+                const aDate = a.drawnAt || a.date || '';
+                const bDate = b.drawnAt || b.date || '';
+                return new Date(bDate).getTime() - new Date(aDate).getTime();
+            });
             setHistory(sorted);
             setIsLoading(false);
         }).catch(err => {
@@ -40,6 +59,10 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
                     <div>
                         <h3 className="text-2xl font-serif italic text-nature-900">Suas Revelações</h3>
                         <p className="text-[10px] text-nature-400 uppercase font-black tracking-widest">Memórias do Destino</p>
+                        <p className="text-[9px] text-nature-300 uppercase font-bold tracking-widest mt-1">
+                            {user.grimoireMeta?.totalCards ?? history.length} cartas persistidas
+                            {user.grimoireMeta?.source ? ` • ${user.grimoireMeta.source}` : ''}
+                        </p>
                     </div>
                 </div>
 
@@ -57,7 +80,7 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
                     <div className="grid grid-cols-1 gap-6">
                         {history.map((item, idx) => (
                             <button 
-                                key={idx} 
+                                key={item.drawId || `${idx}`} 
                                 onClick={() => setSelectedCard(item)}
                                 className="bg-white rounded-[2rem] p-6 border border-nature-100 shadow-sm hover:shadow-md transition-all relative overflow-hidden group text-left"
                             >
@@ -68,24 +91,25 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
                                         <Calendar size={12} className="text-nature-400" />
                                         <span className="text-[10px] font-bold text-nature-600 uppercase tracking-widest">
                                             {(() => {
-                                                if (!item.date) return 'REVELADO';
+                                                const rawDate = item.drawnAt || item.date;
+                                                if (!rawDate) return 'REVELADO';
                                                 try {
-                                                    const date = new Date(item.date);
+                                                    const date = new Date(rawDate);
                                                     if (isNaN(date.getTime())) return 'REVELADO';
                                                     return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
-                                                } catch (e) {
+                                                } catch {
                                                     return 'REVELADO';
                                                 }
                                             })()}
                                         </span>
                                     </div>
                                     <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[9px] font-black uppercase tracking-tighter rounded-full border border-amber-200">
-                                        {item.card.element}
+                                        {item.card.element || 'Ar'}
                                     </span>
                                 </div>
 
                                 <h4 className="text-xl font-serif italic text-nature-900 mb-2 relative z-10">
-                                    {item.card.name || item.card.category}
+                                    {item.card.name || item.card.category || 'Oráculo Viva360'}
                                 </h4>
                                 <p className="text-sm text-nature-600 leading-relaxed italic relative z-10 line-clamp-2">
                                     "{item.card.insight || item.card.text}"

@@ -3,14 +3,32 @@ import type { DomainRequest } from './common';
 
 type AccountDomainDeps = {
   request: DomainRequest;
-  normalizeProfilePayload: (input: any) => User;
+  normalizeProfilePayload: (input: unknown) => User;
+};
+
+type CheckInResponse = {
+  ok?: boolean;
+  alreadyDone?: boolean;
+  status?: string;
+  code?: string;
+  reward?: number;
+  lastCheckIn?: string | null;
+  user?: unknown;
+};
+
+type RequestErrorLike = {
+  status?: number;
+  code?: string;
+  details?: Record<string, unknown> & { code?: string; user?: unknown };
+  message?: string;
 };
 
 export const createAccountDomain = ({ request, normalizeProfilePayload }: AccountDomainDeps) => ({
   users: {
-    getById: async (id: string) => {
+    getById: async (id: string): Promise<User | null> => {
       try {
-        return await request(`/users/${id}`);
+        const payload = await request<unknown>(`/users/${id}`);
+        return normalizeProfilePayload(payload);
       } catch (err) {
         console.error('[account.users.getById]', err);
         return null;
@@ -24,28 +42,29 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       });
     },
     checkIn: async (_uid: string, reward: number = 50) => {
-      let payload: any;
+      let payload: CheckInResponse;
       try {
-        payload = await request('/users/checkin', {
+        payload = await request<CheckInResponse>('/users/checkin', {
           method: 'POST',
           purpose: 'daily-checkin',
           timeoutMs: 7000,
           retries: 0,
           body: JSON.stringify({ reward }),
         });
-      } catch (error: any) {
+      } catch (error) {
+        const reqError = error as RequestErrorLike;
         console.error('[account.checkIn]', error);
-        const status = Number(error?.status || 0);
-        const code = String(error?.code || error?.details?.code || '').toUpperCase();
+        const status = Number(reqError?.status || 0);
+        const code = String(reqError?.code || reqError?.details?.code || '').toUpperCase();
         if (status === 409 || code === 'CHECKIN_ALREADY_DONE') {
-          const details = error?.details || {};
+          const details = reqError?.details || {};
           return {
             ...details,
             code: 'CHECKIN_ALREADY_DONE',
             status: 'ALREADY_DONE',
             ok: true,
             alreadyDone: true,
-            user: details?.user ? normalizeProfilePayload(details.user) : undefined,
+            user: details.user ? normalizeProfilePayload(details.user) : undefined,
           };
         }
         throw error;

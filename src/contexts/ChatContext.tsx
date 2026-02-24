@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import type { User } from '../../types';
 import { supabase, isMockMode } from '../../lib/supabase';
 import { api } from '../../services/api';
 import { ChatContextStore } from './ChatContextStore';
@@ -20,13 +21,50 @@ interface ChatContextType {
     markAsRead: (senderId: string) => Promise<void>;
     getMessagesWith: (userId: string) => ChatMessage[];
     unreadCount: number;
+    realtimeStatus: 'idle' | 'subscribed' | 'fallback';
+    usingFallbackPolling: boolean;
+    isRealtimeSubscribed: boolean;
 }
 export type { ChatContextType };
 const ChatContext = ChatContextStore as React.Context<ChatContextType>;
 
+type SupabaseChatRow = Partial<ChatMessage> & {
+    id?: string;
+    sender_id?: string;
+    receiver_id?: string;
+    content?: string;
+    read?: boolean;
+    created_at?: string;
+};
+
+const toChatMessage = (row: SupabaseChatRow): ChatMessage | null => {
+    const id = String(row.id || '').trim();
+    const senderId = String(row.sender_id || '').trim();
+    const receiverId = String(row.receiver_id || '').trim();
+    if (!id || !senderId || !receiverId) return null;
+    return {
+        id,
+        sender_id: senderId,
+        receiver_id: receiverId,
+        content: String(row.content || ''),
+        read: !!row.read,
+        created_at: String(row.created_at || new Date().toISOString()),
+    };
+};
+
+const mergeMessages = (prev: ChatMessage[], incomingRows: SupabaseChatRow[]) => {
+    const map = new Map(prev.map((m) => [m.id, m]));
+    incomingRows.forEach((row) => {
+        const msg = toChatMessage(row);
+        if (msg) map.set(msg.id, msg);
+    });
+    return Array.from(map.values()).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+};
+
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const [user, setUser] = useState<any>(null);
+    const [user, setUser] = useState<User | null>(null);
+    const [realtimeStatus, setRealtimeStatus] = useState<'idle' | 'subscribed' | 'fallback'>('idle');
     const realtimeStatusRef = useRef<'idle' | 'subscribed' | 'fallback'>('idle');
     const lastFetchAtRef = useRef(0);
     const fetchInFlightRef = useRef(false);
@@ -50,7 +88,11 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Realtime Subscription
     useEffect(() => {
-        if (!user || isMockMode) return;
+        if (!user || isMockMode) {
+            setRealtimeStatus(isMockMode ? 'fallback' : 'idle');
+            realtimeStatusRef.current = isMockMode ? 'fallback' : 'idle';
+            return;
+        }
 
         // Fetch initial history (last 100 messages for simplicity)
         // In a real app, you'd paginate or load per room
@@ -64,8 +106,8 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
                     .order('created_at', { ascending: true }); // Oldest first for chat log
 
-                if (data) {
-                    setMessages(data as any);
+                if (Array.isArray(data)) {
+                    setMessages(mergeMessages([], data as SupabaseChatRow[]));
                     lastFetchAtRef.current = Date.now();
                 }
             } finally {
@@ -86,7 +128,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     filter: `receiver_id=eq.${user.id}`, // Incoming
                 },
                 (payload) => {
-                    setMessages(prev => [...prev, payload.new as ChatMessage]);
+                    setMessages(prev => mergeMessages(prev, [payload.new as SupabaseChatRow]));
                 }
             )
             .on(
@@ -98,19 +140,69 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     filter: `sender_id=eq.${user.id}`, // Outgoing (from other devices/tabs)
                 },
                 (payload) => {
-                    // Dedup if we added it optimistically (optional, for now just append)
-                    setMessages(prev => {
-                        if (prev.find(m => m.id === payload.new.id)) return prev;
-                        return [...prev, payload.new as ChatMessage];
-                    });
+                    setMessages(prev => mergeMessages(prev, [payload.new as SupabaseChatRow]));
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'chat_messages',
+                    filter: `receiver_id=eq.${user.id}`,
+                },
+                (payload) => {
+                    setMessages(prev => mergeMessages(prev, [payload.new as SupabaseChatRow]));
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'chat_messages',
+                    filter: `sender_id=eq.${user.id}`,
+                },
+                (payload) => {
+                    setMessages(prev => mergeMessages(prev, [payload.new as SupabaseChatRow]));
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'DELETE',
+                    schema: 'public',
+                    table: 'chat_messages',
+                    filter: `receiver_id=eq.${user.id}`,
+                },
+                (payload) => {
+                    const deletedId = String((payload.old as { id?: string } | null)?.id || '');
+                    if (!deletedId) return;
+                    setMessages(prev => prev.filter((m) => m.id !== deletedId));
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'DELETE',
+                    schema: 'public',
+                    table: 'chat_messages',
+                    filter: `sender_id=eq.${user.id}`,
+                },
+                (payload) => {
+                    const deletedId = String((payload.old as { id?: string } | null)?.id || '');
+                    if (!deletedId) return;
+                    setMessages(prev => prev.filter((m) => m.id !== deletedId));
                 }
             )
             .subscribe((status) => {
                 if (status === 'SUBSCRIBED') {
+                    setRealtimeStatus('subscribed');
                     realtimeStatusRef.current = 'subscribed';
                     return;
                 }
                 if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                    setRealtimeStatus('fallback');
                     realtimeStatusRef.current = 'fallback';
                 }
             });
@@ -183,7 +275,16 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unreadCount = messages.filter(m => m.receiver_id === user?.id && !m.read).length;
 
     return (
-        <ChatContext.Provider value={{ messages, sendMessage, markAsRead, getMessagesWith, unreadCount }}>
+        <ChatContext.Provider value={{
+            messages,
+            sendMessage,
+            markAsRead,
+            getMessagesWith,
+            unreadCount,
+            realtimeStatus,
+            usingFallbackPolling: realtimeStatus === 'fallback',
+            isRealtimeSubscribed: realtimeStatus === 'subscribed',
+        }}>
             {children}
         </ChatContext.Provider>
     );

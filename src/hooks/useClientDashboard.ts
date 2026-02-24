@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { User, DailyRitualSnap, ViewState } from '../../types';
+import { User, DailyRitualSnap, ViewState, Notification } from '../../types';
 import { accountApi } from '../../services/api/accountClient';
 import { communityApi } from '../../services/api/communityClient';
 import { gardenService } from '../../services/gardenService';
@@ -13,6 +13,25 @@ export const useClientDashboard = (
     updateUser: (u: User) => void,
     setView: (v: ViewState) => void
 ) => {
+    type CheckInResult = {
+        ok?: boolean;
+        alreadyDone?: boolean;
+        status?: string;
+        code?: string;
+        reward?: number;
+        lastCheckIn?: string | null;
+        user?: User;
+    };
+    type ApiErrorLike = {
+        status?: number;
+        code?: string;
+        message?: string;
+        details?: {
+            code?: string;
+            lastCheckIn?: string;
+            user?: { lastCheckIn?: string };
+        };
+    };
     const { go } = useBuscadorFlow();
     const [toast, setToast] = useState<{title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning'} | null>(null);
     const [ritualToast, setRitualToast] = useState<{title: string, message: string} | null>(null);
@@ -21,7 +40,7 @@ export const useClientDashboard = (
     const [notificationsReadIssue, setNotificationsReadIssue] = useState<{ title: string; message: string } | null>(null);
 
     // Real Notifications Fetch
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
 
     const loadNotifications = useCallback(async () => {
         try {
@@ -77,7 +96,7 @@ export const useClientDashboard = (
 
     const handleDailyCheckIn = useCallback(async (reward: number): Promise<{ ok: boolean; alreadyDone?: boolean }> => {
         try {
-            const res: any = await accountApi.users.checkIn(user.id, reward);
+            const res = await accountApi.users.checkIn(user.id, reward) as CheckInResult;
             if (res?.alreadyDone || String(res?.status || '').toUpperCase() === 'ALREADY_DONE' || String(res?.code || '').toUpperCase() === 'CHECKIN_ALREADY_DONE') {
                 const checkInAt = String(res?.lastCheckIn || res?.user?.lastCheckIn || '').trim();
                 if (checkInAt) {
@@ -95,10 +114,11 @@ export const useClientDashboard = (
 
             setToast({ title: "Não foi possível concluir", message: "Tente novamente em instantes.", type: 'warning' });
             return { ok: false };
-        } catch (error: any) {
-            const code = String(error?.code || error?.details?.code || '').toUpperCase();
-            if (code === 'CHECKIN_ALREADY_DONE' || Number(error?.status) === 409) {
-                const checkInAt = String(error?.details?.lastCheckIn || error?.details?.user?.lastCheckIn || '').trim();
+        } catch (error) {
+            const typedError = error as ApiErrorLike;
+            const code = String(typedError?.code || typedError?.details?.code || '').toUpperCase();
+            if (code === 'CHECKIN_ALREADY_DONE' || Number(typedError?.status) === 409) {
+                const checkInAt = String(typedError?.details?.lastCheckIn || typedError?.details?.user?.lastCheckIn || '').trim();
                 if (checkInAt) {
                     updateUser({ ...user, lastCheckIn: checkInAt });
                 }
@@ -106,7 +126,7 @@ export const useClientDashboard = (
                 return { ok: true, alreadyDone: true };
             }
             console.error("[useClientDashboard] checkIn error:", error);
-            const errMsg = error?.message || "Não conseguimos registrar sua benção agora.";
+            const errMsg = typedError?.message || "Não conseguimos registrar sua benção agora.";
             setToast({ title: "Erro ao receber benção", message: errMsg, type: 'error' });
             return { ok: false };
         }
@@ -138,11 +158,11 @@ export const useClientDashboard = (
 
           // Persist without heavy image payload (images are local-only).
           const payloadUser: User = {
-              ...(updatedUserLocal as any),
-              snaps: (updatedUserLocal.snaps || []).map((s) => ({ ...(s as any), image: '' })),
+              ...updatedUserLocal,
+              snaps: (updatedUserLocal.snaps || []).map((s) => ({ ...s, image: '' })),
           };
           const saved = await accountApi.users.update(payloadUser);
-          updateUser({ ...(saved as any), snaps: updatedUserLocal.snaps });
+          updateUser({ ...(saved as User), snaps: updatedUserLocal.snaps });
     }, [user, updateUser]);
 
     return {

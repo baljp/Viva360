@@ -8,7 +8,7 @@ import { createWellnessDomain, type OracleCachedEntry } from './wellness';
 
 type DomainFactoryDeps = {
   request: DomainRequest;
-  normalizeProfilePayload: (input: any) => User;
+  normalizeProfilePayload: (input: unknown) => User;
   getOracleCache: () => OracleCachedEntry[];
   saveOracleCache: (entries: OracleCachedEntry[]) => void;
   isSameDay: (isoA: string, isoB: string) => boolean;

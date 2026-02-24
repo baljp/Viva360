@@ -1,22 +1,28 @@
 import type { CartItem, User } from '../../types';
+import { UserRole } from '../../types';
 
 const normalizeRoleValue = (value: unknown) =>
   typeof value === 'string' ? value.toUpperCase() : value;
 
-export const normalizeUserForApp = (input: any): User => {
+const normalizeAppRole = (value: unknown): UserRole =>
+  (String(normalizeRoleValue(value) || '').toUpperCase() in UserRole
+    ? String(normalizeRoleValue(value)).toUpperCase()
+    : UserRole.CLIENT) as UserRole;
+
+export const normalizeUserForApp = (input: unknown): User => {
   const user = { ...(input as User) } as User;
-  user.role = normalizeRoleValue(user.role) as any;
+  user.role = normalizeAppRole(user.role);
   if (typeof user.activeRole === 'string') {
-    user.activeRole = normalizeRoleValue(user.activeRole) as any;
+    user.activeRole = normalizeAppRole(user.activeRole);
     user.role = user.activeRole;
   }
   if (Array.isArray(user.roles)) {
-    user.roles = user.roles.map((entry: any) => String(entry).toUpperCase() as any);
+    user.roles = user.roles.map((entry) => normalizeAppRole(entry));
   }
   return user;
 };
 
-export const mergeUserForApp = (prev: User | null, incomingRaw: any): User => {
+export const mergeUserForApp = (prev: User | null, incomingRaw: unknown): User => {
   const incoming = normalizeUserForApp(incomingRaw);
   if (!prev) return incoming;
 
@@ -72,4 +78,3 @@ export const clearPendingInvite = () => {
     // ignore storage failures
   }
 };
-

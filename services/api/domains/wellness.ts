@@ -22,6 +22,13 @@ type WellnessDomainDeps = {
   buildOracleFallbackCard: (mood: string) => OracleCachedEntry['card'];
 };
 
+type OracleHistoryApiEntry = {
+  drawId: string;
+  drawnAt: string;
+  moodContext: string;
+  card: OracleCachedEntry['card'];
+};
+
 export const createWellnessDomain = ({
   request,
   getOracleCache,
@@ -101,21 +108,28 @@ export const createWellnessDomain = ({
 
     history: async () => {
       try {
-        const response = await request('/oracle/history');
+        const response = await request<unknown>('/oracle/history');
         if (Array.isArray(response) && response.length > 0) {
-          const normalized = response.map((entry: any) => ({
-            drawId: entry.drawId || entry.id || `${Date.now()}-${Math.random()}`,
-            drawnAt: entry.drawnAt || entry.drawn_at || new Date().toISOString(),
-            moodContext: entry.moodContext || entry.context?.mood || 'sereno',
+          const normalized: OracleHistoryApiEntry[] = response.map((entry) => {
+            const raw = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};
+            const cardRaw = (raw.card && typeof raw.card === 'object') ? (raw.card as Record<string, unknown>) : {};
+            return {
+            drawId: String(raw.drawId || raw.id || `${Date.now()}-${Math.random()}`),
+            drawnAt: String(raw.drawnAt || raw.drawn_at || new Date().toISOString()),
+            moodContext: raw.moodContext
+              ? String(raw.moodContext)
+              : (raw.context && typeof raw.context === 'object' ? String((raw.context as Record<string, unknown>).mood || 'sereno') : 'sereno'),
             card: {
-              id: entry.card?.id || entry.message_id || `oracle_${Date.now()}`,
-              name: entry.card?.name || 'Oráculo Viva360',
-              insight: entry.card?.insight || entry.card?.message || 'Respire e siga seu centro.',
-              element: entry.card?.element || 'Ar',
-              category: entry.card?.category || 'consciencia',
+              id: String(cardRaw.id || raw.message_id || `oracle_${Date.now()}`),
+              name: String(cardRaw.name || 'Oráculo Viva360'),
+              insight: String(cardRaw.insight || cardRaw.message || 'Respire e siga seu centro.'),
+              element: String(cardRaw.element || 'Ar'),
+              category: String(cardRaw.category || 'consciencia'),
             },
-          })) as OracleCachedEntry[];
+          };
+        });
           saveOracleCache(normalized);
+          return normalized;
         }
         return response;
       } catch {

@@ -20,6 +20,7 @@ export function useChatRoomRealtime({
   hiddenFallbackPollMs = 12000,
   hiddenHealthyPollMs = 30000,
 }: Params) {
+  type SupabaseRealtimeChannel = ReturnType<typeof supabase.channel>;
   const [realtimeStatus, setRealtimeStatus] = useState<'idle' | 'subscribed' | 'fallback'>('idle');
   const statusRef = useRef<'idle' | 'subscribed' | 'fallback'>('idle');
   const lastLoadAtRef = useRef(0);
@@ -37,7 +38,7 @@ export function useChatRoomRealtime({
     }
 
     let active = true;
-    let channel: any = null;
+    let channel: SupabaseRealtimeChannel | null = null;
     let tickTimer: number | null = null;
 
     const runLoad = async () => {

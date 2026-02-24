@@ -127,6 +127,12 @@ export interface DailyJournalEntry {
   generatedPhrases?: [string, string];
 }
 
+export interface GrimoireMeta {
+  totalCards: number;
+  lastSyncedAt?: string | null;
+  source?: string;
+}
+
 // Add ConstellationMember interface
 export interface ConstellationMember {
   id: string;
@@ -197,6 +203,17 @@ export interface User {
   inventory?: { incense: number; crystals: number };
   dailyQuests?: DailyQuest[];
   achievements?: Achievement[];
+  grimoireMeta?: GrimoireMeta;
+  privacySettings?: {
+    tribe?: boolean;
+    patterns?: boolean;
+    history?: boolean;
+  };
+  notificationPrefs?: {
+    rituals?: boolean;
+    tribe?: boolean;
+    finance?: boolean;
+  };
   snaps?: DailyRitualSnap[];
   constellationInvites?: any[];
   prestigeLevel?: number;
@@ -287,7 +304,7 @@ export interface Notification {
   read: boolean;
   priority?: 'high' | 'normal' | 'low';
   actionUrl?: string; // Deep link
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SpaceRoom {

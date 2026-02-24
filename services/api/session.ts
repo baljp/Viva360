@@ -1,4 +1,5 @@
-import { User, UserRole } from '../../types';
+import type { Achievement, DailyQuest, DailyRitualSnap, GrimoireMeta, MoodType, PlantStage, User } from '../../types';
+import { UserRole } from '../../types';
 
 export const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -175,46 +176,116 @@ export const decodeJwtPayload = (token: string): any | null => {
   }
 };
 
-export const normalizeProfilePayload = (input: any): User => {
-  const role = normalizeRole(input?.role || input?.active_role || input?.activeRole || UserRole.CLIENT);
-  const roles = normalizeRoleList(Array.isArray(input?.roles) ? input.roles : [role]);
-  const snaps = Array.isArray(input?.snaps)
-    ? input.snaps
-        .map((entry: any) => ({
-          id: String(entry?.id || ''),
-          date: String(entry?.date || entry?.timestamp || new Date().toISOString()),
-          // May be blank when images are kept device-local (IndexedDB).
-          image: String(entry?.image || entry?.photoThumb || entry?.thumb || ''),
-          mood: String(entry?.mood || 'SERENO') as any,
-          note: String(entry?.note || entry?.reflection || entry?.quote || ''),
-          phrases: Array.isArray(entry?.phrases) ? entry.phrases : [],
-        }))
-        .filter((entry: any) => entry.id)
+const asRecord = (value: unknown): Record<string, unknown> =>
+  (value && typeof value === 'object') ? (value as Record<string, unknown>) : {};
+
+const asDailyQuest = (value: unknown): DailyQuest | null => {
+  const entry = asRecord(value);
+  const id = String(entry.id || '').trim();
+  const label = String(entry.label || '').trim();
+  if (!id || !label) return null;
+  return {
+    id,
+    label,
+    description: entry.description ? String(entry.description) : undefined,
+    reward: Number(entry.reward || 0),
+    isCompleted: !!entry.isCompleted,
+    type: entry.type && ['ritual', 'water', 'breathe', 'other'].includes(String(entry.type))
+      ? (String(entry.type) as DailyQuest['type'])
+      : undefined,
+  };
+};
+
+const asAchievement = (value: unknown): Achievement | null => {
+  const entry = asRecord(value);
+  const id = String(entry.id || '').trim();
+  const label = String(entry.label || '').trim();
+  const description = String(entry.description || '').trim();
+  const icon = String(entry.icon || '').trim();
+  const category = String(entry.category || '').trim();
+  if (!id || !label || !description || !icon) return null;
+  if (!['streak', 'karma', 'social', 'ritual', 'mastery'].includes(category)) return null;
+  return {
+    id,
+    label,
+    description,
+    icon,
+    category: category as Achievement['category'],
+    threshold: Number(entry.threshold || 0),
+    unlockedAt: entry.unlockedAt ? String(entry.unlockedAt) : undefined,
+  };
+};
+
+const asSnap = (value: unknown): DailyRitualSnap | null => {
+  const entry = asRecord(value);
+  const id = String(entry.id || '').trim();
+  if (!id) return null;
+  const moodRaw = String(entry.mood || 'SERENO').toUpperCase();
+  const allowedMoods: MoodType[] = ['SERENO', 'VIBRANTE', 'MELANCÓLICO', 'ANSIOSO', 'FOCADO', 'EXAUSTO', 'GRATO'];
+  const mood = (allowedMoods.includes(moodRaw as MoodType) ? moodRaw : 'SERENO') as MoodType;
+  const rawPhrases = Array.isArray(entry.phrases) ? entry.phrases.filter((p): p is string => typeof p === 'string') : [];
+  return {
+    id,
+    date: String(entry.date || entry.timestamp || new Date().toISOString()),
+    image: String(entry.image || entry.photoThumb || entry.thumb || ''),
+    mood,
+    note: entry.note || entry.reflection || entry.quote ? String(entry.note || entry.reflection || entry.quote) : undefined,
+    phrases: rawPhrases.length >= 2 ? [rawPhrases[0], rawPhrases[1]] : undefined,
+  };
+};
+
+const asGrimoireMeta = (value: unknown): GrimoireMeta | undefined => {
+  const entry = asRecord(value);
+  if (entry.totalCards === undefined && entry.total_cards === undefined) return undefined;
+  return {
+    totalCards: Number(entry.totalCards ?? entry.total_cards ?? 0),
+    lastSyncedAt: entry.lastSyncedAt || entry.last_synced_at ? String(entry.lastSyncedAt || entry.last_synced_at) : null,
+    source: entry.source ? String(entry.source) : undefined,
+  };
+};
+
+export const normalizeProfilePayload = (input: unknown): User => {
+  const payload = asRecord(input);
+  const role = normalizeRole(String(payload.role || payload.active_role || payload.activeRole || UserRole.CLIENT));
+  const roles = normalizeRoleList(Array.isArray(payload.roles) ? payload.roles as Array<string | UserRole> : [role]);
+  const snaps = Array.isArray(payload.snaps)
+    ? payload.snaps.map(asSnap).filter((entry): entry is DailyRitualSnap => !!entry)
     : [];
+  const dailyQuests = Array.isArray(payload.dailyQuests)
+    ? payload.dailyQuests.map(asDailyQuest).filter((entry): entry is DailyQuest => !!entry)
+    : undefined;
+  const achievements = Array.isArray(payload.achievements)
+    ? payload.achievements.map(asAchievement).filter((entry): entry is Achievement => !!entry)
+    : undefined;
+  const grimoireMeta = asGrimoireMeta(payload.grimoireMeta);
+  const plantStageRaw = String(payload.plantStage || payload.plant_stage || 'seed');
+  const plantStage = (['seed', 'sprout', 'bud', 'flower', 'tree', 'withered'].includes(plantStageRaw) ? plantStageRaw : 'seed') as PlantStage;
 
   return baseUser({
-    id: String(input?.id || ''),
-    email: String(input?.email || ''),
-    name: String(input?.name || input?.full_name || 'Viajante'),
+    id: String(payload.id || ''),
+    email: String(payload.email || ''),
+    name: String(payload.name || payload.full_name || 'Viajante'),
     role,
     activeRole: role,
     roles,
-    avatar: String(input?.avatar || ''),
-    karma: Number(input?.karma ?? 0),
-    streak: Number(input?.streak ?? 0),
-    multiplier: Number(input?.multiplier ?? 1),
-    personalBalance: Number(input?.personalBalance ?? input?.personal_balance ?? 0),
-    corporateBalance: Number(input?.corporateBalance ?? input?.corporate_balance ?? 0),
-    plantStage: String(input?.plantStage || input?.plant_stage || 'seed') as any,
-    plantXp: Number(input?.plantXp ?? input?.plant_xp ?? 0),
-    plantHealth: Number(input?.plantHealth ?? input?.plant_health ?? 100),
-    lastCheckIn: input?.lastCheckIn || input?.last_check_in || undefined,
-    lastWateredAt: input?.lastWateredAt || input?.last_watered_at || undefined,
-    lastBlessingAt: input?.lastBlessingAt || input?.last_blessing_at || undefined,
-    lastMood: input?.lastMood || input?.last_mood || undefined,
-    bio: input?.bio || undefined,
-    location: input?.location || undefined,
+    avatar: String(payload.avatar || ''),
+    karma: Number(payload.karma ?? 0),
+    streak: Number(payload.streak ?? 0),
+    multiplier: Number(payload.multiplier ?? 1),
+    personalBalance: Number(payload.personalBalance ?? payload.personal_balance ?? 0),
+    corporateBalance: Number(payload.corporateBalance ?? payload.corporate_balance ?? 0),
+    plantStage,
+    plantXp: Number(payload.plantXp ?? payload.plant_xp ?? 0),
+    plantHealth: Number(payload.plantHealth ?? payload.plant_health ?? 100),
+    lastCheckIn: payload.lastCheckIn || payload.last_check_in ? String(payload.lastCheckIn || payload.last_check_in) : undefined,
+    lastWateredAt: payload.lastWateredAt || payload.last_watered_at ? String(payload.lastWateredAt || payload.last_watered_at) : undefined,
+    lastBlessingAt: payload.lastBlessingAt || payload.last_blessing_at ? String(payload.lastBlessingAt || payload.last_blessing_at) : undefined,
+    lastMood: payload.lastMood || payload.last_mood ? String(payload.lastMood || payload.last_mood) as MoodType : undefined,
+    bio: payload.bio ? String(payload.bio) : undefined,
+    location: payload.location ? String(payload.location) : undefined,
     snaps,
+    dailyQuests,
+    achievements,
+    grimoireMeta,
   });
 };
-
