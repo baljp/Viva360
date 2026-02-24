@@ -2,9 +2,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Professional } from '../../types';
 import { Search, Plus, ArrowRightLeft, Filter, MessageCircle, Loader2, Sparkles, X } from 'lucide-react';
-import { PortalView, ZenToast, BottomSheet, InteractiveButton } from '../../components/Common';
+import { PortalView, ZenToast, BottomSheet, InteractiveButton, DegradedRetryNotice } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
-import { api } from '../../services/api';
+import { commerceApi } from '../../services/api/commerceClient';
+import { buildReadFailureCopy, isDegradedReadError } from '../../src/utils/readDegradedUX';
 
 export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
     const { go, notify } = useGuardiaoFlow();
@@ -15,7 +16,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
     const [toast, setToast] = useState<{ title: string; message: string; type?: 'success' | 'info' | 'warning' | 'error' } | null>(null);
 
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
     const [globalListings, setGlobalListings] = useState<any[]>([]);
     const [myListings, setMyListings] = useState<any[]>([]);
 
@@ -38,11 +39,11 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
 
     const loadEscambo = async (cancelled = { value: false }) => {
         setLoading(true);
-        setError(null);
+        setReadIssue(null);
         try {
             const [all, mine] = await Promise.all([
-                api.marketplace.list({ category: 'escambo' }),
-                api.marketplace.list({ category: 'escambo', ownerId: String(user.id) }),
+                commerceApi.marketplace.list({ category: 'escambo', strict: true }),
+                commerceApi.marketplace.list({ category: 'escambo', ownerId: String(user.id), strict: true }),
             ]);
             const toListing = (p: any) => ({
                 id: String(p.id),
@@ -65,7 +66,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
         } catch (e: any) {
             console.warn('[ProTribe] Failed to load escambo listings:', e);
             if (!cancelled.value) {
-                setError('Não foi possível carregar o mural agora.');
+                setReadIssue(buildReadFailureCopy(['marketplace'], isDegradedReadError(e)));
                 setGlobalListings([]);
                 setMyListings([]);
             }
@@ -183,6 +184,14 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
 
                 {/* CONTENT */}
                 <div className="space-y-4 pb-20">
+                    {!loading && readIssue && (
+                        <DegradedRetryNotice
+                            title={readIssue.title}
+                            message={readIssue.message}
+                            onRetry={() => loadEscambo().catch(() => undefined)}
+                            compact
+                        />
+                    )}
                     {activeTab === 'market' && (
                         <>
                             <div className="bg-white p-3 rounded-2xl border border-nature-100 flex items-center gap-2 shadow-sm">
@@ -206,16 +215,8 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                                     <Loader2 size={26} className="animate-spin text-nature-300" />
                                     <p className="text-xs text-nature-400">Sincronizando o mural...</p>
                                 </div>
-                            ) : error ? (
-                                <div className="text-center py-12 px-4">
-                                    <p className="text-sm text-rose-500 mb-3">{error}</p>
-                                    <button
-                                        onClick={() => loadEscambo().catch(() => undefined)}
-                                        className="text-xs text-indigo-600 font-bold uppercase tracking-widest"
-                                    >
-                                        Tentar novamente
-                                    </button>
-                                </div>
+                            ) : readIssue ? (
+                                <div className="py-4" />
                             ) : filteredExchanges.length === 0 ? (
                                 <div className="text-center py-14 px-6">
                                     <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-inner">
@@ -409,7 +410,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                                     createData.wish.trim() ? `PEDE: ${createData.wish.trim()}` : null,
                                     createData.notes.trim() ? createData.notes.trim() : null,
                                 ].filter(Boolean);
-                                await api.marketplace.create({
+                                await commerceApi.marketplace.create({
                                     name: offer,
                                     price: Number.isFinite(createData.credits) ? createData.credits : 0,
                                     category: 'escambo',

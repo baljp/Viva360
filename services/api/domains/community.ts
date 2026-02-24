@@ -25,11 +25,12 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
   },
 
   notifications: {
-    list: async () => {
+    list: async (opts?: { strict?: boolean }) => {
       try {
         return await request('/notifications');
       } catch (err) {
         console.error('[community.list]', err);
+        if (opts?.strict) throw err;
         return [];
       }
     },
@@ -195,7 +196,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         body: JSON.stringify(payload),
       });
     },
-    listRooms: async (filters?: { contextType?: string; contextId?: string }) => {
+    listRooms: async (filters?: { contextType?: string; contextId?: string }, opts?: { strict?: boolean }) => {
       try {
         const query = new URLSearchParams();
         if (filters?.contextType) query.set('contextType', filters.contextType);
@@ -204,6 +205,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         return await request(`/chat/rooms${suffix}`);
       } catch (err) {
         console.error('[community.listRooms]', err);
+        if (opts?.strict) throw err;
         return [];
       }
     },

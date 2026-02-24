@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { User } from '../../types';
 import { Shield, FileText, Calendar, DollarSign, Clock, CheckCircle2, AlertTriangle, Download, Sparkles, Loader2 } from 'lucide-react';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
-import { ZenToast, BottomSheet } from '../../components/Common';
+import { ZenToast, BottomSheet, DegradedRetryNotice } from '../../components/Common';
+import { buildReadFailureCopy, isDegradedReadError } from '../../src/utils/readDegradedUX';
 
 import { api } from '../../services/api';
 
@@ -12,19 +13,32 @@ export const SantuarioContractView: React.FC<{ user: User }> = ({ user }) => {
     const [showRenewModal, setShowRenewModal] = useState(false);
     const [contract, setContract] = useState<any>(null);
     const [noContract, setNoContract] = useState(false);
+    const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
 
-    React.useEffect(() => {
-        api.spaces.getContract().then(data => {
-            if (data && !data.error) setContract(data);
-            else setNoContract(true);
-        }).catch((err) => {
+    const loadContract = React.useCallback(async () => {
+        setReadIssue(null);
+        try {
+            const data = await api.spaces.getContract();
+            if (data && !data.error) {
+                setContract(data);
+                setNoContract(false);
+                return;
+            }
+            setNoContract(true);
+        } catch (err: any) {
             if (err?.response?.status === 404 || err?.status === 404) {
                 setNoContract(true);
-            } else {
-                notify('Erro', 'Não foi possível carregar o contrato.', 'warning');
+                return;
             }
-        });
-    }, []);
+            const copy = buildReadFailureCopy(['spaces'], isDegradedReadError(err));
+            setReadIssue(copy);
+            notify(copy.title, copy.message, 'warning');
+        }
+    }, [notify]);
+
+    React.useEffect(() => {
+        loadContract().catch(() => undefined);
+    }, [loadContract]);
 
     if (noContract) return (
         <div className="min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center px-6 text-center gap-4">
@@ -35,7 +49,18 @@ export const SantuarioContractView: React.FC<{ user: User }> = ({ user }) => {
         </div>
     );
 
-    if (!contract) return <div className="min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center gap-3 text-nature-400"><Loader2 size={28} className="animate-spin" /><span className="text-xs font-bold uppercase tracking-widest">Carregando Contrato...</span></div>;
+    if (!contract) {
+        if (readIssue) {
+            return (
+                <div className="min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center px-6">
+                    <div className="w-full max-w-md">
+                        <DegradedRetryNotice title={readIssue.title} message={readIssue.message} onRetry={loadContract} />
+                    </div>
+                </div>
+            );
+        }
+        return <div className="min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center gap-3 text-nature-400"><Loader2 size={28} className="animate-spin" /><span className="text-xs font-bold uppercase tracking-widest">Carregando Contrato...</span></div>;
+    }
 
 
     const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });

@@ -9,7 +9,7 @@ export const DegradedRetryNotice: React.FC<{
   className?: string;
 }> = ({ title, message, onRetry, compact = false, className = '' }) => {
   return (
-    <div className={`rounded-2xl border border-amber-200 bg-amber-50/80 backdrop-blur-sm text-amber-900 ${compact ? 'p-3' : 'p-4'} ${className}`}>
+    <div data-testid="degraded-retry-notice" className={`rounded-2xl border border-amber-200 bg-amber-50/80 backdrop-blur-sm text-amber-900 ${compact ? 'p-3' : 'p-4'} ${className}`}>
       <div className="flex items-start gap-3">
         <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center shrink-0">
           <AlertTriangle size={16} />
@@ -30,4 +30,3 @@ export const DegradedRetryNotice: React.FC<{
     </div>
   );
 };
-

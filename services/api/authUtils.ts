@@ -79,3 +79,15 @@ export const normalizeAuthRoleMutationPayload = (
   };
 };
 
+export const normalizeAuthRoleListPayload = (
+  payload: any,
+): { userId: string; roles: UserRole[]; activeRole: UserRole } => {
+  const source = payload?.data || payload;
+  const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : []);
+  const activeRole = normalizeRole(source?.activeRole || roles[0] || UserRole.CLIENT);
+  return {
+    userId: String(source?.userId || ''),
+    roles: roles.length ? roles : [activeRole],
+    activeRole,
+  };
+};

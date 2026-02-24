@@ -38,6 +38,7 @@ import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOA
 import { captureFrontendMessage } from '../../lib/frontendLogger';
 import {
   clearOAuthIntentStorage,
+  normalizeAuthRoleListPayload,
   normalizeAuthRoleMutationPayload,
   startGoogleOAuthRedirect,
 } from './authUtils';
@@ -555,14 +556,7 @@ export const createAuthApi = (request: RequestFn) => {
 
   auth.listRoles = async (): Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }> => {
     const payload = await request('/auth/roles');
-    const source = payload?.data || payload;
-    const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : []);
-    const activeRole = normalizeRole(source?.activeRole || roles[0] || UserRole.CLIENT);
-    return {
-      userId: String(source?.userId || ''),
-      roles: roles.length ? roles : [activeRole],
-      activeRole,
-    };
+    return normalizeAuthRoleListPayload(payload);
   };
 
   auth.selectRole = async (role: UserRole): Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }> => {

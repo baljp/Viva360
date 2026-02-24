@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { ViewState, User, UserRole } from '../types';
 import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWarning, Zap, Briefcase, Building, User as UserIcon, Eye, EyeOff } from 'lucide-react';
-import { api, request } from '../services/api';
+import { request } from '../services/api/core';
+import { authApi } from '../services/api/authProxy';
 import { supabase, isMockMode, isDemoMode, envStatus } from '../lib/supabase';
 // Logo import removed
 
@@ -166,7 +167,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         setLoading(true);
         setError('');
         try {
-            const user = await api.auth.loginWithPassword(email, password);
+            const user = await authApi.loginWithPassword(email, password);
             onSubmit(user);
         } catch (err: any) {
             console.error(err);
@@ -195,7 +196,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         try {
             const candidate = email.trim().toLowerCase();
             const expected = candidate.includes('@') ? candidate : undefined;
-            const googleUser = await api.auth.loginWithGoogle(UserRole.CLIENT, expected);
+            const googleUser = await authApi.loginWithGoogle(UserRole.CLIENT, expected);
             if (googleUser) {
                 onSubmit(googleUser);
             }
@@ -340,11 +341,11 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
             try {
                 const { data } = await supabase.auth.getSession();
                 if (data.session) {
-                    const user = await api.auth.getCurrentSession();
+                    const user = await authApi.getCurrentSession();
                     if (user) onLogin(user);
                 }
             } catch (err) {
-                await api.auth.logout();
+                await authApi.logout();
             }
         };
         checkSession();

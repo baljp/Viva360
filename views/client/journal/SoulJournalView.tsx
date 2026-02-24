@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { User, DailyJournalEntry, MoodType } from '../../../types';
-import { PortalView } from '../../../components/Common';
+import { PortalView, DegradedRetryNotice } from '../../../components/Common';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Book, Lock, TrendingUp, Calendar, Heart, ArrowRight, Video, Plus, Share2, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { generateShareCanvas, shareToSocial } from '../../../src/utils/sharing';
+import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
 export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
     const { go, notify} = useBuscadorFlow();
     const [entries, setEntries] = useState<DailyJournalEntry[]>([]);
     const [stats, setStats] = useState<{ total: number; streak: number } | null>(null);
     const [loadingJournal, setLoadingJournal] = useState(true);
+    const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
 
     useEffect(() => {
         const load = async () => {
@@ -19,8 +21,11 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                 const list = await api.journal.list();
                 setEntries(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
                 setStats({ total: list.length, streak: 0 });
-            } catch {
-                notify?.('Erro', 'Não foi possível carregar o diário.', 'warning');
+                setReadIssue(null);
+            } catch (err) {
+                const copy = buildReadFailureCopy(['records'], isDegradedReadError(err));
+                setReadIssue(copy);
+                notify?.(copy.title, copy.message, 'warning');
             } finally {
                 setLoadingJournal(false);
             }
@@ -109,6 +114,25 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                             <Loader2 size={28} className="animate-spin" />
                             <span className="text-[10px] font-bold uppercase tracking-widest">Carregando diário...</span>
                         </div>
+                    ) : readIssue ? (
+                        <DegradedRetryNotice
+                            title={readIssue.title}
+                            message={readIssue.message}
+                            onRetry={() => {
+                                setLoadingJournal(true);
+                                setReadIssue(null);
+                                api.journal.list()
+                                  .then((list) => {
+                                    setEntries(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+                                    setStats({ total: list.length, streak: 0 });
+                                  })
+                                  .catch((err) => {
+                                    const copy = buildReadFailureCopy(['records'], isDegradedReadError(err));
+                                    setReadIssue(copy);
+                                  })
+                                  .finally(() => setLoadingJournal(false));
+                            }}
+                        />
                     ) : entries.length === 0 ? (
                         <div className="flex flex-col items-center justify-center h-64 text-center space-y-4 opacity-50">
                             <Book size={48} className="text-nature-300" />

@@ -54,6 +54,13 @@ if (shouldLoadMonitoring) {
   });
 }
 
+// Flow telemetry aggregation/export is lightweight and useful for QA/pilots; install off the critical path.
+scheduleIdle(() => {
+  import('./src/flow/flowTelemetryRuntime')
+    .then((m) => m.installFlowTelemetryRuntime())
+    .catch(() => undefined);
+});
+
 const rootElement = document.getElementById('root');
 if (!rootElement) {
   throw new Error("Could not find root element to mount to");

@@ -15,6 +15,7 @@ import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
 import { supabase } from '../lib/supabase';
 import { SettingsToggle } from './settings/SettingsToggle';
 import { getSettingsRoleConfig, homeForRole, roleLabel, type NotificationPrefKey } from './settings/settingsConfig';
+import { downloadJsonFile, normalizeSettingsTransactions } from './settings/settingsUtils';
 
 interface SettingsProps {
     user: User;
@@ -49,16 +50,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [deleteBusy, setDeleteBusy] = useState(false);
     const [exportBusy, setExportBusy] = useState(false);
-    const normalizedTransactions = transactions.map((tx) => {
-        const normalizedType = String(tx.type || '').toLowerCase();
-        const isIncome = normalizedType === 'income' || normalizedType === 'credit' || normalizedType === 'deposit' || normalizedType === 'entrada';
-        return {
-            ...tx,
-            amount: Number(tx.amount || 0),
-            date: tx.date || new Date().toISOString(),
-            type: isIncome ? 'income' : 'expense',
-        } as Transaction;
-    });
+    const normalizedTransactions = normalizeSettingsTransactions(transactions);
 
     // Ref para o input de arquivo (foto de perfil)
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -230,16 +222,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
         setExportBusy(true);
         try {
             const response = await accountApi.users.exportData(user.id);
-            // Trigger download
-            const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `viva360-dados-${user.id}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            downloadJsonFile(`viva360-dados-${user.id}.json`, response);
             setToast({ title: 'Exportação Concluída', message: 'Seus dados foram baixados no formato JSON.' });
         } catch (err: any) {
             setToast({ title: 'Erro', message: err?.message || 'Não foi possível exportar seus dados agora.' });

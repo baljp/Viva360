@@ -1,5 +1,42 @@
 import { test, expect } from '../utils/mock-fixtures';
 
+const dismissBlessingOverlayIfPresent = async (page: import('@playwright/test').Page) => {
+  const blessingHeading = page.getByText(/Ben[cç][aã]o Matinal/i).first();
+  if (!(await blessingHeading.isVisible().catch(() => false))) return;
+
+  const receiveBlessing = page.getByRole('button', { name: /receber ben[cç][aã]o/i }).first();
+  if (await receiveBlessing.isVisible().catch(() => false)) {
+    await receiveBlessing.click({ timeout: 5000 });
+  } else {
+    // Fallback for icon-only close buttons rendered in banner variants.
+    await page.keyboard.press('Escape').catch(() => undefined);
+  }
+
+  await blessingHeading.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => undefined);
+  await page.waitForTimeout(200);
+};
+
+const openOracleCard = async (page: import('@playwright/test').Page) => {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    await dismissBlessingOverlayIfPresent(page);
+    const oracleCard = page.getByRole('button', { name: /revelar mensagem do or[aá]culo/i }).first();
+
+    try {
+      await expect(oracleCard).toBeVisible({ timeout: 5000 });
+      await oracleCard.click({ timeout: 5000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 4) break;
+      await page.waitForTimeout(250);
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error('Falha ao abrir card do Oráculo');
+};
+
 const clickOraclePrimaryAction = async (page: import('@playwright/test').Page) => {
   const actionPattern = /revelar carta do dia|ver carta revelada/i;
   let lastError: unknown;
@@ -60,8 +97,7 @@ test.describe('Oracle Flow', () => {
     });
     await page.reload();
 
-    const oracleCard = page.locator('#portal-oracle');
-    await oracleCard.click({ force: true });
+    await openOracleCard(page);
     await expect(
       page.getByRole('heading', { name: /Guia Diário|Oráculo Viva360/i }).first()
     ).toBeVisible({ timeout: 15000 });

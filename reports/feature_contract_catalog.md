@@ -1,20 +1,20 @@
 # Catálogo de Contrato de Features (clientOnly vs persistidas)
 
-Gerado em: 2026-02-24T13:08:40.547Z
+Gerado em: 2026-02-24T14:26:07.306Z
 
 Flows totais: 39
 Client-only: 8
-Persistidos validados: 11
-Mistos/parciais: 20
+Persistidos validados: 16
+Mistos/parciais: 15
 Não classificados: 0
-Validados por catálogo de evidência: 8
+Validados por catálogo de evidência: 13
 
 | Flow ID | Perfil | Tipo de contrato | ClientOnly | Final esperado | Endpoints | Persistência (P0/P1/P2) | Evidência explícita |
 |---|---|---|---|---|---|---|---|
 | buscador_ritual_diario | BUSCADOR | MISTO_OU_PARCIAL | Não | HISTORY | /api/metamorphosis/checkin, /api/users/checkin | 0/36/5 | Não |
 | buscador_metamorfose_karma_timelapse | BUSCADOR | MISTO_OU_PARCIAL | Não | TIME_LAPSE_EXPERIENCE | /api/metamorphosis/evolution, /api/oracle/history | 0/31/5 | Não |
 | buscador_busca_agenda_confirmacao | BUSCADOR | MISTO_OU_PARCIAL | Não | PAYMENT_SUCCESS | /api/appointments/*, /api/checkout/pay, /api/notifications/* | 0/7/7 | Não |
-| buscador_marketplace_checkout | BUSCADOR | MISTO_OU_PARCIAL | Não | PAYMENT_HISTORY | /api/marketplace/products, /api/checkout/pay | 0/2/9 | Não |
+| buscador_marketplace_checkout | BUSCADOR | PERSISTIDO_VALIDADO | Não | PAYMENT_HISTORY | /api/marketplace/products, /api/checkout/pay | 0/2/9 | Sim |
 | buscador_tribo_convite | BUSCADOR | PERSISTIDO_VALIDADO | Não | CHAT_ROOM | /api/tribe/*, /api/chat/* | 0/0/13 | Não |
 | buscador_retiro_offline | BUSCADOR | MISTO_OU_PARCIAL | Não | TRIBE_DASH | /api/tribe/sync, /api/notifications/* | 0/1/7 | Não |
 | buscador_pacto_de_alma | BUSCADOR | MISTO_OU_PARCIAL | Não | TRIBE_DASH | /api/invites/create, /api/tribe/* | 0/1/7 | Não |
@@ -29,7 +29,7 @@ Validados por catálogo de evidência: 8
 | guardiao_escambo | GUARDIAO | PERSISTIDO_VALIDADO | Não | ESCAMBO_CONFIRM | /api/alchemy/offers/*, /api/chat/* | 0/0/8 | Não |
 | guardiao_prontuario_consentido | GUARDIAO | PERSISTIDO_VALIDADO | Não | PATIENT_RECORDS | /api/records/* | 0/0/6 | Não |
 | guardiao_intervencao_clinica | GUARDIAO | MISTO_OU_PARCIAL | Não | DASHBOARD | /api/clinical/interventions | 0/7/6 | Não |
-| guardiao_alquimia_criar_oferta | GUARDIAO | MISTO_OU_PARCIAL | Não | ESCAMBO_MARKET | /api/marketplace/products | 0/6/12 | Não |
+| guardiao_alquimia_criar_oferta | GUARDIAO | PERSISTIDO_VALIDADO | Não | ESCAMBO_MARKET | /api/marketplace/products | 0/6/12 | Sim |
 | guardiao_agenda_video | GUARDIAO | MISTO_OU_PARCIAL | Não | VIDEO_SESSION | /api/appointments/* | 0/24/12 | Não |
 | guardiao_financeiro_expandido | GUARDIAO | MISTO_OU_PARCIAL | Não | FINANCIAL_DASHBOARD | /api/finance/* | 0/10/6 | Não |
 | guardiao_tribo_chat | GUARDIAO | PERSISTIDO_VALIDADO | Não | CHAT_ROOM | /api/chat/*, /api/tribe/* | 0/6/18 | Sim |
@@ -41,12 +41,12 @@ Validados por catálogo de evidência: 8
 | santuario_operacao_completa | SANTUARIO | MISTO_OU_PARCIAL | Não | FINANCE_OVERVIEW | /api/spaces/*, /api/rooms/*, /api/finance/* | 5/25/3 | Não |
 | santuario_inteligencia_preditiva | SANTUARIO | CLIENT_ONLY | Sim | ROOM_AGENDA | — | 3/14/5 | Não |
 | santuario_auditoria_interna | SANTUARIO | CLIENT_ONLY | Sim | GOVERNANCE | — | 3/12/8 | Não |
-| santuario_pacientes_operacao | SANTUARIO | MISTO_OU_PARCIAL | Não | PATIENT_RECORDS | /api/records/*, /api/appointments/* | 3/24/13 | Não |
-| santuario_time_e_avaliacao_servico | SANTUARIO | MISTO_OU_PARCIAL | Não | SERVICE_EVALUATION | /api/spaces/*, /api/reviews/* | 3/27/3 | Não |
+| santuario_pacientes_operacao | SANTUARIO | PERSISTIDO_VALIDADO | Não | PATIENT_RECORDS | /api/records/*, /api/appointments/* | 3/24/13 | Sim |
+| santuario_time_e_avaliacao_servico | SANTUARIO | PERSISTIDO_VALIDADO | Não | SERVICE_EVALUATION | /api/spaces/*, /api/reviews/* | 3/27/3 | Sim |
 | santuario_salaseestrutura_expandida | SANTUARIO | MISTO_OU_PARCIAL | Não | ROOM_EDIT | /api/rooms/* | 6/23/3 | Não |
 | santuario_financeiro_expandido | SANTUARIO | MISTO_OU_PARCIAL | Não | FINANCE_FORECAST | /api/finance/* | 3/17/3 | Não |
 | santuario_marketplace_eventos_retiros | SANTUARIO | MISTO_OU_PARCIAL | Não | RETREATS_MANAGE | /api/marketplace/*, /api/events/* | 5/19/3 | Não |
 | santuario_recrutamento_completo | SANTUARIO | PERSISTIDO_VALIDADO | Não | VAGA_CANDIDATES | /api/recruitment/* | 3/12/8 | Sim |
-| santuario_analytics_reputacao_chat | SANTUARIO | MISTO_OU_PARCIAL | Não | CHAT_ROOM | /api/chat/*, /api/analytics/* | 3/14/6 | Não |
+| santuario_analytics_reputacao_chat | SANTUARIO | PERSISTIDO_VALIDADO | Não | CHAT_ROOM | /api/chat/*, /api/analytics/* | 3/14/6 | Sim |
 | santuario_shell_e_encerramento | SANTUARIO | CLIENT_ONLY | Sim | EXEC_DASHBOARD | — | 3/23/7 | Não |
 | santuario_avaliacao_servico | SANTUARIO | CLIENT_ONLY | Sim | EXEC_DASHBOARD | — | 3/16/3 | Sim |

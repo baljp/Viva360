@@ -72,12 +72,12 @@ export const ClientDashboard: React.FC<{
                     <div><p className="text-[10px] font-bold text-nature-700 uppercase tracking-[0.3em]">Sua Jornada até aqui,</p><h2 className="text-2xl font-serif italic text-nature-900 leading-none mt-1 max-w-[140px] truncate">{user.name.split(' ')[0]}</h2></div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><MessageCircle size={20} /></button>
-                    <button onClick={() => actions.setShowNotifications(true)} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all relative">
+                    <button aria-label="Abrir conversas da tribo" onClick={() => go('CHAT_LIST')} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all"><MessageCircle size={20} /></button>
+                    <button aria-label="Abrir notificações" onClick={() => actions.setShowNotifications(true)} className="p-2.5 bg-white rounded-2xl shadow-sm border border-nature-100 text-nature-400 active:scale-95 transition-all relative">
                         <Bell size={20} />
                         {notifications.some(n => !n.read) && <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border border-white"></span>}
                     </button>
-                    <div onClick={() => go('KARMA_WALLET')} className="px-4 py-2 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100 cursor-pointer hover:bg-nature-50 transition-colors"><Sparkles size={16} className="text-amber-400" /><span className="text-xs font-bold text-nature-900">{animatedKarma}</span></div>
+                    <div role="button" tabIndex={0} aria-label="Abrir carteira de karma" onClick={() => go('KARMA_WALLET')} onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), go('KARMA_WALLET'))} className="px-4 py-2 bg-white rounded-2xl shadow-sm flex items-center gap-2 border border-nature-100 cursor-pointer hover:bg-nature-50 transition-colors"><Sparkles size={16} className="text-amber-400" /><span className="text-xs font-bold text-nature-900">{animatedKarma}</span></div>
                 </div>
             </header>
 

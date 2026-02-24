@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-24T13:08:40.547Z",
+  "generatedAt": "2026-02-24T14:26:07.306Z",
   "source": {
     "flowRegistry": "src/flow/registry.ts",
     "matrixReport": "reports/screen_button_flow_matrix.json"
@@ -7,10 +7,10 @@
   "totals": {
     "flows": 39,
     "clientOnly": 8,
-    "persistedValidated": 11,
-    "mixedOrPartial": 20,
+    "persistedValidated": 16,
+    "mixedOrPartial": 15,
     "unclassified": 0,
-    "flowValidatedByEvidenceCatalog": 8
+    "flowValidatedByEvidenceCatalog": 13
   },
   "catalog": [
     {
@@ -134,7 +134,7 @@
       "id": "buscador_marketplace_checkout",
       "profile": "BUSCADOR",
       "title": "Marketplace + carrinho + checkout + recibo",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "MARKETPLACE",
@@ -165,7 +165,13 @@
         "userVisibleOutcome": "PAYMENT_HISTORY",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Fluxo de receita combina leitura de catálogo + checkout, com contratos de checkout/contexto e marketplace validados em QA.",
+        "evidence": [
+          "qa/flows/interaction-contracts.spec.ts",
+          "qa/flows/critical_fixes.spec.ts"
+        ]
+      }
     },
     {
       "id": "buscador_tribo_convite",
@@ -701,7 +707,7 @@
       "id": "guardiao_alquimia_criar_oferta",
       "profile": "GUARDIAO",
       "title": "Guardião: criar oferta (Alquimia) com retorno ao marketplace",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -730,7 +736,13 @@
         "userVisibleOutcome": "ESCAMBO_MARKET",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Criação de oferta de escambo validada em integração backend e contratos de ciclo de escambo.",
+        "evidence": [
+          "backend/src/tests/flows-integration.test.ts",
+          "qa/flows/interaction-contracts.spec.ts"
+        ]
+      }
     },
     {
       "id": "guardiao_agenda_video",
@@ -1165,7 +1177,7 @@
       "id": "santuario_pacientes_operacao",
       "profile": "SANTUARIO",
       "title": "Santuário: atendimento interno de pacientes e agenda local",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "START",
@@ -1200,13 +1212,19 @@
         "userVisibleOutcome": "PATIENT_RECORDS",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Camada de prontuário/consentimento do fluxo é validada por E2E LGPD e integração de records.",
+        "evidence": [
+          "qa/flows/consent-records.spec.ts",
+          "backend/src/tests/flows-integration.test.ts"
+        ]
+      }
     },
     {
       "id": "santuario_time_e_avaliacao_servico",
       "profile": "SANTUARIO",
       "title": "Santuário: equipe, convite/summon, performance e avaliação de serviço",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1242,7 +1260,12 @@
         "userVisibleOutcome": "SERVICE_EVALUATION",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Criação de review (avaliação de serviço) validada em integração backend, com contrato de erro/autenticação.",
+        "evidence": [
+          "backend/src/tests/flows-integration.test.ts"
+        ]
+      }
     },
     {
       "id": "santuario_salaseestrutura_expandida",
@@ -1411,7 +1434,7 @@
       "id": "santuario_analytics_reputacao_chat",
       "profile": "SANTUARIO",
       "title": "Santuário: reputação, analytics e comunicação interna",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1445,7 +1468,13 @@
         "userVisibleOutcome": "CHAT_ROOM",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Canal de chat do fluxo é persistente e validado em E2E/integração; analytics segue complementar ao fluxo.",
+        "evidence": [
+          "qa/flows/tribo-support-chat.spec.ts",
+          "backend/src/tests/flows-integration.test.ts"
+        ]
+      }
     },
     {
       "id": "santuario_shell_e_encerramento",

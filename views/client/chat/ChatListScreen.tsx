@@ -1,10 +1,11 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { PortalView, DynamicAvatar } from '../../../components/Common';
+import { PortalView, DynamicAvatar, DegradedRetryNotice } from '../../../components/Common';
 import { MessageCircle, Search, Flame, Loader } from 'lucide-react';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { useChat } from '../../../src/contexts/useChat';
-import { api } from '../../../services/api';
+import { communityApi } from '../../../services/api/communityClient';
+import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
 interface ChatRoom {
   id: string;
@@ -44,19 +45,19 @@ export default function ChatListScreen() {
 
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
   const [search, setSearch] = useState('');
 
   const loadRooms = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setReadIssue(null);
     try {
-      const data = await api.chat.listRooms();
+      const data = await communityApi.chat.listRooms(undefined, { strict: true });
       const normalized = Array.isArray(data) ? data.map(mapApiRoom) : [];
       setRooms(normalized);
     } catch (err: any) {
       console.error('[ChatListScreen] listRooms failed:', err);
-      setError('Não foi possível carregar as conversas.');
+      setReadIssue(buildReadFailureCopy(['chat'], isDegradedReadError(err)));
       setRooms([]);
     } finally {
       setLoading(false);
@@ -140,15 +141,14 @@ export default function ChatListScreen() {
               <Loader size={18} className="animate-spin" />
               <span className="text-sm italic">Sintonizando frequências...</span>
             </div>
-          ) : error ? (
+          ) : readIssue ? (
             <div className="p-8 text-center">
-              <p className="text-sm text-red-400 mb-3">{error}</p>
-              <button
-                onClick={loadRooms}
-                className="text-xs font-bold text-indigo-500 underline"
-              >
-                Tentar novamente
-              </button>
+              <DegradedRetryNotice
+                title={readIssue.title}
+                message={readIssue.message}
+                onRetry={loadRooms}
+                compact
+              />
             </div>
           ) : regularRooms.length === 0 ? (
             <div className="p-12 text-center text-nature-400">

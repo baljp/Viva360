@@ -8,6 +8,7 @@ type DomainKey =
   | 'team'
   | 'products'
   | 'professionals'
+  | 'chat'
   | string;
 
 const domainLabels: Record<string, string> = {
@@ -20,6 +21,7 @@ const domainLabels: Record<string, string> = {
   team: 'Equipe',
   products: 'Produtos',
   professionals: 'Guardiões',
+  chat: 'Conversas',
 };
 
 export const readDomainLabel = (domain: DomainKey) => domainLabels[domain] || domain;

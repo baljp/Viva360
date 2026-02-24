@@ -118,7 +118,7 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
         return null;
       }
     },
-    getVacancies: async () => {
+    getVacancies: async (opts?: { strict?: boolean }) => {
       try {
         return await request('/rooms/vacancies', {
           purpose: 'space-vacancies',
@@ -127,6 +127,7 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
         });
       } catch (err) {
         console.error('[hub.spaces.getVacancies]', err);
+        if (opts?.strict) throw err;
         return [];
       }
     },

@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { ChevronLeft, Briefcase, MapPin, Building, Search, X, CheckCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
-import { PortalView } from '../../../components/Common';
-import { api } from '../../../services/api';
+import { PortalView, DegradedRetryNotice } from '../../../components/Common';
+import { hubApi } from '../../../services/api/hubClient';
+import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
 type Vacancy = {
   id: string;
@@ -26,32 +27,51 @@ export default function VagasList() {
   // FLOW-01: Real data from GET /rooms/vacancies
   const [vacancies, setVacancies] = useState<Vacancy[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
+
+  const mapVacancies = (data: any): Vacancy[] => {
+    const list = Array.isArray(data) ? data : [];
+    return list.map((v: any) => ({
+      id: String(v.id),
+      title: v.title || 'Sem título',
+      space: v.space_name || v.space || '',
+      location: v.location || 'Não informado',
+      type: v.type || v.modality || 'Presencial',
+      salary: v.salary || v.compensation || 'A combinar',
+      description: v.description || '',
+      specialties: v.specialties || [],
+    }));
+  };
+
+  const loadVacancies = async () => {
+    setLoading(true);
+    setReadIssue(null);
+    try {
+      const data = await hubApi.spaces.getVacancies({ strict: true });
+      setVacancies(mapVacancies(data));
+    } catch (err: any) {
+      console.warn('[VagasList] Failed to load vacancies:', err);
+      setVacancies([]);
+      setReadIssue(buildReadFailureCopy(['vacancies'], isDegradedReadError(err)));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const data = await api.spaces.getVacancies();
+        const data = await hubApi.spaces.getVacancies({ strict: true });
         if (!cancelled) {
-          const list = Array.isArray(data) ? data : [];
-          setVacancies(list.map((v: any) => ({
-            id: String(v.id),
-            title: v.title || 'Sem título',
-            space: v.space_name || v.space || '',
-            location: v.location || 'Não informado',
-            type: v.type || v.modality || 'Presencial',
-            salary: v.salary || v.compensation || 'A combinar',
-            description: v.description || '',
-            specialties: v.specialties || [],
-          })));
+          setVacancies(mapVacancies(data));
+          setReadIssue(null);
         }
       } catch (err: any) {
         console.warn('[VagasList] Failed to load vacancies:', err);
-        // Degrade gracefully: keep the UX usable and allow an empty-state instead of a forever-sync.
         if (!cancelled) {
           setVacancies([]);
-          setError(null);
+          setReadIssue(buildReadFailureCopy(['vacancies'], isDegradedReadError(err)));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -65,7 +85,7 @@ export default function VagasList() {
     if (!selectedVacancy || applying) return;
     setApplying(true);
     try {
-      const result = await api.recruitment.apply(selectedVacancy.id);
+      const result = await hubApi.recruitment.apply(selectedVacancy.id);
       setSelectedVacancy(null);
       notify?.('Aplicação Enviada', 'O Espaço receberá sua intenção. Acompanhe pelo painel.', 'success');
     } catch (err: any) {
@@ -100,35 +120,9 @@ export default function VagasList() {
           <Loader2 size={28} className="text-nature-300 animate-spin" />
           <p className="text-xs text-nature-400">Carregando oportunidades...</p>
         </div>
-      ) : error ? (
-        <div className="text-center py-16 px-4">
-          <p className="text-sm text-rose-500 mb-3">{error}</p>
-          <button
-            onClick={() => {
-              setError(null);
-              setLoading(true);
-              api.spaces
-                .getVacancies()
-                .then((d) => {
-                  const list = Array.isArray(d) ? d : [];
-                  setVacancies(list.map((v: any) => ({
-                    id: String(v.id),
-                    title: v.title || 'Sem título',
-                    space: v.space_name || v.space || '',
-                    location: v.location || 'Não informado',
-                    type: v.type || v.modality || 'Presencial',
-                    salary: v.salary || v.compensation || 'A combinar',
-                    description: v.description || '',
-                    specialties: v.specialties || [],
-                  })));
-                })
-                .catch(() => setError('Falha ao recarregar.'))
-                .finally(() => setLoading(false));
-            }}
-            className="text-xs text-indigo-600 font-bold uppercase"
-          >
-            Tentar novamente
-          </button>
+      ) : readIssue ? (
+        <div className="py-6">
+          <DegradedRetryNotice title={readIssue.title} message={readIssue.message} onRetry={loadVacancies} />
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 opacity-50">

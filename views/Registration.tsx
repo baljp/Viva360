@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { ViewState, UserRole, User, Professional } from '../types';
 import { User as UserIcon, Briefcase, Building, ChevronRight, ArrowLeft, Mail, Lock, Sparkles, Heart, Activity, Brain, MapPin, DollarSign, List, Home, Check, Leaf, Loader2 } from 'lucide-react';
 import { ZenToast } from '../components/Common';
-import { api } from '../services/api';
+import { authApi } from '../services/api/authProxy';
 
 interface RegistrationProps {
     view: ViewState;
@@ -131,7 +131,7 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             const candidate = String(formData.email || '').trim().toLowerCase();
             const expected = candidate.includes('@') ? candidate : undefined;
-            await api.auth.registerWithGoogle(UserRole.CLIENT, expected);
+            await authApi.registerWithGoogle(UserRole.CLIENT, expected);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
@@ -206,7 +206,7 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             const candidate = String(formData.email || '').trim().toLowerCase();
             const expected = candidate.includes('@') ? candidate : undefined;
-            await api.auth.registerWithGoogle(UserRole.PROFESSIONAL, expected);
+            await authApi.registerWithGoogle(UserRole.PROFESSIONAL, expected);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
@@ -278,7 +278,7 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             const candidate = String(formData.email || '').trim().toLowerCase();
             const expected = candidate.includes('@') ? candidate : undefined;
-            await api.auth.registerWithGoogle(UserRole.SPACE, expected);
+            await authApi.registerWithGoogle(UserRole.SPACE, expected);
         } catch (e: any) {
             if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({

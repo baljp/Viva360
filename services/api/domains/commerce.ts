@@ -29,7 +29,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
   },
 
   marketplace: {
-    list: async (opts?: { ownerId?: string; category?: string }): Promise<Product[]> => {
+    list: async (opts?: { ownerId?: string; category?: string; strict?: boolean }): Promise<Product[]> => {
       const params = new URLSearchParams();
       if (opts?.ownerId) params.set('ownerId', String(opts.ownerId));
       if (opts?.category) params.set('category', String(opts.category));
@@ -42,6 +42,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
         });
       } catch (err) {
         console.error('[commerce.list]', err);
+        if (opts?.strict) throw err;
         return [];
       }
     },

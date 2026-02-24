@@ -26,7 +26,7 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = React.mem
     const loadMarketplace = async () => {
         setIsLoading(true);
         try {
-            const data = await commerceApi.marketplace.listAll();
+            const data = await commerceApi.marketplace.list({ strict: true });
             setProducts(data);
             setReadIssue(null);
         } catch (error) {

@@ -25,7 +25,7 @@ export const useClientDashboard = (
 
     const loadNotifications = useCallback(async () => {
         try {
-            const data = await communityApi.notifications.list();
+            const data = await communityApi.notifications.list({ strict: true });
             setNotifications(data || []);
             setNotificationsReadIssue(null);
         } catch (e) {

@@ -27,6 +27,7 @@ const checks: Check[] = [
   { id: 'matrix', label: 'Matriz Tela x Botao x Fluxo', command: 'npm run qa:matrix', required: true },
   { id: 'feature-contract-catalog', label: 'Catálogo clientOnly vs persistido', command: 'npm run qa:feature-contract-catalog', required: true },
   { id: 'feature-contract-gate', label: 'Gate parcial do catálogo (unclassified=0)', command: 'npm run qa:feature-contract-gate', required: true },
+  { id: 'flow-conversion-catalog', label: 'Catálogo de funis de conversão', command: 'npm run qa:flow-conversion-catalog', required: false },
   { id: 'flow-registry', label: 'Validação do Flow Registry', command: 'npm run qa:validate-flow-registry', required: true },
   { id: 'flow-registry-warn-gate', label: 'Gate de warnings do Flow Registry', command: 'npm run qa:flow-registry-warn-gate', required: true },
   { id: 'tracked-secrets', label: 'Auditoria de secrets versionados', command: 'npm run qa:audit-tracked-secrets', required: true },
@@ -41,6 +42,8 @@ const checks: Check[] = [
   { id: 'deeplinks-e2e', label: 'E2E deep links por perfil', command: 'npm run test:qa:deeplinks', required: true },
   { id: 'a11y-smoke', label: 'QA acessibilidade smoke', command: 'npm run test:qa:a11y-smoke', required: true },
   { id: 'a11y-operational', label: 'QA acessibilidade operacional (WCAG)', command: 'npm run test:qa:a11y-operational', required: false, retries: 1 },
+  { id: 'a11y-advanced', label: 'QA acessibilidade avancada (drawers/forms)', command: 'npm run test:qa:a11y-advanced', required: false, retries: 1 },
+  { id: 'read-resilience', label: 'QA resiliencia de leitura (degraded/retry)', command: 'npm run test:qa:read-resilience', required: false, retries: 1 },
   { id: 'links-assets', label: 'Auditoria de links e imagens', command: 'npm run test:audit', required: true, retries: 1 },
 ];
 

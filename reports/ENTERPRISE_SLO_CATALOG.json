@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-02-24T00:00:00.000Z",
+  "version": 1,
+  "service": "Viva360",
+  "slos": [
+    {"id":"auth-login-email","type":"endpoint","target":"/api/auth/login","latencyP95Ms":1200,"availabilityPct":99.5,"errorRatePct":1.0,"window":"7d"},
+    {"id":"auth-google-session","type":"flow","target":"google_oauth_session_hydration","latencyP95Ms":3000,"availabilityPct":99.0,"errorRatePct":2.0,"window":"7d"},
+    {"id":"oracle-draw","type":"endpoint","target":"/api/oracle/draw","latencyP95Ms":1500,"availabilityPct":99.0,"errorRatePct":2.0,"window":"7d"},
+    {"id":"tribe-chat-send","type":"endpoint","target":"/api/chat/rooms/:id/messages","latencyP95Ms":900,"availabilityPct":99.5,"errorRatePct":1.0,"window":"7d"},
+    {"id":"checkout-pay","type":"endpoint","target":"/api/checkout/pay","latencyP95Ms":1800,"availabilityPct":99.5,"errorRatePct":1.0,"window":"7d"},
+    {"id":"alchemy-offer-lifecycle","type":"flow","target":"alchemy_offer_create_to_complete","latencyP95Ms":4000,"availabilityPct":99.0,"errorRatePct":2.0,"window":"7d"},
+    {"id":"recruitment-application-lifecycle","type":"flow","target":"recruitment_apply_interview_decide","latencyP95Ms":4500,"availabilityPct":99.0,"errorRatePct":2.0,"window":"7d"},
+    {"id":"records-consent-grant-revoke","type":"flow","target":"lgpd_records_consent_cycle","latencyP95Ms":2500,"availabilityPct":99.5,"errorRatePct":1.0,"window":"7d"},
+    {"id":"notifications-list","type":"endpoint","target":"/api/notifications","latencyP95Ms":1000,"availabilityPct":99.0,"errorRatePct":2.0,"window":"7d"},
+    {"id":"finance-summary","type":"endpoint","target":"/api/finance/summary","latencyP95Ms":1000,"availabilityPct":99.0,"errorRatePct":2.0,"window":"7d"},
+    {"id":"marketplace-products-list","type":"endpoint","target":"/api/marketplace/products","latencyP95Ms":1000,"availabilityPct":99.0,"errorRatePct":2.0,"window":"7d"}
+  ]
+}

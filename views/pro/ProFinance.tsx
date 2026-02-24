@@ -2,15 +2,32 @@
 import React from 'react';
 import { ViewState, Professional, Transaction } from '../../types';
 import { TrendingUp, Filter, ArrowUpRight, ArrowDownRight, Share2 } from 'lucide-react';
-import { PortalView } from '../../components/Common';
+import { PortalView, DegradedRetryNotice } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
-import { request } from '../../services/api';
+import { request } from '../../services/api/core';
+import { buildReadFailureCopy, isDegradedReadError } from '../../src/utils/readDegradedUX';
 
 export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions: propTransactions = [] }) => {
     const { go, notify } = useGuardiaoFlow();
     const [txFilter, setTxFilter] = React.useState<'all' | 'income' | 'expense'>('all');
     const [transactions, setTransactions] = React.useState<Transaction[]>(propTransactions);
     const [txLoading, setTxLoading] = React.useState(!propTransactions.length);
+    const [readIssue, setReadIssue] = React.useState<{ title: string; message: string } | null>(null);
+
+    const loadTransactions = React.useCallback(async () => {
+        setTxLoading(true);
+        setReadIssue(null);
+        try {
+            const list = await request('/finance/transactions', { purpose: 'pro-finance', timeoutMs: 8000, retries: 0 });
+            setTransactions(list);
+        } catch (err) {
+            console.warn('[ProFinance] Failed to load transactions:', err);
+            setReadIssue(buildReadFailureCopy(['finance'], isDegradedReadError(err)));
+            setTransactions([]);
+        } finally {
+            setTxLoading(false);
+        }
+    }, [user.id]);
 
     // SEC-03: Fetch real transactions from API instead of relying on mock/props only
     React.useEffect(() => {
@@ -18,18 +35,13 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
         let cancelled = false;
         (async () => {
             try {
-                const data = await request('/finance/transactions', { purpose: 'pro-finance', timeoutMs: 8000 });
-                if (!cancelled && Array.isArray(data)) {
-                    setTransactions(data);
-                }
-            } catch (err) {
-                console.warn('[ProFinance] Failed to load transactions:', err);
-            } finally {
-                if (!cancelled) setTxLoading(false);
+                await loadTransactions();
+            } catch {
+                // loadTransactions already handles UX state
             }
         })();
         return () => { cancelled = true; };
-    }, []);
+    }, [loadTransactions, propTransactions.length]);
 
     const chartData = [1200, 1500, 1100, 1800, 1600, 2100, 1840];
     const maxVal = Math.max(...chartData);
@@ -87,6 +99,13 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
                 <div className="flex items-center justify-center py-10">
                     <div className="w-6 h-6 border-2 border-nature-200 border-t-nature-700 rounded-full animate-spin"></div>
                 </div>
+            ) : readIssue ? (
+                <DegradedRetryNotice
+                    title={readIssue.title}
+                    message={readIssue.message}
+                    onRetry={() => loadTransactions()}
+                    compact
+                />
             ) : filteredTransactions.length > 0 ? filteredTransactions.map(tx => (
                 <div key={tx.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between group">
                     <div className="flex items-center gap-4">

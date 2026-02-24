@@ -6,6 +6,10 @@ type Report = { findings?: Finding[] };
 
 const reportPath = path.resolve(process.cwd(), 'reports/flow_registry_validation.json');
 const MAX_WARNINGS = 9;
+const CATEGORY_BASELINES = {
+  expectedFinalMismatch: 6,
+  narrativeJump: 3,
+} as const;
 
 if (!fs.existsSync(reportPath)) {
   console.error(`flow-registry-warn-gate: relatório ausente (${reportPath}). Rode 'npm run qa:validate-flow-registry'.`);
@@ -41,6 +45,17 @@ if (categories.otherWarns > 0) {
   console.error('flow-registry-warn-gate: FAIL (warning fora das categorias conhecidas)');
   process.exit(1);
 }
+if (categories.expectedFinalMismatch > CATEGORY_BASELINES.expectedFinalMismatch) {
+  console.error(
+    `flow-registry-warn-gate: FAIL (expectedFinalMismatch ${categories.expectedFinalMismatch} > baseline ${CATEGORY_BASELINES.expectedFinalMismatch})`,
+  );
+  process.exit(1);
+}
+if (categories.narrativeJump > CATEGORY_BASELINES.narrativeJump) {
+  console.error(
+    `flow-registry-warn-gate: FAIL (narrativeJump ${categories.narrativeJump} > baseline ${CATEGORY_BASELINES.narrativeJump})`,
+  );
+  process.exit(1);
+}
 
 console.log('flow-registry-warn-gate: PASS');
-
