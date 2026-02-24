@@ -5,120 +5,24 @@ import { JWT_SECRET } from '../lib/secrets';
 import { AppError } from '../lib/AppError';
 import { supabaseAdmin, supabase } from './supabase.service';
 import { logger } from '../lib/logger';
-
-const ALLOWED_ROLES = new Set(['CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN']);
-
-type AccessReason =
-  | 'PROFILE_ACTIVE'
-  | 'INVITE_APPROVED_PENDING_REGISTRATION'
-  | 'INVITE_ALREADY_USED'
-  | 'INVITE_PENDING_APPROVAL'
-  | 'EMAIL_BLOCKED'
-  | 'EMAIL_NOT_AUTHORIZED'
-  | 'REGISTRATION_INCOMPLETE';
-
-type AccountState =
-  | 'ACTIVE'
-  | 'INVITE_PENDING_REGISTRATION'
-  | 'INCOMPLETE_REGISTRATION'
-  | 'BLOCKED'
-  | 'PENDING_APPROVAL'
-  | 'NOT_AUTHORIZED'
-  | 'INVITE_USED_NO_PROFILE';
-
-type NextAction =
-  | 'LOGIN'
-  | 'REGISTER'
-  | 'COMPLETE_REGISTRATION'
-  | 'REQUEST_INVITE'
-  | 'WAIT_APPROVAL'
-  | 'CONTACT_SUPPORT';
-
-export type AuthorizationStatus = {
-  canLogin: boolean;
-  canRegister: boolean;
-  role: string | null;
-  roles: string[];
-  reason: AccessReason;
-  accountState: AccountState;
-  nextAction: NextAction;
-};
-
-const ALLOWLIST_REGISTER_STATUSES = new Set(['APPROVED', 'ACTIVE']);
-const ALLOWLIST_BLOCKED_STATUSES = new Set(['BLOCKED', 'REVOKED']);
-const ALLOWLIST_PENDING_STATUSES = new Set(['PENDING']);
-
-const normalizeAllowlistStatus = (status?: string | null) => String(status || '').trim().toUpperCase();
-const normalizeRole = (role?: string | null): string | null => {
-  const normalized = String(role || '').trim().toUpperCase();
-  if (!normalized) return null;
-  return ALLOWED_ROLES.has(normalized) ? normalized : null;
-};
-
-const normalizeRoleList = (roles: Array<string | null | undefined>): string[] => {
-  const output: string[] = [];
-  for (const role of roles) {
-    const normalized = normalizeRole(role);
-    if (normalized && !output.includes(normalized)) output.push(normalized);
-  }
-  return output;
-};
-
-const defaultRole = (role?: string | null) => normalizeRole(role) || 'CLIENT';
-const isSafeFallbackRuntime = () =>
-  process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toUpperCase() === 'MOCK';
-const isDbUnavailableError = (error: any) => {
-  const code = String(error?.code || '');
-  const message = String(error?.message || '');
-  return ['P1000', 'P1001', 'P1002', 'P1017'].includes(code)
-    || /authentication failed against database server/i.test(message)
-    || /circuit breaker open/i.test(message)
-    || /too many authentication errors/i.test(message);
-};
-const inferRoleFromIdentity = (input?: string | null): string => {
-  const normalized = String(input || '').trim().toLowerCase();
-  if (normalized.includes('admin')) return 'ADMIN';
-  if (normalized.startsWith('pro') || normalized.includes('guard')) return 'PROFESSIONAL';
-  if (normalized.startsWith('space') || normalized.includes('hub') || normalized.includes('santuario')) return 'SPACE';
-  return 'CLIENT';
-};
+import type { AuthorizationStatus } from './auth.shared';
+import { defaultRole, normalizeRole, normalizeRoleList } from './auth.shared';
+import { getAuthorizationStatusInternal, markAllowlistAsUsedInternal } from './auth.authorization';
+import {
+  addRoleInternal,
+  getActiveRoleInternal,
+  getRolesByProfileInternal,
+  listRolesForUserInternal,
+  selectActiveRoleInternal,
+} from './auth.roles';
 
 export class AuthService {
   private static async getRolesByProfile(profileId: string, fallbackRole?: string | null): Promise<string[]> {
-    const roles = await prisma.profileRole.findMany({
-      where: { profile_id: profileId },
-      select: { role: true },
-      orderBy: { created_at: 'asc' },
-    });
-
-    const fromTable = normalizeRoleList(roles.map((item) => item.role));
-    if (fromTable.length > 0) return fromTable;
-
-    const legacy = normalizeRoleList([fallbackRole]);
-    if (legacy.length > 0) {
-      await prisma.profileRole.create({
-        data: {
-          profile_id: profileId,
-          role: legacy[0],
-        },
-      }).catch(() => null);
-      return legacy;
-    }
-
-    return ['CLIENT'];
+    return getRolesByProfileInternal(profileId, fallbackRole);
   }
 
   private static async getActiveRole(profile: { id: string; role: string | null; active_role?: string | null }): Promise<string> {
-    const roles = await AuthService.getRolesByProfile(profile.id, profile.role);
-    const active = normalizeRole(profile.active_role || profile.role);
-    if (active && roles.includes(active)) return active;
-
-    const first = roles[0] || 'CLIENT';
-    await prisma.profile.update({
-      where: { id: profile.id },
-      data: { active_role: first },
-    }).catch(() => null);
-    return first;
+    return getActiveRoleInternal(profile, AuthService.getRolesByProfile.bind(AuthService));
   }
 
   static async register(email: string, password: string, name: string, role: string = 'CLIENT') {
@@ -474,253 +378,28 @@ export class AuthService {
   }
 
   static async getAuthorizationStatus(email: string): Promise<AuthorizationStatus> {
-    const normalizedEmail = email.trim().toLowerCase();
-    const [profile, allowlist, authUser] = await Promise.all([
-      prisma.profile.findFirst({
-        where: { email: normalizedEmail },
-        select: { id: true, role: true, active_role: true },
-      }),
-      prisma.authAllowlist.findUnique({
-        where: { email: normalizedEmail },
-        select: { id: true, role: true, status: true, used_by: true },
-      }),
-      prisma.user.findUnique({
-        where: { email: normalizedEmail },
-        select: { id: true, raw_user_meta_data: true },
-      }),
-    ]);
-
-    const allowlistStatus = normalizeAllowlistStatus(allowlist?.status);
-    const allowlistRole = normalizeRole(allowlist?.role);
-
-    if (ALLOWLIST_BLOCKED_STATUSES.has(allowlistStatus)) {
-      return {
-        canLogin: false,
-        canRegister: false,
-        role: allowlistRole,
-        roles: allowlistRole ? [allowlistRole] : [],
-        reason: 'EMAIL_BLOCKED',
-        accountState: 'BLOCKED',
-        nextAction: 'CONTACT_SUPPORT',
-      };
-    }
-
-    if (profile) {
-      const roles = await AuthService.getRolesByProfile(profile.id, profile.role);
-      const activeRole = normalizeRole(profile.active_role || profile.role) || roles[0] || 'CLIENT';
-      return {
-        canLogin: true,
-        canRegister: false,
-        role: activeRole,
-        roles,
-        reason: 'PROFILE_ACTIVE',
-        accountState: 'ACTIVE',
-        nextAction: 'LOGIN',
-      };
-    }
-
-    if (authUser) {
-      // User exists in auth.users but has no profile yet.
-      // This happens when: (a) Supabase/Google OAuth created the user, (b) partial registration.
-      // DECISION: Always allow registration to complete the profile, regardless of allowlist.
-      const metadata = typeof authUser.raw_user_meta_data === 'object' && authUser.raw_user_meta_data
-        ? authUser.raw_user_meta_data as Record<string, unknown>
-        : {};
-      const metadataRole = normalizeRole(String(metadata.role || ''));
-      const role = metadataRole || allowlistRole || 'CLIENT';
-
-      return {
-        canLogin: false,
-        canRegister: true,
-        role,
-        roles: [role],
-        reason: 'REGISTRATION_INCOMPLETE' as AccessReason,
-        accountState: 'INCOMPLETE_REGISTRATION' as AccountState,
-        nextAction: 'COMPLETE_REGISTRATION' as NextAction,
-      };
-    }
-
-    if (allowlist && ALLOWLIST_REGISTER_STATUSES.has(allowlistStatus) && !allowlist.used_by) {
-      return {
-        canLogin: false,
-        canRegister: true,
-        role: allowlistRole,
-        roles: allowlistRole ? [allowlistRole] : [],
-        reason: 'INVITE_APPROVED_PENDING_REGISTRATION',
-        accountState: 'INVITE_PENDING_REGISTRATION',
-        nextAction: 'REGISTER',
-      };
-    }
-
-    if (allowlist?.used_by) {
-      return {
-        canLogin: false,
-        canRegister: false,
-        role: allowlistRole,
-        roles: allowlistRole ? [allowlistRole] : [],
-        reason: 'INVITE_ALREADY_USED',
-        accountState: 'INVITE_USED_NO_PROFILE',
-        nextAction: 'CONTACT_SUPPORT',
-      };
-    }
-
-    if (ALLOWLIST_PENDING_STATUSES.has(allowlistStatus)) {
-      return {
-        canLogin: false,
-        canRegister: false,
-        role: allowlistRole,
-        roles: allowlistRole ? [allowlistRole] : [],
-        reason: 'INVITE_PENDING_APPROVAL',
-        accountState: 'PENDING_APPROVAL',
-        nextAction: 'WAIT_APPROVAL',
-      };
-    }
-
-    // DECISÃO DE NEGÓCIO (2026-02-10): Registro aberto.
-    // Qualquer email pode se cadastrar mesmo sem estar na allowlist.
-    // Quando não há profile, authUser, nem allowlist, o sistema permite registro livre como CLIENT.
-    return {
-      canLogin: false,
-      canRegister: true,
-      role: allowlistRole || 'CLIENT',
-      roles: allowlistRole ? [allowlistRole] : ['CLIENT'],
-      reason: 'INVITE_APPROVED_PENDING_REGISTRATION' as AccessReason,
-      accountState: 'INVITE_PENDING_REGISTRATION' as AccountState,
-      nextAction: 'REGISTER' as NextAction,
-    };
+    return getAuthorizationStatusInternal(email, AuthService.getRolesByProfile.bind(AuthService));
   }
 
   static async markAllowlistAsUsed(email: string, userId: string) {
-    const normalizedEmail = email.trim().toLowerCase();
-    await prisma.authAllowlist.updateMany({
-      where: { email: normalizedEmail },
-      data: {
-        used_by: userId,
-        used_at: new Date(),
-        status: 'USED',
-      },
-    });
+    await markAllowlistAsUsedInternal(email, userId);
   }
 
   static async listRolesForUser(userId: string, emailHint?: string | null) {
-    let profile: { id: string; role: string | null; active_role: string | null } | null = null;
-    try {
-      profile = await prisma.profile.findUnique({
-        where: { id: userId },
-        select: { id: true, role: true, active_role: true },
-      });
-    } catch (error) {
-      if (isSafeFallbackRuntime() && isDbUnavailableError(error)) {
-        const fallbackRole = inferRoleFromIdentity(emailHint || userId);
-        return {
-          userId,
-          roles: [fallbackRole],
-          activeRole: fallbackRole,
-          accountState: 'ACTIVE',
-          nextAction: 'LOGIN',
-          registrationIncomplete: false,
-        };
-      }
-      throw error;
-    }
-
-    if (!profile) {
-      const normalizedEmail = String(emailHint || '').trim().toLowerCase();
-      if (normalizedEmail) {
-        const access = await AuthService.getAuthorizationStatus(normalizedEmail);
-        if (access.reason === 'REGISTRATION_INCOMPLETE') {
-          const fallbackRole = normalizeRole(access.role) || 'CLIENT';
-          const fallbackRoles = normalizeRoleList(access.roles || [fallbackRole]);
-          return {
-            userId,
-            roles: fallbackRoles.length ? fallbackRoles : [fallbackRole],
-            activeRole: fallbackRoles[0] || fallbackRole,
-            accountState: access.accountState,
-            nextAction: access.nextAction,
-            registrationIncomplete: true,
-          };
-        }
-      }
-      throw new AppError('Perfil não encontrado.', 404, 'PROFILE_NOT_FOUND');
-    }
-
-    const roles = await AuthService.getRolesByProfile(userId, profile.role);
-    const activeRole = normalizeRole(profile.active_role || profile.role) || roles[0] || 'CLIENT';
-
-    return {
-      userId,
-      roles,
-      activeRole,
-      accountState: 'ACTIVE',
-      nextAction: 'LOGIN',
-      registrationIncomplete: false,
-    };
+    return listRolesForUserInternal(userId, emailHint, AuthService.getAuthorizationStatus.bind(AuthService));
   }
 
-   static async selectActiveRole(userId: string, requestedRole: string) {
+  static async selectActiveRole(userId: string, requestedRole: string) {
     logger.info('auth.select_active_role', { requestedRole });
-    const role = defaultRole(requestedRole);
     const current = await AuthService.listRolesForUser(userId);
-
-    if (!current.roles.includes(role)) {
-      throw new AppError('Perfil solicitado não está disponível para esta conta.', 404, 'ROLE_NOT_AVAILABLE');
-    }
-
-    await prisma.profile.update({
-      where: { id: userId },
-      data: { active_role: role, role },
-    }).catch(err => {
+    return selectActiveRoleInternal(userId, requestedRole, current.roles).catch((err) => {
       logger.error('auth.select_active_role_update_failed', err);
       throw err;
     });
-
-    return {
-      userId,
-      roles: current.roles,
-      activeRole: role,
-    };
   }
 
   static async addRole(userId: string, requestedRole: string) {
-    const role = defaultRole(requestedRole);
-    const profile = await prisma.profile.findUnique({
-      where: { id: userId },
-      select: { id: true, role: true, active_role: true },
-    });
-
-    if (!profile) {
-      throw new AppError('Perfil não encontrado.', 404, 'PROFILE_NOT_FOUND');
-    }
-
-    const roles = await AuthService.getRolesByProfile(userId, profile.role);
-    if (roles.includes(role)) {
-      throw new AppError('Este perfil já existe neste e-mail.', 409, 'ROLE_ALREADY_ACTIVE');
-    }
-
-    await prisma.profileRole.create({
-      data: {
-        profile_id: userId,
-        role,
-      },
-    });
-
-    if (!normalizeRole(profile.active_role)) {
-      await prisma.profile.update({
-        where: { id: userId },
-        data: { active_role: role, role },
-      });
-      return {
-        userId,
-        roles: [...roles, role],
-        activeRole: role,
-      };
-    }
-
-    return {
-      userId,
-      roles: [...roles, role],
-      activeRole: normalizeRole(profile.active_role) || role,
-    };
+    return addRoleInternal(userId, requestedRole);
   }
 
   static async deleteAccount(userId: string, emailHint?: string | null) {

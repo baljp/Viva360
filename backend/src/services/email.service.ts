@@ -1,67 +1,81 @@
 import { logger } from '../lib/logger';
 
-interface ValidatedEmail {
+type EmailPayload = {
   to: string;
   subject: string;
-  template: 'WELCOME' | 'RECOVERY' | 'NOTIFICATION';
-  context: any;
-}
+  html: string;
+  text?: string;
+  from?: string;
+};
 
-export class EmailService {
-  private static instance: EmailService;
+type EmailSendResult =
+  | { ok: true; provider: 'resend'; id?: string | null }
+  | { ok: false; provider: 'resend' | 'disabled'; reason: string };
 
-  private constructor() {}
+const RESEND_API_URL = 'https://api.resend.com/emails';
 
-  public static getInstance(): EmailService {
-    if (!EmailService.instance) {
-      EmailService.instance = new EmailService();
-    }
-    return EmailService.instance;
+const getResendApiKey = () => String(process.env.RESEND_API_KEY || '').trim();
+const getEmailFrom = () => String(process.env.RESEND_FROM_EMAIL || 'Viva360 <noreply@viva360.app>').trim();
+const isEmailEnabled = () => !!getResendApiKey();
+
+async function sendViaResend(payload: EmailPayload): Promise<EmailSendResult> {
+  const apiKey = getResendApiKey();
+  if (!apiKey) {
+    return { ok: false, provider: 'disabled', reason: 'RESEND_API_KEY not configured' };
   }
 
-  async send(email: ValidatedEmail): Promise<boolean> {
-    logger.info('email.send', {
-      to: email.to,
-      subject: email.subject,
-      template: email.template,
+  try {
+    const response = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: payload.from || getEmailFrom(),
+        to: [payload.to],
+        subject: payload.subject,
+        html: payload.html,
+        text: payload.text,
+      }),
     });
-    
-    // RENDER TEMPLATE (Simple simulation for now)
-    let body = "";
-    if (email.template === 'WELCOME') {
-      body = `
-      🌿 Olá, ${email.context.name}!
-      
-      Gratidão imensa por se conectar conosco.
-      Sua jornada no Viva360 começa agora, um espaço sagrado para sua evolução.
-      
-      Sua semente foi plantada: ${new Date().toISOString()}
-      
-      Com amor,
-      Equipe Viva360 ✨
-      `;
-    } else if (email.template === 'RECOVERY') {
-      body = `
-      🗝️ Recuperação de Acesso
-      
-      Percebemos que você precisou de uma chave de auxílio.
-      Use este link para restaurar sua harmonia digital:
-      ${email.context.link}
-      
-      (Válido por 1 hora)
-      `;
+
+    const json = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      logger.warn('email.resend_failed', {
+        status: response.status,
+        to: payload.to,
+        error: typeof json?.message === 'string' ? json.message : 'unknown',
+      });
+      return { ok: false, provider: 'resend', reason: `HTTP ${response.status}` };
     }
 
-    logger.debug('email.rendered', {
-      template: email.template,
-      // Avoid logging the full body (can contain PII/tokens).
-      bodyLength: body.length,
+    logger.info('email.sent', { provider: 'resend', to: payload.to, id: json?.id || null });
+    return { ok: true, provider: 'resend', id: json?.id || null };
+  } catch (error) {
+    logger.warn('email.resend_exception', {
+      to: payload.to,
+      error: error instanceof Error ? error.message : String(error),
     });
-    logger.info('email.sent', { transport: 'MOCK_TRANSPORT' });
-    
-    // In production, integrate NodeMailer or Resend here
-    return true;
+    return { ok: false, provider: 'resend', reason: 'exception' };
   }
 }
 
-export const emailService = EmailService.getInstance();
+export const emailService = {
+  isEnabled: isEmailEnabled,
+  send: sendViaResend,
+  async sendTribeInvite(input: { to: string; hubName?: string | null; token?: string | null; inviteId: string }) {
+    const subject = `Convite Viva360${input.hubName ? ` • ${input.hubName}` : ''}`;
+    const html = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #1f2937;">
+        <h2 style="margin:0 0 12px;">Você recebeu um convite no Viva360</h2>
+        <p style="margin:0 0 12px;">Um santuário convidou você para se conectar na plataforma.</p>
+        <p style="margin:0 0 12px;"><strong>ID do convite:</strong> ${input.inviteId}</p>
+        ${input.token ? `<p style="margin:0 0 12px;"><strong>Token:</strong> ${input.token}</p>` : ''}
+        <p style="margin:16px 0 0; color:#6b7280; font-size:12px;">Se você não esperava este e-mail, ignore esta mensagem.</p>
+      </div>
+    `;
+    const text = `Você recebeu um convite no Viva360. InviteId=${input.inviteId}${input.token ? ` Token=${input.token}` : ''}`;
+    return sendViaResend({ to: input.to, subject, html, text });
+  },
+};

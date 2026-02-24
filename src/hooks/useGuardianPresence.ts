@@ -10,7 +10,7 @@ export const useGuardianPresence = (user: User | null) => {
     // Initial Load
     useEffect(() => {
         if (!user || user.role !== 'PROFESSIONAL') return;
-        const pro = user as any; // Quick cast or use Professional type if imported
+        const pro = user as User & { presence?: { status?: PresenceStatus } }; // keep local typing narrow
         if (pro.presence) {
             setStatus(pro.presence.status);
         } else {
@@ -28,7 +28,6 @@ export const useGuardianPresence = (user: User | null) => {
             const now = new Date();
             // Throttle Pings: Only ping if > 60s since last ping
             if (!lastPing || (now.getTime() - lastPing.getTime() > 60000)) {
-                console.log("[Presence] Sending Heartbeat...");
                 api.presence.ping();
                 setLastPing(now);
             }

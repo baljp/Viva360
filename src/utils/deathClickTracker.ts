@@ -104,7 +104,6 @@ export function initDeathClickTracker() {
     document.addEventListener('click', handleClick, true);
     isInitialized = true;
 
-    console.log('💀 DeathClickTracker initialized (dev only)');
 }
 
 export function destroyDeathClickTracker() {

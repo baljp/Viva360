@@ -77,9 +77,7 @@ export const useClientDashboard = (
 
     const handleDailyCheckIn = useCallback(async (reward: number): Promise<{ ok: boolean; alreadyDone?: boolean }> => {
         try {
-            console.log(`[useClientDashboard] handleDailyCheckIn reward=${reward} user=${user.id}`);
             const res: any = await accountApi.users.checkIn(user.id, reward);
-            console.log(`[useClientDashboard] checkIn result:`, res);
             if (res?.alreadyDone || String(res?.status || '').toUpperCase() === 'ALREADY_DONE' || String(res?.code || '').toUpperCase() === 'CHECKIN_ALREADY_DONE') {
                 const checkInAt = String(res?.lastCheckIn || res?.user?.lastCheckIn || '').trim();
                 if (checkInAt) {

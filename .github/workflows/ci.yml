@@ -41,6 +41,12 @@ jobs:
       - name: Validate flow registry + warning gate
         run: npm run qa:validate-flow-registry && npm run qa:flow-registry-warn-gate
 
+      - name: Audit mock references + gate
+        run: npm run qa:audit-mock-refs && npm run qa:mock-ref-gate
+
+      - name: Audit console usage + gate
+        run: npm run qa:audit-console-usage && npm run qa:console-usage-gate
+
       - name: Lint (ESLint)
         run: npm run lint
 

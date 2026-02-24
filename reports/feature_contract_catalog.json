@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-24T14:26:07.306Z",
+  "generatedAt": "2026-02-24T16:33:50.936Z",
   "source": {
     "flowRegistry": "src/flow/registry.ts",
     "matrixReport": "reports/screen_button_flow_matrix.json"
@@ -498,7 +498,7 @@
         "/api/chat/*",
         "/api/tribe/*"
       ],
-      "expectedFinal": "CHAT_ROOM",
+      "expectedFinal": "CHAT_SETTINGS",
       "fallbackScreen": "TRIBE_DASH",
       "persistence": {
         "counts": {
@@ -515,7 +515,7 @@
       },
       "productContract": {
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
-        "userVisibleOutcome": "CHAT_ROOM",
+        "userVisibleOutcome": "CHAT_SETTINGS",
         "rollbackPath": "TRIBE_DASH"
       },
       "validationEvidence": {
@@ -576,7 +576,7 @@
         "END"
       ],
       "endpoints": [],
-      "expectedFinal": "SETTINGS",
+      "expectedFinal": "END",
       "fallbackScreen": "DASHBOARD",
       "persistence": {
         "counts": {
@@ -594,7 +594,7 @@
       },
       "productContract": {
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
-        "userVisibleOutcome": "SETTINGS",
+        "userVisibleOutcome": "END",
         "rollbackPath": "DASHBOARD"
       },
       "validationEvidence": null
@@ -991,7 +991,7 @@
         "END"
       ],
       "endpoints": [],
-      "expectedFinal": "SETTINGS",
+      "expectedFinal": "END",
       "fallbackScreen": "DASHBOARD",
       "persistence": {
         "counts": {
@@ -1008,7 +1008,7 @@
       },
       "productContract": {
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
-        "userVisibleOutcome": "SETTINGS",
+        "userVisibleOutcome": "END",
         "rollbackPath": "DASHBOARD"
       },
       "validationEvidence": null
@@ -1191,7 +1191,7 @@
         "/api/records/*",
         "/api/appointments/*"
       ],
-      "expectedFinal": "PATIENT_RECORDS",
+      "expectedFinal": "AGENDA_EDIT",
       "fallbackScreen": "EXEC_DASHBOARD",
       "persistence": {
         "counts": {
@@ -1209,7 +1209,7 @@
       },
       "productContract": {
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
-        "userVisibleOutcome": "PATIENT_RECORDS",
+        "userVisibleOutcome": "AGENDA_EDIT",
         "rollbackPath": "EXEC_DASHBOARD"
       },
       "validationEvidence": {
@@ -1284,7 +1284,7 @@
       "endpoints": [
         "/api/rooms/*"
       ],
-      "expectedFinal": "ROOM_EDIT",
+      "expectedFinal": "ROOM_AGENDA",
       "fallbackScreen": "EXEC_DASHBOARD",
       "persistence": {
         "counts": {
@@ -1302,7 +1302,7 @@
       },
       "productContract": {
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
-        "userVisibleOutcome": "ROOM_EDIT",
+        "userVisibleOutcome": "ROOM_AGENDA",
         "rollbackPath": "EXEC_DASHBOARD"
       },
       "validationEvidence": null
@@ -1488,7 +1488,7 @@
         "END"
       ],
       "endpoints": [],
-      "expectedFinal": "EXEC_DASHBOARD",
+      "expectedFinal": "END",
       "fallbackScreen": "EXEC_DASHBOARD",
       "persistence": {
         "counts": {
@@ -1507,7 +1507,7 @@
       },
       "productContract": {
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
-        "userVisibleOutcome": "EXEC_DASHBOARD",
+        "userVisibleOutcome": "END",
         "rollbackPath": "EXEC_DASHBOARD"
       },
       "validationEvidence": null

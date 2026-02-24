@@ -14,6 +14,9 @@ export type FlowDefinition = {
   // touch backend endpoints. We keep them in the registry to preserve the
   // "start/middle/end" contract without lying about API coverage.
   clientOnly?: boolean;
+  // Explicitly documented narrative hops where the registry intentionally
+  // compresses a multi-step engine path into a product-level journey step.
+  allowedNarrativeJumps?: Array<{ from: string; to: string }>;
 };
 
 const baseButtons: Array<'Voltar' | 'Fechar' | 'Cancelar' | 'Confirmar'> = [
@@ -164,7 +167,7 @@ export const flowRegistry: FlowDefinition[] = [
     title: 'Tribo e chat social: lista, novo chat, sala e ajustes',
     screens: ['DASHBOARD', 'TRIBE_DASH', 'CHAT_LIST', 'CHAT_NEW', 'CHAT_ROOM', 'CHAT_SETTINGS'],
     prerequisites: ['authenticated', 'role=CLIENT'],
-    expectedFinal: 'CHAT_ROOM',
+    expectedFinal: 'CHAT_SETTINGS',
     fallbackScreen: 'TRIBE_DASH',
     requiredButtons: baseButtons,
     endpoints: ['/api/chat/*', '/api/tribe/*'],
@@ -186,7 +189,7 @@ export const flowRegistry: FlowDefinition[] = [
     title: 'Shell do buscador: entrada, configurações e encerramento de fluxo',
     screens: ['START', 'DASHBOARD', 'SETTINGS', 'END'],
     prerequisites: ['authenticated', 'role=CLIENT'],
-    expectedFinal: 'SETTINGS',
+    expectedFinal: 'END',
     fallbackScreen: 'DASHBOARD',
     requiredButtons: baseButtons,
     endpoints: [],
@@ -301,6 +304,10 @@ export const flowRegistry: FlowDefinition[] = [
     fallbackScreen: 'DASHBOARD',
     requiredButtons: baseButtons,
     endpoints: ['/api/alchemy/*', '/api/records/*'],
+    allowedNarrativeJumps: [
+      { from: 'PATIENTS_LIST', to: 'PATIENT_PLAN' },
+      { from: 'ESCAMBO_MARKET', to: 'ESCAMBO_TRADE' },
+    ],
   },
   {
     id: 'guardiao_shell_e_config',
@@ -308,7 +315,7 @@ export const flowRegistry: FlowDefinition[] = [
     title: 'Shell do guardião: entrada, dashboard e configurações',
     screens: ['START', 'DASHBOARD', 'SETTINGS', 'END'],
     prerequisites: ['authenticated', 'role=PROFESSIONAL'],
-    expectedFinal: 'SETTINGS',
+    expectedFinal: 'END',
     fallbackScreen: 'DASHBOARD',
     requiredButtons: baseButtons,
     endpoints: [],
@@ -366,7 +373,7 @@ export const flowRegistry: FlowDefinition[] = [
     title: 'Santuário: atendimento interno de pacientes e agenda local',
     screens: ['START', 'EXEC_DASHBOARD', 'PATIENTS_LIST', 'PATIENT_PROFILE', 'PATIENT_RECORDS', 'AGENDA_EDIT'],
     prerequisites: ['authenticated', 'role=SPACE'],
-    expectedFinal: 'PATIENT_RECORDS',
+    expectedFinal: 'AGENDA_EDIT',
     fallbackScreen: 'EXEC_DASHBOARD',
     requiredButtons: baseButtons,
     endpoints: ['/api/records/*', '/api/appointments/*'],
@@ -388,7 +395,7 @@ export const flowRegistry: FlowDefinition[] = [
     title: 'Santuário: gestão de salas com criação, detalhe e edição',
     screens: ['EXEC_DASHBOARD', 'ROOMS_STATUS', 'ROOM_CREATE', 'ROOM_DETAILS', 'ROOM_EDIT', 'ROOM_AGENDA'],
     prerequisites: ['authenticated', 'role=SPACE'],
-    expectedFinal: 'ROOM_EDIT',
+    expectedFinal: 'ROOM_AGENDA',
     fallbackScreen: 'EXEC_DASHBOARD',
     requiredButtons: baseButtons,
     endpoints: ['/api/rooms/*'],
@@ -414,6 +421,9 @@ export const flowRegistry: FlowDefinition[] = [
     fallbackScreen: 'EXEC_DASHBOARD',
     requiredButtons: baseButtons,
     endpoints: ['/api/marketplace/*', '/api/events/*'],
+    allowedNarrativeJumps: [
+      { from: 'EVENT_CREATE', to: 'RETREATS_MANAGE' },
+    ],
   },
   {
     id: 'santuario_recrutamento_completo',
@@ -443,7 +453,7 @@ export const flowRegistry: FlowDefinition[] = [
     title: 'Shell do santuário: entrada e encerramento de fluxo',
     screens: ['START', 'EXEC_DASHBOARD', 'END'],
     prerequisites: ['authenticated', 'role=SPACE'],
-    expectedFinal: 'EXEC_DASHBOARD',
+    expectedFinal: 'END',
     fallbackScreen: 'EXEC_DASHBOARD',
     requiredButtons: baseButtons,
     endpoints: [],

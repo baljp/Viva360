@@ -5,10 +5,10 @@ type Finding = { level?: string; message?: string };
 type Report = { findings?: Finding[] };
 
 const reportPath = path.resolve(process.cwd(), 'reports/flow_registry_validation.json');
-const MAX_WARNINGS = 9;
+const MAX_WARNINGS = 0;
 const CATEGORY_BASELINES = {
-  expectedFinalMismatch: 6,
-  narrativeJump: 3,
+  expectedFinalMismatch: 0,
+  narrativeJump: 0,
 } as const;
 
 if (!fs.existsSync(reportPath)) {

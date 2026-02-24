@@ -27,7 +27,6 @@ export const useGlobalAuthStateListener = ({
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🔐 Auth State Changed:', event);
       if (event === 'SIGNED_IN' && session) {
         try {
           const user = await api.auth.getCurrentSession();
@@ -50,4 +49,3 @@ export const useGlobalAuthStateListener = ({
     return () => subscription.unsubscribe();
   }, [navigate, onLogin, setCurrentUser, setToast]);
 };
-

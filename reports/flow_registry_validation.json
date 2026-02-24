@@ -1,51 +1,5 @@
 {
   "totalFlows": 39,
   "ok": true,
-  "findings": [
-    {
-      "level": "WARN",
-      "flowId": "buscador_chat_social",
-      "message": "Última tela (CHAT_SETTINGS) difere de expectedFinal (CHAT_ROOM)."
-    },
-    {
-      "level": "WARN",
-      "flowId": "buscador_shell_e_config",
-      "message": "Última tela (END) difere de expectedFinal (SETTINGS)."
-    },
-    {
-      "level": "WARN",
-      "flowId": "guardiao_paciente_plano_e_trade",
-      "message": "Salto narrativo/multi-etapas no flow registry (não alcançável por transição direta do engine): PATIENTS_LIST -> PATIENT_PLAN."
-    },
-    {
-      "level": "WARN",
-      "flowId": "guardiao_paciente_plano_e_trade",
-      "message": "Salto narrativo/multi-etapas no flow registry (não alcançável por transição direta do engine): ESCAMBO_MARKET -> ESCAMBO_TRADE."
-    },
-    {
-      "level": "WARN",
-      "flowId": "guardiao_shell_e_config",
-      "message": "Última tela (END) difere de expectedFinal (SETTINGS)."
-    },
-    {
-      "level": "WARN",
-      "flowId": "santuario_pacientes_operacao",
-      "message": "Última tela (AGENDA_EDIT) difere de expectedFinal (PATIENT_RECORDS)."
-    },
-    {
-      "level": "WARN",
-      "flowId": "santuario_salaseestrutura_expandida",
-      "message": "Última tela (ROOM_AGENDA) difere de expectedFinal (ROOM_EDIT)."
-    },
-    {
-      "level": "WARN",
-      "flowId": "santuario_marketplace_eventos_retiros",
-      "message": "Salto narrativo/multi-etapas no flow registry (não alcançável por transição direta do engine): EVENT_CREATE -> RETREATS_MANAGE."
-    },
-    {
-      "level": "WARN",
-      "flowId": "santuario_shell_e_encerramento",
-      "message": "Última tela (END) difere de expectedFinal (EXEC_DASHBOARD)."
-    }
-  ]
+  "findings": []
 }

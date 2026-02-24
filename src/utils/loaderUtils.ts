@@ -27,7 +27,6 @@ export const preloadRoleViews = (role: string) => {
     const loader = views[roleUpper];
     if (loader) {
         schedule(() => {
-            console.log(`[FlowLoader] Preloading views for role: ${roleUpper}`);
             loader().catch(err => console.error(`[FlowLoader] Preload failed for ${roleUpper}`, err));
         }, 600);
     }

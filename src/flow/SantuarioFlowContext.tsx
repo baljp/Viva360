@@ -235,7 +235,6 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     };
 
     const go = (target: SantuarioState) => {
-        console.log(`[SantuarioFlow] go('${target}') called. Current: ${state.currentState}`);
         trackFlowTelemetry({ profile: 'SANTUARIO', flow: 'core', action: 'go', status: 'attempt', from: state.currentState, to: target });
         dispatch({ type: 'SET_LOADING', payload: true });
         

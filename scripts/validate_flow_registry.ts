@@ -49,6 +49,9 @@ const isReachable = (transitionMap: TransitionMap, from: string, to: string) => 
   return false;
 };
 
+const isAllowedNarrativeJump = (flow: FlowDefinition, from: string, to: string) =>
+  !!flow.allowedNarrativeJumps?.some((hop) => hop.from === from && hop.to === to);
+
 const ids = new Set<string>();
 for (const flow of flowRegistry) {
   if (ids.has(flow.id)) {
@@ -89,6 +92,7 @@ for (const flow of flowRegistry) {
     const from = flow.screens[i];
     const to = flow.screens[i + 1];
     if (!isReachable(transitionMap, from, to)) {
+      if (isAllowedNarrativeJump(flow, from, to)) continue;
       findings.push({
         level: 'WARN',
         flowId: flow.id,

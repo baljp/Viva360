@@ -14,9 +14,43 @@ const DEFAULT_QUESTS: DailyQuest[] = [
     { id: 'tribe', label: 'Conexão Tribal', description: 'Interaja com alguém da tribo', reward: 15, isCompleted: false },
 ];
 
+const buildQuestStorageKey = (userId: string, date = new Date()) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `viva360.client.daily_quests.${userId}.${y}-${m}-${d}`;
+};
+
+const loadPersistedQuests = (user: User): DailyQuest[] | null => {
+    try {
+        if (!user?.id) return null;
+        const raw = localStorage.getItem(buildQuestStorageKey(user.id));
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as Array<Partial<DailyQuest> & { id?: string }>;
+        if (!Array.isArray(parsed)) return null;
+        const byId = new Map(parsed.map((q) => [String(q?.id || ''), q]));
+        return DEFAULT_QUESTS.map((q) => {
+            const stored = byId.get(q.id);
+            return stored ? { ...q, isCompleted: !!stored.isCompleted } : q;
+        });
+    } catch {
+        return null;
+    }
+};
+
+const persistQuests = (userId: string, quests: DailyQuest[]) => {
+    try {
+        localStorage.setItem(buildQuestStorageKey(userId), JSON.stringify(quests));
+    } catch {
+        // non-blocking
+    }
+};
+
 export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => void }> = ({ user, updateUser }) => {
     const { go, back, notify} = useBuscadorFlow();
-    const [quests, setQuests] = useState<DailyQuest[]>(user.dailyQuests?.length ? user.dailyQuests : DEFAULT_QUESTS);
+    const [quests, setQuests] = useState<DailyQuest[]>(() =>
+        loadPersistedQuests(user) || (user.dailyQuests?.length ? user.dailyQuests : DEFAULT_QUESTS)
+    );
     const [animatingId, setAnimatingId] = useState<string | null>(null);
     const [showAchievements, setShowAchievements] = useState(false);
 
@@ -30,6 +64,24 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
     const earnedReward = quests.filter(q => q.isCompleted).reduce((sum, q) => sum + q.reward, 0);
     const progress = quests.length > 0 ? (completedCount / quests.length) * 100 : 0;
     const allComplete = completedCount === quests.length;
+
+    useEffect(() => {
+        const persisted = loadPersistedQuests(user);
+        if (persisted) {
+            setQuests(persisted);
+            return;
+        }
+        if (user.dailyQuests?.length) {
+            setQuests(user.dailyQuests);
+            return;
+        }
+        setQuests(DEFAULT_QUESTS);
+    }, [user.id]);
+
+    useEffect(() => {
+        if (!user?.id) return;
+        persistQuests(user.id, quests);
+    }, [user?.id, quests]);
 
     const handleComplete = async (questId: string) => {
         const quest = quests.find(q => q.id === questId);
@@ -59,6 +111,7 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
                 dailyQuests: updated,
             };
             updateUser(updatedUser);
+            persistQuests(user.id, updated);
 
             notify(`+${karmaGain} Karma`, `${quest.label} concluída!`, 'success');
 

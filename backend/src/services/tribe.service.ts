@@ -2,6 +2,7 @@ import { tribeRepository, InviteCreateData } from '../repositories/tribe.reposit
 import crypto from 'crypto';
 import { interactionService } from './interaction.service';
 import { logger } from '../lib/logger';
+import { emailService } from './email.service';
 
 export class TribeService {
     async inviteMember(hubId: string, email: string, options?: { inviteType?: string; targetRole?: string; expiresAt?: Date | null; contextRef?: string | null }) {
@@ -34,8 +35,17 @@ export class TribeService {
             interactionService.logInteractionFailure('tribe.invite', error, { hubId, email });
         }
 
-        // Mock email dispatch. Token is considered sensitive and will be redacted by logger.
-        logger.info('tribe.invite_created', { hubId, email, token, inviteId: invite.id });
+        const emailDispatch = await emailService.sendTribeInvite({
+            to: email,
+            inviteId: String(invite.id),
+            token,
+        });
+        logger.info('tribe.invite_created', {
+            hubId,
+            email,
+            inviteId: invite.id,
+            emailDispatch: emailDispatch.ok ? 'sent' : emailDispatch.reason,
+        });
         
         return invite;
     }
