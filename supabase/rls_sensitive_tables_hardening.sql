@@ -121,38 +121,52 @@ USING (auth.uid() = source_id OR auth.uid() = target_id)
 WITH CHECK (auth.uid() = source_id OR auth.uid() = target_id);
 
 -- CONTRACTS (guardian/space only)
-DROP POLICY IF EXISTS "Contracts: participants can read" ON public.contracts;
-CREATE POLICY "Contracts: participants can read" ON public.contracts
-FOR SELECT TO authenticated
-USING (auth.uid() = space_id OR auth.uid() = guardian_id);
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'contracts'
+    ) THEN
+        DROP POLICY IF EXISTS "Contracts: participants can read" ON public.contracts;
+        CREATE POLICY "Contracts: participants can read" ON public.contracts
+        FOR SELECT TO authenticated
+        USING (auth.uid() = space_id OR auth.uid() = guardian_id);
 
-DROP POLICY IF EXISTS "Contracts: participants can insert" ON public.contracts;
-CREATE POLICY "Contracts: participants can insert" ON public.contracts
-FOR INSERT TO authenticated
-WITH CHECK (auth.uid() = space_id OR auth.uid() = guardian_id);
+        DROP POLICY IF EXISTS "Contracts: participants can insert" ON public.contracts;
+        CREATE POLICY "Contracts: participants can insert" ON public.contracts
+        FOR INSERT TO authenticated
+        WITH CHECK (auth.uid() = space_id OR auth.uid() = guardian_id);
 
-DROP POLICY IF EXISTS "Contracts: participants can update" ON public.contracts;
-CREATE POLICY "Contracts: participants can update" ON public.contracts
-FOR UPDATE TO authenticated
-USING (auth.uid() = space_id OR auth.uid() = guardian_id)
-WITH CHECK (auth.uid() = space_id OR auth.uid() = guardian_id);
+        DROP POLICY IF EXISTS "Contracts: participants can update" ON public.contracts;
+        CREATE POLICY "Contracts: participants can update" ON public.contracts
+        FOR UPDATE TO authenticated
+        USING (auth.uid() = space_id OR auth.uid() = guardian_id)
+        WITH CHECK (auth.uid() = space_id OR auth.uid() = guardian_id);
+    END IF;
+END $$;
 
 -- SPACE INVITES (space owner only)
-DROP POLICY IF EXISTS "Space invites: owner can read" ON public.space_invites;
-CREATE POLICY "Space invites: owner can read" ON public.space_invites
-FOR SELECT TO authenticated
-USING (auth.uid() = space_id);
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'space_invites'
+    ) THEN
+        DROP POLICY IF EXISTS "Space invites: owner can read" ON public.space_invites;
+        CREATE POLICY "Space invites: owner can read" ON public.space_invites
+        FOR SELECT TO authenticated
+        USING (auth.uid() = space_id);
 
-DROP POLICY IF EXISTS "Space invites: owner can insert" ON public.space_invites;
-CREATE POLICY "Space invites: owner can insert" ON public.space_invites
-FOR INSERT TO authenticated
-WITH CHECK (auth.uid() = space_id);
+        DROP POLICY IF EXISTS "Space invites: owner can insert" ON public.space_invites;
+        CREATE POLICY "Space invites: owner can insert" ON public.space_invites
+        FOR INSERT TO authenticated
+        WITH CHECK (auth.uid() = space_id);
 
-DROP POLICY IF EXISTS "Space invites: owner can update" ON public.space_invites;
-CREATE POLICY "Space invites: owner can update" ON public.space_invites
-FOR UPDATE TO authenticated
-USING (auth.uid() = space_id)
-WITH CHECK (auth.uid() = space_id);
+        DROP POLICY IF EXISTS "Space invites: owner can update" ON public.space_invites;
+        CREATE POLICY "Space invites: owner can update" ON public.space_invites
+        FOR UPDATE TO authenticated
+        USING (auth.uid() = space_id)
+        WITH CHECK (auth.uid() = space_id);
+    END IF;
+END $$;
 
 -- TRIBE INVITES (hub owner only)
 DROP POLICY IF EXISTS "Tribe invites: hub can read" ON public.tribe_invites;
@@ -310,26 +324,33 @@ FOR DELETE TO authenticated
 USING (auth.uid() = user_id);
 
 -- ROUTINES (owner only)
-DROP POLICY IF EXISTS "Routines: owner can read" ON public.routines;
-CREATE POLICY "Routines: owner can read" ON public.routines
-FOR SELECT TO authenticated
-USING (auth.uid() = user_id);
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM pg_tables WHERE schemaname = 'public' AND tablename = 'routines'
+    ) THEN
+        DROP POLICY IF EXISTS "Routines: owner can read" ON public.routines;
+        CREATE POLICY "Routines: owner can read" ON public.routines
+        FOR SELECT TO authenticated
+        USING (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Routines: owner can insert" ON public.routines;
-CREATE POLICY "Routines: owner can insert" ON public.routines
-FOR INSERT TO authenticated
-WITH CHECK (auth.uid() = user_id);
+        DROP POLICY IF EXISTS "Routines: owner can insert" ON public.routines;
+        CREATE POLICY "Routines: owner can insert" ON public.routines
+        FOR INSERT TO authenticated
+        WITH CHECK (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Routines: owner can update" ON public.routines;
-CREATE POLICY "Routines: owner can update" ON public.routines
-FOR UPDATE TO authenticated
-USING (auth.uid() = user_id)
-WITH CHECK (auth.uid() = user_id);
+        DROP POLICY IF EXISTS "Routines: owner can update" ON public.routines;
+        CREATE POLICY "Routines: owner can update" ON public.routines
+        FOR UPDATE TO authenticated
+        USING (auth.uid() = user_id)
+        WITH CHECK (auth.uid() = user_id);
 
-DROP POLICY IF EXISTS "Routines: owner can delete" ON public.routines;
-CREATE POLICY "Routines: owner can delete" ON public.routines
-FOR DELETE TO authenticated
-USING (auth.uid() = user_id);
+        DROP POLICY IF EXISTS "Routines: owner can delete" ON public.routines;
+        CREATE POLICY "Routines: owner can delete" ON public.routines
+        FOR DELETE TO authenticated
+        USING (auth.uid() = user_id);
+    END IF;
+END $$;
 
 -- METAMORPHOSIS PROJECTIONS (owner only)
 DROP POLICY IF EXISTS "Metamorphosis projections: owner can read" ON public.metamorphosis_projections;
