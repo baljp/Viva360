@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import { logger } from './logger';
 
 const rawJwtSecret = (process.env.JWT_SECRET || '').trim();
@@ -9,11 +8,8 @@ const isTestOrMock =
 let resolvedJwtSecret = rawJwtSecret;
 if (!resolvedJwtSecret) {
   if (isProd) {
-    // CRITICAL: Don't throw here — it kills the entire serverless function.
-    // Log and use a temporary fallback so the app can boot and return
-    // meaningful errors instead of FUNCTION_INVOCATION_FAILED.
     logger.error('secrets.missing_jwt_secret_prod');
-    resolvedJwtSecret = crypto.randomUUID() + '-MISSING-JWT-SECRET';
+    throw new Error('Critical configuration missing: JWT_SECRET must be set in production');
   } else if (isTestOrMock) {
     // Deterministic secret keeps tests stable and avoids noisy warnings in mock/test runtime.
     resolvedJwtSecret = 'viva360_test_jwt_secret_2026';
