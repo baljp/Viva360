@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Heart, Send, Flame, Droplet, Sprout, Wind, Eye, Zap, Handshake } from 'lucide-react';
 import { api } from '../../../services/api';
+import { useChatRoomRealtime } from '../../../src/hooks/useChatRoomRealtime';
 
 const ENERGIES = [
     { id: 'vitality', label: 'Vitalidade', icon: Flame, color: 'text-amber-500', bg: 'bg-amber-50', msg: 'Envio fogo vital para fortalecer sua vontade! 🔥' },
@@ -56,7 +57,6 @@ export default function TribeInteraction() {
   const [isConnecting, setIsConnecting] = useState(true);
   const [joinError, setJoinError] = useState<string | null>(null);
   const [joinAttempt, setJoinAttempt] = useState(0);
-  const pollRef = useRef<number | null>(null);
 
   const roomType: RoomType = (state.tribeRoomContext?.type || 'support_room') as RoomType;
   const roomContextId = state.tribeRoomContext?.contextId;
@@ -72,7 +72,7 @@ export default function TribeInteraction() {
     return idx === 0 ? 'bg-indigo-100' : idx === 1 ? 'bg-rose-100' : 'bg-amber-100';
   };
 
-  const mapApiMessage = (m: ApiChatMessage): Message => {
+  const mapApiMessage = useCallback((m: ApiChatMessage): Message => {
     const senderId = m.sender?.id || m.sender_id || '';
     const energy = parseEnergy(m.content || '');
     return {
@@ -86,13 +86,13 @@ export default function TribeInteraction() {
       mine: !!myId && senderId === myId,
       createdAt: m.created_at,
     };
-  };
+  }, [myId]);
 
-  const loadMessages = async (roomId: string) => {
+  const loadMessages = useCallback(async (roomId: string) => {
     const raw = (await api.chat.getMessages(roomId)) as ApiChatMessage[];
     const sorted = [...(raw || [])].reverse(); // API returns desc
     setMessages(sorted.map(mapApiMessage));
-  };
+  }, [mapApiMessage]);
 
   useEffect(() => {
     api.auth.getCurrentSession().then((u) => u && setMyId(u.id));
@@ -116,8 +116,6 @@ export default function TribeInteraction() {
       setRoom(chat);
       await loadMessages(chat.id);
 
-      if (pollRef.current) window.clearInterval(pollRef.current);
-      pollRef.current = window.setInterval(() => loadMessages(chat.id).catch(() => undefined), 4000) as any;
       setIsConnecting(false);
     };
 
@@ -130,10 +128,19 @@ export default function TribeInteraction() {
     });
     return () => {
       cancelled = true;
-      if (pollRef.current) window.clearInterval(pollRef.current);
-      pollRef.current = null;
     };
   }, [roomType, roomContextId, joinAttempt]);
+
+  const loadCurrentRoomMessages = useCallback(async () => {
+    if (!room?.id) return;
+    await loadMessages(room.id);
+  }, [room?.id, loadMessages]);
+
+  const { usingFallbackPolling } = useChatRoomRealtime({
+    roomId: room?.id,
+    enabled: !!room?.id && !isConnecting && !joinError,
+    load: loadCurrentRoomMessages,
+  });
 
   const handleSend = () => {
       if (!room?.id) return;
@@ -185,6 +192,11 @@ export default function TribeInteraction() {
            <div className="flex-1">
                <h1 className="font-bold text-slate-900">{headerTitle}</h1>
                <p className="text-[10px] text-emerald-500 font-bold uppercase tracking-widest flex items-center gap-1"><span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span> {headerHint}</p>
+               {room?.id && !isConnecting && (
+                 <p className="text-[9px] text-slate-400 mt-1 font-bold uppercase tracking-widest">
+                   {usingFallbackPolling ? 'Modo seguro (polling)' : 'Tempo real'}
+                 </p>
+               )}
                {room?.id && !isConnecting && (
                  <span data-testid="tribo-room-ready" className="sr-only">ready</span>
                )}

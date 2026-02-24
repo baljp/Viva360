@@ -11,24 +11,9 @@ import { SoulCardReveal } from './SoulCardReveal';
 import { dataUrlToBlob } from '../../src/utils/dataUrl';
 import { buildLocalImageKey, idbImages } from '../../src/utils/idbImageStore';
 import { useObjectUrl } from '../../src/hooks/useObjectUrl';
-
-const MOODS = [
-    { id: 'Feliz', icon: Sun, element: 'Fogo' },
-    { id: 'Calmo', icon: Coffee, element: 'Água' },
-    { id: 'Grato', icon: Heart, element: 'Terra' },
-    { id: 'Motivado', icon: Zap, element: 'Fogo' },
-    { id: 'Cansado', icon: Battery, element: 'Terra' },
-    { id: 'Ansioso', icon: CloudRain, element: 'Ar' },
-    { id: 'Triste', icon: Frown, element: 'Água' },
-    { id: 'Sobrecarregado', icon: Activity, element: 'Ar' }
-];
-
-const ELEMENT_ICONS = {
-    'Fogo': <Zap size={14} className="text-rose-500" />,
-    'Água': <Droplets size={14} className="text-cyan-500" />,
-    'Terra': <Mountain size={14} className="text-emerald-500" />,
-    'Ar': <Wind size={14} className="text-indigo-500" />
-};
+import { drawMetamorphosisCardCanvas } from './metamorphosisCardCanvas';
+import { ELEMENT_ICONS, METAMORPHOSIS_MOODS } from './metamorphosisConfig';
+import { MetamorphosisProcessingStep, MetamorphosisShareControls, MetamorphosisSuccessStep } from './MetamorphosisWizardSteps';
 
 export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) => void, onClose?: () => void, user?: User }> = ({ flow, setView, onClose, user }) => {
     const [step, setStep] = useState(1);
@@ -187,198 +172,28 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     // Premium Canvas Drawing: 1080x1920 (Story Format) or 1080x1080 (Post)
     // User requested "Card Format" - let's stick to a rich Portrait Card (Story/Status friendly 9:16 approx)
     useEffect(() => {
+        let cancelled = false;
         if (step === 4 && result && canvasRef.current) {
             setIsDrawing(true);
-            const canvas = canvasRef.current;
-            const ctx = canvas.getContext('2d');
-            if (!ctx) {
-                setIsDrawing(false);
-                return;
-            }
-
-            // Safe Rounded Rect Helper (Browser Compatibility)
-            const drawRoundRect = (x: number, y: number, w: number, h: number, r: number) => {
-                ctx.beginPath();
-                ctx.moveTo(x + r, y);
-                ctx.arcTo(x + w, y, x + w, y + h, r);
-                ctx.arcTo(x + w, y + h, x, y + h, r);
-                ctx.arcTo(x, y + h, x, y, r);
-                ctx.arcTo(x, y, x+w, y, r);
-                ctx.closePath();
-            };
-
             const resolvedQuote = String(result?.quote || cardPhrase || phraseService.getPhrase(String(result?.mood || mood || 'Calmo'), 'CARD')).trim();
             const resolvedTimestamp = result?.timestamp || new Date().toISOString();
-
-            const userImg = new Image();
-            userImg.crossOrigin = "anonymous";
-            userImg.src = result.photoThumb;
-
-            userImg.onload = () => {
-                try {
-                    const W = 1080; 
-                    const H = format === 'STORY' ? 1920 : 1350; 
-                    canvas.width = W;
-                    canvas.height = H;
-
-                    const styling = MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo'];
-                    const elementColor = styling.color.includes('rose') ? '#f43f5e' : 
-                                         styling.color.includes('cyan') ? '#06b6d4' : 
-                                         styling.color.includes('emerald') ? '#10b981' : 
-                                         styling.color.includes('indigo') ? '#6366f1' : '#f59e0b';
-                    
-                    const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
-                    bgGradient.addColorStop(0, '#0f172a');
-                    bgGradient.addColorStop(0.5, '#111827');
-                    bgGradient.addColorStop(1, '#020617');
-                    ctx.fillStyle = bgGradient;
-                    ctx.fillRect(0, 0, W, H);
-
-                    ctx.globalAlpha = 0.03;
-                    for (let i = 0; i < 5000; i++) {
-                        ctx.fillStyle = '#fff';
-                        ctx.fillRect(Math.random() * W, Math.random() * H, 2, 2);
-                    }
-                    ctx.globalAlpha = 1.0;
-
-                    const photoW = format === 'STORY' ? 900 : 1000;
-                    const photoH = format === 'STORY' ? 1200 : 800;
-                    const photoX = (W - photoW) / 2;
-                    const photoY = format === 'STORY' ? 250 : 200;
-
-                    ctx.save();
-                    drawRoundRect(photoX, photoY, photoW, photoH, 40);
-                    ctx.clip();
-                    
-                    const coverScale = Math.max(photoW / userImg.width, photoH / userImg.height);
-                    const coverRx = photoX + (photoW - userImg.width * coverScale) / 2;
-                    const coverRy = photoY + (photoH - userImg.height * coverScale) / 2;
-                    const containScale = Math.min(photoW / userImg.width, photoH / userImg.height);
-                    const containRx = photoX + (photoW - userImg.width * containScale) / 2;
-                    const containRy = photoY + (photoH - userImg.height * containScale) / 2;
-                    ctx.filter = `blur(14px) brightness(0.92) contrast(1.05) saturate(1.02)`; 
-                    ctx.drawImage(userImg, coverRx, coverRy, userImg.width * coverScale, userImg.height * coverScale);
-                    ctx.filter = `brightness(1.05) contrast(1.1) saturate(1.1)`; 
-                    ctx.drawImage(userImg, containRx, containRy, userImg.width * containScale, userImg.height * containScale);
-                    ctx.filter = 'none';
-
-                    ctx.globalCompositeOperation = 'soft-light';
-                    ctx.fillStyle = `${elementColor}33`;
-                    ctx.fillRect(photoX, photoY, photoW, photoH);
-                    
-                    ctx.globalCompositeOperation = 'multiply';
-                    const vignette = ctx.createRadialGradient(
-                        photoX + photoW/2, photoY + photoH/2, 200,
-                        photoX + photoW/2, photoY + photoH/2, 800
-                    );
-                    vignette.addColorStop(0, 'transparent');
-                    vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
-                    ctx.fillStyle = vignette;
-                    ctx.fillRect(photoX, photoY, photoW, photoH);
-                    ctx.globalCompositeOperation = 'source-over';
-
-                    const grainCanvas = document.createElement('canvas');
-                    grainCanvas.width = 128;
-                    grainCanvas.height = 128;
-                    const gCtx = grainCanvas.getContext('2d')!;
-                    const gData = gCtx.createImageData(128, 128);
-                    for (let i = 0; i < gData.data.length; i += 4) {
-                        const val = Math.random() * 255;
-                        gData.data[i] = val;
-                        gData.data[i+1] = val;
-                        gData.data[i+2] = val;
-                        gData.data[i+3] = 10;
-                    }
-                    gCtx.putImageData(gData, 0, 0);
-                    ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat')!;
-                    ctx.globalAlpha = 0.03;
-                    ctx.fillRect(photoX, photoY, photoW, photoH);
-                    ctx.globalAlpha = 1.0;
-                    
-                    ctx.restore();
-
-                    const quoteAreaY = photoY + photoH + 40;
-                    const centerX = W / 2;
-
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(photoX + 100, quoteAreaY);
-                    ctx.lineTo(photoX + photoW - 100, quoteAreaY);
-                    ctx.stroke();
-
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'top';
-                    ctx.fillStyle = '#f8fafc';
-                    ctx.font = 'italic 48px serif';
-                    
-                    const words = resolvedQuote.split(/\s+/).filter(Boolean);
-                    let line = '';
-                    let lineY = quoteAreaY + 60;
-                    const lineHeight = 65;
-
-                    for(let n = 0; n < words.length; n++) {
-                        const testLine = line + words[n] + ' ';
-                        if (ctx.measureText(testLine).width > (photoW - 150) && n > 0) {
-                            ctx.fillText(line.trim(), centerX, lineY);
-                            line = words[n] + ' ';
-                            lineY += lineHeight;
-                        } else {
-                            line = testLine;
-                        }
-                    }
-                    ctx.fillText(line.trim(), centerX, lineY);
-
-                    const footerY = H - 120;
-                    ctx.font = 'bold 20px sans-serif';
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                    (ctx as any).letterSpacing = '4px';
-                    const dateStr = new Date(resolvedTimestamp).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long' }).toUpperCase();
-                    ctx.fillText(dateStr, centerX, footerY - 40);
-                    
-                    ctx.font = 'bold 22px sans-serif';
-                    ctx.fillStyle = '#d4af37';
-                    (ctx as any).letterSpacing = '8px';
-                    ctx.fillText(`VIVA360 • ESSÊNCIA & EVOLUÇÃO`, centerX, footerY);
-
-                    setPreviewUrl(canvas.toDataURL('image/png'));
-                } catch (drawError) {
-                    console.error('Erro ao desenhar card da alma', drawError);
-                    setPreviewUrl(result?.photoThumb || null);
-                } finally {
-                    setIsDrawing(false);
-                }
-            };
-            userImg.onerror = () => {
-                try {
-                    const W = 1080;
-                    const H = format === 'STORY' ? 1920 : 1350;
-                    canvas.width = W;
-                    canvas.height = H;
-                    const bgGradient = ctx.createLinearGradient(0, 0, 0, H);
-                    bgGradient.addColorStop(0, '#0f172a');
-                    bgGradient.addColorStop(1, '#020617');
-                    ctx.fillStyle = bgGradient;
-                    ctx.fillRect(0, 0, W, H);
-                    ctx.textAlign = 'center';
-                    ctx.fillStyle = '#f8fafc';
-                    ctx.font = 'italic 44px serif';
-                    ctx.fillText(resolvedQuote, W / 2, H / 2 - 120, W - 160);
-                    ctx.font = 'bold 22px sans-serif';
-                    ctx.fillStyle = '#d4af37';
-                    ctx.fillText('VIVA360 • ESSÊNCIA & EVOLUÇÃO', W / 2, H - 120);
-                    setPreviewUrl(canvas.toDataURL('image/png'));
-                } catch (drawError) {
-                    console.error('Falha no fallback do card da alma', drawError);
-                    setPreviewUrl(null);
-                } finally {
-                    setIsDrawing(false);
-                }
-            };
-            if (!userImg.src) {
-                userImg.onerror?.(new Event('error'));
-            }
+            drawMetamorphosisCardCanvas({
+                canvas: canvasRef.current,
+                format,
+                photoThumb: result?.photoThumb,
+                mood: String(result?.mood || mood || 'Calmo'),
+                quote: resolvedQuote,
+                timestamp: resolvedTimestamp,
+            }).then((url) => {
+                if (!cancelled) setPreviewUrl(url ?? (result?.photoThumb || null));
+            }).catch((drawError) => {
+                console.error('Erro ao desenhar card da alma', drawError);
+                if (!cancelled) setPreviewUrl(result?.photoThumb || null);
+            }).finally(() => {
+                if (!cancelled) setIsDrawing(false);
+            });
         }
+        return () => { cancelled = true; };
     }, [step, result, format, cardPhrase, mood]);
 
     const styling = result ? (MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo']) : MOOD_ELEMENTS['Calmo'];
@@ -418,7 +233,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                             <p className="text-xs text-nature-400 uppercase tracking-widest font-bold">Identidade Elemental</p>
                         </div>
                         <div className="grid grid-cols-2 gap-4 px-2 pb-10">
-                            {MOODS.map(m => {
+                            {METAMORPHOSIS_MOODS.map(m => {
                                 const style = MOOD_ELEMENTS[m.id as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo'];
                                 return (
                                     <button key={m.id} onClick={() => handleMoodSelect(m.id)} className={`relative overflow-hidden group p-8 rounded-[2.5rem] bg-white border border-nature-100 shadow-sm transition-all active:scale-95 hover:shadow-xl hover:border-nature-200`}>
@@ -473,25 +288,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
                 {/* STEP 3: RITUALISTIC PROCESSING */}
                 {step === 3 && (
-                    <div className="flex-1 flex flex-col items-center justify-center">
-                        <div className="relative w-32 h-32 flex items-center justify-center">
-                            <div className={`absolute inset-0 rounded-full blur-2xl animate-pulse ${styling.glow} opacity-30`}></div>
-                            <div className="w-24 h-24 rounded-full border border-nature-100 flex items-center justify-center animate-spin-slow">
-                                <Sparkles size={32} className={styling.color} />
-                            </div>
-                        </div>
-                        <h3 className="font-serif italic text-xl text-nature-700 mt-10">Sintonizando com {styling.element}...</h3>
-                        <p className="text-[10px] text-nature-400 uppercase tracking-[0.3em] font-black mt-4 animate-pulse">Codificando Essência</p>
-                        <button
-                            onClick={continueWithoutWaiting}
-                            className="mt-8 px-5 py-3 rounded-2xl border border-nature-200 bg-white text-[10px] font-bold uppercase tracking-widest text-nature-500 hover:bg-nature-50 transition-all"
-                        >
-                            Continuar agora
-                        </button>
-                        <button onClick={cancelRitual} className="mt-4 text-nature-400 text-[10px] font-bold uppercase tracking-widest hover:text-rose-500 transition-colors">
-                            <X size={14} className="inline mr-1 -mt-0.5" />Cancelar Ritual
-                        </button>
-                    </div>
+                    <MetamorphosisProcessingStep styling={styling} onContinueNow={continueWithoutWaiting} onCancel={cancelRitual} />
                 )}
 
                 {/* STEP 4: THE SOUL CARD REVEAL */}
@@ -512,63 +309,21 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                              )}
                         </div>
 
-                        {/* Aspect Ratio Toggle */}
-                        <div className="flex gap-2 mt-8 mb-6 w-full px-4">
-                            {(['STORY', 'POST'] as const).map(f => (
-                                <button
-                                    key={f}
-                                    onClick={() => setFormat(f)}
-                                    className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${format === f ? 'bg-indigo-900 text-white' : 'bg-white text-indigo-400'}`}
-                                >
-                                    {f === 'STORY' ? '9:16 Story' : '4:5 Feed'}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Premium Sharing Tray */}
-                        <div className="w-full grid grid-cols-2 gap-4 px-4">
-                            <button 
-                                onClick={shareCard} 
-                                disabled={isDrawing}
-                                className="col-span-2 py-5 bg-nature-900 text-white rounded-[2rem] flex items-center justify-center gap-3 font-bold uppercase text-[10px] tracking-[0.3em] shadow-2xl active:scale-95 transition-all disabled:opacity-50"
-                            >
-                                {isDrawing ? <Sparkles size={18} className="animate-spin" /> : <Share2 size={18} />} 
-                                {isDrawing ? 'Preparando Card...' : 'Viralizar Jornada'}
-                            </button>
-                            <button onClick={downloadCard} className="py-4 bg-white border border-nature-100 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase text-[9px] tracking-widest text-nature-400 active:scale-95 transition-all">
-                                <Download size={16} /> Salvar HD
-                            </button>
-                            <button onClick={() => setStep(5)} className="py-4 bg-emerald-500 text-white rounded-2xl flex items-center justify-center gap-2 font-bold uppercase text-[9px] tracking-widest active:scale-95 transition-all">
-                                <CheckCircle size={16} /> Concluir Ritual
-                            </button>
-                            <button onClick={cancelRitual} className="col-span-2 py-3 text-nature-400 text-[10px] font-bold uppercase tracking-widest hover:text-rose-500 transition-colors">
-                                <X size={14} className="inline mr-1 -mt-0.5" />Cancelar Ritual
-                            </button>
-                        </div>
+                        <MetamorphosisShareControls
+                            format={format}
+                            setFormat={setFormat}
+                            isDrawing={isDrawing}
+                            onShare={shareCard}
+                            onDownload={downloadCard}
+                            onComplete={() => setStep(5)}
+                            onCancel={cancelRitual}
+                        />
                     </div>
                 )}
 
                 {/* STEP 5: RITUAL SUCCESS */}
                 {step === 5 && (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center px-8 animate-in fade-in duration-1000">
-                        <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mb-8 relative">
-                             <Heart size={48} className="text-rose-400 fill-rose-200 animate-pulse" />
-                             <div className="absolute -top-2 -right-2 bg-amber-400 text-white p-2 rounded-full rotate-12 shadow-lg">
-                                 <Sparkles size={16} />
-                             </div>
-                        </div>
-                        <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Esse dia foi guardado.</h2>
-                        <p className="text-nature-500 leading-relaxed mb-12">Sua travessia foi registrada com verdade. Sua história continua.</p>
-                        
-                        <div className="flex flex-col w-full gap-4">
-                            <button onClick={() => flow.go('EVO_GRIMOIRE')} className="w-full py-5 bg-nature-900 text-white rounded-3xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl">
-                                Ver Grimório de Cards
-                            </button>
-                            <button onClick={() => flow.go('DASHBOARD')} className="w-full py-5 bg-nature-100 text-nature-600 rounded-3xl font-bold text-[10px] uppercase tracking-[0.3em]">
-                                Voltar ao Core
-                            </button>
-                        </div>
-                    </div>
+                    <MetamorphosisSuccessStep onOpenGrimoire={() => flow.go('EVO_GRIMOIRE')} onBackToCore={() => flow.go('DASHBOARD')} />
                 )}
 
             </div>

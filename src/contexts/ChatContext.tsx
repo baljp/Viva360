@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { supabase, isMockMode } from '../../lib/supabase';
 import { api } from '../../services/api';
 import { ChatContextStore } from './ChatContextStore';
@@ -27,6 +27,9 @@ const ChatContext = ChatContextStore as React.Context<ChatContextType>;
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [user, setUser] = useState<any>(null);
+    const realtimeStatusRef = useRef<'idle' | 'subscribed' | 'fallback'>('idle');
+    const lastFetchAtRef = useRef(0);
+    const fetchInFlightRef = useRef(false);
 
     // Initial Load & Auth Check
     useEffect(() => {
@@ -52,13 +55,22 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Fetch initial history (last 100 messages for simplicity)
         // In a real app, you'd paginate or load per room
         const fetchHistory = async () => {
-             const { data } = await supabase
-                .from('chat_messages')
-                .select('*')
-                .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-                .order('created_at', { ascending: true }); // Oldest first for chat log
-            
-            if (data) setMessages(data as any);
+            if (fetchInFlightRef.current) return;
+            fetchInFlightRef.current = true;
+            try {
+                const { data } = await supabase
+                    .from('chat_messages')
+                    .select('*')
+                    .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+                    .order('created_at', { ascending: true }); // Oldest first for chat log
+
+                if (data) {
+                    setMessages(data as any);
+                    lastFetchAtRef.current = Date.now();
+                }
+            } finally {
+                fetchInFlightRef.current = false;
+            }
         };
         fetchHistory();
 
@@ -93,9 +105,27 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     });
                 }
             )
-            .subscribe();
+            .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                    realtimeStatusRef.current = 'subscribed';
+                    return;
+                }
+                if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+                    realtimeStatusRef.current = 'fallback';
+                }
+            });
+
+        // Controlled fallback polling: fast when realtime is degraded, slow when healthy.
+        const pollTimer = window.setInterval(() => {
+            const hidden = typeof document !== 'undefined' && document.visibilityState === 'hidden';
+            const subscribed = realtimeStatusRef.current === 'subscribed';
+            const minGap = subscribed ? (hidden ? 30000 : 15000) : (hidden ? 12000 : 4000);
+            if (Date.now() - lastFetchAtRef.current < minGap) return;
+            fetchHistory().catch(() => undefined);
+        }, 2000);
 
         return () => {
+            window.clearInterval(pollTimer);
             supabase.removeChannel(channel);
         };
     }, [user]);

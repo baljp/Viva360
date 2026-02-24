@@ -1,14 +1,14 @@
 {
-  "generatedAt": "2026-02-24T16:58:49.380Z",
+  "generatedAt": "2026-02-24T17:29:04.939Z",
   "totals": {
-    "allMatches": 139,
+    "allMatches": 138,
     "runtime": 59,
     "frontendRuntime": 45,
     "backendRuntime": 8
   },
   "topFiles": [
     {
-      "file": "views/pro/ProMarketplace.tsx",
+      "file": "src/boot/bootRecovery.ts",
       "count": 3
     },
     {
@@ -16,11 +16,31 @@
       "count": 3
     },
     {
-      "file": "src/boot/bootRecovery.ts",
+      "file": "views/pro/ProMarketplace.tsx",
       "count": 3
     },
     {
+      "file": "components/Common/PortalView.tsx",
+      "count": 2
+    },
+    {
       "file": "services/api/requestClient.ts",
+      "count": 2
+    },
+    {
+      "file": "backend/smoke_auth.ts",
+      "count": 2
+    },
+    {
+      "file": "components/Checkout.tsx",
+      "count": 2
+    },
+    {
+      "file": "views/space/SpaceTeam.tsx",
+      "count": 2
+    },
+    {
+      "file": "views/space/generated/SpaceRoomEdit.tsx",
       "count": 2
     },
     {
@@ -32,31 +52,11 @@
       "count": 2
     },
     {
-      "file": "views/space/SpaceTeam.tsx",
-      "count": 2
-    },
-    {
-      "file": "components/Common/PortalView.tsx",
-      "count": 2
-    },
-    {
-      "file": "components/Checkout.tsx",
-      "count": 2
-    },
-    {
-      "file": "views/space/generated/SpaceRoomEdit.tsx",
-      "count": 2
-    },
-    {
-      "file": "backend/smoke_auth.ts",
-      "count": 2
-    },
-    {
-      "file": "services/api/session.ts",
+      "file": "src/flow/GuardiaoFlowContext.tsx",
       "count": 1
     },
     {
-      "file": "src/flow/GuardiaoFlowContext.tsx",
+      "file": "index.tsx",
       "count": 1
     },
     {
@@ -64,35 +64,7 @@
       "count": 1
     },
     {
-      "file": "views/Auth.tsx",
-      "count": 1
-    },
-    {
-      "file": "views/pro/VideoPrepScreen.tsx",
-      "count": 1
-    },
-    {
-      "file": "views/client/map/MicroJourneyModal.tsx",
-      "count": 1
-    },
-    {
       "file": "src/flow/SantuarioFlowContext.tsx",
-      "count": 1
-    },
-    {
-      "file": "views/ResetPassword.tsx",
-      "count": 1
-    },
-    {
-      "file": "views/ServiceViews.tsx",
-      "count": 1
-    },
-    {
-      "file": "views/pro/chat/ProChatRoomScreen.tsx",
-      "count": 1
-    },
-    {
-      "file": "views/client/garden/ClientQuestsView.tsx",
       "count": 1
     },
     {
@@ -100,20 +72,58 @@
       "count": 1
     },
     {
-      "file": "views/client/financial/CheckoutScreen.tsx",
+      "file": "components/Common/RitualCompletionCard.tsx",
       "count": 1
     },
     {
-      "file": "components/Common/RitualCompletionCard.tsx",
+      "file": "components/Common/CameraWidget.tsx",
+      "count": 1
+    },
+    {
+      "file": "services/api/session.ts",
+      "count": 1
+    },
+    {
+      "file": "backend/src/services/cloudinary.service.ts",
+      "count": 1
+    },
+    {
+      "file": "src/components/RitualCompletionCard.tsx",
+      "count": 1
+    },
+    {
+      "file": "src/utils/loaderUtils.ts",
+      "count": 1
+    },
+    {
+      "file": "backend/e2e_refactor.ts",
+      "count": 1
+    },
+    {
+      "file": "backend/e2e_full.ts",
+      "count": 1
+    },
+    {
+      "file": "components/MicroInteraction.tsx",
       "count": 1
     }
   ],
   "samples": {
     "runtime": [
       {
-        "file": "services/api/session.ts",
-        "line": 144,
-        "text": "const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);"
+        "file": "src/boot/bootRecovery.ts",
+        "line": 143,
+        "text": "window.setTimeout(() => {"
+      },
+      {
+        "file": "src/boot/bootRecovery.ts",
+        "line": 154,
+        "text": "window.setTimeout(() => {"
+      },
+      {
+        "file": "src/boot/bootRecovery.ts",
+        "line": 168,
+        "text": "window.setTimeout(() => {"
       },
       {
         "file": "src/flow/GuardiaoFlowContext.tsx",
@@ -121,169 +131,14 @@
         "text": "setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);"
       },
       {
-        "file": "services/api/requestClient.ts",
-        "line": 19,
-        "text": "const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));"
-      },
-      {
-        "file": "services/api/requestClient.ts",
-        "line": 60,
-        "text": "const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);"
+        "file": "index.tsx",
+        "line": 37,
+        "text": "window.setTimeout(cb, 800);"
       },
       {
         "file": "components/OfflineIndicator.tsx",
         "line": 22,
         "text": "const t = setTimeout(() => {"
-      },
-      {
-        "file": "views/Auth.tsx",
-        "line": 40,
-        "text": "const timer = setTimeout(() => {"
-      },
-      {
-        "file": "views/pro/VideoPrepScreen.tsx",
-        "line": 32,
-        "text": "setTimeout(() => {"
-      },
-      {
-        "file": "views/client/map/MicroJourneyModal.tsx",
-        "line": 79,
-        "text": "setTimeout(() => onComplete(updatedUser), 2000);"
-      },
-      {
-        "file": "views/pro/ProMarketplace.tsx",
-        "line": 25,
-        "text": "setTimeout(() => setToast(null), 3000);"
-      },
-      {
-        "file": "views/pro/ProMarketplace.tsx",
-        "line": 35,
-        "text": "setTimeout(() => setToast(null), 3000);"
-      },
-      {
-        "file": "views/pro/ProMarketplace.tsx",
-        "line": 47,
-        "text": "setTimeout(() => setToast(null), 3000);"
-      },
-      {
-        "file": "src/flow/SantuarioFlowContext.tsx",
-        "line": 155,
-        "text": "setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);"
-      },
-      {
-        "file": "views/ResetPassword.tsx",
-        "line": 35,
-        "text": "setTimeout(() => navigate('/login'), 3000);"
-      },
-      {
-        "file": "views/ServiceViews.tsx",
-        "line": 126,
-        "text": "setTimeout(() => setCopiedVoucher(null), 2500);"
-      },
-      {
-        "file": "views/pro/chat/ProChatRoomScreen.tsx",
-        "line": 49,
-        "text": "setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);"
-      },
-      {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 109,
-        "text": "processingTimeoutRef.current = setTimeout(() => {"
-      },
-      {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 121,
-        "text": "ritualDelayRef.current = setTimeout(() => {"
-      },
-      {
-        "file": "views/metamorphosis/SoulCardReveal.tsx",
-        "line": 23,
-        "text": "const t1 = setTimeout(() => setRevealStage(1), 1000); // Start burst"
-      },
-      {
-        "file": "views/metamorphosis/SoulCardReveal.tsx",
-        "line": 24,
-        "text": "const t2 = setTimeout(() => setRevealStage(2), 2500); // Show card"
-      },
-      {
-        "file": "views/client/garden/ClientQuestsView.tsx",
-        "line": 118,
-        "text": "setTimeout(() => {"
-      },
-      {
-        "file": "components/Common/ZenToast.tsx",
-        "line": 25,
-        "text": "timerRef.current = setTimeout(onClose, DURATION);"
-      },
-      {
-        "file": "views/client/financial/CheckoutScreen.tsx",
-        "line": 188,
-        "text": "setTimeout(() => { setShowPixQR(false); setLoading(false); }, 400);"
-      },
-      {
-        "file": "components/Common/RitualCompletionCard.tsx",
-        "line": 14,
-        "text": "const timer = setTimeout(onClose, 2500);"
-      },
-      {
-        "file": "views/space/SpaceFinance.tsx",
-        "line": 21,
-        "text": "setTimeout(() => setToast(null), 3000);"
-      },
-      {
-        "file": "views/space/SpaceMarketplace.tsx",
-        "line": 25,
-        "text": "setTimeout(() => setToast(null), 3000);"
-      },
-      {
-        "file": "views/client/chat/ChatListScreen.tsx",
-        "line": 77,
-        "text": "realtimeRefreshTimer.current = window.setTimeout(() => {"
-      },
-      {
-        "file": "components/Common/CameraWidget.tsx",
-        "line": 194,
-        "text": "setTimeout(() => setFlash(false), 140);"
-      },
-      {
-        "file": "views/space/SpaceTeam.tsx",
-        "line": 33,
-        "text": "setTimeout(() => setToast(null), 3000);"
-      },
-      {
-        "file": "views/space/SpaceTeam.tsx",
-        "line": 38,
-        "text": "setTimeout(() => setToast(null), 3000);"
-      },
-      {
-        "file": "components/Common/PortalView.tsx",
-        "line": 53,
-        "text": "if (attempts < 5) window.setTimeout(restoreFocus, 25);"
-      },
-      {
-        "file": "components/Common/PortalView.tsx",
-        "line": 55,
-        "text": "window.setTimeout(restoreFocus, 0);"
-      },
-      {
-        "file": "src/components/RitualCompletionCard.tsx",
-        "line": 14,
-        "text": "const timer = setTimeout(onClose, 3000);"
-      },
-      {
-        "file": "src/utils/loaderUtils.ts",
-        "line": 16,
-        "text": "setTimeout(fn, delayMs);"
-      },
-      {
-        "file": "components/Checkout.tsx",
-        "line": 128,
-        "text": "setTimeout(() => {"
-      },
-      {
-        "file": "components/Checkout.tsx",
-        "line": 132,
-        "text": "setTimeout(onSuccess, 3000);"
       },
       {
         "file": "backend/src/worker.ts",
@@ -301,69 +156,64 @@
         "text": "await new Promise(resolve => setTimeout(resolve, 30));"
       },
       {
-        "file": "views/space/generated/SpaceRoomEdit.tsx",
-        "line": 55,
-        "text": "setTimeout(() => go('ROOMS_STATUS'), 900);"
+        "file": "src/flow/SantuarioFlowContext.tsx",
+        "line": 155,
+        "text": "setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);"
       },
       {
-        "file": "views/space/generated/SpaceRoomEdit.tsx",
-        "line": 70,
-        "text": "setTimeout(() => go('ROOMS_STATUS'), 1500);"
-      },
-      {
-        "file": "components/MicroInteraction.tsx",
+        "file": "components/Common/ZenToast.tsx",
         "line": 25,
-        "text": "const timer = setTimeout(callback, duration);"
+        "text": "timerRef.current = setTimeout(onClose, DURATION);"
       },
       {
-        "file": "views/space/generated/SpaceInvite.tsx",
-        "line": 30,
-        "text": "setCopied(true); setTimeout(() => setCopied(false), 2000);"
+        "file": "components/Common/RitualCompletionCard.tsx",
+        "line": 14,
+        "text": "const timer = setTimeout(onClose, 2500);"
       },
       {
-        "file": "views/space/generated/ServiceEvaluation.tsx",
-        "line": 42,
-        "text": "setTimeout(() => go('EXEC_DASHBOARD'), 2500);"
+        "file": "components/Common/CameraWidget.tsx",
+        "line": 194,
+        "text": "setTimeout(() => setFlash(false), 140);"
       },
       {
-        "file": "views/space/generated/SpaceEventCreate.tsx",
-        "line": 113,
-        "text": "setTimeout(() => go(eventType === 'retreat' ? 'RETREATS_MANAGE' : 'EVENTS_MANAGE'), 900);"
+        "file": "components/Common/PortalView.tsx",
+        "line": 53,
+        "text": "if (attempts < 5) window.setTimeout(restoreFocus, 25);"
       },
       {
-        "file": "index.tsx",
-        "line": 37,
-        "text": "window.setTimeout(cb, 800);"
+        "file": "components/Common/PortalView.tsx",
+        "line": 55,
+        "text": "window.setTimeout(restoreFocus, 0);"
       },
       {
-        "file": "src/boot/bootRecovery.ts",
-        "line": 143,
-        "text": "window.setTimeout(() => {"
+        "file": "services/api/session.ts",
+        "line": 144,
+        "text": "const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);"
       },
       {
-        "file": "src/boot/bootRecovery.ts",
-        "line": 154,
-        "text": "window.setTimeout(() => {"
+        "file": "backend/src/services/cloudinary.service.ts",
+        "line": 33,
+        "text": "setTimeout(() => reject(new Error('Cloudinary upload timeout')), 5000);"
       },
       {
-        "file": "src/boot/bootRecovery.ts",
-        "line": 168,
-        "text": "window.setTimeout(() => {"
+        "file": "services/api/requestClient.ts",
+        "line": 19,
+        "text": "const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));"
       },
       {
-        "file": "backend/e2e_refactor.ts",
-        "line": 5,
-        "text": "const SLEEP = (ms: number) => new Promise(r => setTimeout(r, ms));"
+        "file": "services/api/requestClient.ts",
+        "line": 60,
+        "text": "const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);"
       },
       {
-        "file": "backend/e2e_full.ts",
-        "line": 4,
-        "text": "const SLEEP = (ms: number) => new Promise(r => setTimeout(r, ms));"
+        "file": "src/components/RitualCompletionCard.tsx",
+        "line": 14,
+        "text": "const timer = setTimeout(onClose, 3000);"
       },
       {
-        "file": "backend/test_all_features.ts",
-        "line": 65,
-        "text": "await new Promise(r => setTimeout(r, 1000));"
+        "file": "src/utils/loaderUtils.ts",
+        "line": 16,
+        "text": "setTimeout(fn, delayMs);"
       },
       {
         "file": "backend/smoke_auth.ts",
@@ -376,9 +226,29 @@
         "text": "const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);"
       },
       {
-        "file": "backend/e2e_flow.ts",
-        "line": 7,
-        "text": "const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));"
+        "file": "backend/e2e_refactor.ts",
+        "line": 5,
+        "text": "const SLEEP = (ms: number) => new Promise(r => setTimeout(r, ms));"
+      },
+      {
+        "file": "backend/e2e_full.ts",
+        "line": 4,
+        "text": "const SLEEP = (ms: number) => new Promise(r => setTimeout(r, ms));"
+      },
+      {
+        "file": "components/Checkout.tsx",
+        "line": 128,
+        "text": "setTimeout(() => {"
+      },
+      {
+        "file": "components/Checkout.tsx",
+        "line": 132,
+        "text": "setTimeout(onSuccess, 3000);"
+      },
+      {
+        "file": "components/MicroInteraction.tsx",
+        "line": 25,
+        "text": "const timer = setTimeout(callback, duration);"
       },
       {
         "file": "backend/src/app.ts",
@@ -386,9 +256,9 @@
         "text": "socket.setTimeout(5000);"
       },
       {
-        "file": "backend/src/services/cloudinary.service.ts",
-        "line": 33,
-        "text": "setTimeout(() => reject(new Error('Cloudinary upload timeout')), 5000);"
+        "file": "views/client/map/MicroJourneyModal.tsx",
+        "line": 79,
+        "text": "setTimeout(() => onComplete(updatedUser), 2000);"
       },
       {
         "file": "backend/src/lib/queue.ts",
@@ -396,14 +266,144 @@
         "text": "await new Promise(r => setTimeout(r, 500));"
       },
       {
+        "file": "backend/test_all_features.ts",
+        "line": 65,
+        "text": "await new Promise(r => setTimeout(r, 1000));"
+      },
+      {
         "file": "backend/src/lib/chaos.ts",
         "line": 15,
         "text": "setTimeout(next, delay);"
       },
       {
+        "file": "views/space/SpaceFinance.tsx",
+        "line": 21,
+        "text": "setTimeout(() => setToast(null), 3000);"
+      },
+      {
+        "file": "views/client/garden/ClientQuestsView.tsx",
+        "line": 118,
+        "text": "setTimeout(() => {"
+      },
+      {
+        "file": "views/space/SpaceMarketplace.tsx",
+        "line": 25,
+        "text": "setTimeout(() => setToast(null), 3000);"
+      },
+      {
+        "file": "backend/e2e_flow.ts",
+        "line": 7,
+        "text": "const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));"
+      },
+      {
         "file": "backend/src/lib/redis.ts",
         "line": 19,
         "text": "if (event === 'connect') setTimeout(cb, 0);"
+      },
+      {
+        "file": "views/space/SpaceTeam.tsx",
+        "line": 33,
+        "text": "setTimeout(() => setToast(null), 3000);"
+      },
+      {
+        "file": "views/space/SpaceTeam.tsx",
+        "line": 38,
+        "text": "setTimeout(() => setToast(null), 3000);"
+      },
+      {
+        "file": "views/client/financial/CheckoutScreen.tsx",
+        "line": 188,
+        "text": "setTimeout(() => { setShowPixQR(false); setLoading(false); }, 400);"
+      },
+      {
+        "file": "views/space/generated/SpaceRoomEdit.tsx",
+        "line": 55,
+        "text": "setTimeout(() => go('ROOMS_STATUS'), 900);"
+      },
+      {
+        "file": "views/space/generated/SpaceRoomEdit.tsx",
+        "line": 70,
+        "text": "setTimeout(() => go('ROOMS_STATUS'), 1500);"
+      },
+      {
+        "file": "views/client/chat/ChatListScreen.tsx",
+        "line": 77,
+        "text": "realtimeRefreshTimer.current = window.setTimeout(() => {"
+      },
+      {
+        "file": "views/space/generated/SpaceInvite.tsx",
+        "line": 30,
+        "text": "setCopied(true); setTimeout(() => setCopied(false), 2000);"
+      },
+      {
+        "file": "views/ServiceViews.tsx",
+        "line": 126,
+        "text": "setTimeout(() => setCopiedVoucher(null), 2500);"
+      },
+      {
+        "file": "views/space/generated/SpaceEventCreate.tsx",
+        "line": 113,
+        "text": "setTimeout(() => go(eventType === 'retreat' ? 'RETREATS_MANAGE' : 'EVENTS_MANAGE'), 900);"
+      },
+      {
+        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
+        "line": 94,
+        "text": "processingTimeoutRef.current = setTimeout(() => {"
+      },
+      {
+        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
+        "line": 106,
+        "text": "ritualDelayRef.current = setTimeout(() => {"
+      },
+      {
+        "file": "views/Auth.tsx",
+        "line": 40,
+        "text": "const timer = setTimeout(() => {"
+      },
+      {
+        "file": "views/metamorphosis/SoulCardReveal.tsx",
+        "line": 23,
+        "text": "const t1 = setTimeout(() => setRevealStage(1), 1000); // Start burst"
+      },
+      {
+        "file": "views/metamorphosis/SoulCardReveal.tsx",
+        "line": 24,
+        "text": "const t2 = setTimeout(() => setRevealStage(2), 2500); // Show card"
+      },
+      {
+        "file": "views/ResetPassword.tsx",
+        "line": 35,
+        "text": "setTimeout(() => navigate('/login'), 3000);"
+      },
+      {
+        "file": "views/space/generated/ServiceEvaluation.tsx",
+        "line": 42,
+        "text": "setTimeout(() => go('EXEC_DASHBOARD'), 2500);"
+      },
+      {
+        "file": "views/pro/VideoPrepScreen.tsx",
+        "line": 32,
+        "text": "setTimeout(() => {"
+      },
+      {
+        "file": "views/pro/chat/ProChatRoomScreen.tsx",
+        "line": 49,
+        "text": "setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);"
+      },
+      {
+        "file": "views/pro/ProMarketplace.tsx",
+        "line": 25,
+        "text": "setTimeout(() => setToast(null), 3000);"
+      },
+      {
+        "file": "views/pro/ProMarketplace.tsx",
+        "line": 35,
+        "text": "setTimeout(() => setToast(null), 3000);"
+      },
+      {
+        "file": "views/pro/ProMarketplace.tsx",
+        "line": 47,
+        "text": "setTimeout(() => setToast(null), 3000);"
       }
     ]
   }
