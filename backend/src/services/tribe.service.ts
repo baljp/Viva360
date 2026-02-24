@@ -40,11 +40,12 @@ export class TribeService {
             inviteId: String(invite.id),
             token,
         });
+        const emailDispatchStatus = emailDispatch.ok ? 'sent' : emailDispatch.reason;
         logger.info('tribe.invite_created', {
             hubId,
             email,
             inviteId: invite.id,
-            emailDispatch: emailDispatch.ok ? 'sent' : emailDispatch.reason,
+            emailDispatch: emailDispatchStatus,
         });
         
         return invite;
