@@ -1,15 +1,23 @@
 import type { User } from '../../types';
 import { UserRole } from '../../types';
 import { request } from './core';
+import type { RequestOptions } from './requestClient';
 
-type AuthApi = {
+export type AuthRegisterInput = {
+  email: string;
+  password: string;
+  name?: string;
+  role: UserRole;
+};
+
+export type AuthApi = {
   loginWithPassword: (email: string, password: string) => Promise<User>;
   loginWithGoogle: (role?: UserRole, expectedEmail?: string) => Promise<User>;
   registerWithGoogle: (role?: UserRole, expectedEmail?: string) => Promise<User>;
-  register: (data: any) => Promise<User>;
+  register: (data: AuthRegisterInput) => Promise<User>;
   getCurrentSession: () => Promise<User | null>;
   logout: () => Promise<void>;
-  deleteAccount: () => Promise<any>;
+  deleteAccount: () => Promise<unknown>;
   listRoles: () => Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }>;
   selectRole: (role: UserRole) => Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }>;
   addRole: (role: UserRole) => Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }>;
@@ -18,7 +26,7 @@ type AuthApi = {
 let authImplPromise: Promise<AuthApi> | null = null;
 const getAuthImpl = () => {
   if (!authImplPromise) {
-    authImplPromise = import('./auth').then((m) => m.createAuthApi(request as any));
+    authImplPromise = import('./auth').then((m) => m.createAuthApi(request as <T = unknown>(path: string, opts?: RequestOptions) => Promise<T>));
   }
   return authImplPromise;
 };
@@ -35,4 +43,3 @@ export const authApi: AuthApi = {
   selectRole: async (role) => (await getAuthImpl()).selectRole(role),
   addRole: async (role) => (await getAuthImpl()).addRole(role),
 };
-

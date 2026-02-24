@@ -8,6 +8,25 @@ const checkInSchema = z.object({
     reward: z.number().int().min(1).max(1500).optional()
 });
 
+const dailyQuestSchema = z.object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+    description: z.string().optional(),
+    reward: z.number(),
+    isCompleted: z.boolean(),
+    type: z.enum(['ritual', 'water', 'breathe', 'other']).optional(),
+});
+
+const achievementSchema = z.object({
+    id: z.string().min(1),
+    label: z.string().min(1),
+    description: z.string().min(1),
+    icon: z.string().min(1),
+    category: z.enum(['streak', 'karma', 'social', 'ritual', 'mastery']),
+    threshold: z.number(),
+    unlockedAt: z.string().optional(),
+});
+
 const userUpdateSchema = z.object({
     name: z.string().min(2).optional(),
     bio: z.string().optional(),
@@ -21,6 +40,8 @@ const userUpdateSchema = z.object({
     plantXp: z.number().optional(),
     plantHealth: z.number().min(0).max(100).optional(),
     snaps: z.any().optional(),
+    dailyQuests: z.array(dailyQuestSchema).max(30).optional(),
+    achievements: z.array(achievementSchema).max(200).optional(),
 });
 
 const isMissingTableOrColumnError = (error: unknown) => {
@@ -37,6 +58,18 @@ const getStartOfUtcDay = (date: Date) => new Date(Date.UTC(
     0,
     0
 ));
+
+const GAMIFICATION_SNAPSHOT_EVENT = 'GAMIFICATION_STATE_SNAPSHOT';
+
+const asQuestArray = (value: unknown) => {
+    const parsed = z.array(dailyQuestSchema).safeParse(value);
+    return parsed.success ? parsed.data : undefined;
+};
+
+const asAchievementArray = (value: unknown) => {
+    const parsed = z.array(achievementSchema).safeParse(value);
+    return parsed.success ? parsed.data : undefined;
+};
 
 export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     const parsed = checkInSchema.parse(req.body || {});
@@ -251,7 +284,7 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
         return res.status(404).json({ error: 'User not found' });
     }
 
-    const [projection, events, lastCheckIn] = await Promise.all([
+    const [projection, events, lastCheckIn, latestGamificationState, grimoireCount] = await Promise.all([
         prisma.metamorphosisProjection.findUnique({
             where: { user_id: id },
             select: { total_checkins: true, last_mood: true, streak_days: true, evolution_score: true },
@@ -278,6 +311,14 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
             }
             return null;
         }),
+        prisma.event.findFirst({
+            where: { stream_id: id, type: GAMIFICATION_SNAPSHOT_EVENT },
+            orderBy: { created_at: 'desc' },
+            select: { payload: true, created_at: true },
+        }).catch(() => null),
+        prisma.oracleHistory.count({
+            where: { user_id: id },
+        }).catch(() => 0),
     ]);
 
     const snaps = (events || []).map((event) => {
@@ -297,12 +338,25 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
         };
     });
 
+    const snapshotPayload = (latestGamificationState?.payload && typeof latestGamificationState.payload === 'object')
+        ? latestGamificationState.payload as Record<string, unknown>
+        : {};
+    const dailyQuests = asQuestArray(snapshotPayload.dailyQuests);
+    const achievements = asAchievementArray(snapshotPayload.achievements);
+
     return res.json({
         ...data,
         lastCheckIn: lastCheckIn?.created_at || null,
         last_mood: projection?.last_mood || snaps[0]?.mood || null,
         evolution_score: Number(projection?.evolution_score || 0),
         snaps,
+        dailyQuests: dailyQuests ?? data.dailyQuests ?? [],
+        achievements: achievements ?? data.achievements ?? [],
+        grimoireMeta: {
+            totalCards: Number(grimoireCount || 0),
+            lastSyncedAt: latestGamificationState?.created_at || null,
+            source: 'oracle_history',
+        },
     });
 });
 
@@ -319,9 +373,13 @@ export const updateById = asyncHandler(async (req: Request, res: Response) => {
             location: req.body?.location,
             specialty: Array.isArray(req.body?.specialty) ? req.body.specialty : undefined,
         };
+    const { dailyQuests, achievements, ...profileUpdates } = updates as typeof updates & {
+        dailyQuests?: z.infer<typeof dailyQuestSchema>[];
+        achievements?: z.infer<typeof achievementSchema>[];
+    };
 
     const sanitized = Object.fromEntries(
-        Object.entries(updates).map(([key, value]) => {
+        Object.entries(profileUpdates).map(([key, value]) => {
             // Map camelCase to snake_case for DB columns
             if (key === 'plantStage') return ['plant_stage', value];
             if (key === 'plantXp') return ['plant_xp', value];
@@ -330,22 +388,56 @@ export const updateById = asyncHandler(async (req: Request, res: Response) => {
         }).filter(([, value]) => value !== undefined)
     );
 
-    if (Object.keys(sanitized).length === 0) {
+    const hasGamificationSnapshot = Array.isArray(dailyQuests) || Array.isArray(achievements);
+    if (Object.keys(sanitized).length === 0 && !hasGamificationSnapshot) {
         return res.status(400).json({ error: 'No valid fields to update' });
     }
 
-    const { data, error } = await supabaseAdmin
-        .from('profiles')
-        .update(sanitized)
-        .eq('id', id)
-        .select('*')
-        .single();
+    let data: Record<string, unknown> | null = null;
+    let error: unknown = null;
+
+    if (Object.keys(sanitized).length > 0) {
+        const profileUpdate = await supabaseAdmin
+            .from('profiles')
+            .update(sanitized)
+            .eq('id', id)
+            .select('*')
+            .single();
+        data = (profileUpdate.data as Record<string, unknown> | null) || null;
+        error = profileUpdate.error;
+    } else {
+        const profileRead = await supabaseAdmin
+            .from('profiles')
+            .select('*')
+            .eq('id', id)
+            .single();
+        data = (profileRead.data as Record<string, unknown> | null) || null;
+        error = profileRead.error;
+    }
 
     if (error || !data) {
         return res.status(404).json({ error: 'User not found or update failed' });
     }
 
-    return res.json(data);
+    if (hasGamificationSnapshot) {
+        await prisma.event.create({
+            data: {
+                stream_id: id,
+                type: GAMIFICATION_SNAPSHOT_EVENT,
+                payload: {
+                    ...(Array.isArray(dailyQuests) ? { dailyQuests } : {}),
+                    ...(Array.isArray(achievements) ? { achievements } : {}),
+                    source: 'users.updateById',
+                },
+            },
+        }).catch(() => null);
+    }
+
+    return res.json({
+        ...data,
+        ...(Array.isArray(dailyQuests) ? { dailyQuests } : {}),
+        ...(Array.isArray(achievements) ? { achievements } : {}),
+    });
 });
 
 export const exportData = asyncHandler(async (req: Request, res: Response) => {

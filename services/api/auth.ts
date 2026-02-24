@@ -1,5 +1,7 @@
 import type { User } from '../../types';
 import { UserRole } from '../../types';
+import type { RequestOptions } from './requestClient';
+import type { AuthApi, AuthRegisterInput } from './authProxy';
 import {
   API_URL,
   AUTH_TOKEN_KEY,
@@ -43,7 +45,8 @@ import {
   startGoogleOAuthRedirect,
 } from './authUtils';
 
-type RequestFn = (path: string, opts?: any) => Promise<any>;
+type RequestFn = <T = unknown>(path: string, opts?: RequestOptions) => Promise<T>;
+type SupabaseUserMetadata = { full_name?: string; avatar_url?: string; role?: string };
 
 type LoginEligibility = {
   allowed: boolean;
@@ -172,7 +175,7 @@ const hydrateUserFromProfileApi = async (request: RequestFn, base: User): Promis
 };
 
 export const createAuthApi = (request: RequestFn) => {
-  const auth: any = {};
+  const auth = {} as AuthApi;
 
   auth.loginWithPassword = async (email: string, password: string): Promise<User> => {
     const normalized = normalizeEmail(email);

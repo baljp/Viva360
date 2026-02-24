@@ -25,15 +25,28 @@ interface SettingsProps {
     onLogout?: () => void;
 }
 
+type FlowBridge = { go: (target: string) => void };
+type PrivacyState = { tribe: boolean; patterns: boolean; history: boolean };
+type SettingsNotifState = Record<NotificationPrefKey, boolean>;
+type UiError = { message?: string } | null | undefined;
 
-export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
+const errorMessage = (err: unknown, fallback: string) => {
+    if (err && typeof err === 'object' && 'message' in err) {
+        const message = (err as UiError)?.message;
+        if (typeof message === 'string' && message.trim()) return message;
+    }
+    return fallback;
+};
+
+
+export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
     user, view, setView, updateUser, onLogout, flow
 }) => {
     const roleConfig = getSettingsRoleConfig(user.role);
     const [toast, setToast] = useState<{ title: string, message: string } | null>(null);
     const [showPass, setShowPass] = useState(false);
-    const [privacyState, setPrivacyState] = useState({ tribe: true, patterns: false, history: true });
-    const [notifPrefs, setNotifPrefs] = useState({ rituals: true, tribe: true, finance: true });
+    const [privacyState, setPrivacyState] = useState<PrivacyState>({ tribe: true, patterns: false, history: true });
+    const [notifPrefs, setNotifPrefs] = useState<SettingsNotifState>({ rituals: true, tribe: true, finance: true });
     const [editingUser, setEditingUser] = useState<Partial<User>>({
         name: user.name,
         bio: user.bio || '',
@@ -108,8 +121,8 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
             setActiveRole(data.activeRole);
             updateUser({ ...user, role: data.activeRole, activeRole: data.activeRole, roles: data.roles });
             setToast({ title: "Perfil Ativo Atualizado", message: `Agora você está como ${roleLabel(data.activeRole)}.` });
-        } catch (err: any) {
-            setToast({ title: "Erro", message: err?.message || "Não foi possível trocar de perfil." });
+        } catch (err: unknown) {
+            setToast({ title: "Erro", message: errorMessage(err, "Não foi possível trocar de perfil.") });
         } finally {
             setRoleBusy(false);
         }
@@ -122,8 +135,8 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
             const data = await authApi.addRole(role);
             setAvailableRoles(data.roles);
             setToast({ title: "Novo Perfil Adicionado", message: `Perfil ${roleLabel(role)} habilitado neste e-mail.` });
-        } catch (err: any) {
-            setToast({ title: "Erro", message: err?.message || "Não foi possível adicionar este perfil." });
+        } catch (err: unknown) {
+            setToast({ title: "Erro", message: errorMessage(err, "Não foi possível adicionar este perfil.") });
         } finally {
             setRoleBusy(false);
         }
@@ -153,7 +166,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
     const handleSaveSecurity = async () => {
         // Save privacy preferences to user profile
         try {
-            await accountApi.users.update({ ...user, privacySettings: privacyState } as any);
+            await accountApi.users.update({ ...user, privacySettings: privacyState });
             setToast({ title: roleConfig.security.title, message: "Suas configurações de privacidade foram salvas." });
         } catch {
             setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
@@ -171,8 +184,8 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
             if (error) throw error;
             setNewPassword('');
             setToast({ title: "Senha Transmutada", message: "Sua nova chave de acesso foi configurada." });
-        } catch (err: any) {
-            setToast({ title: "Erro", message: err?.message || "Não foi possível alterar a senha." });
+        } catch (err: unknown) {
+            setToast({ title: "Erro", message: errorMessage(err, "Não foi possível alterar a senha.") });
         } finally {
             setPasswordLoading(false);
         }
@@ -181,7 +194,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
     const handleSaveNotifications = async () => {
         // Persist notification preferences to user profile
         try {
-            await accountApi.users.update({ ...user, notificationPrefs: notifPrefs } as any);
+            await accountApi.users.update({ ...user, notificationPrefs: notifPrefs });
             setToast({ title: roleConfig.notifications.title, message: "Preferências de alerta atualizadas com sucesso." });
         } catch {
             setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
@@ -210,8 +223,8 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
                 localStorage.removeItem('viva360.auth.token');
                 window.location.href = '/login';
             }
-        } catch (err: any) {
-            setToast({ title: 'Erro ao excluir', message: err?.message || 'Não foi possível excluir sua conta agora.' });
+        } catch (err: unknown) {
+            setToast({ title: 'Erro ao excluir', message: errorMessage(err, 'Não foi possível excluir sua conta agora.') });
         } finally {
             setDeleteBusy(false);
         }
@@ -224,8 +237,8 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
             const response = await accountApi.users.exportData(user.id);
             downloadJsonFile(`viva360-dados-${user.id}.json`, response);
             setToast({ title: 'Exportação Concluída', message: 'Seus dados foram baixados no formato JSON.' });
-        } catch (err: any) {
-            setToast({ title: 'Erro', message: err?.message || 'Não foi possível exportar seus dados agora.' });
+        } catch (err: unknown) {
+            setToast({ title: 'Erro', message: errorMessage(err, 'Não foi possível exportar seus dados agora.') });
         } finally {
             setExportBusy(false);
         }
@@ -409,7 +422,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
                         ].map((item) => (
                             <div key={item.key} className="bg-white p-5 rounded-2xl border border-nature-100 flex justify-between items-center shadow-sm">
                                 <div className="flex items-center gap-4"><item.icon size={18} className="text-nature-400" /><span className="text-sm font-medium text-nature-700">{item.label}</span></div>
-                                <SettingsToggle active={(privacyState as any)[item.key]} onToggle={() => setPrivacyState(s => ({ ...s, [item.key]: !(s as any)[item.key] }))} />
+                                <SettingsToggle active={privacyState[item.key as keyof PrivacyState]} onToggle={() => setPrivacyState(s => ({ ...s, [item.key]: !s[item.key as keyof PrivacyState] }))} />
                             </div>
                         ))}
 
@@ -455,7 +468,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
                                 <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20} /></div>
                                 <div><h4 className="font-bold text-nature-900 text-sm leading-tight">{item.label}</h4><p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">{item.sub}</p></div>
                             </div>
-                            <SettingsToggle active={(notifPrefs as any)[item.key]} onToggle={() => setNotifPrefs(s => ({ ...s, [item.key]: !(s as any)[item.key] }))} />
+                            <SettingsToggle active={notifPrefs[item.key]} onToggle={() => setNotifPrefs(s => ({ ...s, [item.key]: !s[item.key] }))} />
                         </div>
                     ))}
 
@@ -558,7 +571,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
                         if (onLogout) onLogout();
                         else {
                             // Fail-safe
-                            console.warn("Logout handler missing, forcing redirect");
+                            // Fallback navigation if parent handler is absent.
                             localStorage.removeItem('viva360.auth.token'); // Clear explicitly
                             window.location.href = '/login';
                         }

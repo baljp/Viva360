@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import { User, ViewState, Professional, CartItem, Product } from './types';
 import Layout from './components/Layout';
 import { api } from './services/api';
+import type { AuthRegisterInput } from './services/api/authProxy';
 import { ZenToast } from './components/Common';
 import { NotificationProvider } from './src/contexts/NotificationContext';
 import { ChatProvider } from './src/contexts/ChatContext';
@@ -38,6 +39,24 @@ const PageLoader = () => (
     <div className="w-8 h-8 border-4 border-nature-200 border-t-nature-900 rounded-full animate-spin"></div>
   </div>
 );
+
+const toAuthRegisterInput = (input: Partial<User | Professional>): AuthRegisterInput => {
+    const email = String(input.email || '').trim();
+    const password = String((input as { password?: string }).password || '').trim();
+    const name = String(input.name || '').trim();
+    const role = input.role;
+
+    if (!email || !password || !role) {
+        throw new Error('Dados de cadastro incompletos.');
+    }
+
+    return {
+        email,
+        password,
+        role,
+        ...(name ? { name } : {}),
+    };
+};
 
 // Splash Screen Component (Keep eager)
 const Splash: React.FC = () => (
@@ -204,19 +223,19 @@ const App: React.FC = () => {
                     <Route path="/invite/*" element={<InviteLanding />} />
 
                     <Route path="/register" element={<RegistrationViews view={ViewState.REGISTER} setView={setView} onRegister={async (u) => { 
-                        const user = await api.auth.register(u); 
+                        const user = await api.auth.register(toAuthRegisterInput(u)); 
                         handleLogin(user); 
                     }} />} />
                     <Route path="/register/client" element={<RegistrationViews view={ViewState.REGISTER_CLIENT} setView={setView} onRegister={async (u) => { 
-                        const user = await api.auth.register(u); 
+                        const user = await api.auth.register(toAuthRegisterInput(u)); 
                         handleLogin(user);
                     }} />} />
                     <Route path="/register/pro" element={<RegistrationViews view={ViewState.REGISTER_PRO} setView={setView} onRegister={async (u) => { 
-                        const user = await api.auth.register(u); 
+                        const user = await api.auth.register(toAuthRegisterInput(u)); 
                         handleLogin(user);
                     }} />} />
                     <Route path="/register/space" element={<RegistrationViews view={ViewState.REGISTER_SPACE} setView={setView} onRegister={async (u) => { 
-                        const user = await api.auth.register(u); 
+                        const user = await api.auth.register(toAuthRegisterInput(u)); 
                         handleLogin(user);
                     }} />} />
 
