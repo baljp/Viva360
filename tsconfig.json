@@ -32,6 +32,13 @@
     "stress",
     "infrastructure",
     "dist",
-    "frontend"
+    "frontend",
+    "scripts",
+    "qa",
+    "tests",
+    "reports",
+    "test-results",
+    "playwright-report",
+    "backend/*.ts"
   ]
 }

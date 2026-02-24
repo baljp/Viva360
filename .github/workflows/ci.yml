@@ -36,7 +36,7 @@ jobs:
         run: npm run lint
 
       - name: Type-check frontend (tsc --noEmit)
-        run: npx tsc --noEmit
+        run: npm run typecheck:frontend
 
       - name: Install backend dependencies
         working-directory: ./backend

@@ -24,6 +24,7 @@
     "perf:budget": "node scripts/check_frontend_budget.cjs",
     "preview": "vite preview",
     "lint": "eslint .",
+    "typecheck:frontend": "npx tsc -p tsconfig.frontend.json --noEmit",
     "test:qa": "env -u NO_COLOR -u FORCE_COLOR npx playwright test --config=playwright.qa.config.ts",
     "test:qa:core": "env -u NO_COLOR -u FORCE_COLOR npx playwright test --config=playwright.qa.config.ts --grep-invert \"@stress|@visual|@debug\" --workers=1",
     "test:qa:core:critical": "env -u NO_COLOR -u FORCE_COLOR STRICT_RECORD_CONSENT=true JWT_SECRET=viva360_test_jwt_secret_2026 npx playwright test --config=playwright.qa.config.ts qa/flows/consent-records.spec.ts qa/flows/interaction-contracts.spec.ts qa/flows/oracle-flow.spec.ts qa/flows/tribo-support-chat.spec.ts --workers=1",

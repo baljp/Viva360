@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "App.tsx",
+    "index.tsx",
+    "vite-env.d.ts",
+    "types.ts",
+    "components/**/*",
+    "views/**/*",
+    "lib/**/*",
+    "services/**/*",
+    "src/**/*",
+    "utils/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "backend",
+    "scripts",
+    "qa",
+    "reports",
+    "test-results",
+    "playwright-report"
+  ]
+}
+
