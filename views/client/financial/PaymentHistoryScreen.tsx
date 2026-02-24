@@ -1,9 +1,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
-import { PortalView, BottomSheet } from '../../../components/Common';
+import { PortalView, BottomSheet, DegradedRetryNotice } from '../../../components/Common';
 import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X, Download } from 'lucide-react';
-import { api } from '../../../services/api';
+import { authApi } from '../../../services/api/authProxy';
+import { accountApi } from '../../../services/api/accountClient';
 import { Transaction } from '../../../types';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
@@ -13,17 +14,20 @@ export default function PaymentHistoryScreen() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'expense' | 'income'>('all');
     const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
+    const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
 
     const fetchData = async () => {
         setLoading(true);
         try {
-            const user = await api.auth.getCurrentSession();
+            const user = await authApi.getCurrentSession();
             if (user) {
-                const summary = await api.professionals.getFinanceSummary(user.id);
+                const summary = await accountApi.professionals.getFinanceSummary(user.id);
                 setTransactions(summary.transactions || []);
+                setReadIssue(null);
             }
         } catch (error) {
             const copy = buildReadFailureCopy(['finance'], transactions.length > 0);
+            setReadIssue(copy);
             notify(copy.title, copy.message, isDegradedReadError(error) ? 'warning' : 'error');
             if (transactions.length === 0) {
                 setTransactions([]);
@@ -87,6 +91,15 @@ export default function PaymentHistoryScreen() {
                         <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     </button>
                 </div>
+
+                {readIssue && (
+                    <DegradedRetryNotice
+                        title={readIssue.title}
+                        message={readIssue.message}
+                        onRetry={fetchData}
+                        compact
+                    />
+                )}
 
                 {/* List */}
                 <div className="space-y-3">

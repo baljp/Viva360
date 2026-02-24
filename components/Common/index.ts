@@ -21,6 +21,7 @@ export * from './VerifiedBadge';
 export * from './BottomSheet';
 export * from './CameraWidget';
 export * from './NotificationDrawer';
+export * from './DegradedRetryNotice';
 export * from './CalendarWidget';
 export * from './WalletSplit';
 export * from './PresenceBadge';

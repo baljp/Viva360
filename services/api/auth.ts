@@ -36,6 +36,11 @@ import {
 } from './mock';
 import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOAuthRuntimeConfig } from '../../lib/supabase';
 import { captureFrontendMessage } from '../../lib/frontendLogger';
+import {
+  clearOAuthIntentStorage,
+  normalizeAuthRoleMutationPayload,
+  startGoogleOAuthRedirect,
+} from './authUtils';
 
 type RequestFn = (path: string, opts?: any) => Promise<any>;
 
@@ -210,9 +215,7 @@ export const createAuthApi = (request: RequestFn) => {
       const payload = await response.json();
       const token = payload?.session?.access_token;
       promoteToRealSession(token);
-      localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
-      localStorage.removeItem(OAUTH_INTENT_KEY);
-      localStorage.removeItem(OAUTH_ROLE_KEY);
+      clearOAuthIntentStorage();
 
       // Best-effort: establish Supabase session too.
       try {
@@ -220,7 +223,7 @@ export const createAuthApi = (request: RequestFn) => {
         if (error) throw error;
         if (data.session?.access_token) {
           promoteToRealSession(data.session.access_token);
-          localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+          clearOAuthIntentStorage();
         }
       } catch {
         // Ignore.
@@ -248,9 +251,7 @@ export const createAuthApi = (request: RequestFn) => {
       if (!data.session?.access_token) throw new Error('Login failed: No session data returned');
 
       promoteToRealSession(data.session.access_token);
-      localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
-      localStorage.removeItem(OAUTH_INTENT_KEY);
-      localStorage.removeItem(OAUTH_ROLE_KEY);
+      clearOAuthIntentStorage();
 
       const user = await auth.getCurrentSession();
       if (!user) throw new Error('Sessão criada, mas sem usuário válido.');
@@ -293,35 +294,11 @@ export const createAuthApi = (request: RequestFn) => {
     }
 
     const redirectTo = getOAuthRedirectUrl();
-    if (normalizedExpectedEmail) localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
-    else localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
-    localStorage.setItem(OAUTH_INTENT_KEY, 'login');
-    localStorage.removeItem(OAUTH_ROLE_KEY);
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'select_account',
-          ...(normalizedExpectedEmail ? { login_hint: normalizedExpectedEmail } : {}),
-        },
-      },
+    return startGoogleOAuthRedirect({
+      redirectTo,
+      expectedEmail: normalizedExpectedEmail,
+      intent: 'login',
     });
-
-    if (error) {
-      localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
-      localStorage.removeItem(OAUTH_INTENT_KEY);
-      localStorage.removeItem(OAUTH_ROLE_KEY);
-      throw error;
-    }
-    if (data?.url) {
-      window.location.assign(data.url);
-      throw new Error('REDIRECTING_TO_GOOGLE');
-    }
-
-    throw new Error('Falha ao iniciar autenticação Google.');
   };
 
   auth.registerWithGoogle = async (role: UserRole = UserRole.CLIENT, expectedEmail?: string): Promise<User> => {
@@ -347,33 +324,12 @@ export const createAuthApi = (request: RequestFn) => {
     }
 
     const redirectTo = getOAuthRedirectUrl();
-    if (normalizedExpectedEmail) localStorage.setItem(OAUTH_EXPECTED_EMAIL_KEY, normalizedExpectedEmail);
-    else localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
-    localStorage.setItem(OAUTH_INTENT_KEY, intent);
-    localStorage.setItem(OAUTH_ROLE_KEY, normalizeRole(role));
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo,
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'select_account',
-        },
-      },
+    return startGoogleOAuthRedirect({
+      redirectTo,
+      expectedEmail: normalizedExpectedEmail,
+      intent,
+      role,
     });
-
-    if (error) {
-      localStorage.removeItem(OAUTH_INTENT_KEY);
-      localStorage.removeItem(OAUTH_ROLE_KEY);
-      throw error;
-    }
-    if (data?.url) {
-      window.location.assign(data.url);
-      throw new Error('REDIRECTING_TO_GOOGLE');
-    }
-
-    throw new Error('Falha ao iniciar autenticação Google.');
   };
 
   auth.register = async (data: any): Promise<User> => {
@@ -419,7 +375,7 @@ export const createAuthApi = (request: RequestFn) => {
       if (error) throw error;
       if (signInData.session?.access_token) {
         promoteToRealSession(signInData.session.access_token);
-        localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
+        clearOAuthIntentStorage();
       }
     } catch {
       // ignore
@@ -524,8 +480,7 @@ export const createAuthApi = (request: RequestFn) => {
           eligibility.roles && eligibility.roles.length > 0 ? eligibility.roles : [resolvedRole],
         );
 
-        localStorage.removeItem(OAUTH_INTENT_KEY);
-        localStorage.removeItem(OAUTH_ROLE_KEY);
+        clearOAuthIntentStorage();
 
         return hydrateUserFromProfileApi(
           request,
@@ -586,9 +541,7 @@ export const createAuthApi = (request: RequestFn) => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem('viva360.mock_user');
     localStorage.removeItem(SESSION_MODE_KEY);
-    localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
-    localStorage.removeItem(OAUTH_INTENT_KEY);
-    localStorage.removeItem(OAUTH_ROLE_KEY);
+    clearOAuthIntentStorage();
     clearTestMode();
     clearSupabaseSessionArtifacts();
   };
@@ -617,10 +570,7 @@ export const createAuthApi = (request: RequestFn) => {
       method: 'POST',
       body: JSON.stringify({ role: normalizeRole(role) }),
     });
-    const source = payload?.data || payload;
-    const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : [role]);
-    const activeRole = normalizeRole(source?.activeRole || role);
-    return { userId: String(source?.userId || ''), roles: roles.length ? roles : [activeRole], activeRole };
+    return normalizeAuthRoleMutationPayload(payload, role);
   };
 
   auth.addRole = async (role: UserRole): Promise<{ userId: string; roles: UserRole[]; activeRole: UserRole }> => {
@@ -628,10 +578,7 @@ export const createAuthApi = (request: RequestFn) => {
       method: 'POST',
       body: JSON.stringify({ role: normalizeRole(role) }),
     });
-    const source = payload?.data || payload;
-    const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : [role]);
-    const activeRole = normalizeRole(source?.activeRole || roles[0] || role);
-    return { userId: String(source?.userId || ''), roles: roles.length ? roles : [activeRole], activeRole };
+    return normalizeAuthRoleMutationPayload(payload, role);
   };
 
   return auth as {

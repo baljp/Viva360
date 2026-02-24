@@ -45,6 +45,7 @@
     "qa:feature-contract-catalog": "npx tsx scripts/generate_feature_contract_catalog.ts",
     "qa:feature-contract-gate": "npx tsx scripts/check_feature_contract_catalog_gate.ts",
     "qa:validate-flow-registry": "npx tsx scripts/validate_flow_registry.ts",
+    "qa:flow-registry-warn-gate": "npx tsx scripts/check_flow_registry_warning_gate.ts",
     "qa:audit-orphan-screens": "npx tsx scripts/audit_orphan_screens.ts",
     "qa:audit-tracked-secrets": "npx tsx scripts/audit_tracked_secrets.ts --strict",
     "qa:audit-route-leaks": "npx tsx scripts/audit_test_route_leaks.ts --strict",

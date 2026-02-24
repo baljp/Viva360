@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-24T11:46:31.035Z",
+  "generatedAt": "2026-02-24T13:08:40.547Z",
   "source": {
     "flowRegistry": "src/flow/registry.ts",
     "matrixReport": "reports/screen_button_flow_matrix.json"
@@ -7,9 +7,10 @@
   "totals": {
     "flows": 39,
     "clientOnly": 8,
-    "persistedValidated": 4,
-    "mixedOrPartial": 27,
-    "unclassified": 0
+    "persistedValidated": 11,
+    "mixedOrPartial": 20,
+    "unclassified": 0,
+    "flowValidatedByEvidenceCatalog": 8
   },
   "catalog": [
     {
@@ -49,7 +50,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "HISTORY",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_metamorfose_karma_timelapse",
@@ -86,7 +88,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "TIME_LAPSE_EXPERIENCE",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_busca_agenda_confirmacao",
@@ -124,7 +127,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "PAYMENT_SUCCESS",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_marketplace_checkout",
@@ -160,7 +164,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "PAYMENT_HISTORY",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_tribo_convite",
@@ -196,7 +201,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "CHAT_ROOM",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_retiro_offline",
@@ -231,7 +237,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "TRIBE_DASH",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_pacto_de_alma",
@@ -266,13 +273,14 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "TRIBE_DASH",
         "rollbackPath": "TRIBE_DASH"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_circulo_de_cura_checkout",
       "profile": "BUSCADOR",
       "title": "Tribo: Participar do Círculo de Cura (evento + checkout)",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "TRIBE_DASH",
@@ -302,6 +310,13 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "PAYMENT_SUCCESS",
         "rollbackPath": "TRIBE_DASH"
+      },
+      "validationEvidence": {
+        "rationale": "Fluxo de círculo com troca energética depende de checkout/contexto já validado em contratos/QA crítico.",
+        "evidence": [
+          "qa/flows/interaction-contracts.spec.ts",
+          "qa/flows/tribo-support-chat.spec.ts"
+        ]
       }
     },
     {
@@ -336,7 +351,8 @@
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
         "userVisibleOutcome": "KARMA_WALLET",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_grimorio_colecao",
@@ -370,13 +386,14 @@
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
         "userVisibleOutcome": "DASHBOARD",
         "rollbackPath": "GARDEN_VIEW"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_oraculo_completo",
       "profile": "BUSCADOR",
       "title": "Oráculo completo: portal, embaralhar, revelação e histórico",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -407,6 +424,13 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "ORACLE_HISTORY",
         "rollbackPath": "DASHBOARD"
+      },
+      "validationEvidence": {
+        "rationale": "Fluxo do Oráculo validado por E2E (abertura/revelação) e integração backend.",
+        "evidence": [
+          "qa/flows/oracle-flow.spec.ts",
+          "backend/src/tests/flows-integration.test.ts"
+        ]
       }
     },
     {
@@ -447,13 +471,14 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "CLIENT_JOURNAL",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_chat_social",
       "profile": "BUSCADOR",
       "title": "Tribo e chat social: lista, novo chat, sala e ajustes",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -486,6 +511,13 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "CHAT_ROOM",
         "rollbackPath": "TRIBE_DASH"
+      },
+      "validationEvidence": {
+        "rationale": "Fluxo social/chat usa endpoints /api/chat com persistência validada em E2E e integração.",
+        "evidence": [
+          "qa/flows/tribo-support-chat.spec.ts",
+          "backend/src/tests/flows-integration.test.ts"
+        ]
       }
     },
     {
@@ -522,7 +554,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "DASHBOARD",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "buscador_shell_e_config",
@@ -557,7 +590,8 @@
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
         "userVisibleOutcome": "SETTINGS",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_escambo",
@@ -591,7 +625,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "ESCAMBO_CONFIRM",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_prontuario_consentido",
@@ -624,7 +659,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "PATIENT_RECORDS",
         "rollbackPath": "PATIENTS_LIST"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_intervencao_clinica",
@@ -658,7 +694,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "DASHBOARD",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_alquimia_criar_oferta",
@@ -692,7 +729,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "ESCAMBO_MARKET",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_agenda_video",
@@ -730,7 +768,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "VIDEO_SESSION",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_financeiro_expandido",
@@ -765,13 +804,14 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "FINANCIAL_DASHBOARD",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_tribo_chat",
       "profile": "GUARDIAO",
       "title": "Guardião: tribo e chat com retorno seguro",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -802,13 +842,20 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "CHAT_ROOM",
         "rollbackPath": "TRIBE_PRO"
+      },
+      "validationEvidence": {
+        "rationale": "Fluxo de chat do Guardião compartilha endpoints /api/chat cobertos por E2E e integração.",
+        "evidence": [
+          "qa/flows/tribo-support-chat.spec.ts",
+          "backend/src/tests/flows-integration.test.ts"
+        ]
       }
     },
     {
       "id": "guardiao_vagas_completas",
       "profile": "GUARDIAO",
       "title": "Guardião: vagas, detalhes e candidatura",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -837,6 +884,13 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "VAGA_APPLY",
         "rollbackPath": "DASHBOARD"
+      },
+      "validationEvidence": {
+        "rationale": "Ciclo de recrutamento (candidatura/entrevista/decisão) validado por contratos + integração.",
+        "evidence": [
+          "qa/flows/interaction-contracts.spec.ts",
+          "backend/src/tests/flows-integration.test.ts"
+        ]
       }
     },
     {
@@ -872,7 +926,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "SANTUARIO_CONTRACT",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_paciente_plano_e_trade",
@@ -908,7 +963,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "ESCAMBO_CONFIRM",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "guardiao_shell_e_config",
@@ -942,13 +998,14 @@
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
         "userVisibleOutcome": "SETTINGS",
         "rollbackPath": "DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_vagas_entrevista",
       "profile": "SANTUARIO",
       "title": "Vaga santuário -> candidatos/entrevista",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -978,6 +1035,13 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "VAGA_CANDIDATES",
         "rollbackPath": "EXEC_DASHBOARD"
+      },
+      "validationEvidence": {
+        "rationale": "Fluxo de vagas/entrevista do Santuário usa /api/recruitment/* validado por contratos + integração.",
+        "evidence": [
+          "qa/flows/interaction-contracts.spec.ts",
+          "backend/src/tests/flows-integration.test.ts"
+        ]
       }
     },
     {
@@ -1021,7 +1085,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "FINANCE_OVERVIEW",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_inteligencia_preditiva",
@@ -1056,7 +1121,8 @@
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
         "userVisibleOutcome": "ROOM_AGENDA",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_auditoria_interna",
@@ -1092,7 +1158,8 @@
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
         "userVisibleOutcome": "GOVERNANCE",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_pacientes_operacao",
@@ -1132,7 +1199,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "PATIENT_RECORDS",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_time_e_avaliacao_servico",
@@ -1173,7 +1241,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "SERVICE_EVALUATION",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_salaseestrutura_expandida",
@@ -1212,7 +1281,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "ROOM_EDIT",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_financeiro_expandido",
@@ -1249,7 +1319,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "FINANCE_FORECAST",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_marketplace_eventos_retiros",
@@ -1289,13 +1360,14 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "RETREATS_MANAGE",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_recrutamento_completo",
       "profile": "SANTUARIO",
       "title": "Santuário: criação de vaga e análise de candidatos",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1326,6 +1398,13 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "VAGA_CANDIDATES",
         "rollbackPath": "EXEC_DASHBOARD"
+      },
+      "validationEvidence": {
+        "rationale": "Fluxo completo de recrutamento do Santuário mapeado para endpoints com ciclo validado.",
+        "evidence": [
+          "qa/flows/interaction-contracts.spec.ts",
+          "backend/src/tests/flows-integration.test.ts"
+        ]
       }
     },
     {
@@ -1365,7 +1444,8 @@
         "persistencePromise": "Fluxo com persistência/integração backend esperada conforme endpoints mapeados",
         "userVisibleOutcome": "CHAT_ROOM",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_shell_e_encerramento",
@@ -1400,7 +1480,8 @@
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
         "userVisibleOutcome": "EXEC_DASHBOARD",
         "rollbackPath": "EXEC_DASHBOARD"
-      }
+      },
+      "validationEvidence": null
     },
     {
       "id": "santuario_avaliacao_servico",
@@ -1434,6 +1515,12 @@
         "persistencePromise": "Fluxo local/intencional (sem persistência backend)",
         "userVisibleOutcome": "EXEC_DASHBOARD",
         "rollbackPath": "EXEC_DASHBOARD"
+      },
+      "validationEvidence": {
+        "rationale": "Persistência de avaliação de serviço validada em integração backend (criação e contratos de erro).",
+        "evidence": [
+          "backend/src/tests/flows-integration.test.ts"
+        ]
       }
     }
   ]

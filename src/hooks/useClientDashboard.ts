@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { User, DailyRitualSnap, ViewState } from '../../types';
-import { api } from '../../services/api';
+import { accountApi } from '../../services/api/accountClient';
+import { communityApi } from '../../services/api/communityClient';
 import { gardenService } from '../../services/gardenService';
 import { useBuscadorFlow } from '../flow/useBuscadorFlow';
 import type { CameraCaptureResult } from '../../components/Common/CameraWidget';
@@ -17,20 +18,23 @@ export const useClientDashboard = (
     const [ritualToast, setRitualToast] = useState<{title: string, message: string} | null>(null);
     const [activeModal, setActiveModal] = useState<'camera' | 'leaderboard' | null>(null);
     const [showNotifications, setShowNotifications] = useState(false);
+    const [notificationsReadIssue, setNotificationsReadIssue] = useState<{ title: string; message: string } | null>(null);
 
     // Real Notifications Fetch
     const [notifications, setNotifications] = useState<any[]>([]);
 
     const loadNotifications = useCallback(async () => {
         try {
-            const data = await api.notifications.list();
+            const data = await communityApi.notifications.list();
             setNotifications(data || []);
+            setNotificationsReadIssue(null);
         } catch (e) {
             console.error("Failed to load notifications", e);
             const copy = buildReadFailureCopy(
                 [isDegradedReadError(e) ? 'notifications' : 'notifications'],
                 false,
             );
+            setNotificationsReadIssue(copy);
             setToast({ title: copy.title, message: copy.message, type: 'warning' });
         }
     }, []);
@@ -41,12 +45,12 @@ export const useClientDashboard = (
 
     const handleMarkAsRead = useCallback(async (id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-        await api.notifications.markAsRead(id);
+        await communityApi.notifications.markAsRead(id);
     }, []);
 
     const handleMarkAllRead = useCallback(async () => {
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        await api.notifications.markAllAsRead();
+        await communityApi.notifications.markAllAsRead();
     }, [user.id]);
 
     const gardenStatus = gardenService.getPlantStatus(user);
@@ -64,7 +68,7 @@ export const useClientDashboard = (
             
             updateUser(updated);
             setRitualToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
-            await api.users.update(updated as User);
+            await accountApi.users.update(updated as User);
         } catch (e) {
             console.error("Water Plant Error", e);
             setToast({ title: "Erro na conexão", message: "Sua intenção foi registrada no éter." });
@@ -74,7 +78,7 @@ export const useClientDashboard = (
     const handleDailyCheckIn = useCallback(async (reward: number): Promise<{ ok: boolean; alreadyDone?: boolean }> => {
         try {
             console.log(`[useClientDashboard] handleDailyCheckIn reward=${reward} user=${user.id}`);
-            const res: any = await api.users.checkIn(user.id, reward);
+            const res: any = await accountApi.users.checkIn(user.id, reward);
             console.log(`[useClientDashboard] checkIn result:`, res);
             if (res?.alreadyDone || String(res?.status || '').toUpperCase() === 'ALREADY_DONE' || String(res?.code || '').toUpperCase() === 'CHECKIN_ALREADY_DONE') {
                 const checkInAt = String(res?.lastCheckIn || res?.user?.lastCheckIn || '').trim();
@@ -139,7 +143,7 @@ export const useClientDashboard = (
               ...(updatedUserLocal as any),
               snaps: (updatedUserLocal.snaps || []).map((s) => ({ ...(s as any), image: '' })),
           };
-          const saved = await api.users.update(payloadUser);
+          const saved = await accountApi.users.update(payloadUser);
           updateUser({ ...(saved as any), snaps: updatedUserLocal.snaps });
     }, [user, updateUser]);
 
@@ -150,6 +154,7 @@ export const useClientDashboard = (
             activeModal,
             showNotifications,
             notifications,
+            notificationsReadIssue,
             gardenStatus,
             plantVisuals
         },

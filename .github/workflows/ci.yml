@@ -38,6 +38,9 @@ jobs:
       - name: Enforce feature contract gate (unclassified == 0)
         run: npm run qa:feature-contract-gate
 
+      - name: Validate flow registry + warning gate
+        run: npm run qa:validate-flow-registry && npm run qa:flow-registry-warn-gate
+
       - name: Lint (ESLint)
         run: npm run lint
 

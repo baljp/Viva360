@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Product } from '../types';
-import { Search, ShoppingBag, Package, Star, Filter, RefreshCw } from 'lucide-react';
-import { api } from '../services/api';
+import { Search, ShoppingBag, Package, Star, RefreshCw } from 'lucide-react';
+import { commerceApi } from '../services/api/commerceClient';
+import { DegradedRetryNotice } from './Common';
+import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
 
 interface MarketplaceExplorerProps {
     onPurchase: (product: Product) => void;
@@ -15,6 +17,7 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = React.mem
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [activeFilter, setActiveFilter] = useState(baseFilter);
+    const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
 
     useEffect(() => {
         loadMarketplace();
@@ -23,10 +26,12 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = React.mem
     const loadMarketplace = async () => {
         setIsLoading(true);
         try {
-            const data = await api.marketplace.listAll();
+            const data = await commerceApi.marketplace.listAll();
             setProducts(data);
+            setReadIssue(null);
         } catch (error) {
             console.error("Failed to load marketplace", error);
+            setReadIssue(buildReadFailureCopy(['marketplace'], products.length > 0 || false));
         } finally {
             setIsLoading(false);
         }
@@ -65,6 +70,14 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = React.mem
                     ))}
                 </div>
             </div>
+            {readIssue && (
+                <DegradedRetryNotice
+                    title={readIssue.title}
+                    message={readIssue.message}
+                    onRetry={loadMarketplace}
+                    compact
+                />
+            )}
 
             {/* Product Grid */}
             {isLoading ? (

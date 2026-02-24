@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ViewState, User, UserRole, Professional, Transaction } from '../types';
 import {
     ChevronLeft, ShieldCheck, User as UserIcon, Camera, ChevronRight,
@@ -8,10 +8,13 @@ import {
     Building, CreditCard, Wallet, Shield, MessageSquare, Megaphone, Smartphone as PhoneIcon,
     Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2, Trash2, Download
 } from 'lucide-react';
-import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit, PortalView } from '../components/Common';
-import { api } from '../services/api';
+import { DynamicAvatar, ZenToast, Card, VerifiedBadge, WalletSplit, PortalView, DegradedRetryNotice } from '../components/Common';
+import { authApi } from '../services/api/authProxy';
+import { accountApi } from '../services/api/accountClient';
 import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
 import { supabase } from '../lib/supabase';
+import { SettingsToggle } from './settings/SettingsToggle';
+import { getSettingsRoleConfig, homeForRole, roleLabel, type NotificationPrefKey } from './settings/settingsConfig';
 
 interface SettingsProps {
     user: User;
@@ -21,179 +24,6 @@ interface SettingsProps {
     onLogout?: () => void;
 }
 
-const Toggle: React.FC<{ active: boolean, onToggle: () => void }> = ({ active, onToggle }) => (
-    <button onClick={onToggle} className={`w-12 h-6 rounded-full relative transition-colors ${active ? 'bg-primary-600' : 'bg-nature-200'}`}>
-        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${active ? 'left-7' : 'left-1'}`}></div>
-    </button>
-);
-
-type NotificationPrefKey = 'rituals' | 'tribe' | 'finance';
-
-type SettingsRoleConfig = {
-    profile: {
-        title: string;
-        subtitle: string;
-        identityLabel: string;
-        bioLabel: string;
-        bioPlaceholder: string;
-        intentionLabel: string;
-        intentionPlaceholder: string;
-    };
-    wallet: {
-        title: string;
-        subtitle: string;
-        karmaLabel: string;
-        movementsLabel: string;
-        actionLabel: string;
-        actionTarget: ViewState;
-    };
-    security: {
-        title: string;
-        subtitle: string;
-        privacyLabel: string;
-        saveLabel: string;
-    };
-    notifications: {
-        title: string;
-        subtitle: string;
-        saveLabel: string;
-        items: Array<{ key: NotificationPrefKey; label: string; sub: string; icon: any; color: string }>;
-    };
-    assets: {
-        route: ViewState;
-        label: string;
-        sub: string;
-    };
-};
-
-const getSettingsRoleConfig = (role: UserRole): SettingsRoleConfig => {
-    if (role === UserRole.PROFESSIONAL) {
-        return {
-            profile: {
-                title: 'Manifesto do Guardião',
-                subtitle: 'IDENTIDADE PROFISSIONAL',
-                identityLabel: 'Nome Profissional',
-                bioLabel: 'Manifesto Terapêutico',
-                bioPlaceholder: 'Descreva sua abordagem de cuidado e troca.',
-                intentionLabel: 'Intenção de Atendimento',
-                intentionPlaceholder: 'Ex: Acolher com presença e clareza.',
-            },
-            wallet: {
-                title: 'Fluxo Profissional',
-                subtitle: 'REPASSES & KARMA',
-                karmaLabel: 'Karma de Cuidado',
-                movementsLabel: 'Movimentações Profissionais',
-                actionLabel: 'Ir para Finanças',
-                actionTarget: ViewState.PRO_FINANCE,
-            },
-            security: {
-                title: 'Selos Profissionais',
-                subtitle: 'SEGURANÇA',
-                privacyLabel: 'Privacidade Profissional',
-                saveLabel: 'Salvar Privacidade',
-            },
-            notifications: {
-                title: 'Chamados e Avisos',
-                subtitle: 'NOTIFICAÇÕES',
-                saveLabel: 'Atualizar Chamados',
-                items: [
-                    { key: 'rituals', label: 'Chamados de Agenda', sub: 'Lembretes de sessões e preparação', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
-                    { key: 'tribe', label: 'Mensagens de Rede', sub: 'Conversas da tribo e pacientes', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
-                    { key: 'finance', label: 'Repasses e Pagamentos', sub: 'Entradas e confirmações de troca', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
-                ],
-            },
-            assets: {
-                route: ViewState.PRO_MARKETPLACE,
-                label: 'Ativos de Alquimia',
-                sub: 'OFERTAS, RITUAIS E SERVIÇOS',
-            },
-        };
-    }
-
-    if (role === UserRole.SPACE) {
-        return {
-            profile: {
-                title: 'Manifesto do Santuário',
-                subtitle: 'IDENTIDADE INSTITUCIONAL',
-                identityLabel: 'Nome do Santuário',
-                bioLabel: 'Manifesto do Espaço',
-                bioPlaceholder: 'Descreva propósito, estrutura e diferencial do seu hub.',
-                intentionLabel: 'Intenção do Ciclo Atual',
-                intentionPlaceholder: 'Ex: Fortalecer acolhimento e expansão da equipe.',
-            },
-            wallet: {
-                title: 'Abundância do Santuário',
-                subtitle: 'TESOURARIA & KARMA',
-                karmaLabel: 'Karma Institucional',
-                movementsLabel: 'Movimentações do Santuário',
-                actionLabel: 'Abrir Financeiro',
-                actionTarget: ViewState.SPACE_FINANCE,
-            },
-            security: {
-                title: 'Selos Institucionais',
-                subtitle: 'SEGURANÇA',
-                privacyLabel: 'Privacidade Institucional',
-                saveLabel: 'Salvar Política',
-            },
-            notifications: {
-                title: 'Alertas Operacionais',
-                subtitle: 'NOTIFICAÇÕES',
-                saveLabel: 'Atualizar Alertas',
-                items: [
-                    { key: 'rituals', label: 'Agenda e Salas', sub: 'Alterações de salas, eventos e operações', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
-                    { key: 'tribe', label: 'Equipe e Convites', sub: 'Novos guardiões e interações internas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
-                    { key: 'finance', label: 'Financeiro Global', sub: 'Repasses, fechamento e pendências', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
-                ],
-            },
-            assets: {
-                route: ViewState.SPACE_MARKETPLACE,
-                label: 'Ativos do Santuário',
-                sub: 'BAZAR, RETIROS E SERVIÇOS',
-            },
-        };
-    }
-
-    return {
-        profile: {
-            title: 'Manifesto Visual',
-            subtitle: 'IDENTIDADE',
-            identityLabel: 'Sua Identidade',
-            bioLabel: 'Manifesto (Bio)',
-            bioPlaceholder: 'Dedico minha jornada a...',
-            intentionLabel: 'Sua Intenção Atual',
-            intentionPlaceholder: 'Ex: Encontrar clareza mental',
-        },
-        wallet: {
-            title: 'Minha Abundância',
-            subtitle: 'KARMA & SALDO',
-            karmaLabel: 'Karma Acumulado',
-            movementsLabel: 'Movimentações do Fluxo',
-            actionLabel: 'Trocar por Vouchers',
-            actionTarget: ViewState.CLIENT_MARKETPLACE,
-        },
-        security: {
-            title: 'Selos de Proteção',
-            subtitle: 'SEGURANÇA',
-            privacyLabel: 'Privacidade do Fluxo',
-            saveLabel: 'Salvar Privacidade',
-        },
-        notifications: {
-            title: 'Sinais e Avisos',
-            subtitle: 'NOTIFICAÇÕES',
-            saveLabel: 'Atualizar Alertas',
-            items: [
-                { key: 'rituals', label: 'Alertas de Ritual', sub: 'Lembretes de sessões agendadas', icon: Sparkles, color: 'bg-amber-50 text-amber-500' },
-                { key: 'tribe', label: 'Mensagens da Tribo', sub: 'Novas conexões e vibes enviadas', icon: MessageSquare, color: 'bg-indigo-50 text-indigo-500' },
-                { key: 'finance', label: 'Fluxo de Abundância', sub: 'Confirmações de trocas éticas', icon: DollarSign, color: 'bg-emerald-50 text-emerald-500' }
-            ],
-        },
-        assets: {
-            route: ViewState.CLIENT_ORDERS,
-            label: 'Meus Ativos',
-            sub: 'RITUAIS E VOUCHERS',
-        },
-    };
-};
 
 export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
     user, view, setView, updateUser, onLogout, flow
@@ -210,6 +40,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
     });
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [txLoading, setTxLoading] = useState(false);
+    const [txReadIssue, setTxReadIssue] = useState<{ title: string; message: string } | null>(null);
     const [newPassword, setNewPassword] = useState('');
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [availableRoles, setAvailableRoles] = useState<UserRole[]>(user.roles || [user.activeRole || user.role]);
@@ -232,25 +63,34 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
     // Ref para o input de arquivo (foto de perfil)
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const loadWalletTransactions = useCallback(async () => {
+        setTxLoading(true);
+        try {
+            const summary = await accountApi.professionals.getFinanceSummary(user.id);
+            setTransactions(summary.transactions || []);
+            setTxReadIssue(null);
+        } catch {
+            setTransactions([]);
+            const copy = buildReadFailureCopy(['finance'], false);
+            setTxReadIssue(copy);
+            setToast({ title: copy.title, message: copy.message });
+        } finally {
+            setTxLoading(false);
+        }
+    }, [user.id]);
+
     // Fetch real transactions on mount
     useEffect(() => {
         if (view === ViewState.SETTINGS_WALLET) {
-            setTxLoading(true);
-            api.professionals.getFinanceSummary(user.id).then(summary => {
-                setTransactions(summary.transactions || []);
-            }).catch(() => {
-                setTransactions([]);
-                const copy = buildReadFailureCopy(['finance'], false);
-                setToast({ title: copy.title, message: copy.message });
-            }).finally(() => setTxLoading(false));
+            loadWalletTransactions();
         }
-    }, [view, user.id]);
+    }, [view, user.id, loadWalletTransactions]);
 
     useEffect(() => {
         let mounted = true;
         const loadRoles = async () => {
             try {
-                const data = await api.auth.listRoles();
+                const data = await authApi.listRoles();
                 if (!mounted) return;
                 setAvailableRoles(data.roles);
                 setActiveRole(data.activeRole);
@@ -267,25 +107,11 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
         return () => { mounted = false; };
     }, [user.id]);
 
-    const roleLabel = (role: UserRole) => {
-        if (role === UserRole.CLIENT) return 'Buscador';
-        if (role === UserRole.PROFESSIONAL) return 'Guardião';
-        if (role === UserRole.SPACE) return 'Santuário';
-        return 'Admin';
-    };
-
-    const homeForRole = (role: UserRole) => {
-        if (role === UserRole.PROFESSIONAL) return ViewState.PRO_HOME;
-        if (role === UserRole.SPACE) return ViewState.SPACE_HOME;
-        if (role === UserRole.ADMIN) return ViewState.ADMIN_DASHBOARD;
-        return ViewState.CLIENT_HOME;
-    };
-
     const handleSelectRole = async (role: UserRole) => {
         if (roleBusy || role === activeRole) return;
         setRoleBusy(true);
         try {
-            const data = await api.auth.selectRole(role);
+            const data = await authApi.selectRole(role);
             setAvailableRoles(data.roles);
             setActiveRole(data.activeRole);
             updateUser({ ...user, role: data.activeRole, activeRole: data.activeRole, roles: data.roles });
@@ -301,7 +127,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
         if (roleBusy) return;
         setRoleBusy(true);
         try {
-            const data = await api.auth.addRole(role);
+            const data = await authApi.addRole(role);
             setAvailableRoles(data.roles);
             setToast({ title: "Novo Perfil Adicionado", message: `Perfil ${roleLabel(role)} habilitado neste e-mail.` });
         } catch (err: any) {
@@ -313,7 +139,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
 
     const handleSaveProfile = async () => {
         const updated = { ...user, ...editingUser };
-        await api.users.update(updated as User);
+        await accountApi.users.update(updated as User);
         updateUser(updated as User);
         setToast({ title: "Perfil Sincronizado", message: "Suas alterações foram ancoradas no fluxo." });
     };
@@ -335,7 +161,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
     const handleSaveSecurity = async () => {
         // Save privacy preferences to user profile
         try {
-            await api.users.update({ ...user, privacySettings: privacyState } as any);
+            await accountApi.users.update({ ...user, privacySettings: privacyState } as any);
             setToast({ title: roleConfig.security.title, message: "Suas configurações de privacidade foram salvas." });
         } catch {
             setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
@@ -363,7 +189,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
     const handleSaveNotifications = async () => {
         // Persist notification preferences to user profile
         try {
-            await api.users.update({ ...user, notificationPrefs: notifPrefs } as any);
+            await accountApi.users.update({ ...user, notificationPrefs: notifPrefs } as any);
             setToast({ title: roleConfig.notifications.title, message: "Preferências de alerta atualizadas com sucesso." });
         } catch {
             setToast({ title: "Erro", message: "Não foi possível salvar as preferências." });
@@ -384,7 +210,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
 
         setDeleteBusy(true);
         try {
-            await api.auth.deleteAccount();
+            await authApi.deleteAccount();
             setToast({ title: 'Conta removida', message: 'Seu perfil foi excluído definitivamente.' });
             if (onLogout) {
                 onLogout();
@@ -403,7 +229,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
         if (exportBusy) return;
         setExportBusy(true);
         try {
-            const response = await api.users.exportData(user.id);
+            const response = await accountApi.users.exportData(user.id);
             // Trigger download
             const blob = new Blob([JSON.stringify(response, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -522,6 +348,14 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
                                 {showAllTransactions ? 'Ver Menos' : 'Ver Tudo'}
                             </button>
                         </div>
+                        {txReadIssue && (
+                            <DegradedRetryNotice
+                                title={txReadIssue.title}
+                                message={txReadIssue.message}
+                                onRetry={loadWalletTransactions}
+                                compact
+                            />
+                        )}
                         <div className="space-y-3">
                             {txLoading ? (
                                 <div className="p-8 text-center text-nature-400 flex items-center justify-center gap-2">
@@ -592,7 +426,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
                         ].map((item) => (
                             <div key={item.key} className="bg-white p-5 rounded-2xl border border-nature-100 flex justify-between items-center shadow-sm">
                                 <div className="flex items-center gap-4"><item.icon size={18} className="text-nature-400" /><span className="text-sm font-medium text-nature-700">{item.label}</span></div>
-                                <Toggle active={(privacyState as any)[item.key]} onToggle={() => setPrivacyState(s => ({ ...s, [item.key]: !(s as any)[item.key] }))} />
+                                <SettingsToggle active={(privacyState as any)[item.key]} onToggle={() => setPrivacyState(s => ({ ...s, [item.key]: !(s as any)[item.key] }))} />
                             </div>
                         ))}
 
@@ -638,7 +472,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: any }> = ({
                                 <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20} /></div>
                                 <div><h4 className="font-bold text-nature-900 text-sm leading-tight">{item.label}</h4><p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">{item.sub}</p></div>
                             </div>
-                            <Toggle active={(notifPrefs as any)[item.key]} onToggle={() => setNotifPrefs(s => ({ ...s, [item.key]: !(s as any)[item.key] }))} />
+                            <SettingsToggle active={(notifPrefs as any)[item.key]} onToggle={() => setNotifPrefs(s => ({ ...s, [item.key]: !(s as any)[item.key] }))} />
                         </div>
                     ))}
 

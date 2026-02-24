@@ -20,6 +20,36 @@ const clickOraclePrimaryAction = async (page: import('@playwright/test').Page) =
   throw lastError instanceof Error ? lastError : new Error('Falha ao clicar ação do Oráculo');
 };
 
+const waitForOracleCardStage = async (page: import('@playwright/test').Page) => {
+  const portalPrompt = page.getByText('Toque para Sintonizar');
+  const closeAction = page.getByRole('button', { name: /receber e fechar/i });
+
+  for (let attempt = 1; attempt <= 6; attempt += 1) {
+    if (await portalPrompt.isVisible().catch(() => false)) return;
+    if (await closeAction.isVisible().catch(() => false)) return;
+
+    // The draw action can resolve into "Ver Carta Revelada" first (rerender race with daily-card fetch).
+    // In that state, we need one more explicit click to open the premium card modal.
+    const revealButton = page.getByRole('button', { name: /ver carta revelada/i }).first();
+    if (await revealButton.isVisible().catch(() => false)) {
+      await revealButton.click({ timeout: 5000 });
+      await page.waitForTimeout(250);
+      continue;
+    }
+
+    const drawButton = page.getByRole('button', { name: /revelar carta do dia/i }).first();
+    if (await drawButton.isVisible().catch(() => false)) {
+      await drawButton.click({ timeout: 5000 });
+      await page.waitForTimeout(250);
+      continue;
+    }
+
+    await page.waitForTimeout(300);
+  }
+
+  throw new Error('Oráculo não entrou no estágio de carta (portal/revelado) após tentativas');
+};
+
 test.describe('Oracle Flow', () => {
   test('deve abrir e revelar carta mesmo sem backend online', async ({ page, loginAs }) => {
     await loginAs('client');
@@ -37,8 +67,7 @@ test.describe('Oracle Flow', () => {
     ).toBeVisible({ timeout: 15000 });
 
     await clickOraclePrimaryAction(page);
-
-    await expect(page.getByText('Toque para Sintonizar').or(page.getByRole('button', { name: /receber e fechar/i }))).toBeVisible({ timeout: 15000 });
+    await waitForOracleCardStage(page);
 
     if (await page.getByText('Toque para Sintonizar').isVisible()) {
       await page.getByText('Toque para Sintonizar').click();

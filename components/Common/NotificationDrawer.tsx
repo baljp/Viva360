@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Wallet, AlertCircle, MessageSquare, Bell, X, Check } from 'lucide-react';
 import { Notification } from '../../types';
-import { api } from '../../services/api';
+import { communityApi } from '../../services/api/communityClient';
+import { DegradedRetryNotice } from './DegradedRetryNotice';
 
-export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void, notifications: Notification[], onMarkAsRead: (id: string) => void, onMarkAllRead: () => void }> = ({ isOpen, onClose, notifications, onMarkAsRead, onMarkAllRead }) => {
+export const NotificationDrawer: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+  notifications: Notification[];
+  readIssue?: { title: string; message: string } | null;
+  onRetryNotifications?: () => void;
+  onMarkAsRead: (id: string) => void;
+  onMarkAllRead: () => void;
+}> = ({ isOpen, onClose, notifications, readIssue, onRetryNotifications, onMarkAsRead, onMarkAllRead }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'ritual' | 'finance' | 'alert'>('all');
   const [pendingLinks, setPendingLinks] = useState<any[]>([]);
   const [loadingLinks, setLoadingLinks] = useState(false);
@@ -18,7 +27,7 @@ export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void
       setLoadingLinks(true);
       setLinksError('');
       try {
-        const raw = await api.links.getPendingRequests();
+        const raw = await communityApi.links.getPendingRequests();
         const list = Array.isArray(raw) ? raw : [];
         // Only show link requests that can be actioned here.
         const normalized = list.filter((l) => l && l.id && l.status === 'pending');
@@ -87,6 +96,15 @@ export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void
 
         {/* Lista de Notificações */}
         <div className="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar bg-primary-50/30">
+          {readIssue && (
+            <DegradedRetryNotice
+              title={readIssue.title}
+              message={readIssue.message}
+              onRetry={onRetryNotifications}
+              compact
+              className="mb-2"
+            />
+          )}
           {/* Pending Link Requests (actionable) */}
           <div className="space-y-3">
             <div className="px-1 flex items-center justify-between">
@@ -94,9 +112,24 @@ export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void
               {loadingLinks && <span className="text-[10px] text-nature-300 font-bold uppercase tracking-widest">Carregando...</span>}
             </div>
             {linksError && (
-              <div className="bg-rose-50 border border-rose-100 rounded-2xl p-3 text-[10px] font-bold text-rose-700 uppercase tracking-widest">
-                {linksError}
-              </div>
+              <DegradedRetryNotice
+                title="Convites temporariamente indisponíveis"
+                message={linksError}
+                onRetry={() => {
+                  setLinksError('');
+                  setLoadingLinks(true);
+                  setPendingLinks([]);
+                  // re-run effect by toggling open state is controlled externally; do an inline fetch here
+                  communityApi.links.getPendingRequests()
+                    .then((raw) => {
+                      const list = Array.isArray(raw) ? raw : [];
+                      setPendingLinks(list.filter((l) => l && l.id && l.status === 'pending'));
+                    })
+                    .catch((e: any) => setLinksError(e?.message || 'Falha ao carregar convites.'))
+                    .finally(() => setLoadingLinks(false));
+                }}
+                compact
+              />
             )}
             {!loadingLinks && !linksError && pendingLinks.length === 0 && (
               <div className="bg-white border border-nature-100 rounded-2xl p-4 text-[10px] text-nature-400 font-bold uppercase tracking-widest">
@@ -129,7 +162,7 @@ export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void
                             e.preventDefault();
                             e.stopPropagation();
                             try {
-                              await api.links.accept(String(link.id));
+                              await communityApi.links.accept(String(link.id));
                               setPendingLinks((prev) => prev.filter((x) => String((x as any)?.id) !== String(link.id)));
                             } catch (err: any) {
                               setLinksError(err?.message || 'Falha ao aceitar convite.');
@@ -144,7 +177,7 @@ export const NotificationDrawer: React.FC<{ isOpen: boolean, onClose: () => void
                             e.preventDefault();
                             e.stopPropagation();
                             try {
-                              await api.links.reject(String(link.id));
+                              await communityApi.links.reject(String(link.id));
                               setPendingLinks((prev) => prev.filter((x) => String((x as any)?.id) !== String(link.id)));
                             } catch (err: any) {
                               setLinksError(err?.message || 'Falha ao recusar convite.');

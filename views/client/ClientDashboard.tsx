@@ -3,7 +3,6 @@ import { ViewState, User, DailyRitualSnap } from '../../types';
 import { Zap, History, Sparkles, Compass, ShoppingBag, Droplet, Heart, Leaf, Sunrise, Users, CheckCircle2, Wallet, Bell, MessageCircle, TrendingUp, Book } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, RitualCompletionCard, BottomSheet, CameraWidget, DailyBlessing, NotificationDrawer } from '../../components/Common';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
-import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
 import { useClientDashboard } from '../../src/hooks/useClientDashboard';
 import { useCountUp } from '../../src/hooks/useCountUp';
@@ -19,7 +18,7 @@ export const ClientDashboard: React.FC<{
     const animatedKarma = useCountUp(user.karma || 0);
     const animatedStreak = useCountUp(user.streak || 0, 700);
     // Destructure state for easier access in JSX
-    const { toast, ritualToast, activeModal, showNotifications, notifications, gardenStatus, plantVisuals } = state;
+    const { toast, ritualToast, activeModal, showNotifications, notifications, notificationsReadIssue, gardenStatus, plantVisuals } = state;
 
     // Feature: Karma Synchronization Visual Feedback
     React.useEffect(() => {
@@ -46,6 +45,8 @@ export const ClientDashboard: React.FC<{
                 isOpen={showNotifications}
                 onClose={() => actions.setShowNotifications(false)}
                 notifications={notifications as any}
+                readIssue={notificationsReadIssue}
+                onRetryNotifications={actions.loadNotifications}
                 onMarkAsRead={actions.handleMarkAsRead}
                 onMarkAllRead={actions.handleMarkAllRead}
             />

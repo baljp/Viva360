@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { flowRegistry } from '../src/flow/registry';
+import { FLOW_PERSISTENCE_EVIDENCE } from './persistence_evidence_catalog';
 
 type MatrixEntry = {
   flowIds?: string[];
@@ -41,6 +42,8 @@ const catalog = flowRegistry.map((flow) => {
 
   const contractType = flow.clientOnly
     ? 'CLIENT_ONLY'
+    : FLOW_PERSISTENCE_EVIDENCE[flow.id]
+      ? 'PERSISTIDO_VALIDADO'
     : (persistCounts.P2 > 0 && persistCounts.P1 === 0 && persistCounts.P0 === 0)
       ? 'PERSISTIDO_VALIDADO'
       : (persistCounts.P2 > 0 || persistCounts.P1 > 0)
@@ -69,6 +72,7 @@ const catalog = flowRegistry.map((flow) => {
       userVisibleOutcome: flow.expectedFinal,
       rollbackPath: flow.fallbackScreen,
     },
+    validationEvidence: FLOW_PERSISTENCE_EVIDENCE[flow.id] || null,
   };
 });
 
@@ -84,6 +88,7 @@ const summary = {
     persistedValidated: catalog.filter((c) => c.contractType === 'PERSISTIDO_VALIDADO').length,
     mixedOrPartial: catalog.filter((c) => c.contractType === 'MISTO_OU_PARCIAL').length,
     unclassified: catalog.filter((c) => c.contractType === 'NAO_CLASSIFICADO').length,
+    flowValidatedByEvidenceCatalog: catalog.filter((c) => !!c.validationEvidence).length,
   },
   catalog,
 };
@@ -103,14 +108,15 @@ const lines = [
   `Persistidos validados: ${summary.totals.persistedValidated}`,
   `Mistos/parciais: ${summary.totals.mixedOrPartial}`,
   `Não classificados: ${summary.totals.unclassified}`,
+  `Validados por catálogo de evidência: ${summary.totals.flowValidatedByEvidenceCatalog}`,
   '',
-  '| Flow ID | Perfil | Tipo de contrato | ClientOnly | Final esperado | Endpoints | Persistência (P0/P1/P2) |',
-  '|---|---|---|---|---|---|---|',
+  '| Flow ID | Perfil | Tipo de contrato | ClientOnly | Final esperado | Endpoints | Persistência (P0/P1/P2) | Evidência explícita |',
+  '|---|---|---|---|---|---|---|---|',
 ];
 
 for (const item of catalog) {
   lines.push(
-    `| ${item.id} | ${item.profile} | ${item.contractType} | ${item.clientOnly ? 'Sim' : 'Não'} | ${item.expectedFinal} | ${item.endpoints.join(', ') || '—'} | ${item.persistence.counts.P0}/${item.persistence.counts.P1}/${item.persistence.counts.P2} |`,
+    `| ${item.id} | ${item.profile} | ${item.contractType} | ${item.clientOnly ? 'Sim' : 'Não'} | ${item.expectedFinal} | ${item.endpoints.join(', ') || '—'} | ${item.persistence.counts.P0}/${item.persistence.counts.P1}/${item.persistence.counts.P2} | ${item.validationEvidence ? 'Sim' : 'Não'} |`,
   );
 }
 
@@ -118,4 +124,3 @@ fs.writeFileSync(outMd, `${lines.join('\n')}\n`, 'utf8');
 
 console.log(`feature-contract-catalog: ${outJson}`);
 console.log(`feature-contract-catalog: ${outMd}`);
-
