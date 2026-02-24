@@ -40,7 +40,10 @@ export class TribeService {
             inviteId: String(invite.id),
             token,
         });
-        const emailDispatchStatus = emailDispatch.ok ? 'sent' : emailDispatch.reason;
+        let emailDispatchStatus = 'sent';
+        if (!emailDispatch.ok) {
+            emailDispatchStatus = emailDispatch.reason;
+        }
         logger.info('tribe.invite_created', {
             hubId,
             email,

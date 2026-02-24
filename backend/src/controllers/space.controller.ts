@@ -30,7 +30,23 @@ type RevenueRow = { total: Prisma.Decimal | number | string | null };
 type AvgDurationRow = { avg_dur: number | null };
 type TopGuardianRow = { name: string | null; sessions: number | string | null; revenue: Prisma.Decimal | number | string | null };
 type ReviewRatingRow = { rating: Prisma.Decimal | number | string | null };
-type RoomOccupancyRow = { name: string | null; session_count: number | null };
+type RoomOccupancyRow = { name: string | null; capacity: number | null; current_occupant: string | null };
+type ContractWithGuardian = Prisma.ContractGetPayload<{
+  include: {
+    guardian: {
+      select: {
+        id: true;
+        name: true;
+        avatar: true;
+        karma: true;
+        specialty: true;
+        rating: true;
+        review_count: true;
+        location: true;
+      };
+    };
+  };
+}>;
 
 const getUserId = (req: Request): string => {
   return (req as AuthenticatedRequest).user?.id || '';
@@ -98,11 +114,12 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
   try {
     const rooms = await prisma.room.findMany({
       take: 10,
-      select: { name: true, session_count: true },
+      select: { name: true, capacity: true, current_occupant: true },
     }) as RoomOccupancyRow[];
     roomOccupancy = rooms.map((r) => ({
-      name: r.name, pct: Math.min(100, r.session_count ? Math.round((r.session_count / 150) * 100) : 0),
-      sessions: r.session_count || 0
+      name: r.name,
+      pct: r.current_occupant ? 100 : 0,
+      sessions: r.current_occupant ? 1 : 0,
     }));
   } catch (err) { logger.warn('getAnalytics: roomOccupancy query failed', { error: String(err) }); }
 
@@ -242,7 +259,7 @@ export const getTeam = asyncHandler(async (req: Request, res: Response) => {
   const spaceId = getUserIdCompat(req);
   if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
 
-  let contracts: Awaited<ReturnType<typeof prisma.contract.findMany>> = [];
+  let contracts: ContractWithGuardian[] = [];
   try {
     contracts = await prisma.contract.findMany({
       where: { space_id: spaceId, status: { in: ['active', 'pending'] } },
