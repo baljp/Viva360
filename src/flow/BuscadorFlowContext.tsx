@@ -125,6 +125,7 @@ export type BuscadorFlowContextValue = {
     selectChatRoom: (room: { id: string; name?: string } | null) => void;
     selectTribeRoomContext: (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) => void;
     notify: (title: string, message: string, type?: 'success' | 'info' | 'error' | 'warning') => void;
+    clearToast: () => void;
 };
 
 const BuscadorFlowContext = BuscadorFlowContextStore as React.Context<BuscadorFlowContextValue | undefined>;
@@ -259,7 +260,8 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     return (
         <BuscadorFlowContext.Provider value={{
-            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, selectChatRoom, selectTribeRoomContext, notify
+            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, selectChatRoom, selectTribeRoomContext, notify,
+            clearToast: () => dispatch({ type: 'CLEAR_TOAST' })
         }}>
             {children}
             {state.ritualCompletion && (

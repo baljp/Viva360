@@ -1,13 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
+import { api } from '../../../services/api';
+import type { KarmaHistoryItem } from '../../../services/api/domains/gamification';
 import { PortalView } from '../../../components/Common';
-import { Sparkles, TrendingUp, Gift, ShoppingBag, Users, Zap, History, Lock, ArrowRight, Award, Star } from 'lucide-react';
+import { Sparkles, TrendingUp, Gift, ShoppingBag, Users, Zap, History, Lock, ArrowRight, Award, Star, Loader } from 'lucide-react';
 import { User } from '../../../types';
 import { getUserRank, getRankProgress, CLIENT_RANKS, CLIENT_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../../utils/gamification';
 
 export default function KarmaWallet({ user }: { user: User }) {
     const { back, go } = useBuscadorFlow();
     const [activeTab, setActiveTab] = useState<'history' | 'earn' | 'rewards'>('history');
+    const [karmaHistory, setKarmaHistory] = useState<KarmaHistoryItem[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(true);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await api.gamification.getKarmaHistory(30);
+                if (!cancelled) setKarmaHistory(res.transactions);
+            } catch {
+                // graceful: keep empty list
+            } finally {
+                if (!cancelled) setHistoryLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
     const currentKarma = user.karma || 0;
     const rank = getUserRank(currentKarma, CLIENT_RANKS);
@@ -85,15 +104,17 @@ export default function KarmaWallet({ user }: { user: User }) {
                 <div className="animate-in slide-in-from-bottom duration-300">
                     {activeTab === 'history' && (
                         <div className="space-y-4">
-                            {[
-                                { id: 1, action: 'Check-in Diário', amount: +5, date: 'Hoje, 08:00', type: 'earn' },
-                                { id: 2, action: 'Ritual Matinal', amount: +10, date: 'Hoje, 08:15', type: 'earn' },
-                                { id: 3, action: 'Missão: Oráculo', amount: +15, date: 'Hoje, 09:30', type: 'earn' },
-                                { id: 4, action: 'Regar planta de Luna', amount: +25, date: 'Ontem', type: 'earn' },
-                                { id: 5, action: 'Referência (Convite)', amount: +50, date: 'Ontem', type: 'earn' },
-                                { id: 6, action: 'Cupom Bazar 10%', amount: -100, date: '3 dias atrás', type: 'spend' },
-                                { id: 7, action: 'Sessão com Guardião', amount: -200, date: '5 dias atrás', type: 'spend' },
-                            ].map(item => (
+                            {historyLoading ? (
+                                <div className="flex items-center justify-center py-10 gap-3 text-nature-400">
+                                    <Loader size={18} className="animate-spin" />
+                                    <span className="text-xs italic">Carregando histórico...</span>
+                                </div>
+                            ) : karmaHistory.length === 0 ? (
+                                <div className="text-center py-10 opacity-40">
+                                    <History size={40} className="mx-auto mb-3" />
+                                    <p className="text-xs italic">Nenhuma transação ainda. Complete missões para acumular Karma!</p>
+                                </div>
+                            ) : karmaHistory.map(item => (
                                 <div key={item.id} className="bg-white p-4 rounded-[2rem] border border-nature-100 flex items-center justify-between shadow-sm">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${item.type === 'earn' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
@@ -101,7 +122,7 @@ export default function KarmaWallet({ user }: { user: User }) {
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-sm text-nature-900">{item.action}</h4>
-                                            <p className="text-[10px] text-nature-400 uppercase font-bold">{item.date}</p>
+                                            <p className="text-[10px] text-nature-400 uppercase font-bold">{new Date(item.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</p>
                                         </div>
                                     </div>
                                     <span className={`font-mono font-bold ${item.type === 'earn' ? 'text-emerald-600' : 'text-rose-600'}`}>

@@ -39,6 +39,19 @@ export type GamificationLeaderboardResponse = {
   leaderboard: GamificationLeaderboardEntry[];
 };
 
+
+export type KarmaHistoryItem = {
+  id: string;
+  action: string;
+  amount: number;
+  date: string;
+  type: 'earn' | 'spend';
+};
+
+export type KarmaHistoryResponse = {
+  transactions: KarmaHistoryItem[];
+};
+
 type GamificationDomainDeps = {
   request: DomainRequest;
 };
@@ -100,6 +113,22 @@ export const createGamificationDomain = ({ request }: GamificationDomainDeps) =>
           body: JSON.stringify({ achievements }),
         },
       );
+    },
+    getKarmaHistory: async (limit = 30): Promise<KarmaHistoryResponse> => {
+      try {
+        const data = await request<KarmaHistoryResponse>(
+          `/gamification/history?limit=${limit}`,
+          {
+            purpose: 'gamification-karma-history',
+            timeoutMs: 7000,
+            retries: 1,
+          },
+        );
+        return data ?? { transactions: [] };
+      } catch (err) {
+        captureFrontendError(err, { domain: 'gamification', op: 'getKarmaHistory' });
+        return { transactions: [] };
+      }
     },
   },
 });

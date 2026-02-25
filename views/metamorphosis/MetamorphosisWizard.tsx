@@ -31,7 +31,7 @@ type MetamorphosisResult = {
     timestamp: string;
 };
 
-export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewState) => void, onClose?: () => void, user?: User }> = ({ flow, setView, onClose, user }) => {
+export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewState) => void, onClose?: () => void, user?: User, updateUser?: (u: User) => void }> = ({ flow, setView, onClose, user, updateUser }) => {
     const [step, setStep] = useState(1);
     const [mood, setMood] = useState('');
     const [photo, setPhoto] = useState<CameraCaptureResult | null>(null);
@@ -124,14 +124,26 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
                 setDrewCard(card);
                 // Keep local high-quality photo for UI/canvas.
                 const entryRecord = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};
-                setResult({
+                const newSnapResult = {
                     id: String(entryRecord.id || Date.now()),
                     mood: String(entryRecord.mood || mood),
                     photoThumb: capture.thumbDataUrl,
                     photoHash: hash,
                     quote: typeof entryRecord.quote === 'string' ? entryRecord.quote : cardPhrase,
                     timestamp: String(entryRecord.timestamp || new Date().toISOString()),
-                });
+                };
+                setResult(newSnapResult);
+                // ✅ BUG FIX: atualizar user.snaps localmente para EvolutionView.recentSnaps
+                if (user && updateUser) {
+                    const snapEntry = {
+                        id: newSnapResult.id,
+                        date: newSnapResult.timestamp,
+                        image: capture.thumbDataUrl,
+                        mood: newSnapResult.mood,
+                        note: newSnapResult.quote || '',
+                    };
+                    updateUser({ ...user, snaps: [snapEntry, ...(user.snaps || [])] });
+                }
                 setIsProcessing(false);
                 setShowSoulReveal(true);
                 // setStep(4) will be triggered after reveal closes

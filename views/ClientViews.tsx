@@ -62,7 +62,7 @@ export const ClientViews: React.FC<{
     onAddToCart: (p: Product) => void,
     onLogout: () => void
 }> = ({ user, view, setView, updateUser, onAddToCart, onLogout }) => {
-    const { state: flowState, go, jump, back, reset, refreshData } = useBuscadorFlow();
+    const { state: flowState, go, jump, back, reset, refreshData, clearToast } = useBuscadorFlow();
 
     useEffect(() => {
         const isExploreView = view === ViewState.CLIENT_EXPLORE || view === ViewState.CLIENT_PRO_DETAILS;
@@ -121,7 +121,7 @@ export const ClientViews: React.FC<{
                     <button onClick={() => refreshData()} className="p-2 bg-rose-100 rounded-lg text-rose-600 hover:bg-rose-200 transition-colors uppercase text-[9px] font-bold">Tentar Novamente</button>
                 </div>
             )}
-            {flowState.toast && <ZenToast toast={flowState.toast} onClose={() => { }} />}
+            {flowState.toast && <ZenToast toast={flowState.toast} onClose={clearToast} />}
             <ScreenConnector
                 profile="BUSCADOR"
                 user={user}

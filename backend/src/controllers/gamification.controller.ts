@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../middleware/async.middleware';
+import prisma from '../lib/prisma';
 import { gamificationService } from '../services/gamification.service';
 
 const questSchema = z.object({
@@ -77,4 +78,57 @@ export const syncAchievements = asyncHandler(async (req: Request, res: Response)
   }));
   const state = await gamificationService.syncAchievements(userId, achievements);
   return res.json({ ok: true, state });
+});
+
+export const getKarmaHistory = asyncHandler(async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const limit = Math.min(Number(req.query.limit) || 30, 100);
+
+  try {
+    const receipts = await prisma.interactionReceipt.findMany({
+      where: {
+        actor_id: userId,
+        status: { in: ['COMPLETED', 'CREATED'] },
+      },
+      orderBy: { updated_at: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        action: true,
+        entity_type: true,
+        payload: true,
+        updated_at: true,
+      },
+    });
+
+    const LABELS: Record<string, string> = {
+      CHECKIN: 'Check-in Diário',
+      DAILY_QUEST: 'Missão Diária',
+      METAMORPHOSIS: 'Ritual de Metamorfose',
+      ORACLE: 'Consulta ao Oráculo',
+      TRIBE: 'Interação na Tribo',
+      QUEST: 'Missão Concluída',
+    };
+
+    const transactions = receipts.map((r) => {
+      const payloadObj = (r.payload && typeof r.payload === 'object') ? (r.payload as Record<string, unknown>) : {};
+      const reward = Number(payloadObj.reward ?? payloadObj.karma ?? 0);
+      const action = String(r.action || '').toUpperCase();
+      const actionKey = Object.keys(LABELS).find((k) => action.includes(k)) || r.entity_type;
+      return {
+        id: String(r.id),
+        action: LABELS[actionKey] || String(r.action || 'Ação').replace(/_/g, ' '),
+        amount: reward || (action.includes('CHECKIN') ? 5 : action.includes('QUEST') ? 15 : action.includes('RITUAL') ? 10 : 5),
+        date: r.updated_at.toISOString(),
+        type: reward < 0 ? 'spend' : 'earn',
+      };
+    });
+
+    return res.json({ transactions });
+  } catch (err) {
+    // Graceful fallback: return empty list, don't crash
+    return res.json({ transactions: [] });
+  }
 });
