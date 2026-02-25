@@ -37,6 +37,8 @@ const TribeInvite = lazyWithRetry(() => import('../../views/client/generated/Tri
 const TribeInteraction = lazyWithRetry(() => import('../../views/client/generated/TribeInteraction'), 'TribeInteraction');
 const ChatListScreen = lazyWithRetry(() => import('../../views/client/chat/ChatListScreen'), 'ChatListScreen');
 const ChatRoomScreen = lazyWithRetry(() => import('../../views/client/chat/ChatRoomScreen'), 'ChatRoomScreen');
+const ChatSettingsScreen = lazyWithRetry(() => import('../../views/client/chat/ChatSettingsScreen'), 'ChatSettingsScreen');
+const ChatNewScreen = lazyWithRetry(() => import('../../views/client/chat/ChatNewScreen'), 'ChatNewScreen');
 const CheckoutScreen = lazyWithRetry(() => import('../../views/client/financial/CheckoutScreen'), 'CheckoutScreen');
 const PaymentHistoryScreen = lazyWithRetry(() => import('../../views/client/financial/PaymentHistoryScreen'), 'PaymentHistoryScreen');
 const OrdersListView = lazyNamed(() => import('../../views/ServiceViews'), 'OrdersListView');
@@ -133,8 +135,8 @@ export const screenMap: Record<'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO', ScreenMapS
         HEALING_CIRCLE: HealingCircleEntry,
         CHAT_LIST: ChatListScreen,
         CHAT_ROOM: ChatRoomScreen,
-        CHAT_SETTINGS: ChatRoomScreen,
-        CHAT_NEW: ChatListScreen,
+        CHAT_SETTINGS: ChatSettingsScreen,
+        CHAT_NEW: ChatNewScreen,
         BOOKING_SEARCH: MapaDaCuraView,
         BOOKING_SELECT: BookingSelect,
         BOOKING_CONFIRM: BookingConfirm,

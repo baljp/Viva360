@@ -38,6 +38,25 @@ const lookupSchema = z.object({
     email: z.string().email(),
 });
 
+export const searchProfiles = asyncHandler(async (req: Request, res: Response) => {
+  const q = String(req.query.q || '').trim();
+  if (q.length < 2) return res.json([]);
+
+  const profiles = await profileRepository.searchByName(q);
+  const myId = String(req.user?.userId || '');
+  return res.json(
+    profiles
+      .filter((p: any) => p.id !== myId) // exclude self
+      .slice(0, 20)
+      .map((p: any) => ({
+        id: p.id,
+        name: p.name || 'Usuário',
+        avatar: p.avatar,
+        role: p.role,
+      }))
+  );
+});
+
 export const lookupProfile = asyncHandler(async (req: any, res: Response) => {
     const requesterRole = String(req.user?.role || '').toUpperCase();
     // Prevent email enumeration for regular users.

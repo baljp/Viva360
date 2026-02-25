@@ -27,7 +27,7 @@ const toMessage = (row: ChatMessageApiRow): Message => ({
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
 export default function ChatRoomScreen({ roomId }: { roomId?: string }) {
-  const { back, state } = useBuscadorFlow();
+  const { back, state, go } = useBuscadorFlow();
   const activeRoomId = String(roomId || state.selectedChatRoom?.id || '').trim();
   const roomLabel = state.selectedChatRoom?.name || 'Conversa';
 
@@ -155,7 +155,13 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) {
         <div className="flex gap-4 text-nature-600">
           <Video size={20} className="hover:text-nature-900 cursor-pointer" />
           <Phone size={20} className="hover:text-nature-900 cursor-pointer" />
-          <MoreVertical size={20} className="hover:text-nature-900 cursor-pointer" />
+          <button
+              onClick={() => go('CHAT_SETTINGS')}
+              className="hover:text-nature-900 cursor-pointer p-1 rounded-full hover:bg-black/5 transition-colors"
+              aria-label="Configurações da sala"
+            >
+              <MoreVertical size={20} />
+            </button>
         </div>
       </div>
 

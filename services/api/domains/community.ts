@@ -246,6 +246,46 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         return [];
       }
     },
+    getRoomSettings: async (roomId: string) => {
+      try {
+        return await request(`/chat/rooms/${roomId}/settings`);
+      } catch (err) {
+        captureFrontendError(err, { domain: 'community', op: 'chat.getRoomSettings' });
+        return null;
+      }
+    },
+    toggleMute: async (roomId: string) => {
+      try {
+        return await request(`/chat/rooms/${roomId}/mute`, { method: 'POST' });
+      } catch (err) {
+        captureFrontendError(err, { domain: 'community', op: 'chat.toggleMute' });
+        return { muted: false };
+      }
+    },
+    leaveRoom: async (roomId: string) => {
+      try {
+        return await request(`/chat/rooms/${roomId}/leave`, { method: 'DELETE' });
+      } catch (err) {
+        captureFrontendError(err, { domain: 'community', op: 'chat.leaveRoom' });
+        return { success: false };
+      }
+    },
+    startPrivate: async (targetUserId: string) => {
+      return await request('/chat/start', {
+        method: 'POST',
+        body: JSON.stringify({ targetUserId }),
+      });
+    },
+    searchProfiles: async (q: string): Promise<Array<{ id: string; name: string; avatar: string | null; role: string | null }>> => {
+      try {
+        if (q.trim().length < 2) return [];
+        const data = await request(`/profile/search?q=${encodeURIComponent(q)}`);
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        captureFrontendError(err, { domain: 'community', op: 'chat.searchProfiles' });
+        return [];
+      }
+    },
     getMessages: async (roomId: string) => {
       try {
         return await request(`/chat/rooms/${roomId}/messages`);

@@ -519,11 +519,13 @@ model Chat {
 }
 
 model ChatParticipant {
-  id           String   @id @default(uuid()) @db.Uuid
-  chat_id      String   @db.Uuid
-  profile_id   String   @db.Uuid
-  unread_count Int      @default(0)
-  joined_at    DateTime @default(now()) @db.Timestamptz(6)
+  id           String    @id @default(uuid()) @db.Uuid
+  chat_id      String    @db.Uuid
+  profile_id   String    @db.Uuid
+  unread_count Int       @default(0)
+  joined_at    DateTime  @default(now()) @db.Timestamptz(6)
+  muted_until  DateTime? @db.Timestamptz(6)
+  left_at      DateTime? @db.Timestamptz(6)
 
   chat    Chat    @relation(fields: [chat_id], references: [id], onDelete: Cascade)
   profile Profile @relation(fields: [profile_id], references: [id])

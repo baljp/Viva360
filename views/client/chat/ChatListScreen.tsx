@@ -152,11 +152,14 @@ export default function ChatListScreen() {
         {/* Active Pacts (horizontal scroll) */}
         {pactRooms.length > 0 && (
           <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-            <div className="flex flex-col items-center gap-2 min-w-[4rem]">
-              <div className="w-16 h-16 rounded-full border-2 border-dashed border-nature-300 flex items-center justify-center text-nature-300 bg-white shadow-sm">
+            <div
+              className="flex flex-col items-center gap-2 min-w-[4rem] cursor-pointer group"
+              onClick={() => go('CHAT_NEW')}
+            >
+              <div className="w-16 h-16 rounded-full border-2 border-dashed border-indigo-300 flex items-center justify-center text-indigo-300 bg-white shadow-sm group-hover:border-indigo-500 group-hover:text-indigo-500 transition-colors">
                 <MessageCircle size={24} />
               </div>
-              <span className="text-[10px] uppercase font-bold text-nature-400">Novo</span>
+              <span className="text-[10px] uppercase font-bold text-indigo-400 group-hover:text-indigo-600">Novo</span>
             </div>
             {pactRooms.map(room => {
               const other = getOther(room);
@@ -205,6 +208,14 @@ export default function ChatListScreen() {
               <p className="text-sm italic">
                 {search ? 'Nenhuma conversa encontrada.' : 'Nenhuma conversa ainda. Conecte-se com uma alma!'}
               </p>
+              {!search && (
+                <button
+                  onClick={() => go('CHAT_NEW')}
+                  className="mt-4 px-6 py-3 bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded-2xl hover:bg-indigo-700 active:scale-95 transition-all"
+                >
+                  + Nova Conversa
+                </button>
+              )}
             </div>
           ) : (
             regularRooms.map((room, i) => {

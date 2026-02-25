@@ -63,6 +63,16 @@ export class ProfileRepository {
         return data;
     }
 
+    async searchByName(query: string) {
+        const { data, error } = await supabaseAdmin
+            .from('profiles')
+            .select('id, name, avatar, role')
+            .ilike('name', `%${query}%`)
+            .limit(20);
+        if (error) throw error;
+        return data || [];
+    }
+
     async findAllByRole(role?: string) {
         let query = supabaseAdmin.from('profiles').select('*');
         if (role) query = query.eq('role', role);
