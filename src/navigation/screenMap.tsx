@@ -2,14 +2,18 @@
 import React from 'react';
 import { lazyWithRetry } from '../utils/lazyWithRetry';
 
+type LazyModule = Record<string, unknown>;
+type LazyScreen = React.ComponentType<unknown>;
+type ScreenMapSection = Record<string, LazyScreen>;
+
 // --- HELPER FOR NAMED EXPORTS ---
 // Usage: const Component = lazyNamed(() => import('path'), 'ComponentName');
-const lazyNamed = <T extends React.ComponentType<any>>(
-  importFunc: () => Promise<{ [key: string]: any }>, 
+const lazyNamed = <T extends LazyScreen>(
+  importFunc: () => Promise<LazyModule>,
   componentName: string
 ) => {
   return lazyWithRetry(
-    () => importFunc().then(module => ({ default: module[componentName] })),
+    () => importFunc().then((module) => ({ default: module[componentName] as T })),
     `screen-${componentName}`
   );
 };
@@ -107,7 +111,7 @@ const RadianceDrilldown = lazyNamed(() => import('../../views/space/RadianceDril
 const SpaceEventsManager = lazyNamed(() => import('../../views/space/SpaceEventsManager'), 'SpaceEventsManager');
 const SpaceAnalyticsDash = lazyNamed(() => import('../../views/space/SpaceAnalyticsDash'), 'SpaceAnalyticsDash');
 
-export const screenMap: any = {
+export const screenMap: Record<'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO', ScreenMapSection> = {
     // BUSCADOR
     BUSCADOR: {
         START: ClientDashboard,

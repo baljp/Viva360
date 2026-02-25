@@ -18,6 +18,22 @@ type Vacancy = {
   specialties?: string[];
 };
 
+type VacancyApiRow = {
+  id?: string | number;
+  title?: string | null;
+  space_name?: string | null;
+  space?: string | null;
+  location?: string | null;
+  type?: string | null;
+  modality?: string | null;
+  salary?: string | null;
+  compensation?: string | null;
+  description?: string | null;
+  specialties?: string[];
+};
+
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
 export default function VagasList() {
   const { go, back, notify } = useGuardiaoFlow();
   const [selectedVacancy, setSelectedVacancy] = useState<Vacancy | null>(null);
@@ -29,9 +45,9 @@ export default function VagasList() {
   const [loading, setLoading] = useState(true);
   const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
 
-  const mapVacancies = (data: any): Vacancy[] => {
-    const list = Array.isArray(data) ? data : [];
-    return list.map((v: any) => ({
+  const mapVacancies = (data: unknown): Vacancy[] => {
+    const list = Array.isArray(data) ? (data as VacancyApiRow[]) : [];
+    return list.map((v) => ({
       id: String(v.id),
       title: v.title || 'Sem título',
       space: v.space_name || v.space || '',
@@ -49,8 +65,8 @@ export default function VagasList() {
     try {
       const data = await hubApi.spaces.getVacancies({ strict: true });
       setVacancies(mapVacancies(data));
-    } catch (err: any) {
-      console.warn('[VagasList] Failed to load vacancies:', err);
+    } catch (err: unknown) {
+      console.warn('[VagasList] Failed to load vacancies:', errorMessage(err));
       setVacancies([]);
       setReadIssue(buildReadFailureCopy(['vacancies'], isDegradedReadError(err)));
     } finally {
@@ -67,8 +83,8 @@ export default function VagasList() {
           setVacancies(mapVacancies(data));
           setReadIssue(null);
         }
-      } catch (err: any) {
-        console.warn('[VagasList] Failed to load vacancies:', err);
+      } catch (err: unknown) {
+        console.warn('[VagasList] Failed to load vacancies:', errorMessage(err));
         if (!cancelled) {
           setVacancies([]);
           setReadIssue(buildReadFailureCopy(['vacancies'], isDegradedReadError(err)));
@@ -85,11 +101,11 @@ export default function VagasList() {
     if (!selectedVacancy || applying) return;
     setApplying(true);
     try {
-      const result = await hubApi.recruitment.apply(selectedVacancy.id);
+      await hubApi.recruitment.apply(selectedVacancy.id);
       setSelectedVacancy(null);
       notify?.('Aplicação Enviada', 'O Espaço receberá sua intenção. Acompanhe pelo painel.', 'success');
-    } catch (err: any) {
-      const msg = err?.message || 'Não foi possível enviar sua candidatura.';
+    } catch (err: unknown) {
+      const msg = errorMessage(err) || 'Não foi possível enviar sua candidatura.';
       notify?.('Erro na Aplicação', msg, 'error');
     } finally {
       setApplying(false);

@@ -4,6 +4,29 @@ import { Video, MoreHorizontal, Loader2, Smartphone } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';
 
+type RawAppointment = {
+  id?: string | number;
+  date?: string;
+  start_time?: string;
+  time?: string;
+  clientName?: string;
+  client_name?: string;
+  client?: string;
+  serviceName?: string;
+  service_name?: string;
+  type?: string;
+  status?: string;
+};
+
+type AgendaAppointment = RawAppointment & {
+  id: string | number;
+  dateKey: string;
+  time: string;
+  client: string;
+  serviceName: string;
+  status: string;
+};
+
 export default function AgendaView() {
   const { go, back, selectAppointment, notify, state } = useGuardiaoFlow();
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
@@ -31,17 +54,18 @@ export default function AgendaView() {
   const selectedDay = weekDays[Math.min(selectedDayIndex, weekDays.length - 1)] || new Date();
   const selectedDayKey = toLocalDateKey(selectedDay);
 
-  const appointments = (state?.data?.appointments || [])
-    .map((apt: any) => ({
+  const appointments: AgendaAppointment[] = (Array.isArray(state?.data?.appointments) ? state.data.appointments as RawAppointment[] : [])
+    .map((apt) => ({
       ...apt,
+      id: apt.id ?? `${selectedDayKey}-${Math.random().toString(36).slice(2, 8)}`,
       dateKey: toLocalDateKey(apt.date || apt.start_time || new Date()),
       time: String(apt.time || new Date(apt.date || apt.start_time || Date.now()).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })),
       client: String(apt.clientName || apt.client_name || apt.client || 'Buscador'),
       serviceName: String(apt.serviceName || apt.service_name || apt.type || 'Atendimento'),
       status: String(apt.status || 'pending').toLowerCase(),
     }))
-    .filter((apt: any) => apt.dateKey === selectedDayKey)
-    .sort((a: any, b: any) => a.time.localeCompare(b.time));
+    .filter((apt) => apt.dateKey === selectedDayKey)
+    .sort((a, b) => a.time.localeCompare(b.time));
 
   const handleSyncCalendar = async () => {
     if (syncing) return;
@@ -91,7 +115,7 @@ export default function AgendaView() {
                    <div className="bg-white p-6 rounded-[2rem] border border-nature-100 text-center text-[11px] text-nature-400">
                        Nenhum ritual para {selectedDay.toLocaleDateString('pt-BR')}.
                    </div>
-               ) : appointments.map((apt: any) => (
+               ) : appointments.map((apt) => (
                    <div key={apt.id} className="bg-white p-5 rounded-[2rem] border border-nature-100 flex items-center justify-between shadow-sm group hover:shadow-md transition-all cursor-pointer" onClick={() => go('PATIENT_PROFILE')}>
                        <div className="flex items-center gap-4">
                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xs ${apt.status === 'confirmed' ? 'bg-primary-50 text-primary-600' : 'bg-amber-50 text-amber-600'}`}>

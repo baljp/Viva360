@@ -10,6 +10,33 @@ import { SPACE_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../u
 import { useCountUp } from '../../src/hooks/useCountUp';
 
 // --- COMPONENTS ---
+type DashboardGo = (state: string) => void;
+type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
+
+type QuickStatProps = {
+    label: string;
+    value: string | number;
+    icon: IconComponent;
+    color: string;
+};
+
+type DashboardTabProps = {
+    go: DashboardGo;
+};
+
+type ManagementTabProps = DashboardTabProps & {
+    revenue: number;
+    teamSize: number;
+};
+
+type FinanceTransactionRow = {
+    created_at?: string;
+    type?: string;
+    contextType?: string;
+    description?: string;
+    amount?: number;
+    status?: string;
+};
 
 const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: number, onOpenModal: () => void }) => {
     const { go } = useSantuarioFlow();
@@ -82,7 +109,7 @@ const RadianceDetailsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: (
     );
 };
 
-const QuickStat = ({ label, value, icon: Icon, color }: any) => (
+const QuickStat: React.FC<QuickStatProps> = ({ label, value, icon: Icon, color }) => (
     <div className="bg-white p-4 rounded-3xl border border-nature-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-all">
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${color} bg-opacity-10 text-opacity-100`}>
             <Icon size={20} className={color.replace('bg-', 'text-')} />
@@ -96,7 +123,7 @@ const QuickStat = ({ label, value, icon: Icon, color }: any) => (
 
 // --- TABS CONTENT ---
 
-const OperationsTab = ({ go }: any) => (
+const OperationsTab: React.FC<DashboardTabProps> = ({ go }) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* TEAM CHALLENGE - Gamificação do Santuário */}
         <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden">
@@ -196,7 +223,7 @@ const OperationsTab = ({ go }: any) => (
     </div>
 );
 
-const ManagementTab = ({ go, revenue, teamSize }: any) => {
+const ManagementTab: React.FC<ManagementTabProps> = ({ go, revenue, teamSize }) => {
     const [exporting, setExporting] = useState(false);
     const animatedRevenue = useCountUp(Number(revenue) || 0, 1000, 2);
     const animatedTeam = useCountUp(Number(teamSize) || 0, 700);
@@ -208,10 +235,12 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => {
         setExporting(true);
         try {
             const data = await request('/finance/transactions', { purpose: 'finance-export' });
-            const transactions = Array.isArray(data) ? data : data?.transactions || [];
+            const transactions: FinanceTransactionRow[] = Array.isArray(data)
+                ? (data as FinanceTransactionRow[])
+                : ((data?.transactions || []) as FinanceTransactionRow[]);
 
             const headers = ['Data', 'Tipo', 'Descrição', 'Valor (R$)', 'Status'];
-            const rows = transactions.map((t: any) => [
+            const rows = transactions.map((t) => [
                 t.created_at ? new Date(t.created_at).toLocaleDateString('pt-BR') : '-',
                 t.type || t.contextType || '-',
                 t.description || '-',
@@ -320,7 +349,7 @@ const ManagementTab = ({ go, revenue, teamSize }: any) => {
     );
 };
 
-const GrowthTab = ({ go }: any) => (
+const GrowthTab: React.FC<DashboardTabProps> = ({ go }) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div onClick={() => go('VAGAS_LIST')} className="bg-indigo-900 p-8 rounded-[3.5rem] shadow-xl flex items-center gap-6 cursor-pointer hover:bg-black transition-all group relative overflow-hidden">
             <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>

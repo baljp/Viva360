@@ -12,6 +12,7 @@ interface ImportMetaEnv {
   readonly VITE_APP_MODE?: string
   readonly VITE_ENABLE_TEST_MODE?: string
   readonly VITE_MOCK_ENABLED?: string
+  readonly VITE_TIMELAPSE_AUDIO_URL?: string
   readonly VERCEL_ENV?: string
 }
 

@@ -6,7 +6,46 @@ import {
 } from 'lucide-react';
 import { api } from '../../../services/api';
 
-const TimelineCard: React.FC<{ event: any }> = ({ event }) => (
+type PatientEvolutionRecord = {
+    id: string | number;
+    type: string;
+    title: string;
+    date: string;
+    mood: string;
+    content: string;
+};
+
+type RecordDraft = {
+    title: string;
+    mood: string;
+    content: string;
+    date: string;
+    type: 'session' | 'anamnesis';
+};
+
+type RawRecord = {
+    id?: string | number;
+    type?: string | null;
+    created_at?: string | null;
+    date?: string | null;
+    content?: string | null;
+};
+
+const normalizeRecords = (data: unknown): PatientEvolutionRecord[] => {
+    const list = Array.isArray(data) ? (data as RawRecord[]) : [];
+    return list
+        .map((item) => ({
+            id: item.id ?? `record_${Date.now()}`,
+            type: item.type || 'session',
+            title: item.type === 'anamnesis' ? 'Anamnese Clínica' : 'Sessão Terapêutica',
+            date: item.created_at || item.date || new Date().toISOString(),
+            mood: 'Registrado',
+            content: item.content || '',
+        }))
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+};
+
+const TimelineCard: React.FC<{ event: PatientEvolutionRecord }> = ({ event }) => (
     <div className="flex gap-4 group animate-in slide-in-from-bottom-2">
         <div className="flex flex-col items-center">
             <div className={`w-3 h-3 rounded-full border-2 border-white shadow-sm z-10 ${event.type === 'crisis' ? 'bg-rose-500' : (event.type === 'milestone' ? 'bg-amber-400' : 'bg-emerald-500')}`}></div>
@@ -30,7 +69,7 @@ const TimelineCard: React.FC<{ event: any }> = ({ event }) => (
 
 
 
-const RecordModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (data: any) => void }> = ({ isOpen, onClose, onSave }) => {
+const RecordModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (data: RecordDraft) => void }> = ({ isOpen, onClose, onSave }) => {
     const [title, setTitle] = useState('');
     const [mood, setMood] = useState('Vibrante');
     const [content, setContent] = useState('');
@@ -80,7 +119,7 @@ const RecordModal: React.FC<{ isOpen: boolean, onClose: () => void, onSave: (dat
     );
 };
 
-const Check = ({ size }: any) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>;
+const Check = ({ size = 16 }: { size?: number }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>;
 
 const InterventionCard: React.FC<{ title: string, outcome: string, type: string }> = ({ title, outcome, type }) => (
     <div className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm mb-3">
@@ -107,7 +146,7 @@ export default function PatientEvolutionView() {
         }
     }, [state.currentState]);
 
-    const [records, setRecords] = useState<any[]>([]);
+    const [records, setRecords] = useState<PatientEvolutionRecord[]>([]);
     const [loading, setLoading] = useState(true);
 
     const PATIENT_ID = String(state.selectedPatient?.id || '').trim();
@@ -121,15 +160,7 @@ export default function PatientEvolutionView() {
         }
         try {
             const data = await api.records.list(PATIENT_ID);
-            const normalized = (data || []).map((item: any) => ({
-                id: item.id,
-                type: item.type || 'session',
-                title: item.type === 'anamnesis' ? 'Anamnese Clínica' : 'Sessão Terapêutica',
-                date: item.created_at || item.date || new Date().toISOString(),
-                mood: 'Registrado',
-                content: item.content || '',
-            }));
-            setRecords(normalized.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            setRecords(normalizeRecords(data));
         } catch (e) {
             console.error(e);
         } finally {
@@ -148,22 +179,14 @@ export default function PatientEvolutionView() {
         api.records.list(PATIENT_ID)
             .then((data) => {
                 if (cancelled) return;
-                const normalized = (data || []).map((item: any) => ({
-                    id: item.id,
-                    type: item.type || 'session',
-                    title: item.type === 'anamnesis' ? 'Anamnese Clínica' : 'Sessão Terapêutica',
-                    date: item.created_at || item.date || new Date().toISOString(),
-                    mood: 'Registrado',
-                    content: item.content || '',
-                }));
-                setRecords(normalized.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+                setRecords(normalizeRecords(data));
             })
             .catch(() => { if (!cancelled) setRecords([]); })
             .finally(() => { if (!cancelled) setLoading(false); });
         return () => { cancelled = true; };
     }, [PATIENT_ID]);
 
-    const handleAddEvent = async (data: any) => {
+    const handleAddEvent = async (data: RecordDraft) => {
         if (!PATIENT_ID) {
             notify('Paciente não selecionado', 'Selecione um paciente antes de gravar evolução.', 'warning');
             return;

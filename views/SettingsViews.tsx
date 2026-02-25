@@ -2,13 +2,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ViewState, User, UserRole, Professional, Transaction } from '../types';
 import {
-    ChevronLeft, ShieldCheck, User as UserIcon, Camera, ChevronRight,
-    Heart, Sparkles, Lock, Bell, LogOut, Check, Mail, MapPin,
+    ShieldCheck, User as UserIcon, Camera,
+    Heart, Sparkles, Lock, Bell, Check, Mail, MapPin,
     Briefcase, Smartphone, Sun, DoorOpen, DollarSign, List, Activity,
     Building, CreditCard, Wallet, Shield, MessageSquare, Megaphone, Smartphone as PhoneIcon,
-    Users, Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2, Trash2, Download
+    Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2, Trash2, Download
 } from 'lucide-react';
-import { DynamicAvatar, Card, VerifiedBadge, WalletSplit, PortalView, DegradedRetryNotice } from '../components/Common';
+import { DynamicAvatar, Card, WalletSplit, PortalView, DegradedRetryNotice } from '../components/Common';
 import { authApi } from '../services/api/authProxy';
 import { accountApi } from '../services/api/accountClient';
 import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
@@ -17,6 +17,7 @@ import { SettingsToggle } from './settings/SettingsToggle';
 import { getSettingsRoleConfig, homeForRole, roleLabel } from './settings/settingsConfig';
 import { downloadJsonFile, normalizeSettingsTransactions } from './settings/settingsUtils';
 import { type FlowBridge, type PrivacyState, type SettingsNotifState, errorMessage } from './settings/settingsViewHelpers';
+import { SettingsHomeFooterActions, SettingsHomeHeader, SettingsMenuCards, SettingsRoleSwitcherCard, type SettingsMenuItem } from './settings/SettingsHomeSections';
 import { useAppToast } from '../src/contexts/AppToastContext';
 
 interface SettingsProps {
@@ -475,115 +476,48 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
         );
     }
 
+    const menuItems: SettingsMenuItem[] = [
+        { id: ViewState.SETTINGS_PROFILE, label: roleConfig.profile.title, sub: 'BIO, INTENÇÃO E IDENTIDADE', icon: UserIcon, color: 'bg-nature-50 text-nature-400' },
+        { id: ViewState.SETTINGS_WALLET, label: roleConfig.wallet.title, sub: 'CARTEIRA, KARMA E MOVIMENTAÇÕES', icon: Wallet, color: 'bg-amber-50 text-amber-500' },
+        { id: ViewState.SETTINGS_NOTIFICATIONS, label: roleConfig.notifications.title, sub: 'ALERTAS DO FLUXO', icon: Bell, color: 'bg-indigo-50 text-indigo-500' },
+        { id: ViewState.SETTINGS_SECURITY, label: roleConfig.security.title, sub: 'SEGURANÇA E PRIVACIDADE', icon: Lock, color: 'bg-rose-50 text-rose-500' },
+        { id: roleConfig.assets.route, label: roleConfig.assets.label, sub: roleConfig.assets.sub, icon: ShoppingBag, color: 'bg-primary-50 text-primary-600' },
+    ];
+
+    const handleLogoutFallback = () => {
+        if (onLogout) onLogout();
+        else {
+            localStorage.removeItem('viva360.auth.token');
+            window.location.href = '/login';
+        }
+    };
+
+    const handleBackToHome = () => {
+        if (flow) {
+            flow.go('DASHBOARD');
+            return;
+        }
+        const home = user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : (user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME);
+        setView(home);
+    };
+
     return (
         <div className="flex flex-col animate-in fade-in min-h-full w-full">
-            <header className="flex items-center gap-8 mb-10 mt-6 px-4 flex-none">
-                <div className="relative group">
-                    <div className="absolute inset-[-6px] bg-primary-300 blur-xl opacity-20 rounded-full"></div>
-                    <DynamicAvatar user={user} size="lg" className="border-4 border-white shadow-2xl relative z-10" />
-                </div>
-                <div className="space-y-2">
-                    <h2 className="text-4xl font-serif italic text-nature-900 leading-tight">{user.name}</h2>
-                    <VerifiedBadge label={user.role === UserRole.CLIENT ? "BUSCADOR" : user.role === UserRole.PROFESSIONAL ? "GUARDIÃO" : "SANTUÁRIO"} />
-                </div>
-            </header>
-
+            <SettingsHomeHeader user={user} />
             <div className="space-y-4 px-2 flex-1">
-                <div className="w-full bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <div className="bg-nature-50 text-nature-500 p-4 rounded-2xl"><Users size={20} /></div>
-                            <div className="text-left space-y-1">
-                                <p className="font-bold text-nature-900 text-sm leading-tight">Perfis do mesmo e-mail</p>
-                                <p className="text-[9px] text-nature-300 font-bold uppercase tracking-widest">SELECIONAR PERFIL ATIVO</p>
-                            </div>
-                        </div>
-                        {roleBusy ? <Loader2 size={16} className="animate-spin text-nature-400" /> : null}
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                        {availableRoles.map((role) => {
-                            const isActive = role === activeRole;
-                            return (
-                                <button
-                                    key={`role-${role}`}
-                                    onClick={() => handleSelectRole(role)}
-                                    className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${isActive ? 'bg-nature-900 text-white' : 'bg-nature-100 text-nature-600 hover:bg-nature-200'}`}
-                                >
-                                    {roleLabel(role)}
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                        {[UserRole.CLIENT, UserRole.PROFESSIONAL, UserRole.SPACE]
-                            .filter((role) => !availableRoles.includes(role))
-                            .map((role) => (
-                                <button
-                                    key={`add-${role}`}
-                                    onClick={() => handleAddRole(role)}
-                                    className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-primary-50 text-primary-700 hover:bg-primary-100 transition-all"
-                                >
-                                    Ativar {roleLabel(role)}
-                                </button>
-                            ))}
-                    </div>
-
-                    <button
-                        onClick={() => setView(homeForRole(activeRole))}
-                        className="w-full mt-1 py-3 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
-                    >
-                        <ChevronRight size={14} /> Ir para home deste perfil
-                    </button>
-                </div>
-
-                {[
-                    { id: ViewState.SETTINGS_PROFILE, label: roleConfig.profile.title, sub: 'BIO, INTENÇÃO E IDENTIDADE', icon: UserIcon, color: 'bg-nature-50 text-nature-400' },
-                    { id: ViewState.SETTINGS_WALLET, label: roleConfig.wallet.title, sub: 'CARTEIRA, KARMA E MOVIMENTAÇÕES', icon: Wallet, color: 'bg-amber-50 text-amber-500' },
-                    { id: ViewState.SETTINGS_NOTIFICATIONS, label: roleConfig.notifications.title, sub: 'ALERTAS DO FLUXO', icon: Bell, color: 'bg-indigo-50 text-indigo-500' },
-                    { id: ViewState.SETTINGS_SECURITY, label: roleConfig.security.title, sub: 'SEGURANÇA E PRIVACIDADE', icon: Lock, color: 'bg-rose-50 text-rose-500' },
-                    { id: roleConfig.assets.route, label: roleConfig.assets.label, sub: roleConfig.assets.sub, icon: ShoppingBag, color: 'bg-primary-50 text-primary-600' },
-                ].map(item => (
-                    <button key={item.id} onClick={() => setView(item.id)} className="w-full bg-white p-6 rounded-[2.5rem] border border-nature-100 flex items-center justify-between group active:scale-[0.98] transition-all hover:shadow-xl shadow-sm">
-                        <div className="flex items-center gap-6">
-                            <div className={`${item.color} p-5 rounded-2xl shadow-inner`}><item.icon size={22} /></div>
-                            <div className="text-left space-y-1"><p className="font-bold text-nature-900 text-sm leading-tight">{item.label}</p><p className="text-[9px] text-nature-300 font-bold uppercase tracking-widest">{item.sub}</p></div>
-                        </div>
-                        <ChevronRight size={20} className="text-nature-100 group-hover:text-primary-500 transition-colors" />
-                    </button>
-                ))}
+                <SettingsRoleSwitcherCard
+                    user={user}
+                    availableRoles={availableRoles}
+                    activeRole={activeRole}
+                    roleBusy={roleBusy}
+                    onSelectRole={handleSelectRole}
+                    onAddRole={handleAddRole}
+                    roleLabel={roleLabel}
+                    onGoToRoleHome={() => setView(homeForRole(activeRole))}
+                />
+                <SettingsMenuCards items={menuItems} onSelect={setView} />
             </div>
-
-            <div className="mt-8 px-2 flex-none pb-12">
-                <button
-                    onClick={() => {
-                        if (onLogout) onLogout();
-                        else {
-                            // Fail-safe
-                            // Fallback navigation if parent handler is absent.
-                            localStorage.removeItem('viva360.auth.token'); // Clear explicitly
-                            window.location.href = '/login';
-                        }
-                    }}
-                    className="w-full py-6 border-2 border-dashed border-rose-100 text-rose-400 rounded-[2rem] font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-rose-50"
-                >
-                    <LogOut size={18} /> Encerrar Sincronia
-                </button>
-                <button
-                    onClick={() => {
-                        if (flow) {
-                            flow.go('DASHBOARD');
-                        } else {
-                            const home = user.role === UserRole.CLIENT ? ViewState.CLIENT_HOME : (user.role === UserRole.PROFESSIONAL ? ViewState.PRO_HOME : ViewState.SPACE_HOME);
-                            setView(home);
-                        }
-                    }}
-                    className="w-full mt-4 py-6 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 active:scale-95 transition-all shadow-xl"
-                >
-                    <ChevronLeft size={18} /> Voltar ao Início
-                </button>
-            </div>
+            <SettingsHomeFooterActions onLogout={handleLogoutFallback} onBackToHome={handleBackToHome} />
         </div>
     );
 };

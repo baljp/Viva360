@@ -4,17 +4,42 @@ import { ViewState, Professional } from '../../types';
 import { PortalView } from '../../components/Common';
 import { api } from '../../services/api';
 
+type SpaceCalendarFlow = {
+    go: (state: string) => void;
+};
+
+type SpaceEventApiRow = {
+    id?: string | number;
+    start_time?: string;
+    startTime?: string;
+    date?: string;
+    title?: string;
+    type?: string;
+    details?: string;
+};
+
+type CalendarEvent = {
+    id: string;
+    time: string;
+    client: string;
+    proId: string | null;
+    proName: string;
+    status: 'confirmed' | 'pending';
+    room: string;
+    startDate: Date;
+};
+
 interface SpaceCalendarProps {
     team: Professional[];
     setView: (v: ViewState) => void;
-    flow: any;
+    flow: SpaceCalendarFlow;
 }
 
 export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flow }) => {
      const [filterPro, setFilterPro] = useState<string>('all');
      const [loading, setLoading] = useState(true);
      const [syncing, setSyncing] = useState(false);
-     const [events, setEvents] = useState<any[]>([]);
+     const [events, setEvents] = useState<CalendarEvent[]>([]);
 
      useEffect(() => {
         let mounted = true;
@@ -23,7 +48,7 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
             try {
                 const rows = await api.spaces.getEvents();
                 if (!mounted) return;
-                const normalized = (Array.isArray(rows) ? rows : []).map((event: any) => {
+                const normalized: CalendarEvent[] = (Array.isArray(rows) ? (rows as SpaceEventApiRow[]) : []).map((event) => {
                     const startDate = new Date(event.start_time || event.startTime || event.date || Date.now());
                     const time = startDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                     return {
@@ -105,7 +130,7 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
                         >
                             Todos
                         </button>
-                        {team.map((t: any) => (
+                        {team.map((t) => (
                              <button 
                                 key={t.id}
                                 onClick={() => setFilterPro(t.id)}
@@ -125,7 +150,7 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
                         </div>
                     ) : filteredApps.length === 0 ? (
                         <div className="p-10 text-center opacity-50">Nenhum agendamento encontrado para este filtro.</div>
-                    ) : filteredApps.map((app: any) => (
+                    ) : filteredApps.map((app) => (
                         <div key={app.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex gap-4 items-center shadow-sm relative overflow-hidden group">
                              <div className="absolute left-0 top-0 bottom-0 w-2 bg-indigo-500"></div>
                              <div className="pl-4">

@@ -4,11 +4,32 @@ import { ViewState, Professional } from '../../types';
 import { PortalView, DynamicAvatar, PresenceBadge } from '../../components/Common';
 import { usePresenceMap } from '../../src/hooks/usePresenceMap';
 
+type SpaceTeamFlow = {
+    notify?: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+    go: (state: string) => void;
+    selectPro: (id: string | number) => void;
+};
+
+type TeamContract = {
+    status?: string;
+    revenueShare?: number;
+    roomsAllowed?: Array<string | number>;
+};
+
+type TeamMember = Professional & {
+    id: string | number;
+    roleLabel?: string;
+    karma?: number;
+    isOccupied?: boolean;
+    specialty?: string[];
+    contract?: TeamContract | null;
+};
+
 interface SpaceTeamProps {
     view: ViewState;
     setView: (v: ViewState) => void;
     team: Professional[];
-    flow: any;
+    flow: SpaceTeamFlow;
 }
 
 // Mock schedule data generator
@@ -23,11 +44,11 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
     const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') =>
       flow?.notify?.(title, message, type);
 
-    const teamArray = Array.isArray(team) ? team : [];
-    const activeMestres = teamArray.filter((p: any) => (p.roleLabel || (p.karma > 800 ? 'Mestre' : 'Guardião')) === 'Mestre').length;
+    const teamArray: TeamMember[] = Array.isArray(team) ? (team as TeamMember[]) : [];
+    const activeMestres = teamArray.filter((p) => (p.roleLabel || ((p.karma || 0) > 800 ? 'Mestre' : 'Guardião')) === 'Mestre').length;
     const activeGuardioes = Math.max(0, teamArray.length - activeMestres);
-    const activeInSession = teamArray.filter((p: any) => p.isOccupied).length;
-    const facilitators = teamArray.filter((p: any) => Array.isArray(p.specialty) && p.specialty.length > 0).length;
+    const activeInSession = teamArray.filter((p) => p.isOccupied).length;
+    const facilitators = teamArray.filter((p) => Array.isArray(p.specialty) && p.specialty.length > 0).length;
 
     const handleInvite = (type: string) => {
         notify('Link Gerado', `Convite para ${type} copiado.`, 'success');
@@ -37,7 +58,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
         notify('Convocação Enviada', `Notificação enviada para ${group} disponíveis.`, 'success');
     };
 
-    const filteredTeam = teamArray.filter((professional: any) => {
+    const filteredTeam = teamArray.filter((professional) => {
         const normalizedSearch = searchTerm.toLowerCase();
         const matchesSearch = (professional.name || '').toLowerCase().includes(normalizedSearch);
         if (!matchesSearch) return false;
@@ -47,8 +68,9 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
         return true;
     });
 
-    const filteredIds = useMemo(() => filteredTeam.map((p: any) => String(p.id || '')).filter(Boolean), [filteredTeam]);
+    const filteredIds = useMemo(() => filteredTeam.map((p) => String(p.id || '')).filter(Boolean), [filteredTeam]);
     const presenceById = usePresenceMap(filteredIds, { pollMs: 30000, maxBatch: 80 });
+    type PresenceStatus = React.ComponentProps<typeof PresenceBadge>['status'];
 
     return (
         <PortalView title="Círculo de Guardiões" subtitle="GESTÃO DE EQUIPE" onBack={() => flow.go('EXEC_DASHBOARD')}>
@@ -99,7 +121,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                 </div>
 
                 <div className="space-y-3">
-                    {filteredTeam.map((pro: any) => (
+                    {filteredTeam.map((pro) => (
                         <div 
                             key={pro.id} 
                             onClick={() => {
@@ -124,7 +146,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                                         {(pro.roleLabel || (pro.karma > 800 ? 'Mestre' : 'Guardião'))} · {pro.specialty && pro.specialty.length > 0 ? pro.specialty[0] : 'Iniciante'}
                                     </p>
                                     <div className="mt-2">
-                                      <PresenceBadge status={(presenceById[String(pro.id)] as any) || 'UNKNOWN'} />
+                                      <PresenceBadge status={((presenceById[String(pro.id)] as PresenceStatus | undefined) || 'UNKNOWN') as PresenceStatus} />
                                     </div>
                                     <div className="flex items-center gap-1.5 mt-1.5">
                                         <span className={`w-1.5 h-1.5 rounded-full ${pro.isOccupied ? 'bg-rose-500' : 'bg-emerald-500'}`}></span>

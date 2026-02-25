@@ -52,6 +52,25 @@ def find_tsx_files(dirs):
                     files.append(os.path.join(root, fn))
     return files
 
+def extract_named_object_block(source, name):
+    marker = f"{name}:"
+    start = source.find(marker)
+    if start < 0:
+        return ""
+    brace_start = source.find("{", start)
+    if brace_start < 0:
+        return ""
+    depth = 0
+    for i in range(brace_start, len(source)):
+        ch = source[i]
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return source[brace_start + 1:i]
+    return ""
+
 # 1. Collect all flow states from types
 print("=" * 80)
 print("VIVA360 DEEP AUDIT")
@@ -80,9 +99,9 @@ for m in re.finditer(r"(\w+):\s*\[([^\]]+)\]", santuario_types.split("santuarioT
 
 # Parse screenMap
 screenmap = read_file(os.path.join(ROOT, "src/navigation/screenMap.tsx"))
-screenmap_buscador = set(re.findall(r"(\w+):\s*\w+", screenmap.split("GUARDIAO")[0])) if "GUARDIAO" in screenmap else set()
-screenmap_guardiao = set(re.findall(r"(\w+):\s*\w+", screenmap.split("GUARDIAO")[1].split("SANTUARIO")[0])) if "SANTUARIO" in screenmap else set()
-screenmap_santuario = set(re.findall(r"(\w+):\s*\w+", screenmap.split("SANTUARIO")[1])) if "SANTUARIO" in screenmap else set()
+screenmap_buscador = set(re.findall(r"(\w+)\s*:\s*\w+", extract_named_object_block(screenmap, "BUSCADOR")))
+screenmap_guardiao = set(re.findall(r"(\w+)\s*:\s*\w+", extract_named_object_block(screenmap, "GUARDIAO")))
+screenmap_santuario = set(re.findall(r"(\w+)\s*:\s*\w+", extract_named_object_block(screenmap, "SANTUARIO")))
 
 print("\n## 1. FLOW STATE vs SCREEN MAP COVERAGE")
 print("-" * 60)

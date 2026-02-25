@@ -11,6 +11,8 @@ interface RegistrationProps {
     onRegister: (userData: Partial<User | Professional>) => void;
 }
 
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
 // --- Componentes de UI Auxiliares ---
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -116,11 +118,11 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             await onRegister({ ...formData, role: UserRole.CLIENT });
             setToast({ title: "Boas-vindas!", message: "Seu perfil foi criado com sucesso. A jornada começa." });
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
             setToast({
                 title: 'Não foi possível concluir',
-                message: e?.message || 'Revise seus dados e tente novamente.',
+                message: errorMessage(e) || 'Revise seus dados e tente novamente.',
             });
             setIsLoading(false);
         }
@@ -132,11 +134,11 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
             const candidate = String(formData.email || '').trim().toLowerCase();
             const expected = candidate.includes('@') ? candidate : undefined;
             await authApi.registerWithGoogle(UserRole.CLIENT, expected);
-        } catch (e: any) {
-            if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
+        } catch (e: unknown) {
+            if (errorMessage(e) !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
                     title: 'Falha no Google',
-                    message: e?.message || 'Não foi possível iniciar o cadastro com Google.',
+                    message: errorMessage(e) || 'Não foi possível iniciar o cadastro com Google.',
                 });
                 setIsLoading(false);
             }
@@ -190,11 +192,11 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             await onRegister({ ...formData, role: UserRole.PROFESSIONAL, rating: 5, swapCredits: 100, isAvailableForSwap: true, needs: [], offers: [] });
             setToast({ title: "Guardião Ativado", message: "Seu dom agora está disponível para o mundo." });
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
             setToast({
                 title: 'Não foi possível concluir',
-                message: e?.message || 'Revise seus dados e tente novamente.',
+                message: errorMessage(e) || 'Revise seus dados e tente novamente.',
             });
             setIsLoading(false);
         }
@@ -206,11 +208,11 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
             const candidate = String(formData.email || '').trim().toLowerCase();
             const expected = candidate.includes('@') ? candidate : undefined;
             await authApi.registerWithGoogle(UserRole.PROFESSIONAL, expected);
-        } catch (e: any) {
-            if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
+        } catch (e: unknown) {
+            if (errorMessage(e) !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
                     title: 'Falha no Google',
-                    message: e?.message || 'Não foi possível iniciar o cadastro com Google.',
+                    message: errorMessage(e) || 'Não foi possível iniciar o cadastro com Google.',
                 });
                 setIsLoading(false);
             }
@@ -261,11 +263,11 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
         try {
             await onRegister({ ...formData, role: UserRole.SPACE });
             setToast({ title: "Santuário Criado", message: "Seu hub de cura está pronto para receber almas." });
-        } catch (e: any) {
+        } catch (e: unknown) {
             console.error(e);
             setToast({
                 title: 'Não foi possível concluir',
-                message: e?.message || 'Revise seus dados e tente novamente.',
+                message: errorMessage(e) || 'Revise seus dados e tente novamente.',
             });
             setIsLoading(false);
         }
@@ -277,11 +279,11 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
             const candidate = String(formData.email || '').trim().toLowerCase();
             const expected = candidate.includes('@') ? candidate : undefined;
             await authApi.registerWithGoogle(UserRole.SPACE, expected);
-        } catch (e: any) {
-            if (e?.message !== 'REDIRECTING_TO_GOOGLE') {
+        } catch (e: unknown) {
+            if (errorMessage(e) !== 'REDIRECTING_TO_GOOGLE') {
                 setToast({
                     title: 'Falha no Google',
-                    message: e?.message || 'Não foi possível iniciar o cadastro com Google.',
+                    message: errorMessage(e) || 'Não foi possível iniciar o cadastro com Google.',
                 });
                 setIsLoading(false);
             }

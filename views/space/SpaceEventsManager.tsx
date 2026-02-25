@@ -17,9 +17,18 @@ interface SpaceEvent {
     status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
     type: 'workshop' | 'retreat' | 'circle' | 'meditation';
     image: string;
-    _raw?: any;
-    _meta?: any;
+    _raw?: Record<string, unknown>;
+    _meta?: Record<string, unknown>;
 }
+
+type SpaceEventApiRow = {
+    id?: string | number;
+    title?: string | null;
+    start_time?: string | null;
+    end_time?: string | null;
+    type?: string | null;
+    details?: string | null;
+} & Record<string, unknown>;
 
 export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
     const { go, back, selectEvent, notify} = useSantuarioFlow();
@@ -28,7 +37,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
     const [isLoading, setIsLoading] = useState(true);
     const [events, setEvents] = useState<SpaceEvent[]>([]);
 
-    const parseMeta = (details?: string | null) => {
+    const parseMeta = (details?: string | null): Record<string, unknown> => {
         if (!details) return {};
         try {
             const parsed = JSON.parse(details);
@@ -38,7 +47,7 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
         }
     };
 
-    const typeFromRaw = (t: any): SpaceEvent['type'] => {
+    const typeFromRaw = (t: unknown): SpaceEvent['type'] => {
         const v = String(t || '').toLowerCase();
         if (v === 'retreat') return 'retreat';
         if (v === 'circle') return 'circle';
@@ -59,9 +68,9 @@ export const SpaceEventsManager: React.FC<{ user: User }> = ({ user }) => {
             setIsLoading(true);
             try {
                 const raw = await api.spaces.getEvents();
-                const list = Array.isArray(raw) ? raw : [];
+                const list = Array.isArray(raw) ? (raw as SpaceEventApiRow[]) : [];
                 const now = Date.now();
-                const mapped: SpaceEvent[] = list.map((e: any) => {
+                const mapped: SpaceEvent[] = list.map((e) => {
                     const meta = parseMeta(e.details);
                     const start = e.start_time ? new Date(e.start_time) : new Date();
                     const end = e.end_time ? new Date(e.end_time) : new Date(start.getTime() + 60 * 60 * 1000);

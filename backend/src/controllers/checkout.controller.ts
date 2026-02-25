@@ -10,6 +10,23 @@ import { logger } from '../lib/logger';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+type CheckoutItem = {
+  id?: string | number;
+  price?: number | string;
+  type?: string;
+};
+
+type CheckoutConfirmation = {
+  confirmationId?: string | null;
+  sentTo?: string[];
+  context?: string | null;
+};
+
+type AppointmentLookup = {
+  id?: string;
+  professional_id?: string | null;
+};
+
 const resolveContextType = (value?: string) => {
   const normalized = String(value || '').trim().toUpperCase();
   if (normalized === 'BAZAR') return 'BAZAR';
@@ -139,12 +156,12 @@ const applyContextWorkflow = async (params: {
 
 const buildCheckoutResponse = (params: {
   requestId?: string;
-  transaction: any;
+  transaction: unknown;
   confirmationId?: string | null;
   counterpartiesNotified?: string[];
   contextAction: string;
   contextLabel?: string;
-  actionReceipt: any;
+  actionReceipt: unknown;
 }) => ({
   status: 'COMPLETED',
   code: 'CHECKOUT_CONFIRMED',
@@ -165,7 +182,14 @@ const buildCheckoutResponse = (params: {
 
 const runCheckout = async (req: Request, res: Response, options?: { strictContextual?: boolean }) => {
   const userId = req.user?.userId;
-  const { amount, description, receiverId, items, contextType, contextRef } = req.body; // items: [{ id, price, type }]
+  const { amount, description, receiverId, items, contextType, contextRef } = req.body as {
+    amount?: number | string;
+    description?: string;
+    receiverId?: string;
+    items?: CheckoutItem[];
+    contextType?: string;
+    contextRef?: string;
+  }; // items: [{ id, price, type }]
   const normalizedAmount = Number(amount || 0);
   const normalizedContext = resolveContextType(contextType);
   if (options?.strictContextual) {
@@ -192,7 +216,7 @@ const runCheckout = async (req: Request, res: Response, options?: { strictContex
       .eq('id', String(contextRef))
       .single();
 
-    const professionalId = String((appointment as any)?.professional_id || '').trim();
+    const professionalId = String((appointment as AppointmentLookup | null)?.professional_id || '').trim();
     if (!resolvedReceiverId && professionalId) {
       resolvedReceiverId = professionalId;
     }
@@ -210,13 +234,13 @@ const runCheckout = async (req: Request, res: Response, options?: { strictContex
 
     if (isMockMode()) {
        // Simulate Cart Checkout
-       const total = items ? items.reduce((acc: number, item: any) => acc + Number(item.price || 0), 0) : normalizedAmount;
+       const total = items ? items.reduce((acc: number, item: CheckoutItem) => acc + Number(item.price || 0), 0) : normalizedAmount;
        
        // UPGRADE: 9.2 Inventory Logic
        if (items) {
            logger.info('inventory.deduct_mock', {
              count: Array.isArray(items) ? items.length : 0,
-             items: Array.isArray(items) ? items.map((i: any) => ({ id: i?.id })) : [],
+             items: Array.isArray(items) ? items.map((i: CheckoutItem) => ({ id: i?.id })) : [],
            });
        }
 
@@ -228,7 +252,7 @@ const runCheckout = async (req: Request, res: Response, options?: { strictContex
          description: description || `Checkout (${items?.length || 1} items)`,
          items: items || [],
          status: 'completed',
-         fulfillment: items?.map((i: any) => ({ itemId: i.id, status: 'fulfilled', type: i.type })) || [],
+         fulfillment: items?.map((i: CheckoutItem) => ({ itemId: i.id, status: 'fulfilled', type: i.type })) || [],
          created_at: new Date().toISOString(),
        };
 
@@ -333,7 +357,7 @@ const runCheckout = async (req: Request, res: Response, options?: { strictContex
       description: String(description || ''),
     });
 
-    let confirmation: any = null;
+    let confirmation: CheckoutConfirmation | null = null;
     try {
       confirmation = await interactionService.emitCheckoutConfirmation({
         buyerId: String(userId),

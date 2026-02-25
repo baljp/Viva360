@@ -6,20 +6,27 @@ import { CloudinaryService } from '../services/cloudinary.service';
 import { isMockMode } from '../services/supabase.service';
 
 const getUserIdCompat = (req: Request): string =>
-  String((req as any).user?.userId || (req as any).user?.id || '').trim();
+  String(req.user?.userId || req.user?.id || '').trim();
 
-const parseRoomMeta = (raw?: string | null): { meta: any; legacyOccupant?: string } => {
+type RoomMeta = {
+  imageUrl?: string;
+  description?: string;
+  occupant?: string;
+  [key: string]: unknown;
+};
+
+const parseRoomMeta = (raw?: string | null): { meta: RoomMeta; legacyOccupant?: string } => {
   if (!raw) return { meta: {} };
   try {
     const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed === 'object') return { meta: parsed };
+    if (parsed && typeof parsed === 'object') return { meta: parsed as RoomMeta };
     return { meta: {}, legacyOccupant: String(raw) };
   } catch {
     return { meta: {}, legacyOccupant: String(raw) };
   }
 };
 
-const serializeRoomMeta = (existing: string | null | undefined, updates: any) => {
+const serializeRoomMeta = (existing: string | null | undefined, updates: Partial<RoomMeta>) => {
   const { meta, legacyOccupant } = parseRoomMeta(existing);
   const next = {
     ...meta,
@@ -36,7 +43,7 @@ export const getRealTime = asyncHandler(async (req: Request, res: Response) => {
     where: hubId ? { hub_id: hubId } : undefined,
     orderBy: { created_at: 'desc' },
   });
-  const shaped = rooms.map((room: any) => {
+  const shaped = rooms.map((room) => {
     const { meta } = parseRoomMeta(room.current_occupant);
     return {
       ...room,
@@ -99,7 +106,7 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
 
   const room = await prisma.room.findUnique({ where: { id } });
   if (!room) return res.status(404).json({ error: 'Room not found' });
-  if (String((room as any).hub_id) !== hubId) {
+  if (String(room.hub_id) !== hubId) {
     return res.status(403).json({ error: 'Forbidden' });
   }
 
@@ -111,7 +118,7 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
     imageUrl = uploaded || payload.imageBase64;
   }
 
-  const nextMetaUpdates: any = {};
+  const nextMetaUpdates: Partial<RoomMeta> = {};
   if (typeof payload.description === 'string') nextMetaUpdates.description = payload.description;
   if (imageUrl) nextMetaUpdates.imageUrl = imageUrl;
 
@@ -121,11 +128,11 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
       ...(payload.name ? { name: payload.name } : {}),
       ...(typeof payload.capacity === 'number' ? { capacity: payload.capacity } : {}),
       ...(payload.status ? { status: payload.status } : {}),
-      ...(Object.keys(nextMetaUpdates).length ? { current_occupant: serializeRoomMeta((room as any).current_occupant, nextMetaUpdates) } : {}),
+      ...(Object.keys(nextMetaUpdates).length ? { current_occupant: serializeRoomMeta(room.current_occupant, nextMetaUpdates) } : {}),
     },
   });
 
-  const { meta } = parseRoomMeta((updated as any).current_occupant);
+  const { meta } = parseRoomMeta(updated.current_occupant);
   return res.json({
     ...updated,
     imageUrl: meta?.imageUrl || null,
@@ -170,10 +177,10 @@ export const listVacancies = asyncHandler(async (req: Request, res: Response) =>
   try {
     const vacancies = await prisma.vacancy.findMany();
     return res.json(vacancies);
-  } catch (error: any) {
+  } catch (error: unknown) {
     // If the table/columns are missing (common when DB wasn't migrated yet),
     // degrade gracefully to an empty list so the UI can show an honest empty state.
-    const code = String(error?.code || '');
+    const code = typeof error === 'object' && error && 'code' in error ? String((error as { code?: string }).code || '') : '';
     if (code === 'P2021' || code === 'P2022') {
       return res.json([]);
     }

@@ -4,22 +4,27 @@ import { PortalView } from '../../components/Common';
 import { ViewState } from '../../types';
 import { api } from '../../services/api';
 import { useAppToast } from '../../src/contexts/AppToastContext';
+import { TimeLapseShareModal } from './TimeLapseShareModal';
+import { normalizeTimeLapseEntries } from './timeLapseUtils';
+import type { GardenSnap, TimeLapseEntry, TimeLapseFlowBridge, TimeLapseModal } from './timeLapseTypes';
 
-export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => void }> = ({ flow, setView }) => {
+type TimeLapseProps = { flow: TimeLapseFlowBridge; setView: (v: ViewState) => void };
+
+export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setView }) => {
     const { showToast: setToast } = useAppToast();
-    const [entries, setEntries] = useState<any[]>([]);
+    const [entries, setEntries] = useState<TimeLapseEntry[]>([]);
     const [isPlaying, setIsPlaying] = useState(false); // Start paused until loaded
     const [currentIndex, setCurrentIndex] = useState(0);
     const [progress, setProgress] = useState(0);
-    const progressInterval = useRef<any>(null);
-    const [activeModal, setActiveModal] = useState<'share_video' | null>(null);
+    const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [activeModal, setActiveModal] = useState<TimeLapseModal>(null);
     const [isRecording, setIsRecording] = useState(false);
     const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const chunksRef = useRef<Blob[]>([]);
     const [loading, setLoading] = useState(true);
-    const [gardenSnaps, setGardenSnaps] = useState<any[]>([]);
+    const [gardenSnaps] = useState<GardenSnap[]>([]);
     const audioRef = useRef<HTMLAudioElement>(null);
     const [volume, setVolume] = useState(0.5);
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
@@ -30,12 +35,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
         api.metamorphosis.getEvolution()
             .then(data => {
                 if (cancelled) return;
-                const list = data.entries || [];
-                const sorted = [...list].map(e => ({
-                    ...e,
-                    timestamp: e.timestamp || e.date || new Date().toISOString(),
-                    photoThumb: e.photoThumb || e.image || ''
-                })).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+                const sorted = normalizeTimeLapseEntries((data || {}) as { entries?: TimeLapseEntry[] });
                 setEntries(sorted);
                 setLoading(false);
                 if (sorted.length > 0) setIsPlaying(true);
@@ -45,7 +45,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
     }, []);
 
     // CANVAS DRAWING (The Engine)
-    const drawFrame = (allEntries: any[], index: number, progress: number) => {
+    const drawFrame = (allEntries: TimeLapseEntry[], index: number, progressValue: number) => {
         const canvas = canvasRef.current;
         const entry = allEntries[index];
         if (!canvas || !entry) return;
@@ -61,7 +61,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
 
         // Clean
         ctx.fillStyle = '#1a1a1a';
-        const garden = gardenSnaps.find(s =>
+        const garden = gardenSnaps.find((s) =>
             new Date(s.date).toDateString() === new Date(entry.timestamp).toDateString()
         );
 
@@ -76,7 +76,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
         }
 
         // Dynamic Zoom Effect based on progress (Ken Burns)
-        const zoom = 1 + (progress / 200);
+        const zoom = 1 + (progressValue / 200);
 
         const draw = () => {
             // --- LAYER 0: JARDIM (BACKGROUND STATE) ---
@@ -234,7 +234,9 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
             });
         }, TICK);
 
-        return () => clearInterval(progressInterval.current);
+        return () => {
+            if (progressInterval.current) clearInterval(progressInterval.current);
+        };
     }, [currentIndex, isPlaying, entries.length, isRecording, gardenSnaps]); // Added gardenSnaps to dependencies
 
     // Initial Draw Force
@@ -436,7 +438,7 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                 {/* Audio source from env; defaults to empty (silent) if not configured */}
                 <audio
                     ref={audioRef}
-                    src={(import.meta as any).env?.VITE_TIMELAPSE_AUDIO_URL || ''}
+                    src={import.meta.env.VITE_TIMELAPSE_AUDIO_URL || ''}
                     loop
                     preload="none"
                 />
@@ -500,28 +502,11 @@ export const TimeLapseView: React.FC<{ flow: any, setView: (v: ViewState) => voi
                 )}
             </div>
 
-            {/* SHARE MODAL */}
-            {activeModal === 'share_video' && (
-                <div className="absolute inset-0 z-[60] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-8 animate-in zoom-in-95 duration-300">
-                    <h3 className="text-3xl font-serif italic text-white mb-4 text-center">Sua História está Pronta! ✨</h3>
-                    <p className="text-white/60 text-sm mb-12 text-center max-w-xs">Reviva e compartilhe seus momentos de evolução.</p>
-
-                    <div className="space-y-3 w-full max-w-sm">
-                        <button onClick={() => shareVideo('whatsapp')} className="w-full py-5 bg-[#25D366] text-white rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all text-sm">
-                            <Share2 size={20} /> Compartilhar no WhatsApp
-                        </button>
-                        <button onClick={() => shareVideo('instagram')} className="w-full py-5 bg-gradient-to-r from-fuchsia-600 via-rose-500 to-amber-400 text-white rounded-2xl flex items-center justify-center gap-3 font-bold uppercase tracking-widest shadow-xl active:scale-95 transition-all text-sm">
-                            <Share2 size={20} /> Preparar para Instagram
-                        </button>
-                        <button onClick={() => shareVideo('download')} className="w-full py-5 bg-white/10 text-white rounded-2xl font-bold uppercase tracking-widest text-sm hover:bg-white/20 transition-all">
-                            Baixar Vídeo
-                        </button>
-                        <button onClick={() => setActiveModal(null)} className="w-full py-4 bg-transparent border border-white/20 text-white rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all">
-                            Voltar
-                        </button>
-                    </div>
-                </div>
-            )}
+            <TimeLapseShareModal
+                isOpen={activeModal === 'share_video'}
+                onShare={(platform) => { void shareVideo(platform); }}
+                onClose={() => setActiveModal(null)}
+            />
         </div>
     );
 };

@@ -7,6 +7,33 @@ import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { commerceApi } from '../../../services/api/commerceClient';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
+type MarketplaceListingApi = {
+    id?: string | number;
+    name?: string | null;
+    description?: string | null;
+    price?: number | string | null;
+    type?: string | null;
+    owner_id?: string | number | null;
+    owner?: { id?: string | number | null; name?: string | null; avatar?: string | null } | null;
+    image?: string | null;
+    created_at?: string | null;
+};
+
+type EscamboListing = {
+    id: string;
+    offer: string;
+    wish: string;
+    notes: string;
+    credits: number;
+    kind: string;
+    owner_id: string;
+    owner: MarketplaceListingApi['owner'];
+    image: string | null;
+    created_at: string | null;
+};
+
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
 export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
     const { go, notify } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'market' | 'my-offers'>('market');
@@ -15,8 +42,8 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
 
     const [loading, setLoading] = useState(true);
     const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
-    const [globalListings, setGlobalListings] = useState<any[]>([]);
-    const [myListings, setMyListings] = useState<any[]>([]);
+    const [globalListings, setGlobalListings] = useState<EscamboListing[]>([]);
+    const [myListings, setMyListings] = useState<EscamboListing[]>([]);
 
     const [createOpen, setCreateOpen] = useState(false);
     const [createSending, setCreateSending] = useState(false);
@@ -43,7 +70,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                 commerceApi.marketplace.list({ category: 'escambo', strict: true }),
                 commerceApi.marketplace.list({ category: 'escambo', ownerId: String(user.id), strict: true }),
             ]);
-            const toListing = (p: any) => ({
+            const toListing = (p: MarketplaceListingApi): EscamboListing => ({
                 id: String(p.id),
                 offer: String(p.name || 'Oferta'),
                 wish: parseWish(p.description),
@@ -59,10 +86,10 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
             const myList = (Array.isArray(mine) ? mine : []).map(toListing);
             if (!cancelled.value) {
                 setMyListings(myList);
-                setGlobalListings(allListings.filter((l: any) => String(l.owner_id) && String(l.owner_id) !== String(user.id)));
+                setGlobalListings(allListings.filter((l) => String(l.owner_id) && String(l.owner_id) !== String(user.id)));
             }
-        } catch (e: any) {
-            console.warn('[ProTribe] Failed to load escambo listings:', e);
+        } catch (e: unknown) {
+            console.warn('[ProTribe] Failed to load escambo listings:', errorMessage(e));
             if (!cancelled.value) {
                 setReadIssue(buildReadFailureCopy(['marketplace'], isDegradedReadError(e)));
                 setGlobalListings([]);
@@ -81,7 +108,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
         return () => { cancelled.value = true; };
     }, []);
 
-    const handlePropose = (item: any) => {
+    const handlePropose = (item: EscamboListing) => {
         const targetName = item?.owner?.name || 'um guardião';
         const targetId = String(item?.owner?.id || item?.owner_id || '').trim();
         if (!targetId) {
@@ -111,7 +138,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
     const source = activeTab === 'my-offers' ? myListings : globalListings;
     const filteredExchanges = useMemo(() => {
         const q = searchTerm.trim().toLowerCase();
-        return source.filter((item: any) => {
+        return source.filter((item) => {
             const kindOk = filter === 'all' || String(item.kind || '').toLowerCase() === String(filter).toLowerCase();
             if (!kindOk) return false;
             if (!q) return true;
@@ -230,7 +257,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                                         Anunciar na Rede Viva
                                     </button>
                                 </div>
-                            ) : filteredExchanges.map((item: any) => (
+                            ) : filteredExchanges.map((item) => (
                                 <div key={item.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm hover:border-indigo-200 transition-all group relative overflow-hidden">
                                     <div className="flex justify-between items-start mb-4">
                                         <div className="flex items-center gap-3">
@@ -301,7 +328,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                                     <button onClick={() => setCreateOpen(true)} className="text-indigo-600 font-bold text-xs uppercase tracking-widest underline">Criar Primeiro Anúncio</button>
                                 </div>
                             ) : (
-                                filteredExchanges.map((item: any) => (
+                                filteredExchanges.map((item) => (
                                     <div key={item.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm hover:border-indigo-200 transition-all relative overflow-hidden">
                                         <div className="flex justify-between items-start mb-4">
                                             <div>
@@ -419,8 +446,8 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                                 setCreateOpen(false);
                                 setCreateData({ offer: '', wish: '', notes: '', credits: 120, kind: 'Mentoria' });
                                 await loadEscambo();
-                            } catch (e: any) {
-                                notify('Falha ao publicar', e?.message || 'Tente novamente.', 'error');
+                            } catch (e: unknown) {
+                                notify('Falha ao publicar', errorMessage(e) || 'Tente novamente.', 'error');
                             } finally {
                                 setCreateSending(false);
                             }

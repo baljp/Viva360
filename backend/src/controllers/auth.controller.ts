@@ -78,7 +78,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     if (!access.canLogin) {
       const isIncomplete = access.reason === 'REGISTRATION_INCOMPLETE';
       logger.warn('auth.login_denied_precheck', {
-        requestId: (req as any).requestId,
+        requestId: req.requestId,
         email: normalizedEmail,
         reason: access.reason,
         accountState: access.accountState,
@@ -118,7 +118,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
     }
 
     logger.info('auth.register_request', {
-      requestId: (req as any).requestId,
+      requestId: req.requestId,
       email: normalizedEmail,
       requestedRole: role || 'CLIENT',
     });
@@ -159,7 +159,7 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
       ? (access.reason === 'OPEN_CLIENT_REGISTRATION' ? ['CLIENT'] : (access.roles?.length ? access.roles : (access.role ? [access.role] : [])))
       : [];
     logger.info('auth.precheck_login', {
-      requestId: (req as any).requestId,
+      requestId: req.requestId,
       email: normalizedEmail,
       allowed: access.canLogin,
       canRegister: access.canRegister,
@@ -180,7 +180,7 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
     });
 });
 
-export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) => {
+export const ensureOAuthProfile = asyncHandler(async (req: Request, res: Response) => {
     if (isMockMode()) {
       return res.status(403).json({ error: 'OAuth indisponível no modo teste.', code: 'MOCK_MODE_BLOCKED' });
     }
@@ -268,7 +268,7 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
     return res.status(201).json({ ok: true, created: true, profile });
 });
 
-export const listRoles = asyncHandler(async (req: any, res: Response) => {
+export const listRoles = asyncHandler(async (req: Request, res: Response) => {
   const userId = String(req.user?.userId || req.user?.id || '').trim();
   const email = String(req.user?.email || '').trim().toLowerCase();
   if (!userId) {
@@ -287,7 +287,7 @@ export const listRoles = asyncHandler(async (req: any, res: Response) => {
   });
 });
 
-export const selectRole = asyncHandler(async (req: any, res: Response) => {
+export const selectRole = asyncHandler(async (req: Request, res: Response) => {
   const userId = String(req.user?.userId || req.user?.id || '').trim();
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
@@ -304,7 +304,7 @@ export const selectRole = asyncHandler(async (req: any, res: Response) => {
   });
 });
 
-export const addRole = asyncHandler(async (req: any, res: Response) => {
+export const addRole = asyncHandler(async (req: Request, res: Response) => {
   const userId = String(req.user?.userId || req.user?.id || '').trim();
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
@@ -321,7 +321,7 @@ export const addRole = asyncHandler(async (req: any, res: Response) => {
   });
 });
 
-export const deleteAccount = asyncHandler(async (req: any, res: Response) => {
+export const deleteAccount = asyncHandler(async (req: Request, res: Response) => {
   const userId = String(req.user?.userId || req.user?.id || '').trim();
   const email = String(req.user?.email || '').trim().toLowerCase();
   if (!userId) {

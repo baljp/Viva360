@@ -1,0 +1,656 @@
+{
+  "summary": {
+    "generatedAt": "2026-02-25T02:29:47.473516+00:00",
+    "sourceSnapshot": {
+      "ref": "fb436e66",
+      "path": "AUDIT_RESULTS.json"
+    },
+    "currentAuditPath": "AUDIT_RESULTS.json",
+    "oldMissingScreensCount": 106,
+    "currentMissingScreensCount": 0,
+    "classificationCounts": {
+      "OK_INTERNO": 106,
+      "DEAD_END": 0,
+      "VIEW_FALTANDO": 0
+    },
+    "rootCause": "Parser de screenMap no deep_audit.py usava split textual frágil; substituído por extração brace-aware."
+  },
+  "items": [
+    {
+      "profile": "BUSCADOR",
+      "state": "BOOKING_CONFIRM",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "BOOKING_SEARCH",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "BOOKING_SELECT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CHAT_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CHAT_NEW",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CHAT_ROOM",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CHAT_SETTINGS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CHECKOUT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CLIENT_JOURNAL",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CLIENT_QUESTS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "DASHBOARD",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "EVOLUTION",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "EVOLUTION_ACHIEVEMENTS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "EVOLUTION_ANALYTICS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "EVOLUTION_HISTORY",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "EVOLUTION_TIMELAPSE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "EVO_GRIMOIRE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "GARDEN_VIEW",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "HEALING_CIRCLE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "HISTORY",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "KARMA_WALLET",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "MARKETPLACE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "METAMORPHOSIS_CAMERA",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "METAMORPHOSIS_CHECKIN",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "METAMORPHOSIS_FEEDBACK",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "METAMORPHOSIS_MESSAGE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "METAMORPHOSIS_RITUAL",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "OFFLINE_RETREAT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "ORACLE_HISTORY",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "ORACLE_PORTAL",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "ORACLE_REVEAL",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "ORACLE_SHUFFLE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "PAYMENT_HISTORY",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "PAYMENT_SUCCESS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "SETTINGS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "SOUL_PACT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "TIME_LAPSE_EXPERIENCE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "TRIBE_DASH",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "TRIBE_INTERACTION",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "TRIBE_INVITE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "AGENDA_CONFIRM",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "AGENDA_EDIT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "AGENDA_VIEW",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "ALQUIMIA_CREATE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "CHAT_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "CHAT_ROOM",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "CUSTOM_INTERVENTION",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "DASHBOARD",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "ESCAMBO_CONFIRM",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "ESCAMBO_MARKET",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "ESCAMBO_PROPOSE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "ESCAMBO_TRADE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "FINANCE_DETAILS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "FINANCE_OVERVIEW",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "FINANCIAL_DASHBOARD",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "PATIENTS_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "PATIENT_PLAN",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "PATIENT_PROFILE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "PATIENT_RECORDS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "SANTUARIO_CONTRACT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "SANTUARIO_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "SANTUARIO_PROFILE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "SETTINGS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "TRIBE_CHAT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "TRIBE_PRO",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "VAGAS_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "VAGA_APPLY",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "VAGA_DETAILS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "VIDEO_PREP",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "VIDEO_SESSION",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "AGENDA_EDIT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "AGENDA_OVERVIEW",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ANALYTICS_DASH",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "AUDIT_LOG",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "CHAT_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "CHAT_ROOM",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "EVENTS_MANAGE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "EVENT_CREATE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "EXEC_DASHBOARD",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "FINANCE_FORECAST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "FINANCE_OVERVIEW",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "FINANCE_REPASSES",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "GOVERNANCE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "MARKETPLACE_CREATE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "MARKETPLACE_MANAGE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PATIENTS_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PATIENT_PROFILE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PATIENT_RECORDS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PREDICTIVE_OCCUPANCY",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PROS_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PRO_PERFORMANCE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PRO_PROFILE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "RADIANCE_DRILLDOWN",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "REPUTATION_OVERVIEW",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "RETREATS_MANAGE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ROOMS_STATUS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ROOM_AGENDA",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ROOM_CREATE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ROOM_DETAILS",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ROOM_EDIT",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "SERVICE_EVALUATION",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "TEAM_INVITE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "TEAM_SUMMON",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "VAGAS_LIST",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "VAGA_CANDIDATES",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "VAGA_CREATE",
+      "classification": "OK_INTERNO",
+      "reason": "Falso positivo do parser antigo de screenMap (corrigido no deep_audit.py)"
+    }
+  ]
+}
