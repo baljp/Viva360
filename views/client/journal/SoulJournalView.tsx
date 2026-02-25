@@ -8,6 +8,28 @@ import { motion } from 'framer-motion';
 import { generateShareCanvas, shareToSocial } from '../../../src/utils/sharing';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
+// Calcula streak de dias consecutivos a partir dos entries
+const calcStreak = (entries: Array<{ createdAt: string }>): number => {
+    if (!entries.length) return 0;
+    // Agrupa por data (YYYY-MM-DD), mais recente primeiro
+    const days = [...new Set(
+        entries.map(e => new Date(e.createdAt).toISOString().slice(0, 10))
+    )].sort((a, b) => b.localeCompare(a));
+
+    let streak = 0;
+    let cursor = new Date();
+    cursor.setHours(0, 0, 0, 0);
+
+    for (const day of days) {
+        const d = new Date(day);
+        const diff = Math.round((cursor.getTime() - d.getTime()) / 86_400_000);
+        if (diff > 1) break; // gap maior que 1 dia: streak quebrado
+        streak++;
+        cursor = d;
+    }
+    return streak;
+};
+
 export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
     const { go, notify} = useBuscadorFlow();
     const [entries, setEntries] = useState<DailyJournalEntry[]>([]);
@@ -20,7 +42,7 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
             try {
                 const list = await api.journal.list();
                 setEntries(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-                setStats({ total: list.length, streak: 0 });
+                setStats({ total: list.length, streak: calcStreak(list) });
                 setReadIssue(null);
             } catch (err) {
                 const copy = buildReadFailureCopy(['records'], isDegradedReadError(err));
@@ -99,7 +121,7 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                         <div className="w-px h-10 bg-nature-100" />
                         <div className="flex flex-col items-center">
                             <span className="text-xs font-bold uppercase tracking-widest text-nature-400">Streak</span>
-                            <span className="text-2xl font-serif text-emerald-600">{user.streak || 0}</span>
+                            <span className="text-2xl font-serif text-emerald-600">{stats?.streak ?? user.streak ?? 0}</span>
                         </div>
                     </div>
                 </div>
@@ -124,7 +146,7 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                                 api.journal.list()
                                   .then((list) => {
                                     setEntries(list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-                                    setStats({ total: list.length, streak: 0 });
+                                    setStats({ total: list.length, streak: calcStreak(list) });
                                   })
                                   .catch((err) => {
                                     const copy = buildReadFailureCopy(['records'], isDegradedReadError(err));
@@ -215,10 +237,17 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                     )}
                 </div>
 
-                 {/* FAB for manual entry (future) or prompt */}
-                 <div className="p-6 bg-white border-t border-nature-100">
-                     <p className="text-center text-xs text-nature-400 italic">
-                         "Escrever é conversar consigo mesmo em silêncio."
+                 {/* FAB — Nova Entrada no Diário */}
+                 <div className="p-4 bg-white border-t border-nature-100 flex gap-3 items-center">
+                     <button
+                         onClick={() => go('METAMORPHOSIS_CHECKIN')}
+                         className="flex-1 flex items-center justify-center gap-2 py-4 bg-nature-900 text-white rounded-[2rem] font-bold text-[11px] uppercase tracking-widest shadow-lg active:scale-95 transition-all hover:bg-nature-800"
+                     >
+                         <Plus size={18} />
+                         Nova Entrada
+                     </button>
+                     <p className="text-[10px] text-nature-400 italic text-right leading-tight max-w-[100px]">
+                         "Escrever é<br/>conversar consigo."
                      </p>
                  </div>
             </div>

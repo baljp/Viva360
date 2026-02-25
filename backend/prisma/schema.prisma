@@ -124,6 +124,7 @@ model Profile {
 
   @@map("profiles")
   @@schema("public") // Prisma default is public but explicit is better
+  soulCardEntries SoulCardEntry[]
 }
 
 model ProfileRole {
@@ -739,5 +740,24 @@ model AuditEvent {
   @@index([actor_id])
   @@index([entity_type, entity_id])
   @@map("audit_events")
+  @@schema("public")
+}
+
+model SoulCardEntry {
+  id           String   @id @default(uuid()) @db.Uuid
+  profile_id   String   @db.Uuid
+  card_id      String
+  archetype    String
+  element      String
+  rarity       String
+  message      String
+  visual_theme String
+  xp_reward    Int      @default(0)
+  drawn_at     DateTime @default(now()) @db.Timestamptz(6)
+
+  profile Profile @relation(fields: [profile_id], references: [id], onDelete: Cascade)
+
+  @@unique([profile_id, card_id])
+  @@map("soul_card_entries")
   @@schema("public")
 }

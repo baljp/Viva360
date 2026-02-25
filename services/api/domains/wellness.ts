@@ -256,4 +256,43 @@ export const createWellnessDomain = ({
       }
     },
   },
+
+  soulCards: {
+    // POST /soul-cards/draw — persiste carta sorteada no backend
+    draw: async (card: {
+      id: string; archetype: string; element: string;
+      rarity: 'common' | 'rare' | 'epic' | 'legendary';
+      message: string; visualTheme: string; xpReward: number;
+    }) => {
+      try {
+        return await request('/soul-cards/draw', {
+          method: 'POST',
+          body: JSON.stringify({
+            cardId:      card.id,
+            archetype:   card.archetype,
+            element:     card.element,
+            rarity:      card.rarity,
+            message:     card.message,
+            visualTheme: card.visualTheme,
+            xpReward:    card.xpReward,
+          }),
+        });
+      } catch {
+        return { success: false }; // localStorage é o fallback
+      }
+    },
+    // GET /soul-cards/collection — busca coleção persistida no backend
+    getCollection: async (): Promise<Array<{
+      id: string; archetype: string; element: string;
+      rarity: string; message: string; visualTheme: string;
+      xpReward: number; createdAt: string;
+    }>> => {
+      try {
+        const data = await request('/soul-cards/collection');
+        return Array.isArray(data) ? data : [];
+      } catch {
+        return []; // fallback: localStorage será usado
+      }
+    },
+  },
 });

@@ -83,4 +83,7 @@ router.use('/links', authenticateUser, profileLinksRoutes);
 router.use('/presence', presenceRoutes); // Presence can be partially public
 router.use('/gamification', authenticateUser, gamificationRoutes);
 
+import soulCardsRoutes from './soulCards.routes';
+router.use('/soul-cards', authenticateUser, soulCardsRoutes);
+
 export default router;
