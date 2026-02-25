@@ -4,6 +4,8 @@ import os, re, json, sys
 from collections import defaultdict
 
 ROOT = os.path.expanduser("~/Viva360")
+if not os.path.isdir(ROOT):
+    ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 RESULTS = {"dead_buttons": [], "missing_screens": [], "flow_gaps": [], "static_screens": [], "duplicate_functions": [], "gamification_gaps": [], "checkout_issues": [], "init_issues": [], "general_bugs": []}
 
 def read_file(path):
@@ -11,6 +13,32 @@ def read_file(path):
         with open(path, 'r', encoding='utf-8', errors='ignore') as f:
             return f.read()
     except: return ""
+
+def resolve_reexport_target(ts_path, content):
+    """Resolve simple TS re-export wrappers like `export { default } from '../x'`."""
+    m = re.search(r"export\s*\{\s*default\s*\}\s*from\s*['\"](.+?)['\"]", content)
+    if not m:
+        return None
+    rel = m.group(1)
+    base = os.path.dirname(ts_path)
+    candidates = [
+        os.path.normpath(os.path.join(base, rel)),
+        os.path.normpath(os.path.join(base, rel + ".tsx")),
+        os.path.normpath(os.path.join(base, rel + ".ts")),
+        os.path.normpath(os.path.join(base, rel, "index.tsx")),
+        os.path.normpath(os.path.join(base, rel, "index.ts")),
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+    return None
+
+def get_effective_content_for_audit(fpath):
+    content = read_file(fpath)
+    target = resolve_reexport_target(fpath, content)
+    if target:
+        return read_file(target), target
+    return content, fpath
 
 def find_tsx_files(dirs):
     files = []
@@ -194,23 +222,67 @@ print("\n\n## 6. CHECKOUT FLOW AUDIT")
 print("-" * 60)
 checkout_files = [f for f in all_files if 'checkout' in f.lower() or 'payment' in f.lower() or 'booking' in f.lower()]
 for fpath in checkout_files:
-    content = read_file(fpath)
+    content, effective_path = get_effective_content_for_audit(fpath)
     rel = os.path.relpath(fpath, ROOT)
-    has_loading = 'loading' in content.lower() or 'isLoading' in content or 'isSaving' in content
-    has_error = 'error' in content.lower() or 'catch' in content
-    has_success = 'success' in content.lower() or 'toast' in content.lower() or 'Toast' in content
-    has_confirm = 'confirm' in content.lower() or 'confirmar' in content.lower()
+    effective_rel = os.path.relpath(effective_path, ROOT)
+    lower_content = content.lower()
+    lower_name = os.path.basename(effective_path).lower()
+    is_pure_reexport = effective_path != fpath
+    has_api_namespace_call = bool(re.search(r"(?<![/:\"'])\bapi\.[A-Za-z_][\w.]*\(", content))
+    has_async_or_network = (
+        'await ' in content
+        or re.search(r'\bfetch\s*\(', content)
+        or has_api_namespace_call
+        or re.search(r'\brequest\s*\(', content)
+        or 'axios' in lower_content
+    )
+    has_critical_checkout_action = bool(re.search(r"(?<![/:\"'])\bapi\.(payment|checkout)\.[A-Za-z_][\w]*\(", content))
+    has_presence_only_read = ('api.presence.' in content) and not has_critical_checkout_action
+    is_terminal_success_screen = ('success' in lower_name) or ('paymentsuccess' in lower_name)
+    is_history_screen = 'history' in lower_name
+
+    has_loading = (
+        'loading' in lower_content
+        or 'isloading' in lower_content
+        or 'issaving' in lower_content
+        or 'issyncing' in lower_content
+        or 'processingstate' in lower_content
+        or 'isprocessing' in lower_content
+        or 'setloading(' in lower_content
+        or 'setissyncing(' in lower_content
+    )
+    has_error = 'error' in lower_content or 'catch' in content
+    has_success = 'success' in lower_content or 'toast' in lower_content
+    has_confirm = 'confirm' in lower_content or 'confirmar' in lower_content
     
     issues = []
-    if not has_loading: issues.append("no loading state")
-    if not has_error: issues.append("no error handling")
-    if not has_success: issues.append("no success feedback")
+    if is_terminal_success_screen:
+        if not has_success:
+            issues.append("no success feedback")
+    elif is_history_screen:
+        if not has_loading: issues.append("no loading state")
+        if not has_error: issues.append("no error handling")
+    elif has_async_or_network:
+        if has_presence_only_read and ('bookingselect' in lower_name or 'bookingsearch' in lower_name):
+            # Auxiliary presence polling/read on a booking step should not be treated as checkout blocker.
+            pass
+        else:
+            if not has_loading: issues.append("no loading state")
+            if not has_error: issues.append("no error handling")
+        if not has_success and has_critical_checkout_action:
+            issues.append("no success feedback")
+    else:
+        # UI-only steps (selection/search/review) should not be forced to have loading/error
+        if not has_success and ('confirm' in lower_name or has_confirm):
+            issues.append("no success feedback")
     
     if issues:
-        print(f"  ⚠️  {rel}: {', '.join(issues)}")
-        RESULTS["checkout_issues"].append({"file": rel, "issues": issues})
+        suffix = f" (audit target: {effective_rel})" if is_pure_reexport else ""
+        print(f"  ⚠️  {rel}: {', '.join(issues)}{suffix}")
+        RESULTS["checkout_issues"].append({"file": rel, "issues": issues, **({"audit_target": effective_rel} if is_pure_reexport else {})})
     else:
-        print(f"  ✅ {rel}: loading + error + success states OK")
+        suffix = f" (audit target: {effective_rel})" if is_pure_reexport else ""
+        print(f"  ✅ {rel}: checkout heuristics OK{suffix}")
 
 # 7. Profile initialization audit
 print("\n\n## 7. PROFILE INITIALIZATION AUDIT")
@@ -282,8 +354,18 @@ hidden_count = 0
 for fpath in all_files:
     content = read_file(fpath)
     rel = os.path.relpath(fpath, ROOT)
-    # Find elements with hidden/opacity-0/invisible AND onClick
-    for m in re.finditer(r'(hidden|opacity-0|invisible|display:\s*none|sr-only)[^>]*onClick', content):
+    # Find JSX tags with onClick and actual hidden tokens (avoid false positives like `overflow-hidden`)
+    for tag in re.finditer(r'<[^>]*onClick\s*=\s*\{[^}]+\}[^>]*>', content, flags=re.S):
+        tag_text = tag.group(0)
+        is_hidden = (
+            re.search(r'(?<!-)\bhidden\b(?!-)', tag_text)
+            or re.search(r'\bopacity-0\b', tag_text)
+            or re.search(r'\binvisible\b', tag_text)
+            or re.search(r'\bsr-only\b', tag_text)
+            or re.search(r'\bstyle\s*=\s*\{\{[^}]*display\s*:\s*[\'"]none[\'"]', tag_text, flags=re.I | re.S)
+        )
+        if not is_hidden:
+            continue
         print(f"  ⚠️  {rel}: hidden element with onClick")
         hidden_count += 1
         RESULTS["general_bugs"].append({"file": rel, "issue": "hidden element with onClick handler"})

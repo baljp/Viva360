@@ -3,95 +3,7 @@
   "missing_screens": [
     {
       "profile": "BUSCADOR",
-      "state": "PAYMENT_HISTORY"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "GARDEN_VIEW"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "EVO_GRIMOIRE"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "TIME_LAPSE_EXPERIENCE"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "TRIBE_INVITE"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "METAMORPHOSIS_RITUAL"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "SOUL_PACT"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "CHAT_ROOM"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "HISTORY"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "TRIBE_VIEW"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "CHAT_NEW"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "METAMORPHOSIS_CHECKIN"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "TRIBE_DETAILS"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "METAMORPHOSIS_CAMERA"
-    },
-    {
-      "profile": "BUSCADOR",
       "state": "METAMORPHOSIS_MESSAGE"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "KARMA_WALLET"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "TRIBE_INTERACTION"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "CHAT_SETTINGS"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "BOOKING_SEARCH"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "OFFLINE_RETREAT"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "METAMORPHOSIS_FEEDBACK"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "MARKETPLACE"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "DASHBOARD"
     },
     {
       "profile": "BUSCADOR",
@@ -99,35 +11,23 @@
     },
     {
       "profile": "BUSCADOR",
-      "state": "CHAT_LIST"
+      "state": "HISTORY"
     },
     {
       "profile": "BUSCADOR",
-      "state": "EVOLUTION_HISTORY"
+      "state": "BOOKING_CONFIRM"
     },
     {
       "profile": "BUSCADOR",
-      "state": "CLIENT_JOURNAL"
+      "state": "METAMORPHOSIS_RITUAL"
     },
     {
       "profile": "BUSCADOR",
-      "state": "TRIBE_DASH"
+      "state": "CHAT_SETTINGS"
     },
     {
       "profile": "BUSCADOR",
-      "state": "PAYMENT_SUCCESS"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "EVOLUTION_TIMELAPSE"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "ORACLE_HISTORY"
-    },
-    {
-      "profile": "BUSCADOR",
-      "state": "HEALING_CIRCLE"
+      "state": "EVO_GRIMOIRE"
     },
     {
       "profile": "BUSCADOR",
@@ -135,19 +35,31 @@
     },
     {
       "profile": "BUSCADOR",
-      "state": "ORACLE_REVEAL"
+      "state": "METAMORPHOSIS_FEEDBACK"
     },
     {
       "profile": "BUSCADOR",
-      "state": "BOOKING_SELECT"
+      "state": "OFFLINE_RETREAT"
     },
     {
       "profile": "BUSCADOR",
-      "state": "ORACLE_PORTAL"
+      "state": "TRIBE_INTERACTION"
     },
     {
       "profile": "BUSCADOR",
-      "state": "BOOKING_CONFIRM"
+      "state": "GARDEN_VIEW"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "PAYMENT_SUCCESS"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "MARKETPLACE"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CHAT_LIST"
     },
     {
       "profile": "BUSCADOR",
@@ -159,27 +71,103 @@
     },
     {
       "profile": "BUSCADOR",
-      "state": "SETTINGS"
+      "state": "CHAT_NEW"
     },
     {
       "profile": "BUSCADOR",
       "state": "EVOLUTION_ANALYTICS"
     },
     {
+      "profile": "BUSCADOR",
+      "state": "BOOKING_SELECT"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "HEALING_CIRCLE"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "BOOKING_SEARCH"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "METAMORPHOSIS_CAMERA"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "TIME_LAPSE_EXPERIENCE"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "KARMA_WALLET"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "METAMORPHOSIS_CHECKIN"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "EVOLUTION_HISTORY"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "TRIBE_DASH"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "DASHBOARD"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CLIENT_JOURNAL"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CLIENT_QUESTS"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "ORACLE_PORTAL"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "PAYMENT_HISTORY"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "CHAT_ROOM"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "ORACLE_HISTORY"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "SOUL_PACT"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "SETTINGS"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "EVOLUTION_TIMELAPSE"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "TRIBE_INVITE"
+    },
+    {
+      "profile": "BUSCADOR",
+      "state": "ORACLE_REVEAL"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "VAGAS_LIST"
+    },
+    {
       "profile": "GUARDIAO",
       "state": "PATIENTS_LIST"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "VIDEO_PREP"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "TRIBE_PRO"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "CHAT_ROOM"
     },
     {
       "profile": "GUARDIAO",
@@ -191,34 +179,6 @@
     },
     {
       "profile": "GUARDIAO",
-      "state": "FINANCE_DETAILS"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "FINANCIAL_DASHBOARD"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "ESCAMBO_CONFIRM"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "ALQUIMIA_CREATE"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "ESCAMBO_PROPOSE"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "VAGA_APPLY"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "VIDEO_SESSION"
-    },
-    {
-      "profile": "GUARDIAO",
       "state": "FINANCE_OVERVIEW"
     },
     {
@@ -227,19 +187,11 @@
     },
     {
       "profile": "GUARDIAO",
-      "state": "VAGAS_LIST"
+      "state": "PATIENT_RECORDS"
     },
     {
       "profile": "GUARDIAO",
-      "state": "PATIENT_PROFILE"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "DASHBOARD"
-    },
-    {
-      "profile": "GUARDIAO",
-      "state": "SANTUARIO_PROFILE"
+      "state": "AGENDA_EDIT"
     },
     {
       "profile": "GUARDIAO",
@@ -247,23 +199,23 @@
     },
     {
       "profile": "GUARDIAO",
-      "state": "CHAT_LIST"
+      "state": "ESCAMBO_PROPOSE"
     },
     {
       "profile": "GUARDIAO",
-      "state": "SANTUARIO_CONTRACT"
+      "state": "TRIBE_PRO"
     },
     {
       "profile": "GUARDIAO",
-      "state": "PATIENT_RECORDS"
+      "state": "SANTUARIO_PROFILE"
     },
     {
       "profile": "GUARDIAO",
-      "state": "VAGA_DETAILS"
+      "state": "ALQUIMIA_CREATE"
     },
     {
       "profile": "GUARDIAO",
-      "state": "CUSTOM_INTERVENTION"
+      "state": "FINANCIAL_DASHBOARD"
     },
     {
       "profile": "GUARDIAO",
@@ -271,7 +223,39 @@
     },
     {
       "profile": "GUARDIAO",
-      "state": "SETTINGS"
+      "state": "CHAT_LIST"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "FINANCE_DETAILS"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "ESCAMBO_MARKET"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "SANTUARIO_CONTRACT"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "VAGA_APPLY"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "CUSTOM_INTERVENTION"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "VAGA_DETAILS"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "ESCAMBO_CONFIRM"
+    },
+    {
+      "profile": "GUARDIAO",
+      "state": "DASHBOARD"
     },
     {
       "profile": "GUARDIAO",
@@ -279,39 +263,23 @@
     },
     {
       "profile": "GUARDIAO",
-      "state": "AGENDA_EDIT"
+      "state": "CHAT_ROOM"
     },
     {
       "profile": "GUARDIAO",
-      "state": "ESCAMBO_MARKET"
+      "state": "VIDEO_PREP"
     },
     {
-      "profile": "SANTUARIO",
-      "state": "PATIENTS_LIST"
+      "profile": "GUARDIAO",
+      "state": "SETTINGS"
     },
     {
-      "profile": "SANTUARIO",
-      "state": "MARKETPLACE_CREATE"
+      "profile": "GUARDIAO",
+      "state": "PATIENT_PROFILE"
     },
     {
-      "profile": "SANTUARIO",
-      "state": "EVENT_CREATE"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "VAGA_CREATE"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "EXEC_DASHBOARD"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "SERVICE_EVALUATION"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "MARKETPLACE_MANAGE"
+      "profile": "GUARDIAO",
+      "state": "VIDEO_SESSION"
     },
     {
       "profile": "SANTUARIO",
@@ -319,23 +287,11 @@
     },
     {
       "profile": "SANTUARIO",
-      "state": "GOVERNANCE"
+      "state": "VAGAS_LIST"
     },
     {
       "profile": "SANTUARIO",
-      "state": "CHAT_ROOM"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "PRO_PERFORMANCE"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "RETREATS_MANAGE"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "RADIANCE_DRILLDOWN"
+      "state": "PATIENTS_LIST"
     },
     {
       "profile": "SANTUARIO",
@@ -343,71 +299,7 @@
     },
     {
       "profile": "SANTUARIO",
-      "state": "PREDICTIVE_OCCUPANCY"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "FINANCE_OVERVIEW"
-    },
-    {
-      "profile": "SANTUARIO",
       "state": "EVENTS_MANAGE"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "TEAM_SUMMON"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "VAGAS_LIST"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "ROOM_EDIT"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "PATIENT_PROFILE"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "CHAT_LIST"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "PATIENT_RECORDS"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "AGENDA_OVERVIEW"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "ROOMS_STATUS"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "FINANCE_FORECAST"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "TEAM_INVITE"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "ROOM_AGENDA"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "REPUTATION_OVERVIEW"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "PRO_PROFILE"
-    },
-    {
-      "profile": "SANTUARIO",
-      "state": "VAGA_CANDIDATES"
     },
     {
       "profile": "SANTUARIO",
@@ -415,7 +307,35 @@
     },
     {
       "profile": "SANTUARIO",
-      "state": "PROS_LIST"
+      "state": "RADIANCE_DRILLDOWN"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "FINANCE_OVERVIEW"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "MARKETPLACE_CREATE"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "RETREATS_MANAGE"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PREDICTIVE_OCCUPANCY"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PATIENT_RECORDS"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "AGENDA_EDIT"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "MARKETPLACE_MANAGE"
     },
     {
       "profile": "SANTUARIO",
@@ -423,11 +343,87 @@
     },
     {
       "profile": "SANTUARIO",
+      "state": "TEAM_SUMMON"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "CHAT_LIST"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PRO_PERFORMANCE"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PRO_PROFILE"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "EXEC_DASHBOARD"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "EVENT_CREATE"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ROOM_EDIT"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "GOVERNANCE"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ROOM_AGENDA"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "ROOMS_STATUS"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "AGENDA_OVERVIEW"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "VAGA_CREATE"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "TEAM_INVITE"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "REPUTATION_OVERVIEW"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "FINANCE_FORECAST"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "PROS_LIST"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "VAGA_CANDIDATES"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "CHAT_ROOM"
+    },
+    {
+      "profile": "SANTUARIO",
+      "state": "SERVICE_EVALUATION"
+    },
+    {
+      "profile": "SANTUARIO",
       "state": "ROOM_CREATE"
     },
     {
       "profile": "SANTUARIO",
-      "state": "AGENDA_EDIT"
+      "state": "PATIENT_PROFILE"
     }
   ],
   "flow_gaps": [],
@@ -448,7 +444,27 @@
       "go": 0
     },
     {
-      "file": "views/client/ClientMarketplace.tsx",
+      "file": "views/settings/settingsUtils.ts",
+      "onclick": 0,
+      "go": 0
+    },
+    {
+      "file": "views/settings/settingsViewHelpers.ts",
+      "onclick": 0,
+      "go": 0
+    },
+    {
+      "file": "views/settings/settingsConfig.ts",
+      "onclick": 0,
+      "go": 0
+    },
+    {
+      "file": "views/metamorphosis/metamorphosisConfig.tsx",
+      "onclick": 0,
+      "go": 0
+    },
+    {
+      "file": "views/metamorphosis/metamorphosisCardCanvas.ts",
       "onclick": 0,
       "go": 0
     },
@@ -458,89 +474,29 @@
       "go": 0
     },
     {
-      "file": "views/client/financial/PaymentHistoryScreen.tsx",
+      "file": "views/client/garden/dailyRitualCanvas.ts",
+      "onclick": 0,
+      "go": 0
+    },
+    {
+      "file": "views/routes/SpaceRouteShell.tsx",
+      "onclick": 0,
+      "go": 0
+    },
+    {
+      "file": "views/routes/ProRouteShell.tsx",
+      "onclick": 0,
+      "go": 0
+    },
+    {
+      "file": "views/routes/ClientRouteShell.tsx",
       "onclick": 0,
       "go": 0
     }
   ],
   "duplicate_functions": [],
-  "gamification_gaps": [
-    {
-      "element": "leaderboard",
-      "usage_count": 1
-    },
-    {
-      "element": "challenge",
-      "usage_count": 0
-    },
-    {
-      "element": "rank",
-      "usage_count": 0
-    }
-  ],
-  "checkout_issues": [
-    {
-      "file": "views/client/BookingSearch.tsx",
-      "issues": [
-        "no error handling"
-      ]
-    },
-    {
-      "file": "views/client/BookingSelect.tsx",
-      "issues": [
-        "no loading state",
-        "no error handling",
-        "no success feedback"
-      ]
-    },
-    {
-      "file": "views/client/generated/BookingConfirm.tsx",
-      "issues": [
-        "no loading state"
-      ]
-    },
-    {
-      "file": "views/client/generated/Checkout.tsx",
-      "issues": [
-        "no loading state",
-        "no error handling",
-        "no success feedback"
-      ]
-    },
-    {
-      "file": "views/client/generated/PaymentSuccess.tsx",
-      "issues": [
-        "no loading state",
-        "no error handling"
-      ]
-    },
-    {
-      "file": "views/client/financial/PaymentHistoryScreen.tsx",
-      "issues": [
-        "no success feedback"
-      ]
-    },
-    {
-      "file": "components/Checkout.tsx",
-      "issues": [
-        "no loading state",
-        "no error handling"
-      ]
-    }
-  ],
+  "gamification_gaps": [],
+  "checkout_issues": [],
   "init_issues": [],
-  "general_bugs": [
-    {
-      "file": "views/pro/ProDashboard.tsx",
-      "issue": "hidden element with onClick handler"
-    },
-    {
-      "file": "views/client/ClientDashboard.tsx",
-      "issue": "hidden element with onClick handler"
-    },
-    {
-      "file": "components/SmartTutorial.tsx",
-      "issue": "hidden element with onClick handler"
-    }
-  ]
+  "general_bugs": []
 }
