@@ -40,8 +40,27 @@ const app = express();
 app.use(compression());
 
 // Middleware
+// SEC-CSP: Content-Security-Policy active on API responses.
+// Tightened for serverless (Vercel Functions) — no inline scripts needed on API.
+// Frontend static CSP is handled separately via vercel.json headers.
 app.use(helmet({
-  contentSecurityPolicy: false, // For easier dev, can be tightened
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:  ["'self'"],
+      scriptSrc:   ["'self'"],
+      styleSrc:    ["'self'"],
+      imgSrc:      ["'self'", "data:"],
+      connectSrc:  ["'self'", "https://*.supabase.co", "wss://*.supabase.co"],
+      fontSrc:     ["'self'"],
+      objectSrc:   ["'none'"],
+      frameSrc:    ["'none'"],
+      baseUri:     ["'self'"],
+      formAction:  ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: isProductionRuntime ? [] : undefined,
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow Supabase realtime WebSocket
 })); 
 const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')

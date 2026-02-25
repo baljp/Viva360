@@ -18,7 +18,10 @@ const isMock = process.env.MOCK_MODE === 'true' || !hasExplicitRedisConfig;
 if (isServerless && !isMock) {
   logger.info('redis.serverless_enabled');
 } else if (isServerless) {
-  logger.info('redis.serverless_no_config_fallback_mock');
+  // SEC-REDIS: Distributed rate limiting is DISABLED. Each serverless instance
+  // tracks request counts independently. Configure REDIS_URL (e.g. Upstash) to
+  // enable cross-region rate limit enforcement in production.
+  logger.warn('redis.serverless_no_config_RATE_LIMIT_NOT_DISTRIBUTED');
 }
 
 // Mock Redis Class
@@ -67,7 +70,7 @@ if (!isMock) {
     redisConnection.on('connect', () => logger.info('redis.connected'));
     redisConnection.on('error', (err: unknown) => logger.error('redis.error', err));
 } else {
-    logger.info('redis.mock_mode');
+    logger.warn('redis.mock_mode — rate limiting is in-memory only; set REDIS_URL for distributed enforcement');
 }
 
 export const isRedisEnabled = !isMock;

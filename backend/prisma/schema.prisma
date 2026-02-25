@@ -173,6 +173,8 @@ model Appointment {
   client       Profile? @relation("ClientAppointments", fields: [client_id], references: [id])
   professional Profile? @relation("ProAppointments", fields: [professional_id], references: [id])
 
+  @@index([client_id, status])
+  @@index([professional_id, status])
   @@map("appointments")
   @@schema("public")
 }
@@ -206,6 +208,8 @@ model Transaction {
 
   user Profile @relation(fields: [user_id], references: [id])
 
+  @@index([status, date])
+  @@index([user_id, date])
   @@map("transactions")
   @@schema("public")
 }
@@ -221,6 +225,8 @@ model Notification {
 
   user Profile @relation(fields: [user_id], references: [id])
 
+  @@index([user_id, read])
+  @@index([user_id, timestamp])
   @@map("notifications")
   @@schema("public")
 }
@@ -271,6 +277,8 @@ model ChatMessage {
   sender   Profile @relation("SentMessages", fields: [sender_id], references: [id])
   receiver Profile @relation("ReceivedMessages", fields: [receiver_id], references: [id])
 
+  @@index([chat_id, created_at])
+  @@index([sender_id])
   @@map("chat_messages")
   @@schema("public")
 }
@@ -360,6 +368,7 @@ model CalendarEvent {
 
   user Profile @relation(fields: [user_id], references: [id])
 
+  @@index([user_id])
   @@map("calendar_events")
   @@schema("public")
 }
@@ -392,6 +401,8 @@ model Record {
   patient      Profile @relation("PatientRecords", fields: [patient_id], references: [id])
   professional Profile @relation("ProfessionalRecords", fields: [professional_id], references: [id])
 
+  @@index([patient_id])
+  @@index([professional_id])
   @@map("records")
   @@schema("public")
 }
@@ -543,6 +554,8 @@ model MarketplaceOrder {
   seller  Profile @relation("SellerOrders", fields: [seller_id], references: [id])
   product Product @relation(fields: [product_id], references: [id])
 
+  @@index([buyer_id])
+  @@index([seller_id, status])
   @@map("marketplace_orders")
   @@schema("public")
 }
