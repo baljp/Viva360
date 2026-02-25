@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { sendPushSimulation } from './notifications.controller';
 import { isMockMode, supabaseAdmin } from '../services/supabase.service';
+import { mockCheckoutResult } from '../services/mockAdapter';
 import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
@@ -233,33 +234,19 @@ const runCheckout = async (req: Request, res: Response, options?: { strictContex
   }
 
     if (isMockMode()) {
-       // Simulate Cart Checkout
        const total = items ? items.reduce((acc: number, item: CheckoutItem) => acc + Number(item.price || 0), 0) : normalizedAmount;
-       
-       // UPGRADE: 9.2 Inventory Logic
        if (items) {
            logger.info('inventory.deduct_mock', {
              count: Array.isArray(items) ? items.length : 0,
              items: Array.isArray(items) ? items.map((i: CheckoutItem) => ({ id: i?.id })) : [],
            });
        }
-
-       const mockResult = {
-         id: 'mock-tx-cart-id',
-         user_id: userId || 'mock-sender',
-         type: 'expense',
-         amount: total,
-         description: description || `Checkout (${items?.length || 1} items)`,
-         items: items || [],
-         status: 'completed',
-         fulfillment: items?.map((i: CheckoutItem) => ({ itemId: i.id, status: 'fulfilled', type: i.type })) || [],
-         created_at: new Date().toISOString(),
-       };
+       const mockResult = mockCheckoutResult({ userId, amount: total, description, items });
 
        const contextResult = await applyContextWorkflow({
         contextType: normalizedContext,
         contextRef: contextRef || null,
-        buyerId: String(userId || 'mock-sender'),
+        buyerId: String(userId || ''),
         receiverId: resolvedReceiverId ? String(resolvedReceiverId) : null,
         amount: total,
         description: String(description || ''),

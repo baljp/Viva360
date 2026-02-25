@@ -3,6 +3,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
 import { isMockMode } from '../services/supabase.service';
+import { mockReviewResponse } from '../services/mockAdapter';
 
 /**
  * GET /reviews/:spaceId
@@ -32,7 +33,7 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
 
     const total = Number(countResult?.[0]?.count || 0);
     const reviews = events.map((e) => {
-        const payload = (e as any).payload;
+        const payload = (e as Record<string, unknown>).payload;
         const p = typeof payload === 'string' ? JSON.parse(payload) : payload;
         return {
             id: String((e as any).id || ''),
@@ -66,10 +67,10 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
     );
 
     const ratings = events.map((e) => {
-        const payload = (e as any).payload;
+        const payload = (e as Record<string, unknown>).payload;
         const p = typeof payload === 'string' ? JSON.parse(payload) : payload;
         return Number(p.rating || 0);
-    }).filter((r: number) => r > 0);
+    }).filter((r) => r > 0);
 
     const totalReviews = ratings.length;
     const averageRating = totalReviews > 0
@@ -86,7 +87,7 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
     const guardianRatings = guardianEvents.map((e: any) => {
         const p = typeof e.payload === 'string' ? JSON.parse(e.payload) : e.payload;
         return Number(p.rating || 0);
-    }).filter((r: number) => r > 0);
+    }).filter((r) => r > 0);
     const guardianAverage = guardianRatings.length > 0
         ? +(guardianRatings.reduce((s, r) => s + r, 0) / guardianRatings.length).toFixed(1)
         : 0;
@@ -129,19 +130,9 @@ export const createReview = asyncHandler(async (req: Request, res: Response) => 
     const resolvedSpaceId = spaceId || String(body.space_id || '').trim() || 'mock-space';
 
     if (isMockMode()) {
-        const id = `mock-review-${Date.now()}`;
-        logger.info('reviews.created.mock', { id, resolvedSpaceId, userId, rating: numericRating });
-        return res.status(201).json({
-            id,
-            spaceId: resolvedSpaceId,
-            targetId: targetId || null,
-            targetType: targetType || 'guardian',
-            targetName: targetName || '',
-            authorName,
-            rating: numericRating,
-            comment,
-            createdAt: new Date().toISOString(),
-        });
+        const mock = mockReviewResponse({ spaceId: resolvedSpaceId, targetId: targetId || null, targetType, targetName, authorName, rating: numericRating, comment });
+        logger.info('reviews.created.mock', { id: mock.id, resolvedSpaceId, userId, rating: numericRating });
+        return res.status(201).json(mock);
     }
 
     const payload = {

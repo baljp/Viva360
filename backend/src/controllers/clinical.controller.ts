@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { isMockMode } from '../services/supabase.service';
+import { mockEventResponse } from '../services/mockAdapter';
 
 const INTERVENTION_EVENT_TYPE = 'CLINICAL_INTERVENTION';
 
@@ -10,12 +11,7 @@ export const saveIntervention = asyncHandler(async (req: Request, res: Response)
   const payload = req.body || {};
 
   if (isMockMode()) {
-    return res.status(201).json({
-      id: `intervention_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      userId,
-      ...payload,
-    });
+    return res.status(201).json(mockEventResponse('intervention', userId, payload));
   }
 
   const created = await prisma.event.create({

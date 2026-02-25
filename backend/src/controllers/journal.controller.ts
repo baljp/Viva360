@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { isMockMode } from '../services/supabase.service';
+import { mockEventResponse } from '../services/mockAdapter';
 
 const JOURNAL_EVENT_TYPE = 'JOURNAL_ENTRY';
 
@@ -40,12 +41,7 @@ export const createEntry = asyncHandler(async (req: Request, res: Response) => {
   const payload = req.body || {};
 
   if (isMockMode()) {
-    return res.status(201).json({
-      id: `journal_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      userId,
-      ...payload,
-    });
+    return res.status(201).json(mockEventResponse('journal', userId, payload));
   }
 
   const created = await prisma.event.create({

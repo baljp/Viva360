@@ -6,6 +6,7 @@ import { notificationEngine } from '../services/notificationEngine.service';
 import { z } from 'zod';
 import { logger } from '../lib/logger';
 import { isMockMode } from '../services/supabase.service';
+import { mockAdapter, makeMockRecord } from '../services/mockAdapter';
 
 const createRecordSchema = z.object({
     patientId: z.string().min(2),
@@ -25,30 +26,6 @@ const CONSENT_LINK_TYPE = 'patient';
 const ACTIVE_CONSENT_STATUSES = new Set(['ACTIVE', 'ACCEPTED']);
 const STRICT_RECORD_CONSENT = String(process.env.STRICT_RECORD_CONSENT || '').toLowerCase() === 'true';
 
-type MockConsentStatus = 'ACTIVE' | 'REVOKED';
-type MockRecord = {
-    id: string;
-    patient_id: string;
-    professional_id: string;
-    content: string;
-    type: 'anamnesis' | 'session';
-    created_at: string;
-    updated_at: string;
-};
-
-const mockRecordsStore = (() => {
-    const g = globalThis as any;
-    if (!g.__vivaMockRecordsStore) {
-        g.__vivaMockRecordsStore = {
-            consents: new Map<string, MockConsentStatus>(),
-            records: new Map<string, MockRecord>(),
-        };
-    }
-    return g.__vivaMockRecordsStore as {
-        consents: Map<string, MockConsentStatus>;
-        records: Map<string, MockRecord>;
-    };
-})();
 
 const consentKey = (patientId: string, professionalId: string) => `${patientId}::${professionalId}`;
 
@@ -75,13 +52,13 @@ const isProfessionalRoleProfile = async (profileId: string) => {
 
 const hasActiveConsentForRecord = async (patientId: string, professionalId: string) => {
     if (isMockMode()) {
-        return mockRecordsStore.consents.get(consentKey(patientId, professionalId)) === 'ACTIVE';
+        return mockAdapter.records.consents.get(consentKey(patientId, professionalId)) === 'ACTIVE';
     }
     const consent = await prisma.profileLink.findUnique({
         where: { source_id_target_id_type: { source_id: patientId, target_id: professionalId, type: CONSENT_LINK_TYPE } },
         select: { status: true },
-    }).catch((error: any) => {
-        const code = String(error?.code || '');
+    }).catch((error: unknown) => {
+        const code = typeof error === 'object' && error && 'code' in error ? String((error as { code?: string }).code || '') : '';
         if (code === 'P2021' || code === 'P2022') return null;
         throw error;
     });
@@ -117,7 +94,7 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
 
     if (isMockMode()) {
         if (patientId !== proId) {
-            const consentGranted = mockRecordsStore.consents.get(consentKey(patientId, proId)) === 'ACTIVE';
+            const consentGranted = mockAdapter.records.consents.get(consentKey(patientId, proId)) === 'ACTIVE';
             if (!consentGranted) return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente não concedeu consentimento para este prontuário.' });
         }
         const now = new Date().toISOString();
@@ -130,7 +107,7 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
             created_at: now,
             updated_at: now,
         };
-        mockRecordsStore.records.set(record.id, record);
+        mockAdapter.records.records.set(record.id, record);
         return res.status(201).json(record);
     }
 
@@ -167,7 +144,7 @@ export const listNotes = asyncHandler(async (req: Request, res: Response) => {
     }
 
     if (isMockMode()) {
-        const records = Array.from(mockRecordsStore.records.values())
+        const records = Array.from(mockAdapter.records.records.values())
             .filter((record) => {
                 if (record.patient_id !== targetPatientId) return false;
                 if (userRole === 'PROFESSIONAL' && targetPatientId !== requestorId) return record.professional_id === requestorId;
@@ -220,7 +197,7 @@ export const grantAccess = asyncHandler(async (req: Request, res: Response) => {
     if (professionalId === patientId) return res.status(400).json({ error: 'Não é possível conceder consentimento para si mesmo.' });
 
     if (isMockMode()) {
-        mockRecordsStore.consents.set(consentKey(patientId, professionalId), 'ACTIVE');
+        mockAdapter.records.consents.set(consentKey(patientId, professionalId), 'ACTIVE');
         return res.json({ success: true, consent: { patientId, professionalId, status: 'ACTIVE' } });
     }
 
@@ -245,7 +222,7 @@ export const revokeAccess = asyncHandler(async (req: Request, res: Response) => 
     if (!professionalId) return res.status(400).json({ error: 'professionalId inválido.' });
 
     if (isMockMode()) {
-        mockRecordsStore.consents.set(consentKey(patientId, professionalId), 'REVOKED');
+        mockAdapter.records.consents.set(consentKey(patientId, professionalId), 'REVOKED');
         return res.json({ success: true, consent: { patientId, professionalId, status: 'REVOKED' } });
     }
 
