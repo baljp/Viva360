@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Professional, Transaction } from '../../../types';
-import { PortalView, BottomSheet, ZenToast } from '../../../components/Common';
+import { PortalView, BottomSheet } from '../../../components/Common'; // ZenToast removido: usa notify() do GuardiaoFlow
 import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { request } from '../../../services/api';
 import { useCountUp } from '../../../src/hooks/useCountUp';

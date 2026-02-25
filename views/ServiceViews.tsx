@@ -1,45 +1,30 @@
 
-import React, { useState, useEffect } from 'react';
-import { ViewState, Appointment, Professional, User } from '../types';
-import { Video, Mic, MicOff, VideoOff, X, FileText, User as UserIcon, Clock, ChevronLeft, Heart, Sparkles, MessageSquare, ShieldCheck, Share2, Wind, Ticket, History, Calendar as CalendarIcon, Tag, Wallet, Timer, ArrowUpRight, PlayCircle } from 'lucide-react';
-import { api } from '../services/api';
-import { DynamicAvatar, OrganicSkeleton, Card, PortalView } from '../components/Common';
+import React, { useState } from 'react';
+import { ViewState, Appointment, User } from '../types';
+import { Video, Mic, MicOff, VideoOff, X, FileText, Heart, ShieldCheck, Ticket, History, Calendar as CalendarIcon, Tag, Timer, ArrowUpRight, PlayCircle } from 'lucide-react';
+import { DynamicAvatar, OrganicSkeleton, PortalView } from '../components/Common';
 import { useGuardiaoFlow } from '../src/flow/useGuardiaoFlow';
 import { useOrdersList } from '../src/hooks/useOrdersList';
 
-// Fix: Added missing VideoSessionView component for tele-health ritual sessions
+// ✅ VideoSessionView — Rules of Hooks compliant, sem mock data, sem window.location
 export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void, flow?: any }> = ({ appointment, onEnd, flow }) => {
-  let contextApt = null;
-  try {
-    const guardiaoFlow = (useGuardiaoFlow as any)();
-    contextApt = guardiaoFlow?.state?.selectedAppointment;
-  } catch (e) {
-    // Not in Guardiao flow, ignore
-  }
+  // ✅ Hook chamado incondicionalmente no top-level (Rules of Hooks)
+  const guardiaoFlow = useGuardiaoFlow();
+  const contextApt = guardiaoFlow?.state?.selectedAppointment ?? null;
 
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
 
-  // Mock Data if appointment is missing
-  // Mock Data if appointment is missing (Logic for when accessed via go('VIDEO_SESSION') without props)
-  const activeAppointment: any = appointment || contextApt || flow?.state?.selectedAppointment || {
-    serviceName: 'Sessão de Cura (Mock)',
-    clientName: 'Buscador de Luz',
-    professionalName: 'Guardião da Luz',
-    date: new Date().toISOString(),
-    startTime: new Date().toISOString(),
-    status: 'in_progress'
-  };
+  // ✅ Usa appointment real: props > flow context > flow prop. Sem mock fallback.
+  const activeAppointment: Appointment | null =
+    appointment ?? contextApt ?? flow?.state?.selectedAppointment ?? null;
 
-  const handleEnd = onEnd || (() => {
-    // Prefer flow context navigation over browser history to avoid SPA inconsistencies.
-    try {
-      const guardiaoFlow = (useGuardiaoFlow as any)();
-      if (guardiaoFlow?.go) { guardiaoFlow.go('DASHBOARD'); return; }
-      if (guardiaoFlow?.back) { guardiaoFlow.back(); return; }
-    } catch { /* not in guardiao context */ }
-    window.location.href = '/pro/home';
+  // ✅ Sem window.location.href — navega via flow
+  const handleEnd = onEnd ?? (() => {
+    if (guardiaoFlow?.go) { guardiaoFlow.go('DASHBOARD'); return; }
+    if (guardiaoFlow?.back) { guardiaoFlow.back(); return; }
+    window.history.back();
   });
 
   const jitsiDomain = (import.meta as any).env?.VITE_JITSI_DOMAIN || 'meet.jit.si';
@@ -57,7 +42,7 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-primary-500 rounded-2xl flex items-center justify-center font-serif text-xl italic shadow-lg">V</div>
           <div>
-            <h3 className="font-bold text-sm">{activeAppointment.serviceName || 'Ritual de Cura'}</h3>
+            <h3 className="font-bold text-sm">{activeAppointment?.serviceName ?? 'Ritual de Cura'}</h3>
             <p className="text-[10px] text-primary-300 font-bold uppercase tracking-widest flex items-center gap-1.5"><Timer size={10} className="animate-pulse" /> Sessão em curso</p>
           </div>
         </div>
@@ -74,7 +59,7 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
             className="absolute inset-0 w-full h-full"
           />
           <div className="absolute bottom-6 left-6 flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
-            <span className="text-xs font-bold text-white">{activeAppointment.clientName || 'Sessão Viva360'}</span>
+            <span className="text-xs font-bold text-white">{activeAppointment?.clientName ?? 'Sessão Viva360'}</span>
             <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">{roomName}</span>
           </div>
           <div className="absolute top-6 right-6 text-[9px] font-bold uppercase tracking-widest text-white/50 bg-black/30 px-3 py-1.5 rounded-full border border-white/10">

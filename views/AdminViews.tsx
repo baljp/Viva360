@@ -7,12 +7,14 @@ import {
     Search, Ban, Eye, FileText, ChevronRight, Activity, DollarSign, Database
 } from 'lucide-react';
 import { PortalView, ZenToast, Card } from '../components/Common';
+import { useAppToast } from '../src/contexts/AppToastContext';
 
 export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void }> = ({ user, view, setView }) => {
     const [stats, setStats] = useState<any>(null);
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [toast, setToast] = useState<{ title: string, message: string } | null>(null);
+    // ✅ Toast centralizado via AppToastProvider (sem vazamento local)
+    const { showToast: setToast, toast, clearToast } = useAppToast();
 
     const handleLegalReportExport = () => {
         const csv = ['acao,alvo,data', `relatorio_legal,consent_logs,${new Date().toISOString()}`].join('\n');
@@ -83,6 +85,8 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
 
     // --- DASHBOARD ---
     if (view === ViewState.ADMIN_DASHBOARD) return (
+        <>
+        {toast && <ZenToast toast={toast} onClose={clearToast} />}
         <PortalView title="Governança" subtitle="VISÃO EXECUTIVA" showCloseWithBack={false}>
             <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
@@ -118,10 +122,13 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 </div>
             </div>
         </PortalView>
+        </>
     );
 
     // --- USERS ---
     if (view === ViewState.ADMIN_USERS) return (
+        <>
+        {toast && <ZenToast toast={toast} onClose={clearToast} />}
         <PortalView title="Comunidade" subtitle="GESTÃO DE ACESSO" onBack={() => setView(ViewState.ADMIN_DASHBOARD)}>
             <div className="space-y-6">
                 <div className="relative group">
@@ -150,10 +157,13 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 </div>
             </div>
         </PortalView>
+        </>
     );
 
     // --- LGPD ---
     if (view === ViewState.ADMIN_LGPD) return (
+        <>
+        {toast && <ZenToast toast={toast} onClose={clearToast} />}
         <PortalView title="Privacidade" subtitle="AUDITORIA LGPD" onBack={() => setView(ViewState.ADMIN_DASHBOARD)}>
             <div className="space-y-6">
                 <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 space-y-4">
@@ -176,6 +186,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 <button onClick={handleLegalReportExport} className="w-full py-5 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"><FileText size={16} /> Exportar Relatório Legal</button>
             </div>
         </PortalView>
+        </>
     );
 
     return null;

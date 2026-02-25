@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
-import { PortalView, ZenToast, DynamicAvatar, InteractiveButton } from '../../../components/Common';
+import { PortalView, DynamicAvatar, InteractiveButton } from '../../../components/Common';
 import { Star, ThumbsUp, MessageCircle, Send, Heart, Award, Loader2 } from 'lucide-react';
 import { api } from '../../../services/api';
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
-import { PortalView, ZenToast } from '../../../components/Common';
+import { PortalView } from '../../../components/Common';
 import { Sparkles, TrendingUp, Gift, ShoppingBag, Users, Zap, History, Lock, ArrowRight, Award, Star } from 'lucide-react';
 import { User } from '../../../types';
 import { getUserRank, getRankProgress, CLIENT_RANKS, CLIENT_ACHIEVEMENTS, checkAchievements, getUnlockedCount } from '../../../utils/gamification';

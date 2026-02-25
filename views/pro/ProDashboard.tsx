@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ViewState, Professional, User, Notification } from '../../types';
 import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle, Video, Trophy, Target, Flame, Star, CheckCircle2, Award, Lock } from 'lucide-react';
-import { DynamicAvatar, PortalCard, ZenToast, Logo, NotificationDrawer } from '../../components/Common';
+import { DynamicAvatar, PortalCard, Logo, NotificationDrawer } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { api } from '../../services/api';
 import { useGuardianPresence } from '../../src/hooks/useGuardianPresence';

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { User, DailyRitualSnap, MoodType } from '../../../types';
 import { Camera, ArrowRight, Heart, Sparkles, Droplet, Check, Share2, X, Sun, Download, Instagram } from 'lucide-react';
-import { CameraWidget, ZenToast } from '../../../components/Common';
+import { CameraWidget } from '../../../components/Common';
 import type { CameraCaptureResult } from '../../../components/Common/CameraWidget';
 import { SoulCard } from '../../../src/components/SoulCard';
 import { phraseService } from '../../../services/phraseService';
