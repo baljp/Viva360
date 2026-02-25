@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
-import { isMockMode } from '../services/supabase.service';
-import { mockEventResponse } from '../services/mockAdapter';
+import { isMockMode, mockEventResponse } from '../services/mockAdapter';
 
 const INTERVENTION_EVENT_TYPE = 'CLINICAL_INTERVENTION';
 

@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
-import { isMockMode } from '../services/supabase.service';
 import { mockReviewResponse } from '../services/mockAdapter';
 
 /**

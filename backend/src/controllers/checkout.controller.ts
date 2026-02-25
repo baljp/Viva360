@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { sendPushSimulation } from './notifications.controller';
-import { isMockMode, supabaseAdmin } from '../services/supabase.service';
-import { mockCheckoutResult } from '../services/mockAdapter';
+import { supabaseAdmin } from '../services/supabase.service';
+import { isMockMode, mockCheckoutResult } from '../services/mockAdapter';
 import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';

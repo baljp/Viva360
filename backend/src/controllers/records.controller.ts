@@ -5,8 +5,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { notificationEngine } from '../services/notificationEngine.service';
 import { z } from 'zod';
 import { logger } from '../lib/logger';
-import { isMockMode } from '../services/supabase.service';
-import { mockAdapter, makeMockRecord } from '../services/mockAdapter';
+import { isMockMode, mockAdapter, makeMockRecord } from '../services/mockAdapter';
 
 const createRecordSchema = z.object({
     patientId: z.string().min(2),

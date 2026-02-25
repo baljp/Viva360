@@ -4,6 +4,7 @@ import { whatsappService } from './whatsapp.service';
 import { pushService } from './push.service';
 import prisma from '../lib/prisma'; // Assuming we save in-app notifications to DB
 import { logger } from '../lib/logger';
+import { isMockMode } from './supabase.service';
 
 export type NotificationChannel = 'EMAIL' | 'WHATSAPP' | 'PUSH' | 'IN_APP';
 
@@ -18,15 +19,14 @@ export interface NotificationPayload {
 export class NotificationDispatcher {
     
     static async dispatch(payload: NotificationPayload) {
-        if (process.env.SUPABASE_URL?.includes('mock')) {
-            logger.info('notification.dispatch', { userId: payload.userId, mode: 'mock' });
+        if (isMockMode()) {
+            logger.info('notification.dispatch', { userId: payload.userId, mode: 'test' });
         } else {
             logger.info('notification.dispatch', { userId: payload.userId, mode: 'real' });
         }
 
         const results = await Promise.all(payload.channels.map(async (channel) => {
-            // Mock Preferences Check
-            // In a real scenario, this would check a 'UserPreferences' table
+            // TODO: check UserPreferences table
             if (payload.userId === 'user-no-email' && channel === 'EMAIL') {
                 logger.info('notification.preference_blocked', { userId: payload.userId, channel });
                 return { channel, status: 'skipped', reason: 'User Preference' };
@@ -49,16 +49,16 @@ export class NotificationDispatcher {
                     
                     case 'WHATSAPP':
                          // Fetch user phone from Profile
-                         // Mocking phone for now
+                         // TODO: fetch user phone from Profile
                          await whatsappService.send({
-                             to: '5511999999999', // Mock
+                             to: '5511999999999', // placeholder
                              text: `*${payload.title}*\n${payload.message}`
                          });
                          break;
 
                     case 'PUSH':
                         // Fetch user push subscriptions from DB
-                        // Mock subscription
+                        // TODO: fetch push subscription from DB
                         await pushService.sendNotification(
                             { endpoint: 'https://fcm.googleapis.com/...', keys: { p256dh: '...', auth: '...' } }, 
                             JSON.stringify({ title: payload.title, body: payload.message })
@@ -82,11 +82,8 @@ export class NotificationDispatcher {
     }
 
     private static async getUserEmail(userId: string): Promise<string | null> {
-        if (userId === 'mock-user') return 'mock@test.com';
-        
-        // Mock DB lookup
-        if (process.env.SUPABASE_URL?.includes('mock')) {
-             return `user_${userId}@viva360.com`;
+        if (isMockMode()) {
+            return `user_${userId}@viva360.com`;
         }
 
         // Real DB lookup

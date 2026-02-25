@@ -1,8 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
-import { isMockMode } from '../services/supabase.service';
-import { mockEventResponse } from '../services/mockAdapter';
+import { isMockMode, mockEventResponse } from '../services/mockAdapter';
 
 const JOURNAL_EVENT_TYPE = 'JOURNAL_ENTRY';
 
@@ -37,7 +36,7 @@ const computeStreak = (dates: string[]) => {
 };
 
 export const createEntry = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
   const payload = req.body || {};
 
   if (isMockMode()) {
@@ -62,7 +61,7 @@ export const createEntry = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const listEntries = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
 
   if (isMockMode()) {
     return res.json([]);
@@ -91,7 +90,7 @@ export const listEntries = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getJournalStats = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId;
+  const userId = req.user?.userId;
 
   if (isMockMode()) {
     return res.json({ totalEntries: 0, streak: 0, commonWords: [] });

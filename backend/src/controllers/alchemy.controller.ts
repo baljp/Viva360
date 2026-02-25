@@ -4,8 +4,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 import { z } from 'zod';
-import { isMockMode } from '../services/supabase.service';
-import { mockAdapter, makeMockSwapOffer } from '../services/mockAdapter';
+import { isMockMode, mockAdapter, makeMockSwapOffer } from '../services/mockAdapter';
 
 const counterSchema = z.object({
   counterOffer: z.string().min(3).max(500),

@@ -4,8 +4,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
-import { isMockMode } from '../services/supabase.service';
-import { mockAdapter, makeMockApplication, makeMockInterview } from '../services/mockAdapter';
+import { isMockMode, mockAdapter, makeMockApplication, makeMockInterview } from '../services/mockAdapter';
 
 const applySchema = z.object({
   vacancyId: z.string().uuid().or(z.string().min(1)),

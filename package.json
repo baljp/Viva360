@@ -80,7 +80,8 @@
     "data:reset-mock:dry": "npx tsx backend/scripts/reset_mock_test_data.ts",
     "data:reset-mock": "npx tsx backend/scripts/reset_mock_test_data.ts --execute",
     "data:purge-profile:dry": "npx tsx backend/scripts/reset_mock_test_data.ts --purge-email=bal_19@msn.com",
-    "data:purge-profile": "npx tsx backend/scripts/reset_mock_test_data.ts --execute --purge-email=bal_19@msn.com"
+    "data:purge-profile": "npx tsx backend/scripts/reset_mock_test_data.ts --execute --purge-email=bal_19@msn.com",
+    "qa:mock-refs-count-gate": "npx tsx scripts/check_mock_refs_count_gate.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^9.9.0",

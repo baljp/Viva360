@@ -2,8 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { marketplaceService } from '../services/marketplace.service';
 import prisma from '../lib/prisma';
-import { isMockMode } from '../services/supabase.service';
-import { mockProductResponse } from '../services/mockAdapter';
+import { isMockMode, mockProductResponse } from '../services/mockAdapter';
 import { handleDbReadFallback } from '../lib/dbReadFallback';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {

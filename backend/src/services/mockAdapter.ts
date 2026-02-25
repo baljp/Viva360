@@ -1,19 +1,20 @@
 /**
  * MockAdapter — ponto único de toda a lógica mock do backend.
  *
- * Antes: cada controller definia seu próprio `mockXStore` via globalThis,
- * declarava tipos locais e repetia o padrão de ID + Map.
- * Agora: um único módulo exporta os stores, tipos e factories.
+ * Regra arquitetural: controllers e serviços importam APENAS deste módulo
+ * para tudo relacionado a mock — stores, factories, guards e o flag isMockMode.
+ * Nenhum arquivo de produção deve importar de supabase.service diretamente
+ * para checar o modo mock.
  *
- * Importar:
- *   import { mockAdapter } from '../services/mockAdapter';
+ * Importar (um único import por controller):
+ *   import { isMockMode, mockAdapter } from '../services/mockAdapter';
  *
- * Uso nos controllers:
- *   if (isMockMode()) {
- *     const offer = mockAdapter.alchemy.offers.get(id);
- *     ...
- *   }
+ * Uso:
+ *   if (isMockMode()) { const offer = mockAdapter.alchemy.offers.get(id); }
  */
+
+// ─── Re-export: flag de modo mock (single source of truth para controllers) ──
+export { isMockMode } from './supabase.service';
 
 // ─── Unique ID factory ────────────────────────────────────────────────────────
 

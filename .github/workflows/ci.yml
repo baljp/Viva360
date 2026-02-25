@@ -41,6 +41,9 @@ jobs:
       - name: Enforce round-trip evidence gate (mixed/partial require explicit evidence or temporary allowlist)
         run: npm run qa:feature-contract-roundtrip-gate
 
+      - name: Enforce mock refs count gate (threshold=420, meta <300)
+        run: npm run qa:mock-refs-count-gate
+
       - name: Validate flow registry + warning gate
         run: npm run qa:validate-flow-registry && npm run qa:flow-registry-warn-gate
 
