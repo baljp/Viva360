@@ -3,6 +3,7 @@ import { presenceService } from '../services/presence.service';
 import { authenticateUser } from '../middleware/auth.middleware';
 
 const router = Router();
+const MAX_BATCH_GUARDIAN_IDS = 100;
 type ErrorWithMessage = { message?: string };
 const getUserId = (req: Request) => String(req.user?.id || req.user?.userId || '').trim();
 const errorMessage = (error: unknown) =>
@@ -80,11 +81,31 @@ router.get('/', authenticateUser, async (_req: Request, res: Response) => {
 // Batch get presence
 router.post('/batch', authenticateUser, async (req: Request, res: Response) => {
   try {
-    const { guardianIds } = req.body as { guardianIds: string[] };
+    const { guardianIds } = req.body as { guardianIds: unknown };
     if (!guardianIds || !Array.isArray(guardianIds)) {
       return res.status(400).json({ error: 'guardianIds array required' });
     }
-    const statuses = await presenceService.getStatusBatch(guardianIds);
+
+    const normalizedIds = guardianIds
+      .map((value) => String(value || '').trim())
+      .filter(Boolean);
+
+    if (normalizedIds.length === 0) {
+      return res.status(400).json({ error: 'guardianIds must contain at least one valid id' });
+    }
+
+    const uniqueIds = Array.from(new Set(normalizedIds));
+
+    if (uniqueIds.length > MAX_BATCH_GUARDIAN_IDS) {
+      return res.status(400).json({
+        error: `guardianIds max ${MAX_BATCH_GUARDIAN_IDS} items`,
+        code: 'PRESENCE_BATCH_LIMIT_EXCEEDED',
+        max: MAX_BATCH_GUARDIAN_IDS,
+        received: uniqueIds.length,
+      });
+    }
+
+    const statuses = await presenceService.getStatusBatch(uniqueIds);
     res.json(statuses);
   } catch (error: unknown) {
     res.status(400).json({ error: errorMessage(error) });
