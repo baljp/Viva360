@@ -11,4 +11,6 @@ router.post('/join', TribeController.joinTribe);
 router.post('/sync', TribeController.syncVibration);
 router.get('/invites', TribeController.listInvites);
 router.get('/members', TribeController.listMembers);
+router.get('/pacts/active', TribeController.getActivePacts);
+router.get('/presence', TribeController.getTribePresence);
 export default router;

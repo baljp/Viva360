@@ -258,19 +258,27 @@ const PactWidget: React.FC<{ pact: ConstellationPact, userAvatar: string, onSend
 };
 
 // --- CONSTELLATION ORBIT ---
-const DEFAULT_CONSTELLATION: ConstellationMember[] = [
-    { id: 'tribe_1', name: 'Luna Paz', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=luna_paz', needsWatering: true },
-    { id: 'tribe_2', name: 'Sol Vieira', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=sol_vieira', needsWatering: false },
-    { id: 'tribe_3', name: 'Mar Silva', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=mar_silva', needsWatering: true },
-    { id: 'tribe_4', name: 'Rio Santos', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=rio_santos', needsWatering: false },
-    { id: 'tribe_5', name: 'Céu Almeida', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=ceu_almeida', needsWatering: false },
-    { id: 'tribe_6', name: 'Flor Mendes', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=flor_mendes', needsWatering: true },
-];
-
 export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) => void, onInvite?: () => void }> = ({ user, onUpdateUser, onInvite }) => {
     const [selectedMember, setSelectedMember] = useState<ConstellationMember | null>(null);
+    const [members, setMembers] = useState<ConstellationMember[]>(user?.constellation ?? []);
+    const [membersLoading, setMembersLoading] = useState(true);
     const { showToast } = useAppToast();
-    const members = (user?.constellation && user.constellation.length > 0) ? user.constellation : DEFAULT_CONSTELLATION;
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const data = await api.tribe.getMembers();
+                if (!cancelled) setMembers(data);
+            } catch {
+                // fallback to user.constellation se API falhar
+                if (!cancelled && user.constellation?.length) setMembers(user.constellation);
+            } finally {
+                if (!cancelled) setMembersLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [user.id]);
 
     const handleSendVibe = (reward: number) => {
         onUpdateUser({ ...user, karma: (user.karma || 0) + reward });
@@ -284,12 +292,22 @@ export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) 
                 <h3 className="font-bold text-nature-900 text-sm flex items-center gap-2 mb-6 px-2"><Users size={18} className="text-primary-600" /> Minha Tribo</h3>
                 <div className="flex gap-5 overflow-x-auto no-scrollbar pb-2">
                     <div className="flex flex-col items-center gap-3 shrink-0"><div className="w-16 h-16 rounded-full border-4 border-primary-500 p-1"><img src={user.avatar} className="w-full h-full rounded-full object-cover" alt="Você" /></div><span className="text-[10px] font-bold text-nature-900">Você</span></div>
-                    {members.map(member => (
-                        <button key={member.id} onClick={() => setSelectedMember(member)} className="flex flex-col items-center gap-3 shrink-0 group">
-                            <div className={`w-16 h-16 rounded-full border-4 p-1 transition-all group-hover:scale-110 ${member.needsWatering ? 'border-amber-400 animate-pulse' : 'border-nature-50'}`}><img src={member.avatar} className="w-full h-full rounded-full object-cover" alt={member.name} /></div>
-                            <span className="text-[10px] font-medium text-nature-500">{member.name.split(' ')[0]}</span>
-                        </button>
-                    ))}
+                    {membersLoading
+                        ? [1,2,3,4].map(i => (
+                            <div key={i} className="flex flex-col items-center gap-3 shrink-0 animate-pulse">
+                                <div className="w-16 h-16 rounded-full bg-nature-100" />
+                                <div className="w-10 h-2 bg-nature-100 rounded-full" />
+                            </div>
+                        ))
+                        : members.length === 0
+                        ? <p className="text-[10px] text-nature-400 italic py-4 px-2">Nenhum membro ainda. Convide alguém!</p>
+                        : members.map(member => (
+                            <button key={member.id} onClick={() => setSelectedMember(member)} className="flex flex-col items-center gap-3 shrink-0 group">
+                                <div className={`w-16 h-16 rounded-full border-4 p-1 transition-all group-hover:scale-110 ${member.needsWatering ? 'border-amber-400 animate-pulse' : 'border-nature-50'}`}><img src={member.avatar} className="w-full h-full rounded-full object-cover" alt={member.name} /></div>
+                                <span className="text-[10px] font-medium text-nature-500">{member.name.split(' ')[0]}</span>
+                            </button>
+                        ))
+                    }
                     <button onClick={() => onInvite ? onInvite() : showToast({ title: "Convite aberto", message: "Fluxo de convite da tribo será iniciado." })} className="w-16 h-16 rounded-full border-4 border-dashed border-nature-100 flex items-center justify-center text-nature-200 shrink-0 hover:bg-nature-50 transition-colors"><Plus size={24} /></button>
                 </div>
             </div>
@@ -319,9 +337,25 @@ export const ConstellationOrbit: React.FC<{ user: User, onUpdateUser: (u: User) 
 
 // --- GLOBAL MANDALA (SYNC) ---
 export const GlobalMandala: React.FC<{ user: User, onUpdateUser: (u: User) => void }> = ({ user, onUpdateUser }) => {
-    const [liveUsers] = useState(432 + Math.floor(Math.random() * 50));
+    const [liveUsers, setLiveUsers] = useState<number | null>(null);
     const [isBreathing, setIsBreathing] = useState(false);
     const [hasSynced, setHasSynced] = useState(false);
+
+    // ✅ Presença real via API com polling a cada 60s
+    useEffect(() => {
+        let cancelled = false;
+        const fetchPresence = async () => {
+            try {
+                const data = await api.tribe.getPresence();
+                if (!cancelled) setLiveUsers(data.count);
+            } catch {
+                // silently ignore — mantém null (exibe '---')
+            }
+        };
+        fetchPresence();
+        const interval = setInterval(fetchPresence, 60_000);
+        return () => { cancelled = true; clearInterval(interval); };
+    }, []);
 
     const handleSync = async () => {
         if (hasSynced) return;
@@ -360,7 +394,7 @@ export const GlobalMandala: React.FC<{ user: User, onUpdateUser: (u: User) => vo
                 {hasSynced && <div className="absolute -top-12 bg-emerald-600 text-white px-4 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest animate-in fade-in zoom-in">Sincronizado! +10 Karma</div>}
             </button>
             <div className="text-center space-y-1">
-                 <p className="text-[10px] font-bold text-nature-500 uppercase tracking-[0.3em]">{liveUsers} ALMAS EM SINTONIA AGORA</p>
+                 <p className="text-[10px] font-bold text-nature-500 uppercase tracking-[0.3em]">{liveUsers !== null ? liveUsers : '---'} ALMAS EM SINTONIA AGORA</p>
                  <p className="text-[11px] text-nature-400 italic">Pressione e segure para unir sua energia</p>
             </div>
         </div>

@@ -64,6 +64,42 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       await request(`/tribe/posts/${id}/like`, { method: 'POST' });
       return true;
     },
+    getMembers: async (): Promise<Array<{ id: string; name: string; avatar: string; needsWatering?: boolean }>> => {
+      try {
+        const data = await request('/tribe/members');
+        return Array.isArray(data) ? data.map((m: any) => ({
+          id: String(m.id || ''),
+          name: String(m.name || 'Membro'),
+          avatar: m.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${m.id}`,
+          needsWatering: Boolean(m.needsWatering ?? m.needs_watering ?? false),
+        })) : [];
+      } catch (err) {
+        captureFrontendError(err, { domain: 'community', op: 'tribe.getMembers' });
+        return [];
+      }
+    },
+    getActivePacts: async (): Promise<Array<{
+      id: string; partnerId: string; partnerName: string; partnerAvatar: string;
+      missionLabel: string; myProgress: number; partnerProgress: number;
+      target: number; rewardKarma: number; endDate: string; status: 'active' | 'completed';
+    }>> => {
+      try {
+        const data = await request('/tribe/pacts/active');
+        return Array.isArray(data) ? data : [];
+      } catch (err) {
+        captureFrontendError(err, { domain: 'community', op: 'tribe.getActivePacts' });
+        return [];
+      }
+    },
+    getPresence: async (): Promise<{ count: number }> => {
+      try {
+        const data = await request('/tribe/presence');
+        return { count: Number((data as any)?.count ?? 0) };
+      } catch (err) {
+        captureFrontendError(err, { domain: 'community', op: 'tribe.getPresence' });
+        return { count: 0 };
+      }
+    },
     syncVibration: async (_userId: string, reward: number = 10) => {
       try {
         return await request('/tribe/sync', {

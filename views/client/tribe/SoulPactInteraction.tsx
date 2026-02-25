@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../../../types';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
-import { Flame, Star, Users, Send, CheckCircle2, Zap, Heart, Wind, Sun, Moon, Leaf, Plus } from 'lucide-react';
+import { Flame, Star, Users, Send, CheckCircle2, Zap, Heart, Wind, Sun, Moon, Leaf, Plus, Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../../../services/api';
 
@@ -19,13 +19,6 @@ const PRE_MADE_PACTS = [
     { id: 'kind_act', title: 'Ato de Bondade', desc: 'Gesto de carinho para alguém comum.', icon: Heart, color: 'text-pink-400', bg: 'bg-pink-50' },
 ];
 
-const MOCK_MEMBERS = [
-    { id: '1', name: 'Lucas Paz', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Lucas' },
-    { id: '2', name: 'Ana Luz', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Ana' },
-    { id: '3', name: 'Zeca Zen', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Zeca' },
-    { id: '4', name: 'Maya Soul', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=Maya' },
-];
-
 export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
     const { back, jump, notify} = useBuscadorFlow();
     const [step, setStep] = useState<'PARTNER' | 'PACT' | 'CUSTOM' | 'SUCCESS'>('PARTNER');
@@ -33,6 +26,24 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
     const [selectedPact, setSelectedPact] = useState<any>(null);
     const [customPact, setCustomPact] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
+    // ✅ Membros reais via API — sem MOCK_MEMBERS
+    const [members, setMembers] = useState<Array<{ id: string; name: string; avatar: string }>>([]);
+    const [membersLoading, setMembersLoading] = useState(true);
+
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const data = await api.tribe.getMembers();
+                if (!cancelled) setMembers(data);
+            } catch {
+                // sem membros: UI mostra estado vazio
+            } finally {
+                if (!cancelled) setMembersLoading(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, []);
 
     const handleSelectPartner = (p: any) => {
         setSelectedPartner(p);
@@ -89,7 +100,17 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                {MOCK_MEMBERS.map(member => (
+                                {membersLoading ? (
+                                    <div className="col-span-2 flex items-center justify-center py-10 text-nature-400 gap-2">
+                                        <Loader size={18} className="animate-spin" />
+                                        <span className="text-xs italic">Buscando sua tribo...</span>
+                                    </div>
+                                ) : members.length === 0 ? (
+                                    <div className="col-span-2 text-center py-8 text-nature-400">
+                                        <Users size={32} className="mx-auto mb-2 opacity-30" />
+                                        <p className="text-xs italic">Nenhum membro na tribo ainda.<br />Convide alguém abaixo!</p>
+                                    </div>
+                                ) : members.map(member => (
                                     <button 
                                         key={member.id}
                                         onClick={() => handleSelectPartner(member)}

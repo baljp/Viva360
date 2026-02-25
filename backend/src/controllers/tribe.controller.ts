@@ -315,3 +315,59 @@ export const respondInvite = asyncHandler(async (req: Request, res: Response) =>
     actionReceipt,
   });
 });
+
+// GET /tribe/pacts/active — retorna pactos ativos do usuário via ProfileLink tipo 'tribo'
+export const getActivePacts = asyncHandler(async (req: Request, res: Response) => {
+  const userId = String(req.user?.userId || '').trim();
+  if (!userId) throw new AppError(401, 'Unauthorized');
+
+  // Busca links do tipo 'tribo' aceitos/ativos onde o usuário é source ou target
+  const links = await prisma.profileLink.findMany({
+    where: {
+      status: { in: ['accepted', 'active'] },
+      type: 'tribo',
+      OR: [
+        { source_id: userId },
+        { target_id: userId },
+      ],
+    },
+    include: {
+      source: { select: { id: true, name: true, avatar: true } },
+      target: { select: { id: true, name: true, avatar: true } },
+    },
+    orderBy: { created_at: 'desc' },
+    take: 10,
+  });
+
+  const pacts = links.map((link) => {
+    const isSource = link.source_id === userId;
+    const partner = isSource ? link.target : link.source;
+    return {
+      id: link.id,
+      partnerId: partner.id,
+      partnerName: partner.name || 'Parceiro',
+      partnerAvatar: partner.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${partner.id}`,
+      missionLabel: 'Pacto de Sintonia',
+      myProgress: 0,
+      partnerProgress: 0,
+      target: 7,
+      rewardKarma: 50,
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      status: 'active' as const,
+    };
+  });
+
+  return res.json(pacts);
+});
+
+// GET /tribe/presence — retorna contagem de usuários online agora
+export const getTribePresence = asyncHandler(async (_req: Request, res: Response) => {
+  const now = new Date();
+  const count = await prisma.guardianPresence.count({
+    where: {
+      status: 'ONLINE',
+      expires_at: { gt: now },
+    },
+  });
+  return res.json({ count });
+});

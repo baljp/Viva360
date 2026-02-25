@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
-import { Flame, Plus, Trophy, Heart, Moon } from 'lucide-react';
+import type { ConstellationPact } from '../../types';
+import { Flame, Plus, Trophy, Heart, Moon, Loader } from 'lucide-react';
 import { PortalView, BottomSheet, DynamicAvatar, InteractiveButton } from '../../components/Common';
 import { ConstellationOrbit, GlobalMandala } from '../../components/SocialFeatures';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
@@ -13,6 +14,24 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
    const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
    const [leaderboard, setLeaderboard] = useState<GamificationLeaderboardResponse | null>(null);
    const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+   const [activePacts, setActivePacts] = useState<ConstellationPact[]>([]);
+   const [pactsLoading, setPactsLoading] = useState(true);
+
+   // ✅ Pactos ativos via API
+   useEffect(() => {
+      let cancelled = false;
+      (async () => {
+         try {
+            const data = await api.tribe.getActivePacts();
+            if (!cancelled) setActivePacts(data);
+         } catch (err) {
+            captureFrontendError(err, { view: 'TribeView', op: 'getActivePacts' });
+         } finally {
+            if (!cancelled) setPactsLoading(false);
+         }
+      })();
+      return () => { cancelled = true; };
+   }, []);
 
    const openLeaderboard = async () => {
       setActiveModal('leaderboard');
@@ -65,22 +84,57 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
                   </div>
                </div>
 
-               <div className="bg-white p-6 rounded-[3rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all" onClick={() => go('SOUL_PACT')}>
-                  <div className="flex items-center gap-5">
-                     <div className="w-14 h-14 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center group-hover:rotate-6 transition-transform"><Flame size={28} /></div>
+               {pactsLoading ? (
+                  <div className="flex items-center justify-center py-6 text-nature-400 gap-2">
+                     <Loader size={16} className="animate-spin" />
+                     <span className="text-xs italic">Buscando pactos...</span>
+                  </div>
+               ) : activePacts.length === 0 ? (
+                  <div
+                     onClick={() => go('SOUL_PACT')}
+                     className="bg-amber-50 p-6 rounded-[3rem] border border-dashed border-amber-200 flex items-center gap-4 cursor-pointer active:scale-95 transition-all hover:bg-amber-100/50"
+                  >
+                     <div className="w-14 h-14 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center"><Flame size={28} /></div>
                      <div>
-                        <h5 className="font-bold text-nature-900 text-sm">Pacto de Respiração</h5>
-                        <p className="text-[10px] text-nature-400 font-bold uppercase mt-1">Com Lucas Paz • 4/7 Dias</p>
+                        <h5 className="font-bold text-amber-900 text-sm">Nenhum Pacto Ativo</h5>
+                        <p className="text-[10px] text-amber-500 font-bold uppercase mt-1">Toque para criar um pacto de alma</p>
                      </div>
                   </div>
-                  <div className="relative w-14 h-14 flex items-center justify-center">
-                     <svg className="w-full h-full transform -rotate-90">
-                        <circle cx="28" cy="28" r="24" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-nature-50" />
-                        <circle cx="28" cy="28" r="24" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-amber-500" strokeDasharray={150} strokeDashoffset={150 - (150 * 0.57)} />
-                     </svg>
-                     <span className="absolute text-[10px] font-black text-amber-600">57%</span>
-                  </div>
-               </div>
+               ) : (
+                  activePacts.slice(0, 3).map(pact => {
+                     const progress = ((pact.myProgress + pact.partnerProgress) / (pact.target * 2));
+                     const progressPct = Math.round(Math.min(progress, 1) * 100);
+                     const strokeDashoffset = 150 - (150 * Math.min(progress, 1));
+                     return (
+                        <div
+                           key={pact.id}
+                           className="bg-white p-6 rounded-[3rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all cursor-pointer"
+                           onClick={() => go('SOUL_PACT')}
+                        >
+                           <div className="flex items-center gap-5">
+                              <img
+                                 src={pact.partnerAvatar}
+                                 alt={pact.partnerName}
+                                 className="w-14 h-14 rounded-2xl border-2 border-amber-100 object-cover"
+                              />
+                              <div>
+                                 <h5 className="font-bold text-nature-900 text-sm">{pact.missionLabel}</h5>
+                                 <p className="text-[10px] text-nature-400 font-bold uppercase mt-1">
+                                    Com {pact.partnerName.split(' ')[0]} • {pact.myProgress}/{pact.target} Dias
+                                 </p>
+                              </div>
+                           </div>
+                           <div className="relative w-14 h-14 flex items-center justify-center">
+                              <svg className="w-full h-full transform -rotate-90">
+                                 <circle cx="28" cy="28" r="24" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-nature-50" />
+                                 <circle cx="28" cy="28" r="24" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-amber-500" strokeDasharray={150} strokeDashoffset={strokeDashoffset} />
+                              </svg>
+                              <span className="absolute text-[10px] font-black text-amber-600">{progressPct}%</span>
+                           </div>
+                        </div>
+                     );
+                  })
+               )}
 
                {/* Offline Retreat Entry */}
                <div onClick={() => go('OFFLINE_RETREAT')} className="bg-nature-900 rounded-[2.5rem] p-6 text-white flex items-center justify-between cursor-pointer hover:bg-black transition-all group">
