@@ -218,11 +218,10 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       }
     },
     sendMessage: async (roomId: string, content: string) => {
-      await request(`/chat/rooms/${roomId}/messages`, {
+      return await request(`/chat/rooms/${roomId}/messages`, {
         method: 'POST',
         body: JSON.stringify({ content }),
       });
-      return true;
     },
   },
 });

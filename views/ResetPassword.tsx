@@ -2,7 +2,9 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Lock, Eye, EyeOff, Check, X, AlertCircle } from 'lucide-react';
-import { api, request } from '../services/api';
+import { request } from '../services/api';
+
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : 'Erro ao redefinir a senha. O link pode ter expirado.');
 
 export const ResetPasswordView: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -32,9 +34,8 @@ export const ResetPasswordView: React.FC = () => {
                 body: JSON.stringify({ token, newPassword: password })
             });
             setSuccess(true);
-            setTimeout(() => navigate('/login'), 3000);
-        } catch (err: any) {
-            setError(err.message || "Erro ao redefinir a senha. O link pode ter expirado.");
+        } catch (err: unknown) {
+            setError(errorMessage(err));
         } finally {
             setLoading(false);
         }
@@ -126,7 +127,13 @@ export const ResetPasswordView: React.FC = () => {
                             <Check size={40} />
                         </div>
                         <h3 className="text-2xl font-bold text-nature-900 mb-2">Sucesso!</h3>
-                        <p className="text-nature-600 text-sm mb-8">Sua senha foi redefinida com harmonia. Você será redirecionado para o login.</p>
+                        <p className="text-nature-600 text-sm mb-8">Sua senha foi redefinida com harmonia. Continue para o login.</p>
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="w-full bg-nature-900 text-white py-4 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all hover:bg-black"
+                        >
+                            Ir para Login
+                        </button>
                     </div>
                 )}
             </div>

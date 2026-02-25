@@ -12,12 +12,29 @@ interface ChatRoom {
   type: string;
   isPact: boolean;
   unreadCount: number;
+  contextId?: string;
   lastMessage?: { content: string; created_at: string } | null;
   participants: Array<{ id: string; name: string; avatar: string }>;
 }
 
-function mapApiRoom(room: any): ChatRoom {
-  const participants: ChatRoom['participants'] = (room.participants || []).map((p: any) => ({
+type ApiRoomParticipant = {
+  profile?: { id?: string; name?: string; avatar?: string } | null;
+  profile_id?: string;
+};
+
+type ApiChatRoomRow = {
+  id?: string;
+  type?: string;
+  unreadCount?: number;
+  context_id?: string | null;
+  messages?: Array<{ content?: string; created_at?: string }> | null;
+  participants?: ApiRoomParticipant[] | null;
+};
+
+const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error));
+
+function mapApiRoom(room: ApiChatRoomRow): ChatRoom {
+  const participants: ChatRoom['participants'] = (room.participants || []).map((p) => ({
     id: p.profile?.id || p.profile_id || '',
     name: p.profile?.name || 'Usuário',
     avatar: p.profile?.avatar || '',
@@ -28,10 +45,11 @@ function mapApiRoom(room: any): ChatRoom {
     : null;
 
   return {
-    id: room.id,
+    id: String(room.id || ''),
     type: room.type || 'private',
     isPact: room.type === 'escambo' || room.type === 'healing_circle',
     unreadCount: room.unreadCount || 0,
+    contextId: room.context_id || undefined,
     lastMessage: lastMsg
       ? { content: lastMsg.content || '', created_at: lastMsg.created_at || '' }
       : null,
@@ -40,7 +58,7 @@ function mapApiRoom(room: any): ChatRoom {
 }
 
 export default function ChatListScreen() {
-  const { go, back } = useBuscadorFlow();
+  const { go, back, selectChatRoom, selectTribeRoomContext } = useBuscadorFlow();
   const { messages } = useChat();
 
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
@@ -54,10 +72,10 @@ export default function ChatListScreen() {
     setReadIssue(null);
     try {
       const data = await communityApi.chat.listRooms(undefined, { strict: true });
-      const normalized = Array.isArray(data) ? data.map(mapApiRoom) : [];
+      const normalized = Array.isArray(data) ? (data as ApiChatRoomRow[]).map(mapApiRoom) : [];
       setRooms(normalized);
-    } catch (err: any) {
-      console.error('[ChatListScreen] listRooms failed:', err);
+    } catch (err: unknown) {
+      console.error('[ChatListScreen] listRooms failed:', errorMessage(err));
       setReadIssue(buildReadFailureCopy(['chat'], isDegradedReadError(err)));
       setRooms([]);
     } finally {
@@ -97,6 +115,20 @@ export default function ChatListScreen() {
   const getOther = (room: ChatRoom) =>
     room.participants.find(p => p.id !== 'me') || room.participants[0] || { id: '', name: 'Chat', avatar: '' };
 
+  const openRoom = (room: ChatRoom) => {
+    const other = getOther(room);
+    selectChatRoom({ id: room.id, name: other.name || 'Chat' });
+    if (room.type === 'healing_circle' || room.type === 'support_room') {
+      selectTribeRoomContext({
+        type: room.type,
+        contextId: room.contextId,
+      });
+    } else {
+      selectTribeRoomContext(null);
+    }
+    go('CHAT_ROOM');
+  };
+
   const formatTime = (iso?: string) => {
     if (!iso) return '';
     const d = new Date(iso);
@@ -132,7 +164,7 @@ export default function ChatListScreen() {
                 <div
                   key={room.id}
                   className="flex flex-col items-center gap-2 min-w-[4rem] cursor-pointer"
-                  onClick={() => go('CHAT_ROOM')}
+                  onClick={() => openRoom(room)}
                 >
                   <div className="relative">
                     <div className="w-16 h-16 rounded-full border-2 border-indigo-400 p-0.5">
@@ -181,7 +213,7 @@ export default function ChatListScreen() {
               return (
                 <div
                   key={room.id}
-                  onClick={() => go('CHAT_ROOM')}
+                  onClick={() => openRoom(room)}
                   className={`p-4 flex items-center gap-4 hover:bg-nature-50 cursor-pointer transition-colors ${i !== regularRooms.length - 1 ? 'border-b border-nature-50' : ''
                     }`}
                 >
