@@ -434,7 +434,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
                             className="w-full py-4 bg-nature-100 text-nature-700 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60 hover:bg-nature-200"
                         >
                             {exportBusy ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                            Exportar Meus Dados (LGPD)
+                            Exportar Meus Dados (LGPD Art. 18)
                         </button>
 
                         <button
@@ -516,6 +516,21 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
                     onGoToRoleHome={() => setView(homeForRole(activeRole))}
                 />
                 <SettingsMenuCards items={menuItems} onSelect={setView} />
+                <button
+                    onClick={handleExportData}
+                    disabled={exportBusy}
+                    className="w-full bg-white p-6 rounded-[2.5rem] border border-nature-100 flex items-center justify-between group active:scale-[0.98] transition-all hover:shadow-xl shadow-sm disabled:opacity-60"
+                >
+                    <div className="flex items-center gap-6">
+                        <div className="bg-emerald-50 text-emerald-700 p-5 rounded-2xl shadow-inner">
+                            {exportBusy ? <Loader2 size={22} className="animate-spin" /> : <Download size={22} />}
+                        </div>
+                        <div className="text-left space-y-1">
+                            <p className="font-bold text-nature-900 text-sm leading-tight">Exportar Dados (LGPD Art. 18)</p>
+                            <p className="text-[9px] text-nature-300 font-bold uppercase tracking-widest">PORTABILIDADE E ACESSO</p>
+                        </div>
+                    </div>
+                </button>
             </div>
             <SettingsHomeFooterActions onLogout={handleLogoutFallback} onBackToHome={handleBackToHome} />
         </div>
