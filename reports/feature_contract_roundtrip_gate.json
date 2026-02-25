@@ -2,7 +2,7 @@
   "generatedAt": "2026-02-25T10:31:22.480266Z",
   "source": {
     "catalog": "reports/feature_contract_catalog.json",
-    "allowlist": "qa/config/feature_contract_roundtrip_allowlist.json"
+    "allowlist": null
   },
   "totals": {
     "flows": 39,

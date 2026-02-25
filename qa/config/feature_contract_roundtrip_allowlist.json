@@ -1,5 +1,0 @@
-{
-  "_comment": "Allowlist vazia: todos os 15 flows MISTO_OU_PARCIAL foram promovidos a PERSISTIDO_VALIDADO em 2026-02-25 via qa/flows/roundtrip-evidence.spec.ts.",
-  "defaultUntil": null,
-  "items": []
-}

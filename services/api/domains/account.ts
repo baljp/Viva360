@@ -1,5 +1,6 @@
 import type { Appointment, Professional, User, UserRole } from '../../../types';
 import type { DomainRequest } from './common';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 type AccountDomainDeps = {
   request: DomainRequest;
@@ -30,7 +31,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         const payload = await request<unknown>(`/users/${id}`);
         return normalizeProfilePayload(payload);
       } catch (err) {
-        console.error('[account.users.getById]', err);
+        captureFrontendError(err, { domain: 'account', op: 'users.getById' });
         return null;
       }
     },
@@ -44,7 +45,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     checkIn: async (_uid: string, reward: number = 50) => {
       let payload: CheckInResponse;
       try {
-        payload = await request<CheckInResponse>('/users/checkin', {
+        payload = await request<CheckInResponse>('/metamorphosis/checkin', {
           method: 'POST',
           purpose: 'daily-checkin',
           timeoutMs: 7000,
@@ -53,7 +54,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         });
       } catch (error) {
         const reqError = error as RequestErrorLike;
-        console.error('[account.checkIn]', error);
+        captureFrontendError(error, { domain: 'account', op: 'users.checkIn' });
         const status = Number(reqError?.status || 0);
         const code = String(reqError?.code || reqError?.details?.code || '').toUpperCase();
         if (status === 409 || code === 'CHECKIN_ALREADY_DONE') {
@@ -100,7 +101,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           retries: 0,
         });
       } catch (err) {
-        console.error('[account.lookupByEmail]', err);
+        captureFrontendError(err, { domain: 'account', op: 'profiles.lookupByEmail' });
         return null;
       }
     },
@@ -115,7 +116,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           retries: 1,
         });
       } catch (err) {
-        console.error('[account.list]', err);
+        captureFrontendError(err, { domain: 'account', op: 'professionals.list' });
         return [];
       }
     },
@@ -129,7 +130,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       try {
         return await request(`/professionals/${proId}/notes/${pid}`);
       } catch (err) {
-        console.error('[account.getNotes]', err);
+        captureFrontendError(err, { domain: 'account', op: 'professionals.getNotes' });
         return [];
       }
     },
@@ -155,7 +156,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           transactions: Array.isArray(transactions) ? transactions : [],
         };
       } catch (err) {
-        console.error('[account.getFinanceSummary]', err);
+        captureFrontendError(err, { domain: 'account', op: 'professionals.getFinanceSummary' });
         return { balance: 0, transactions: [] };
       }
     },
@@ -166,11 +167,11 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       try {
         return await request(`/records/${patientId}`);
       } catch (err) {
-        console.error('[account.list]', err);
+        captureFrontendError(err, { domain: 'account', op: 'records.list' });
         return [];
       }
     },
-    create: async (record: any) => {
+    create: async (record: Record<string, unknown>) => {
       return await request('/records', {
         method: 'POST',
         body: JSON.stringify(record),
@@ -188,22 +189,25 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     list: async (uid: string, role: UserRole) => {
       try {
         const all = await request('/appointments');
-        const normalized = (Array.isArray(all) ? all : []).map((entry: any) => ({
-          id: String(entry.id || ''),
-          clientId: String(entry.clientId || entry.client_id || ''),
-          clientName: String(entry.clientName || entry.client_name || ''),
-          professionalId: String(entry.professionalId || entry.professional_id || ''),
-          professionalName: String(entry.professionalName || entry.professional_name || ''),
-          time: String(entry.time || '00:00'),
-          date: String(entry.date || new Date().toISOString()),
-          status: String(entry.status || 'pending').toLowerCase(),
-          serviceName: String(entry.serviceName || entry.service_name || 'Atendimento'),
-          price: Number(entry.price || 0),
-        })) as Appointment[];
+        const normalized = (Array.isArray(all) ? all : []).map((entry) => {
+          const row = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};
+          return {
+            id: String(row.id || ''),
+            clientId: String(row.clientId || row.client_id || ''),
+            clientName: String(row.clientName || row.client_name || ''),
+            professionalId: String(row.professionalId || row.professional_id || ''),
+            professionalName: String(row.professionalName || row.professional_name || ''),
+            time: String(row.time || '00:00'),
+            date: String(row.date || new Date().toISOString()),
+            status: String(row.status || 'pending').toLowerCase(),
+            serviceName: String(row.serviceName || row.service_name || 'Atendimento'),
+            price: Number(row.price || 0),
+          };
+        }) as Appointment[];
         if (role === 'PROFESSIONAL') return normalized.filter((a: Appointment) => a.professionalId === uid);
         return normalized.filter((a: Appointment) => a.clientId === uid);
       } catch (err) {
-        console.error('[account.list]', err);
+        captureFrontendError(err, { domain: 'account', op: 'appointments.list' });
         return [];
       }
     },
@@ -232,11 +236,11 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       try {
         return await request('/reviews');
       } catch (err) {
-        console.error('[account.list]', err);
+        captureFrontendError(err, { domain: 'account', op: 'reviews.list' });
         return [];
       }
     },
-    create: async (review: any) => {
+    create: async (review: Record<string, unknown>) => {
       // FLOW-05: Let errors propagate so UI can show feedback
       return await request('/reviews', {
         method: 'POST',

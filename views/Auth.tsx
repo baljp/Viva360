@@ -5,12 +5,15 @@ import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWar
 import { request } from '../services/api/core';
 import { authApi } from '../services/api/authProxy';
 import { supabase, isMockMode, isDemoMode, envStatus } from '../lib/supabase';
+import { errorMessage as getErrorMessage } from '../lib/frontendLogger';
 // Logo import removed
 
 interface AuthProps {
     onLogin: (user?: User) => void;
     setView: (view: ViewState) => void;
 }
+
+const asMessage = (error: unknown, fallback: string) => getErrorMessage(error) || fallback;
 
 const OnboardingCarousel: React.FC = () => {
     const slides = [
@@ -101,8 +104,8 @@ const ForgotPasswordForm: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         try {
             await request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) });
             setSuccess(true);
-        } catch (err: any) {
-            setError(err.message || "Erro ao conectar com o santuário.");
+        } catch (err: unknown) {
+            setError(asMessage(err, "Erro ao conectar com o santuário."));
         } finally {
             setLoading(false);
         }
@@ -169,9 +172,9 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         try {
             const user = await authApi.loginWithPassword(email, password);
             onSubmit(user);
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error(err);
-            let msg = err.message || 'Erro ao sintonizar.';
+            let msg = asMessage(err, 'Erro ao sintonizar.');
 
             // Detect specific error types
             if (msg.includes('Invalid login') || msg.includes('Invalid credentials')) {
@@ -200,20 +203,21 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
             if (googleUser) {
                 onSubmit(googleUser);
             }
-        } catch (err: any) {
-            if (err.message !== 'REDIRECTING_TO_GOOGLE') {
+        } catch (err: unknown) {
+            const msg = asMessage(err, '');
+            if (msg !== 'REDIRECTING_TO_GOOGLE') {
                 console.error(err);
 
                 // Detect DNS/network errors
-                if (err.message?.includes('DNS') ||
-                    err.message?.includes('NXDOMAIN') ||
-                    err.message?.includes('network') ||
-                    err.message?.includes('fetch')) {
+                if (msg.includes('DNS') ||
+                    msg.includes('NXDOMAIN') ||
+                    msg.includes('network') ||
+                    msg.includes('fetch')) {
                     setError('⚠️ Erro de rede detectado. Verifique se as URLs de redirect estão configuradas no painel do Supabase (Authentication → URL Configuration). Desenvolvimento: http://localhost:5173');
-                } else if (err.message?.includes('redirect')) {
+                } else if (msg.includes('redirect')) {
                     setError('🔒 Erro de redirect. Certifique-se de que sua URL está autorizada no Supabase Dashboard.');
                 } else {
-                    setError(err.message || 'Falha na conexão com Google. Tente novamente ou use e-mail/senha.');
+                    setError(msg || 'Falha na conexão com Google. Tente novamente ou use e-mail/senha.');
                 }
                 setLoading(false);
             }

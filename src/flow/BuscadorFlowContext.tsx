@@ -21,6 +21,7 @@ interface FlowContextState extends BaseFlowState<BuscadorState> {
     };
     selectedProfessionalId: string | null;
     selectedDate: Date | null;
+    selectedChatRoom: { id: string; name?: string } | null;
     tribeRoomContext: { type: 'support_room' | 'healing_circle'; contextId?: string } | null;
 }
 
@@ -32,6 +33,7 @@ type FlowAction =
     | { type: 'CLEAR_TOAST' }
     | { type: 'SELECT_PROFESSIONAL'; payload: string | null }
     | { type: 'SELECT_DATE'; payload: Date | null }
+    | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null }
     | { type: 'SET_TRIBE_ROOM_CONTEXT'; payload: { type: 'support_room' | 'healing_circle'; contextId?: string } | null }
     | { type: 'SHOW_RITUAL'; payload: { title: string; message: string; type?: 'success' | 'info' | 'error' | 'warning' } }
     | { type: 'CLEAR_RITUAL' };
@@ -50,6 +52,7 @@ const createInitialState = (): FlowContextState => ({
     },
     selectedProfessionalId: null,
     selectedDate: new Date(),
+    selectedChatRoom: null,
     ritualCompletion: null,
     tribeRoomContext: null,
 });
@@ -100,6 +103,8 @@ const flowReducer = (state: FlowContextState, action: FlowAction): FlowContextSt
             return { ...state, selectedProfessionalId: action.payload };
         case 'SELECT_DATE':
             return { ...state, selectedDate: action.payload };
+        case 'SELECT_CHAT_ROOM':
+            return { ...state, selectedChatRoom: action.payload };
         case 'SET_TRIBE_ROOM_CONTEXT':
             return { ...state, tribeRoomContext: action.payload };
         default:
@@ -117,6 +122,7 @@ export type BuscadorFlowContextValue = {
     refreshData: () => Promise<void>;
     selectProfessional: (id: string | null) => void;
     selectDate: (date: Date | null) => void;
+    selectChatRoom: (room: { id: string; name?: string } | null) => void;
     selectTribeRoomContext: (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) => void;
     notify: (title: string, message: string, type?: 'success' | 'info' | 'error' | 'warning') => void;
 };
@@ -242,6 +248,7 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     };
     const selectProfessional = (id: string | null) => dispatch({ type: 'SELECT_PROFESSIONAL', payload: id });
     const selectDate = (date: Date | null) => dispatch({ type: 'SELECT_DATE', payload: date });
+    const selectChatRoom = (room: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_CHAT_ROOM', payload: room });
     const selectTribeRoomContext = (ctx: { type: 'support_room' | 'healing_circle'; contextId?: string } | null) =>
         dispatch({ type: 'SET_TRIBE_ROOM_CONTEXT', payload: ctx });
     const notify = (title: string, message: string, type: 'success' | 'info' | 'error' | 'warning' = 'success') => {
@@ -252,7 +259,7 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
 
     return (
         <BuscadorFlowContext.Provider value={{
-            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, selectTribeRoomContext, notify
+            state, go, jump, back, reset, refreshData, selectProfessional, selectDate, selectChatRoom, selectTribeRoomContext, notify
         }}>
             {children}
             {state.ritualCompletion && (

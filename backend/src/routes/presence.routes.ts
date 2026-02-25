@@ -3,6 +3,7 @@ import { presenceService } from '../services/presence.service';
 import { authenticateUser } from '../middleware/auth.middleware';
 
 const router = Router();
+const MAX_BATCH_GUARDIAN_IDS = 100;
 type ErrorWithMessage = { message?: string };
 const getUserId = (req: Request) => String(req.user?.id || req.user?.userId || '').trim();
 const errorMessage = (error: unknown) =>
@@ -81,7 +82,7 @@ router.get('/', authenticateUser, async (_req: Request, res: Response) => {
 const PRESENCE_BATCH_MAX = 100;
 router.post('/batch', authenticateUser, async (req: Request, res: Response) => {
   try {
-    const { guardianIds } = req.body as { guardianIds: string[] };
+    const { guardianIds } = req.body as { guardianIds: unknown };
     if (!guardianIds || !Array.isArray(guardianIds)) {
       return res.status(400).json({ error: 'guardianIds array required' });
     }

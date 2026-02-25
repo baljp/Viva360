@@ -5,12 +5,30 @@ import { Save, Trash2, Camera, UploadCloud } from 'lucide-react';
 import { api } from '../../../services/api';
 import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
 
+type FlowRoom = {
+    id: string;
+    name?: string;
+    capacity?: number;
+    description?: string;
+    status?: string;
+    imageUrl?: string;
+};
+
+type RoomUpdatePayload = {
+    name: string;
+    capacity: number;
+    status: string;
+    description: string;
+    imageBase64?: string;
+};
+
 export default function SpaceRoomEdit() {
     const { state, back, go, notify } = useSantuarioFlow();
     const fileInputRef = useRef<HTMLInputElement | null>(null);
     const [isSaving, setIsSaving] = useState(false);
 
-    const selectedRoom = state.data.rooms?.find((r: any) => r.id === state.selectedRoomId) || null;
+    const rooms = Array.isArray(state.data.rooms) ? (state.data.rooms as FlowRoom[]) : [];
+    const selectedRoom = rooms.find((r) => r.id === state.selectedRoomId) || null;
     const initialImage = selectedRoom?.imageUrl || 'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=800';
     const [imagePreview, setImagePreview] = useState<string>(initialImage);
 
@@ -41,7 +59,7 @@ export default function SpaceRoomEdit() {
         setIsSaving(true);
         (async () => {
             try {
-                const payload: any = {
+                const payload: RoomUpdatePayload = {
                     name: formData.name,
                     capacity: Number(formData.capacity || 10),
                     status: formData.status,
@@ -62,7 +80,10 @@ export default function SpaceRoomEdit() {
                     },
                     failToast: {
                         title: 'Falha ao salvar',
-                        message: (e) => (e as any)?.message || 'Não foi possível atualizar o altar.',
+                        message: (e: unknown) =>
+                            (e && typeof e === 'object' && 'message' in e)
+                                ? String((e as { message?: unknown }).message || 'Não foi possível atualizar o altar.')
+                                : 'Não foi possível atualizar o altar.',
                         type: 'error',
                     },
                     navigate: () => go('ROOMS_STATUS'),
@@ -136,8 +157,11 @@ export default function SpaceRoomEdit() {
                                     const dataUrl = await resizeToDataUrl(file);
                                     setImagePreview(dataUrl);
                                     notify('Imagem pronta', 'Salve para aplicar a nova foto.', 'info');
-                                } catch (err: any) {
-                                    notify('Falha na imagem', err?.message || 'Não foi possível carregar a foto.', 'error');
+                                } catch (err: unknown) {
+                                    const message = err && typeof err === 'object' && 'message' in err
+                                        ? String((err as { message?: unknown }).message || '')
+                                        : '';
+                                    notify('Falha na imagem', message || 'Não foi possível carregar a foto.', 'error');
                                 } finally {
                                     // Allow re-selecting the same file.
                                     e.currentTarget.value = '';

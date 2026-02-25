@@ -34,7 +34,13 @@ export const listInterventions = asyncHandler(async (req: Request, res: Response
   const userId = req.user?.userId;
 
   if (isMockMode()) {
-    return res.json([]);
+    const items = mockAdapter.events.list('clinical', String(userId || '')).map((entry) => ({
+      id: entry.id,
+      createdAt: entry.createdAt,
+      userId: entry.userId,
+      ...entry.payload,
+    }));
+    return res.json(items);
   }
 
   const events = await prisma.event.findMany({

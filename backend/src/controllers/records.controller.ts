@@ -96,11 +96,9 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
             const consentGranted = mockAdapter.records.consents.get(consentKey(patientId, proId)) === 'ACTIVE';
             if (!consentGranted) return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente não concedeu consentimento para este prontuário.' });
         }
-        const now = new Date().toISOString();
-        const record: MockRecord = {
-            id: `mock-record-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            patient_id: patientId,
-            professional_id: proId,
+        const record = mockAdapter.records.createRecord({
+            patientId,
+            professionalId: proId,
             content,
             type,
             created_at: now,

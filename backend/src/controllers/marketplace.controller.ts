@@ -4,6 +4,7 @@ import { marketplaceService } from '../services/marketplace.service';
 import prisma from '../lib/prisma';
 import { isMockMode, mockProductResponse } from '../services/mockAdapter';
 import { handleDbReadFallback } from '../lib/dbReadFallback';
+import { mockAdapter } from '../services/mockAdapter';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const ownerId = req.user?.userId;
@@ -29,9 +30,12 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const listProducts = asyncHandler(async (req: Request, res: Response) => {
-  const { ownerId, category } = req.query as any;
+  const { ownerId, category } = req.query as { ownerId?: string; category?: string };
+  if (isMockMode()) {
+    return res.json(mockAdapter.marketplace.listProducts({ ownerId, category }));
+  }
   try {
-    const products = await marketplaceService.listProducts(ownerId as string, category as string);
+    const products = await marketplaceService.listProducts(ownerId, category);
     return res.json(products);
   } catch (err) {
     if (handleDbReadFallback(res, err, {

@@ -13,6 +13,7 @@ import { assertCriticalProdConfig } from './lib/runtimeGuard';
 import { getAuthConfigHealthSnapshot } from './lib/authConfigHealth';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
+const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
 const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
 const isDebugRoutesEnabled = !isProductionRuntime && (
     truthy(process.env.ENABLE_DEBUG_ROUTES) || truthy(process.env.ENABLE_TEST_MODE)
@@ -39,8 +40,27 @@ const app = express();
 app.use(compression());
 
 // Middleware
+// SEC-CSP: Content-Security-Policy active on API responses.
+// Tightened for serverless (Vercel Functions) — no inline scripts needed on API.
+// Frontend static CSP is handled separately via vercel.json headers.
 app.use(helmet({
-  contentSecurityPolicy: false, // For easier dev, can be tightened
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc:  ["'self'"],
+      scriptSrc:   ["'self'"],
+      styleSrc:    ["'self'"],
+      imgSrc:      ["'self'", "data:"],
+      connectSrc:  ["'self'", "https://*.supabase.co", "wss://*.supabase.co"],
+      fontSrc:     ["'self'"],
+      objectSrc:   ["'none'"],
+      frameSrc:    ["'none'"],
+      baseUri:     ["'self'"],
+      formAction:  ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: isProductionRuntime ? [] : undefined,
+    },
+  },
+  crossOriginEmbedderPolicy: false, // Allow Supabase realtime WebSocket
 })); 
 const allowedOrigins = (process.env.CORS_ORIGINS || '')
   .split(',')
@@ -59,7 +79,8 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions)); 
-app.use(express.json());
+app.use(express.json({ limit: jsonBodyLimit }));
+app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
 app.use(attachRequestContext);
 app.use(securityHardening); // Excellence Layer: WAF & Headers
 if (!isProductionRuntime) app.use(morgan('tiny'));
@@ -95,12 +116,16 @@ app.get('/metrics', async (req, res) => {
     res.send(await register.metrics());
 });
 
-// RATE LIMITING
+// RATE LIMITING (layered)
+// - Global limiter here uses standard `RateLimit-*` headers for coarse abuse control.
+// - Route-level limiter in `routes/index.ts` uses custom `X-RateLimit-*` headers for short-window API throttling.
+// - `/api/health*` is exempt from the global limiter to keep probes deterministic.
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
     max: 1000, 
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => /^\/api\/health(?:\/|$)/i.test(String(req.path || req.originalUrl || '')),
 });
 app.use(limiter);
 

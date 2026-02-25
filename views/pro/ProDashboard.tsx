@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ViewState, Professional, User } from '../../types';
+import { ViewState, Professional, User, Notification } from '../../types';
 import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle, Video, Trophy, Target, Flame, Star, CheckCircle2, Award, Lock } from 'lucide-react';
 import { DynamicAvatar, PortalCard, ZenToast, Logo, NotificationDrawer } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
@@ -8,11 +8,19 @@ import { useGuardianPresence } from '../../src/hooks/useGuardianPresence';
 import { PRO_ACHIEVEMENTS, checkAchievements, getUserRank, PRO_RANKS, getRankProgress, getUnlockedCount } from '../../utils/gamification';
 import { useCountUp } from '../../src/hooks/useCountUp';
 
+type DashboardAppointmentLike = {
+    status?: string;
+    date?: string;
+    time?: string;
+    clientName?: string;
+    [key: string]: unknown;
+};
+
 export const ProDashboard: React.FC<{
     user: Professional,
     setView: (v: ViewState) => void,
     updateUser: (u: User) => void,
-    data?: any
+    data?: unknown
 }> = ({ user, setView, updateUser, data }) => {
     const { go, notify, selectAppointment, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'consultorio' | 'financeiro' | 'comunidade'>('consultorio');
@@ -20,9 +28,9 @@ export const ProDashboard: React.FC<{
     const { status, toggleStatus, isOnline } = useGuardianPresence(user);
 
     // Mock Notifications
-    const [notifications, setNotifications] = useState([
-        { id: '1', title: 'Início de Ritual', message: 'Ana Silva completou o ritual diário.', type: 'ritual', read: false },
-        { id: '2', title: 'Proposta de Troca', message: 'Nova oferta no Escambo Rede Viva.', type: 'alert', read: false },
+    const [notifications, setNotifications] = useState<Notification[]>([
+        { id: '1', title: 'Início de Ritual', message: 'Ana Silva completou o ritual diário.', type: 'ritual', read: false, userId: user.id, timestamp: new Date().toISOString() },
+        { id: '2', title: 'Proposta de Troca', message: 'Nova oferta no Escambo Rede Viva.', type: 'alert', read: false, userId: user.id, timestamp: new Date().toISOString() },
     ]);
 
     const handleMarkAsRead = (id: string) => {
@@ -63,9 +71,9 @@ export const ProDashboard: React.FC<{
 
     const nextAppointment = (() => {
         const apts = state.data.appointments || [];
-        const parsed = apts
-            .filter((a: any) => a && (a.status === 'confirmed' || a.status === 'pending'))
-            .map((a: any) => {
+        const parsed = (apts as unknown[])
+            .filter((a): a is DashboardAppointmentLike => !!a && typeof a === 'object' && ['confirmed', 'pending'].includes(String((a as { status?: unknown }).status || '')))
+            .map((a) => {
                 const base = String(a.date || '');
                 const dt = base.includes('T') ? new Date(base) : new Date(`${base}T${String(a.time || '00:00')}`);
                 return { apt: a, dt };
@@ -100,7 +108,7 @@ export const ProDashboard: React.FC<{
             <NotificationDrawer
                 isOpen={showNotifications}
                 onClose={() => setShowNotifications(false)}
-                notifications={notifications as any}
+                notifications={notifications}
                 onMarkAsRead={handleMarkAsRead}
                 onMarkAllRead={handleMarkAllRead}
             />
@@ -157,7 +165,7 @@ export const ProDashboard: React.FC<{
                                     notify('Nenhuma sessão', 'Você não tem sessões confirmadas agora.', 'info');
                                     return;
                                 }
-                                selectAppointment(nextAppointment);
+                                selectAppointment(nextAppointment as any);
                                 go('VIDEO_PREP');
                             }}
                             className="bg-white text-emerald-800 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all relative z-10"
@@ -263,7 +271,13 @@ export const ProDashboard: React.FC<{
                 {/* VIEW: CONSULTÓRIO */}
                 {activeTab === 'consultorio' && (
                     <div className="space-y-6 animate-in slide-in-from-left-4 duration-300">
-                        <div id="hero-agenda" className="relative h-72 rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer" onClick={() => go('AGENDA_VIEW')}>
+                        <button
+                            type="button"
+                            id="hero-agenda"
+                            aria-label="Abrir agenda"
+                            className="relative h-72 rounded-[3.5rem] overflow-hidden shadow-2xl group cursor-pointer w-full text-left"
+                            onClick={() => go('AGENDA_VIEW')}
+                        >
                             <img src="https://images.unsplash.com/photo-1586773860418-d37222d8fce3?q=80&w=800" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[10000ms] group-hover:scale-110" alt="" />
                             <div className="absolute inset-0 bg-nature-900/60 transition-colors group-hover:bg-nature-900/40"></div>
                             <div className="absolute inset-0 p-8 flex flex-col justify-end text-white">
@@ -276,7 +290,7 @@ export const ProDashboard: React.FC<{
                             <div className="absolute top-6 right-6 w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
                                 <Calendar size={20} className="text-white" />
                             </div>
-                        </div>
+                        </button>
 
                         <div className="grid grid-cols-1 gap-4">
                             <PortalCard id="portal-patients" title="Almas em Cuidado" subtitle="JARDIM" icon={Flower} bgImage="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?q=80&w=600" onClick={() => go('PATIENTS_LIST')} />

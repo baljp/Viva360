@@ -8,6 +8,7 @@ import type { CameraCaptureResult } from '../../components/Common/CameraWidget';
 import { idbImages, buildLocalImageKey } from '../utils/idbImageStore';
 import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
 import { useAppToast } from '../contexts/AppToastContext';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 export const useClientDashboard = (
     user: User, 
@@ -53,7 +54,7 @@ export const useClientDashboard = (
             setNotifications(data || []);
             setNotificationsReadIssue(null);
         } catch (e) {
-            console.error("Failed to load notifications", e);
+            captureFrontendError(e, { hook: 'useClientDashboard', op: 'loadNotifications' });
             const copy = buildReadFailureCopy(
                 [isDegradedReadError(e) ? 'notifications' : 'notifications'],
                 false,
@@ -94,7 +95,7 @@ export const useClientDashboard = (
             setRitualToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
             await accountApi.users.update(updated as User);
         } catch (e) {
-            console.error("Water Plant Error", e);
+            captureFrontendError(e, { hook: 'useClientDashboard', op: 'handleWaterPlant' });
             setToast({ title: "Erro na conexão", message: "Sua intenção foi registrada no éter." });
         }
     }, [user, updateUser]);
@@ -130,7 +131,7 @@ export const useClientDashboard = (
                 setToast({ title: "Benção Já Recebida", message: "Você já sintonizou sua energia hoje.", type: 'info' });
                 return { ok: true, alreadyDone: true };
             }
-            console.error("[useClientDashboard] checkIn error:", error);
+            captureFrontendError(error, { hook: 'useClientDashboard', op: 'handleDailyCheckIn' });
             const errMsg = typedError?.message || "Não conseguimos registrar sua benção agora.";
             setToast({ title: "Erro ao receber benção", message: errMsg, type: 'error' });
             return { ok: false };

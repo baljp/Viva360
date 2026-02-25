@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-02-24T16:32:58.181Z",
+  "generatedAt": "2026-02-25T12:52:04.378Z",
   "totals": {
-    "allMatches": 743,
-    "runtime": 223,
-    "frontendRuntime": 109,
+    "allMatches": 774,
+    "runtime": 175,
+    "frontendRuntime": 59,
     "backendRuntime": 6,
     "frontendConsoleLog": 0,
-    "runtimeOutsideAllowlist": 217
+    "runtimeOutsideAllowlist": 169
   },
   "byMethod": {
-    "log": 79,
-    "error": 116,
+    "error": 67,
     "warn": 26,
-    "info": 2
+    "log": 79,
+    "info": 3
   },
   "allowlisted": [
     "backend/src/lib/logger.ts"
@@ -21,26 +21,8 @@
     "frontendConsoleLog": [],
     "runtimeOutsideAllowlist": [
       {
-        "file": "verify_db_final.js",
-        "line": 20,
-        "method": "log",
-        "text": "console.log('Tables written to tables_found.txt');"
-      },
-      {
-        "file": "src/contexts/ChatContext.tsx",
-        "line": 127,
-        "method": "error",
-        "text": "console.error(\"Failed to send message\", error);"
-      },
-      {
-        "file": "src/flow/GuardiaoFlowEngine.ts",
-        "line": 24,
-        "method": "warn",
-        "text": "console.warn(`[GuardiaoFlow] Invalid transition blocked: ${this.currentState} -> ${target}`);"
-      },
-      {
         "file": "src/flow/GuardiaoFlowContext.tsx",
-        "line": 186,
+        "line": 197,
         "method": "error",
         "text": "console.error('Failed to fetch Guardiao data', e);"
       },
@@ -51,46 +33,34 @@
         "text": "console.warn(`[SantuarioFlow] Invalid transition blocked: ${this.currentState} -> ${target}`);"
       },
       {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 91,
-        "method": "warn",
-        "text": "console.warn('[MetamorphosisWizard] idbImages.put failed', e);"
-      },
-      {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 131,
-        "method": "error",
-        "text": "console.error(\"Metamorphosis Error\", e);"
-      },
-      {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 182,
-        "method": "error",
-        "text": "console.error('Error sharing:', error);"
-      },
-      {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 346,
-        "method": "error",
-        "text": "console.error('Erro ao desenhar card da alma', drawError);"
-      },
-      {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 372,
-        "method": "error",
-        "text": "console.error('Falha no fallback do card da alma', drawError);"
-      },
-      {
         "file": "src/flow/BuscadorFlowEngine.ts",
         "line": 24,
         "method": "warn",
         "text": "console.warn(`[FlowEngine] Invalid transition blocked: ${this.currentState} -> ${target}`);"
       },
       {
-        "file": "src/flow/SantuarioFlowContext.tsx",
-        "line": 219,
+        "file": "src/contexts/ChatContext.tsx",
+        "line": 249,
         "method": "error",
-        "text": "console.error('Failed to fetch Santuario data', e);"
+        "text": "console.error(\"Failed to send message\", error);"
+      },
+      {
+        "file": "src/flow/BuscadorFlowContext.tsx",
+        "line": 190,
+        "method": "error",
+        "text": "console.error('Failed to fetch Buscador data', e);"
+      },
+      {
+        "file": "src/hooks/useOracle.ts",
+        "line": 41,
+        "method": "error",
+        "text": "console.error(\"Failed to load daily card\", e);"
+      },
+      {
+        "file": "src/hooks/useOracle.ts",
+        "line": 68,
+        "method": "error",
+        "text": "console.error(\"Oracle Draw Error:\", e);"
       },
       {
         "file": "validate-env.ts",
@@ -112,99 +82,81 @@
       },
       {
         "file": "validate-env.ts",
-        "line": 55,
+        "line": 56,
         "method": "log",
         "text": "console.log('\\n🔗 CONEXÃO SUPABASE\\n');"
       },
       {
         "file": "validate-env.ts",
-        "line": 104,
+        "line": 105,
         "method": "log",
         "text": "console.log('\\n🔐 OAUTH CONFIGURATION\\n');"
       },
       {
         "file": "validate-env.ts",
-        "line": 123,
+        "line": 148,
         "method": "log",
         "text": "console.log('\\n📁 ARQUIVOS DE CONFIGURAÇÃO\\n');"
       },
       {
         "file": "validate-env.ts",
-        "line": 133,
+        "line": 158,
         "method": "log",
         "text": "console.log('\\n📊 RESUMO DOS TESTES\\n');"
       },
       {
         "file": "validate-env.ts",
-        "line": 134,
+        "line": 159,
         "method": "log",
         "text": "console.log('='.repeat(60) + '\\n');"
       },
       {
         "file": "validate-env.ts",
-        "line": 142,
+        "line": 167,
         "method": "log",
         "text": "console.log(`${icon} ${result.name}: ${result.message}`);"
       },
       {
         "file": "validate-env.ts",
-        "line": 149,
+        "line": 174,
         "method": "log",
         "text": "console.log('\\n' + '='.repeat(60));"
       },
       {
         "file": "validate-env.ts",
-        "line": 150,
+        "line": 175,
         "method": "log",
         "text": "console.log(`\\n✅ Passou: ${passCount}  |  ❌ Falhou: ${failCount}  |  ⚠️  Avisos: ${warningCount}\\n`);"
       },
       {
         "file": "validate-env.ts",
-        "line": 153,
+        "line": 178,
         "method": "log",
         "text": "console.log('🎉 CONFIGURAÇÃO OK! Você pode iniciar o servidor.\\n');"
       },
       {
         "file": "validate-env.ts",
-        "line": 154,
+        "line": 179,
         "method": "log",
         "text": "console.log('Execute: npm run dev\\n');"
       },
       {
         "file": "validate-env.ts",
-        "line": 156,
+        "line": 181,
         "method": "log",
         "text": "console.log('⚠️  CONFIGURAÇÃO INCOMPLETA. Resolva os erros acima.\\n');"
       },
       {
         "file": "validate-env.ts",
-        "line": 157,
+        "line": 182,
         "method": "log",
         "text": "console.log('📖 Veja: VERCEL_ENV_VARS.md para mais detalhes\\n');"
       },
       {
-        "file": "views/metamorphosis/TimeLapseView.tsx",
-        "line": 269,
+        "file": "src/flow/GuardiaoFlowEngine.ts",
+        "line": 24,
         "method": "warn",
-        "text": "console.warn(\"Nenhum formato de vídeo suportado encontrado. Tentando default.\");"
-      },
-      {
-        "file": "views/metamorphosis/TimeLapseView.tsx",
-        "line": 290,
-        "method": "error",
-        "text": "console.error(\"Recording Error:\", e);"
-      },
-      {
-        "file": "views/metamorphosis/TimeLapseView.tsx",
-        "line": 298,
-        "method": "error",
-        "text": "console.error(\"Failed to start recording:\", err);"
-      },
-      {
-        "file": "views/metamorphosis/TimeLapseView.tsx",
-        "line": 359,
-        "method": "error",
-        "text": "console.error(\"Share failed\", e);"
+        "text": "console.warn(`[GuardiaoFlow] Invalid transition blocked: ${this.currentState} -> ${target}`);"
       },
       {
         "file": "components/ErrorBoundary.tsx",
@@ -213,34 +165,40 @@
         "text": "console.error(\"[FlowGuard] Uncaught frequency shift:\", error, errorInfo);"
       },
       {
-        "file": "src/flow/BuscadorFlowContext.tsx",
-        "line": 179,
-        "method": "error",
-        "text": "console.error('Failed to fetch Buscador data', e);"
-      },
-      {
-        "file": "components/SocialFeatures.tsx",
-        "line": 337,
-        "method": "error",
-        "text": "console.error(e);"
-      },
-      {
-        "file": "views/SettingsViews.tsx",
-        "line": 561,
+        "file": "src/hooks/useClientDashboard.ts",
+        "line": 149,
         "method": "warn",
-        "text": "console.warn(\"Logout handler missing, forcing redirect\");"
+        "text": "console.warn('[useClientDashboard] idbImages.put failed', e);"
+      },
+      {
+        "file": "src/flow/SantuarioFlowContext.tsx",
+        "line": 230,
+        "method": "error",
+        "text": "console.error('Failed to fetch Santuario data', e);"
       },
       {
         "file": "lib/supabase.ts",
-        "line": 125,
+        "line": 151,
         "method": "warn",
         "text": "console.warn(\"⚠️ Viva360: SUPABASE_URL ou SUPABASE_ANON_KEY não configurados! Operação real ficará indisponível.\");"
       },
       {
         "file": "lib/supabase.ts",
-        "line": 129,
+        "line": 155,
         "method": "error",
         "text": "console.error(\"Erro ao inicializar Supabase (Non-blocking):\", error);"
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 182,
+        "method": "info",
+        "text": "console.info('[auth.config.runtime_ok]', runtimeFingerprint);"
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 184,
+        "method": "warn",
+        "text": "console.warn('[auth.config.runtime_issues]', { ...runtimeFingerprint, issues: diagnostics.issues });"
       },
       {
         "file": "lib/monitoring.ts",
@@ -273,12 +231,6 @@
         "text": "console.warn(\"[FrontendMessage]\", message, context || {});"
       },
       {
-        "file": "views/pro/ProTribe.tsx",
-        "line": 67,
-        "method": "warn",
-        "text": "console.warn('[ProTribe] Failed to load escambo listings:', e);"
-      },
-      {
         "file": "lib/frontendLogger.ts",
         "line": 3,
         "method": "error",
@@ -297,28 +249,76 @@
         "text": "console.warn('[FrontendMessage]', message, context || {});"
       },
       {
-        "file": "views/pro/AlquimiaCreateOffer.tsx",
-        "line": 43,
+        "file": "components/social/SocialFeatureWidgets.tsx",
+        "line": 337,
         "method": "error",
         "text": "console.error(e);"
       },
       {
-        "file": "src/hooks/useOracle.ts",
-        "line": 40,
+        "file": "components/MarketplaceExplorer.tsx",
+        "line": 33,
         "method": "error",
-        "text": "console.error(\"Failed to load daily card\", e);"
+        "text": "console.error(\"Failed to load marketplace\", error);"
       },
       {
-        "file": "src/hooks/useOracle.ts",
-        "line": 67,
+        "file": "src/components/GlobalErrorBoundary.tsx",
+        "line": 24,
         "method": "error",
-        "text": "console.error(\"Oracle Draw Error:\", e);"
+        "text": "console.error(\"[GlobalErrorBoundary] Uncaught error:\", error, errorInfo);"
       },
       {
-        "file": "views/pro/generated/VagasList.tsx",
-        "line": 53,
+        "file": "src/components/OracleCard.tsx",
+        "line": 198,
+        "method": "error",
+        "text": "console.error(\"Share failed\", e);"
+      },
+      {
+        "file": "src/utils/sharing.ts",
+        "line": 219,
+        "method": "error",
+        "text": "console.error('WebShare failed', error);"
+      },
+      {
+        "file": "src/utils/deathClickTracker.ts",
+        "line": 83,
         "method": "warn",
-        "text": "console.warn('[VagasList] Failed to load vacancies:', err);"
+        "text": "console.warn("
+      },
+      {
+        "file": "src/utils/loaderUtils.ts",
+        "line": 30,
+        "method": "error",
+        "text": "loader().catch(err => console.error(`[FlowLoader] Preload failed for ${roleUpper}`, err));"
+      },
+      {
+        "file": "App.tsx",
+        "line": 108,
+        "method": "log",
+        "text": "console.log(\"DEBUG: handleLogin Role:\", role);"
+      },
+      {
+        "file": "App.tsx",
+        "line": 114,
+        "method": "log",
+        "text": "console.log(\"DEBUG: handleLogin Redirecting to:\", dest);"
+      },
+      {
+        "file": "App.tsx",
+        "line": 124,
+        "method": "warn",
+        "text": "console.warn('Invite accept failed:', e);"
+      },
+      {
+        "file": "App.tsx",
+        "line": 195,
+        "method": "error",
+        "text": "console.error(\"Checkout failed\", e);"
+      },
+      {
+        "file": "App.tsx",
+        "line": 204,
+        "method": "error",
+        "text": "console.error(\"Logout error\", e);"
       }
     ]
   }

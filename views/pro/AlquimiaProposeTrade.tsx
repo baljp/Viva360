@@ -4,6 +4,14 @@ import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { RefreshCw, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { api } from '../../services/api';
 
+type AlchemyOfferListItem = {
+    id: string;
+    status?: string;
+    description?: string;
+    title?: string;
+    image?: string;
+};
+
 export const AlquimiaProposeTrade: React.FC = () => {
     const { go, back, notify, state } = useGuardiaoFlow();
     const [selectedItem, setSelectedItem] = useState<string | null>(null);
@@ -31,9 +39,9 @@ export const AlquimiaProposeTrade: React.FC = () => {
             try {
                 const offers = await api.alchemy.listOffers();
                 if (!cancelled && Array.isArray(offers)) {
-                    const items = offers
-                        .filter((o: any) => o.status === 'pending' || o.status === 'available')
-                        .map((o: any) => ({
+                    const items = (offers as AlchemyOfferListItem[])
+                        .filter((o) => o.status === 'pending' || o.status === 'available')
+                        .map((o) => ({
                             id: o.id,
                             name: o.description || o.title || 'Item sem título',
                             image: o.image || 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=200',
@@ -73,8 +81,10 @@ export const AlquimiaProposeTrade: React.FC = () => {
             });
             notify?.('Proposta Enviada!', 'Sua troca foi registrada. Aguarde resposta.', 'success');
             go('ESCAMBO_CONFIRM');
-        } catch (err: any) {
-            const msg = err?.message || 'Falha ao enviar proposta. Tente novamente.';
+        } catch (err: unknown) {
+            const msg = err && typeof err === 'object' && 'message' in err
+                ? String((err as { message?: unknown }).message || '')
+                : 'Falha ao enviar proposta. Tente novamente.';
             notify?.('Erro', msg, 'error');
         } finally {
             setIsSending(false);

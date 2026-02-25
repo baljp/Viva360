@@ -11,7 +11,7 @@ export const ClientDashboard: React.FC<{
     user: User,
     setView: (v: ViewState) => void,
     updateUser: (u: User) => void,
-    data?: any
+    data?: unknown
 }> = React.memo(({ user, setView, updateUser, data }) => {
     const { state, actions } = useClientDashboard(user, updateUser, setView);
     const { go } = actions;
@@ -43,7 +43,7 @@ export const ClientDashboard: React.FC<{
             <NotificationDrawer
                 isOpen={showNotifications}
                 onClose={() => actions.setShowNotifications(false)}
-                notifications={notifications as any}
+                notifications={notifications}
                 readIssue={notificationsReadIssue}
                 onRetryNotifications={actions.loadNotifications}
                 onMarkAsRead={actions.handleMarkAsRead}
@@ -82,7 +82,13 @@ export const ClientDashboard: React.FC<{
 
             <div className="px-4 pb-8 space-y-8">
                 {/* JARDIM INTERNO HERO CARD - Refined & Cinematic */}
-                <div id="hero-garden" className="relative rounded-[3.5rem] overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.25)] group cursor-pointer border border-white/10" onClick={() => go('GARDEN_VIEW')}>
+                <button
+                    type="button"
+                    id="hero-garden"
+                    aria-label="Abrir jardim interno"
+                    className="relative rounded-[3.5rem] overflow-hidden shadow-[0_25px_60px_rgba(0,0,0,0.25)] group cursor-pointer border border-white/10 w-full text-left"
+                    onClick={() => go('GARDEN_VIEW')}
+                >
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-opacity group-hover:opacity-70 z-10"></div>
                     <img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=800&auto=format&fit=crop" className="absolute inset-0 w-full h-full object-cover transition-transform duration-[15000ms] group-hover:scale-110" alt="" />
                     <div className="relative z-20 p-8 h-72 flex flex-col justify-between">
@@ -117,7 +123,7 @@ export const ClientDashboard: React.FC<{
                             </div>
                         </div>
                     </div>
-                </div>
+                </button>
 
                 {/* SESSÃO 1: RITUAIS DE PODER */}
                 <div className="space-y-4">
@@ -163,7 +169,12 @@ export const ClientDashboard: React.FC<{
                 </div>
 
                 {/* MISSÕES DIÁRIAS - Gamification CTA */}
-                <div onClick={() => go('CLIENT_QUESTS')} className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 rounded-[2.5rem] p-5 text-white shadow-xl relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all">
+                <button
+                    type="button"
+                    aria-label="Abrir missões do dia"
+                    onClick={() => go('CLIENT_QUESTS')}
+                    className="bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 rounded-[2.5rem] p-5 text-white shadow-xl relative overflow-hidden group cursor-pointer active:scale-[0.98] transition-all w-full text-left"
+                >
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8 group-hover:bg-white/20 transition-all"></div>
                     <div className="relative z-10 flex items-center gap-4">
                         <div className="w-14 h-14 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 group-hover:scale-110 transition-transform">
@@ -178,7 +189,7 @@ export const ClientDashboard: React.FC<{
                             <span className="text-[9px] font-bold uppercase tracking-widest text-amber-100">dias</span>
                         </div>
                     </div>
-                </div>
+                </button>
 
                 {/* LOGICAL GROUPING: EVOLUÇÃO DA ALMA HUB */}
                 <div className="bg-white rounded-[3rem] p-6 border border-nature-100 shadow-sm space-y-6">

@@ -19,6 +19,25 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
 
     const targetType = type !== 'all' ? (type === 'guardian' ? 'guardian' : 'space') : 'all';
 
+    if (isMockMode()) {
+        const allReviews = mockAdapter.reviews.listBySpace(spaceId, targetType);
+        const paged = allReviews.slice(skip, skip + limit);
+        const reviews = paged.map((review) => ({
+            id: review.id,
+            authorName: review.authorName,
+            rating: review.rating,
+            comment: review.comment,
+            date: review.createdAt,
+            targetName: review.targetName || '',
+            targetType: review.targetType || 'guardian',
+        }));
+        const ratings = allReviews.map((r) => r.rating).filter((r) => r > 0);
+        const averageRating = ratings.length > 0
+            ? +(ratings.reduce((s, r) => s + r, 0) / ratings.length).toFixed(1)
+            : 0;
+        return res.json({ reviews, total: allReviews.length, page, limit, averageRating });
+    }
+
     const [countResult, events] = await Promise.all([
         prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
             `SELECT COUNT(*) as count FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 AND ($2 = 'all' OR payload->>'targetType' = $2)`,
@@ -35,13 +54,13 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
         const payload = (e as Record<string, unknown>).payload;
         const p = typeof payload === 'string' ? JSON.parse(payload) : payload;
         return {
-            id: String((e as any).id || ''),
-            authorName: p.authorName || 'Anônimo',
+            id: String(row.id || ''),
+            authorName: String(p.authorName || 'Anônimo'),
             rating: Number(p.rating || 0),
-            comment: p.comment || '',
-            date: (e as any).created_at,
-            targetName: p.targetName || '',
-            targetType: p.targetType || 'guardian',
+            comment: String(p.comment || ''),
+            date: row.created_at,
+            targetName: String(p.targetName || ''),
+            targetType: String(p.targetType || 'guardian'),
         };
     });
 
@@ -59,6 +78,23 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
 export const getReviewSummary = asyncHandler(async (req: Request, res: Response) => {
     const rawSpaceId = req.params.spaceId;
     const spaceId = rawSpaceId === 'me' ? String(req.user?.userId || '') : rawSpaceId;
+
+    if (isMockMode()) {
+        const events = mockAdapter.reviews.listBySpace(spaceId, 'all');
+        const ratings = events.map((e) => e.rating).filter((r) => r > 0);
+        const totalReviews = ratings.length;
+        const averageRating = totalReviews > 0
+            ? +(ratings.reduce((s, r) => s + r, 0) / totalReviews).toFixed(1)
+            : 0;
+        const recommendRate = totalReviews > 0
+            ? Math.round((ratings.filter((r) => r >= 7).length / totalReviews) * 100)
+            : 0;
+        const guardianRatings = events.filter((e) => e.targetType === 'guardian').map((e) => e.rating).filter((r) => r > 0);
+        const guardianAverage = guardianRatings.length > 0
+            ? +(guardianRatings.reduce((s, r) => s + r, 0) / guardianRatings.length).toFixed(1)
+            : 0;
+        return res.json({ averageRating, totalReviews, recommendRate, guardianAverage });
+    }
 
     const events = await prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(
         `SELECT payload FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1`,
@@ -79,12 +115,12 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
         ? Math.round((ratings.filter(r => r >= 7).length / totalReviews) * 100)
         : 0;
 
-    const guardianEvents = events.filter((e: any) => {
-        const p = typeof e.payload === 'string' ? JSON.parse(e.payload) : e.payload;
+    const guardianEvents = events.filter((e) => {
+        const p = parseEventPayload((e as { payload?: unknown }).payload);
         return p.targetType === 'guardian';
     });
-    const guardianRatings = guardianEvents.map((e: any) => {
-        const p = typeof e.payload === 'string' ? JSON.parse(e.payload) : e.payload;
+    const guardianRatings = guardianEvents.map((e) => {
+        const p = parseEventPayload((e as { payload?: unknown }).payload);
         return Number(p.rating || 0);
     }).filter((r) => r > 0);
     const guardianAverage = guardianRatings.length > 0
@@ -106,7 +142,7 @@ export const createReview = asyncHandler(async (req: Request, res: Response) => 
         return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
     }
 
-    const body = (req.body || {}) as any;
+    const body = (req.body || {}) as Record<string, unknown>;
     const spaceId = String(body.spaceId || '').trim();
     const targetId = String(body.targetId || '').trim();
     const targetType = String(body.targetType || (targetId ? 'guardian' : 'space')).trim().toLowerCase();

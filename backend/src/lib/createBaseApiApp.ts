@@ -10,6 +10,7 @@ import { circuitBreaker } from '../middleware/circuitBreaker';
 import { assertCriticalProdConfig } from './runtimeGuard';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
+const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
 
 const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
 
@@ -55,17 +56,22 @@ export const createBaseApiApp = (): { app: Express; config: BaseApiConfig } => {
   };
 
   app.use(cors(corsOptions));
-  app.use(express.json());
+  app.use(express.json({ limit: jsonBodyLimit }));
+  app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
   app.use(attachRequestContext);
   app.use(securityHardening);
   if (!isProductionRuntime) app.use(morgan('tiny'));
 
+  // Layered strategy matches `app.ts`:
+  // global coarse limiter (`RateLimit-*`) + route-level short-window limiter (`X-RateLimit-*`).
+  // `/api/health*` stays exempt to avoid noisy probe failures.
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
       max: 1000,
       standardHeaders: true,
       legacyHeaders: false,
+      skip: (req) => /^\/api\/health(?:\/|$)/i.test(String(req.path || req.originalUrl || '')),
     }),
   );
 

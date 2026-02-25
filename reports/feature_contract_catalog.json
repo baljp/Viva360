@@ -10,7 +10,7 @@
     "persistedValidated": 31,
     "mixedOrPartial": 0,
     "unclassified": 0,
-    "flowValidatedByEvidenceCatalog": 13
+    "flowValidatedByEvidenceCatalog": 28
   },
   "catalog": [
     {
@@ -28,8 +28,7 @@
         "HISTORY"
       ],
       "endpoints": [
-        "/api/metamorphosis/checkin",
-        "/api/users/checkin"
+        "/api/metamorphosis/checkin"
       ],
       "expectedFinal": "HISTORY",
       "fallbackScreen": "DASHBOARD",

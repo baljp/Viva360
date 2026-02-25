@@ -35,7 +35,7 @@ import {
   MOCK_AUTH_TOKEN,
 } from './mock';
 import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOAuthRuntimeConfig } from '../../lib/supabase';
-import { captureFrontendMessage } from '../../lib/frontendLogger';
+import { captureFrontendMessage, errorMessage as frontendErrorMessage } from '../../lib/frontendLogger';
 import {
   clearOAuthIntentStorage,
   normalizeAuthRoleListPayload,
@@ -53,6 +53,10 @@ import {
 
 export const createAuthApi = (request: RequestFn) => {
   const auth = {} as AuthApi;
+  const errCode = (error: unknown) =>
+    (error && typeof error === 'object' && 'code' in error ? String((error as { code?: unknown }).code || '') : '');
+  const errReason = (error: unknown) =>
+    (error && typeof error === 'object' && 'reason' in error ? String((error as { reason?: unknown }).reason || '') : '');
 
   auth.loginWithPassword = async (email: string, password: string): Promise<User> => {
     const normalized = normalizeEmail(email);
@@ -94,8 +98,7 @@ export const createAuthApi = (request: RequestFn) => {
       }
 
       const payload = await response.json();
-      const token = payload?.session?.access_token;
-      promoteToRealSession(token);
+      promoteToRealSession();
       clearOAuthIntentStorage();
 
       // Best-effort: establish Supabase session too.
@@ -124,14 +127,14 @@ export const createAuthApi = (request: RequestFn) => {
         ),
         avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${payload?.user?.id || normalized}`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       captureFrontendMessage('auth.login_with_password.failed', {
         mode: 'backend-then-supabase',
-        code: err?.code || null,
-        reason: err?.reason || null,
-        message: err?.message || 'unknown',
+        code: errCode(err) || null,
+        reason: errReason(err) || null,
+        message: frontendErrorMessage(err),
       });
-      if (!isLikelyNetworkError(err?.message)) throw err;
+      if (!isLikelyNetworkError(frontendErrorMessage(err))) throw err;
 
       const { data, error } = await supabase.auth.signInWithPassword({ email: normalized, password });
       if (error) throw error;
@@ -227,7 +230,7 @@ export const createAuthApi = (request: RequestFn) => {
     });
   };
 
-  auth.register = async (data: any): Promise<User> => {
+  auth.register = async (data: AuthRegisterInput): Promise<User> => {
     const normalizedEmailValue = normalizeEmail(String(data.email || ''));
     const normalizedRole = normalizeRole(data.role);
 
@@ -265,8 +268,7 @@ export const createAuthApi = (request: RequestFn) => {
     }
 
     const payload = await response.json();
-    const fallbackToken = payload?.session?.access_token;
-    if (fallbackToken) promoteToRealSession(fallbackToken);
+    if (payload?.session?.access_token) promoteToRealSession();
 
     try {
       const { data: signInData, error } = await supabase.auth.signInWithPassword({
@@ -323,6 +325,19 @@ export const createAuthApi = (request: RequestFn) => {
         const oauthRole = normalizeRole(localStorage.getItem(OAUTH_ROLE_KEY) || '');
 
         promoteToRealSession(session.access_token);
+        try {
+          await fetchWithTimeout(`${API_URL}/auth/session/cookie`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: '{}',
+            timeoutMs: 6000,
+          });
+        } catch {
+          // Ignore. Authorization header path remains available.
+        }
 
         let eligibility = await fetchLoginEligibility(sessionEmail);
         if (!eligibility.allowed) {
@@ -396,16 +411,57 @@ export const createAuthApi = (request: RequestFn) => {
           }),
         );
       }
-    } catch (err: any) {
-      if (err?.message?.includes('não corresponde') || err?.message?.includes('bloqueada')) throw err;
+    } catch (err: unknown) {
+      const msg = frontendErrorMessage(err);
+      if (msg.includes('não corresponde') || msg.includes('bloqueada')) throw err;
       // Fallthrough to JWT hydration.
+    }
+
+    if (!localStorage.getItem(AUTH_TOKEN_KEY)) {
+      try {
+        const sessionPayload = await request<{ user?: Record<string, unknown> }>('/auth/session', {
+          purpose: 'session-cookie-restore',
+          timeoutMs: 5000,
+          retries: 0,
+        });
+        const rawUser = sessionPayload?.user || {};
+        const id = String(rawUser.id || '').trim();
+        const email = String(rawUser.email || '').trim().toLowerCase();
+        if (id && email) {
+          const role = normalizeRole(String(rawUser.activeRole || rawUser.role || inferRoleFromEmail(email)));
+          return hydrateUserFromProfileApi(
+            request,
+            baseUser({
+              id,
+              email,
+              name: email.split('@')[0] || 'Viajante',
+              role,
+              activeRole: role,
+              roles: normalizeRoleList(
+                Array.isArray(rawUser.roles)
+                  ? (rawUser.roles as Array<string | UserRole>)
+                  : [role],
+              ),
+            }),
+          );
+        }
+      } catch {
+        // Fall through to legacy JWT localStorage path.
+      }
     }
 
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (!token) return null;
 
     const payload = decodeJwtPayload(token);
-    if (!payload?.email) return null;
+    const payloadEmail = typeof payload?.email === 'string' ? payload.email : '';
+    if (!payloadEmail) return null;
+    const payloadUserId = typeof payload?.userId === 'string' ? payload.userId : '';
+    const payloadSub = typeof payload?.sub === 'string' ? payload.sub : '';
+    const payloadName = typeof payload?.name === 'string' ? payload.name : '';
+    const payloadRole = typeof payload?.role === 'string' ? payload.role : '';
+    const payloadActiveRole = typeof payload?.activeRole === 'string' ? payload.activeRole : '';
+    const payloadRoles = Array.isArray(payload?.roles) ? payload.roles : [];
 
     const isMockToken = MOCK_AUTH_TOKEN && token === MOCK_AUTH_TOKEN;
     if (isMockToken && !canUseMockSession()) {
@@ -418,18 +474,28 @@ export const createAuthApi = (request: RequestFn) => {
     return hydrateUserFromProfileApi(
       request,
       baseUser({
-        id: payload.userId || payload.sub || `user_${hashString(payload.email).slice(0, 8)}`,
-        email: payload.email,
-        name: payload.name || payload.email.split('@')[0] || 'Viajante',
-        role: normalizeRole(payload.role || inferRoleFromEmail(payload.email)),
-        activeRole: normalizeRole(payload.activeRole || payload.role || inferRoleFromEmail(payload.email)),
-        roles: normalizeRoleList(Array.isArray(payload.roles) ? payload.roles : [payload.activeRole || payload.role || inferRoleFromEmail(payload.email)]),
-        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${payload.email}`,
+        id: payloadUserId || payloadSub || `user_${hashString(payloadEmail).slice(0, 8)}`,
+        email: payloadEmail,
+        name: payloadName || payloadEmail.split('@')[0] || 'Viajante',
+        role: normalizeRole(payloadRole || inferRoleFromEmail(payloadEmail)),
+        activeRole: normalizeRole(payloadActiveRole || payloadRole || inferRoleFromEmail(payloadEmail)),
+        roles: normalizeRoleList(payloadRoles.length ? payloadRoles.map((entry) => String(entry)) : [payloadActiveRole || payloadRole || inferRoleFromEmail(payloadEmail)]),
+        avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${payloadEmail}`,
       }),
     );
   };
 
   auth.logout = async () => {
+    try {
+      await fetchWithTimeout(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+        timeoutMs: 5000,
+      });
+    } catch {
+      // ignore
+    }
     try {
       if (!canUseMockSession()) {
         await supabase.auth.signOut({ scope: 'global' as any });

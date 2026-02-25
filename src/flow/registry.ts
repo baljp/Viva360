@@ -36,7 +36,7 @@ export const flowRegistry: FlowDefinition[] = [
     expectedFinal: 'HISTORY',
     fallbackScreen: 'DASHBOARD',
     requiredButtons: baseButtons,
-    endpoints: ['/api/metamorphosis/checkin', '/api/users/checkin'],
+    endpoints: ['/api/metamorphosis/checkin'],
   },
   {
     id: 'buscador_metamorfose_karma_timelapse',

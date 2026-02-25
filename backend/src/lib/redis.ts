@@ -2,14 +2,26 @@ import Redis from 'ioredis';
 import { logger } from './logger';
 
 const REDIS_HOST = process.env.REDIS_HOST || 'localhost';
-const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379');
+const REDIS_PORT = parseInt(process.env.REDIS_PORT || '6379', 10);
+const REDIS_URL = String(
+  process.env.REDIS_URL
+    || process.env.UPSTASH_REDIS_URL
+    || process.env.KV_URL
+    || '',
+).trim();
 
 // Auto-detect serverless environment (Vercel, AWS Lambda, etc.)
 const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
-const isMock = process.env.MOCK_MODE === 'true' || isServerless;
+const hasExplicitRedisConfig = !!REDIS_URL || !!process.env.REDIS_HOST || !!process.env.REDIS_PORT;
+const isMock = process.env.MOCK_MODE === 'true' || !hasExplicitRedisConfig;
 
-if (isServerless) {
-    logger.info('redis.serverless_disabled');
+if (isServerless && !isMock) {
+  logger.info('redis.serverless_enabled');
+} else if (isServerless) {
+  // SEC-REDIS: Distributed rate limiting is DISABLED. Each serverless instance
+  // tracks request counts independently. Configure REDIS_URL (e.g. Upstash) to
+  // enable cross-region rate limit enforcement in production.
+  logger.warn('redis.serverless_no_config_RATE_LIMIT_NOT_DISTRIBUTED');
 }
 
 // Mock Redis Class
@@ -32,25 +44,33 @@ class MockRedis {
   async quit() { return 'OK'; }
 }
 
-export const redisConnection = isMock ? new MockRedis() as any : new Redis({
-  host: REDIS_HOST,
-  port: REDIS_PORT,
-  maxRetriesPerRequest: null,
-  lazyConnect: true, // Don't connect immediately
-});
+const buildRedisClient = () => {
+  if (REDIS_URL) {
+    return new Redis(REDIS_URL, {
+      maxRetriesPerRequest: null,
+      lazyConnect: true,
+      enableReadyCheck: false,
+      tls: REDIS_URL.startsWith('rediss://') ? {} : undefined,
+    });
+  }
 
-export const redisSubscriber = isMock ? new MockRedis() as any : new Redis({
-  host: REDIS_HOST,
-  port: REDIS_PORT,
-  maxRetriesPerRequest: null,
-  lazyConnect: true,
-});
+  return new Redis({
+    host: REDIS_HOST,
+    port: REDIS_PORT,
+    maxRetriesPerRequest: null,
+    lazyConnect: true,
+  });
+};
+
+export const redisConnection = isMock ? new MockRedis() as any : buildRedisClient();
+
+export const redisSubscriber = isMock ? new MockRedis() as any : buildRedisClient();
 
 if (!isMock) {
     redisConnection.on('connect', () => logger.info('redis.connected'));
     redisConnection.on('error', (err: unknown) => logger.error('redis.error', err));
 } else {
-    logger.info('redis.mock_mode');
+    logger.warn('redis.mock_mode — rate limiting is in-memory only; set REDIS_URL for distributed enforcement');
 }
 
 export const isRedisEnabled = !isMock;

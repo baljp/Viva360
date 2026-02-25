@@ -1,5 +1,6 @@
 import type { Achievement, DailyQuest } from '../../../types';
 import type { DomainRequest } from './common';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 export type GamificationStateResponse = {
   dateKey: string;
@@ -11,6 +12,31 @@ export type GamificationStateResponse = {
     lastSyncedAt: string | null;
   };
   source: 'interaction_receipts';
+};
+
+export type GamificationLeaderboardEntry = {
+  userId: string;
+  name: string;
+  avatar?: string | null;
+  karma: number;
+  rankLevel: number;
+  rankName: string;
+};
+
+export type GamificationLeaderboardResponse = {
+  me: {
+    userId: string;
+    karma: number;
+    rankLevel: number;
+    rankName: string;
+    rankPosition: number | null;
+    challenges: {
+      total: number;
+      completed: number;
+      items: Array<{ id: string; label: string; completed: boolean; reward: number }>;
+    };
+  };
+  leaderboard: GamificationLeaderboardEntry[];
 };
 
 type GamificationDomainDeps = {
@@ -28,7 +54,19 @@ export const createGamificationDomain = ({ request }: GamificationDomainDeps) =>
           retries: 1,
         });
       } catch (err) {
-        console.error('[gamification.getState]', err);
+        captureFrontendError(err, { domain: 'gamification', op: 'getState' });
+        return null;
+      }
+    },
+    getLeaderboard: async (): Promise<GamificationLeaderboardResponse | null> => {
+      try {
+        return await request('/gamification/leaderboard', {
+          purpose: 'gamification-leaderboard',
+          timeoutMs: 7000,
+          retries: 1,
+        });
+      } catch (err) {
+        captureFrontendError(err, { domain: 'gamification', op: 'getLeaderboard' });
         return null;
       }
     },
@@ -65,4 +103,3 @@ export const createGamificationDomain = ({ request }: GamificationDomainDeps) =>
     },
   },
 });
-

@@ -1,5 +1,6 @@
 import type { Product } from '../../../types';
 import type { DomainRequest } from './common';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 type CommerceDomainDeps = {
   request: DomainRequest;
@@ -41,7 +42,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
           retries: 1,
         });
       } catch (err) {
-        console.error('[commerce.list]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'marketplace.list' });
         if (opts?.strict) throw err;
         return [];
       }
@@ -57,11 +58,11 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         return await request(`/marketplace/products?ownerId=${encodeURIComponent(String(oid))}`, { purpose: 'marketplace-owner-list' });
       } catch (err) {
-        console.error('[commerce.listByOwner]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'marketplace.listByOwner' });
         return [];
       }
     },
-    create: async (product: any) => {
+    create: async (product: Record<string, unknown>) => {
       return await request('/marketplace/products', {
         method: 'POST',
         purpose: 'marketplace-create',
@@ -73,7 +74,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
         await request(`/marketplace/products/${id}`, { method: 'DELETE', purpose: 'marketplace-delete' });
         return true;
       } catch (err) {
-        console.error('[commerce.delete]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'marketplace.delete' });
         return false;
       }
     },
@@ -92,7 +93,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         return await request('/admin/dashboard');
       } catch (err) {
-        console.error('[commerce.getDashboard]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'admin.getDashboard' });
         return { totalUsers: 0, activeUsers: 0, revenue: 0, systemHealth: { status: 'unknown' } };
       }
     },
@@ -100,7 +101,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         return await request('/admin/users');
       } catch (err) {
-        console.error('[commerce.listUsers]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'admin.listUsers' });
         return [];
       }
     },
@@ -109,7 +110,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         return await request('/admin/metrics');
       } catch (err) {
-        console.error('[commerce.getMetrics]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'admin.getMetrics' });
         return {};
       }
     },
@@ -117,7 +118,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         return await request('/admin/marketplace/offers');
       } catch (err) {
-        console.error('[commerce.getMarketplaceOffers]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'admin.getMarketplaceOffers' });
         return [];
       }
     },
@@ -125,7 +126,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         return await request('/admin/finance/global');
       } catch (err) {
-        console.error('[commerce.getGlobalFinance]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'admin.getGlobalFinance' });
         return {};
       }
     },
@@ -133,7 +134,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         return await request('/admin/lgpd/audit');
       } catch (err) {
-        console.error('[commerce.getLgpdAudit]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'admin.getLgpdAudit' });
         return [];
       }
     },
@@ -141,7 +142,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       try {
         return await request('/admin/system/health');
       } catch (err) {
-        console.error('[commerce.getSystemHealth]', err);
+        captureFrontendError(err, { domain: 'commerce', op: 'admin.getSystemHealth' });
         return {};
       }
     },
