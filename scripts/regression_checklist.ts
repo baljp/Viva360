@@ -27,6 +27,7 @@ const checks: Check[] = [
   { id: 'matrix', label: 'Matriz Tela x Botao x Fluxo', command: 'npm run qa:matrix', required: true },
   { id: 'feature-contract-catalog', label: 'Catálogo clientOnly vs persistido', command: 'npm run qa:feature-contract-catalog', required: true },
   { id: 'feature-contract-gate', label: 'Gate parcial do catálogo (unclassified=0)', command: 'npm run qa:feature-contract-gate', required: true },
+  { id: 'feature-contract-roundtrip-gate', label: 'Gate de evidência explícita de round-trip (allowlist temporária)', command: 'npm run qa:feature-contract-roundtrip-gate', required: true },
   { id: 'flow-conversion-catalog', label: 'Catálogo de funis de conversão', command: 'npm run qa:flow-conversion-catalog', required: false },
   { id: 'flow-registry', label: 'Validação do Flow Registry', command: 'npm run qa:validate-flow-registry', required: true },
   { id: 'flow-registry-warn-gate', label: 'Gate de warnings do Flow Registry', command: 'npm run qa:flow-registry-warn-gate', required: true },

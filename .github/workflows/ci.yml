@@ -38,6 +38,9 @@ jobs:
       - name: Enforce feature contract gate (unclassified == 0)
         run: npm run qa:feature-contract-gate
 
+      - name: Enforce round-trip evidence gate (mixed/partial require explicit evidence or temporary allowlist)
+        run: npm run qa:feature-contract-roundtrip-gate
+
       - name: Validate flow registry + warning gate
         run: npm run qa:validate-flow-registry && npm run qa:flow-registry-warn-gate
 

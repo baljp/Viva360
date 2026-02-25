@@ -1,6 +1,6 @@
 # Catálogo de Contrato de Features (clientOnly vs persistidas)
 
-Gerado em: 2026-02-24T16:33:50.936Z
+Gerado em: 2026-02-25T02:15:35.925Z
 
 Flows totais: 39
 Client-only: 8
