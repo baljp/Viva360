@@ -32,6 +32,13 @@ export const getState = asyncHandler(async (req: Request, res: Response) => {
   return res.json(state);
 });
 
+export const getLeaderboard = asyncHandler(async (req: Request, res: Response) => {
+  const userId = getUserId(req);
+  if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+  const leaderboard = await gamificationService.getLeaderboard(userId);
+  return res.json(leaderboard);
+});
+
 export const completeQuest = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserId(req);
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });

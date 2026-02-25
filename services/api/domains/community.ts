@@ -1,5 +1,6 @@
 import type { UserRole } from '../../../types';
 import type { DomainRequest } from './common';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 type CommunityDomainDeps = {
   request: DomainRequest;
@@ -29,7 +30,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         return await request('/notifications');
       } catch (err) {
-        console.error('[community.list]', err);
+        captureFrontendError(err, { domain: 'community', op: 'notifications.list' });
         if (opts?.strict) throw err;
         return [];
       }
@@ -49,7 +50,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         return await request('/tribe/posts');
       } catch (err) {
-        console.error('[community.listPosts]', err);
+        captureFrontendError(err, { domain: 'community', op: 'tribe.listPosts' });
         return [];
       }
     },
@@ -70,7 +71,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
           body: JSON.stringify({ reward }),
         });
       } catch (err) {
-        console.error('[community.syncVibration]', err);
+        captureFrontendError(err, { domain: 'community', op: 'tribe.syncVibration' });
         return { success: false };
       }
     },
@@ -102,7 +103,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         return await request('/links/me');
       } catch (err) {
-        console.error('[community.getMyLinks]', err);
+        captureFrontendError(err, { domain: 'community', op: 'links.getMyLinks' });
         return [];
       }
     },
@@ -110,7 +111,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         return await request('/links/pending');
       } catch (err) {
-        console.error('[community.getPendingRequests]', err);
+        captureFrontendError(err, { domain: 'community', op: 'links.getPendingRequests' });
         return [];
       }
     },
@@ -120,7 +121,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         const result = await request(`/links/check/${targetId}${params}`);
         return result.hasLink || false;
       } catch (err) {
-        console.error('[community.checkLink]', err);
+        captureFrontendError(err, { domain: 'community', op: 'links.checkLink' });
         return false;
       }
     },
@@ -134,7 +135,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         return await request('/presence/online', { method: 'POST' });
       } catch (err) {
-        console.error('[community.goOnline]', err);
+        captureFrontendError(err, { domain: 'community', op: 'presence.goOnline' });
         return { status: 'ONLINE' };
       }
     },
@@ -142,7 +143,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         return await request('/presence/offline', { method: 'POST' });
       } catch (err) {
-        console.error('[community.goOffline]', err);
+        captureFrontendError(err, { domain: 'community', op: 'presence.goOffline' });
         return { status: 'OFFLINE' };
       }
     },
@@ -150,7 +151,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         return await request('/presence/ping', { method: 'POST' });
       } catch (err) {
-        console.error('[community.ping]', err);
+        captureFrontendError(err, { domain: 'community', op: 'presence.ping' });
         return { status: 'ONLINE' };
       }
     },
@@ -159,7 +160,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         const result = await request('/presence');
         return result.online || [];
       } catch (err) {
-        console.error('[community.listActive]', err);
+        captureFrontendError(err, { domain: 'community', op: 'presence.listActive' });
         return [];
       }
     },
@@ -168,7 +169,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         const result = await request(`/presence/${guardianId}`);
         return result.status || 'OFFLINE';
       } catch (err) {
-        console.error('[community.getStatus]', err);
+        captureFrontendError(err, { domain: 'community', op: 'presence.getStatus' });
         return 'OFFLINE';
       }
     },
@@ -179,7 +180,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
           body: JSON.stringify({ guardianIds }),
         });
       } catch (err) {
-        console.error('[community.getBatch]', err);
+        captureFrontendError(err, { domain: 'community', op: 'presence.getBatch' });
         const result: Record<string, string> = {};
         guardianIds.forEach((id) => {
           result[id] = 'OFFLINE';
@@ -204,7 +205,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         const path = query.toString() ? `/chat/rooms?${query.toString()}` : '/chat/rooms';
         return await request(path);
       } catch (err) {
-        console.error('[community.listRooms]', err);
+        captureFrontendError(err, { domain: 'community', op: 'chat.listRooms' });
         if (opts?.strict) throw err;
         return [];
       }
@@ -213,7 +214,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       try {
         return await request(`/chat/rooms/${roomId}/messages`);
       } catch (err) {
-        console.error('[community.getMessages]', err);
+        captureFrontendError(err, { domain: 'community', op: 'chat.getMessages' });
         return [];
       }
     },

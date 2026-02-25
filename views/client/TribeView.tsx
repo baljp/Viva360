@@ -4,10 +4,29 @@ import { Flame, Plus, Trophy, Heart, Moon } from 'lucide-react';
 import { PortalView, BottomSheet, DynamicAvatar, InteractiveButton } from '../../components/Common';
 import { ConstellationOrbit, GlobalMandala } from '../../components/SocialFeatures';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
+import { api } from '../../services/api';
+import type { GamificationLeaderboardResponse } from '../../services/api/domains/gamification';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
    const { go, back, selectTribeRoomContext } = useBuscadorFlow();
    const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
+   const [leaderboard, setLeaderboard] = useState<GamificationLeaderboardResponse | null>(null);
+   const [leaderboardLoading, setLeaderboardLoading] = useState(false);
+
+   const openLeaderboard = async () => {
+      setActiveModal('leaderboard');
+      if (leaderboard || leaderboardLoading) return;
+      setLeaderboardLoading(true);
+      try {
+         const payload = await api.gamification.getLeaderboard();
+         setLeaderboard(payload);
+      } catch (error) {
+         captureFrontendError(error, { view: 'TribeView', op: 'openLeaderboard' });
+      } finally {
+         setLeaderboardLoading(false);
+      }
+   };
 
    return (
       <PortalView
@@ -92,7 +111,7 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
                   <InteractiveButton variant="primary" size="lg" onClick={() => { selectTribeRoomContext({ type: 'support_room' }); go('TRIBE_INTERACTION'); }} className="w-full rounded-2xl flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600">
                      <Plus size={14} /> Sala de Apoio Coletivo
                   </InteractiveButton>
-                  <InteractiveButton variant="ghost" size="md" onClick={() => setActiveModal('leaderboard')} className="w-full rounded-2xl text-white border-white/20 hover:bg-white/20">Ver evolução da tribo</InteractiveButton>
+                  <InteractiveButton variant="ghost" size="md" onClick={openLeaderboard} className="w-full rounded-2xl text-white border-white/20 hover:bg-white/20">Ver evolução da tribo</InteractiveButton>
                </div>
             </div>
 
@@ -100,17 +119,58 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
                <div className="space-y-6 pb-12">
                   <div className="bg-indigo-50 p-6 rounded-3xl border border-indigo-100 flex justify-between items-center">
                      <div className="flex items-center gap-4">
-                        <div className="text-2xl font-black text-indigo-200">#42</div>
+                        <div className="text-2xl font-black text-indigo-200">#{leaderboard?.me.rankPosition || '--'}</div>
                         <DynamicAvatar user={user} size="md" />
                         <div>
                            <h4 className="font-bold text-nature-900 text-sm">Você</h4>
-                           <p className="text-[10px] font-bold text-indigo-500 uppercase">{user.plantStage} • Nível {Math.floor((user.plantXp || 0) / 20) + 1}</p>
+                           <p className="text-[10px] font-bold text-indigo-500 uppercase">{leaderboard?.me.rankName || user.plantStage} • Nível {leaderboard?.me.rankLevel || (Math.floor((user.plantXp || 0) / 20) + 1)}</p>
                         </div>
                      </div>
                      <div className="text-right">
-                        <span className="block text-xl font-black text-nature-900">{user.karma}</span>
+                        <span className="block text-xl font-black text-nature-900">{leaderboard?.me.karma ?? user.karma}</span>
                         <span className="text-[9px] font-bold text-nature-400 uppercase">Karma</span>
                      </div>
+                  </div>
+
+                  <div className="bg-white border border-nature-100 rounded-3xl p-5 space-y-4">
+                     <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-nature-900">Challenges do Dia</h4>
+                        <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                           {leaderboard?.me.challenges.completed ?? 0}/{leaderboard?.me.challenges.total ?? 0}
+                        </span>
+                     </div>
+                     {leaderboardLoading && <p className="text-[11px] text-nature-400">Carregando desafios...</p>}
+                     {(leaderboard?.me.challenges.items || []).slice(0, 5).map((challenge) => (
+                        <div key={challenge.id} className="flex items-center justify-between gap-3">
+                           <div className="flex items-center gap-3 min-w-0">
+                              <div className={`w-5 h-5 rounded-full ${challenge.completed ? 'bg-emerald-500' : 'bg-nature-100'}`}></div>
+                              <span className="text-xs text-nature-700 truncate">{challenge.label}</span>
+                           </div>
+                           <span className="text-[10px] font-bold text-nature-400">+{challenge.reward}</span>
+                        </div>
+                     ))}
+                  </div>
+
+                  <div className="bg-white border border-nature-100 rounded-3xl p-5 space-y-3">
+                     <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-nature-900">Ranking da Tribo</h4>
+                        {leaderboardLoading && <span className="text-[10px] text-nature-400">Carregando...</span>}
+                     </div>
+                     {(leaderboard?.leaderboard || []).slice(0, 8).map((entry, index) => (
+                        <div key={entry.userId} className="flex items-center justify-between gap-3">
+                           <div className="flex items-center gap-3 min-w-0">
+                              <span className="w-6 text-[10px] font-black text-indigo-300">#{index + 1}</span>
+                              <div className="w-8 h-8 rounded-full overflow-hidden bg-nature-100">
+                                 {entry.avatar ? <img src={entry.avatar} alt="" className="w-full h-full object-cover" /> : null}
+                              </div>
+                              <div className="min-w-0">
+                                 <p className="text-xs font-bold text-nature-900 truncate">{entry.name}</p>
+                                 <p className="text-[10px] text-nature-400 uppercase">{entry.rankName}</p>
+                              </div>
+                           </div>
+                           <span className="text-xs font-black text-nature-800">{entry.karma}</span>
+                        </div>
+                     ))}
                   </div>
                </div>
             </BottomSheet>

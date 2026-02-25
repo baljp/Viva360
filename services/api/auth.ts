@@ -35,7 +35,7 @@ import {
   MOCK_AUTH_TOKEN,
 } from './mock';
 import { supabase, isMockMode as isSupabaseMock, getOAuthRedirectUrl, validateOAuthRuntimeConfig } from '../../lib/supabase';
-import { captureFrontendMessage } from '../../lib/frontendLogger';
+import { captureFrontendMessage, errorMessage as frontendErrorMessage } from '../../lib/frontendLogger';
 import {
   clearOAuthIntentStorage,
   normalizeAuthRoleListPayload,
@@ -53,6 +53,10 @@ import {
 
 export const createAuthApi = (request: RequestFn) => {
   const auth = {} as AuthApi;
+  const errCode = (error: unknown) =>
+    (error && typeof error === 'object' && 'code' in error ? String((error as { code?: unknown }).code || '') : '');
+  const errReason = (error: unknown) =>
+    (error && typeof error === 'object' && 'reason' in error ? String((error as { reason?: unknown }).reason || '') : '');
 
   auth.loginWithPassword = async (email: string, password: string): Promise<User> => {
     const normalized = normalizeEmail(email);
@@ -124,14 +128,14 @@ export const createAuthApi = (request: RequestFn) => {
         ),
         avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${payload?.user?.id || normalized}`,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       captureFrontendMessage('auth.login_with_password.failed', {
         mode: 'backend-then-supabase',
-        code: err?.code || null,
-        reason: err?.reason || null,
-        message: err?.message || 'unknown',
+        code: errCode(err) || null,
+        reason: errReason(err) || null,
+        message: frontendErrorMessage(err),
       });
-      if (!isLikelyNetworkError(err?.message)) throw err;
+      if (!isLikelyNetworkError(frontendErrorMessage(err))) throw err;
 
       const { data, error } = await supabase.auth.signInWithPassword({ email: normalized, password });
       if (error) throw error;
@@ -227,7 +231,7 @@ export const createAuthApi = (request: RequestFn) => {
     });
   };
 
-  auth.register = async (data: any): Promise<User> => {
+  auth.register = async (data: AuthRegisterInput): Promise<User> => {
     const normalizedEmailValue = normalizeEmail(String(data.email || ''));
     const normalizedRole = normalizeRole(data.role);
 
@@ -396,8 +400,9 @@ export const createAuthApi = (request: RequestFn) => {
           }),
         );
       }
-    } catch (err: any) {
-      if (err?.message?.includes('não corresponde') || err?.message?.includes('bloqueada')) throw err;
+    } catch (err: unknown) {
+      const msg = frontendErrorMessage(err);
+      if (msg.includes('não corresponde') || msg.includes('bloqueada')) throw err;
       // Fallthrough to JWT hydration.
     }
 

@@ -1,4 +1,5 @@
 import type { DomainRequest } from './common';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 type HubDomainDeps = {
   request: DomainRequest;
@@ -70,7 +71,7 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       try {
         return await request('/rooms/real-time', { purpose: 'space-rooms' });
       } catch (err) {
-        console.error('[hub.spaces.getRooms]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getRooms' });
         return [];
       }
     },
@@ -78,35 +79,36 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       try {
         const result = await request('/spaces/team', { purpose: 'space-team' });
         if (Array.isArray((result as any)?.team)) {
-          const raw = (result as any).team as any[];
-          return raw.map((g: any) => {
-            const specialtyRaw = (g as any).specialty;
+          const raw = (result as { team?: unknown[] }).team as unknown[];
+          return raw.map((g) => {
+            const row = (g && typeof g === 'object') ? (g as Record<string, unknown>) : {};
+            const specialtyRaw = row.specialty;
             const specialty = Array.isArray(specialtyRaw)
               ? specialtyRaw
               : (typeof specialtyRaw === 'string' && specialtyRaw.trim() ? [specialtyRaw.trim()] : []);
             return {
-              ...g,
+              ...row,
               specialty,
-              reviewCount: Number((g as any).reviewCount || (g as any).review_count || 0),
-              rating: Number((g as any).rating || 0),
-              isOccupied: Boolean((g as any).isOccupied || false),
-              roleLabel: Number((g as any).karma || 0) > 800 ? 'Mestre' : 'Guardião',
+              reviewCount: Number(row.reviewCount || row.review_count || 0),
+              rating: Number(row.rating || 0),
+              isOccupied: Boolean(row.isOccupied || false),
+              roleLabel: Number(row.karma || 0) > 800 ? 'Mestre' : 'Guardião',
             };
           });
         }
         return await request('/profiles?role=PROFESSIONAL', { purpose: 'space-team-legacy' });
       } catch (err) {
-        console.error('[hub.spaces.getTeam]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getTeam' });
         return [];
       }
     },
     getPatients: async () => {
       try {
         const result = await request('/spaces/patients', { purpose: 'space-patients' });
-        if (Array.isArray((result as any)?.patients)) return (result as any).patients;
+        if (Array.isArray((result as { patients?: unknown[] })?.patients)) return (result as { patients: unknown[] }).patients;
         return [];
       } catch (err) {
-        console.error('[hub.spaces.getPatients]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getPatients' });
         return [];
       }
     },
@@ -114,7 +116,7 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       try {
         return await request(`/spaces/patients/${patientId}`, { purpose: 'space-patient-detail' });
       } catch (err) {
-        console.error('[hub.spaces.getPatient]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getPatient' });
         return null;
       }
     },
@@ -126,12 +128,12 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
           retries: 0,
         });
       } catch (err) {
-        console.error('[hub.spaces.getVacancies]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getVacancies' });
         if (opts?.strict) throw err;
         return [];
       }
     },
-    createVacancy: async (vacancy: any) => {
+    createVacancy: async (vacancy: Record<string, unknown>) => {
       return await request('/rooms/vacancies', {
         method: 'POST',
         purpose: 'space-vacancy-create',
@@ -142,7 +144,7 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       try {
         return await request('/finance/transactions', { purpose: 'space-transactions' });
       } catch (err) {
-        console.error('[hub.spaces.getTransactions]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getTransactions' });
         return [];
       }
     },
@@ -150,7 +152,7 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       try {
         return await request('/spaces/proposals');
       } catch (err) {
-        console.error('[hub.spaces.getProposals]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getProposals' });
         return [];
       }
     },
@@ -168,7 +170,7 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
           retries: 1,
         });
       } catch (err) {
-        console.error('[hub.spaces.getEvents]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getEvents' });
         return [];
       }
     },
@@ -176,18 +178,18 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
       try {
         return await request(`/calendar/${eventId}`, { purpose: 'space-event-detail', timeoutMs: 6000, retries: 1 });
       } catch (err) {
-        console.error('[hub.spaces.getEvent]', err);
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getEvent' });
         return null;
       }
     },
-    createEvent: async (event: any) => {
+    createEvent: async (event: Record<string, unknown>) => {
       return await request('/calendar', {
         method: 'POST',
         purpose: 'space-events-create',
         body: JSON.stringify(event),
       });
     },
-    updateEvent: async (eventId: string, patch: any) => {
+    updateEvent: async (eventId: string, patch: Record<string, unknown>) => {
       return await request(`/calendar/${eventId}`, {
         method: 'PATCH',
         purpose: 'space-events-update',

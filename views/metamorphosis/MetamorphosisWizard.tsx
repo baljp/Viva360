@@ -14,19 +14,35 @@ import { useObjectUrl } from '../../src/hooks/useObjectUrl';
 import { drawMetamorphosisCardCanvas } from './metamorphosisCardCanvas';
 import { ELEMENT_ICONS, METAMORPHOSIS_MOODS } from './metamorphosisConfig';
 import { MetamorphosisProcessingStep, MetamorphosisShareControls, MetamorphosisSuccessStep } from './MetamorphosisWizardSteps';
+import type { SoulCard } from '../../src/data/mockSoulCards';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
-export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) => void, onClose?: () => void, user?: User }> = ({ flow, setView, onClose, user }) => {
+type FlowLike = {
+    go: (next: string) => void;
+    back: () => void;
+};
+
+type MetamorphosisResult = {
+    id: number | string;
+    mood: string;
+    photoThumb?: string | null;
+    photoHash?: string | null;
+    quote?: string;
+    timestamp: string;
+};
+
+export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewState) => void, onClose?: () => void, user?: User }> = ({ flow, setView, onClose, user }) => {
     const [step, setStep] = useState(1);
     const [mood, setMood] = useState('');
     const [photo, setPhoto] = useState<CameraCaptureResult | null>(null);
     const [photoHash, setPhotoHash] = useState<string | null>(null);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<MetamorphosisResult | null>(null);
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
     const [isProcessing, setIsProcessing] = useState(false);
     const [cardPhrase, setCardPhrase] = useState('');
     const [isDrawing, setIsDrawing] = useState(false); // Lock share until ready
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [drewCard, setDrewCard] = useState<any>(null);
+    const [drewCard, setDrewCard] = useState<SoulCard | null>(null);
     const [showSoulReveal, setShowSoulReveal] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -38,7 +54,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
     useEffect(() => {
         if (!photoPreviewUrl) return;
         // Keep result photo thumb synced to the locally captured high-quality blob URL.
-        setResult((prev: any) => (prev ? { ...prev, photoThumb: photoPreviewUrl } : prev));
+        setResult((prev) => (prev ? { ...prev, photoThumb: photoPreviewUrl } : prev));
     }, [photoPreviewUrl]);
 
     useEffect(() => {
@@ -92,7 +108,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
 
         if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
         processingTimeoutRef.current = setTimeout(() => {
-            setResult((prev: any) => prev || fallbackEntry);
+            setResult((prev) => prev || fallbackEntry);
             setShowSoulReveal(false);
             setIsProcessing(false);
             setStep(4);
@@ -107,13 +123,21 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 const card = performDraw(1, mood); // Mock streak 1 for now
                 setDrewCard(card);
                 // Keep local high-quality photo for UI/canvas.
-                setResult({ ...(entry as any), photoThumb: capture.thumbDataUrl, photoHash: hash });
+                const entryRecord = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};
+                setResult({
+                    id: String(entryRecord.id || Date.now()),
+                    mood: String(entryRecord.mood || mood),
+                    photoThumb: capture.thumbDataUrl,
+                    photoHash: hash,
+                    quote: typeof entryRecord.quote === 'string' ? entryRecord.quote : cardPhrase,
+                    timestamp: String(entryRecord.timestamp || new Date().toISOString()),
+                });
                 setIsProcessing(false);
                 setShowSoulReveal(true);
                 // setStep(4) will be triggered after reveal closes
             }, 2500); 
         } catch (e) {
-            console.error("Metamorphosis Error", e);
+            captureFrontendError(e, { view: 'MetamorphosisWizard', op: 'processMetamorphosis' });
             if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
             // Fallback for UI continuity
             setResult(fallbackEntry);
@@ -126,7 +150,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
         if (!photo) return;
         if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
         if (ritualDelayRef.current) clearTimeout(ritualDelayRef.current);
-        setResult((prev: any) => prev || {
+        setResult((prev) => prev || {
             id: Date.now(),
             mood,
             photoThumb: photo.thumbDataUrl,
@@ -164,7 +188,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
                 downloadCard();
             }
         } catch (error) {
-            console.error('Error sharing:', error);
+            captureFrontendError(error, { view: 'MetamorphosisWizard', op: 'shareCard' });
             downloadCard();
         }
     };
@@ -187,7 +211,7 @@ export const MetamorphosisWizard: React.FC<{ flow: any, setView: (v: ViewState) 
             }).then((url) => {
                 if (!cancelled) setPreviewUrl(url ?? (result?.photoThumb || null));
             }).catch((drawError) => {
-                console.error('Erro ao desenhar card da alma', drawError);
+                captureFrontendError(drawError, { view: 'MetamorphosisWizard', op: 'drawCardCanvas' });
                 if (!cancelled) setPreviewUrl(result?.photoThumb || null);
             }).finally(() => {
                 if (!cancelled) setIsDrawing(false);

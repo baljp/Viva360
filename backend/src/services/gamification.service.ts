@@ -31,6 +31,31 @@ export type GamificationState = {
   source: 'interaction_receipts';
 };
 
+export type GamificationLeaderboardEntry = {
+  userId: string;
+  name: string;
+  avatar: string | null;
+  karma: number;
+  rankLevel: number;
+  rankName: string;
+};
+
+export type GamificationLeaderboardState = {
+  me: {
+    userId: string;
+    karma: number;
+    rankLevel: number;
+    rankName: string;
+    rankPosition: number | null;
+    challenges: {
+      total: number;
+      completed: number;
+      items: Array<{ id: string; label: string; completed: boolean; reward: number }>;
+    };
+  };
+  leaderboard: GamificationLeaderboardEntry[];
+};
+
 const QUEST_ENTITY_TYPE = 'GAMIFICATION';
 const QUEST_ENTITY_PREFIX = 'DAILY_QUEST_';
 const ACHIEVEMENT_ENTITY_PREFIX = 'ACHIEVEMENT_UNLOCK_';
@@ -42,6 +67,18 @@ const DEFAULT_DAILY_QUESTS: Omit<GamificationQuest, 'isCompleted'>[] = [
   { id: 'journal', label: 'Escrita da Alma', description: 'Escreva no seu diário', reward: 8 },
   { id: 'tribe', label: 'Conexão Tribal', description: 'Interaja com alguém da tribo', reward: 15 },
 ];
+
+const CLIENT_RANKS = [
+  { level: 1, name: 'Semente', min: 0, max: 100 },
+  { level: 2, name: 'Raiz', min: 101, max: 500 },
+  { level: 3, name: 'Broto', min: 501, max: 1000 },
+  { level: 4, name: 'Flor', min: 1001, max: 2500 },
+  { level: 5, name: 'Fruto', min: 2501, max: 5000 },
+  { level: 6, name: 'Arvore Mestre', min: 5001, max: Number.POSITIVE_INFINITY },
+] as const;
+
+const resolveClientRank = (karma: number) =>
+  CLIENT_RANKS.find((rank) => karma >= rank.min && karma <= rank.max) || CLIENT_RANKS[CLIENT_RANKS.length - 1];
 
 const getUtcDateKey = (date = new Date()) => {
   const y = date.getUTCFullYear();
@@ -240,6 +277,61 @@ export class GamificationService {
     }
 
     return this.getState(userId);
+  }
+
+  async getLeaderboard(userId: string): Promise<GamificationLeaderboardState> {
+    const [state, meProfile, topProfiles] = await Promise.all([
+      this.getState(userId),
+      prisma.profile.findUnique({
+        where: { id: userId },
+        select: { id: true, karma: true, name: true, avatar: true },
+      }).catch(() => null),
+      prisma.profile.findMany({
+        where: { karma: { gt: 0 } },
+        select: { id: true, name: true, avatar: true, karma: true },
+        orderBy: [{ karma: 'desc' }, { created_at: 'asc' }],
+        take: 20,
+      }).catch(() => []),
+    ]);
+
+    const leaderboard: GamificationLeaderboardEntry[] = topProfiles.map((profile) => {
+      const karma = Number(profile.karma || 0);
+      const rank = resolveClientRank(karma);
+      return {
+        userId: profile.id,
+        name: String(profile.name || 'Buscador'),
+        avatar: profile.avatar || null,
+        karma,
+        rankLevel: rank.level,
+        rankName: rank.name,
+      };
+    });
+
+    const meKarma = Number(meProfile?.karma || 0);
+    const meRank = resolveClientRank(meKarma);
+    const meIndex = leaderboard.findIndex((entry) => entry.userId === userId);
+    const questItems = state.dailyQuests.map((quest) => ({
+      id: quest.id,
+      label: quest.label,
+      completed: !!quest.isCompleted,
+      reward: Number(quest.reward || 0),
+    }));
+
+    return {
+      me: {
+        userId,
+        karma: meKarma,
+        rankLevel: meRank.level,
+        rankName: meRank.name,
+        rankPosition: meIndex >= 0 ? meIndex + 1 : null,
+        challenges: {
+          total: questItems.length,
+          completed: questItems.filter((item) => item.completed).length,
+          items: questItems,
+        },
+      },
+      leaderboard,
+    };
   }
 }
 

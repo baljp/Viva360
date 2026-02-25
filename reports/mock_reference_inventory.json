@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-02-24T16:32:56.392Z",
+  "generatedAt": "2026-02-25T12:52:04.317Z",
   "totals": {
-    "all": 210,
-    "runtimeFrontend": 53,
-    "runtimeBackend": 60,
-    "docs": 13,
+    "all": 319,
+    "runtimeFrontend": 49,
+    "runtimeBackend": 70,
+    "docs": 116,
     "scriptsQa": 76,
     "other": 8,
     "riskyRuntime": 0
@@ -21,14 +21,39 @@
   "samples": {
     "runtimeFrontend": [
       {
-        "file": "src/flow/SantuarioFlowContext.tsx",
-        "line": 28,
-        "text": "// Mock Data for Admin Dashboard (standardized)"
+        "file": "components/Layout.tsx",
+        "line": 193,
+        "text": "{/* Mock indicator removed */}"
       },
       {
-        "file": "src/contexts/ChatContext.tsx",
-        "line": 107,
-        "text": "// Mock behavior"
+        "file": "lib/supabase.ts",
+        "line": 17,
+        "text": "// DATA-01: Unified mock flag — single source of truth for mock eligibility."
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 23,
+        "text": "if (normalized === 'mock') return 'MOCK';"
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 26,
+        "text": "// staging must behave as real mode (no mock shortcuts)."
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 147,
+        "text": "const finalUrl = supabaseUrl || 'https://viva360-mock.supabase.co';"
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 188,
+        "text": "// Mock warning removed"
+      },
+      {
+        "file": "src/flow/SantuarioFlowContext.tsx",
+        "line": 29,
+        "text": "// Mock Data for Admin Dashboard (standardized)"
       },
       {
         "file": "src/hooks/useSoulCards.ts",
@@ -36,9 +61,9 @@
         "text": "// Mock persistence"
       },
       {
-        "file": "components/Layout.tsx",
-        "line": 193,
-        "text": "{/* Mock indicator removed */}"
+        "file": "src/contexts/ChatContext.tsx",
+        "line": 229,
+        "text": "// Mock behavior"
       },
       {
         "file": "services/api/auth.ts",
@@ -47,63 +72,43 @@
       },
       {
         "file": "services/api/auth.ts",
-        "line": 78,
-        "text": "// Strict accounts are created by the backend in mock mode; treat as allowed."
-      },
-      {
-        "file": "services/api/auth.ts",
-        "line": 403,
+        "line": 307,
         "text": "captureFrontendMessage('Sessão mock bloqueada fora de ambiente de teste local.');"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 14,
-        "text": "// DATA-01: Unified mock flag — single source of truth for mock eligibility."
+        "file": "views/AdminViews.tsx",
+        "line": 34,
+        "text": "// Mock data if backend not fully ready or for demo speed"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 20,
-        "text": "if (normalized === 'mock') return 'MOCK';"
+        "file": "views/ServiceViews.tsx",
+        "line": 24,
+        "text": "// Mock Data if appointment is missing"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 23,
-        "text": "// staging must behave as real mode (no mock shortcuts)."
+        "file": "views/ServiceViews.tsx",
+        "line": 25,
+        "text": "// Mock Data if appointment is missing (Logic for when accessed via go('VIDEO_SESSION') without props)"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 121,
-        "text": "const finalUrl = supabaseUrl || 'https://viva360-mock.supabase.co';"
+        "file": "views/ServiceViews.tsx",
+        "line": 27,
+        "text": "serviceName: 'Sessão de Cura (Mock)',"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 141,
-        "text": "// Mock warning removed"
+        "file": "views/client/BookingSelect.tsx",
+        "line": 74,
+        "text": "// Simple mock behavior for messaging"
       },
       {
-        "file": "services/api/session.ts",
-        "line": 119,
-        "text": "export const getSessionMode = (): 'mock' | 'real' | null => {"
+        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
+        "line": 123,
+        "text": "const card = performDraw(1, mood); // Mock streak 1 for now"
       },
       {
-        "file": "services/api/session.ts",
-        "line": 121,
-        "text": "if (value === 'mock' || value === 'real') return value;"
-      },
-      {
-        "file": "services/api/session.ts",
-        "line": 125,
-        "text": "export const setSessionMode = (mode: 'mock' | 'real') => {"
-      },
-      {
-        "file": "services/api/core.ts",
-        "line": 4,
-        "text": "import { MOCK_AUTH_TOKEN, MOCK_USER_KEY, canUseMockSession } from './mock';"
-      },
-      {
-        "file": "services/api/core.ts",
-        "line": 7,
-        "text": "const isMockSession = canUseMockSession() && getSessionMode() === 'mock' && !!localStorage.getItem(MOCK_USER_KEY);"
+        "file": "views/pro/SantuarioListView.tsx",
+        "line": 67,
+        "text": "} catch (e) { /* use mock */ }"
       },
       {
         "file": "services/api/mock.ts",
@@ -146,29 +151,24 @@
         "text": "if (getSessionMode() !== 'mock') return null;"
       },
       {
-        "file": "views/AdminViews.tsx",
-        "line": 34,
-        "text": "// Mock data if backend not fully ready or for demo speed"
+        "file": "views/pro/ProFinance.tsx",
+        "line": 32,
+        "text": "// SEC-03: Fetch real transactions from API instead of relying on mock/props only"
       },
       {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 122,
-        "text": "const card = performDraw(1, mood); // Mock streak 1 for now"
+        "file": "views/pro/ProFinance.tsx",
+        "line": 135,
+        "text": "// SEC-03: Honest feedback instead of fake setTimeout success."
       },
       {
-        "file": "views/ServiceViews.tsx",
-        "line": 24,
-        "text": "// Mock Data if appointment is missing"
+        "file": "services/api/authDomainHelpers.ts",
+        "line": 14,
+        "text": "import { isStrictTestEmail } from './mock';"
       },
       {
-        "file": "views/ServiceViews.tsx",
-        "line": 25,
-        "text": "// Mock Data if appointment is missing (Logic for when accessed via go('VIDEO_SESSION') without props)"
-      },
-      {
-        "file": "views/ServiceViews.tsx",
-        "line": 27,
-        "text": "serviceName: 'Sessão de Cura (Mock)',"
+        "file": "services/api/core.ts",
+        "line": 4,
+        "text": "import { MOCK_AUTH_TOKEN, MOCK_USER_KEY, canUseMockSession } from './mock';"
       }
     ],
     "runtimeBackend": [
@@ -193,24 +193,9 @@
         "text": "// For now, we return standard client, assuming service layer handles mock data logic if IS_MOCK_MODE is true."
       },
       {
-        "file": "backend/src/schemas/checkout.schema.ts",
-        "line": 7,
-        "text": "receiverId: z.string().min(1).optional(), // Can be UUID (real) or semantic id (mock)"
-      },
-      {
         "file": "backend/src/services/whatsapp.service.ts",
         "line": 13,
         "text": "// Mock connected state"
-      },
-      {
-        "file": "backend/src/app.ts",
-        "line": 22,
-        "text": "/^\\/api\\/mock(?:\\/|$|-)/i,"
-      },
-      {
-        "file": "backend/src/app.ts",
-        "line": 106,
-        "text": "// Production hardening: block test/debug/mock surface explicitly."
       },
       {
         "file": "backend/src/services/notification.dispatcher.ts",
@@ -259,33 +244,8 @@
       },
       {
         "file": "backend/src/services/auth.service.ts",
-        "line": 350,
+        "line": 387,
         "text": "refresh_token: 'mock-refresh-token',"
-      },
-      {
-        "file": "backend/src/middleware/auth.middleware.ts",
-        "line": 30,
-        "text": "// SEC-01: Mock token read from env var, never hardcoded in source."
-      },
-      {
-        "file": "backend/src/middleware/auth.middleware.ts",
-        "line": 31,
-        "text": "// SEC-02 + DATA-02: In production, mock tokens are ALWAYS rejected regardless of any other flag."
-      },
-      {
-        "file": "backend/src/middleware/auth.middleware.ts",
-        "line": 63,
-        "text": "// DATA-02: Explicitly reject any mock token in production, even if flags are misconfigured."
-      },
-      {
-        "file": "backend/src/middleware/auth.middleware.ts",
-        "line": 65,
-        "text": "return res.status(403).json({ error: 'Mock tokens are forbidden in production.', code: 'MOCK_TOKEN_BLOCKED' });"
-      },
-      {
-        "file": "backend/src/middleware/auth.middleware.ts",
-        "line": 68,
-        "text": "// Support for strict E2E mock token only outside production."
       },
       {
         "file": "backend/src/services/chat.service.ts",
@@ -293,42 +253,77 @@
         "text": "// In-memory fallback used only in mock/test runtime when Prisma DB is unavailable."
       },
       {
-        "file": "backend/src/services/cloudinary.service.ts",
-        "line": 13,
-        "text": "* In Mock Mode, keeps the original payload to preserve visual parity in local/test flows."
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 135,
+        "text": "const key = String(userId || 'mock-user');"
       },
       {
-        "file": "backend/src/services/mockData.service.ts",
-        "line": 105,
-        "text": "// But for mock login script (sequential), it's acceptable."
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 151,
+        "text": "id: makeId('mock-offer'),"
       },
       {
-        "file": "backend/src/controllers/appointments.controller.ts",
-        "line": 11,
-        "text": "professional_id: z.string().uuid().or(z.string()), // Allow simple string for mock"
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 152,
+        "text": "provider_id: String(input.providerId || 'mock-provider'),"
       },
       {
-        "file": "backend/src/controllers/reviews.controller.ts",
-        "line": 129,
-        "text": "const resolvedSpaceId = spaceId || String(body.space_id || '').trim() || 'mock-space';"
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 153,
+        "text": "requester_id: String(input.requesterId || 'mock-requester'),"
       },
       {
-        "file": "backend/src/controllers/reviews.controller.ts",
-        "line": 132,
-        "text": "const id = `mock-review-${Date.now()}`;"
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 182,
+        "text": "id: makeId('mock-app'),"
       },
       {
-        "file": "backend/src/controllers/reviews.controller.ts",
-        "line": 133,
-        "text": "logger.info('reviews.created.mock', { id, resolvedSpaceId, userId, rating: numericRating });"
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 184,
+        "text": "candidate_id: String(input.candidateId || 'mock-candidate'),"
+      },
+      {
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 185,
+        "text": "space_id: String(input.spaceId || 'mock-space'),"
+      },
+      {
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 210,
+        "text": "id: makeId('mock-int'),"
+      },
+      {
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 252,
+        "text": "id: makeId('mock-record'),"
+      },
+      {
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 286,
+        "text": "id: makeId('mock-product'),"
+      },
+      {
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 287,
+        "text": "name: String(input.name || 'Produto Mock'),"
+      },
+      {
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 293,
+        "text": "owner_id: String(input.ownerId || 'mock-owner'),"
+      },
+      {
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 324,
+        "text": "id: makeId('mock-review'),"
+      },
+      {
+        "file": "backend/src/services/mockAdapter.ts",
+        "line": 325,
+        "text": "spaceId: String(input.spaceId || 'mock-space'),"
       }
     ],
     "docs": [
-      {
-        "file": "TRIAGE-REPORT.md",
-        "line": 13,
-        "text": "| Mock flags | ✅ | Nenhum MOCK_ENABLED/APP_MODE=MOCK em prod |"
-      },
       {
         "file": "CRITICAL_SECURITY_FIXES.md",
         "line": 9,
@@ -375,9 +370,14 @@
         "text": "| 9 | `qa/utils/mock-fixtures.ts` | SEC-01 |"
       },
       {
-        "file": "reports/refactor_b_to_e_status.md",
-        "line": 7,
-        "text": "| B1 | Segregar Mock Mode e impedir vazamento em produção | DONE | `lib/supabase.ts` (prod build lock), `backend/src/lib/runtimeGuard.ts`, `scripts/audit_test_route_leaks.ts` + `npm run qa:audit-route-leaks` PASS | Nenhum bloqueador |"
+        "file": "TRIAGE-REPORT.md",
+        "line": 13,
+        "text": "| Mock flags | ✅ | Nenhum MOCK_ENABLED/APP_MODE=MOCK em prod |"
+      },
+      {
+        "file": "reports/mock_reference_inventory.md",
+        "line": 1,
+        "text": "# Mock Reference Inventory"
       },
       {
         "file": "reports/VIVA360_ENTERPRISE_AUDIT.md",
@@ -388,9 +388,89 @@
         "file": "reports/VIVA360_ENTERPRISE_AUDIT.md",
         "line": 75,
         "text": "- Estruturar feature flags (APP_MODE/mock) com stripping build-time e auditoria automatica de vazamento."
+      },
+      {
+        "file": "reports/refactor_b_to_e_status.md",
+        "line": 7,
+        "text": "| B1 | Segregar Mock Mode e impedir vazamento em produção | DONE | `lib/supabase.ts` (prod build lock), `backend/src/lib/runtimeGuard.ts`, `scripts/audit_test_route_leaks.ts` + `npm run qa:audit-route-leaks` PASS | Nenhum bloqueador |"
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 13,
+        "text": "\"/services\\\\/api\\\\/mock\\\\.ts$/\","
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 26,
+        "text": "\"text\": \"// Mock Data for Admin Dashboard (standardized)\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 31,
+        "text": "\"text\": \"// Mock behavior\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 36,
+        "text": "\"text\": \"// Mock persistence\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 41,
+        "text": "\"text\": \"{/* Mock indicator removed */}\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 46,
+        "text": "\"text\": \"} from './mock';\""
       }
     ],
     "scriptsQa": [
+      {
+        "file": "scripts/stress/stress_test.mjs",
+        "line": 85,
+        "text": "{ name: 'CHECKIN', path: '/metamorphosis/checkin', method: 'POST', body: { mood: 'vibrante', thumb: 'data:image/png;base64,mock' } },"
+      },
+      {
+        "file": "backend/check_endpoints.ts",
+        "line": 74,
+        "text": "// Mock Create"
+      },
+      {
+        "file": "backend/check_endpoints.ts",
+        "line": 79,
+        "text": "professional_id: 'mock-pro-id',"
+      },
+      {
+        "file": "backend/check_endpoints.ts",
+        "line": 80,
+        "text": "// clientId: 'mock-me', // Not needed, inferred from token"
+      },
+      {
+        "file": "backend/check_endpoints.ts",
+        "line": 100,
+        "text": "// Try to mark read a mock id"
+      },
+      {
+        "file": "backend/check_endpoints.ts",
+        "line": 101,
+        "text": "await check('PATCH /notifications/mock-id/read', fetch(`${API_URL}/notifications/mock-id/read`, { method: 'PATCH', headers }));"
+      },
+      {
+        "file": "backend/e2e_refactor.ts",
+        "line": 14,
+        "text": "// 1. AUTHENTICATION (Mock Mode)"
+      },
+      {
+        "file": "backend/e2e_refactor.ts",
+        "line": 16,
+        "text": "console.log('[1] Authentication (Mock Mode Setup)...');"
+      },
+      {
+        "file": "backend/e2e_refactor.ts",
+        "line": 43,
+        "text": "console.log('\\n[2] Verifying Dashboard API (Mock)...');"
+      },
       {
         "file": "backend/scripts/e2e_phase4.ts",
         "line": 73,
@@ -427,69 +507,24 @@
         "text": "// 7. Finance Summary (Mock)"
       },
       {
-        "file": "backend/scripts/e2e_master_full.ts",
-        "line": 51,
-        "text": "await axios.get(`${BASE_URL}/profiles/me`, { headers: HEADERS(token) }); // Dashboard mock"
+        "file": "scripts/audit_mock_references.ts",
+        "line": 12,
+        "text": "\"rg -n --no-heading '\\\\b(mock|Mock|fake|Fake)\\\\b' --glob '!node_modules/**' --glob '!dist/**' --glob '!**/*.test.*' --glob '!**/*.spec.*' .\";"
       },
       {
-        "file": "backend/scripts/e2e_master_full.ts",
-        "line": 58,
-        "text": "// Admin doesn't register via API usually, but we use a mock token or the mock middleware"
+        "file": "scripts/audit_mock_references.ts",
+        "line": 37,
+        "text": "/services\\/api\\/mock\\.ts$/,"
       },
       {
-        "file": "backend/scripts/e2e_master_full.ts",
-        "line": 72,
-        "text": "// In our mock, we might need a specific token or header if the middleware relies on it."
+        "file": "scripts/audit_mock_references.ts",
+        "line": 46,
+        "text": "/bearer mock-token/i,"
       },
       {
-        "file": "backend/scripts/e2e_master_full.ts",
-        "line": 74,
-        "text": "// Let's assume we can mock-login an admin or use a special header if implemented."
-      },
-      {
-        "file": "backend/scripts/reset_mock_test_data.ts",
-        "line": 45,
-        "text": "/mock/i,"
-      },
-      {
-        "file": "backend/scripts/e2e_phase9_upgrades.ts",
-        "line": 7,
-        "text": "// Set mock mode for direct class usage"
-      },
-      {
-        "file": "backend/scripts/e2e_phase9_upgrades.ts",
-        "line": 8,
-        "text": "if (!process.env.SUPABASE_URL) process.env.SUPABASE_URL = 'http://mock.local';"
-      },
-      {
-        "file": "backend/scripts/e2e_phase9_upgrades.ts",
+        "file": "scripts/audit_mock_references.ts",
         "line": 47,
-        "text": "userId: 'user-no-email', // Mock ID triggers block"
-      },
-      {
-        "file": "backend/scripts/e2e_phase11_admin.ts",
-        "line": 13,
-        "text": "// Note: Our mock middleware auto-injects admin rights for /admin/* routes for testing simplicity"
-      },
-      {
-        "file": "backend/scripts/e2e_phase11_admin.ts",
-        "line": 28,
-        "text": "// PRO TIP: In mock mode, I might need to \"fake\" the auth middleware behavior for this test."
-      },
-      {
-        "file": "backend/check_endpoints.ts",
-        "line": 74,
-        "text": "// Mock Create"
-      },
-      {
-        "file": "backend/check_endpoints.ts",
-        "line": 79,
-        "text": "professional_id: 'mock-pro-id',"
-      },
-      {
-        "file": "backend/check_endpoints.ts",
-        "line": 80,
-        "text": "// clientId: 'mock-me', // Not needed, inferred from token"
+        "text": "/mock tokens are forbidden in production/i,"
       }
     ]
   }
