@@ -36,6 +36,7 @@ async function validateEnvironment() {
     { key: 'VITE_SUPABASE_ANON_KEY', frontend: true },
     { key: 'SUPABASE_SERVICE_ROLE_KEY', frontend: false },
     { key: 'JWT_SECRET', frontend: false },
+    { key: 'VITE_SUPABASE_AUTH_REDIRECT_URL', frontend: true },
   ];
 
   for (const { key, frontend } of requiredVars) {
@@ -117,6 +118,30 @@ async function validateEnvironment() {
     }
   } else {
     test('OAuth Redirect URL', 'fail', 'VITE_SUPABASE_AUTH_REDIRECT_URL não configurada');
+  }
+
+  const frontendUrl = process.env.FRONTEND_URL || process.env.VITE_PUBLIC_APP_URL;
+  if (frontendUrl) {
+    try {
+      const appOrigin = new URL(frontendUrl).origin;
+      const redirectOrigin = redirectUrl ? new URL(redirectUrl).origin : null;
+      if (redirectOrigin && redirectOrigin !== appOrigin) {
+        test('Auth URL Consistency', 'warning', `FRONTEND_URL/VITE_PUBLIC_APP_URL (${appOrigin}) difere do redirect (${redirectOrigin})`);
+      } else {
+        test('Auth URL Consistency', 'pass', `✓ Origem do app e redirect alinhadas (${appOrigin})`);
+      }
+    } catch {
+      test('Auth URL Consistency', 'fail', 'FRONTEND_URL/VITE_PUBLIC_APP_URL inválida');
+    }
+  } else {
+    test('Auth URL Consistency', 'warning', 'FRONTEND_URL ou VITE_PUBLIC_APP_URL não configurada');
+  }
+
+  const authConfigVersion = process.env.AUTH_CONFIG_VERSION || process.env.VITE_AUTH_CONFIG_VERSION;
+  if (authConfigVersion) {
+    test('Auth Config Version', 'pass', `✓ ${authConfigVersion}`);
+  } else {
+    test('Auth Config Version', 'warning', 'AUTH_CONFIG_VERSION/VITE_AUTH_CONFIG_VERSION não configurada (recomendado para paridade Preview/Prod)');
   }
 
   // 4. Verificar se .env existe

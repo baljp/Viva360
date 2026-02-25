@@ -73,6 +73,7 @@
     "db:sync": "bash scripts/db_sync.sh",
     "supabase:setup": "npm run prisma:generate && npx tsx scripts/setup_db.ts",
     "supabase:verify": "npm run prisma:generate && npx tsx scripts/verify_supabase.ts",
+    "auth:env:parity": "node scripts/check_auth_env_parity.cjs",
     "supabase:test": "npx tsx scripts/test_realtime_flow.ts",
     "allowlist:add": "npx tsx backend/scripts/manage_allowlist.ts",
     "data:reset-mock:dry": "npx tsx backend/scripts/reset_mock_test_data.ts",

@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { parseAllowedOrigins, resolveOAuthRedirectPolicy } from './oauthRedirectPolicy';
+import { parseAllowedOriginPatterns, parseAllowedOrigins, resolveOAuthRedirectPolicy } from './oauthRedirectPolicy';
 
 // Tenta pegar das variáveis de ambiente com segurança
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -8,6 +8,9 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const appMode = import.meta.env.VITE_APP_MODE;
 const configuredAuthRedirect = import.meta.env.VITE_SUPABASE_AUTH_REDIRECT_URL;
 const oauthAllowedOriginsRaw = import.meta.env.VITE_OAUTH_ALLOWED_ORIGINS;
+const oauthAllowedOriginPatternsRaw = import.meta.env.VITE_OAUTH_ALLOWED_ORIGIN_PATTERNS;
+const publicAppUrl = import.meta.env.VITE_PUBLIC_APP_URL;
+const authConfigVersion = import.meta.env.VITE_AUTH_CONFIG_VERSION;
 const isTest = import.meta.env.MODE === 'test';
 const isProdBuild = import.meta.env.PROD || import.meta.env.MODE === 'production';
 const explicitTestMode = String(import.meta.env.VITE_ENABLE_TEST_MODE || '').toLowerCase() === 'true';
@@ -29,6 +32,7 @@ const explicitMode = normalizeMode(String(appMode || ''));
 const isBrowser = typeof window !== 'undefined';
 const runtimeOrigin = isBrowser ? window.location.origin : 'http://localhost:5173';
 const oauthAllowedOrigins = parseAllowedOrigins(oauthAllowedOriginsRaw);
+const oauthAllowedOriginPatterns = parseAllowedOriginPatterns(oauthAllowedOriginPatternsRaw);
 
 const isLocalHostRuntime = () => {
     if (!isBrowser) return true;
@@ -63,9 +67,11 @@ export const envStatus = {
     hasUrl: !!supabaseUrl,
     hasKey: !!supabaseAnonKey,
     hasOAuthAllowlist: oauthAllowedOrigins.length > 0,
+    hasOAuthWildcardAllowlist: oauthAllowedOriginPatterns.length > 0,
     mode: APP_MODE,
     testModeEnabled: TEST_MODE_ENABLED,
-    urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 8) + '...' : 'undefined'
+    urlPrefix: supabaseUrl ? supabaseUrl.substring(0, 8) + '...' : 'undefined',
+    authConfigVersion: authConfigVersion || 'unset',
 };
 
 export const getOAuthRedirectUrl = (): string => {
@@ -77,12 +83,14 @@ export const getOAuthRedirectUrl = (): string => {
         configuredRedirect: configuredAuthRedirect,
         currentOrigin: runtimeOrigin,
         allowedOrigins: oauthAllowedOrigins,
+        allowedOriginPatterns: oauthAllowedOriginPatterns,
         defaultPath: '/login',
         // In Vercel preview deployments, the runtime origin changes per deploy and is
         // typically not allowlisted in Supabase. In production runtime, prefer the
         // configured redirect URL (stable domain) even when origins differ.
         enforceSameOrigin: APP_MODE !== 'PROD',
         productionRuntime: APP_MODE === 'PROD',
+        preferRuntimeOriginWhenAllowed: true,
     });
     return result.redirectUrl;
 };
@@ -93,9 +101,11 @@ export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } 
         configuredRedirect: configuredAuthRedirect,
         currentOrigin: runtimeOrigin,
         allowedOrigins: oauthAllowedOrigins,
+        allowedOriginPatterns: oauthAllowedOriginPatterns,
         defaultPath: '/login',
         enforceSameOrigin: APP_MODE !== 'PROD',
         productionRuntime: APP_MODE === 'PROD',
+        preferRuntimeOriginWhenAllowed: true,
     });
     issues.push(...policy.issues);
 
@@ -106,7 +116,23 @@ export const validateOAuthRuntimeConfig = (): { ok: boolean; issues: string[] } 
             issues.push('VITE_SUPABASE_AUTH_REDIRECT_URL é obrigatória em PROD.');
         }
         if (oauthAllowedOrigins.length === 0) {
-            issues.push('VITE_OAUTH_ALLOWED_ORIGINS deve listar origens permitidas em PROD.');
+            if (oauthAllowedOriginPatterns.length === 0) {
+                issues.push('VITE_OAUTH_ALLOWED_ORIGINS ou VITE_OAUTH_ALLOWED_ORIGIN_PATTERNS deve listar origens permitidas em PROD.');
+            }
+        }
+    }
+
+    if (publicAppUrl) {
+        try {
+            const publicOrigin = new URL(publicAppUrl).origin;
+            if (configuredAuthRedirect) {
+                const redirectOrigin = new URL(configuredAuthRedirect).origin;
+                if (redirectOrigin !== publicOrigin) {
+                    issues.push(`VITE_PUBLIC_APP_URL (${publicOrigin}) e VITE_SUPABASE_AUTH_REDIRECT_URL (${redirectOrigin}) divergem.`);
+                }
+            }
+        } catch {
+            issues.push('VITE_PUBLIC_APP_URL inválida.');
         }
     }
 
@@ -137,5 +163,26 @@ try {
 }
 
 export const supabase = client;
+
+if (typeof window !== 'undefined') {
+    const diagnostics = validateOAuthRuntimeConfig();
+    const runtimeFingerprint = {
+        vercelEnv: String(import.meta.env.VERCEL_ENV || '').trim() || 'unknown',
+        runtimeOrigin,
+        redirect: (() => {
+            try { return new URL(getOAuthRedirectUrl()).origin; } catch { return 'invalid'; }
+        })(),
+        supabaseHost: (() => {
+            try { return supabaseUrl ? new URL(supabaseUrl).host : 'unset'; } catch { return 'invalid'; }
+        })(),
+        authConfigVersion: authConfigVersion || 'unset',
+        publicAppUrl: publicAppUrl || 'unset',
+    };
+    if (diagnostics.ok) {
+        console.info('[auth.config.runtime_ok]', runtimeFingerprint);
+    } else {
+        console.warn('[auth.config.runtime_issues]', { ...runtimeFingerprint, issues: diagnostics.issues });
+    }
+}
 
 // Mock warning removed

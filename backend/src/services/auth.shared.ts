@@ -3,6 +3,7 @@ export const ALLOWED_ROLES = new Set(['CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN'
 export type AccessReason =
   | 'PROFILE_ACTIVE'
   | 'INVITE_APPROVED_PENDING_REGISTRATION'
+  | 'OPEN_CLIENT_REGISTRATION'
   | 'INVITE_ALREADY_USED'
   | 'INVITE_PENDING_APPROVAL'
   | 'EMAIL_BLOCKED'
@@ -12,6 +13,7 @@ export type AccessReason =
 export type AccountState =
   | 'ACTIVE'
   | 'INVITE_PENDING_REGISTRATION'
+  | 'OPEN_SELF_SERVE'
   | 'INCOMPLETE_REGISTRATION'
   | 'BLOCKED'
   | 'PENDING_APPROVAL'
@@ -57,6 +59,7 @@ export const normalizeRoleList = (roles: Array<string | null | undefined>): stri
 };
 
 export const defaultRole = (role?: string | null) => normalizeRole(role) || 'CLIENT';
+export const isSelfServeOpenRole = (role?: string | null) => defaultRole(role) === 'CLIENT';
 
 export const isSafeFallbackRuntime = () =>
   process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toUpperCase() === 'MOCK';

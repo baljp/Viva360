@@ -6,7 +6,7 @@ import { AppError } from '../lib/AppError';
 import { supabaseAdmin, supabase } from './supabase.service';
 import { logger } from '../lib/logger';
 import type { AuthorizationStatus } from './auth.shared';
-import { defaultRole, normalizeRole, normalizeRoleList } from './auth.shared';
+import { defaultRole, isSelfServeOpenRole, normalizeRole, normalizeRoleList } from './auth.shared';
 import { getAuthorizationStatusInternal, markAllowlistAsUsedInternal } from './auth.authorization';
 import {
   addRoleInternal,
@@ -17,6 +17,18 @@ import {
 } from './auth.roles';
 
 export class AuthService {
+  private static classifyProviderAuthFailure(message?: string | null): string {
+    const raw = String(message || '').trim();
+    const lower = raw.toLowerCase();
+    if (!lower) return 'UNKNOWN_PROVIDER_AUTH_ERROR';
+    if (lower.includes('email not confirmed')) return 'EMAIL_NOT_CONFIRMED';
+    if (lower.includes('invalid login credentials')) return 'INVALID_CREDENTIALS';
+    if (lower.includes('email logins are disabled') || lower.includes('email login is disabled')) return 'EMAIL_PROVIDER_DISABLED';
+    if (lower.includes('signup') && lower.includes('disabled')) return 'EMAIL_SIGNUP_DISABLED';
+    if (lower.includes('smtp') || lower.includes('sending confirmation email')) return 'SMTP_OR_EMAIL_DELIVERY_ERROR';
+    return 'PROVIDER_AUTH_ERROR';
+  }
+
   private static async getRolesByProfile(profileId: string, fallbackRole?: string | null): Promise<string[]> {
     return getRolesByProfileInternal(profileId, fallbackRole);
   }
@@ -39,6 +51,13 @@ export class AuthService {
     }
 
     if (!authorization.canRegister) {
+      logger.warn('auth.register_denied', {
+        email: normalizedEmail,
+        reason: authorization.reason,
+        accountState: authorization.accountState,
+        nextAction: authorization.nextAction,
+        requestedRole: role,
+      });
       throw new AppError(
         'Cadastro indisponível para este e-mail. Solicite convite.',
         403,
@@ -49,6 +68,20 @@ export class AuthService {
     }
 
     const requestedRole = normalizeRole(role);
+    if (requestedRole && requestedRole !== 'CLIENT' && authorization.reason === 'OPEN_CLIENT_REGISTRATION') {
+      logger.warn('auth.register_role_requires_invite', {
+        email: normalizedEmail,
+        requestedRole,
+        authorizationReason: authorization.reason,
+      });
+      throw new AppError(
+        'Cadastro de Guardião/Santuário exige convite ou aprovação prévia.',
+        403,
+        'INVITE_REQUIRED_FOR_ROLE',
+        true,
+        { requestedRole, allowedRoles: ['CLIENT'], reason: authorization.reason },
+      );
+    }
     const preferredRole = requestedRole || normalizeRole(authorization.role) || 'CLIENT';
     const finalRole = defaultRole(preferredRole);
 
@@ -231,13 +264,17 @@ export class AuthService {
     });
 
     if (authError || !authData.user) {
-      logger.warn('auth.login_supabase_failed', { message: authError?.message });
+      logger.warn('auth.login_supabase_failed', {
+        email: normalizedEmail,
+        cause: AuthService.classifyProviderAuthFailure(authError?.message),
+        providerMessage: authError?.message || null,
+      });
       // Fallback for VERY old users that might only be in Prisma but not Supabase Auth
       // (Though my repair script should have fixed this)
       if (userByEmail?.encrypted_password) {
         const isValidManual = await bcrypt.compare(password, userByEmail.encrypted_password);
         if (isValidManual) {
-           logger.warn('auth.login_manual_fallback_success');
+           logger.warn('auth.login_manual_fallback_success', { email: normalizedEmail });
         } else {
            throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
         }
@@ -378,7 +415,11 @@ export class AuthService {
   }
 
   static async getAuthorizationStatus(email: string): Promise<AuthorizationStatus> {
-    return getAuthorizationStatusInternal(email, AuthService.getRolesByProfile.bind(AuthService));
+    const status = await getAuthorizationStatusInternal(email, AuthService.getRolesByProfile.bind(AuthService));
+    if (status.reason === 'OPEN_CLIENT_REGISTRATION' && !isSelfServeOpenRole(status.role)) {
+      logger.warn('auth.authorization_inconsistent_open_role', { email, role: status.role, roles: status.roles });
+    }
+    return status;
   }
 
   static async markAllowlistAsUsed(email: string, userId: string) {

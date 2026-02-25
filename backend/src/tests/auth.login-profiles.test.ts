@@ -67,6 +67,7 @@ describe('Login por Email – 3 Perfis (CLIENT, PROFESSIONAL, SPACE)', () => {
       expect(status.canLogin).toBe(false);
       expect(status.canRegister).toBe(true);
       expect(status.role).toBe('CLIENT');
+      expect(status.reason).toBe('OPEN_CLIENT_REGISTRATION');
       expect(status.nextAction).toBe('REGISTER');
     });
 
@@ -136,6 +137,7 @@ describe('Login Google (OAuth) – 3 Perfis', () => {
       expect(status.canLogin).toBe(false);
       expect(status.canRegister).toBe(true);
       expect(status.role).toBe('CLIENT');
+      expect(status.reason).toBe('OPEN_CLIENT_REGISTRATION');
     });
 
     it('OAuth: invite BLOCKED rejeita acesso', async () => {

@@ -77,6 +77,13 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     const access = await AuthService.getAuthorizationStatus(normalizedEmail);
     if (!access.canLogin) {
       const isIncomplete = access.reason === 'REGISTRATION_INCOMPLETE';
+      logger.warn('auth.login_denied_precheck', {
+        requestId: (req as any).requestId,
+        email: normalizedEmail,
+        reason: access.reason,
+        accountState: access.accountState,
+        nextAction: access.nextAction,
+      });
       return res.status(401).json({
         error: isIncomplete
           ? 'Seu cadastro está incompleto, finalize para entrar.'
@@ -110,6 +117,11 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       });
     }
 
+    logger.info('auth.register_request', {
+      requestId: (req as any).requestId,
+      email: normalizedEmail,
+      requestedRole: role || 'CLIENT',
+    });
     const data = await AuthService.register(normalizedEmail, password, name, role);
 
     import('../services/email.service').then(({ emailService }) => {
@@ -143,10 +155,24 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
     }
 
     const access = await AuthService.getAuthorizationStatus(normalizedEmail);
+    const registerRoles = access.canRegister
+      ? (access.reason === 'OPEN_CLIENT_REGISTRATION' ? ['CLIENT'] : (access.roles?.length ? access.roles : (access.role ? [access.role] : [])))
+      : [];
+    logger.info('auth.precheck_login', {
+      requestId: (req as any).requestId,
+      email: normalizedEmail,
+      allowed: access.canLogin,
+      canRegister: access.canRegister,
+      reason: access.reason,
+      accountState: access.accountState,
+      nextAction: access.nextAction,
+      registerRoles,
+    });
     return res.json({
       allowed: access.canLogin,
       role: access.role,
       roles: access.roles,
+      registerRoles,
       reason: access.reason,
       canRegister: access.canRegister,
       accountState: access.accountState,
@@ -185,7 +211,27 @@ export const ensureOAuthProfile = asyncHandler(async (req: any, res: Response) =
       });
     }
 
-    const role = String(access.role || parsed.role || 'CLIENT').trim().toUpperCase();
+    const requestedRole = String(parsed.role || '').trim().toUpperCase();
+    if ((requestedRole === 'PROFESSIONAL' || requestedRole === 'SPACE') && access.reason === 'OPEN_CLIENT_REGISTRATION') {
+      logger.warn('auth.oauth_profile_denied_role_requires_invite', {
+        requestId: req.requestId,
+        email,
+        requestedRole,
+        reason: access.reason,
+      });
+      return res.status(403).json({
+        error: 'Cadastro de Guardião/Santuário exige convite ou aprovação prévia.',
+        code: 'INVITE_REQUIRED_FOR_ROLE',
+        reason: access.reason,
+        allowedRoles: ['CLIENT'],
+      });
+    }
+
+    const role = String(
+      access.reason === 'OPEN_CLIENT_REGISTRATION'
+        ? (parsed.role || 'CLIENT')
+        : (access.role || parsed.role || 'CLIENT'),
+    ).trim().toUpperCase();
     const safeRole = role === 'PROFESSIONAL' || role === 'SPACE' ? role : 'CLIENT';
     const fallbackName = parsed.name || email.split('@')[0] || 'Viajante';
 

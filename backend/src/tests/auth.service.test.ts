@@ -98,6 +98,19 @@ describe('AuthService authorization policy', () => {
     expect(status.accountState).toBe('INCOMPLETE_REGISTRATION');
   });
 
+  it('returns explicit self-serve client state when no profile/allowlist exists', async () => {
+    prismaMock.profile.findFirst.mockResolvedValue(null);
+    prismaMock.authAllowlist.findUnique.mockResolvedValue(null);
+    prismaMock.user.findUnique.mockResolvedValue(null);
+
+    const status = await AuthService.getAuthorizationStatus('novo@exemplo.com');
+    expect(status.canLogin).toBe(false);
+    expect(status.canRegister).toBe(true);
+    expect(status.role).toBe('CLIENT');
+    expect(status.reason).toBe('OPEN_CLIENT_REGISTRATION');
+    expect(status.accountState).toBe('OPEN_SELF_SERVE');
+  });
+
   it('allows incomplete registration only with approved allowlist', async () => {
     prismaMock.profile.findFirst.mockResolvedValue(null);
     prismaMock.authAllowlist.findUnique.mockResolvedValue({

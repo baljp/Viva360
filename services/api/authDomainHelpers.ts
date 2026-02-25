@@ -20,6 +20,7 @@ export type LoginEligibility = {
   allowed: boolean;
   role: UserRole | null;
   roles?: UserRole[];
+  registerRoles?: UserRole[];
   reason?: string | null;
   canRegister?: boolean;
   accountState?: string | null;
@@ -59,9 +60,11 @@ export const toDomainAuthMessage = (input: { code?: string | null; reason?: stri
   if (code === 'ROLE_ALREADY_ACTIVE') return 'Este perfil já existe neste e-mail.';
   if (code === 'REGISTRATION_INCOMPLETE' || reason === 'REGISTRATION_INCOMPLETE') return 'Seu cadastro está incompleto, finalize para entrar.';
   if (reason === 'INVITE_APPROVED_PENDING_REGISTRATION') return 'Seu e-mail está aprovado para cadastro. Finalize o cadastro para entrar.';
+  if (reason === 'OPEN_CLIENT_REGISTRATION') return 'Conta ainda não cadastrada. Você pode criar um perfil Buscador sem convite.';
   if (reason === 'INVITE_PENDING_APPROVAL') return 'Seu convite está em análise. Aguarde aprovação para entrar.';
   if (reason === 'MOCK_STRICT_ONLY') return 'No modo teste, use apenas e-mails pré-definidos.';
   if (code === 'EMAIL_NOT_AUTHORIZED' || reason === 'EMAIL_NOT_AUTHORIZED') return 'Conta não autorizada. Faça cadastro antes de entrar.';
+  if (code === 'INVITE_REQUIRED_FOR_ROLE') return 'Cadastro de Guardião/Santuário exige convite ou aprovação prévia. Buscador pode se cadastrar livremente.';
   if (code === 'INVALID_CREDENTIALS') return 'Credenciais inválidas.';
   const providerHint = mapProviderFallback(input.fallback);
   if (providerHint) return providerHint;
@@ -80,6 +83,7 @@ export const fetchLoginEligibility = async (email: string): Promise<LoginEligibi
         roles: [inferRoleFromEmail(normalized)],
         reason: 'MOCK_TEST_ACCOUNT',
         canRegister: false,
+        registerRoles: [],
         accountState: 'ACTIVE',
         nextAction: 'LOGIN',
       };
@@ -90,6 +94,7 @@ export const fetchLoginEligibility = async (email: string): Promise<LoginEligibi
       roles: [],
       reason: 'MOCK_STRICT_ONLY',
       canRegister: false,
+      registerRoles: [],
       accountState: 'NOT_AUTHORIZED',
       nextAction: 'REQUEST_INVITE',
     };
@@ -111,6 +116,7 @@ export const fetchLoginEligibility = async (email: string): Promise<LoginEligibi
     allowed,
     role,
     roles,
+    registerRoles: normalizeRoleList(Array.isArray(payload?.registerRoles) ? payload.registerRoles : []),
     reason: payload?.reason ? String(payload.reason) : null,
     canRegister: !!payload?.canRegister,
     accountState: payload?.accountState ? String(payload.accountState) : null,

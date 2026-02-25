@@ -125,6 +125,12 @@ export const createAuthApi = (request: RequestFn) => {
         avatar: payload?.user?.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${payload?.user?.id || normalized}`,
       });
     } catch (err: any) {
+      captureFrontendMessage('auth.login_with_password.failed', {
+        mode: 'backend-then-supabase',
+        code: err?.code || null,
+        reason: err?.reason || null,
+        message: err?.message || 'unknown',
+      });
       if (!isLikelyNetworkError(err?.message)) throw err;
 
       const { data, error } = await supabase.auth.signInWithPassword({ email: normalized, password });
@@ -202,6 +208,14 @@ export const createAuthApi = (request: RequestFn) => {
       const eligibility = await fetchLoginEligibility(normalizedExpectedEmail);
       if (eligibility.allowed) intent = 'login';
       else if (!eligibility.canRegister) throw new Error('Este e-mail não está aprovado para cadastro com Google.');
+      else if (
+        role !== UserRole.CLIENT
+        && Array.isArray(eligibility.registerRoles)
+        && eligibility.registerRoles.length > 0
+        && !eligibility.registerRoles.includes(role)
+      ) {
+        throw new Error('Cadastro de Guardião/Santuário exige convite ou aprovação prévia.');
+      }
     }
 
     const redirectTo = getOAuthRedirectUrl();
@@ -235,6 +249,12 @@ export const createAuthApi = (request: RequestFn) => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
+      captureFrontendMessage('auth.register.failed', {
+        code: errorData?.code || null,
+        reason: errorData?.reason || null,
+        accountState: errorData?.accountState || null,
+        nextAction: errorData?.nextAction || null,
+      });
       throw new Error(
         toDomainAuthMessage({
           code: errorData?.code,

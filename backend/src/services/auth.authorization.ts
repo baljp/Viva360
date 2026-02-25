@@ -118,8 +118,8 @@ export const getAuthorizationStatusInternal = async (
     canRegister: true,
     role: allowlistRole || 'CLIENT',
     roles: allowlistRole ? [allowlistRole] : ['CLIENT'],
-    reason: 'INVITE_APPROVED_PENDING_REGISTRATION',
-    accountState: 'INVITE_PENDING_REGISTRATION',
+    reason: 'OPEN_CLIENT_REGISTRATION',
+    accountState: 'OPEN_SELF_SERVE',
     nextAction: 'REGISTER',
   };
 };
