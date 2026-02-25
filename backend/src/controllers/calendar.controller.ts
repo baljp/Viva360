@@ -1,9 +1,37 @@
 import { Request, Response } from 'express';
+import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 
 const getUserIdCompat = (req: Request): string =>
-  String((req as any).user?.userId || (req as any).user?.id || '').trim();
+  String(req.user?.userId || req.user?.id || '').trim();
+
+const paginationSchema = z.object({
+  limit: z.coerce.number().int().min(1).max(200).optional(),
+  offset: z.coerce.number().int().min(0).max(5000).optional(),
+});
+
+const idParamsSchema = z.object({
+  id: z.string().min(1).max(128),
+});
+
+const isoDateString = z.string().min(1).refine((value) => !Number.isNaN(Date.parse(value)), 'Invalid date');
+
+const createEventSchema = z.object({
+  title: z.string().min(1).max(200),
+  start: isoDateString,
+  end: isoDateString,
+  type: z.string().min(1).max(64),
+  details: z.string().max(5000).optional(),
+});
+
+const updateEventSchema = z.object({
+  title: z.string().min(1).max(200).optional(),
+  start: isoDateString.optional(),
+  end: isoDateString.optional(),
+  type: z.string().min(1).max(64).optional(),
+  details: z.string().max(5000).optional(),
+});
 
 const toIcsDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
 
@@ -15,17 +43,19 @@ const sanitizeIcs = (value: string) => String(value || '')
 
 export const getEvents = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserIdCompat(req);
+  const { limit = 100, offset = 0 } = paginationSchema.parse(req.query || {});
   const events = await prisma.calendarEvent.findMany({
     where: { user_id: userId },
-    orderBy: { start_time: 'asc' }
+    orderBy: { start_time: 'asc' },
+    take: limit,
+    skip: offset,
   });
   return res.json(events);
 });
 
 export const getEventById = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserIdCompat(req);
-  const { id } = req.params;
-  if (!id) return res.status(400).json({ error: 'Missing event id' });
+  const { id } = idParamsSchema.parse(req.params || {});
 
   const event = await prisma.calendarEvent.findFirst({
     where: { id, user_id: userId },
@@ -35,29 +65,28 @@ export const getEventById = asyncHandler(async (req: Request, res: Response) => 
 });
 
 export const createEvent = asyncHandler(async (req: Request, res: Response) => {
-    const userId = getUserIdCompat(req);
-    const { title, start, end, type, details } = req.body;
+  const userId = getUserIdCompat(req);
+  const { title, start, end, type, details } = createEventSchema.parse(req.body || {});
 
-    const event = await prisma.calendarEvent.create({
-        data: {
-            user_id: userId,
-            title,
-            start_time: new Date(start),
-            end_time: new Date(end),
-            type,
-            details: typeof details === 'string' ? details : undefined,
-        }
-    });
+  const event = await prisma.calendarEvent.create({
+    data: {
+      user_id: userId,
+      title,
+      start_time: new Date(start),
+      end_time: new Date(end),
+      type,
+      details: typeof details === 'string' ? details : undefined,
+    },
+  });
 
-    return res.json(event);
+  return res.json(event);
 });
 
 export const updateEvent = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserIdCompat(req);
-  const { id } = req.params;
-  const { title, start, end, type, details } = req.body || {};
+  const { id } = idParamsSchema.parse(req.params || {});
+  const { title, start, end, type, details } = updateEventSchema.parse(req.body || {});
 
-  if (!id) return res.status(400).json({ error: 'Missing event id' });
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
   const existing = await prisma.calendarEvent.findFirst({ where: { id, user_id: userId } });
@@ -79,8 +108,7 @@ export const updateEvent = asyncHandler(async (req: Request, res: Response) => {
 
 export const deleteEvent = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserIdCompat(req);
-  const { id } = req.params;
-  if (!id) return res.status(400).json({ error: 'Missing event id' });
+  const { id } = idParamsSchema.parse(req.params || {});
   if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
   const existing = await prisma.calendarEvent.findFirst({ where: { id, user_id: userId } });
@@ -91,10 +119,13 @@ export const deleteEvent = asyncHandler(async (req: Request, res: Response) => {
 
 export const syncToMobile = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserIdCompat(req);
+  const { limit = 200, offset = 0 } = paginationSchema.parse(req.query || {});
 
   const events = await prisma.calendarEvent.findMany({
     where: { user_id: userId },
     orderBy: { start_time: 'asc' },
+    take: limit,
+    skip: offset,
   });
 
   const lines = [

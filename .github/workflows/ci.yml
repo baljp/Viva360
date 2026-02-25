@@ -176,6 +176,9 @@ jobs:
       - name: Generate Prisma client
         run: npm run prisma:generate
 
+      - name: Apply Prisma migrations (main only)
+        run: npm run db:migrate:deploy
+
       - name: Check schema drift
         run: npm run db:drift-check
 

@@ -10,6 +10,7 @@ import { circuitBreaker } from '../middleware/circuitBreaker';
 import { assertCriticalProdConfig } from './runtimeGuard';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
+const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
 
 const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
 
@@ -55,7 +56,8 @@ export const createBaseApiApp = (): { app: Express; config: BaseApiConfig } => {
   };
 
   app.use(cors(corsOptions));
-  app.use(express.json());
+  app.use(express.json({ limit: jsonBodyLimit }));
+  app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
   app.use(attachRequestContext);
   app.use(securityHardening);
   if (!isProductionRuntime) app.use(morgan('tiny'));

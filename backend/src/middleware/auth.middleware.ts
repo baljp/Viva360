@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../lib/secrets';
 import { supabaseAdmin } from '../services/supabase.service';
 import prisma from '../lib/prisma';
+import { readAuthTokenFromRequest } from '../lib/authCookie';
 
 export type AuthUser = {
   id: string;
@@ -48,16 +49,10 @@ const unauthorized = (res: Response, message: string) => {
 };
 
 export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return res.status(401).json({ error: 'Missing Authorization header' });
-  }
-
-  const token = authHeader.split(' ')[1];
+  const { token } = readAuthTokenFromRequest(req);
 
   if (!token) {
-    return res.status(401).json({ error: 'Invalid Authorization header format' });
+    return res.status(401).json({ error: 'Missing authentication token' });
   }
 
   // DATA-02: Explicitly reject any mock token in production, even if flags are misconfigured.

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { redisConnection } from '../lib/redis';
+import { isRedisEnabled, redisConnection } from '../lib/redis';
 
 type LocalBucket = {
     count: number;
@@ -15,9 +15,8 @@ type RateLimiterConfig = {
 };
 
 const localBuckets = new Map<string, LocalBucket>();
-const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
-const useDistributedRedis = !isServerless
-    && String(process.env.RATE_LIMIT_BACKEND || '').toLowerCase() !== 'memory'
+const useDistributedRedis = String(process.env.RATE_LIMIT_BACKEND || '').toLowerCase() !== 'memory'
+    && isRedisEnabled
     && typeof (redisConnection as any)?.incr === 'function'
     && typeof (redisConnection as any)?.expire === 'function';
 

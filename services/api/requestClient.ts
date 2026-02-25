@@ -54,7 +54,7 @@ export const createRequestClient = (deps: RequestClientDeps) => {
     }
 
     const runRequest = async () => {
-    let lastError: any = null;
+    let lastError: unknown = null;
     for (let attempt = 0; attempt <= retries; attempt += 1) {
       const controller = new AbortController();
       const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs);
@@ -70,6 +70,7 @@ export const createRequestClient = (deps: RequestClientDeps) => {
       try {
         const response = await fetch(`${deps.apiUrl}${endpoint}`, {
           ...fetchOptions,
+          credentials: fetchOptions.credentials ?? 'include',
           signal: controller.signal,
           headers: { ...deps.getHeaders(), ...fetchOptions.headers },
         });

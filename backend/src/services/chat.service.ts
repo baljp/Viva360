@@ -209,10 +209,11 @@ export class ChatService {
    */
   async getChatsForProfile(
     profileId: string,
-    options?: { contextType?: string; contextId?: string }
+    options?: { contextType?: string; contextId?: string; limit?: number }
   ): Promise<any[]> {
     const contextType = String(options?.contextType || '').trim();
     const contextId = String(options?.contextId || '').trim();
+    const limit = Number.isFinite(options?.limit) ? Math.max(1, Math.min(100, Number(options?.limit))) : 50;
     try {
       const participations = await prisma.chatParticipant.findMany({
         where: {
@@ -242,6 +243,7 @@ export class ChatService {
           },
         },
         orderBy: { joined_at: 'desc' },
+        take: limit,
       });
 
       return participations.map((p) => ({
@@ -256,7 +258,7 @@ export class ChatService {
         if (contextType && String(room.type) !== contextType) return false;
         if (contextId && String(room.context_id) !== contextId) return false;
         return true;
-      });
+      }).slice(0, limit);
       return rooms.map((room) => {
         const last = (memory.messagesByRoomId.get(room.id) || []).slice(-1)[0] || null;
         return {

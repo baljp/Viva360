@@ -9,6 +9,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
 import prisma from '../lib/prisma';
 import { Prisma } from '@prisma/client';
+import { z } from 'zod';
 
 type RecoveryTokenPayload = jwt.JwtPayload & {
     email?: string;
@@ -18,6 +19,13 @@ type RecoveryTokenPayload = jwt.JwtPayload & {
 };
 
 const RECOVERY_TOKEN_USED_EVENT = 'PASSWORD_RECOVERY_TOKEN_USED';
+const forgotPasswordSchema = z.object({
+    email: z.string().email().max(254),
+});
+const resetPasswordSchema = z.object({
+    token: z.string().min(20).max(4096),
+    newPassword: z.string().min(6).max(256),
+});
 
 const sha256 = (value: string) => crypto.createHash('sha256').update(value).digest('hex');
 
@@ -30,7 +38,7 @@ const tokenHashToDeterministicUuid = (token: string) => {
 
 
 export const forgotPassword = asyncHandler(async (req: Request, res: Response) => {
-    const { email } = req.body;
+    const { email } = forgotPasswordSchema.parse(req.body || {});
     
     // 1. Check if user exists
     const user = await AuthService.findByEmail(email);
@@ -65,9 +73,7 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response) =
 });
 
 export const resetPassword = asyncHandler(async (req: Request, res: Response) => {
-    const { token, newPassword } = req.body;
-    
-    if (!token || !newPassword) return res.status(400).json({ error: "Dados incompletos." });
+    const { token, newPassword } = resetPasswordSchema.parse(req.body || {});
 
     // 1. Verify Token
     try {

@@ -8,6 +8,16 @@ import { api } from '../../services/api';
 import { MarketplaceExplorer } from '../../components/MarketplaceExplorer';
 import { runConfirmedAction } from '../../src/utils/runConfirmedAction';
 
+type ProductFormInput = {
+    name?: string;
+    description?: string;
+    price?: number;
+    category?: string;
+    type?: string;
+    image?: string;
+    karmaReward?: number;
+};
+
 export const ProMarketplace: React.FC<{ 
     user: Professional, 
     myProducts?: Product[], 
@@ -18,7 +28,7 @@ export const ProMarketplace: React.FC<{
     const [activeTab, setActiveTab] = useState<'manage' | 'explore'>('manage');
     const [buyingId, setBuyingId] = useState<string | null>(null);
 
-    const handleAddProduct = async (pData: any) => {
+    const handleAddProduct = async (pData: ProductFormInput) => {
         await runConfirmedAction({
             action: () => api.marketplace.create({ ...pData, ownerId: user.id }),
             refresh: () => Promise.resolve(refreshData()),
@@ -52,7 +62,10 @@ export const ProMarketplace: React.FC<{
                 },
                 failToast: {
                     title: 'Erro',
-                    message: (err) => (err as any)?.message || 'Não foi possível registrar interesse.',
+                    message: (err: unknown) =>
+                        (err && typeof err === 'object' && 'message' in err)
+                            ? String((err as { message?: unknown }).message || 'Não foi possível registrar interesse.')
+                            : 'Não foi possível registrar interesse.',
                     type: 'error',
                 },
             });

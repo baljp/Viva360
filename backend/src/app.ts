@@ -13,6 +13,7 @@ import { assertCriticalProdConfig } from './lib/runtimeGuard';
 import { getAuthConfigHealthSnapshot } from './lib/authConfigHealth';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
+const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
 const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
 const isDebugRoutesEnabled = !isProductionRuntime && (
     truthy(process.env.ENABLE_DEBUG_ROUTES) || truthy(process.env.ENABLE_TEST_MODE)
@@ -59,7 +60,8 @@ const corsOptions: CorsOptions = {
 };
 
 app.use(cors(corsOptions)); 
-app.use(express.json());
+app.use(express.json({ limit: jsonBodyLimit }));
+app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
 app.use(attachRequestContext);
 app.use(securityHardening); // Excellence Layer: WAF & Headers
 if (!isProductionRuntime) app.use(morgan('tiny'));

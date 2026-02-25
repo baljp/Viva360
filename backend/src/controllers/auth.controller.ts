@@ -7,6 +7,11 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { JWT_SECRET } from '../lib/secrets';
 import prisma from '../lib/prisma';
 import { logger } from '../lib/logger';
+import {
+  clearAuthSessionCookie,
+  readAuthTokenFromRequest,
+  setAuthSessionCookie,
+} from '../lib/authCookie';
 
 const MOCK_TEST_PASSWORD = '123456';
 const STRICT_MOCK_TEST_USERS: Record<string, { id: string; role: 'CLIENT' | 'PROFESSIONAL' | 'SPACE' | 'ADMIN'; name: string }> = {
@@ -68,6 +73,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
        };
 
        const token = jwt.sign({ userId: userPayload.id, email: userPayload.email, role: userPayload.role }, JWT_SECRET, { expiresIn: '1h' });
+       setAuthSessionCookie(res, token, req);
        return res.json({
          user: userPayload,
          session: { access_token: token, refresh_token: 'mock-refresh' }
@@ -96,6 +102,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     }
 
     const data = await AuthService.login(email, password);
+    const token = String(data?.session?.access_token || '').trim();
+    if (token) setAuthSessionCookie(res, token, req);
     return res.json(data);
 });
 
@@ -123,6 +131,8 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
       requestedRole: role || 'CLIENT',
     });
     const data = await AuthService.register(normalizedEmail, password, name, role);
+    const token = String(data?.session?.access_token || '').trim();
+    if (token) setAuthSessionCookie(res, token, req);
 
     import('../services/email.service').then(({ emailService }) => {
       emailService.send({
@@ -344,4 +354,36 @@ export const deleteAccount = asyncHandler(async (req: Request, res: Response) =>
     requestId: req.requestId,
     data,
   });
+});
+
+export const getSession = asyncHandler(async (req: Request, res: Response) => {
+  const userId = String(req.user?.userId || req.user?.id || '').trim();
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+  }
+
+  return res.json({
+    ok: true,
+    user: {
+      id: userId,
+      email: req.user?.email || null,
+      role: req.user?.role || 'CLIENT',
+      activeRole: req.user?.activeRole || req.user?.role || 'CLIENT',
+      roles: Array.isArray(req.user?.roles) && req.user?.roles.length ? req.user?.roles : [req.user?.role || 'CLIENT'],
+    },
+  });
+});
+
+export const establishSessionCookie = asyncHandler(async (req: Request, res: Response) => {
+  const { token } = readAuthTokenFromRequest(req);
+  if (!token) {
+    return res.status(400).json({ error: 'Missing authentication token', code: 'TOKEN_REQUIRED' });
+  }
+  setAuthSessionCookie(res, token, req);
+  return res.json({ ok: true });
+});
+
+export const logout = asyncHandler(async (req: Request, res: Response) => {
+  clearAuthSessionCookie(res, req);
+  return res.json({ ok: true });
 });

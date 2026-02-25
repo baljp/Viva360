@@ -156,6 +156,7 @@ export const fetchWithTimeout = async (url: string, options: TimedFetchOptions =
   try {
     return await fetch(url, {
       ...rest,
+      credentials: rest.credentials ?? 'include',
       signal: controller.signal,
     });
   } finally {
@@ -164,7 +165,7 @@ export const fetchWithTimeout = async (url: string, options: TimedFetchOptions =
   }
 };
 
-export const decodeJwtPayload = (token: string): any | null => {
+export const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
   try {
     const [, payload] = token.split('.');
     if (!payload) return null;

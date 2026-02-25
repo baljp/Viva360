@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { User } from '../../../types';
 import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { Search, Filter, Heart, Sparkles, TrendingUp, Calendar, Shield, MapPin, ChevronRight, UserPlus, MessageCircle } from 'lucide-react';
@@ -9,7 +10,7 @@ const SpacePatients: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'stable' | 'attention'>('all');
   const [isLoading, setIsLoading] = useState(true);
-  const [patientsData, setPatientsData] = useState<any[] | null>(null);
+  const [patientsData, setPatientsData] = useState<SpacePatientApi[] | null>(null);
 
   // Mock Data
   const fallbackPatients = [
@@ -24,7 +25,7 @@ const SpacePatients: React.FC = () => {
       setIsLoading(true);
       try {
         const data = await api.spaces.getPatients();
-        if (mounted) setPatientsData(Array.isArray(data) ? data : []);
+        if (mounted) setPatientsData(Array.isArray(data) ? (data as SpacePatientApi[]) : []);
       } catch {
         if (mounted) setPatientsData(null);
       } finally {
@@ -45,7 +46,26 @@ const SpacePatients: React.FC = () => {
     return 60;
   };
 
-  const normalizePatients = (input: any[] | null) => {
+  type SpacePatientApi = {
+    id: string;
+    name?: string;
+    karma?: number;
+    plantStage?: string;
+    lastVisitAt?: string;
+    guardians?: string[];
+  };
+
+  type SpacePatientCard = {
+    id: string;
+    name: string;
+    health: number;
+    karma: number;
+    lastVisit: string;
+    condition: string;
+    pro: string;
+  };
+
+  const normalizePatients = (input: SpacePatientApi[] | null): SpacePatientCard[] => {
     if (!input || input.length === 0) return fallbackPatients;
     return input.map((p) => {
       const health = deriveHealth(p.plantStage);
@@ -66,7 +86,7 @@ const SpacePatients: React.FC = () => {
 
   const patients = normalizePatients(patientsData);
 
-  const filteredPatients = patients.filter((patient: any) => {
+  const filteredPatients = patients.filter((patient) => {
     const matchesSearch = patient.name.toLowerCase().includes(searchTerm.toLowerCase());
     if (!matchesSearch) return false;
     if (statusFilter === 'stable') return patient.health > 70;
@@ -156,7 +176,7 @@ const SpacePatients: React.FC = () => {
                             <div className="h-3 w-2/3 bg-nature-100 rounded"></div>
                         </div>
                     ))
-                ) : filteredPatients.map((patient: any) => (
+                ) : filteredPatients.map((patient) => (
                     <div
                         key={patient.id}
                         className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between group cursor-pointer hover:border-indigo-100 transition-all active:scale-[0.98]"
@@ -172,7 +192,7 @@ const SpacePatients: React.FC = () => {
                     >
                         <div className="flex items-center gap-4">
                             <div className="relative">
-                                <DynamicAvatar user={{ name: patient.name } as any} size="md" className="border-2 border-white shadow-sm" />
+                                <DynamicAvatar user={{ name: patient.name } as Pick<User, 'name'>} size="md" className="border-2 border-white shadow-sm" />
                                 <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-white ${patient.health > 70 ? 'bg-emerald-500' : patient.health > 40 ? 'bg-amber-500' : 'bg-rose-500'}`}></div>
                             </div>
                             <div>

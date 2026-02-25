@@ -27,6 +27,7 @@
     "test:silent": "./verify_deployment.sh",
     "test:report": "npx playwright show-report",
     "prisma:generate": "prisma generate --schema=./backend/prisma/schema.prisma",
+    "db:migrate:deploy": "prisma migrate deploy --schema=./backend/prisma/schema.prisma",
     "db:drift-check": "npx tsx backend/scripts/check_schema_drift.ts",
     "perf:budget": "node scripts/check_frontend_budget.cjs",
     "preview": "vite preview",

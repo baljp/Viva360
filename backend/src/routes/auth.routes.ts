@@ -10,8 +10,11 @@ import { validate } from '../middleware/validate.middleware';
 import { loginSchema, registerSchema } from '../schemas/auth.schema';
 
 router.post('/login', authRateLimiter, validate(loginSchema), AuthController.login);
+router.post('/logout', AuthController.logout);
 router.post('/precheck-login', authRateLimiter, AuthController.precheckLogin);
 router.post('/register', authRateLimiter, validate(registerSchema), AuthController.register);
+router.get('/session', authenticateUser, AuthController.getSession);
+router.post('/session/cookie', authenticateUser, AuthController.establishSessionCookie);
 router.post('/oauth/ensure-profile', authenticateUser, AuthController.ensureOAuthProfile);
 router.get('/roles', authenticateUser, AuthController.listRoles);
 router.post('/select-role', authenticateUser, AuthController.selectRole);

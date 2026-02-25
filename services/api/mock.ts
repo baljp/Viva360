@@ -86,6 +86,7 @@ export const promoteToRealSession = (token?: string) => {
   clearMockArtifacts({ preserveAuthToken: true });
   clearTestMode();
   if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+  else localStorage.removeItem(AUTH_TOKEN_KEY);
   setSessionMode('real');
 };
 
@@ -151,4 +152,3 @@ export const getMockSession = (): User | null => {
     name: mockUser.name || 'Viajante',
   });
 };
-
