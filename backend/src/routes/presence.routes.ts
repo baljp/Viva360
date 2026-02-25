@@ -45,7 +45,7 @@ router.get('/me', authenticateUser, async (req: any, res) => {
 });
 
 // Get presence for specific guardian
-router.get('/:guardianId', async (req, res) => {
+router.get('/:guardianId', authenticateUser, async (req, res) => {
   try {
     const { guardianId } = req.params;
     const status = await presenceService.getStatus(guardianId);
@@ -56,7 +56,7 @@ router.get('/:guardianId', async (req, res) => {
 });
 
 // Get online guardians
-router.get('/', async (req, res) => {
+router.get('/', authenticateUser, async (req, res) => {
   try {
     const onlineIds = await presenceService.getOnlineGuardians();
     res.json({ online: onlineIds });
@@ -66,7 +66,7 @@ router.get('/', async (req, res) => {
 });
 
 // Batch get presence
-router.post('/batch', async (req, res) => {
+router.post('/batch', authenticateUser, async (req, res) => {
   try {
     const { guardianIds } = req.body as { guardianIds: string[] };
     if (!guardianIds || !Array.isArray(guardianIds)) {
