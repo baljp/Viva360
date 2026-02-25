@@ -201,8 +201,8 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
         const query = new URLSearchParams();
         if (filters?.contextType) query.set('contextType', filters.contextType);
         if (filters?.contextId) query.set('contextId', filters.contextId);
-        const suffix = query.toString() ? `?${query.toString()}` : '';
-        return await request(`/chat/rooms${suffix}`);
+        const path = query.toString() ? `/chat/rooms?${query.toString()}` : '/chat/rooms';
+        return await request(path);
       } catch (err) {
         console.error('[community.listRooms]', err);
         if (opts?.strict) throw err;

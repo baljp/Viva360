@@ -2,6 +2,9 @@ import { Router } from 'express';
 import * as TribeController from '../controllers/tribe.controller';
 
 const router = Router();
+router.get('/posts', TribeController.listPosts);
+router.post('/posts', TribeController.createPost);
+router.post('/posts/:id/like', TribeController.likePost);
 router.post('/invite', TribeController.inviteMember);
 router.post('/invites/:id/respond', TribeController.respondInvite);
 router.post('/join', TribeController.joinTribe);
