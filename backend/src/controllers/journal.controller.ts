@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { isMockMode } from '../services/supabase.service';
+import { mockAdapter } from '../services/mockAdapter';
 
 const JOURNAL_EVENT_TYPE = 'JOURNAL_ENTRY';
 
@@ -40,11 +41,12 @@ export const createEntry = asyncHandler(async (req: Request, res: Response) => {
   const payload = req.body || {};
 
   if (isMockMode()) {
+    const entry = mockAdapter.events.create('journal', String(userId || ''), payload as Record<string, unknown>);
     return res.status(201).json({
-      id: `journal_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      userId,
-      ...payload,
+      id: entry.id,
+      createdAt: entry.createdAt,
+      userId: entry.userId,
+      ...entry.payload,
     });
   }
 
@@ -69,7 +71,13 @@ export const listEntries = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
 
   if (isMockMode()) {
-    return res.json([]);
+    const entries = mockAdapter.events.list('journal', String(userId || '')).map((entry) => ({
+      id: entry.id,
+      createdAt: entry.createdAt,
+      userId: entry.userId,
+      ...entry.payload,
+    }));
+    return res.json(entries);
   }
 
   const events = await prisma.event.findMany({
@@ -98,7 +106,9 @@ export const getJournalStats = asyncHandler(async (req: Request, res: Response) 
   const userId = (req as any).user?.userId;
 
   if (isMockMode()) {
-    return res.json({ totalEntries: 0, streak: 0, commonWords: [] });
+    const entries = mockAdapter.events.list('journal', String(userId || ''));
+    const dates = entries.map((entry) => entry.createdAt);
+    return res.json({ totalEntries: entries.length, streak: computeStreak(dates), commonWords: [] });
   }
 
   const events = await prisma.event.findMany({
@@ -123,4 +133,3 @@ export const getJournalStats = asyncHandler(async (req: Request, res: Response) 
     commonWords: [],
   });
 });
-

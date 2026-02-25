@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { isMockMode } from '../services/supabase.service';
+import { mockAdapter } from '../services/mockAdapter';
 
 const INTERVENTION_EVENT_TYPE = 'CLINICAL_INTERVENTION';
 
@@ -10,11 +11,12 @@ export const saveIntervention = asyncHandler(async (req: Request, res: Response)
   const payload = req.body || {};
 
   if (isMockMode()) {
+    const entry = mockAdapter.events.create('clinical', String(userId || ''), payload as Record<string, unknown>);
     return res.status(201).json({
-      id: `intervention_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      userId,
-      ...payload,
+      id: entry.id,
+      createdAt: entry.createdAt,
+      userId: entry.userId,
+      ...entry.payload,
     });
   }
 
@@ -39,7 +41,13 @@ export const listInterventions = asyncHandler(async (req: Request, res: Response
   const userId = req.user?.userId;
 
   if (isMockMode()) {
-    return res.json([]);
+    const items = mockAdapter.events.list('clinical', String(userId || '')).map((entry) => ({
+      id: entry.id,
+      createdAt: entry.createdAt,
+      userId: entry.userId,
+      ...entry.payload,
+    }));
+    return res.json(items);
   }
 
   const events = await prisma.event.findMany({

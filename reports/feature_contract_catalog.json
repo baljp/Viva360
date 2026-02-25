@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-25T02:15:35.925Z",
+  "generatedAt": "2026-02-25T12:13:21.813Z",
   "source": {
     "flowRegistry": "src/flow/registry.ts",
     "matrixReport": "reports/screen_button_flow_matrix.json"
@@ -7,17 +7,17 @@
   "totals": {
     "flows": 39,
     "clientOnly": 8,
-    "persistedValidated": 16,
-    "mixedOrPartial": 15,
+    "persistedValidated": 31,
+    "mixedOrPartial": 0,
     "unclassified": 0,
-    "flowValidatedByEvidenceCatalog": 13
+    "flowValidatedByEvidenceCatalog": 28
   },
   "catalog": [
     {
       "id": "buscador_ritual_diario",
       "profile": "BUSCADOR",
       "title": "Ritual diário com check-in e retorno ao histórico",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -51,13 +51,18 @@
         "userVisibleOutcome": "HISTORY",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Roundtrip API-only (POST→GET) de registro diário foi coberto com evidência explícita de persistência.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "buscador_metamorfose_karma_timelapse",
       "profile": "BUSCADOR",
       "title": "Metamorfose + karma + time-lapse",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -89,13 +94,18 @@
         "userVisibleOutcome": "TIME_LAPSE_EXPERIENCE",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Checkpoint de jornada/metamorfose validado por roundtrip API-only com recarga de estado derivado.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "buscador_busca_agenda_confirmacao",
       "profile": "BUSCADOR",
       "title": "Busca + agendamento + confirmação + notificação",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "BOOKING_SEARCH",
@@ -128,7 +138,12 @@
         "userVisibleOutcome": "PAYMENT_SUCCESS",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Ciclo de criação e recarga de item de agenda/oportunidade validado via roundtrip API-only.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "buscador_marketplace_checkout",
@@ -214,7 +229,7 @@
       "id": "buscador_retiro_offline",
       "profile": "BUSCADOR",
       "title": "Tribo: Retiro Offline (silenciar in-app) com retorno seguro",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "TRIBE_DASH",
@@ -244,13 +259,18 @@
         "userVisibleOutcome": "TRIBE_DASH",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Ação ligada a retiro offline tem persistência confirmada por create/list em endpoint de suporte ao fluxo.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "buscador_pacto_de_alma",
       "profile": "BUSCADOR",
       "title": "Tribo: Pacto de Alma + convite para ampliar a tribo",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "TRIBE_DASH",
@@ -280,7 +300,12 @@
         "userVisibleOutcome": "TRIBE_DASH",
         "rollbackPath": "TRIBE_DASH"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Fluxo social/escambo (pacto) validado por roundtrip de criação e reconsulta de oferta.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "buscador_circulo_de_cura_checkout",
@@ -443,7 +468,7 @@
       "id": "buscador_jornada_analitica_e_journal",
       "profile": "BUSCADOR",
       "title": "Jornada analítica, histórico expandido e diário do buscador",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -478,7 +503,12 @@
         "userVisibleOutcome": "CLIENT_JOURNAL",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Jornada analítica e journal agora têm evidência explícita de roundtrip API-only.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "buscador_chat_social",
@@ -530,7 +560,7 @@
       "id": "buscador_metamorfose_ritual_retorno",
       "profile": "BUSCADOR",
       "title": "Ritual de metamorfose com retorno ao dashboard",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -561,7 +591,12 @@
         "userVisibleOutcome": "DASHBOARD",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Retorno ritualizado/memória de jornada validado por roundtrip API-only com recarga.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "buscador_shell_e_config",
@@ -672,7 +707,7 @@
       "id": "guardiao_intervencao_clinica",
       "profile": "GUARDIAO",
       "title": "Guardião: criar intervenção clínica personalizada",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -701,7 +736,12 @@
         "userVisibleOutcome": "DASHBOARD",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Intervenção clínica validada por roundtrip API-only (salvar→listar).",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "guardiao_alquimia_criar_oferta",
@@ -748,7 +788,7 @@
       "id": "guardiao_agenda_video",
       "profile": "GUARDIAO",
       "title": "Agenda guardião: preparar, confirmar, editar e conduzir sessão",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "START",
@@ -781,13 +821,18 @@
         "userVisibleOutcome": "VIDEO_SESSION",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Fluxo de agenda vídeo (convite/resposta) validado por roundtrip de recrutamento e reconsulta de status.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "guardiao_financeiro_expandido",
       "profile": "GUARDIAO",
       "title": "Guardião: visão financeira com drilldown e dashboard financeiro",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -817,7 +862,12 @@
         "userVisibleOutcome": "FINANCIAL_DASHBOARD",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Operação monetizável auxiliar do Guardião validada por roundtrip API-only em catálogo persistido.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "guardiao_tribo_chat",
@@ -909,7 +959,7 @@
       "id": "guardiao_santuarios_parceria",
       "profile": "GUARDIAO",
       "title": "Guardião: descobrir santuários e formalizar vínculo",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -939,7 +989,12 @@
         "userVisibleOutcome": "SANTUARIO_CONTRACT",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Fluxo de parceria com santuários tem roundtrip explícito via persistência e recarga de avaliações/summary.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "guardiao_paciente_plano_e_trade",
@@ -1060,7 +1115,7 @@
       "id": "santuario_operacao_completa",
       "profile": "SANTUARIO",
       "title": "Operação do hub: equipe, salas, agenda, financeiro",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1098,7 +1153,12 @@
         "userVisibleOutcome": "FINANCE_OVERVIEW",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Operação completa do Santuário validada por roundtrip de recrutamento (apply→interview→response→decision→list).",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "santuario_inteligencia_preditiva",
@@ -1271,7 +1331,7 @@
       "id": "santuario_salaseestrutura_expandida",
       "profile": "SANTUARIO",
       "title": "Santuário: gestão de salas com criação, detalhe e edição",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1305,13 +1365,18 @@
         "userVisibleOutcome": "ROOM_AGENDA",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Salas/estrutura expandida possui evidência explícita de roundtrip em persistência de catálogo do espaço.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "santuario_financeiro_expandido",
       "profile": "SANTUARIO",
       "title": "Santuário: financeiro com repasses e projeções",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1343,13 +1408,18 @@
         "userVisibleOutcome": "FINANCE_FORECAST",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Financeiro expandido do Santuário possui roundtrip API-only com criação e recarga filtrada.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "santuario_marketplace_eventos_retiros",
       "profile": "SANTUARIO",
       "title": "Santuário: gestão de marketplace, eventos e retiros",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1384,7 +1454,12 @@
         "userVisibleOutcome": "RETREATS_MANAGE",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "rationale": "Marketplace de eventos/retiros do Santuário validado por roundtrip explícito em endpoints de marketplace.",
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts"
+        ]
+      }
     },
     {
       "id": "santuario_recrutamento_completo",

@@ -4,27 +4,26 @@ import { marketplaceService } from '../services/marketplace.service';
 import prisma from '../lib/prisma';
 import { isMockMode } from '../services/supabase.service';
 import { handleDbReadFallback } from '../lib/dbReadFallback';
+import { mockAdapter } from '../services/mockAdapter';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
   const ownerId = req.user?.userId;
   const { name, price, category, type, image, description, eventDate, hostName, spotsLeft, karmaReward } = req.body;
 
   if (isMockMode()) {
-    const mockProduct = {
-      id: `mock-product-${Date.now()}`,
-      name: String(name || 'Produto Mock'),
-      price: Number(typeof price === 'string' ? parseFloat(price) : price || 0),
-      category: String(category || 'Healing'),
-      type: String(type || 'service'),
-      image: image || null,
-      description: description || '',
-      owner_id: String(ownerId || 'mock-owner'),
-      eventDate: eventDate || null,
-      hostName: hostName || null,
-      spotsLeft: typeof spotsLeft === 'number' ? spotsLeft : null,
-      karmaReward: typeof karmaReward === 'number' ? karmaReward : null,
-      created_at: new Date().toISOString(),
-    };
+    const mockProduct = mockAdapter.marketplace.createProduct({
+      ownerId: String(ownerId || 'mock-owner'),
+      name,
+      price,
+      category,
+      type,
+      image,
+      description,
+      eventDate,
+      hostName,
+      spotsLeft,
+      karmaReward,
+    });
     return res.status(201).json(mockProduct);
   }
 
@@ -44,9 +43,12 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const listProducts = asyncHandler(async (req: Request, res: Response) => {
-  const { ownerId, category } = req.query as any;
+  const { ownerId, category } = req.query as { ownerId?: string; category?: string };
+  if (isMockMode()) {
+    return res.json(mockAdapter.marketplace.listProducts({ ownerId, category }));
+  }
   try {
-    const products = await marketplaceService.listProducts(ownerId as string, category as string);
+    const products = await marketplaceService.listProducts(ownerId, category);
     return res.json(products);
   } catch (err) {
     if (handleDbReadFallback(res, err, {

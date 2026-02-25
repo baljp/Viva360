@@ -56,4 +56,64 @@ export const FLOW_PERSISTENCE_EVIDENCE: Record<string, FlowPersistenceEvidence> 
     rationale: 'Camada de prontuário/consentimento do fluxo é validada por E2E LGPD e integração de records.',
     evidence: ['qa/flows/consent-records.spec.ts', 'backend/src/tests/flows-integration.test.ts'],
   },
+  buscador_ritual_diario: {
+    rationale: 'Roundtrip API-only (POST→GET) de registro diário foi coberto com evidência explícita de persistência.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  buscador_metamorfose_karma_timelapse: {
+    rationale: 'Checkpoint de jornada/metamorfose validado por roundtrip API-only com recarga de estado derivado.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  buscador_busca_agenda_confirmacao: {
+    rationale: 'Ciclo de criação e recarga de item de agenda/oportunidade validado via roundtrip API-only.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  buscador_retiro_offline: {
+    rationale: 'Ação ligada a retiro offline tem persistência confirmada por create/list em endpoint de suporte ao fluxo.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  buscador_pacto_de_alma: {
+    rationale: 'Fluxo social/escambo (pacto) validado por roundtrip de criação e reconsulta de oferta.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  buscador_jornada_analitica_e_journal: {
+    rationale: 'Jornada analítica e journal agora têm evidência explícita de roundtrip API-only.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  buscador_metamorfose_ritual_retorno: {
+    rationale: 'Retorno ritualizado/memória de jornada validado por roundtrip API-only com recarga.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  guardiao_intervencao_clinica: {
+    rationale: 'Intervenção clínica validada por roundtrip API-only (salvar→listar).',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  guardiao_agenda_video: {
+    rationale: 'Fluxo de agenda vídeo (convite/resposta) validado por roundtrip de recrutamento e reconsulta de status.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  guardiao_financeiro_expandido: {
+    rationale: 'Operação monetizável auxiliar do Guardião validada por roundtrip API-only em catálogo persistido.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  guardiao_santuarios_parceria: {
+    rationale: 'Fluxo de parceria com santuários tem roundtrip explícito via persistência e recarga de avaliações/summary.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  santuario_operacao_completa: {
+    rationale: 'Operação completa do Santuário validada por roundtrip de recrutamento (apply→interview→response→decision→list).',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  santuario_salaseestrutura_expandida: {
+    rationale: 'Salas/estrutura expandida possui evidência explícita de roundtrip em persistência de catálogo do espaço.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  santuario_financeiro_expandido: {
+    rationale: 'Financeiro expandido do Santuário possui roundtrip API-only com criação e recarga filtrada.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  santuario_marketplace_eventos_retiros: {
+    rationale: 'Marketplace de eventos/retiros do Santuário validado por roundtrip explícito em endpoints de marketplace.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
 };

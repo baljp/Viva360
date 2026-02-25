@@ -7,6 +7,7 @@ import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 import { AppError } from '../lib/AppError';
 import { logger } from '../lib/logger';
+import { mockAdapter } from '../services/mockAdapter';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -244,17 +245,12 @@ const runCheckout = async (req: Request, res: Response, options?: { strictContex
            });
        }
 
-       const mockResult = {
-         id: 'mock-tx-cart-id',
-         user_id: userId || 'mock-sender',
-         type: 'expense',
+       const mockResult = mockAdapter.checkout.mockCheckoutResult({
+         userId: String(userId || 'mock-sender'),
          amount: total,
          description: description || `Checkout (${items?.length || 1} items)`,
-         items: items || [],
-         status: 'completed',
-         fulfillment: items?.map((i: CheckoutItem) => ({ itemId: i.id, status: 'fulfilled', type: i.type })) || [],
-         created_at: new Date().toISOString(),
-       };
+         items,
+       });
 
        const contextResult = await applyContextWorkflow({
         contextType: normalizedContext,

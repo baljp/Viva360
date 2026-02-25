@@ -5,48 +5,22 @@ import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 import { z } from 'zod';
 import { isMockMode } from '../services/supabase.service';
+import { mockAdapter, type MockSwapOffer } from '../services/mockAdapter';
 
 const counterSchema = z.object({
   counterOffer: z.string().min(3).max(500),
 });
-
-type MockSwapOffer = {
-  id: string;
-  provider_id: string;
-  requester_id: string;
-  description: string;
-  status: string;
-  counter_offer?: string | null;
-  accepted_at?: string | null;
-  completed_at?: string | null;
-};
-
-const mockAlchemyStore = (() => {
-  const g = globalThis as any;
-  if (!g.__vivaMockAlchemyStore) {
-    g.__vivaMockAlchemyStore = {
-      offers: new Map<string, MockSwapOffer>(),
-    };
-  }
-  return g.__vivaMockAlchemyStore as { offers: Map<string, MockSwapOffer> };
-})();
 
 export const createOffer = asyncHandler(async (req: Request, res: Response) => {
   const providerId = (req as any).user?.userId;
   const { requesterId, description } = req.body;
 
   if (isMockMode()) {
-    const offer: MockSwapOffer = {
-      id: `mock-offer-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      provider_id: String(providerId || 'mock-provider'),
-      requester_id: String(requesterId || 'mock-requester'),
+    const offer = mockAdapter.alchemy.createOffer({
+      providerId: String(providerId || 'mock-provider'),
+      requesterId: String(requesterId || 'mock-requester'),
       description: String(description || ''),
-      status: 'pending',
-      counter_offer: null,
-      accepted_at: null,
-      completed_at: null,
-    };
-    mockAlchemyStore.offers.set(offer.id, offer);
+    });
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: offer.id, action: 'CREATE',
       actorId: offer.provider_id, status: 'COMPLETED', nextStep: 'AWAIT_RECEIVER_RESPONSE',
@@ -87,7 +61,7 @@ export const createOffer = asyncHandler(async (req: Request, res: Response) => {
 export const listOffers = asyncHandler(async (req: Request, res: Response) => {
   const userId = (req as any).user?.userId;
   if (isMockMode()) {
-    const offers = Array.from(mockAlchemyStore.offers.values()).filter(
+    const offers = mockAdapter.alchemy.listOffers().filter(
       (offer) => offer.provider_id === userId || offer.requester_id === userId || String((req as any).user?.role || '').toUpperCase() === 'ADMIN'
     );
     return res.json(offers);
@@ -100,10 +74,10 @@ export const listOffers = asyncHandler(async (req: Request, res: Response) => {
 
 const resolveOfferActor = async (offerId: string, actorId: string) => {
   if (isMockMode()) {
-    const offer = mockAlchemyStore.offers.get(offerId) || null;
+    const offer = mockAdapter.alchemy.getOffer(offerId);
     if (!offer) return { offer: null, counterpartId: '' };
     if (offer.provider_id !== actorId && offer.requester_id !== actorId && actorId) {
-      const error: any = new Error('Sem permissão para esta proposta.');
+      const error = new Error('Sem permissão para esta proposta.') as Error & { statusCode?: number };
       error.statusCode = 403;
       throw error;
     }
@@ -115,7 +89,7 @@ const resolveOfferActor = async (offerId: string, actorId: string) => {
   const offer = await prisma.swapOffer.findUnique({ where: { id: offerId } });
   if (!offer) return { offer: null, counterpartId: '' };
   if (offer.provider_id !== actorId && offer.requester_id !== actorId) {
-    const error: any = new Error('Sem permissão para esta proposta.');
+    const error = new Error('Sem permissão para esta proposta.') as Error & { statusCode?: number };
     error.statusCode = 403;
     throw error;
   }
@@ -132,12 +106,13 @@ export const acceptOffer = asyncHandler(async (req: Request, res: Response) => {
   if (!offer) return res.status(404).json({ error: 'Proposta não encontrada.', code: 'ESCAMBO_NOT_FOUND' });
 
   if (isMockMode()) {
+    const mockOffer = offer as MockSwapOffer;
     const updated = {
-      ...(offer as any),
+      ...mockOffer,
       status: 'accepted',
       accepted_at: new Date().toISOString(),
     };
-    mockAlchemyStore.offers.set(updated.id, updated);
+    mockAdapter.alchemy.saveOffer(updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: updated.id, action: 'ACCEPT', actorId,
       status: 'COMPLETED', nextStep: 'COMPLETE_ESCAMBO', requestId: req.requestId,
@@ -166,8 +141,9 @@ export const rejectOffer = asyncHandler(async (req: Request, res: Response) => {
   if (!offer) return res.status(404).json({ error: 'Proposta não encontrada.', code: 'ESCAMBO_NOT_FOUND' });
 
   if (isMockMode()) {
-    const updated = { ...(offer as any), status: 'rejected' };
-    mockAlchemyStore.offers.set(updated.id, updated);
+    const mockOffer = offer as MockSwapOffer;
+    const updated = { ...mockOffer, status: 'rejected' };
+    mockAdapter.alchemy.saveOffer(updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: updated.id, action: 'REJECT', actorId,
       status: 'COMPLETED', nextStep: 'CLOSED', requestId: req.requestId,
@@ -197,8 +173,9 @@ export const counterOffer = asyncHandler(async (req: Request, res: Response) => 
   if (!offer) return res.status(404).json({ error: 'Proposta não encontrada.', code: 'ESCAMBO_NOT_FOUND' });
 
   if (isMockMode()) {
-    const updated = { ...(offer as any), status: 'countered', counter_offer: counterOfferText };
-    mockAlchemyStore.offers.set(updated.id, updated);
+    const mockOffer = offer as MockSwapOffer;
+    const updated = { ...mockOffer, status: 'countered', counter_offer: counterOfferText };
+    mockAdapter.alchemy.saveOffer(updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: updated.id, action: 'COUNTER', actorId,
       status: 'COMPLETED', nextStep: 'AWAIT_COUNTERPART_RESPONSE', requestId: req.requestId,
@@ -227,8 +204,9 @@ export const completeOffer = asyncHandler(async (req: Request, res: Response) =>
   if (!offer) return res.status(404).json({ error: 'Proposta não encontrada.', code: 'ESCAMBO_NOT_FOUND' });
 
   if (isMockMode()) {
-    const updated = { ...(offer as any), status: 'completed', completed_at: new Date().toISOString() };
-    mockAlchemyStore.offers.set(updated.id, updated);
+    const mockOffer = offer as MockSwapOffer;
+    const updated = { ...mockOffer, status: 'completed', completed_at: new Date().toISOString() };
+    mockAdapter.alchemy.saveOffer(updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: updated.id, action: 'COMPLETE', actorId,
       status: 'COMPLETED', nextStep: 'NONE', requestId: req.requestId,

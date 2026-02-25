@@ -6,6 +6,7 @@ import { notificationEngine } from '../services/notificationEngine.service';
 import { z } from 'zod';
 import { logger } from '../lib/logger';
 import { isMockMode } from '../services/supabase.service';
+import { mockAdapter } from '../services/mockAdapter';
 
 const createRecordSchema = z.object({
     patientId: z.string().min(2),
@@ -25,32 +26,7 @@ const CONSENT_LINK_TYPE = 'patient';
 const ACTIVE_CONSENT_STATUSES = new Set(['ACTIVE', 'ACCEPTED']);
 const STRICT_RECORD_CONSENT = String(process.env.STRICT_RECORD_CONSENT || '').toLowerCase() === 'true';
 
-type MockConsentStatus = 'ACTIVE' | 'REVOKED';
-type MockRecord = {
-    id: string;
-    patient_id: string;
-    professional_id: string;
-    content: string;
-    type: 'anamnesis' | 'session';
-    created_at: string;
-    updated_at: string;
-};
-
-const mockRecordsStore = (() => {
-    const g = globalThis as any;
-    if (!g.__vivaMockRecordsStore) {
-        g.__vivaMockRecordsStore = {
-            consents: new Map<string, MockConsentStatus>(),
-            records: new Map<string, MockRecord>(),
-        };
-    }
-    return g.__vivaMockRecordsStore as {
-        consents: Map<string, MockConsentStatus>;
-        records: Map<string, MockRecord>;
-    };
-})();
-
-const consentKey = (patientId: string, professionalId: string) => `${patientId}::${professionalId}`;
+const consentKey = (patientId: string, professionalId: string) => mockAdapter.records.consentKey(patientId, professionalId);
 
 const hasLegacyProfessionalRelationship = async (patientId: string, professionalId: string) => {
     const existing = await prisma.record.findFirst({
@@ -75,7 +51,7 @@ const isProfessionalRoleProfile = async (profileId: string) => {
 
 const hasActiveConsentForRecord = async (patientId: string, professionalId: string) => {
     if (isMockMode()) {
-        return mockRecordsStore.consents.get(consentKey(patientId, professionalId)) === 'ACTIVE';
+        return mockAdapter.records.getConsent(patientId, professionalId) === 'ACTIVE';
     }
     const consent = await prisma.profileLink.findUnique({
         where: { source_id_target_id_type: { source_id: patientId, target_id: professionalId, type: CONSENT_LINK_TYPE } },
@@ -117,20 +93,15 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
 
     if (isMockMode()) {
         if (patientId !== proId) {
-            const consentGranted = mockRecordsStore.consents.get(consentKey(patientId, proId)) === 'ACTIVE';
+            const consentGranted = mockAdapter.records.getConsent(patientId, proId) === 'ACTIVE';
             if (!consentGranted) return res.status(403).json({ error: 'CONSENT_REQUIRED: paciente não concedeu consentimento para este prontuário.' });
         }
-        const now = new Date().toISOString();
-        const record: MockRecord = {
-            id: `mock-record-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            patient_id: patientId,
-            professional_id: proId,
+        const record = mockAdapter.records.createRecord({
+            patientId,
+            professionalId: proId,
             content,
             type,
-            created_at: now,
-            updated_at: now,
-        };
-        mockRecordsStore.records.set(record.id, record);
+        });
         return res.status(201).json(record);
     }
 
@@ -167,7 +138,7 @@ export const listNotes = asyncHandler(async (req: Request, res: Response) => {
     }
 
     if (isMockMode()) {
-        const records = Array.from(mockRecordsStore.records.values())
+        const records = mockAdapter.records.listRecords()
             .filter((record) => {
                 if (record.patient_id !== targetPatientId) return false;
                 if (userRole === 'PROFESSIONAL' && targetPatientId !== requestorId) return record.professional_id === requestorId;
@@ -220,7 +191,7 @@ export const grantAccess = asyncHandler(async (req: Request, res: Response) => {
     if (professionalId === patientId) return res.status(400).json({ error: 'Não é possível conceder consentimento para si mesmo.' });
 
     if (isMockMode()) {
-        mockRecordsStore.consents.set(consentKey(patientId, professionalId), 'ACTIVE');
+        mockAdapter.records.setConsent(patientId, professionalId, 'ACTIVE');
         return res.json({ success: true, consent: { patientId, professionalId, status: 'ACTIVE' } });
     }
 
@@ -245,7 +216,7 @@ export const revokeAccess = asyncHandler(async (req: Request, res: Response) => 
     if (!professionalId) return res.status(400).json({ error: 'professionalId inválido.' });
 
     if (isMockMode()) {
-        mockRecordsStore.consents.set(consentKey(patientId, professionalId), 'REVOKED');
+        mockAdapter.records.setConsent(patientId, professionalId, 'REVOKED');
         return res.json({ success: true, consent: { patientId, professionalId, status: 'REVOKED' } });
     }
 

@@ -5,6 +5,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 import { isMockMode } from '../services/supabase.service';
+import { mockAdapter, type MockRecruitmentInterview } from '../services/mockAdapter';
 
 const applySchema = z.object({
   vacancyId: z.string().uuid().or(z.string().min(1)),
@@ -25,59 +26,17 @@ const decisionSchema = z.object({
 const normalizeRole = (value?: string) => String(value || '').trim().toUpperCase();
 const isAdmin = (role?: string) => normalizeRole(role) === 'ADMIN';
 
-type MockApplication = {
-  id: string;
-  vacancy_id: string;
-  candidate_id: string;
-  space_id: string;
-  notes: string | null;
-  status: string;
-  created_at: string;
-  decided_at?: string | null;
-  decided_by?: string | null;
-};
-
-type MockInterview = {
-  id: string;
-  application_id: string;
-  space_id: string;
-  guardian_id: string;
-  scheduled_for: string;
-  status: string;
-  response_note?: string | null;
-  responded_at?: string | null;
-};
-
-const mockRecruitmentStore = (() => {
-  const g = globalThis as any;
-  if (!g.__vivaMockRecruitmentStore) {
-    g.__vivaMockRecruitmentStore = {
-      applications: new Map<string, MockApplication>(),
-      interviews: new Map<string, MockInterview>(),
-    };
-  }
-  return g.__vivaMockRecruitmentStore as {
-    applications: Map<string, MockApplication>;
-    interviews: Map<string, MockInterview>;
-  };
-})();
-
 export const createApplication = asyncHandler(async (req: Request, res: Response) => {
   const userId = String((req as any).user?.userId || '').trim();
   const { vacancyId, notes } = applySchema.parse(req.body || {});
 
   if (isMockMode()) {
-    const applicationId = `mock-app-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const application: MockApplication = {
-      id: applicationId,
-      vacancy_id: String(vacancyId),
-      candidate_id: userId || 'mock-candidate',
-      space_id: 'mock-space',
+    const application = mockAdapter.recruitment.createApplication({
+      vacancyId: String(vacancyId),
+      candidateId: userId || 'mock-candidate',
+      spaceId: 'mock-space',
       notes: notes || null,
-      status: 'APPLIED',
-      created_at: new Date().toISOString(),
-    };
-    mockRecruitmentStore.applications.set(applicationId, application);
+    });
 
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'RECRUITMENT_APPLICATION', entityId: application.id, action: 'APPLY', actorId: application.candidate_id,
@@ -128,23 +87,17 @@ export const scheduleInterview = asyncHandler(async (req: Request, res: Response
   const { scheduledFor, guardianId } = scheduleInterviewSchema.parse(req.body || {});
 
   if (isMockMode()) {
-    const application = mockRecruitmentStore.applications.get(String(id));
+    const application = mockAdapter.recruitment.getApplication(String(id));
     if (!application) return res.status(404).json({ error: 'Candidatura não encontrada.', code: 'APPLICATION_NOT_FOUND' });
 
-    const interviewId = `mock-int-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-    const interview: MockInterview = {
-      id: interviewId,
-      application_id: application.id,
-      space_id: application.space_id,
-      guardian_id: String(guardianId || application.candidate_id),
-      scheduled_for: new Date(scheduledFor).toISOString(),
-      status: 'PENDING_RESPONSE',
-      response_note: null,
-      responded_at: null,
-    };
-    mockRecruitmentStore.interviews.set(interviewId, interview);
+    const interview = mockAdapter.recruitment.createInterview({
+      applicationId: application.id,
+      spaceId: application.space_id,
+      guardianId: String(guardianId || application.candidate_id),
+      scheduledFor,
+    });
     application.status = 'INTERVIEW_INVITED';
-    mockRecruitmentStore.applications.set(application.id, application);
+    mockAdapter.recruitment.saveApplication(application);
 
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'INTERVIEW', entityId: interview.id, action: 'INVITE', actorId: actorId || 'mock-space', status: 'COMPLETED',
@@ -189,20 +142,20 @@ export const respondInterview = asyncHandler(async (req: Request, res: Response)
   const { decision, note } = interviewResponseSchema.parse(req.body || {});
 
   if (isMockMode()) {
-    const interview = mockRecruitmentStore.interviews.get(String(id));
+    const interview = mockAdapter.recruitment.getInterview(String(id));
     if (!interview) return res.status(404).json({ error: 'Entrevista não encontrada.', code: 'INTERVIEW_NOT_FOUND' });
     const accepted = decision === 'ACCEPT';
-    const updatedInterview: MockInterview = {
+    const updatedInterview = {
       ...interview,
       status: accepted ? 'ACCEPTED' : 'DECLINED',
       response_note: note || null,
       responded_at: new Date().toISOString(),
     };
-    mockRecruitmentStore.interviews.set(updatedInterview.id, updatedInterview);
-    const app = mockRecruitmentStore.applications.get(updatedInterview.application_id);
+    mockAdapter.recruitment.saveInterview(updatedInterview);
+    const app = mockAdapter.recruitment.getApplication(updatedInterview.application_id);
     if (app) {
       app.status = accepted ? 'INTERVIEW_ACCEPTED' : 'REJECTED';
-      mockRecruitmentStore.applications.set(app.id, app);
+      mockAdapter.recruitment.saveApplication(app);
     }
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'INTERVIEW', entityId: updatedInterview.id, action: 'RESPOND', actorId: actorId || 'mock-guardian',
@@ -242,16 +195,16 @@ export const decideApplication = asyncHandler(async (req: Request, res: Response
   const { decision, note } = decisionSchema.parse(req.body || {});
 
   if (isMockMode()) {
-    const application = mockRecruitmentStore.applications.get(String(id));
+    const application = mockAdapter.recruitment.getApplication(String(id));
     if (!application) return res.status(404).json({ error: 'Candidatura não encontrada.', code: 'APPLICATION_NOT_FOUND' });
-    const updated: MockApplication = {
+    const updated = {
       ...application,
       status: decision,
       notes: note ? `${application.notes ? `${application.notes}\n` : ''}${note}` : application.notes,
       decided_at: new Date().toISOString(),
       decided_by: actorId || 'mock-space',
     };
-    mockRecruitmentStore.applications.set(updated.id, updated);
+    mockAdapter.recruitment.saveApplication(updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'RECRUITMENT_APPLICATION', entityId: updated.id, action: 'DECIDE', actorId: actorId || 'mock-space',
       status: 'COMPLETED', nextStep: decision === 'HIRED' ? 'ONBOARDING' : 'CLOSED', requestId: req.requestId,
@@ -293,12 +246,12 @@ export const listApplications = asyncHandler(async (req: Request, res: Response)
   const scope = String(req.query.scope || '').trim().toLowerCase();
 
   if (isMockMode()) {
-    const apps = Array.from(mockRecruitmentStore.applications.values());
+    const apps = mockAdapter.recruitment.listApplications();
     const filtered = (scope === 'candidate' || role === 'PROFESSIONAL' || role === 'CLIENT')
       ? apps.filter((a) => a.candidate_id === userId)
       : apps.filter((a) => a.space_id === userId || role === 'ADMIN');
-    const interviewsByApp = new Map<string, MockInterview[]>();
-    Array.from(mockRecruitmentStore.interviews.values()).forEach((it) => {
+    const interviewsByApp = new Map<string, MockRecruitmentInterview[]>();
+    mockAdapter.recruitment.listInterviews().forEach((it) => {
       const bucket = interviewsByApp.get(it.application_id) || [];
       bucket.push(it);
       interviewsByApp.set(it.application_id, bucket);
