@@ -45,7 +45,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     checkIn: async (_uid: string, reward: number = 50) => {
       let payload: CheckInResponse;
       try {
-        payload = await request<CheckInResponse>('/users/checkin', {
+        payload = await request<CheckInResponse>('/metamorphosis/checkin', {
           method: 'POST',
           purpose: 'daily-checkin',
           timeoutMs: 7000,

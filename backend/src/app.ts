@@ -116,12 +116,16 @@ app.get('/metrics', async (req, res) => {
     res.send(await register.metrics());
 });
 
-// RATE LIMITING
+// RATE LIMITING (layered)
+// - Global limiter here uses standard `RateLimit-*` headers for coarse abuse control.
+// - Route-level limiter in `routes/index.ts` uses custom `X-RateLimit-*` headers for short-window API throttling.
+// - `/api/health*` is exempt from the global limiter to keep probes deterministic.
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, 
     max: 1000, 
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req) => /^\/api\/health(?:\/|$)/i.test(String(req.path || req.originalUrl || '')),
 });
 app.use(limiter);
 

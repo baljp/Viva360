@@ -1,6 +1,6 @@
 # Catálogo de Contrato de Features (clientOnly vs persistidas)
 
-Gerado em: 2026-02-25T12:52:04.272Z
+Gerado em: 2026-02-25T14:04:54.610Z
 
 Flows totais: 39
 Client-only: 8
@@ -11,7 +11,7 @@ Validados por catálogo de evidência: 28
 
 | Flow ID | Perfil | Tipo de contrato | ClientOnly | Final esperado | Endpoints | Persistência (P0/P1/P2) | Evidência explícita |
 |---|---|---|---|---|---|---|---|
-| buscador_ritual_diario | BUSCADOR | PERSISTIDO_VALIDADO | Não | HISTORY | /api/metamorphosis/checkin, /api/users/checkin | 0/36/5 | Sim |
+| buscador_ritual_diario | BUSCADOR | PERSISTIDO_VALIDADO | Não | HISTORY | /api/metamorphosis/checkin | 0/36/5 | Sim |
 | buscador_metamorfose_karma_timelapse | BUSCADOR | PERSISTIDO_VALIDADO | Não | TIME_LAPSE_EXPERIENCE | /api/metamorphosis/evolution, /api/oracle/history | 0/31/5 | Sim |
 | buscador_busca_agenda_confirmacao | BUSCADOR | PERSISTIDO_VALIDADO | Não | PAYMENT_SUCCESS | /api/appointments/*, /api/checkout/pay, /api/notifications/* | 0/7/7 | Sim |
 | buscador_marketplace_checkout | BUSCADOR | PERSISTIDO_VALIDADO | Não | PAYMENT_HISTORY | /api/marketplace/products, /api/checkout/pay | 0/2/9 | Sim |

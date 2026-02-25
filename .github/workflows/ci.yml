@@ -112,6 +112,14 @@ jobs:
       - name: Coverage thresholds by layer (services, controllers, flow)
         run: npm run test:coverage:layers
 
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-layers-${{ github.run_id }}
+          path: coverage/
+          retention-days: 7
+
   # ────────────────────────────────────────────────────────────────
   # 3. Build verification (Vite + Prisma generate)
   # ────────────────────────────────────────────────────────────────
@@ -125,6 +133,7 @@ jobs:
       VITE_SUPABASE_URL: "https://placeholder.supabase.co"
       VITE_SUPABASE_ANON_KEY: "placeholder-anon-key"
       VITE_APP_MODE: "PROD"
+      VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -139,6 +148,10 @@ jobs:
 
       - name: Generate Prisma client
         run: npm run prisma:generate
+
+      - name: Assert VITE_SENTRY_DSN is set
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: test -n "$VITE_SENTRY_DSN" || (echo "VITE_SENTRY_DSN is required for main build observability" && exit 1)
 
       - name: Build frontend (Vite)
         run: npx vite build

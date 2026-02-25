@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-25T12:52:04.272Z",
+  "generatedAt": "2026-02-25T14:04:54.610Z",
   "source": {
     "flowRegistry": "src/flow/registry.ts",
     "matrixReport": "reports/screen_button_flow_matrix.json"
@@ -28,8 +28,7 @@
         "HISTORY"
       ],
       "endpoints": [
-        "/api/metamorphosis/checkin",
-        "/api/users/checkin"
+        "/api/metamorphosis/checkin"
       ],
       "expectedFinal": "HISTORY",
       "fallbackScreen": "DASHBOARD",

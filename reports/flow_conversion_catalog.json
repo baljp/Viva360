@@ -1,18 +1,83 @@
 {
-  "generatedAt": "2026-02-24T14:26:11.369Z",
+  "generatedAt": "2026-02-25T14:05:01.768Z",
   "source": "reports/feature_contract_catalog.json",
   "totals": {
     "flows": 31,
-    "persistedValidated": 16,
-    "mixedOrPartial": 15
+    "persistedValidated": 31,
+    "mixedOrPartial": 0
   },
   "funnels": [
+    {
+      "id": "buscador_busca_agenda_confirmacao",
+      "profile": "BUSCADOR",
+      "title": "Busca + agendamento + confirmação + notificação",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "PAYMENT_SUCCESS",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/checkout/pay",
+        "/api/notifications/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "BOOKING_SEARCH",
+          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:BOOKING_SEARCH",
+          "metricKeys": [
+            "buscador.buscador_busca_agenda_confirmacao.attempt",
+            "buscador.buscador_busca_agenda_confirmacao.success",
+            "buscador.buscador_busca_agenda_confirmacao.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "BOOKING_SELECT",
+          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:BOOKING_SELECT",
+          "metricKeys": [
+            "buscador.buscador_busca_agenda_confirmacao.attempt",
+            "buscador.buscador_busca_agenda_confirmacao.success",
+            "buscador.buscador_busca_agenda_confirmacao.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "BOOKING_CONFIRM",
+          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:BOOKING_CONFIRM",
+          "metricKeys": [
+            "buscador.buscador_busca_agenda_confirmacao.attempt",
+            "buscador.buscador_busca_agenda_confirmacao.success",
+            "buscador.buscador_busca_agenda_confirmacao.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "CHECKOUT",
+          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:CHECKOUT",
+          "metricKeys": [
+            "buscador.buscador_busca_agenda_confirmacao.attempt",
+            "buscador.buscador_busca_agenda_confirmacao.success",
+            "buscador.buscador_busca_agenda_confirmacao.error"
+          ]
+        },
+        {
+          "index": 5,
+          "screen": "PAYMENT_SUCCESS",
+          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:PAYMENT_SUCCESS",
+          "metricKeys": [
+            "buscador.buscador_busca_agenda_confirmacao.attempt",
+            "buscador.buscador_busca_agenda_confirmacao.success",
+            "buscador.buscador_busca_agenda_confirmacao.error"
+          ]
+        }
+      ]
+    },
     {
       "id": "buscador_chat_social",
       "profile": "BUSCADOR",
       "title": "Tribo e chat social: lista, novo chat, sala e ajustes",
       "contractType": "PERSISTIDO_VALIDADO",
-      "expectedFinal": "CHAT_ROOM",
+      "expectedFinal": "CHAT_SETTINGS",
       "endpoints": [
         "/api/chat/*",
         "/api/tribe/*"
@@ -136,6 +201,90 @@
       ]
     },
     {
+      "id": "buscador_jornada_analitica_e_journal",
+      "profile": "BUSCADOR",
+      "title": "Jornada analítica, histórico expandido e diário do buscador",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "CLIENT_JOURNAL",
+      "endpoints": [
+        "/api/metamorphosis/*",
+        "/api/oracle/history"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "DASHBOARD",
+          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:DASHBOARD",
+          "metricKeys": [
+            "buscador.buscador_jornada_analitica_e_journal.attempt",
+            "buscador.buscador_jornada_analitica_e_journal.success",
+            "buscador.buscador_jornada_analitica_e_journal.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "HISTORY",
+          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:HISTORY",
+          "metricKeys": [
+            "buscador.buscador_jornada_analitica_e_journal.attempt",
+            "buscador.buscador_jornada_analitica_e_journal.success",
+            "buscador.buscador_jornada_analitica_e_journal.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "EVOLUTION",
+          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:EVOLUTION",
+          "metricKeys": [
+            "buscador.buscador_jornada_analitica_e_journal.attempt",
+            "buscador.buscador_jornada_analitica_e_journal.success",
+            "buscador.buscador_jornada_analitica_e_journal.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "EVOLUTION_ANALYTICS",
+          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:EVOLUTION_ANALYTICS",
+          "metricKeys": [
+            "buscador.buscador_jornada_analitica_e_journal.attempt",
+            "buscador.buscador_jornada_analitica_e_journal.success",
+            "buscador.buscador_jornada_analitica_e_journal.error"
+          ]
+        },
+        {
+          "index": 5,
+          "screen": "EVOLUTION_ACHIEVEMENTS",
+          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:EVOLUTION_ACHIEVEMENTS",
+          "metricKeys": [
+            "buscador.buscador_jornada_analitica_e_journal.attempt",
+            "buscador.buscador_jornada_analitica_e_journal.success",
+            "buscador.buscador_jornada_analitica_e_journal.error"
+          ]
+        },
+        {
+          "index": 6,
+          "screen": "EVOLUTION_HISTORY",
+          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:EVOLUTION_HISTORY",
+          "metricKeys": [
+            "buscador.buscador_jornada_analitica_e_journal.attempt",
+            "buscador.buscador_jornada_analitica_e_journal.success",
+            "buscador.buscador_jornada_analitica_e_journal.error"
+          ]
+        },
+        {
+          "index": 7,
+          "screen": "CLIENT_JOURNAL",
+          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:CLIENT_JOURNAL",
+          "metricKeys": [
+            "buscador.buscador_jornada_analitica_e_journal.attempt",
+            "buscador.buscador_jornada_analitica_e_journal.success",
+            "buscador.buscador_jornada_analitica_e_journal.error"
+          ]
+        }
+      ]
+    },
+    {
       "id": "buscador_marketplace_checkout",
       "profile": "BUSCADOR",
       "title": "Marketplace + carrinho + checkout + recibo",
@@ -185,6 +334,103 @@
             "buscador.buscador_marketplace_checkout.attempt",
             "buscador.buscador_marketplace_checkout.success",
             "buscador.buscador_marketplace_checkout.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buscador_metamorfose_karma_timelapse",
+      "profile": "BUSCADOR",
+      "title": "Metamorfose + karma + time-lapse",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "TIME_LAPSE_EXPERIENCE",
+      "endpoints": [
+        "/api/metamorphosis/evolution",
+        "/api/oracle/history"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "DASHBOARD",
+          "eventKey": "buscador:buscador_metamorfose_karma_timelapse:state:DASHBOARD",
+          "metricKeys": [
+            "buscador.buscador_metamorfose_karma_timelapse.attempt",
+            "buscador.buscador_metamorfose_karma_timelapse.success",
+            "buscador.buscador_metamorfose_karma_timelapse.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "EVOLUTION",
+          "eventKey": "buscador:buscador_metamorfose_karma_timelapse:state:EVOLUTION",
+          "metricKeys": [
+            "buscador.buscador_metamorfose_karma_timelapse.attempt",
+            "buscador.buscador_metamorfose_karma_timelapse.success",
+            "buscador.buscador_metamorfose_karma_timelapse.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "EVOLUTION_TIMELAPSE",
+          "eventKey": "buscador:buscador_metamorfose_karma_timelapse:state:EVOLUTION_TIMELAPSE",
+          "metricKeys": [
+            "buscador.buscador_metamorfose_karma_timelapse.attempt",
+            "buscador.buscador_metamorfose_karma_timelapse.success",
+            "buscador.buscador_metamorfose_karma_timelapse.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "TIME_LAPSE_EXPERIENCE",
+          "eventKey": "buscador:buscador_metamorfose_karma_timelapse:state:TIME_LAPSE_EXPERIENCE",
+          "metricKeys": [
+            "buscador.buscador_metamorfose_karma_timelapse.attempt",
+            "buscador.buscador_metamorfose_karma_timelapse.success",
+            "buscador.buscador_metamorfose_karma_timelapse.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buscador_metamorfose_ritual_retorno",
+      "profile": "BUSCADOR",
+      "title": "Ritual de metamorfose com retorno ao dashboard",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "DASHBOARD",
+      "endpoints": [
+        "/api/metamorphosis/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "DASHBOARD",
+          "eventKey": "buscador:buscador_metamorfose_ritual_retorno:state:DASHBOARD",
+          "metricKeys": [
+            "buscador.buscador_metamorfose_ritual_retorno.attempt",
+            "buscador.buscador_metamorfose_ritual_retorno.success",
+            "buscador.buscador_metamorfose_ritual_retorno.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "METAMORPHOSIS_CHECKIN",
+          "eventKey": "buscador:buscador_metamorfose_ritual_retorno:state:METAMORPHOSIS_CHECKIN",
+          "metricKeys": [
+            "buscador.buscador_metamorfose_ritual_retorno.attempt",
+            "buscador.buscador_metamorfose_ritual_retorno.success",
+            "buscador.buscador_metamorfose_ritual_retorno.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "METAMORPHOSIS_RITUAL",
+          "eventKey": "buscador:buscador_metamorfose_ritual_retorno:state:METAMORPHOSIS_RITUAL",
+          "metricKeys": [
+            "buscador.buscador_metamorfose_ritual_retorno.attempt",
+            "buscador.buscador_metamorfose_ritual_retorno.success",
+            "buscador.buscador_metamorfose_ritual_retorno.error"
           ]
         }
       ]
@@ -253,6 +499,147 @@
       ]
     },
     {
+      "id": "buscador_pacto_de_alma",
+      "profile": "BUSCADOR",
+      "title": "Tribo: Pacto de Alma + convite para ampliar a tribo",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "TRIBE_DASH",
+      "endpoints": [
+        "/api/invites/create",
+        "/api/tribe/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "TRIBE_DASH",
+          "eventKey": "buscador:buscador_pacto_de_alma:state:TRIBE_DASH",
+          "metricKeys": [
+            "buscador.buscador_pacto_de_alma.attempt",
+            "buscador.buscador_pacto_de_alma.success",
+            "buscador.buscador_pacto_de_alma.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "SOUL_PACT",
+          "eventKey": "buscador:buscador_pacto_de_alma:state:SOUL_PACT",
+          "metricKeys": [
+            "buscador.buscador_pacto_de_alma.attempt",
+            "buscador.buscador_pacto_de_alma.success",
+            "buscador.buscador_pacto_de_alma.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buscador_retiro_offline",
+      "profile": "BUSCADOR",
+      "title": "Tribo: Retiro Offline (silenciar in-app) com retorno seguro",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "TRIBE_DASH",
+      "endpoints": [
+        "/api/tribe/sync",
+        "/api/notifications/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "TRIBE_DASH",
+          "eventKey": "buscador:buscador_retiro_offline:state:TRIBE_DASH",
+          "metricKeys": [
+            "buscador.buscador_retiro_offline.attempt",
+            "buscador.buscador_retiro_offline.success",
+            "buscador.buscador_retiro_offline.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "OFFLINE_RETREAT",
+          "eventKey": "buscador:buscador_retiro_offline:state:OFFLINE_RETREAT",
+          "metricKeys": [
+            "buscador.buscador_retiro_offline.attempt",
+            "buscador.buscador_retiro_offline.success",
+            "buscador.buscador_retiro_offline.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "buscador_ritual_diario",
+      "profile": "BUSCADOR",
+      "title": "Ritual diário com check-in e retorno ao histórico",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "HISTORY",
+      "endpoints": [
+        "/api/metamorphosis/checkin"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "DASHBOARD",
+          "eventKey": "buscador:buscador_ritual_diario:state:DASHBOARD",
+          "metricKeys": [
+            "buscador.buscador_ritual_diario.attempt",
+            "buscador.buscador_ritual_diario.success",
+            "buscador.buscador_ritual_diario.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "METAMORPHOSIS_CHECKIN",
+          "eventKey": "buscador:buscador_ritual_diario:state:METAMORPHOSIS_CHECKIN",
+          "metricKeys": [
+            "buscador.buscador_ritual_diario.attempt",
+            "buscador.buscador_ritual_diario.success",
+            "buscador.buscador_ritual_diario.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "METAMORPHOSIS_CAMERA",
+          "eventKey": "buscador:buscador_ritual_diario:state:METAMORPHOSIS_CAMERA",
+          "metricKeys": [
+            "buscador.buscador_ritual_diario.attempt",
+            "buscador.buscador_ritual_diario.success",
+            "buscador.buscador_ritual_diario.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "METAMORPHOSIS_MESSAGE",
+          "eventKey": "buscador:buscador_ritual_diario:state:METAMORPHOSIS_MESSAGE",
+          "metricKeys": [
+            "buscador.buscador_ritual_diario.attempt",
+            "buscador.buscador_ritual_diario.success",
+            "buscador.buscador_ritual_diario.error"
+          ]
+        },
+        {
+          "index": 5,
+          "screen": "METAMORPHOSIS_FEEDBACK",
+          "eventKey": "buscador:buscador_ritual_diario:state:METAMORPHOSIS_FEEDBACK",
+          "metricKeys": [
+            "buscador.buscador_ritual_diario.attempt",
+            "buscador.buscador_ritual_diario.success",
+            "buscador.buscador_ritual_diario.error"
+          ]
+        },
+        {
+          "index": 6,
+          "screen": "HISTORY",
+          "eventKey": "buscador:buscador_ritual_diario:state:HISTORY",
+          "metricKeys": [
+            "buscador.buscador_ritual_diario.attempt",
+            "buscador.buscador_ritual_diario.success",
+            "buscador.buscador_ritual_diario.error"
+          ]
+        }
+      ]
+    },
+    {
       "id": "buscador_tribo_convite",
       "profile": "BUSCADOR",
       "title": "Tribo convite e interação",
@@ -302,6 +689,89 @@
             "buscador.buscador_tribo_convite.attempt",
             "buscador.buscador_tribo_convite.success",
             "buscador.buscador_tribo_convite.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guardiao_agenda_video",
+      "profile": "GUARDIAO",
+      "title": "Agenda guardião: preparar, confirmar, editar e conduzir sessão",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "VIDEO_SESSION",
+      "endpoints": [
+        "/api/appointments/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "START",
+          "eventKey": "guardiao:guardiao_agenda_video:state:START",
+          "metricKeys": [
+            "guardiao.guardiao_agenda_video.attempt",
+            "guardiao.guardiao_agenda_video.success",
+            "guardiao.guardiao_agenda_video.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "DASHBOARD",
+          "eventKey": "guardiao:guardiao_agenda_video:state:DASHBOARD",
+          "metricKeys": [
+            "guardiao.guardiao_agenda_video.attempt",
+            "guardiao.guardiao_agenda_video.success",
+            "guardiao.guardiao_agenda_video.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "AGENDA_VIEW",
+          "eventKey": "guardiao:guardiao_agenda_video:state:AGENDA_VIEW",
+          "metricKeys": [
+            "guardiao.guardiao_agenda_video.attempt",
+            "guardiao.guardiao_agenda_video.success",
+            "guardiao.guardiao_agenda_video.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "AGENDA_CONFIRM",
+          "eventKey": "guardiao:guardiao_agenda_video:state:AGENDA_CONFIRM",
+          "metricKeys": [
+            "guardiao.guardiao_agenda_video.attempt",
+            "guardiao.guardiao_agenda_video.success",
+            "guardiao.guardiao_agenda_video.error"
+          ]
+        },
+        {
+          "index": 5,
+          "screen": "AGENDA_EDIT",
+          "eventKey": "guardiao:guardiao_agenda_video:state:AGENDA_EDIT",
+          "metricKeys": [
+            "guardiao.guardiao_agenda_video.attempt",
+            "guardiao.guardiao_agenda_video.success",
+            "guardiao.guardiao_agenda_video.error"
+          ]
+        },
+        {
+          "index": 6,
+          "screen": "VIDEO_PREP",
+          "eventKey": "guardiao:guardiao_agenda_video:state:VIDEO_PREP",
+          "metricKeys": [
+            "guardiao.guardiao_agenda_video.attempt",
+            "guardiao.guardiao_agenda_video.success",
+            "guardiao.guardiao_agenda_video.error"
+          ]
+        },
+        {
+          "index": 7,
+          "screen": "VIDEO_SESSION",
+          "eventKey": "guardiao:guardiao_agenda_video:state:VIDEO_SESSION",
+          "metricKeys": [
+            "guardiao.guardiao_agenda_video.attempt",
+            "guardiao.guardiao_agenda_video.success",
+            "guardiao.guardiao_agenda_video.error"
           ]
         }
       ]
@@ -389,6 +859,92 @@
             "guardiao.guardiao_escambo.attempt",
             "guardiao.guardiao_escambo.success",
             "guardiao.guardiao_escambo.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guardiao_financeiro_expandido",
+      "profile": "GUARDIAO",
+      "title": "Guardião: visão financeira com drilldown e dashboard financeiro",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "FINANCIAL_DASHBOARD",
+      "endpoints": [
+        "/api/finance/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "DASHBOARD",
+          "eventKey": "guardiao:guardiao_financeiro_expandido:state:DASHBOARD",
+          "metricKeys": [
+            "guardiao.guardiao_financeiro_expandido.attempt",
+            "guardiao.guardiao_financeiro_expandido.success",
+            "guardiao.guardiao_financeiro_expandido.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "FINANCE_OVERVIEW",
+          "eventKey": "guardiao:guardiao_financeiro_expandido:state:FINANCE_OVERVIEW",
+          "metricKeys": [
+            "guardiao.guardiao_financeiro_expandido.attempt",
+            "guardiao.guardiao_financeiro_expandido.success",
+            "guardiao.guardiao_financeiro_expandido.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "FINANCE_DETAILS",
+          "eventKey": "guardiao:guardiao_financeiro_expandido:state:FINANCE_DETAILS",
+          "metricKeys": [
+            "guardiao.guardiao_financeiro_expandido.attempt",
+            "guardiao.guardiao_financeiro_expandido.success",
+            "guardiao.guardiao_financeiro_expandido.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "FINANCIAL_DASHBOARD",
+          "eventKey": "guardiao:guardiao_financeiro_expandido:state:FINANCIAL_DASHBOARD",
+          "metricKeys": [
+            "guardiao.guardiao_financeiro_expandido.attempt",
+            "guardiao.guardiao_financeiro_expandido.success",
+            "guardiao.guardiao_financeiro_expandido.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guardiao_intervencao_clinica",
+      "profile": "GUARDIAO",
+      "title": "Guardião: criar intervenção clínica personalizada",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "DASHBOARD",
+      "endpoints": [
+        "/api/clinical/interventions"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "DASHBOARD",
+          "eventKey": "guardiao:guardiao_intervencao_clinica:state:DASHBOARD",
+          "metricKeys": [
+            "guardiao.guardiao_intervencao_clinica.attempt",
+            "guardiao.guardiao_intervencao_clinica.success",
+            "guardiao.guardiao_intervencao_clinica.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "CUSTOM_INTERVENTION",
+          "eventKey": "guardiao:guardiao_intervencao_clinica:state:CUSTOM_INTERVENTION",
+          "metricKeys": [
+            "guardiao.guardiao_intervencao_clinica.attempt",
+            "guardiao.guardiao_intervencao_clinica.success",
+            "guardiao.guardiao_intervencao_clinica.error"
           ]
         }
       ]
@@ -496,6 +1052,59 @@
             "guardiao.guardiao_prontuario_consentido.attempt",
             "guardiao.guardiao_prontuario_consentido.success",
             "guardiao.guardiao_prontuario_consentido.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "guardiao_santuarios_parceria",
+      "profile": "GUARDIAO",
+      "title": "Guardião: descobrir santuários e formalizar vínculo",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "SANTUARIO_CONTRACT",
+      "endpoints": [
+        "/api/spaces/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "DASHBOARD",
+          "eventKey": "guardiao:guardiao_santuarios_parceria:state:DASHBOARD",
+          "metricKeys": [
+            "guardiao.guardiao_santuarios_parceria.attempt",
+            "guardiao.guardiao_santuarios_parceria.success",
+            "guardiao.guardiao_santuarios_parceria.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "SANTUARIO_LIST",
+          "eventKey": "guardiao:guardiao_santuarios_parceria:state:SANTUARIO_LIST",
+          "metricKeys": [
+            "guardiao.guardiao_santuarios_parceria.attempt",
+            "guardiao.guardiao_santuarios_parceria.success",
+            "guardiao.guardiao_santuarios_parceria.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "SANTUARIO_PROFILE",
+          "eventKey": "guardiao:guardiao_santuarios_parceria:state:SANTUARIO_PROFILE",
+          "metricKeys": [
+            "guardiao.guardiao_santuarios_parceria.attempt",
+            "guardiao.guardiao_santuarios_parceria.success",
+            "guardiao.guardiao_santuarios_parceria.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "SANTUARIO_CONTRACT",
+          "eventKey": "guardiao:guardiao_santuarios_parceria:state:SANTUARIO_CONTRACT",
+          "metricKeys": [
+            "guardiao.guardiao_santuarios_parceria.attempt",
+            "guardiao.guardiao_santuarios_parceria.success",
+            "guardiao.guardiao_santuarios_parceria.error"
           ]
         }
       ]
@@ -682,11 +1291,203 @@
       ]
     },
     {
+      "id": "santuario_financeiro_expandido",
+      "profile": "SANTUARIO",
+      "title": "Santuário: financeiro com repasses e projeções",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "FINANCE_FORECAST",
+      "endpoints": [
+        "/api/finance/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "EXEC_DASHBOARD",
+          "eventKey": "santuario:santuario_financeiro_expandido:state:EXEC_DASHBOARD",
+          "metricKeys": [
+            "santuario.santuario_financeiro_expandido.attempt",
+            "santuario.santuario_financeiro_expandido.success",
+            "santuario.santuario_financeiro_expandido.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "FINANCE_OVERVIEW",
+          "eventKey": "santuario:santuario_financeiro_expandido:state:FINANCE_OVERVIEW",
+          "metricKeys": [
+            "santuario.santuario_financeiro_expandido.attempt",
+            "santuario.santuario_financeiro_expandido.success",
+            "santuario.santuario_financeiro_expandido.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "FINANCE_REPASSES",
+          "eventKey": "santuario:santuario_financeiro_expandido:state:FINANCE_REPASSES",
+          "metricKeys": [
+            "santuario.santuario_financeiro_expandido.attempt",
+            "santuario.santuario_financeiro_expandido.success",
+            "santuario.santuario_financeiro_expandido.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "FINANCE_FORECAST",
+          "eventKey": "santuario:santuario_financeiro_expandido:state:FINANCE_FORECAST",
+          "metricKeys": [
+            "santuario.santuario_financeiro_expandido.attempt",
+            "santuario.santuario_financeiro_expandido.success",
+            "santuario.santuario_financeiro_expandido.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "santuario_marketplace_eventos_retiros",
+      "profile": "SANTUARIO",
+      "title": "Santuário: gestão de marketplace, eventos e retiros",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "RETREATS_MANAGE",
+      "endpoints": [
+        "/api/marketplace/*",
+        "/api/events/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "EXEC_DASHBOARD",
+          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:EXEC_DASHBOARD",
+          "metricKeys": [
+            "santuario.santuario_marketplace_eventos_retiros.attempt",
+            "santuario.santuario_marketplace_eventos_retiros.success",
+            "santuario.santuario_marketplace_eventos_retiros.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "MARKETPLACE_MANAGE",
+          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:MARKETPLACE_MANAGE",
+          "metricKeys": [
+            "santuario.santuario_marketplace_eventos_retiros.attempt",
+            "santuario.santuario_marketplace_eventos_retiros.success",
+            "santuario.santuario_marketplace_eventos_retiros.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "MARKETPLACE_CREATE",
+          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:MARKETPLACE_CREATE",
+          "metricKeys": [
+            "santuario.santuario_marketplace_eventos_retiros.attempt",
+            "santuario.santuario_marketplace_eventos_retiros.success",
+            "santuario.santuario_marketplace_eventos_retiros.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "EVENTS_MANAGE",
+          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:EVENTS_MANAGE",
+          "metricKeys": [
+            "santuario.santuario_marketplace_eventos_retiros.attempt",
+            "santuario.santuario_marketplace_eventos_retiros.success",
+            "santuario.santuario_marketplace_eventos_retiros.error"
+          ]
+        },
+        {
+          "index": 5,
+          "screen": "EVENT_CREATE",
+          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:EVENT_CREATE",
+          "metricKeys": [
+            "santuario.santuario_marketplace_eventos_retiros.attempt",
+            "santuario.santuario_marketplace_eventos_retiros.success",
+            "santuario.santuario_marketplace_eventos_retiros.error"
+          ]
+        },
+        {
+          "index": 6,
+          "screen": "RETREATS_MANAGE",
+          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:RETREATS_MANAGE",
+          "metricKeys": [
+            "santuario.santuario_marketplace_eventos_retiros.attempt",
+            "santuario.santuario_marketplace_eventos_retiros.success",
+            "santuario.santuario_marketplace_eventos_retiros.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "santuario_operacao_completa",
+      "profile": "SANTUARIO",
+      "title": "Operação do hub: equipe, salas, agenda, financeiro",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "FINANCE_OVERVIEW",
+      "endpoints": [
+        "/api/spaces/*",
+        "/api/rooms/*",
+        "/api/finance/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "EXEC_DASHBOARD",
+          "eventKey": "santuario:santuario_operacao_completa:state:EXEC_DASHBOARD",
+          "metricKeys": [
+            "santuario.santuario_operacao_completa.attempt",
+            "santuario.santuario_operacao_completa.success",
+            "santuario.santuario_operacao_completa.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "PROS_LIST",
+          "eventKey": "santuario:santuario_operacao_completa:state:PROS_LIST",
+          "metricKeys": [
+            "santuario.santuario_operacao_completa.attempt",
+            "santuario.santuario_operacao_completa.success",
+            "santuario.santuario_operacao_completa.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "ROOMS_STATUS",
+          "eventKey": "santuario:santuario_operacao_completa:state:ROOMS_STATUS",
+          "metricKeys": [
+            "santuario.santuario_operacao_completa.attempt",
+            "santuario.santuario_operacao_completa.success",
+            "santuario.santuario_operacao_completa.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "AGENDA_OVERVIEW",
+          "eventKey": "santuario:santuario_operacao_completa:state:AGENDA_OVERVIEW",
+          "metricKeys": [
+            "santuario.santuario_operacao_completa.attempt",
+            "santuario.santuario_operacao_completa.success",
+            "santuario.santuario_operacao_completa.error"
+          ]
+        },
+        {
+          "index": 5,
+          "screen": "FINANCE_OVERVIEW",
+          "eventKey": "santuario:santuario_operacao_completa:state:FINANCE_OVERVIEW",
+          "metricKeys": [
+            "santuario.santuario_operacao_completa.attempt",
+            "santuario.santuario_operacao_completa.success",
+            "santuario.santuario_operacao_completa.error"
+          ]
+        }
+      ]
+    },
+    {
       "id": "santuario_pacientes_operacao",
       "profile": "SANTUARIO",
       "title": "Santuário: atendimento interno de pacientes e agenda local",
       "contractType": "PERSISTIDO_VALIDADO",
-      "expectedFinal": "PATIENT_RECORDS",
+      "expectedFinal": "AGENDA_EDIT",
       "endpoints": [
         "/api/records/*",
         "/api/appointments/*"
@@ -804,6 +1605,79 @@
             "santuario.santuario_recrutamento_completo.attempt",
             "santuario.santuario_recrutamento_completo.success",
             "santuario.santuario_recrutamento_completo.error"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "santuario_salaseestrutura_expandida",
+      "profile": "SANTUARIO",
+      "title": "Santuário: gestão de salas com criação, detalhe e edição",
+      "contractType": "PERSISTIDO_VALIDADO",
+      "expectedFinal": "ROOM_AGENDA",
+      "endpoints": [
+        "/api/rooms/*"
+      ],
+      "funnelClass": "revenue_or_binding_ready",
+      "stages": [
+        {
+          "index": 1,
+          "screen": "EXEC_DASHBOARD",
+          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:EXEC_DASHBOARD",
+          "metricKeys": [
+            "santuario.santuario_salaseestrutura_expandida.attempt",
+            "santuario.santuario_salaseestrutura_expandida.success",
+            "santuario.santuario_salaseestrutura_expandida.error"
+          ]
+        },
+        {
+          "index": 2,
+          "screen": "ROOMS_STATUS",
+          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOMS_STATUS",
+          "metricKeys": [
+            "santuario.santuario_salaseestrutura_expandida.attempt",
+            "santuario.santuario_salaseestrutura_expandida.success",
+            "santuario.santuario_salaseestrutura_expandida.error"
+          ]
+        },
+        {
+          "index": 3,
+          "screen": "ROOM_CREATE",
+          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOM_CREATE",
+          "metricKeys": [
+            "santuario.santuario_salaseestrutura_expandida.attempt",
+            "santuario.santuario_salaseestrutura_expandida.success",
+            "santuario.santuario_salaseestrutura_expandida.error"
+          ]
+        },
+        {
+          "index": 4,
+          "screen": "ROOM_DETAILS",
+          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOM_DETAILS",
+          "metricKeys": [
+            "santuario.santuario_salaseestrutura_expandida.attempt",
+            "santuario.santuario_salaseestrutura_expandida.success",
+            "santuario.santuario_salaseestrutura_expandida.error"
+          ]
+        },
+        {
+          "index": 5,
+          "screen": "ROOM_EDIT",
+          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOM_EDIT",
+          "metricKeys": [
+            "santuario.santuario_salaseestrutura_expandida.attempt",
+            "santuario.santuario_salaseestrutura_expandida.success",
+            "santuario.santuario_salaseestrutura_expandida.error"
+          ]
+        },
+        {
+          "index": 6,
+          "screen": "ROOM_AGENDA",
+          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOM_AGENDA",
+          "metricKeys": [
+            "santuario.santuario_salaseestrutura_expandida.attempt",
+            "santuario.santuario_salaseestrutura_expandida.success",
+            "santuario.santuario_salaseestrutura_expandida.error"
           ]
         }
       ]
@@ -931,881 +1805,6 @@
             "santuario.santuario_vagas_entrevista.attempt",
             "santuario.santuario_vagas_entrevista.success",
             "santuario.santuario_vagas_entrevista.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "buscador_busca_agenda_confirmacao",
-      "profile": "BUSCADOR",
-      "title": "Busca + agendamento + confirmação + notificação",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "PAYMENT_SUCCESS",
-      "endpoints": [
-        "/api/appointments/*",
-        "/api/checkout/pay",
-        "/api/notifications/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "BOOKING_SEARCH",
-          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:BOOKING_SEARCH",
-          "metricKeys": [
-            "buscador.buscador_busca_agenda_confirmacao.attempt",
-            "buscador.buscador_busca_agenda_confirmacao.success",
-            "buscador.buscador_busca_agenda_confirmacao.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "BOOKING_SELECT",
-          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:BOOKING_SELECT",
-          "metricKeys": [
-            "buscador.buscador_busca_agenda_confirmacao.attempt",
-            "buscador.buscador_busca_agenda_confirmacao.success",
-            "buscador.buscador_busca_agenda_confirmacao.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "BOOKING_CONFIRM",
-          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:BOOKING_CONFIRM",
-          "metricKeys": [
-            "buscador.buscador_busca_agenda_confirmacao.attempt",
-            "buscador.buscador_busca_agenda_confirmacao.success",
-            "buscador.buscador_busca_agenda_confirmacao.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "CHECKOUT",
-          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:CHECKOUT",
-          "metricKeys": [
-            "buscador.buscador_busca_agenda_confirmacao.attempt",
-            "buscador.buscador_busca_agenda_confirmacao.success",
-            "buscador.buscador_busca_agenda_confirmacao.error"
-          ]
-        },
-        {
-          "index": 5,
-          "screen": "PAYMENT_SUCCESS",
-          "eventKey": "buscador:buscador_busca_agenda_confirmacao:state:PAYMENT_SUCCESS",
-          "metricKeys": [
-            "buscador.buscador_busca_agenda_confirmacao.attempt",
-            "buscador.buscador_busca_agenda_confirmacao.success",
-            "buscador.buscador_busca_agenda_confirmacao.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "buscador_jornada_analitica_e_journal",
-      "profile": "BUSCADOR",
-      "title": "Jornada analítica, histórico expandido e diário do buscador",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "CLIENT_JOURNAL",
-      "endpoints": [
-        "/api/metamorphosis/*",
-        "/api/oracle/history"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "DASHBOARD",
-          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:DASHBOARD",
-          "metricKeys": [
-            "buscador.buscador_jornada_analitica_e_journal.attempt",
-            "buscador.buscador_jornada_analitica_e_journal.success",
-            "buscador.buscador_jornada_analitica_e_journal.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "HISTORY",
-          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:HISTORY",
-          "metricKeys": [
-            "buscador.buscador_jornada_analitica_e_journal.attempt",
-            "buscador.buscador_jornada_analitica_e_journal.success",
-            "buscador.buscador_jornada_analitica_e_journal.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "EVOLUTION",
-          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:EVOLUTION",
-          "metricKeys": [
-            "buscador.buscador_jornada_analitica_e_journal.attempt",
-            "buscador.buscador_jornada_analitica_e_journal.success",
-            "buscador.buscador_jornada_analitica_e_journal.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "EVOLUTION_ANALYTICS",
-          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:EVOLUTION_ANALYTICS",
-          "metricKeys": [
-            "buscador.buscador_jornada_analitica_e_journal.attempt",
-            "buscador.buscador_jornada_analitica_e_journal.success",
-            "buscador.buscador_jornada_analitica_e_journal.error"
-          ]
-        },
-        {
-          "index": 5,
-          "screen": "EVOLUTION_ACHIEVEMENTS",
-          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:EVOLUTION_ACHIEVEMENTS",
-          "metricKeys": [
-            "buscador.buscador_jornada_analitica_e_journal.attempt",
-            "buscador.buscador_jornada_analitica_e_journal.success",
-            "buscador.buscador_jornada_analitica_e_journal.error"
-          ]
-        },
-        {
-          "index": 6,
-          "screen": "EVOLUTION_HISTORY",
-          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:EVOLUTION_HISTORY",
-          "metricKeys": [
-            "buscador.buscador_jornada_analitica_e_journal.attempt",
-            "buscador.buscador_jornada_analitica_e_journal.success",
-            "buscador.buscador_jornada_analitica_e_journal.error"
-          ]
-        },
-        {
-          "index": 7,
-          "screen": "CLIENT_JOURNAL",
-          "eventKey": "buscador:buscador_jornada_analitica_e_journal:state:CLIENT_JOURNAL",
-          "metricKeys": [
-            "buscador.buscador_jornada_analitica_e_journal.attempt",
-            "buscador.buscador_jornada_analitica_e_journal.success",
-            "buscador.buscador_jornada_analitica_e_journal.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "buscador_metamorfose_karma_timelapse",
-      "profile": "BUSCADOR",
-      "title": "Metamorfose + karma + time-lapse",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "TIME_LAPSE_EXPERIENCE",
-      "endpoints": [
-        "/api/metamorphosis/evolution",
-        "/api/oracle/history"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "DASHBOARD",
-          "eventKey": "buscador:buscador_metamorfose_karma_timelapse:state:DASHBOARD",
-          "metricKeys": [
-            "buscador.buscador_metamorfose_karma_timelapse.attempt",
-            "buscador.buscador_metamorfose_karma_timelapse.success",
-            "buscador.buscador_metamorfose_karma_timelapse.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "EVOLUTION",
-          "eventKey": "buscador:buscador_metamorfose_karma_timelapse:state:EVOLUTION",
-          "metricKeys": [
-            "buscador.buscador_metamorfose_karma_timelapse.attempt",
-            "buscador.buscador_metamorfose_karma_timelapse.success",
-            "buscador.buscador_metamorfose_karma_timelapse.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "EVOLUTION_TIMELAPSE",
-          "eventKey": "buscador:buscador_metamorfose_karma_timelapse:state:EVOLUTION_TIMELAPSE",
-          "metricKeys": [
-            "buscador.buscador_metamorfose_karma_timelapse.attempt",
-            "buscador.buscador_metamorfose_karma_timelapse.success",
-            "buscador.buscador_metamorfose_karma_timelapse.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "TIME_LAPSE_EXPERIENCE",
-          "eventKey": "buscador:buscador_metamorfose_karma_timelapse:state:TIME_LAPSE_EXPERIENCE",
-          "metricKeys": [
-            "buscador.buscador_metamorfose_karma_timelapse.attempt",
-            "buscador.buscador_metamorfose_karma_timelapse.success",
-            "buscador.buscador_metamorfose_karma_timelapse.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "buscador_metamorfose_ritual_retorno",
-      "profile": "BUSCADOR",
-      "title": "Ritual de metamorfose com retorno ao dashboard",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "DASHBOARD",
-      "endpoints": [
-        "/api/metamorphosis/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "DASHBOARD",
-          "eventKey": "buscador:buscador_metamorfose_ritual_retorno:state:DASHBOARD",
-          "metricKeys": [
-            "buscador.buscador_metamorfose_ritual_retorno.attempt",
-            "buscador.buscador_metamorfose_ritual_retorno.success",
-            "buscador.buscador_metamorfose_ritual_retorno.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "METAMORPHOSIS_CHECKIN",
-          "eventKey": "buscador:buscador_metamorfose_ritual_retorno:state:METAMORPHOSIS_CHECKIN",
-          "metricKeys": [
-            "buscador.buscador_metamorfose_ritual_retorno.attempt",
-            "buscador.buscador_metamorfose_ritual_retorno.success",
-            "buscador.buscador_metamorfose_ritual_retorno.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "METAMORPHOSIS_RITUAL",
-          "eventKey": "buscador:buscador_metamorfose_ritual_retorno:state:METAMORPHOSIS_RITUAL",
-          "metricKeys": [
-            "buscador.buscador_metamorfose_ritual_retorno.attempt",
-            "buscador.buscador_metamorfose_ritual_retorno.success",
-            "buscador.buscador_metamorfose_ritual_retorno.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "buscador_pacto_de_alma",
-      "profile": "BUSCADOR",
-      "title": "Tribo: Pacto de Alma + convite para ampliar a tribo",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "TRIBE_DASH",
-      "endpoints": [
-        "/api/invites/create",
-        "/api/tribe/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "TRIBE_DASH",
-          "eventKey": "buscador:buscador_pacto_de_alma:state:TRIBE_DASH",
-          "metricKeys": [
-            "buscador.buscador_pacto_de_alma.attempt",
-            "buscador.buscador_pacto_de_alma.success",
-            "buscador.buscador_pacto_de_alma.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "SOUL_PACT",
-          "eventKey": "buscador:buscador_pacto_de_alma:state:SOUL_PACT",
-          "metricKeys": [
-            "buscador.buscador_pacto_de_alma.attempt",
-            "buscador.buscador_pacto_de_alma.success",
-            "buscador.buscador_pacto_de_alma.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "buscador_retiro_offline",
-      "profile": "BUSCADOR",
-      "title": "Tribo: Retiro Offline (silenciar in-app) com retorno seguro",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "TRIBE_DASH",
-      "endpoints": [
-        "/api/tribe/sync",
-        "/api/notifications/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "TRIBE_DASH",
-          "eventKey": "buscador:buscador_retiro_offline:state:TRIBE_DASH",
-          "metricKeys": [
-            "buscador.buscador_retiro_offline.attempt",
-            "buscador.buscador_retiro_offline.success",
-            "buscador.buscador_retiro_offline.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "OFFLINE_RETREAT",
-          "eventKey": "buscador:buscador_retiro_offline:state:OFFLINE_RETREAT",
-          "metricKeys": [
-            "buscador.buscador_retiro_offline.attempt",
-            "buscador.buscador_retiro_offline.success",
-            "buscador.buscador_retiro_offline.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "buscador_ritual_diario",
-      "profile": "BUSCADOR",
-      "title": "Ritual diário com check-in e retorno ao histórico",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "HISTORY",
-      "endpoints": [
-        "/api/metamorphosis/checkin",
-        "/api/users/checkin"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "DASHBOARD",
-          "eventKey": "buscador:buscador_ritual_diario:state:DASHBOARD",
-          "metricKeys": [
-            "buscador.buscador_ritual_diario.attempt",
-            "buscador.buscador_ritual_diario.success",
-            "buscador.buscador_ritual_diario.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "METAMORPHOSIS_CHECKIN",
-          "eventKey": "buscador:buscador_ritual_diario:state:METAMORPHOSIS_CHECKIN",
-          "metricKeys": [
-            "buscador.buscador_ritual_diario.attempt",
-            "buscador.buscador_ritual_diario.success",
-            "buscador.buscador_ritual_diario.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "METAMORPHOSIS_CAMERA",
-          "eventKey": "buscador:buscador_ritual_diario:state:METAMORPHOSIS_CAMERA",
-          "metricKeys": [
-            "buscador.buscador_ritual_diario.attempt",
-            "buscador.buscador_ritual_diario.success",
-            "buscador.buscador_ritual_diario.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "METAMORPHOSIS_MESSAGE",
-          "eventKey": "buscador:buscador_ritual_diario:state:METAMORPHOSIS_MESSAGE",
-          "metricKeys": [
-            "buscador.buscador_ritual_diario.attempt",
-            "buscador.buscador_ritual_diario.success",
-            "buscador.buscador_ritual_diario.error"
-          ]
-        },
-        {
-          "index": 5,
-          "screen": "METAMORPHOSIS_FEEDBACK",
-          "eventKey": "buscador:buscador_ritual_diario:state:METAMORPHOSIS_FEEDBACK",
-          "metricKeys": [
-            "buscador.buscador_ritual_diario.attempt",
-            "buscador.buscador_ritual_diario.success",
-            "buscador.buscador_ritual_diario.error"
-          ]
-        },
-        {
-          "index": 6,
-          "screen": "HISTORY",
-          "eventKey": "buscador:buscador_ritual_diario:state:HISTORY",
-          "metricKeys": [
-            "buscador.buscador_ritual_diario.attempt",
-            "buscador.buscador_ritual_diario.success",
-            "buscador.buscador_ritual_diario.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "guardiao_agenda_video",
-      "profile": "GUARDIAO",
-      "title": "Agenda guardião: preparar, confirmar, editar e conduzir sessão",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "VIDEO_SESSION",
-      "endpoints": [
-        "/api/appointments/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "START",
-          "eventKey": "guardiao:guardiao_agenda_video:state:START",
-          "metricKeys": [
-            "guardiao.guardiao_agenda_video.attempt",
-            "guardiao.guardiao_agenda_video.success",
-            "guardiao.guardiao_agenda_video.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "DASHBOARD",
-          "eventKey": "guardiao:guardiao_agenda_video:state:DASHBOARD",
-          "metricKeys": [
-            "guardiao.guardiao_agenda_video.attempt",
-            "guardiao.guardiao_agenda_video.success",
-            "guardiao.guardiao_agenda_video.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "AGENDA_VIEW",
-          "eventKey": "guardiao:guardiao_agenda_video:state:AGENDA_VIEW",
-          "metricKeys": [
-            "guardiao.guardiao_agenda_video.attempt",
-            "guardiao.guardiao_agenda_video.success",
-            "guardiao.guardiao_agenda_video.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "AGENDA_CONFIRM",
-          "eventKey": "guardiao:guardiao_agenda_video:state:AGENDA_CONFIRM",
-          "metricKeys": [
-            "guardiao.guardiao_agenda_video.attempt",
-            "guardiao.guardiao_agenda_video.success",
-            "guardiao.guardiao_agenda_video.error"
-          ]
-        },
-        {
-          "index": 5,
-          "screen": "AGENDA_EDIT",
-          "eventKey": "guardiao:guardiao_agenda_video:state:AGENDA_EDIT",
-          "metricKeys": [
-            "guardiao.guardiao_agenda_video.attempt",
-            "guardiao.guardiao_agenda_video.success",
-            "guardiao.guardiao_agenda_video.error"
-          ]
-        },
-        {
-          "index": 6,
-          "screen": "VIDEO_PREP",
-          "eventKey": "guardiao:guardiao_agenda_video:state:VIDEO_PREP",
-          "metricKeys": [
-            "guardiao.guardiao_agenda_video.attempt",
-            "guardiao.guardiao_agenda_video.success",
-            "guardiao.guardiao_agenda_video.error"
-          ]
-        },
-        {
-          "index": 7,
-          "screen": "VIDEO_SESSION",
-          "eventKey": "guardiao:guardiao_agenda_video:state:VIDEO_SESSION",
-          "metricKeys": [
-            "guardiao.guardiao_agenda_video.attempt",
-            "guardiao.guardiao_agenda_video.success",
-            "guardiao.guardiao_agenda_video.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "guardiao_financeiro_expandido",
-      "profile": "GUARDIAO",
-      "title": "Guardião: visão financeira com drilldown e dashboard financeiro",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "FINANCIAL_DASHBOARD",
-      "endpoints": [
-        "/api/finance/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "DASHBOARD",
-          "eventKey": "guardiao:guardiao_financeiro_expandido:state:DASHBOARD",
-          "metricKeys": [
-            "guardiao.guardiao_financeiro_expandido.attempt",
-            "guardiao.guardiao_financeiro_expandido.success",
-            "guardiao.guardiao_financeiro_expandido.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "FINANCE_OVERVIEW",
-          "eventKey": "guardiao:guardiao_financeiro_expandido:state:FINANCE_OVERVIEW",
-          "metricKeys": [
-            "guardiao.guardiao_financeiro_expandido.attempt",
-            "guardiao.guardiao_financeiro_expandido.success",
-            "guardiao.guardiao_financeiro_expandido.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "FINANCE_DETAILS",
-          "eventKey": "guardiao:guardiao_financeiro_expandido:state:FINANCE_DETAILS",
-          "metricKeys": [
-            "guardiao.guardiao_financeiro_expandido.attempt",
-            "guardiao.guardiao_financeiro_expandido.success",
-            "guardiao.guardiao_financeiro_expandido.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "FINANCIAL_DASHBOARD",
-          "eventKey": "guardiao:guardiao_financeiro_expandido:state:FINANCIAL_DASHBOARD",
-          "metricKeys": [
-            "guardiao.guardiao_financeiro_expandido.attempt",
-            "guardiao.guardiao_financeiro_expandido.success",
-            "guardiao.guardiao_financeiro_expandido.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "guardiao_intervencao_clinica",
-      "profile": "GUARDIAO",
-      "title": "Guardião: criar intervenção clínica personalizada",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "DASHBOARD",
-      "endpoints": [
-        "/api/clinical/interventions"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "DASHBOARD",
-          "eventKey": "guardiao:guardiao_intervencao_clinica:state:DASHBOARD",
-          "metricKeys": [
-            "guardiao.guardiao_intervencao_clinica.attempt",
-            "guardiao.guardiao_intervencao_clinica.success",
-            "guardiao.guardiao_intervencao_clinica.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "CUSTOM_INTERVENTION",
-          "eventKey": "guardiao:guardiao_intervencao_clinica:state:CUSTOM_INTERVENTION",
-          "metricKeys": [
-            "guardiao.guardiao_intervencao_clinica.attempt",
-            "guardiao.guardiao_intervencao_clinica.success",
-            "guardiao.guardiao_intervencao_clinica.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "guardiao_santuarios_parceria",
-      "profile": "GUARDIAO",
-      "title": "Guardião: descobrir santuários e formalizar vínculo",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "SANTUARIO_CONTRACT",
-      "endpoints": [
-        "/api/spaces/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "DASHBOARD",
-          "eventKey": "guardiao:guardiao_santuarios_parceria:state:DASHBOARD",
-          "metricKeys": [
-            "guardiao.guardiao_santuarios_parceria.attempt",
-            "guardiao.guardiao_santuarios_parceria.success",
-            "guardiao.guardiao_santuarios_parceria.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "SANTUARIO_LIST",
-          "eventKey": "guardiao:guardiao_santuarios_parceria:state:SANTUARIO_LIST",
-          "metricKeys": [
-            "guardiao.guardiao_santuarios_parceria.attempt",
-            "guardiao.guardiao_santuarios_parceria.success",
-            "guardiao.guardiao_santuarios_parceria.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "SANTUARIO_PROFILE",
-          "eventKey": "guardiao:guardiao_santuarios_parceria:state:SANTUARIO_PROFILE",
-          "metricKeys": [
-            "guardiao.guardiao_santuarios_parceria.attempt",
-            "guardiao.guardiao_santuarios_parceria.success",
-            "guardiao.guardiao_santuarios_parceria.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "SANTUARIO_CONTRACT",
-          "eventKey": "guardiao:guardiao_santuarios_parceria:state:SANTUARIO_CONTRACT",
-          "metricKeys": [
-            "guardiao.guardiao_santuarios_parceria.attempt",
-            "guardiao.guardiao_santuarios_parceria.success",
-            "guardiao.guardiao_santuarios_parceria.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "santuario_financeiro_expandido",
-      "profile": "SANTUARIO",
-      "title": "Santuário: financeiro com repasses e projeções",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "FINANCE_FORECAST",
-      "endpoints": [
-        "/api/finance/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "EXEC_DASHBOARD",
-          "eventKey": "santuario:santuario_financeiro_expandido:state:EXEC_DASHBOARD",
-          "metricKeys": [
-            "santuario.santuario_financeiro_expandido.attempt",
-            "santuario.santuario_financeiro_expandido.success",
-            "santuario.santuario_financeiro_expandido.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "FINANCE_OVERVIEW",
-          "eventKey": "santuario:santuario_financeiro_expandido:state:FINANCE_OVERVIEW",
-          "metricKeys": [
-            "santuario.santuario_financeiro_expandido.attempt",
-            "santuario.santuario_financeiro_expandido.success",
-            "santuario.santuario_financeiro_expandido.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "FINANCE_REPASSES",
-          "eventKey": "santuario:santuario_financeiro_expandido:state:FINANCE_REPASSES",
-          "metricKeys": [
-            "santuario.santuario_financeiro_expandido.attempt",
-            "santuario.santuario_financeiro_expandido.success",
-            "santuario.santuario_financeiro_expandido.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "FINANCE_FORECAST",
-          "eventKey": "santuario:santuario_financeiro_expandido:state:FINANCE_FORECAST",
-          "metricKeys": [
-            "santuario.santuario_financeiro_expandido.attempt",
-            "santuario.santuario_financeiro_expandido.success",
-            "santuario.santuario_financeiro_expandido.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "santuario_marketplace_eventos_retiros",
-      "profile": "SANTUARIO",
-      "title": "Santuário: gestão de marketplace, eventos e retiros",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "RETREATS_MANAGE",
-      "endpoints": [
-        "/api/marketplace/*",
-        "/api/events/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "EXEC_DASHBOARD",
-          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:EXEC_DASHBOARD",
-          "metricKeys": [
-            "santuario.santuario_marketplace_eventos_retiros.attempt",
-            "santuario.santuario_marketplace_eventos_retiros.success",
-            "santuario.santuario_marketplace_eventos_retiros.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "MARKETPLACE_MANAGE",
-          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:MARKETPLACE_MANAGE",
-          "metricKeys": [
-            "santuario.santuario_marketplace_eventos_retiros.attempt",
-            "santuario.santuario_marketplace_eventos_retiros.success",
-            "santuario.santuario_marketplace_eventos_retiros.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "MARKETPLACE_CREATE",
-          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:MARKETPLACE_CREATE",
-          "metricKeys": [
-            "santuario.santuario_marketplace_eventos_retiros.attempt",
-            "santuario.santuario_marketplace_eventos_retiros.success",
-            "santuario.santuario_marketplace_eventos_retiros.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "EVENTS_MANAGE",
-          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:EVENTS_MANAGE",
-          "metricKeys": [
-            "santuario.santuario_marketplace_eventos_retiros.attempt",
-            "santuario.santuario_marketplace_eventos_retiros.success",
-            "santuario.santuario_marketplace_eventos_retiros.error"
-          ]
-        },
-        {
-          "index": 5,
-          "screen": "EVENT_CREATE",
-          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:EVENT_CREATE",
-          "metricKeys": [
-            "santuario.santuario_marketplace_eventos_retiros.attempt",
-            "santuario.santuario_marketplace_eventos_retiros.success",
-            "santuario.santuario_marketplace_eventos_retiros.error"
-          ]
-        },
-        {
-          "index": 6,
-          "screen": "RETREATS_MANAGE",
-          "eventKey": "santuario:santuario_marketplace_eventos_retiros:state:RETREATS_MANAGE",
-          "metricKeys": [
-            "santuario.santuario_marketplace_eventos_retiros.attempt",
-            "santuario.santuario_marketplace_eventos_retiros.success",
-            "santuario.santuario_marketplace_eventos_retiros.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "santuario_operacao_completa",
-      "profile": "SANTUARIO",
-      "title": "Operação do hub: equipe, salas, agenda, financeiro",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "FINANCE_OVERVIEW",
-      "endpoints": [
-        "/api/spaces/*",
-        "/api/rooms/*",
-        "/api/finance/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "EXEC_DASHBOARD",
-          "eventKey": "santuario:santuario_operacao_completa:state:EXEC_DASHBOARD",
-          "metricKeys": [
-            "santuario.santuario_operacao_completa.attempt",
-            "santuario.santuario_operacao_completa.success",
-            "santuario.santuario_operacao_completa.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "PROS_LIST",
-          "eventKey": "santuario:santuario_operacao_completa:state:PROS_LIST",
-          "metricKeys": [
-            "santuario.santuario_operacao_completa.attempt",
-            "santuario.santuario_operacao_completa.success",
-            "santuario.santuario_operacao_completa.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "ROOMS_STATUS",
-          "eventKey": "santuario:santuario_operacao_completa:state:ROOMS_STATUS",
-          "metricKeys": [
-            "santuario.santuario_operacao_completa.attempt",
-            "santuario.santuario_operacao_completa.success",
-            "santuario.santuario_operacao_completa.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "AGENDA_OVERVIEW",
-          "eventKey": "santuario:santuario_operacao_completa:state:AGENDA_OVERVIEW",
-          "metricKeys": [
-            "santuario.santuario_operacao_completa.attempt",
-            "santuario.santuario_operacao_completa.success",
-            "santuario.santuario_operacao_completa.error"
-          ]
-        },
-        {
-          "index": 5,
-          "screen": "FINANCE_OVERVIEW",
-          "eventKey": "santuario:santuario_operacao_completa:state:FINANCE_OVERVIEW",
-          "metricKeys": [
-            "santuario.santuario_operacao_completa.attempt",
-            "santuario.santuario_operacao_completa.success",
-            "santuario.santuario_operacao_completa.error"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "santuario_salaseestrutura_expandida",
-      "profile": "SANTUARIO",
-      "title": "Santuário: gestão de salas com criação, detalhe e edição",
-      "contractType": "MISTO_OU_PARCIAL",
-      "expectedFinal": "ROOM_EDIT",
-      "endpoints": [
-        "/api/rooms/*"
-      ],
-      "funnelClass": "mixed_validation",
-      "stages": [
-        {
-          "index": 1,
-          "screen": "EXEC_DASHBOARD",
-          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:EXEC_DASHBOARD",
-          "metricKeys": [
-            "santuario.santuario_salaseestrutura_expandida.attempt",
-            "santuario.santuario_salaseestrutura_expandida.success",
-            "santuario.santuario_salaseestrutura_expandida.error"
-          ]
-        },
-        {
-          "index": 2,
-          "screen": "ROOMS_STATUS",
-          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOMS_STATUS",
-          "metricKeys": [
-            "santuario.santuario_salaseestrutura_expandida.attempt",
-            "santuario.santuario_salaseestrutura_expandida.success",
-            "santuario.santuario_salaseestrutura_expandida.error"
-          ]
-        },
-        {
-          "index": 3,
-          "screen": "ROOM_CREATE",
-          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOM_CREATE",
-          "metricKeys": [
-            "santuario.santuario_salaseestrutura_expandida.attempt",
-            "santuario.santuario_salaseestrutura_expandida.success",
-            "santuario.santuario_salaseestrutura_expandida.error"
-          ]
-        },
-        {
-          "index": 4,
-          "screen": "ROOM_DETAILS",
-          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOM_DETAILS",
-          "metricKeys": [
-            "santuario.santuario_salaseestrutura_expandida.attempt",
-            "santuario.santuario_salaseestrutura_expandida.success",
-            "santuario.santuario_salaseestrutura_expandida.error"
-          ]
-        },
-        {
-          "index": 5,
-          "screen": "ROOM_EDIT",
-          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOM_EDIT",
-          "metricKeys": [
-            "santuario.santuario_salaseestrutura_expandida.attempt",
-            "santuario.santuario_salaseestrutura_expandida.success",
-            "santuario.santuario_salaseestrutura_expandida.error"
-          ]
-        },
-        {
-          "index": 6,
-          "screen": "ROOM_AGENDA",
-          "eventKey": "santuario:santuario_salaseestrutura_expandida:state:ROOM_AGENDA",
-          "metricKeys": [
-            "santuario.santuario_salaseestrutura_expandida.attempt",
-            "santuario.santuario_salaseestrutura_expandida.success",
-            "santuario.santuario_salaseestrutura_expandida.error"
           ]
         }
       ]

@@ -62,12 +62,16 @@ export const createBaseApiApp = (): { app: Express; config: BaseApiConfig } => {
   app.use(securityHardening);
   if (!isProductionRuntime) app.use(morgan('tiny'));
 
+  // Layered strategy matches `app.ts`:
+  // global coarse limiter (`RateLimit-*`) + route-level short-window limiter (`X-RateLimit-*`).
+  // `/api/health*` stays exempt to avoid noisy probe failures.
   app.use(
     rateLimit({
       windowMs: 15 * 60 * 1000,
       max: 1000,
       standardHeaders: true,
       legacyHeaders: false,
+      skip: (req) => /^\/api\/health(?:\/|$)/i.test(String(req.path || req.originalUrl || '')),
     }),
   );
 
