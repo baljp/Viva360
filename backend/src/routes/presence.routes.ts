@@ -78,11 +78,20 @@ router.get('/', authenticateUser, async (_req: Request, res: Response) => {
 });
 
 // Batch get presence
+const PRESENCE_BATCH_MAX = 100;
 router.post('/batch', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { guardianIds } = req.body as { guardianIds: string[] };
     if (!guardianIds || !Array.isArray(guardianIds)) {
       return res.status(400).json({ error: 'guardianIds array required' });
+    }
+    if (guardianIds.length > PRESENCE_BATCH_MAX) {
+      return res.status(400).json({
+        error: `Máximo de ${PRESENCE_BATCH_MAX} IDs por requisição.`,
+        code: 'BATCH_LIMIT_EXCEEDED',
+        limit: PRESENCE_BATCH_MAX,
+        received: guardianIds.length,
+      });
     }
     const statuses = await presenceService.getStatusBatch(guardianIds);
     res.json(statuses);

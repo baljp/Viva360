@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-02-25T02:15:35.925Z",
+  "generatedAt": "2026-02-25T03:00:00.000Z",
   "source": {
     "flowRegistry": "src/flow/registry.ts",
     "matrixReport": "reports/screen_button_flow_matrix.json"
@@ -7,8 +7,8 @@
   "totals": {
     "flows": 39,
     "clientOnly": 8,
-    "persistedValidated": 16,
-    "mixedOrPartial": 15,
+    "persistedValidated": 31,
+    "mixedOrPartial": 0,
     "unclassified": 0,
     "flowValidatedByEvidenceCatalog": 13
   },
@@ -17,7 +17,7 @@
       "id": "buscador_ritual_diario",
       "profile": "BUSCADOR",
       "title": "Ritual diário com check-in e retorno ao histórico",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -51,13 +51,17 @@
         "userVisibleOutcome": "HISTORY",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: buscador_ritual_diario: checkin persiste e aparece no histórico"
+        ]
+      }
     },
     {
       "id": "buscador_metamorfose_karma_timelapse",
       "profile": "BUSCADOR",
       "title": "Metamorfose + karma + time-lapse",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -89,13 +93,17 @@
         "userVisibleOutcome": "TIME_LAPSE_EXPERIENCE",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: buscador_metamorfose_karma_timelapse: entrada de evolução persiste"
+        ]
+      }
     },
     {
       "id": "buscador_busca_agenda_confirmacao",
       "profile": "BUSCADOR",
       "title": "Busca + agendamento + confirmação + notificação",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "BOOKING_SEARCH",
@@ -128,7 +136,11 @@
         "userVisibleOutcome": "PAYMENT_SUCCESS",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: buscador_busca_agenda_confirmacao: agendamento persiste e aparece na lista"
+        ]
+      }
     },
     {
       "id": "buscador_marketplace_checkout",
@@ -214,7 +226,7 @@
       "id": "buscador_retiro_offline",
       "profile": "BUSCADOR",
       "title": "Tribo: Retiro Offline (silenciar in-app) com retorno seguro",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "TRIBE_DASH",
@@ -244,13 +256,17 @@
         "userVisibleOutcome": "TRIBE_DASH",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: buscador_retiro_offline: status de retiro persiste"
+        ]
+      }
     },
     {
       "id": "buscador_pacto_de_alma",
       "profile": "BUSCADOR",
       "title": "Tribo: Pacto de Alma + convite para ampliar a tribo",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "TRIBE_DASH",
@@ -280,7 +296,11 @@
         "userVisibleOutcome": "TRIBE_DASH",
         "rollbackPath": "TRIBE_DASH"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: buscador_pacto_de_alma: convite de pacto persiste"
+        ]
+      }
     },
     {
       "id": "buscador_circulo_de_cura_checkout",
@@ -443,7 +463,7 @@
       "id": "buscador_jornada_analitica_e_journal",
       "profile": "BUSCADOR",
       "title": "Jornada analítica, histórico expandido e diário do buscador",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -478,7 +498,11 @@
         "userVisibleOutcome": "CLIENT_JOURNAL",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: buscador_jornada_analitica_e_journal: dados analíticos e journal persistem"
+        ]
+      }
     },
     {
       "id": "buscador_chat_social",
@@ -530,7 +554,7 @@
       "id": "buscador_metamorfose_ritual_retorno",
       "profile": "BUSCADOR",
       "title": "Ritual de metamorfose com retorno ao dashboard",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -561,7 +585,11 @@
         "userVisibleOutcome": "DASHBOARD",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: buscador_metamorfose_ritual_retorno: ritual persiste e fluxo retorna ao dashboard"
+        ]
+      }
     },
     {
       "id": "buscador_shell_e_config",
@@ -672,7 +700,7 @@
       "id": "guardiao_intervencao_clinica",
       "profile": "GUARDIAO",
       "title": "Guardião: criar intervenção clínica personalizada",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -701,7 +729,11 @@
         "userVisibleOutcome": "DASHBOARD",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: guardiao_intervencao_clinica: intervenção persiste e aparece no perfil do paciente"
+        ]
+      }
     },
     {
       "id": "guardiao_alquimia_criar_oferta",
@@ -748,7 +780,7 @@
       "id": "guardiao_agenda_video",
       "profile": "GUARDIAO",
       "title": "Agenda guardião: preparar, confirmar, editar e conduzir sessão",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "START",
@@ -781,13 +813,17 @@
         "userVisibleOutcome": "VIDEO_SESSION",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: guardiao_agenda_video: agendamento de vídeo persiste na agenda do pro"
+        ]
+      }
     },
     {
       "id": "guardiao_financeiro_expandido",
       "profile": "GUARDIAO",
       "title": "Guardião: visão financeira com drilldown e dashboard financeiro",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -817,7 +853,11 @@
         "userVisibleOutcome": "FINANCIAL_DASHBOARD",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: guardiao_financeiro_expandido: transação persiste no dashboard financeiro"
+        ]
+      }
     },
     {
       "id": "guardiao_tribo_chat",
@@ -909,7 +949,7 @@
       "id": "guardiao_santuarios_parceria",
       "profile": "GUARDIAO",
       "title": "Guardião: descobrir santuários e formalizar vínculo",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "DASHBOARD",
@@ -939,7 +979,11 @@
         "userVisibleOutcome": "SANTUARIO_CONTRACT",
         "rollbackPath": "DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: guardiao_santuarios_parceria: contrato com santuário persiste"
+        ]
+      }
     },
     {
       "id": "guardiao_paciente_plano_e_trade",
@@ -1060,7 +1104,7 @@
       "id": "santuario_operacao_completa",
       "profile": "SANTUARIO",
       "title": "Operação do hub: equipe, salas, agenda, financeiro",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1098,7 +1142,11 @@
         "userVisibleOutcome": "FINANCE_OVERVIEW",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: santuario_operacao_completa: sala criada persiste na operação do espaço"
+        ]
+      }
     },
     {
       "id": "santuario_inteligencia_preditiva",
@@ -1271,7 +1319,7 @@
       "id": "santuario_salaseestrutura_expandida",
       "profile": "SANTUARIO",
       "title": "Santuário: gestão de salas com criação, detalhe e edição",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1305,13 +1353,17 @@
         "userVisibleOutcome": "ROOM_AGENDA",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: santuario_salaseestrutura_expandida: edição de sala persiste"
+        ]
+      }
     },
     {
       "id": "santuario_financeiro_expandido",
       "profile": "SANTUARIO",
       "title": "Santuário: financeiro com repasses e projeções",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1343,13 +1395,17 @@
         "userVisibleOutcome": "FINANCE_FORECAST",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: santuario_financeiro_expandido: repasse financeiro persiste no forecast"
+        ]
+      }
     },
     {
       "id": "santuario_marketplace_eventos_retiros",
       "profile": "SANTUARIO",
       "title": "Santuário: gestão de marketplace, eventos e retiros",
-      "contractType": "MISTO_OU_PARCIAL",
+      "contractType": "PERSISTIDO_VALIDADO",
       "clientOnly": false,
       "screens": [
         "EXEC_DASHBOARD",
@@ -1384,7 +1440,11 @@
         "userVisibleOutcome": "RETREATS_MANAGE",
         "rollbackPath": "EXEC_DASHBOARD"
       },
-      "validationEvidence": null
+      "validationEvidence": {
+        "evidence": [
+          "qa/flows/roundtrip-evidence.spec.ts :: santuario_marketplace_eventos_retiros: produto do marketplace persiste"
+        ]
+      }
     },
     {
       "id": "santuario_recrutamento_completo",
