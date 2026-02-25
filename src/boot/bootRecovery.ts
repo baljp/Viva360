@@ -7,7 +7,7 @@ type RecoveryReason =
   | 'css_integrity_error';
 
 const RECOVERY_ATTEMPTS_KEY = 'viva360.boot_recovery.attempts';
-const RECOVERY_MAX_ATTEMPTS = 2;
+const RECOVERY_MAX_ATTEMPTS = 3;
 
 function getRecoveryAttempts(): number {
   try {
