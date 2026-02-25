@@ -1,5 +1,6 @@
 import './lib/env';
 import { createBaseApiApp } from './lib/createBaseApiApp';
+import { getAuthConfigHealthSnapshot } from './lib/authConfigHealth';
 import { errorHandler } from './middleware/error.middleware';
 
 const { app, config } = createBaseApiApp();
@@ -18,6 +19,16 @@ app.get('/api/health', (req, res) => {
   return res.json(payload);
 });
 
+app.get('/api/health/auth-config', (req, res) => {
+  const snapshot = getAuthConfigHealthSnapshot();
+  const payload = {
+    ...snapshot,
+    requestId: req.requestId,
+  };
+  if (!snapshot.ok) return res.status(503).json(payload);
+  return res.json(payload);
+});
+
 app.use('/api/*', (req, res) => {
   return res.status(404).json({
     error: 'Route not found',
@@ -28,4 +39,3 @@ app.use('/api/*', (req, res) => {
 app.use(errorHandler);
 
 export default app;
-

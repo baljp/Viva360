@@ -90,6 +90,7 @@ export const createBaseApiApp = (): { app: Express; config: BaseApiConfig } => {
     if (!hasCriticalProdConfigIssues) return next();
     const pathname = String(req.path || req.originalUrl || '');
     if (!pathname.startsWith('/api')) return next();
+    if (/^\/api\/health(?:\/|$)/i.test(pathname)) return next();
     return res.status(503).json({
       error: 'Service temporarily unavailable: critical production configuration is incomplete.',
       code: 'CONFIG_DEGRADED',
@@ -107,4 +108,3 @@ export const createBaseApiApp = (): { app: Express; config: BaseApiConfig } => {
     },
   };
 };
-

@@ -10,6 +10,7 @@ import register, { httpRequestDurationMicroseconds, httpRequestErrors } from './
 import compression from 'compression';
 import { initTelemetry } from './lib/instrumentation';
 import { assertCriticalProdConfig } from './lib/runtimeGuard';
+import { getAuthConfigHealthSnapshot } from './lib/authConfigHealth';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
 const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
@@ -136,6 +137,18 @@ app.get('/api/health', (req, res) => {
         requestId: req.requestId,
     };
     if (hasCriticalProdConfigIssues) {
+        return res.status(503).json(payload);
+    }
+    return res.json(payload);
+});
+
+app.get('/api/health/auth-config', (req, res) => {
+    const snapshot = getAuthConfigHealthSnapshot();
+    const payload = {
+        ...snapshot,
+        requestId: req.requestId,
+    };
+    if (!snapshot.ok) {
         return res.status(503).json(payload);
     }
     return res.json(payload);
