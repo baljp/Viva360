@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
 import { supabaseAdmin } from '../services/supabase.service';
 import { AppError } from '../lib/AppError';
+import prisma from '../lib/prisma';
 
 const inviteSchema = z.object({
   email: z.string().email(),
@@ -26,18 +27,34 @@ const tribePostSchema = z.object({
 const isMissingRelationError = (error: unknown) => {
   const code = String((error as { code?: string } | null)?.code || '');
   const message = String((error as { message?: string } | null)?.message || '');
-  return code === '42P01' || /relation .* does not exist/i.test(message);
+  return code === '42P01' || code === 'P2021' || code === 'P2022' || /relation .* does not exist/i.test(message);
 };
 
-const normalizeTribePost = (row: Record<string, unknown>) => ({
+type TribePostWithAuthor = {
+  id: string;
+  content: string;
+  type: string;
+  likes_count: number;
+  created_at: Date;
+  author_id: string;
+  author?: { id: string; name: string | null; avatar: string | null; role: string | null } | null;
+};
+
+const normalizeTribePost = (row: TribePostWithAuthor) => ({
   id: String(row.id || ''),
   content: String(row.content || ''),
   type: String(row.type || 'insight'),
-  likes: Number(row.likes_count || row.likes || 0),
-  created_at: row.created_at || new Date().toISOString(),
+  likes: Number(row.likes_count || 0),
+  created_at: row.created_at ? row.created_at.toISOString() : new Date().toISOString(),
   author_id: row.author_id ? String(row.author_id) : null,
   author: row.author ?? null,
 });
+
+const tribePostsNotConfigured = (res: Response) =>
+  res.status(503).json({
+    code: 'TRIBE_POSTS_NOT_CONFIGURED',
+    message: 'Tribe posts persistence is not configured in this environment.',
+  });
 
 export const inviteMember = asyncHandler(async (req: Request, res: Response) => {
   const hubId = req.user?.userId;
@@ -95,20 +112,29 @@ export const listMembers = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const listPosts = asyncHandler(async (_req: Request, res: Response) => {
-  const { data, error } = await supabaseAdmin
-    .from('tribe_posts')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(50);
-
-  if (error) {
+  try {
+    const posts = await prisma.tribePost.findMany({
+      orderBy: { created_at: 'desc' },
+      take: 50,
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            avatar: true,
+            role: true,
+          },
+        },
+      },
+    });
+    return res.json(posts.map((row) => normalizeTribePost(row as unknown as TribePostWithAuthor)));
+  } catch (error: unknown) {
     if (isMissingRelationError(error)) {
       return res.json([]);
     }
-    throw new AppError(`Failed to list tribe posts: ${error.message}`, 500, 'TRIBE_POSTS_LIST_FAILED');
+    const message = typeof error === 'object' && error && 'message' in error ? String((error as { message?: string }).message || 'unknown') : 'unknown';
+    throw new AppError(`Failed to list tribe posts: ${message}`, 500, 'TRIBE_POSTS_LIST_FAILED');
   }
-
-  return res.json((Array.isArray(data) ? data : []).map((row) => normalizeTribePost((row || {}) as Record<string, unknown>)));
 });
 
 export const createPost = asyncHandler(async (req: Request, res: Response) => {
@@ -118,41 +144,27 @@ export const createPost = asyncHandler(async (req: Request, res: Response) => {
   }
 
   const payload = tribePostSchema.parse(req.body || {});
-  const insertPayload: Record<string, unknown> = {
-    author_id: userId,
-    content: payload.content,
-    type: payload.type,
-    likes_count: 0,
-  };
-
-  let data: unknown = null;
-  let error: { message?: string; code?: string } | null = null;
-
-  ({ data, error } = await supabaseAdmin
-    .from('tribe_posts')
-    .insert(insertPayload)
-    .select('*')
-    .single());
-
-  if (error && !isMissingRelationError(error)) {
-    ({ data, error } = await supabaseAdmin
-      .from('tribe_posts')
-      .insert({ author_id: userId, content: payload.content })
-      .select('*')
-      .single());
-  }
-
-  if (error) {
+  try {
+    const created = await prisma.tribePost.create({
+      data: {
+        author_id: userId,
+        content: payload.content,
+        type: payload.type,
+      },
+      include: {
+        author: {
+          select: { id: true, name: true, avatar: true, role: true },
+        },
+      },
+    });
+    return res.status(201).json(normalizeTribePost(created as unknown as TribePostWithAuthor));
+  } catch (error: unknown) {
     if (isMissingRelationError(error)) {
-      return res.status(503).json({
-        code: 'TRIBE_POSTS_NOT_CONFIGURED',
-        message: 'Tribe posts persistence is not configured in this environment.',
-      });
+      return tribePostsNotConfigured(res);
     }
-    throw new AppError(`Failed to create tribe post: ${error.message || 'unknown error'}`, 500, 'TRIBE_POST_CREATE_FAILED');
+    const message = typeof error === 'object' && error && 'message' in error ? String((error as { message?: string }).message || 'unknown error') : 'unknown error';
+    throw new AppError(`Failed to create tribe post: ${message}`, 500, 'TRIBE_POST_CREATE_FAILED');
   }
-
-  return res.status(201).json(normalizeTribePost((data || {}) as Record<string, unknown>));
 });
 
 export const likePost = asyncHandler(async (req: Request, res: Response) => {
@@ -165,41 +177,68 @@ export const likePost = asyncHandler(async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'Post id is required' });
   }
 
-  const { data: currentPost, error: fetchError } = await supabaseAdmin
-    .from('tribe_posts')
-    .select('id, likes_count')
-    .eq('id', postId)
-    .single();
-
-  if (fetchError) {
-    if (isMissingRelationError(fetchError)) {
-      return res.status(503).json({
-        code: 'TRIBE_POSTS_NOT_CONFIGURED',
-        message: 'Tribe posts persistence is not configured in this environment.',
-      });
-    }
-    if (String(fetchError.code || '') === 'PGRST116') {
+  try {
+    const post = await prisma.tribePost.findUnique({
+      where: { id: postId },
+      select: { id: true },
+    });
+    if (!post) {
       return res.status(404).json({ code: 'TRIBE_POST_NOT_FOUND', message: 'Post not found' });
     }
-    throw new AppError(`Failed to fetch tribe post: ${fetchError.message}`, 500, 'TRIBE_POST_FETCH_FAILED');
+
+    try {
+      const updated = await prisma.$transaction(async (tx) => {
+        await tx.tribePostLike.create({
+          data: {
+            post_id: postId,
+            user_id: userId,
+          },
+        });
+        return tx.tribePost.update({
+          where: { id: postId },
+          data: { likes_count: { increment: 1 } },
+          include: {
+            author: {
+              select: { id: true, name: true, avatar: true, role: true },
+            },
+          },
+        });
+      });
+
+      return res.json({
+        success: true,
+        alreadyLiked: false,
+        post: normalizeTribePost(updated as unknown as TribePostWithAuthor),
+      });
+    } catch (error: unknown) {
+      const code = String((error as { code?: string } | null)?.code || '');
+      if (code === 'P2002') {
+        const current = await prisma.tribePost.findUnique({
+          where: { id: postId },
+          include: {
+            author: {
+              select: { id: true, name: true, avatar: true, role: true },
+            },
+          },
+        });
+        if (!current) {
+          return res.status(404).json({ code: 'TRIBE_POST_NOT_FOUND', message: 'Post not found' });
+        }
+        return res.json({
+          success: true,
+          alreadyLiked: true,
+          post: normalizeTribePost(current as unknown as TribePostWithAuthor),
+        });
+      }
+      throw error;
+    }
+  } catch (error: unknown) {
+    if (isMissingRelationError(error)) {
+      return tribePostsNotConfigured(res);
+    }
+    const message = typeof error === 'object' && error && 'message' in error ? String((error as { message?: string }).message || 'unknown error') : 'unknown error';
+    throw new AppError(`Failed to like tribe post: ${message}`, 500, 'TRIBE_POST_LIKE_FAILED');
   }
-
-  const nextLikes = Number((currentPost as { likes_count?: number } | null)?.likes_count || 0) + 1;
-  const { data: updated, error: updateError } = await supabaseAdmin
-    .from('tribe_posts')
-    .update({ likes_count: nextLikes })
-    .eq('id', postId)
-    .select('*')
-    .single();
-
-  if (updateError) {
-    throw new AppError(`Failed to like tribe post: ${updateError.message}`, 500, 'TRIBE_POST_LIKE_FAILED');
-  }
-
-  return res.json({
-    success: true,
-    post: normalizeTribePost((updated || {}) as Record<string, unknown>),
-  });
 });
 
 export const joinTribe = asyncHandler(async (req: Request, res: Response) => {
