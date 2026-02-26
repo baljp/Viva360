@@ -13,7 +13,8 @@ import {
   RETRYABLE_STATUS_CODES,
   isLikelyNetworkError,
 } from './session';
-import { MOCK_AUTH_TOKEN, MOCK_USER_KEY, canUseMockSession, getSessionMode } from './mock';
+import { MOCK_AUTH_TOKEN, MOCK_USER_KEY, canUseMockSession } from './mock';
+import { getSessionMode } from './session';
 
 // Importação lazy do Supabase para não criar dependência circular em testes
 const getSupabase = () => import('../../lib/supabase').then(m => m.supabase);
