@@ -108,6 +108,68 @@ const TransactionItem: React.FC<{ tx: Transaction }> = ({ tx }) => (
     </div>
 );
 
+// --- INLINE FORM COMPONENTS ---
+
+const WithdrawForm: React.FC<{ balance: number; onConfirm: (amount: number) => void; processing: boolean }> = ({ balance, onConfirm, processing }) => {
+    const [amount, setAmount] = React.useState(Math.min(100, balance));
+    const presets = [50, 100, 200, 500].filter(p => p <= balance);
+    return (
+        <div className="space-y-4">
+            <div className="flex gap-2">
+                {presets.map(p => (
+                    <button key={p} onClick={() => setAmount(p)}
+                        className={`flex-1 py-2 rounded-xl text-[10px] font-bold border transition-all ${amount === p ? 'bg-nature-900 text-white border-nature-900' : 'bg-white text-nature-500 border-nature-100 hover:border-nature-300'}`}>
+                        R$ {p}
+                    </button>
+                ))}
+            </div>
+            <input type="number" min={1} max={balance} value={amount}
+                onChange={e => setAmount(Math.min(balance, Math.max(1, Number(e.target.value))))}
+                className="w-full px-4 py-3 bg-nature-50 border border-nature-100 rounded-2xl text-sm font-bold text-nature-900 outline-none focus:ring-2 focus:ring-nature-200" />
+            <button onClick={() => onConfirm(amount)} disabled={processing || amount <= 0 || amount > balance}
+                className="w-full py-4 bg-nature-900 text-white rounded-[2rem] font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-all">
+                {processing ? <Wallet size={14} className="animate-pulse" /> : <Landmark size={14} />}
+                {processing ? 'Processando...' : `Solicitar R$ ${amount}`}
+            </button>
+        </div>
+    );
+};
+
+const DonateForm: React.FC<{ onConfirm: (amount: number, cause: string) => void; processing: boolean }> = ({ onConfirm, processing }) => {
+    const [amount, setAmount] = React.useState(50);
+    const [cause, setCause] = React.useState('fundo-solidario');
+    const causes = [
+        { id: 'fundo-solidario', label: 'Fundo Solidário Viva360' },
+        { id: 'bolsa-terapeutica', label: 'Bolsa Terapêutica' },
+        { id: 'instituto-cura', label: 'Instituto de Cura Integrativa' },
+    ];
+    return (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                {causes.map(cc => (
+                    <button key={cc.id} onClick={() => setCause(cc.id)}
+                        className={`w-full p-3 rounded-2xl border text-left text-xs font-bold transition-all ${cause === cc.id ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-white border-nature-100 text-nature-600 hover:border-nature-200'}`}>
+                        {cc.label}
+                    </button>
+                ))}
+            </div>
+            <div className="flex gap-2">
+                {[10, 25, 50, 100].map(p => (
+                    <button key={p} onClick={() => setAmount(p)}
+                        className={`flex-1 py-2 rounded-xl text-[10px] font-bold border transition-all ${amount === p ? 'bg-emerald-700 text-white border-emerald-700' : 'bg-white text-nature-500 border-nature-100 hover:border-nature-300'}`}>
+                        R$ {p}
+                    </button>
+                ))}
+            </div>
+            <button onClick={() => onConfirm(amount, cause)} disabled={processing}
+                className="w-full py-4 bg-emerald-700 text-white rounded-[2rem] font-bold text-xs uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50 active:scale-95 transition-all">
+                {processing ? <Heart size={14} className="animate-pulse" /> : <Heart size={14} />}
+                {processing ? 'Processando...' : `Doar R$ ${amount}`}
+            </button>
+        </div>
+    );
+};
+
 // --- MODALS ---
 
 const ReinvestModal: React.FC<{ isOpen: boolean, onClose: () => void, balance: number, onConfirm: (type: string, amount: number) => void }> = ({ isOpen, onClose, balance, onConfirm }) => {
@@ -291,35 +353,76 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                 </div>
             )}
 
-            {activeTab === 'analysis' && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 relative overflow-hidden">
-                        <h4 className="font-serif italic text-xl text-nature-900 mb-6">Evolução Mensal</h4>
-                        {/* Fake Simple Chart using CSS/Flex */}
-                        <div className="flex items-end gap-3 h-40 px-2 pb-2">
-                            {[40, 60, 45, 80, 70, 90, 100].map((h, i) => (
-                                <div key={i} className="flex-1 bg-indigo-50 rounded-t-xl relative group hover:bg-indigo-100 transition-colors" style={{ height: `${h}%` }}>
-                                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-nature-900 text-white text-[9px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">R$ {h * 40}</div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="flex justify-between mt-2 text-[9px] font-bold text-nature-400 uppercase">
-                            <span>Sem 1</span><span>Sem 2</span><span>Sem 3</span><span>Sem 4</span>
-                        </div>
-                    </div>
+            {activeTab === 'analysis' && (() => {
+                // Derive analytics from real transactions
+                const incomes = transactions.filter(tx => tx.type === 'income');
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
-                            <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Ticket Médio</p>
-                            <h4 className="text-2xl font-serif text-nature-900">R$ 180</h4>
+                // Weekly chart: last 4 weeks income
+                const weeklyTotals = [0, 0, 0, 0];
+                const now = new Date();
+                incomes.forEach(tx => {
+                    const d = new Date((tx as any).date || (tx as any).created_at || '');
+                    if (isNaN(d.getTime())) return;
+                    const diffDays = Math.floor((now.getTime() - d.getTime()) / 86_400_000);
+                    const weekIdx = Math.floor(diffDays / 7);
+                    if (weekIdx >= 0 && weekIdx < 4) weeklyTotals[3 - weekIdx] += Number(tx.amount || 0);
+                });
+                const maxWeekly = Math.max(...weeklyTotals, 1);
+                const hasRealData = weeklyTotals.some(v => v > 0);
+
+                // Ticket médio
+                const avgTicket = incomes.length > 0
+                    ? Math.round(incomes.reduce((s, tx) => s + Number(tx.amount || 0), 0) / incomes.length)
+                    : null;
+
+                // Taxa de retorno: clientes com >1 transação / total clientes
+                const clientCounts: Record<string, number> = {};
+                incomes.forEach(tx => { const k = String((tx as any).client_id || (tx as any).clientId || (tx as any).description || 'desconhecido'); clientCounts[k] = (clientCounts[k] || 0) + 1; });
+                const totalClients = Object.keys(clientCounts).length;
+                const returningClients = Object.values(clientCounts).filter(v => v > 1).length;
+                const returnRate = totalClients > 0 ? Math.round((returningClients / totalClients) * 100) : null;
+
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 relative overflow-hidden">
+                            <h4 className="font-serif italic text-xl text-nature-900 mb-6">Evolução Semanal</h4>
+                            <div className="flex items-end gap-3 h-40 px-2 pb-2">
+                                {(hasRealData ? weeklyTotals : [400, 600, 450, 800]).map((val, i) => {
+                                    const h = Math.max((val / maxWeekly) * 100, 4);
+                                    return (
+                                        <div key={i} className="flex-1 bg-indigo-50 hover:bg-indigo-100 rounded-t-xl relative group transition-colors" style={{ height: `${h}%` }}>
+                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-nature-900 text-white text-[9px] font-bold px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                                                R$ {val.toLocaleString('pt-BR')}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <div className="flex justify-between mt-2 text-[9px] font-bold text-nature-400 uppercase">
+                                <span>Sem 1</span><span>Sem 2</span><span>Sem 3</span><span>Sem 4</span>
+                            </div>
+                            {!hasRealData && (
+                                <p className="text-center text-[9px] text-nature-300 mt-3 italic">Gráfico real disponível após primeiras transações</p>
+                            )}
                         </div>
-                        <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
-                            <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Taxa de Retorno</p>
-                            <h4 className="text-2xl font-serif text-nature-900">68%</h4>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
+                                <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Ticket Médio</p>
+                                <h4 className="text-2xl font-serif text-nature-900">
+                                    {avgTicket !== null ? `R$ ${avgTicket.toLocaleString('pt-BR')}` : '—'}
+                                </h4>
+                            </div>
+                            <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
+                                <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Taxa de Retorno</p>
+                                <h4 className="text-2xl font-serif text-nature-900">
+                                    {returnRate !== null ? `${returnRate}%` : '—'}
+                                </h4>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
 
             {activeTab === 'services' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -334,7 +437,26 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
             )}
 
             <ReinvestModal isOpen={showReinvest} onClose={() => setShowReinvest(false)} balance={currentBalance} onConfirm={handleReinvestConfirm} />
-            {/* Note: Other modals would be implemented similarly */}
+
+            {/* Withdraw BottomSheet */}
+            <BottomSheet isOpen={showWithdraw} onClose={() => setShowWithdraw(false)} title="Solicitar Saque">
+                <div className="space-y-5 pb-6">
+                    <p className="text-sm text-nature-600 italic">Saque via PIX — os valores são transferidos em até 2 dias úteis.</p>
+                    <div className="bg-nature-50 rounded-2xl p-4 flex justify-between items-center">
+                        <span className="text-xs font-bold text-nature-500 uppercase tracking-widest">Saldo Disponível</span>
+                        <span className="text-lg font-bold text-nature-900">R$ {currentBalance.toLocaleString('pt-BR')}</span>
+                    </div>
+                    <WithdrawForm balance={currentBalance} onConfirm={handleWithdrawConfirm} processing={withdrawProcessing} />
+                </div>
+            </BottomSheet>
+
+            {/* Donate BottomSheet */}
+            <BottomSheet isOpen={showDonate} onClose={() => setShowDonate(false)} title="Semear Compaixão">
+                <div className="space-y-5 pb-6">
+                    <p className="text-sm text-nature-600 italic">"Ao dar, recebemos. Ao compartilhar abundância, ela se multiplica."</p>
+                    <DonateForm onConfirm={handleDonateConfirm} processing={donateProcessing} />
+                </div>
+            </BottomSheet>
         </PortalView>
     );
 }

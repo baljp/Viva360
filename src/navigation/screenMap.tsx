@@ -70,6 +70,8 @@ const CustomInterventionWizard = lazyNamed(() => import('../../views/pro/CustomI
 
 // --- GUARDIAO GENERATED ---
 const AgendaView = lazyWithRetry(() => import('../../views/pro/generated/AgendaView'), 'AgendaView');
+const AgendaEditScreen = lazyWithRetry(() => import('../../views/pro/generated/AgendaEditScreen'), 'AgendaEditScreen');
+const AgendaConfirmScreen = lazyWithRetry(() => import('../../views/pro/generated/AgendaConfirmScreen'), 'AgendaConfirmScreen');
 const PatientsList = lazyWithRetry(() => import('../../views/pro/generated/PatientsList'), 'PatientsList');
 const PatientProfile = lazyWithRetry(() => import('../../views/pro/generated/PatientProfile'), 'PatientProfile');
 const PatientEvolutionView = lazyWithRetry(() => import('../../views/pro/generated/PatientEvolutionView'), 'PatientEvolutionView');
@@ -172,8 +174,8 @@ export const screenMap: Record<'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO', ScreenMapS
         DASHBOARD: ProDashboard,
         FINANCE_OVERVIEW: ProFinance,
         AGENDA_VIEW: AgendaView,
-        AGENDA_EDIT: AgendaView,
-        AGENDA_CONFIRM: AgendaView,
+        AGENDA_EDIT: AgendaEditScreen,
+        AGENDA_CONFIRM: AgendaConfirmScreen,
         PATIENTS_LIST: PatientsList,
         PATIENT_PROFILE: PatientProfile,
         VIDEO_PREP: VideoPrepScreen,

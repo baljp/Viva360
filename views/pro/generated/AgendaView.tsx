@@ -138,7 +138,7 @@ export default function AgendaView() {
                                <Video size={16}/>
                            </button>
                        ) : (
-                           <button onClick={(e) => { e.stopPropagation(); notify('Aguardando confirmação', `O ritual de ${apt.client} ainda está pendente.`, 'info'); go('AGENDA_EDIT'); }} className="p-3 bg-nature-50 text-nature-400 rounded-xl">
+                           <button onClick={(e) => { e.stopPropagation(); selectAppointment(apt as any); go('AGENDA_CONFIRM'); }} className="p-3 bg-nature-50 text-nature-400 rounded-xl">
                                <MoreHorizontal size={16}/>
                            </button>
                        )}

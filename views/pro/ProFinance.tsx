@@ -43,9 +43,48 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
         return () => { cancelled = true; };
     }, [loadTransactions, propTransactions.length]);
 
-    const chartData = [1200, 1500, 1100, 1800, 1600, 2100, 1840];
-    const maxVal = Math.max(...chartData);
+    // Derive chart from real transactions: last 7 weeks of income
+    const chartData = React.useMemo(() => {
+        const weeks: number[] = Array(7).fill(0);
+        const now = new Date();
+        transactions
+            .filter(tx => tx.type === 'income')
+            .forEach(tx => {
+                const txDate = new Date(tx.date || tx.createdAt || '');
+                const weekAgo = Math.floor((now.getTime() - txDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
+                if (weekAgo >= 0 && weekAgo < 7) weeks[6 - weekAgo] += Number(tx.amount || tx.price || 0);
+            });
+        return weeks.some(v => v > 0) ? weeks : [1200, 1500, 1100, 1800, 1600, 2100, 1840]; // fallback shape
+    }, [transactions]);
+    const maxVal = Math.max(...chartData, 1);
     const points = chartData.map((val, i) => `${(i / (chartData.length - 1)) * 100},${100 - (val / maxVal) * 80}`).join(' ');
+
+    // Pending revenue: income transactions with status 'pending'
+    const pendingRevenue = React.useMemo(() => {
+        return transactions
+            .filter(tx => tx.type === 'income' && String((tx as any).status || '').toLowerCase() === 'pending')
+            .reduce((sum, tx) => sum + Number(tx.amount || tx.price || 0), 0);
+    }, [transactions]);
+
+    // Growth: compare this month vs last month income
+    const growthPct = React.useMemo(() => {
+        const now = new Date();
+        const thisMonth = now.getMonth();
+        const thisYear = now.getFullYear();
+        const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+        const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+        const income = (m: number, y: number) => transactions
+            .filter(tx => {
+                const d = new Date(tx.date || (tx as any).createdAt || '');
+                return tx.type === 'income' && d.getMonth() === m && d.getFullYear() === y;
+            })
+            .reduce((s, tx) => s + Number(tx.amount || tx.price || 0), 0);
+        const cur = income(thisMonth, thisYear);
+        const prev = income(lastMonth, lastMonthYear);
+        if (!prev) return null;
+        return Math.round(((cur - prev) / prev) * 100);
+    }, [transactions]);
+
     const filteredTransactions = transactions.filter((tx) => txFilter === 'all' || tx.type === txFilter);
 
     return (
@@ -78,11 +117,13 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
               <div className="grid grid-cols-2 gap-4">
                   <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/5">
                     <p className="text-[9px] font-bold uppercase text-primary-200 mb-1">A Liberar</p>
-                    <span className="text-lg font-bold text-emerald-400">R$ 1.840</span>
+                    <span className="text-lg font-bold text-emerald-400">{pendingRevenue > 0 ? `R$ ${pendingRevenue.toLocaleString('pt-BR')}` : 'R$ 0'}</span>
                   </div>
                   <div className="bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/5">
                     <p className="text-[9px] font-bold uppercase text-primary-200 mb-1">Crescimento</p>
-                    <span className="text-lg font-bold text-white flex items-center gap-2">+12% <TrendingUp size={14}/></span>
+                    <span className="text-lg font-bold text-white flex items-center gap-2">
+                        {growthPct !== null ? `${growthPct >= 0 ? '+' : ''}${growthPct}%` : '—'} <TrendingUp size={14}/>
+                      </span>
                   </div>
               </div>
            </div>

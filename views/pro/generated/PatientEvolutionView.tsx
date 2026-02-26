@@ -148,8 +148,44 @@ export default function PatientEvolutionView() {
 
     const [records, setRecords] = useState<PatientEvolutionRecord[]>([]);
     const [loading, setLoading] = useState(true);
+    const [interventions, setInterventions] = useState<Array<{id: string|number; title: string; outcome: string; type: string; date?: string}>>([]);
+    const [interventionsLoading, setInterventionsLoading] = useState(true);
+    const [planGoals, setPlanGoals] = useState<Array<{title: string; done: boolean}>>([]);
 
     const PATIENT_ID = String(state.selectedPatient?.id || '').trim();
+
+    // Load interventions from clinical API
+    useEffect(() => {
+        let cancelled = false;
+        setInterventionsLoading(true);
+        api.clinical.listInterventions()
+            .then((data: any) => {
+                if (cancelled) return;
+                const list = Array.isArray(data) ? data : [];
+                // Filter by patient if possible
+                const patientInterventions = PATIENT_ID
+                    ? list.filter((i: any) => !i.patient_id || String(i.patient_id) === PATIENT_ID)
+                    : list;
+                setInterventions(patientInterventions.map((i: any) => ({
+                    id: i.id || Date.now(),
+                    title: i.title || i.name || 'Intervenção',
+                    outcome: i.outcome || i.result || i.notes || '',
+                    type: i.type || 'pratica',
+                    date: i.created_at || i.date || '',
+                })));
+                // Derive plan goals from records content
+                if (!cancelled) {
+                    const goals = (records || []).slice(0, 3).map((r, i) => ({
+                        title: r.title || `Meta ${i + 1}`,
+                        done: r.mood !== 'Pendente',
+                    }));
+                    setPlanGoals(goals);
+                }
+            })
+            .catch(() => { if (!cancelled) setInterventions([]); })
+            .finally(() => { if (!cancelled) setInterventionsLoading(false); });
+        return () => { cancelled = true; };
+    }, [PATIENT_ID, records.length]);
 
     const fetchRecords = async () => {
         setLoading(true);
@@ -261,30 +297,67 @@ export default function PatientEvolutionView() {
                     <div className="bg-nature-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl"></div>
                         <h4 className="font-serif italic text-xl mb-4">Constância Vibracional</h4>
-                        <div className="flex items-end gap-2 h-32 px-4 pb-4 bg-white/5 rounded-2xl border border-white/10">
-                            {[40, 60, 55, 78, 85, 82, 90].map((h, i) => (
-                                <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500/50 to-emerald-400 rounded-t-lg relative" style={{ height: `${h}%` }}></div>
-                            ))}
-                        </div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300 mt-4 text-center">Tendência de Alta Estabilidade</p>
+                        {(() => {
+                            // Derive chart from last 7 records mood scores
+                            const moodScore = (m: string) => {
+                                const s = m.toLowerCase();
+                                if (s.includes('vibrante') || s.includes('ótimo')) return 95;
+                                if (s.includes('bem') || s.includes('positivo')) return 75;
+                                if (s.includes('registrado') || s.includes('neutro')) return 55;
+                                if (s.includes('fraco') || s.includes('difícil')) return 35;
+                                return 50;
+                            };
+                            const pts = records.length > 0
+                                ? records.slice(0, 7).reverse().map(r => moodScore(r.mood))
+                                : [40, 60, 55, 78, 85, 82, 90];
+                            const maxPt = Math.max(...pts, 1);
+                            const trend = pts.length > 1 && pts[pts.length-1] >= pts[0] ? 'Alta' : 'Estável';
+                            return (<>
+                                <div className="flex items-end gap-2 h-32 px-4 pb-4 bg-white/5 rounded-2xl border border-white/10">
+                                    {pts.map((h, i) => (
+                                        <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500/50 to-emerald-400 rounded-t-lg relative" style={{ height: `${(h/maxPt)*100}%` }}></div>
+                                    ))}
+                                </div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300 mt-4 text-center">Tendência de {trend} Estabilidade</p>
+                            </>);
+                        })()}
                     </div>
 
                     <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
                         <h5 className="font-bold text-nature-900 text-xs uppercase tracking-widest mb-4 flex items-center gap-2"><Brain size={16} className="text-nature-400" /> Padrões Recorrentes (IA)</h5>
                         <div className="flex flex-wrap gap-2">
-                            <span className="px-3 py-1.5 bg-rose-50 text-rose-600 rounded-lg text-[9px] font-bold uppercase border border-rose-100">Gatilho: Rejeição</span>
-                            <span className="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-bold uppercase border border-indigo-100">Força: Resiliência</span>
-                            <span className="px-3 py-1.5 bg-amber-50 text-amber-600 rounded-lg text-[9px] font-bold uppercase border border-amber-100">Ciclo: Lunar</span>
+                            {records.length > 0 ? (() => {
+                                const moodCounts: Record<string, number> = {};
+                                records.forEach(r => { const k = r.mood || 'Neutro'; moodCounts[k] = (moodCounts[k] || 0) + 1; });
+                                const colors = ['bg-rose-50 text-rose-600 border-rose-100','bg-indigo-50 text-indigo-600 border-indigo-100','bg-emerald-50 text-emerald-600 border-emerald-100','bg-amber-50 text-amber-600 border-amber-100'];
+                                return Object.entries(moodCounts).slice(0,4).map(([mood, count], i) => (
+                                    <span key={mood} className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase border ${colors[i % colors.length]}`}>
+                                        {mood} · {count}x
+                                    </span>
+                                ));
+                            })() : (
+                                <p className="text-xs text-nature-400 italic">Padrões disponíveis após registros evolutivos.</p>
+                            )}
                         </div>
                     </div>
                 </div>
             )}
 
             {activeTab === 'interventions' && (
-                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <InterventionCard type="pratica" title="Respiração Holocriativa" outcome="Paciente relatou desbloqueio imediato no chakra laríngeo." />
-                    <InterventionCard type="natureza" title="Banho de Ervas (Alecrim)" outcome="Aumento de vitalidade reportado após 2 dias." />
-                    <InterventionCard type="pratica" title="Meditação da Criança Interior" outcome="Choro catártico e sensação de leveza." />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-2">
+                    {interventionsLoading ? (
+                        <p className="text-center text-xs text-nature-400 animate-pulse py-8">Carregando intervenções...</p>
+                    ) : interventions.length > 0 ? (
+                        interventions.map(iv => (
+                            <InterventionCard key={String(iv.id)} type={iv.type} title={iv.title} outcome={iv.outcome} />
+                        ))
+                    ) : (
+                        <div className="bg-white rounded-[2.5rem] border border-dashed border-nature-200 p-8 text-center space-y-3">
+                            <Sprout size={28} className="mx-auto text-nature-300" />
+                            <p className="text-xs text-nature-400 italic">Nenhuma intervenção registrada ainda.</p>
+                            <p className="text-[10px] text-nature-300">Registre intervenções pelo prontuário para vê-las aqui.</p>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -293,7 +366,11 @@ export default function PatientEvolutionView() {
                     <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-[2.5rem] border border-emerald-100 text-center">
                         <Sprout size={32} className="mx-auto text-emerald-600 mb-3" />
                         <p className="text-[9px] font-bold text-emerald-800 uppercase tracking-widest mb-1">Intenção Central</p>
-                        <h3 className="text-xl font-serif italic text-nature-900">"Desenvolver Segurança Emocional"</h3>
+                        <h3 className="text-xl font-serif italic text-nature-900">
+                            {state.selectedPatient?.name
+                                ? `Jornada de ${state.selectedPatient.name.split(' ')[0]}`
+                                : 'Plano Terapêutico Ativo'}
+                        </h3>
                     </div>
 
                     <div className="space-y-3">
@@ -301,11 +378,9 @@ export default function PatientEvolutionView() {
                             <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Micro-Metas da Semana</h4>
                             <button onClick={() => setActiveTab('patterns')} className="p-1 bg-nature-50 rounded text-nature-400"><TrendingUp size={14} /></button>
                         </div>
-                        {[
-                            { title: 'Diário da Gratidão (3x)', done: true },
-                            { title: 'Caminhada na Natureza', done: false },
-                            { title: 'Ritual do Sono', done: true }
-                        ].map((goal, i) => (
+                        {(planGoals.length > 0 ? planGoals : [
+                            { title: 'Aguardando próxima sessão', done: false }
+                        ]).map((goal, i) => (
                             <div key={i} className={`p-4 rounded-2xl border flex items-center gap-3 ${goal.done ? 'bg-emerald-50 border-emerald-100' : 'bg-white border-nature-100'}`}>
                                 <div className={`w-5 h-5 rounded-full flex items-center justify-center border ${goal.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-nature-300'}`}>
                                     {goal.done && <Check size={12} />}
@@ -319,14 +394,22 @@ export default function PatientEvolutionView() {
                         <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-50 rounded-bl-[40px]"></div>
                         <h4 className="font-bold text-nature-900 text-xs uppercase tracking-widest mb-4 relative z-10">Trilhas Ativas</h4>
                         <div className="space-y-2 relative z-10">
-                            <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                                <p className="text-xs text-nature-600">Jornada do Amor Próprio (Dia 12/21)</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
-                                <p className="text-xs text-nature-600">Desintoxicação Digital (Dia 5/7)</p>
-                            </div>
+                            {records.length > 0 ? (
+                                <>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
+                                        <p className="text-xs text-nature-600">{records.length} sessão{records.length !== 1 ? 'ões' : ''} registrada{records.length !== 1 ? 's' : ''}</p>
+                                    </div>
+                                    {interventions.length > 0 && (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500"></div>
+                                            <p className="text-xs text-nature-600">{interventions.length} intervenção{interventions.length !== 1 ? 'ões' : ''} aplicada{interventions.length !== 1 ? 's' : ''}</p>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <p className="text-xs text-nature-400 italic">Trilhas ativas aparecerão após as primeiras sessões.</p>
+                            )}
                         </div>
                     </div>
                 </div>
