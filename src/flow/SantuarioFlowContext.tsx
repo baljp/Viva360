@@ -44,6 +44,7 @@ type FlowAction =
     | { type: 'SELECT_PATIENT'; payload: string | null }
     | { type: 'SELECT_EVENT'; payload: string | null }
     | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null }
+    | { type: 'SET_ADMIN_STATS'; payload: { activePros: number; totalPatients: number; occupancyRate: number; monthlyRevenue: number } }
     | { type: 'CLEAR_NOTIFICATION' };
 
 const createInitialState = (): SantuarioContextState => ({
@@ -66,10 +67,11 @@ const createInitialState = (): SantuarioContextState => ({
     selectedEventId: null,
     selectedChatRoom: null,
     adminStats: {
-        activePros: 12,
-        totalPatients: 450,
-        occupancyRate: 85,
-        monthlyRevenue: 125000
+        // Derived from real data in refreshData - not hardcoded
+        activePros: 0,
+        totalPatients: 0,
+        occupancyRate: 0,
+        monthlyRevenue: 0
     },
     ritualCompletion: null
 });
@@ -125,6 +127,8 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
             return { ...state, selectedEventId: action.payload };
         case 'SELECT_CHAT_ROOM':
             return { ...state, selectedChatRoom: action.payload };
+        case 'SET_ADMIN_STATS':
+            return { ...state, adminStats: action.payload };
         case 'CLEAR_NOTIFICATION':
             return { ...state, notification: null };
         default:
@@ -193,14 +197,34 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
                 if (isDegradedReadError(prodsResult.reason)) degradedDomains.push('marketplace');
             }
             
+            const realTeam = tResult.status === 'fulfilled' ? tResult.value : state.data.team;
+            const realTx = txResult.status === 'fulfilled' ? txResult.value : state.data.transactions;
+            const realRooms = rResult.status === 'fulfilled' ? rResult.value : state.data.rooms;
             dispatch({
                 type: 'SET_DATA',
                 payload: {
-                    rooms: rResult.status === 'fulfilled' ? rResult.value : state.data.rooms,
-                    team: tResult.status === 'fulfilled' ? tResult.value : state.data.team, 
+                    rooms: realRooms,
+                    team: realTeam,
                     vacancies: vResult.status === 'fulfilled' ? vResult.value : state.data.vacancies,
-                    transactions: txResult.status === 'fulfilled' ? txResult.value : state.data.transactions,
+                    transactions: realTx,
                     myProducts: prodsResult.status === 'fulfilled' ? prodsResult.value : state.data.myProducts
+                }
+            });
+            // Derive adminStats from real data
+            const incomeTotal = Array.isArray(realTx)
+                ? realTx.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount || 0), 0)
+                : 0;
+            const occupiedRooms = Array.isArray(realRooms)
+                ? realRooms.filter((r: any) => String(r.status || '').toLowerCase() === 'occupied').length
+                : 0;
+            const occupancyRate = realRooms.length > 0 ? Math.round((occupiedRooms / realRooms.length) * 100) : 0;
+            dispatch({
+                type: 'SET_ADMIN_STATS',
+                payload: {
+                    activePros: Array.isArray(realTeam) ? realTeam.length : 0,
+                    totalPatients: 0, // requires dedicated endpoint
+                    occupancyRate,
+                    monthlyRevenue: Math.round(incomeTotal),
                 }
             });
             if (failedDomains.length > 0) {

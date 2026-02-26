@@ -49,11 +49,22 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
         }))
         : fallbackRooms;
 
-    const timeline = [
-        { time: '09h – 10h', room: 'Sala Cristal', event: 'Reiki' },
-        { time: '10h – 12h', room: 'Templo Solar', event: 'Yoga Coletivo' },
-        { time: '14h – 15h', room: 'Domo da Cura', event: 'Sessão Individual' },
-    ];
+    // C5-FIX: Timeline derived from real events in context (populated by SpaceCalendar via api.spaces.getEvents)
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const rawEvents = Array.isArray((state as any).data?.events)
+        ? (state as any).data.events
+        : [];
+    const timeline = rawEvents
+        .filter((e: any) => {
+            const d = e.start_time || e.startTime || e.date || '';
+            return String(d).slice(0, 10) === todayKey;
+        })
+        .slice(0, 5)
+        .map((e: any) => ({
+            time: String(e.start_time || e.startTime || e.time || '—').slice(11, 16) || '—',
+            room: String(e.room_name || e.roomName || rooms.find((r: any) => r.id === e.roomId)?.name || 'Altar'),
+            event: String(e.title || e.name || e.service_name || 'Evento'),
+        }));
 
     const handleAction = (action: string) => {
         notify('Ação Iniciada', `Processando: ${action}`, 'info');
@@ -156,7 +167,9 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
                         <button onClick={() => go('AGENDA_OVERVIEW')} className="text-[10px] font-bold text-indigo-600 hover:underline">Ver Semanal</button>
                     </div>
                     <div className="space-y-3">
-                        {timeline.map((item, i) => (
+                        {timeline.length === 0 ? (
+                            <p className="text-center text-xs text-nature-300 italic py-4">Sem eventos programados para hoje. Crie um evento para começar.</p>
+                        ) : timeline.map((item, i) => (
                             <div key={i} className="flex items-center gap-3 p-2 bg-nature-50/50 rounded-xl">
                                 <div className="px-2 py-1 bg-white rounded-lg text-[9px] font-bold text-nature-500 shadow-sm font-mono whitespace-nowrap">{item.time}</div>
                                 <div className="w-px h-6 bg-nature-200"></div>

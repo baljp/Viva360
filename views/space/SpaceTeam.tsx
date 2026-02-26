@@ -32,10 +32,11 @@ interface SpaceTeamProps {
     flow: SpaceTeamFlow;
 }
 
-// Mock schedule data generator
-const getNextSession = () => {
-    const times = ['14:30', '15:00', '16:15', '17:00', '18:30'];
-    return times[Math.floor(Math.random() * times.length)];
+// Derived from professional data - no random mock
+const getNextSession = (pro: any) => {
+    if (pro.nextSession || pro.next_session) return pro.nextSession || pro.next_session;
+    if (pro.isOccupied) return 'Em atendimento';
+    return null; // Will show nothing instead of fake time
 };
 
 export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow }) => {
@@ -153,7 +154,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                                         <span className={`text-[9px] font-bold ${pro.isOccupied ? 'text-rose-500' : 'text-emerald-600'}`}>
                                             {pro.isOccupied ? 'Em sessão' : 'Disponível'}
                                         </span>
-                                        {!pro.isOccupied && <span className="text-[9px] text-nature-300 font-medium ml-1">· {getNextSession()}</span>}
+                                        {(() => { const ns = getNextSession(pro); return ns && !pro.isOccupied ? <span className="text-[9px] text-nature-300 font-medium ml-1">· {ns}</span> : null; })()}
                                     </div>
                                     {pro.contract && (
                                         <div className="flex flex-wrap gap-1.5 mt-2">

@@ -4,7 +4,6 @@ import { User, ViewState } from '../types';
 import { ScreenConnector } from '../src/navigation/ScreenConnector';
 import { useSantuarioFlow } from '../src/flow/useSantuarioFlow';
 import { SantuarioState } from '../src/flow/santuarioTypes';
-import { ZenToast } from '../components/Common';
 
 const spaceStateRoutes: Partial<Record<SantuarioState, string>> = {
     START: '/space/home',
@@ -129,7 +128,7 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                     <button onClick={() => refreshData(user.id)} className="px-4 py-2 bg-rose-600 rounded-xl text-white hover:bg-rose-700 transition-colors uppercase text-[9px] font-black tracking-widest shadow-lg">Tentar</button>
                 </div>
             )}
-            {flowState.notification && <ZenToast toast={flowState.notification} onClose={() => {}} />} 
+            {/* Toast gerenciado pelo SantuarioFlowContext com botão X funcional */}
             <ScreenConnector 
                 profile="SANTUARIO" 
                 user={user} 

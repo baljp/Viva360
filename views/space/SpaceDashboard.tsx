@@ -215,8 +215,8 @@ const OperationsTab: React.FC<DashboardTabProps> = ({ go }) => (
                 </div>
             </div>
             <div className="text-right">
-                <span className="text-2xl font-bold text-nature-900">450</span>
-                <p className="text-[9px] text-emerald-500 font-bold uppercase">Active</p>
+                <span className="text-2xl font-bold text-nature-900">{((rooms as any[])?.length * 38) || '—'}</span>
+                <p className="text-[9px] text-emerald-500 font-bold uppercase">Estimado</p>
             </div>
         </div>
 
@@ -428,11 +428,18 @@ export const SpaceDashboard: React.FC<{
     const [activeTab, setActiveTab] = useState<'ops' | 'admin' | 'growth'>('ops');
     const [showNotifications, setShowNotifications] = useState(false);
 
-    // Mock Notifications
-    const [notifications, setNotifications] = useState([
-        { id: '1', title: 'Manutenção', message: 'Ar condicionado Sala Gaia revisado.', type: 'alert', read: false },
-        { id: '2', title: 'Novo Guardião', message: 'Mestre Carlos aceitou o convite.', type: 'ritual', read: true },
-    ]);
+    const [notifications, setNotifications] = useState<Array<{id:string;title:string;message:string;type:string;read:boolean}>>([]);
+    React.useEffect(() => {
+        api.notifications.list().then((data: any) => {
+            if (Array.isArray(data)) setNotifications(data.map((n: any) => ({
+                id: String(n.id || Math.random()),
+                title: n.title || n.type || 'Aviso',
+                message: n.message || n.body || n.content || '',
+                type: n.type || 'info',
+                read: Boolean(n.read || n.is_read),
+            })));
+        }).catch(() => setNotifications([]));
+    }, []);
 
     const handleMarkAsRead = (id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
