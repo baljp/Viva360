@@ -22,7 +22,7 @@ interface GuardiaoContextState extends BaseFlowState<GuardiaoState> {
     };
     notification: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' } | null;
     selectedAppointment?: Appointment;
-    selectedPatient?: { id: string; name?: string } | null;
+    selectedPatient?: { id: string; name?: string; mood?: string; sessions?: number; phone?: string; karma?: number } | null;
     selectedChatRoom?: { id: string; name?: string } | null;
 }
 
@@ -33,7 +33,7 @@ type FlowAction =
     | { type: 'NOTIFY'; payload: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' } }
     | { type: 'CLEAR_NOTIFICATION' }
     | { type: 'SELECT_APPOINTMENT'; payload: Appointment }
-    | { type: 'SELECT_PATIENT'; payload: { id: string; name?: string } | null }
+    | { type: 'SELECT_PATIENT'; payload: { id: string; name?: string; mood?: string; sessions?: number; phone?: string; karma?: number } | null }
     | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null }
     | { type: 'SELECT_SANTUARIO'; payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null };
 
@@ -116,7 +116,7 @@ export type GuardiaoFlowContextValue = {
     refreshData: (userId: string) => Promise<void>;
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
     selectAppointment: (apt: Appointment) => void;
-    selectPatient: (payload: { id: string; name?: string } | null) => void;
+    selectPatient: (payload: { id: string; name?: string; mood?: string; sessions?: number; phone?: string; karma?: number } | null) => void;
     selectChatRoom: (payload: { id: string; name?: string } | null) => void;
     selectSantuario: (payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null) => void;
 };

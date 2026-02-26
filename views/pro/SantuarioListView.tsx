@@ -64,7 +64,9 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
             try {
                 const data = await api.spaces.list();
                 if (!cancelled && data?.length) setSantuarios(data);
-            } catch (e) { /* use mock */ }
+            } catch (e) {
+                notify('Aviso', 'Não foi possível carregar os santuários. Exibindo dados locais.', 'warning');
+            }
             finally { if (!cancelled) setLoading(false); }
         };
         load();

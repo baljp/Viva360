@@ -27,11 +27,15 @@ export const ProDashboard: React.FC<{
     const [showNotifications, setShowNotifications] = useState(false);
     const { status, toggleStatus, isOnline } = useGuardianPresence(user);
 
-    // Mock Notifications
-    const [notifications, setNotifications] = useState<Notification[]>([
-        { id: '1', title: 'Início de Ritual', message: 'Ana Silva completou o ritual diário.', type: 'ritual', read: false, userId: user.id, timestamp: new Date().toISOString() },
-        { id: '2', title: 'Proposta de Troca', message: 'Nova oferta no Escambo Rede Viva.', type: 'alert', read: false, userId: user.id, timestamp: new Date().toISOString() },
-    ]);
+    // Real Notifications from API
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    React.useEffect(() => {
+        let cancelled = false;
+        api.notifications.list().then((data: Notification[]) => {
+            if (!cancelled && Array.isArray(data)) setNotifications(data);
+        }).catch(() => { /* silently keep empty — non-critical */ });
+        return () => { cancelled = true; };
+    }, [user.id]);
 
     const handleMarkAsRead = (id: string) => {
         setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
@@ -41,13 +45,34 @@ export const ProDashboard: React.FC<{
         setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     };
 
-    // Weekly Challenge Tasks (interactive)
+    // Weekly Challenge Tasks — loaded from gamification API
     const [weeklyTasks, setWeeklyTasks] = useState([
-        { id: 'sessions', label: '3 Sessões', done: true },
-        { id: 'evolution', label: '1 Evolução', done: true },
+        { id: 'sessions', label: '3 Sessões', done: false },
+        { id: 'evolution', label: '1 Evolução', done: false },
         { id: 'escambo', label: '1 Escambo', done: false },
         { id: 'registros', label: '5 Registros', done: false },
     ]);
+    const [leaderboard, setLeaderboard] = React.useState<Array<{userId:string;name:string;karma:number;avatar?:string|null}>>([]);
+    React.useEffect(() => {
+        let cancelled = false;
+        api.gamification.getLeaderboard().then((data) => {
+            if (cancelled || !data) return;
+            // Sync weekly tasks with real challenge state
+            if (data.me?.challenges?.items?.length) {
+                setWeeklyTasks(prev => prev.map(t => {
+                    const match = data.me!.challenges.items.find(
+                        (ch) => ch.id === t.id || ch.label.toLowerCase().includes(t.id)
+                    );
+                    return match ? { ...t, done: match.completed } : t;
+                }));
+            }
+            // Populate leaderboard (include self + others)
+            if (data.leaderboard?.length) {
+                setLeaderboard(data.leaderboard.slice(0, 5));
+            }
+        }).catch(() => { /* non-critical */ });
+        return () => { cancelled = true; };
+    }, [user.id]);
     const weeklyDone = weeklyTasks.filter(t => t.done).length;
     const weeklyTotal = weeklyTasks.length;
 
@@ -192,11 +217,18 @@ export const ProDashboard: React.FC<{
 
                     {/* Daily Progress Grid */}
                     <div className="grid grid-cols-3 gap-3">
-                        {[
-                            { label: 'Atender', done: 2, total: 3, icon: Stethoscope, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-                            { label: 'Registrar', done: 1, total: 2, icon: Flower, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                            { label: 'Verificar', done: 0, total: 1, icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-50' },
-                        ].map((goal, i) => (
+                        {(() => {
+                            const todayStr = new Date().toISOString().slice(0, 10);
+                            const todayApts = (state.data.appointments || []).filter((a: any) => String(a.date || '').slice(0, 10) === todayStr);
+                            const attended = todayApts.filter((a: any) => ['completed', 'confirmed'].includes(String(a.status || ''))).length;
+                            const totalToday = Math.max(todayApts.length, attended);
+                            const registered = todayApts.filter((a: any) => !!a.notes || !!a.clinical_notes).length;
+                            return [
+                                { label: 'Atender', done: attended, total: Math.max(totalToday, 1), icon: Stethoscope, color: 'text-indigo-500', bg: 'bg-indigo-50' },
+                                { label: 'Registrar', done: registered, total: Math.max(totalToday, 1), icon: Flower, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+                                { label: 'Verificar', done: todayApts.length > 0 ? 1 : 0, total: 1, icon: CheckCircle2, color: 'text-amber-500', bg: 'bg-amber-50' },
+                            ];
+                        })().map((goal, i) => (
                             <div key={i} className="flex flex-col items-center p-4 rounded-3xl bg-nature-25 border border-nature-50 shadow-sm hover:shadow-md transition-all group">
                                 <div className={`${goal.bg} ${goal.color} w-10 h-10 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform shadow-sm`}>
                                     <goal.icon size={18} />
@@ -375,26 +407,47 @@ export const ProDashboard: React.FC<{
                                 </div>
                             </div>
                             <div className="divide-y divide-nature-50">
-                                {[
-                                    { rank: 1, name: user.name, karma: user.karma || 0, avatar: user.name.charAt(0), color: 'bg-emerald-100 text-emerald-700 ring-emerald-300', isUser: true },
-                                ].map((g) => (
-                                    <div key={g.rank} className={`flex items-center gap-4 px-6 py-4 bg-emerald-50/50`}>
-                                        <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black bg-amber-100 text-amber-700">
-                                            🥇
-                                        </span>
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ring-2 ${g.color}`}>
-                                            {g.avatar}
+                                {leaderboard.length > 0 ? (
+                                    (() => {
+                                        const medals = ['🥇','🥈','🥉'];
+                                        const allEntries = leaderboard.some(e => e.userId === user.id)
+                                            ? leaderboard
+                                            : [{ userId: user.id, name: user.name, karma: user.karma || 0 }, ...leaderboard];
+                                        return allEntries.slice(0, 5).map((g, idx) => {
+                                            const isUser = g.userId === user.id;
+                                            return (
+                                                <div key={g.userId} className={`flex items-center gap-4 px-6 py-4 ${isUser ? 'bg-emerald-50/50' : ''}`}>
+                                                    <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black bg-amber-50 text-amber-700">
+                                                        {medals[idx] || `${idx + 1}`}
+                                                    </span>
+                                                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ring-2 bg-emerald-100 text-emerald-700 ring-emerald-300">
+                                                        {(g.name || '?').charAt(0).toUpperCase()}
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h5 className="font-bold text-nature-900 text-sm">{g.name}</h5>
+                                                        <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">{isUser ? animatedKarma : (g.karma || 0).toLocaleString('pt-BR')} Karma</p>
+                                                    </div>
+                                                    {isUser && <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-1 rounded-lg uppercase">Você</span>}
+                                                </div>
+                                            );
+                                        });
+                                    })()
+                                ) : (
+                                    <>
+                                        <div className="flex items-center gap-4 px-6 py-4 bg-emerald-50/50">
+                                            <span className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-black bg-amber-100 text-amber-700">🥇</span>
+                                            <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ring-2 bg-emerald-100 text-emerald-700 ring-emerald-300">{user.name.charAt(0)}</div>
+                                            <div className="flex-1">
+                                                <h5 className="font-bold text-nature-900 text-sm">{user.name}</h5>
+                                                <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">{animatedKarma} Karma</p>
+                                            </div>
+                                            <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-1 rounded-lg uppercase">Você</span>
                                         </div>
-                                        <div className="flex-1">
-                                            <h5 className="font-bold text-nature-900 text-sm">{g.name}</h5>
-                                            <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">{g.isUser ? animatedKarma : (g.karma || 0).toLocaleString('pt-BR')} Karma</p>
+                                        <div className="px-6 py-4 text-center">
+                                            <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">Ranking completo disponível quando mais guardiões participarem</p>
                                         </div>
-                                        <span className="text-[9px] font-black bg-emerald-500 text-white px-2 py-1 rounded-lg uppercase">Você</span>
-                                    </div>
-                                ))}
-                                <div className="px-6 py-4 text-center">
-                                    <p className="text-[9px] text-nature-400 font-bold uppercase tracking-widest">Ranking completo disponível quando mais guardiões participarem</p>
-                                </div>
+                                    </>
+                                )}
                             </div>
                         </div>
 

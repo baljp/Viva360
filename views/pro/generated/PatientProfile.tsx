@@ -39,7 +39,11 @@ export default function PatientProfile() {
            <div className="text-center relative z-10">
                <div className="w-24 h-24 bg-white rounded-[2rem] mx-auto mb-4 flex items-center justify-center text-nature-900 font-serif italic text-3xl shadow-lg">{patientInitials}</div>
                <h1 className="text-2xl font-serif italic">{patientName}</h1>
-               <p className="text-emerald-200 text-xs font-bold uppercase tracking-widest mt-2">Em Jornada há 6 meses</p>
+               <p className="text-emerald-200 text-xs font-bold uppercase tracking-widest mt-2">
+                 {(selectedPatient as any)?.sessions
+                   ? `Em Jornada · ${(selectedPatient as any).sessions} sessão${(selectedPatient as any).sessions !== 1 ? 'ões' : ''}`
+                   : 'Em Jornada'}
+               </p>
            </div>
        </div>
 
@@ -49,7 +53,7 @@ export default function PatientProfile() {
                <div className="bg-white p-4 rounded-3xl border border-nature-100 text-center shadow-sm">
                    <Activity size={20} className="mx-auto text-rose-500 mb-2" />
                    <p className="text-[9px] font-bold text-nature-400 uppercase">Humor</p>
-                   <p className="font-bold text-nature-900">Vibrante</p>
+                   <p className="font-bold text-nature-900">{String((selectedPatient as any)?.mood || '—')}</p>
                </div>
                <div className="bg-white p-4 rounded-3xl border border-nature-100 text-center shadow-sm">
                    <Calendar size={20} className="mx-auto text-indigo-500 mb-2" />
@@ -59,7 +63,11 @@ export default function PatientProfile() {
                <div className="bg-white p-4 rounded-3xl border border-nature-100 text-center shadow-sm">
                    <Shield size={20} className="mx-auto text-emerald-500 mb-2" />
                    <p className="text-[9px] font-bold text-nature-400 uppercase">Karma</p>
-                   <p className="font-bold text-nature-900">Nível 3</p>
+                   <p className="font-bold text-nature-900">
+                     {(selectedPatient as any)?.karma != null
+                       ? `${Number((selectedPatient as any).karma).toLocaleString('pt-BR')}`
+                       : '—'}
+                   </p>
                </div>
            </div>
 

@@ -132,7 +132,7 @@ export default function PatientsList() {
               <Zap size={12} className="fill-rose-500" /> Necessitam de Cuidado
             </h4>
             {criticalPatients.map((p, i) => (
-              <div key={p.id} onClick={() => { selectPatient({ id: String(p.id), name: p.name }); go('PATIENT_PROFILE'); }} className="bg-rose-50/50 p-5 rounded-[2.5rem] border border-rose-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer group animate-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 80}ms` }}>
+              <div key={p.id} onClick={() => { selectPatient({ id: String(p.id), name: p.name, mood: p.mood, sessions: p.sessions }); go('PATIENT_PROFILE'); }} className="bg-rose-50/50 p-5 rounded-[2.5rem] border border-rose-100 flex items-center justify-between shadow-sm hover:shadow-md transition-all cursor-pointer group animate-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 80}ms` }}>
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center text-rose-400 relative">
                     <Flower size={24} />
@@ -156,7 +156,7 @@ export default function PatientsList() {
       <div className="space-y-4 pb-24 px-2">
         <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest pl-2">Florescimento Recente</h4>
         {flourishingPatients.map((p, i) => (
-          <div key={p.id} onClick={() => { selectPatient({ id: String(p.id), name: p.name }); go('PATIENT_PROFILE'); }} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm hover:shadow-lg transition-all cursor-pointer group animate-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 100}ms` }}>
+          <div key={p.id} onClick={() => { selectPatient({ id: String(p.id), name: p.name, mood: p.mood, sessions: p.sessions }); go('PATIENT_PROFILE'); }} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 flex items-center justify-between shadow-sm hover:shadow-lg transition-all cursor-pointer group animate-in slide-in-from-bottom-2" style={{ animationDelay: `${i * 100}ms` }}>
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 bg-nature-50 rounded-2xl flex items-center justify-center text-nature-400 relative group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
                 <Flower size={24} />
