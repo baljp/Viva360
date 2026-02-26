@@ -39,6 +39,16 @@ const getHeader = () => {
  *  3. Se falhou: dispara evento global 'viva360:session-expired'
  *     e retorna null (requestClient vai lançar SESSION_EXPIRED)
  */
+/**
+ * handleUnauthorized — chamado pelo requestClient em 401.
+ *
+ * Contrato:
+ *   • Salva o novo token no localStorage ANTES de retornar.
+ *   • Retorna o token (string) em sucesso, null em falha.
+ *   • NÃO dispara 'viva360:session-expired' — isso é responsabilidade
+ *     do requestClient, que é o único ponto de despacho do evento.
+ *     (Evita duplo dispatch quando refresh falha.)
+ */
 const handleUnauthorized = async (_endpoint: string): Promise<string | null> => {
   // Sessões mock nunca expiram
   if (canUseMockSession() && getSessionMode() === 'mock') return null;
@@ -51,9 +61,7 @@ const handleUnauthorized = async (_endpoint: string): Promise<string | null> => 
       sessionTelemetry.record('token_refresh_fail', {
         error: error?.message || 'no_session',
       });
-      // Avisa a app para redirecionar ao login
-      window.dispatchEvent(new CustomEvent('viva360:session-expired'));
-      return null;
+      return null; // requestClient vai despachar 'viva360:session-expired'
     }
 
     const newToken = data.session.access_token;
@@ -64,8 +72,7 @@ const handleUnauthorized = async (_endpoint: string): Promise<string | null> => 
     sessionTelemetry.record('token_refresh_fail', {
       error: err instanceof Error ? err.message : 'unknown',
     });
-    window.dispatchEvent(new CustomEvent('viva360:session-expired'));
-    return null;
+    return null; // requestClient vai despachar 'viva360:session-expired'
   }
 };
 
