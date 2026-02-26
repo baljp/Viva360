@@ -4,6 +4,7 @@ import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { ChevronLeft, Briefcase, MapPin, Building, Search, X, CheckCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
 import { PortalView, DegradedRetryNotice } from '../../../components/Common';
 import { hubApi } from '../../../services/api/hubClient';
+import { roundTripTelemetry } from '../../../lib/telemetry';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
 type Vacancy = {
@@ -100,12 +101,15 @@ export default function VagasList() {
   const handleApply = async () => {
     if (!selectedVacancy || applying) return;
     setApplying(true);
+    const rt = roundTripTelemetry.start('vagas', 'apply');
     try {
       await hubApi.recruitment.apply(selectedVacancy.id);
+      roundTripTelemetry.success('vagas', 'apply', rt.correlationId, rt.startMs);
       setSelectedVacancy(null);
       notify?.('Aplicação Enviada', 'O Espaço receberá sua intenção. Acompanhe pelo painel.', 'success');
     } catch (err: unknown) {
       const msg = errorMessage(err) || 'Não foi possível enviar sua candidatura.';
+      roundTripTelemetry.error('vagas', 'apply', rt.correlationId, rt.startMs, msg);
       notify?.('Erro na Aplicação', msg, 'error');
     } finally {
       setApplying(false);

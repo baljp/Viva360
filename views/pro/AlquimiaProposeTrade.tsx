@@ -71,6 +71,7 @@ export const AlquimiaProposeTrade: React.FC = () => {
         }
         if (isSending) return;
         setIsSending(true);
+        const rt = roundTripTelemetry.start('alquimia', 'proposeTrade');
         try {
             await api.alchemy.createOffer({
                 requesterId: targetId,
@@ -79,12 +80,14 @@ export const AlquimiaProposeTrade: React.FC = () => {
                     message.trim() ? `— ${message.trim()}` : '',
                 ].filter(Boolean).join(' '),
             });
+            roundTripTelemetry.success('alquimia', 'proposeTrade', rt.correlationId, rt.startMs);
             notify?.('Proposta Enviada!', 'Sua troca foi registrada. Aguarde resposta.', 'success');
             go('ESCAMBO_CONFIRM');
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err
                 ? String((err as { message?: unknown }).message || '')
                 : 'Falha ao enviar proposta. Tente novamente.';
+            roundTripTelemetry.error('alquimia', 'proposeTrade', rt.correlationId, rt.startMs, msg);
             notify?.('Erro', msg, 'error');
         } finally {
             setIsSending(false);

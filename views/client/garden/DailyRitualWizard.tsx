@@ -73,6 +73,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     const autoSaveSnap = async () => {
         if (isSaving) return;
         setIsSaving(true);
+        const rt = roundTripTelemetry.start('ritual', 'save');
         try {
             if (!capture) {
                 throw new Error('Foto não capturada.');
@@ -127,7 +128,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 // Metamorphosis stores a tiny thumb (CDN) for cross-device list; full stays local.
                 api.metamorphosis.checkIn(data.mood, snapId, capture.thumbDataUrl)
             ]);
-        } catch (error) {
+            roundTripTelemetry.success('ritual', 'save', rt.correlationId, rt.startMs);
+        } catch (error: any) {
+            roundTripTelemetry.error('ritual', 'save', rt.correlationId, rt.startMs, error?.message || 'unknown');
             console.error("Auto-save snap failed:", error);
         } finally {
             setIsSaving(false);

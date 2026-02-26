@@ -4,6 +4,7 @@ import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { Plus, Sparkles, Clock, Star } from 'lucide-react';
 import { User } from '../../types';
 import { api } from '../../services/api';
+import { roundTripTelemetry } from '../../lib/telemetry';
 
 export const AlquimiaCreateOffer: React.FC<{ user?: User }> = ({ user }) => {
     const { go, back, notify } = useGuardiaoFlow();
@@ -24,6 +25,7 @@ export const AlquimiaCreateOffer: React.FC<{ user?: User }> = ({ user }) => {
             notify("Categoria Necessária", "Selecione uma categoria para sua oferta.", "warning");
             return;
         }
+        const rt = roundTripTelemetry.start('alquimia', 'createOffer');
         try {
             await api.marketplace.create({
                 name: formData.title,
@@ -38,11 +40,13 @@ export const AlquimiaCreateOffer: React.FC<{ user?: User }> = ({ user }) => {
                         ? 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=800'
                         : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800')
             });
+            roundTripTelemetry.success('alquimia', 'createOffer', rt.correlationId, rt.startMs);
             notify("Alquimia Selada", "Sua oferta já brilha no portal.", "success");
             go('ESCAMBO_MARKET');
-        } catch (e) {
+        } catch (e: any) {
+            roundTripTelemetry.error('alquimia', 'createOffer', rt.correlationId, rt.startMs, e?.message || 'unknown');
             console.error(e);
-            notify("Erro na Criação", "Não foi possível manifestar essa oferta no momento.", "warning");
+            notify("Erro na Criação", e?.message || "Não foi possível manifestar essa oferta no momento.", "warning");
         }
     };
 

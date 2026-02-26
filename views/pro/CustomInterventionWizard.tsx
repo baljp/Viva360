@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, ChevronLeft, Send, Clock, Flame, Wind, Droplets, Mountain, Plus, X } from 'lucide-react';
 import { api } from '../../services/api';
+import { roundTripTelemetry } from '../../lib/telemetry';
 
 export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
     const [step, setStep] = useState(1);
@@ -37,11 +38,14 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
     const handleFinish = async () => {
         if (isSaving) return;
         setIsSaving(true);
+        const rt = roundTripTelemetry.start('intervention', 'save');
         try {
             await api.clinical.saveIntervention(formData);
+            roundTripTelemetry.success('intervention', 'save', rt.correlationId, rt.startMs);
             setStep(4); // Completion screen
-        } catch (err) {
-            flow.notify("Erro ao Salvar", "Não foi possível selar a prática no momento.", "error");
+        } catch (err: any) {
+            roundTripTelemetry.error('intervention', 'save', rt.correlationId, rt.startMs, err?.message || 'unknown');
+            flow.notify("Erro ao Salvar", err?.message || "Não foi possível selar a prática no momento.", "error");
             setIsSaving(false);
         }
     };

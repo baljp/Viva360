@@ -5,6 +5,7 @@ import {
     Activity, Clock, Brain, Sprout, Plus, Sparkles, Leaf, TrendingUp
 } from 'lucide-react';
 import { api } from '../../../services/api';
+import { roundTripTelemetry } from '../../../lib/telemetry';
 
 type PatientEvolutionRecord = {
     id: string | number;
@@ -233,18 +234,28 @@ export default function PatientEvolutionView() {
             type: data.type === 'anamnesis' ? 'anamnesis' : 'session',
             content: `${data.title}\nHumor: ${data.mood}\n\n${data.content}`.trim(),
         };
-        const created = await api.records.create(recordPayload);
-        const newEvent = {
-            id: created?.id || Date.now(),
-            type: created?.type || recordPayload.type,
-            title: data.title,
-            date: created?.created_at || data.date || new Date().toISOString(),
-            mood: data.mood || 'Registrado',
-            content: created?.content || recordPayload.content,
-        };
-        setRecords(prev => [newEvent, ...prev]);
-        setIsModalOpen(false);
-        notify('Evento Registrado', 'A linha da vida foi atualizada.', 'success');
+
+        // Round-trip garantido: POST → recebe id real do backend → só então atualiza UI.
+        // Sem isso, o prontuário parece salvo mas some no F5 se o backend rejeitou silenciosamente.
+        const rt = roundTripTelemetry.start('records', 'create');
+        try {
+            const created = await api.records.create(recordPayload);
+            const newEvent = {
+                id: created?.id || Date.now(),
+                type: created?.type || recordPayload.type,
+                title: data.title,
+                date: created?.created_at || data.date || new Date().toISOString(),
+                mood: data.mood || 'Registrado',
+                content: created?.content || recordPayload.content,
+            };
+            setRecords(prev => [newEvent, ...prev]);
+            setIsModalOpen(false);
+            roundTripTelemetry.success('records', 'create', rt.correlationId, rt.startMs);
+            notify('Evento Registrado', 'A linha da vida foi atualizada.', 'success');
+        } catch (err: any) {
+            roundTripTelemetry.error('records', 'create', rt.correlationId, rt.startMs, err?.message || 'unknown');
+            notify('Erro ao Registrar', err?.message || 'Não foi possível salvar a evolução. Tente novamente.', 'error');
+        }
     };
 
     return (
