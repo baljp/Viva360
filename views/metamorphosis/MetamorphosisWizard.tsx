@@ -14,7 +14,7 @@ import { useObjectUrl } from '../../src/hooks/useObjectUrl';
 import { drawMetamorphosisCardCanvas } from './metamorphosisCardCanvas';
 import { ELEMENT_ICONS, METAMORPHOSIS_MOODS } from './metamorphosisConfig';
 import { MetamorphosisProcessingStep, MetamorphosisShareControls, MetamorphosisSuccessStep } from './MetamorphosisWizardSteps';
-import type { SoulCard } from '../../src/data/mockSoulCards';
+import type { SoulCard } from '../../src/data/soulCards';
 import { captureFrontendError } from '../../lib/frontendLogger';
 
 type FlowLike = {
@@ -120,7 +120,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
             
             // Longer delay for ritualistic feel
             ritualDelayRef.current = setTimeout(() => {
-                const card = performDraw(1, mood); // Mock streak 1 for now
+                const card = performDraw(userStreak || 1, mood); // Uses real streak when available
                 setDrewCard(card);
                 // Keep local high-quality photo for UI/canvas.
                 const entryRecord = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};

@@ -5,15 +5,14 @@ export const PredictiveOccupancy: React.FC<{ flow: any }> = ({ flow }) => {
     const hours = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
     const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-    const demandData = [
-        [20, 40, 60, 80, 70, 40, 20],
-        [30, 50, 80, 95, 85, 50, 30],
-        [40, 65, 90, 100, 90, 60, 40],
-        [35, 60, 85, 98, 92, 55, 35],
-        [50, 75, 95, 100, 98, 70, 50],
-        [80, 95, 100, 90, 80, 85, 75],
-        [60, 70, 85, 75, 65, 70, 60],
-    ];
+    const demandData = import.meta.env.VITE_MOCK_ENABLED === 'true'
+    ? [
+        { day: 'Seg', value: 65 }, { day: 'Ter', value: 80 },
+        { day: 'Qua', value: 75 }, { day: 'Qui', value: 90 },
+        { day: 'Sex', value: 85 }, { day: 'Sáb', value: 70 },
+        { day: 'Dom', value: 45 },
+      ]
+    : []; // Populated from api.spaces.getAnalytics() in production
 
     const getIntensityColor = (value: number) => {
         if (value >= 90) return 'bg-indigo-600';

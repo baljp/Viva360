@@ -4,7 +4,7 @@ import { PortalView, DynamicAvatar } from '../../components/Common';
 import { Sparkles, ShieldCheck, Share2, Download, CheckCircle, Heart, X } from 'lucide-react';
 import { useSoulCards } from '../../src/hooks/useSoulCards';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
-import { SoulCard } from '../../src/data/mockSoulCards';
+import { SoulCard } from '../../src/data/soulCards';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SoulCardRevealProps {

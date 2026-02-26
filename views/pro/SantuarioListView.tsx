@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User } from '../../types';
 import { Building2, MapPin, Star, ChevronRight, Search, Plus, Sparkles, Shield, Users, Loader2 } from 'lucide-react';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
+import { TEST_SANTUARIOS } from '../../src/data/test';
 
 import { api } from '../../services/api';
 
@@ -22,41 +23,9 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
 
-    const [santuarios, setSantuarios] = useState<SantuarioItem[]>([
-        {
-            id: 's1',
-            name: 'Espaço Gaia',
-            address: 'Rua das Flores, 123',
-            city: 'São Paulo, SP',
-            rating: 4.8,
-            guardiansCount: 12,
-            status: 'active',
-            image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400',
-            specialties: ['Yoga', 'Meditação', 'Terapia Holística']
-        },
-        {
-            id: 's2',
-            name: 'Centro Luz Interior',
-            address: 'Av. da Harmonia, 456',
-            city: 'Florianópolis, SC',
-            rating: 4.9,
-            guardiansCount: 8,
-            status: 'active',
-            image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?q=80&w=400',
-            specialties: ['Reiki', 'Constelação Familiar']
-        },
-        {
-            id: 's3',
-            name: 'Templo Serenidade',
-            address: 'Rua do Silêncio, 78',
-            city: 'Curitiba, PR',
-            rating: 4.6,
-            guardiansCount: 5,
-            status: 'invited',
-            image: 'https://images.unsplash.com/photo-1545389336-cf090694435e?q=80&w=400',
-            specialties: ['Acupuntura', 'Fitoterapia']
-        }
-    ]);
+    // Ambiente de dev mostra dados de demonstração (sufixo [Demo]) até API retornar dados reais
+    const devFallback = import.meta.env.VITE_MOCK_ENABLED === 'true' ? (TEST_SANTUARIOS as any) : [];
+    const [santuarios, setSantuarios] = useState<SantuarioItem[]>(devFallback);
 
     useEffect(() => {
         let cancelled = false;

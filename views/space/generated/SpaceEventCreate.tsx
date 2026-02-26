@@ -19,7 +19,7 @@ export default function SpaceEventCreate() {
     const [eventType, setEventType] = useState(preselectedType || 'workshop'); // workshop, retreat
     const [title, setTitle] = useState('');
     const [capacity, setCapacity] = useState<number>(15);
-    const [roomName, setRoomName] = useState('Sala Cristal');
+    const [roomName, setRoomName] = useState('');
     const [price, setPrice] = useState<number>(0);
     const [startDate, setStartDate] = useState<string>(new Date().toISOString().slice(0, 10));
     const [startTime, setStartTime] = useState<string>('09:00');
@@ -54,7 +54,7 @@ export default function SpaceEventCreate() {
                 setTitle(String((ev as any).title || ''));
                 setEventType(String(meta.kind || (ev as any).type || preselectedType || 'workshop'));
                 setCapacity(Number(meta.capacity || 15));
-                setRoomName(String(meta.roomName || 'Sala Cristal'));
+                setRoomName(String(meta.roomName || ''));
                 setPrice(Number(meta.price || 0));
                 setStartDate(start.toISOString().slice(0, 10));
                 setStartTime(start.toISOString().slice(11, 16));

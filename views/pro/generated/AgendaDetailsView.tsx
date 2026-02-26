@@ -9,7 +9,7 @@ export default function AgendaDetailsView() {
     // Mock Data for the selected appointment
     const appointment = {
         id: 1,
-        client: 'Ana Silva',
+        client: '',  // Populated from selectedAppointment
         service: 'Reiki à Distância',
         date: 'Hoje',
         time: '14:00',

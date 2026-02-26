@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SoulCard } from '../data/mockSoulCards';
+import { SoulCard } from '../data/soulCards';
 import { SoulCardEngine } from '../engines/SoulCardEngine';
 import { api } from '../../services/api';
 

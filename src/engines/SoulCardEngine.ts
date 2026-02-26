@@ -1,4 +1,4 @@
-import { MOCK_SOUL_CARDS, SoulCard } from '../data/mockSoulCards';
+import { SOUL_CARDS, SoulCard } from '../data/soulCards';
 
 export class SoulCardEngine {
     
@@ -24,10 +24,10 @@ export class SoulCardEngine {
         else selectedRarity = 'common';
 
         // Filter and Pick
-        const pool = MOCK_SOUL_CARDS.filter(c => c.rarity === selectedRarity);
+        const pool = SOUL_CARDS.filter(c => c.rarity === selectedRarity);
         const card = pool[Math.floor(Math.random() * pool.length)];
 
         // Fallback
-        return card || MOCK_SOUL_CARDS[0];
+        return card || SOUL_CARDS[0];
     }
 }

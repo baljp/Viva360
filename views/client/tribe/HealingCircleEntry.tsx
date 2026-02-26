@@ -26,7 +26,7 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
                         description: 'Um encontro de almas para cura e expansão da consciência.',
                         image: 'https://images.unsplash.com/photo-1528644490543-950c4dfceb28?q=80&w=800',
                         price: 33.00,
-                        facilitatorName: 'Ana Luz',
+                        facilitatorName: '',  // Populated from API
                         enrolled: 12,
                         capacity: 20,
                         date: new Date().toISOString()
@@ -41,7 +41,7 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
                     description: 'Um encontro de almas para cura e expansão da consciência.',
                     image: 'https://images.unsplash.com/photo-1528644490543-950c4dfceb28?q=80&w=800',
                     price: 33.00,
-                    facilitatorName: 'Ana Luz',
+                    facilitatorName: '',  // Populated from API
                     enrolled: 12,
                     capacity: 20,
                     date: new Date().toISOString()

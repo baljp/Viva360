@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { PortalView } from '../../components/Common';
 import { Plus, Edit3, Image as ImageIcon, ChevronRight, Calendar, Settings, Clock, Users, Sun, PenTool, CheckCircle, AlertTriangle, Hammer } from 'lucide-react';
+import { TEST_ROOMS } from '../../src/data/test';
 
 export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData }) => {
     const { state, go, selectRoom, notify} = useSantuarioFlow();
@@ -11,23 +12,8 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
         refreshData?.();
     }, [refreshData]);
 
-    const fallbackRooms = [
-        {
-            id: 'mock-room-1', name: 'Sala Cristal', capacity: 15, current: 0, status: 'Livre',
-            dailyOccupancy: 42, nextUse: '14:30',
-            image: 'https://images.unsplash.com/photo-1519817650390-64a93db51149?q=80&w=600'
-        },
-        {
-            id: 'mock-room-2', name: 'Templo Solar', capacity: 40, current: 12, status: 'Ocupado',
-            dailyOccupancy: 78, currentEvent: 'Yoga Coletivo',
-            image: 'https://images.unsplash.com/photo-1596131397935-33ec8a7e0892?q=80&w=600'
-        },
-        {
-            id: 'mock-room-3', name: 'Domo da Cura', capacity: 8, current: 0, status: 'Manutenção',
-            dailyOccupancy: 0, returnDate: 'Amanhã 10h',
-            image: 'https://images.unsplash.com/photo-1545167622-3a6ac15600f3?q=80&w=600'
-        }
-    ];
+    // Fallback visual apenas em ambiente dev (sufixo [Demo] indica dado não-real)
+    const fallbackRooms = import.meta.env.VITE_MOCK_ENABLED === 'true' ? (TEST_ROOMS as any) : [];
 
     const rooms = (Array.isArray(state.data.rooms) && state.data.rooms.length > 0)
         ? state.data.rooms.map((r: any) => ({

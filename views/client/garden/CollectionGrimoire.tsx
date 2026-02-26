@@ -4,7 +4,7 @@ import { useSoulCards } from '../../../src/hooks/useSoulCards';
 import { User, ViewState } from '../../../types';
 import { Lock, Sparkles } from 'lucide-react';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
-import { MOCK_SOUL_CARDS } from '../../../src/data/mockSoulCards';
+import { SOUL_CARDS } from '../../../src/data/soulCards';
 
 export const CollectionGrimoire: React.FC<{ user: User }> = ({ user }) => {
     const { collection } = useSoulCards(user.id);
@@ -40,7 +40,7 @@ export const CollectionGrimoire: React.FC<{ user: User }> = ({ user }) => {
                 {/* Library */}
                 {rarities.map(rarity => {
                     const cardsInRarity = collection.filter(c => c.rarity === rarity);
-                    const allInRarity = MOCK_SOUL_CARDS.filter(c => c.rarity === rarity);
+                    const allInRarity = SOUL_CARDS.filter(c => c.rarity === rarity);
                     if (allInRarity.length === 0) return null;
 
                     const color = rarity === 'legendary' ? 'text-amber-500' : rarity === 'epic' ? 'text-purple-500' : rarity === 'rare' ? 'text-blue-500' : 'text-nature-500';

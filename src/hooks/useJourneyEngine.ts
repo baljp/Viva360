@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { User } from '../../types';
-import { MOCK_JOURNEYS, MicroJourney } from '../data/mockJourneys';
+import { JOURNEYS, MicroJourney } from '../data/journeys';
 
 interface JourneySuggestion {
     hero: {
@@ -36,9 +36,9 @@ export const useJourneyEngine = (user: User) => {
         };
 
         // Select Journeys
-        const corpoDetails = MOCK_JOURNEYS.filter(j => j.category === 'Corpo');
-        const menteDetails = MOCK_JOURNEYS.filter(j => j.category === 'Mente');
-        const espiritoDetails = MOCK_JOURNEYS.filter(j => j.category === 'Espírito');
+        const corpoDetails = JOURNEYS.filter(j => j.category === 'Corpo');
+        const menteDetails = JOURNEYS.filter(j => j.category === 'Mente');
+        const espiritoDetails = JOURNEYS.filter(j => j.category === 'Espírito');
 
         const morningJ = corpoDetails[Math.floor(pseudoRandom(1) * corpoDetails.length)];
         const dayJ = menteDetails[Math.floor(pseudoRandom(2) * menteDetails.length)];

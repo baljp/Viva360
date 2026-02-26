@@ -33,7 +33,8 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
     const refreshDashboard = async () => {
         setIsLoading(true);
         try {
-            // Mock data if backend not fully ready or for demo speed
+            // Demo data for AdminViews (only visible in dev with VITE_MOCK_ENABLED)
+// In production: populated by API
             const dash = await api.admin.getDashboard().catch(() => ({
                 totalUsers: 1250,
                 activeUsers: 890,
@@ -49,7 +50,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
         setIsLoading(true);
         try {
             const list: User[] = await api.admin.listUsers().catch(() => [
-                { id: 'u1', name: 'Maria Silva', email: 'maria@email.com', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
+                { id: 'u1', name: 'Maria Silva', email: import.meta.env.VITE_MOCK_ENABLED === 'true' ? 'maria@email.com' : '', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
                 { id: 'u2', name: 'Dr. João', email: 'joao@email.com', role: UserRole.PROFESSIONAL, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
                 { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: UserRole.SPACE, status: 'blocked', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any
             ]);
@@ -74,7 +75,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
             safeSetLoading(true);
             api.admin.listUsers()
                 .catch(() => [
-                    { id: 'u1', name: 'Maria Silva', email: 'maria@email.com', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
+                    { id: 'u1', name: 'Maria Silva', email: import.meta.env.VITE_MOCK_ENABLED === 'true' ? 'maria@email.com' : '', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
                     { id: 'u2', name: 'Dr. João', email: 'joao@email.com', role: UserRole.PROFESSIONAL, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
                     { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: UserRole.SPACE, status: 'blocked', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
                 ])

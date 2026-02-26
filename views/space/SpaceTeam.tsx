@@ -213,7 +213,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                     <div className="space-y-3">
                         {[
                             { name: 'Lucas Paz', time: '14:30', type: 'Reiki' },
-                            { name: 'Ana Luz', time: '15:00', type: 'Cura Energética' },
+                            // Próximas sessões derivadas de dados reais da API
                             { name: 'João Sol', time: '16:15', type: 'Mentoria' }
                         ].map((item, i) => (
                             <div key={i} className="flex justify-between items-center py-2 border-b border-nature-50 last:border-0 last:pb-0">

@@ -259,7 +259,7 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
                                 <div className="mt-4 pt-4 border-t border-nature-50">
                                     <div className="flex justify-between text-[9px] font-bold uppercase text-nature-400 mb-1">
                                         <span>Progresso da Tribo</span>
-                                        <span>32%</span>
+                                        <span>{pactData?.completion_pct != null ? `${pactData.completion_pct}%` : '—'}</span>
                                     </div>
                                     <div className="w-full h-1 bg-nature-100 rounded-full overflow-hidden">
                                         <div className="w-[32%] h-full bg-emerald-400" />

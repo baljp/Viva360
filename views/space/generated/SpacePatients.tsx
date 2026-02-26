@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { TEST_PATIENTS } from '../../../src/data/test';
 import type { User } from '../../../types';
 import { useSantuarioFlow } from '../../../src/flow/useSantuarioFlow';
 import { PortalView, DynamicAvatar } from '../../../components/Common';
@@ -12,12 +13,8 @@ const SpacePatients: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [patientsData, setPatientsData] = useState<SpacePatientApi[] | null>(null);
 
-  // Mock Data
-  const fallbackPatients = [
-    { id: '1', name: 'Ana Oliveira', health: 85, karma: 420, lastVisit: '10/01', condition: 'Estável', pro: 'Dr. Pedro' },
-    { id: '2', name: 'Carlos Santos', health: 45, karma: 180, lastVisit: '15/01', condition: 'Em atenção', pro: 'Dra. Maria' },
-    { id: '3', name: 'Beatriz Lima', health: 92, karma: 890, lastVisit: '12/01', condition: 'Pronto para alta', pro: 'Dr. Pedro' },
-  ];
+  // Fallback visual apenas em dev (dados rotulados [Demo] deixam claro que não são reais)
+  const fallbackPatients = import.meta.env.VITE_MOCK_ENABLED === 'true' ? (TEST_PATIENTS as any) : [];
 
   React.useEffect(() => {
     let mounted = true;
