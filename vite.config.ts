@@ -15,11 +15,24 @@ export default defineConfig({
         'mask-icon.svg',
         'icons/icon-192.png',
         'icons/icon-512.png',
+        'sw-push.js',
       ],
       workbox: {
         cleanupOutdatedCaches: true,
         clientsClaim: true,
         skipWaiting: true,
+        // Inject our push handler into the Workbox-generated SW
+        importScripts: ['/sw-push.js'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/.*supabase\.co\/.*/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-api',
+              expiration: { maxEntries: 50, maxAgeSeconds: 300 },
+            },
+          },
+        ],
       },
       manifest: {
         name: 'Viva360 - Ecossistema Holístico',

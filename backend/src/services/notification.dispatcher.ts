@@ -1,97 +1,137 @@
-
-import { emailService } from './email.service';
-import { whatsappService } from './whatsapp.service';
-import { pushService } from './push.service';
-import prisma from '../lib/prisma'; // Assuming we save in-app notifications to DB
-import { logger } from '../lib/logger';
-import { isMockMode } from './supabase.service';
+/**
+ * NotificationDispatcher — multi-channel delivery
+ *
+ * Channels: IN_APP | PUSH | EMAIL | WHATSAPP
+ *
+ * PUSH flow:
+ *   1. Load all push_subscriptions for userId from DB
+ *   2. Send real web-push via pushService.sendBatch()
+ *   3. Auto-delete expired subscriptions (HTTP 410/404)
+ */
+import { emailService }       from './email.service';
+import { whatsappService }    from './whatsapp.service';
+import { pushService, PushPayload } from './push.service';
+import prisma                 from '../lib/prisma';
+import { logger }             from '../lib/logger';
+import { isMockMode }         from './supabase.service';
 
 export type NotificationChannel = 'EMAIL' | 'WHATSAPP' | 'PUSH' | 'IN_APP';
 
 export interface NotificationPayload {
-    userId: string;
-    title: string;
-    message: string;
-    channels: NotificationChannel[];
-    metadata?: unknown;
+  userId:   string;
+  title:    string;
+  message:  string;
+  channels: NotificationChannel[];
+  metadata?: {
+    eventType?:  string;
+    entityType?: string;
+    entityId?:   string;
+    url?:        string;
+    [k: string]: unknown;
+  };
 }
 
 export class NotificationDispatcher {
-    
-    static async dispatch(payload: NotificationPayload) {
-        if (isMockMode()) {
-            logger.info('notification.dispatch', { userId: payload.userId, mode: 'test' });
-        } else {
-            logger.info('notification.dispatch', { userId: payload.userId, mode: 'real' });
-        }
 
-        const results = await Promise.all(payload.channels.map(async (channel) => {
-            // TODO: check UserPreferences table
-            if (payload.userId === 'user-no-email' && channel === 'EMAIL') {
-                logger.info('notification.preference_blocked', { userId: payload.userId, channel });
-                return { channel, status: 'skipped', reason: 'User Preference' };
-            }
-
-            try {
-                switch (channel) {
-                    case 'EMAIL':
-                        // Fetch user email from ID
-                        const userEmail = await NotificationDispatcher.getUserEmail(payload.userId); 
-                        if (userEmail) {
-                            await emailService.send({
-                                to: userEmail,
-                                subject: payload.title,
-                                template: 'NOTIFICATION',
-                                context: { body: payload.message }
-                            });
-                        }
-                        break;
-                    
-                    case 'WHATSAPP':
-                         // Fetch user phone from Profile
-                         // TODO: fetch user phone from Profile
-                         await whatsappService.send({
-                             to: '5511999999999', // placeholder
-                             text: `*${payload.title}*\n${payload.message}`
-                         });
-                         break;
-
-                    case 'PUSH':
-                        // Fetch user push subscriptions from DB
-                        // TODO: fetch push subscription from DB
-                        await pushService.sendNotification(
-                            { endpoint: 'https://fcm.googleapis.com/...', keys: { p256dh: '...', auth: '...' } }, 
-                            JSON.stringify({ title: payload.title, body: payload.message })
-                        );
-                        break;
-
-                    case 'IN_APP':
-                        // Save to Database
-                        // await prisma.notification.create(...)
-                        logger.info('notification.in_app_saved', { userId: payload.userId, title: payload.title });
-                        break;
-                }
-                return { channel, status: 'sent' };
-            } catch (error) {
-                logger.error('notification.send_failed', { channel, userId: payload.userId, error });
-                return { channel, status: 'failed', error };
-            }
-        }));
-
-        return results;
+  static async dispatch(payload: NotificationPayload) {
+    if (isMockMode()) {
+      logger.info('notification.dispatch.mock', { userId: payload.userId, title: payload.title });
+      return payload.channels.map(ch => ({ channel: ch, status: 'mock' }));
     }
 
-    private static async getUserEmail(userId: string): Promise<string | null> {
-        if (isMockMode()) {
-            return `user_${userId}@viva360.com`;
-        }
+    logger.info('notification.dispatch', { userId: payload.userId, channels: payload.channels });
 
-        // Real DB lookup
-        try {
-            const user = await prisma.profile.findUnique({ where: { id: userId }});
-             return user?.email || null;
-        } catch {
-            return null;
+    const settled = await Promise.allSettled(
+      payload.channels.map(ch => NotificationDispatcher._send(ch, payload))
+    );
+
+    return settled.map((r, i) => ({
+      channel: payload.channels[i],
+      status:  r.status === 'fulfilled' ? r.value : 'failed',
+      ...(r.status === 'rejected' ? { error: String(r.reason) } : {}),
+    }));
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  private static async _send(ch: NotificationChannel, p: NotificationPayload): Promise<string> {
+    switch (ch) {
+
+      // IN_APP: row already written by NotificationEngine; Supabase Realtime
+      // broadcasts it to connected clients automatically.
+      case 'IN_APP':
+        return 'realtime';
+
+      // PUSH
+      case 'PUSH': {
+        const subs = await NotificationDispatcher._getSubscriptions(p.userId);
+        if (!subs.length) return 'no_subscriptions';
+
+        const pushPayload: PushPayload = {
+          title: p.title,
+          body:  p.message,
+          tag:   p.metadata?.eventType ?? 'viva360',
+          url:   p.metadata?.url ?? '/',
+          data: {
+            eventType:  p.metadata?.eventType,
+            entityType: p.metadata?.entityType,
+            entityId:   p.metadata?.entityId,
+          },
+        };
+
+        const expired = await pushService.sendBatch(subs, pushPayload);
+        if (expired.length) {
+          await prisma.pushSubscription.deleteMany({ where: { endpoint: { in: expired } } });
+          logger.info('push.cleanup_expired', { userId: p.userId, count: expired.length });
         }
+        return `sent:${subs.length - expired.length}`;
+      }
+
+      // EMAIL
+      case 'EMAIL': {
+        const email = await NotificationDispatcher._getEmail(p.userId);
+        if (!email) return 'no_email';
+        await emailService.send({ to: email, subject: p.title, template: 'NOTIFICATION',
+          context: { body: p.message } });
+        return 'sent';
+      }
+
+      // WHATSAPP
+      case 'WHATSAPP': {
+        const phone = await NotificationDispatcher._getPhone(p.userId);
+        if (!phone) return 'no_phone';
+        await whatsappService.send({ to: phone, text: `*${p.title}*\n${p.message}` });
+        return 'sent';
+      }
+
+      default: return 'unknown';
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  private static async _getSubscriptions(userId: string) {
+    try {
+      const rows = await prisma.pushSubscription.findMany({
+        where:  { user_id: userId },
+        select: { endpoint: true, p256dh: true, auth: true },
+      });
+      return rows.map(r => ({ endpoint: r.endpoint, keys: { p256dh: r.p256dh, auth: r.auth } }));
+    } catch (err) {
+      logger.error('push.fetch_subs_error', { userId, err });
+      return [];
+    }
+  }
+
+  private static async _getEmail(userId: string): Promise<string | null> {
+    try {
+      const p = await prisma.profile.findUnique({ where: { id: userId }, select: { email: true } });
+      return p?.email ?? null;
+    } catch { return null; }
+  }
+
+  private static async _getPhone(userId: string): Promise<string | null> {
+    try {
+      const p = await prisma.profile.findUnique({ where: { id: userId }, select: {} });
+      return (p as any)?.phone ?? null;
+    } catch { return null; }
+  }
 }

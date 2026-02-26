@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
-import { sendPushSimulation } from './notifications.controller';
+import { notificationEngine } from '../services/notificationEngine.service';
 import { supabaseAdmin } from '../services/supabase.service';
 import { isMockMode, mockCheckoutResult } from '../services/mockAdapter';
 import { asyncHandler } from '../middleware/async.middleware';
@@ -329,12 +329,24 @@ const runCheckout = async (req: Request, res: Response, options?: { strictContex
 
     // 5. Post-Commit Actions (Notifications)
     if (resolvedReceiverId) {
-      // Notify Receiver (Async/Fire-and-forget or awaited outside tx)
-      await sendPushSimulation(resolvedReceiverId, 'Payment Received', `You received ${normalizedAmount} coins.`);
+      await notificationEngine.emit({
+        type: 'payment.received',
+        actorId: String(userId),
+        targetUserId: String(resolvedReceiverId),
+        entityType: 'transaction',
+        entityId: String(userId),
+        data: { amount: normalizedAmount },
+      });
     }
 
-    // Notify Sender
-    await sendPushSimulation(userId, 'Payment Successful', `Spent ${normalizedAmount} coins.`);
+    await notificationEngine.emit({
+      type: 'checkout.confirmed',
+      actorId: String(userId),
+      targetUserId: String(userId),
+      entityType: 'transaction',
+      entityId: String(userId),
+      data: { context: normalizedContext, confirmationId: null },
+    });
 
     const contextResult = await applyContextWorkflow({
       contextType: normalizedContext,

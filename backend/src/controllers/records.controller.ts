@@ -103,7 +103,7 @@ export const createNote = asyncHandler(async (req: Request, res: Response) => {
             type,
             created_at: now,
             updated_at: now,
-        };
+        });
         mockAdapter.records.records.set(record.id, record);
         return res.status(201).json(record);
     }

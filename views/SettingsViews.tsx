@@ -9,6 +9,7 @@ import {
     Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2, Trash2, Download
 } from 'lucide-react';
 import { DynamicAvatar, Card, WalletSplit, PortalView, DegradedRetryNotice } from '../components/Common';
+import { useNotifications } from '../src/contexts/useNotifications';
 import { authApi } from '../services/api/authProxy';
 import { accountApi } from '../services/api/accountClient';
 import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
@@ -452,28 +453,13 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
     }
 
     if (view === ViewState.SETTINGS_NOTIFICATIONS) {
-        return (
-            <PortalView title={roleConfig.notifications.title} subtitle={roleConfig.notifications.subtitle} onBack={() => setView(ViewState.SETTINGS)}>
-                <div className="space-y-4">
-                    {roleConfig.notifications.items.map((item) => (
-                        <div key={item.key} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex justify-between items-center shadow-sm">
-                            <div className="flex items-center gap-5">
-                                <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20} /></div>
-                                <div><h4 className="font-bold text-nature-900 text-sm leading-tight">{item.label}</h4><p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">{item.sub}</p></div>
-                            </div>
-                            <SettingsToggle active={notifPrefs[item.key]} onToggle={() => setNotifPrefs(s => ({ ...s, [item.key]: !s[item.key] }))} />
-                        </div>
-                    ))}
-
-                    <button
-                        onClick={handleSaveNotifications}
-                        className="w-full py-4 bg-primary-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
-                    >
-                        <Check size={16} /> {roleConfig.notifications.saveLabel}
-                    </button>
-                </div>
-            </PortalView>
-        );
+        return <SettingsNotificationsSection
+            roleConfig={roleConfig}
+            notifPrefs={notifPrefs}
+            setNotifPrefs={setNotifPrefs}
+            handleSaveNotifications={handleSaveNotifications}
+            onBack={() => setView(ViewState.SETTINGS)}
+        />;
     }
 
     const menuItems: SettingsMenuItem[] = [
@@ -536,3 +522,93 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
         </div>
     );
 };
+// ─── Push-enabled Notifications Settings ─────────────────────────────────────
+function SettingsNotificationsSection({ roleConfig, notifPrefs, setNotifPrefs, handleSaveNotifications, onBack }: {
+    roleConfig: any; notifPrefs: any; setNotifPrefs: any;
+    handleSaveNotifications: () => void; onBack: () => void;
+}) {
+    const { pushPermission, pushSubscribed, requestPush, disablePush } = useNotifications();
+    const [pushLoading, setPushLoading] = React.useState(false);
+
+    const handlePushToggle = async () => {
+        setPushLoading(true);
+        try {
+            if (pushSubscribed) {
+                await disablePush();
+            } else {
+                const ok = await requestPush();
+                if (!ok && pushPermission === 'denied') {
+                    alert('Permissão de notificações bloqueada. Ative nas configurações do navegador.');
+                }
+            }
+        } finally {
+            setPushLoading(false);
+        }
+    };
+
+    const pushLabel = pushPermission === 'unsupported'
+        ? 'Não suportado neste dispositivo'
+        : pushPermission === 'denied'
+        ? 'Bloqueado — ative no navegador'
+        : pushSubscribed ? 'Ativo neste dispositivo' : 'Inativo';
+
+    return (
+        <PortalView title={roleConfig.notifications.title} subtitle={roleConfig.notifications.subtitle} onBack={onBack}>
+            <div className="space-y-4">
+                {/* Push notifications card */}
+                <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-5">
+                            <div className="p-4 bg-indigo-50 text-indigo-500 rounded-2xl">
+                                <Smartphone size={20} />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-nature-900 text-sm leading-tight">Notificações Push</h4>
+                                <p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">
+                                    {pushLabel}
+                                </p>
+                            </div>
+                        </div>
+                        {pushPermission !== 'unsupported' && pushPermission !== 'denied' ? (
+                            pushLoading
+                                ? <Loader2 size={20} className="animate-spin text-nature-400" />
+                                : <SettingsToggle active={pushSubscribed} onToggle={handlePushToggle} />
+                        ) : (
+                            <span className="text-[9px] text-rose-400 font-bold uppercase tracking-widest">
+                                {pushPermission === 'denied' ? 'Bloqueado' : 'N/D'}
+                            </span>
+                        )}
+                    </div>
+                    {pushPermission === 'denied' && (
+                        <p className="mt-3 text-[10px] text-nature-400 leading-relaxed">
+                            Para ativar, acesse as Configurações do seu navegador → Notificações → Permitir para este site.
+                        </p>
+                    )}
+                </div>
+
+                {/* Per-category toggles */}
+                {roleConfig.notifications.items.map((item: any) => (
+                    <div key={item.key} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex justify-between items-center shadow-sm">
+                        <div className="flex items-center gap-5">
+                            <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20} /></div>
+                            <div>
+                                <h4 className="font-bold text-nature-900 text-sm leading-tight">{item.label}</h4>
+                                <p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">{item.sub}</p>
+                            </div>
+                        </div>
+                        <SettingsToggle active={notifPrefs[item.key]} onToggle={() => setNotifPrefs((s: any) => ({ ...s, [item.key]: !s[item.key] }))} />
+                    </div>
+                ))}
+
+                <button
+                    onClick={handleSaveNotifications}
+                    className="w-full py-4 bg-primary-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-4 flex items-center justify-center gap-2"
+                >
+                    <Check size={16} /> {roleConfig.notifications.saveLabel}
+                </button>
+            </div>
+        </PortalView>
+    );
+}
+
+

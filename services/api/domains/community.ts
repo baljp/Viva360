@@ -43,6 +43,22 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
       await request('/notifications/read-all', { method: 'POST' });
       return true;
     },
+    subscribePush: async (payload: {
+      endpoint: string;
+      keys: { p256dh: string; auth: string };
+      userAgent?: string;
+    }) => {
+      return await request('/notifications/push/subscribe', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+    unsubscribePush: async (endpoint: string) => {
+      return await request('/notifications/push/subscribe', {
+        method: 'DELETE',
+        body: JSON.stringify({ endpoint }),
+      });
+    },
   },
 
   tribe: {

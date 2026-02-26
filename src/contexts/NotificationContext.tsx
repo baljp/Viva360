@@ -1,118 +1,134 @@
-
-import React, { useEffect, useState } from 'react';
-import { supabase, isMockMode } from '../../lib/supabase';
-import { api } from '../../services/api';
-import { Notification } from '../../types'; // Adjust path if needed
-import { ZenToast } from '../../components/Common';
+/**
+ * NotificationContext — in-app + Web Push coordination
+ *
+ * On user login:
+ *   1. Loads in-app notifications from Supabase
+ *   2. Subscribes to Supabase Realtime for live updates
+ *   3. Checks push permission — if already granted, auto-subscribes (silently)
+ *
+ * Exposes requestPush() / disablePush() for the Settings screen.
+ */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { supabase, isMockMode }          from '../../lib/supabase';
+import { api }                           from '../../services/api';
+import { Notification }                  from '../../types';
 import { isInAppMuted, onInAppMuteChange } from '../utils/inAppMute';
-import { NotificationContextStore } from './NotificationContextStore';
+import { NotificationContextStore }      from './NotificationContextStore';
+import {
+  subscribePush, unsubscribePush,
+  getPushSubscriptionState, getPushPermissionState,
+  PushPermissionState,
+} from '../../lib/notifications';
 
-interface NotificationContextType {
-    notifications: Notification[];
-    unreadCount: number;
-    markAsRead: (id: string) => Promise<void>;
-    markAllRead: () => Promise<void>;
+export interface NotificationContextType {
+  notifications:  Notification[];
+  unreadCount:    number;
+  markAsRead:     (id: string) => Promise<void>;
+  markAllRead:    () => Promise<void>;
+  // Push
+  pushPermission: PushPermissionState;
+  pushSubscribed: boolean;
+  requestPush:    () => Promise<boolean>;
+  disablePush:    () => Promise<void>;
 }
 export type { NotificationContextType };
-const NotificationContext = NotificationContextStore as React.Context<NotificationContextType>;
+
+const Ctx = NotificationContextStore as React.Context<NotificationContextType>;
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [user, setUser] = useState<any>(null);
-    const [muteNonce, setMuteNonce] = useState(0);
+  const [notifications,  setNotifications]  = useState<Notification[]>([]);
+  const [user,           setUser]           = useState<any>(null);
+  const [muteNonce,      setMuteNonce]      = useState(0);
+  const [pushPermission, setPushPermission] = useState<PushPermissionState>(getPushPermissionState);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const pushChecked = useRef(false);
 
-    // Initial Load & Auth Check
-    useEffect(() => {
-        const loadUser = async () => {
-            const currentUser = await api.auth.getCurrentSession();
-            setUser(currentUser);
-        };
-        loadUser();
+  // ── Auth ────────────────────────────────────────────────────────────────────
+  useEffect(() => {
+    const load = async () => { setUser(await api.auth.getCurrentSession()); };
+    load();
+    if (isMockMode) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(load);
+    return () => subscription.unsubscribe();
+  }, []);
 
-        if (isMockMode) return;
+  useEffect(() => onInAppMuteChange(() => setMuteNonce(n => n + 1)), []);
 
-        // Listen for auth changes to reload user
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-            loadUser();
-        });
+  // ── Auto-subscribe push after login ─────────────────────────────────────────
+  useEffect(() => {
+    if (!user || isMockMode || pushChecked.current) return;
+    pushChecked.current = true;
+    (async () => {
+      const state = await getPushSubscriptionState();
+      setPushPermission(state.permission);
+      setPushSubscribed(state.subscribed);
+      // If user already granted permission before (e.g., new device, cleared sub)
+      if (state.permission === 'granted' && !state.subscribed) {
+        const res = await subscribePush();
+        if (res.success) setPushSubscribed(true);
+      }
+    })();
+  }, [user]);
 
-        return () => subscription.unsubscribe();
-    }, []);
+  // ── Realtime in-app notifications ────────────────────────────────────────────
+  useEffect(() => {
+    if (!user || isMockMode || isInAppMuted()) return;
 
-    useEffect(() => {
-        return onInAppMuteChange(() => setMuteNonce((n) => n + 1));
-    }, []);
-
-    // Realtime Subscription
-    useEffect(() => {
-        if (!user || isMockMode) return;
-        if (isInAppMuted()) return;
-
-        // Fetch initial
-        const fetchNotes = async () => {
-            const { data } = await supabase
-                .from('notifications')
-                .select('*')
-                .eq('user_id', user.id)
-                .order('timestamp', { ascending: false })
-                .limit(20);
-            
-            if (data) setNotifications(data as any);
-        };
-        fetchNotes();
-
-        // Subscribe
-        const channel = supabase
-            .channel('public:notifications')
-            .on(
-                'postgres_changes',
-                {
-                    event: 'INSERT',
-                    schema: 'public',
-                    table: 'notifications',
-                    filter: `user_id=eq.${user.id}`,
-                },
-                (payload) => {
-                    const newNote = payload.new as Notification;
-                    setNotifications(prev => [newNote, ...prev]);
-                    
-                    // Optional: Sound or Browser Notification here
-                }
-            )
-            .subscribe();
-
-        return () => {
-            supabase.removeChannel(channel);
-        };
-    }, [user, muteNonce]);
-
-    const markAsRead = async (id: string) => {
-        // Optimistic update
-        setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-        
-        if (!isMockMode) {
-            await supabase.from('notifications').update({ read: true }).eq('id', id);
-        }
+    const fetch = async () => {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('timestamp', { ascending: false })
+        .limit(30);
+      if (data) setNotifications(data as Notification[]);
     };
+    fetch();
 
-    const markAllRead = async () => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-        if (!isMockMode && user) {
-            await supabase.from('notifications').update({ read: true }).eq('user_id', user.id);
-        }
-    };
+    const ch = supabase
+      .channel(`notif:${user.id}`)
+      .on('postgres_changes', {
+        event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}`,
+      }, p => setNotifications(prev => [p.new as Notification, ...prev]))
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'notifications', filter: `user_id=eq.${user.id}`,
+      }, p => setNotifications(prev => prev.map(n => n.id === (p.new as Notification).id ? p.new as Notification : n)))
+      .subscribe();
 
-    const unreadCount = notifications.filter(n => !n.read).length;
+    return () => { supabase.removeChannel(ch); };
+  }, [user, muteNonce]);
 
-    return (
-        <NotificationContext.Provider value={{ notifications, unreadCount, markAsRead, markAllRead }}>
-            {children}
-            {/* Global Realtime Toast Container could go here */}
-            {notifications.length > 0 && !notifications[0].read && (
-                 // Small trick to show only the newest one if it just arrived (needs better logic for "just arrived")
-                 // For now, we prefer the local UI (bells) to handle display
-                 null
-            )}
-        </NotificationContext.Provider>
-    );
+  // ── Actions ──────────────────────────────────────────────────────────────────
+  const markAsRead = useCallback(async (id: string) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+    if (!isMockMode) await supabase.from('notifications').update({ read: true }).eq('id', id);
+  }, []);
+
+  const markAllRead = useCallback(async () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    if (!isMockMode && user)
+      await supabase.from('notifications').update({ read: true }).eq('user_id', user.id);
+  }, [user]);
+
+  const requestPush = useCallback(async (): Promise<boolean> => {
+    const res = await subscribePush();
+    setPushPermission(getPushPermissionState());
+    if (res.success) setPushSubscribed(true);
+    return res.success;
+  }, []);
+
+  const disablePush = useCallback(async () => {
+    const ok = await unsubscribePush();
+    if (ok) setPushSubscribed(false);
+  }, []);
+
+  return (
+    <Ctx.Provider value={{
+      notifications, unreadCount: notifications.filter(n => !n.read).length,
+      markAsRead, markAllRead,
+      pushPermission, pushSubscribed, requestPush, disablePush,
+    }}>
+      {children}
+    </Ctx.Provider>
+  );
 };
