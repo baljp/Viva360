@@ -5,12 +5,19 @@ import { PortalView, DynamicAvatar } from '../../../components/Common';
 import { api } from '../../../services/api';
 import type { User } from '../../../types';
 import { roundTripTelemetry } from '../../../lib/telemetry';
+import { RecurrenceToggle, type RecurrenceState } from '../../../components/RecurrenceToggle';
 
 // user é injetado pelo ScreenConnector via props spread
 export default function BookingConfirm({ user, onClose }: { user?: User; onClose?: () => void }) {
   const { state, go, back, reset, notify, refreshData } = useBuscadorFlow();
   const [isBooking, setIsBooking] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [recurrence, setRecurrence] = useState<RecurrenceState>({
+    enabled: false,
+    config: { freq: 'WEEKLY', byDay: [], count: 4 },
+    preview: null,
+    totalCount: 0,
+  });
 
   const pro = state.data.pros.find(p => p.id === state.selectedProfessionalId);
   const dateStr = (state.selectedDate || new Date()).toLocaleDateString('pt-BR', {
@@ -22,32 +29,66 @@ export default function BookingConfirm({ user, onClose }: { user?: User; onClose
   // 1. POST /appointments → cria registro no backend
   // 2. refreshData()       → recarrega lista de agendamentos no flow state
   // 3. só então navega    → garante que o dado persiste mesmo após F5
+  const selectedDate = state.selectedDate || new Date();
+  const startAtIso   = selectedDate.toISOString();
+
   const handleConfirm = async () => {
     if (!pro || !user || isBooking) return;
     setIsBooking(true);
     const rt = roundTripTelemetry.start('booking', 'confirm');
     try {
-      await api.appointments.create({
-        id: '',                          // gerado pelo backend
-        clientId: user.id,
-        clientName: user.name,
-        professionalId: pro.id,
-        professionalName: pro.name,
-        date: (state.selectedDate || new Date()).toISOString(),
-        time: '14:30',
-        status: 'pending',
-        serviceName: (pro.specialty || [])[0] || 'Atendimento',
-        price: 0,
-      });
-
-      // Recarrega dados para que o agendamento apareça em AppointmentsList
-      await refreshData();
-      roundTripTelemetry.success('booking', 'confirm', rt.correlationId, rt.startMs);
-      notify('Agendamento confirmado!', `Sessão com ${pro.name} registrada com sucesso.`, 'success');
+      if (recurrence.enabled) {
+        // ── Recorrente: criar série ────────────────────────────────────────
+        const hasConflicts = (recurrence.preview ?? []).some(o => o.hasConflict);
+        const result: any = await (api as any).series.create({
+          guardianId:       pro.id,
+          clientId:         user.id,
+          startAt:          startAtIso,
+          durationMin:      60,
+          timezone:         Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Fortaleza',
+          freq:             recurrence.config.freq,
+          byDay:            recurrence.config.byDay,
+          count:            recurrence.config.count,
+          serviceName:      (pro.specialty || [])[0] || 'Atendimento',
+          price:            0,
+          conflictStrategy: hasConflicts ? 'skip' : 'fail',
+        });
+        await refreshData();
+        roundTripTelemetry.success('booking', 'confirm', rt.correlationId, rt.startMs);
+        notify(
+          'Sessões recorrentes criadas!',
+          `${result.createdCount} sessões com ${pro.name} agendadas com sucesso.`,
+          'success'
+        );
+      } else {
+        // ── Avulso: fluxo original ─────────────────────────────────────────
+        await api.appointments.create({
+          id: '',
+          clientId: user.id,
+          clientName: user.name,
+          professionalId: pro.id,
+          professionalName: pro.name,
+          date: startAtIso,
+          time: '14:30',
+          status: 'pending',
+          serviceName: (pro.specialty || [])[0] || 'Atendimento',
+          price: 0,
+        });
+        await refreshData();
+        roundTripTelemetry.success('booking', 'confirm', rt.correlationId, rt.startMs);
+        notify('Agendamento confirmado!', `Sessão com ${pro.name} registrada com sucesso.`, 'success');
+      }
       go('CHECKOUT');
     } catch (err: any) {
       roundTripTelemetry.error('booking', 'confirm', rt.correlationId, rt.startMs, err?.message || 'unknown');
-      notify('Falha no agendamento', err?.message || 'Não foi possível confirmar. Tente novamente.', 'error');
+      if (err?.code === 'RECURRENCE_CONFLICTS' && err?.conflicts?.length) {
+        const dates = err.conflicts.slice(0, 3).map((c: any) =>
+          new Date(c.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+        ).join(', ');
+        notify('Conflito de horários', `Datas com conflito: ${dates}. Ative "pular conflitos" ou mude os horários.`, 'error');
+      } else {
+        notify('Falha no agendamento', err?.message || 'Não foi possível confirmar. Tente novamente.', 'error');
+      }
     } finally {
       setIsBooking(false);
     }
@@ -93,7 +134,9 @@ export default function BookingConfirm({ user, onClose }: { user?: User; onClose
           >
             {isBooking
               ? <><Loader2 size={18} className="animate-spin" /> Confirmando...</>
-              : <><Check size={18} /> Confirmar e Seguir</>}
+              : recurrence.enabled
+                ? <><Check size={18} /> Criar {recurrence.totalCount || recurrence.config.count} Sessões</>
+                : <><Check size={18} /> Confirmar e Seguir</>}
           </button>
           <button onClick={back} className="w-full py-3 text-nature-400 font-bold uppercase text-[9px] tracking-widest transition-all hover:text-nature-600">
             Revisar Horário
@@ -111,6 +154,16 @@ export default function BookingConfirm({ user, onClose }: { user?: User; onClose
         </div>
 
         <div className="w-full space-y-4 px-2">
+          {/* Recorrência — só aparece quando VITE_RECURRENCE_ENABLED=true */}
+          <RecurrenceToggle
+            startAt={startAtIso}
+            guardianId={pro?.id ?? ''}
+            clientId={user?.id ?? ''}
+            durationMin={60}
+            timezone={Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Fortaleza'}
+            onChange={setRecurrence}
+          />
+
           <div className="flex items-center gap-4 p-5 bg-white/80 backdrop-blur-md rounded-3xl border border-nature-100 shadow-sm relative group overflow-hidden">
             <div className="w-12 h-12 rounded-2xl bg-nature-50 flex items-center justify-center text-nature-600 transition-transform group-hover:scale-110">
               <Calendar size={22} />

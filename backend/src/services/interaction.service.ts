@@ -469,6 +469,67 @@ export class InteractionService {
     return { sent: true };
   }
 
+
+  async emitSeriesCreated(params: {
+    seriesId: string;
+    guardianId: string;
+    clientId: string;
+    serviceName: string;
+    createdCount: number;
+    firstDateIso: string;
+  }) {
+    const { seriesId, guardianId, clientId, serviceName, createdCount, firstDateIso } = params;
+    const dateLabel = new Date(firstDateIso).toLocaleDateString('pt-BR', {
+      weekday: 'short', day: '2-digit', month: 'short',
+    });
+    // Notify guardian
+    await notificationEngine.emit({
+      type: 'series.created',
+      actorId: guardianId,
+      targetUserId: guardianId,
+      entityType: 'appointment_series',
+      entityId: seriesId,
+      data: { createdCount, serviceName, firstDateIso },
+    });
+    // Notify client
+    await notificationEngine.emit({
+      type: 'series.created',
+      actorId: guardianId,
+      targetUserId: clientId,
+      entityType: 'appointment_series',
+      entityId: seriesId,
+      data: { createdCount, serviceName, firstDateIso },
+    });
+    return { sent: true };
+  }
+
+  async emitSeriesCanceled(params: {
+    seriesId: string;
+    guardianId: string;
+    clientId: string;
+    canceledBy: string;
+    canceledCount: number;
+  }) {
+    const { seriesId, guardianId, clientId, canceledBy, canceledCount } = params;
+    await notificationEngine.emit({
+      type: 'series.canceled',
+      actorId: canceledBy,
+      targetUserId: guardianId,
+      entityType: 'appointment_series',
+      entityId: seriesId,
+      data: { canceledCount },
+    });
+    await notificationEngine.emit({
+      type: 'series.canceled',
+      actorId: canceledBy,
+      targetUserId: clientId,
+      entityType: 'appointment_series',
+      entityId: seriesId,
+      data: { canceledCount },
+    });
+    return { sent: true };
+  }
+
   logInteractionFailure(label: string, error: unknown, metadata?: Record<string, unknown>) {
     logger.warn('interaction_emit_failed', {
       label,

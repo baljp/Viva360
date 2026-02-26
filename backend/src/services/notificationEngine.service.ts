@@ -81,6 +81,14 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
     title: () => 'Agenda Liberada',
     message: (data) => `Bloqueio removido da agenda do santuário para ${data.date}.`,
   },
+  'series.created': {
+    title: () => 'Sessões Recorrentes Criadas',
+    message: (data: any) => `${data.createdCount} sessão(ões) de "${data.serviceName}" agendadas com sucesso.`,
+  },
+  'series.canceled': {
+    title: () => 'Série de Sessões Cancelada',
+    message: (data: any) => `${data.canceledCount} sessão(ões) futuras foram canceladas.`,
+  },
   'record.updated': {
     title: () => 'Prontuário Atualizado',
     message: (data) => data.summary

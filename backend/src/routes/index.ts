@@ -3,6 +3,7 @@ import { authenticateUser } from '../middleware/auth.middleware';
 import authRoutes from './auth.routes';
 import profileRoutes from './profile.routes';
 import appointmentsRoutes from './appointments.routes';
+import seriesRoutes from './series.routes';
 import recruitmentRoutes from './recruitment.routes';
 
 import ritualsRoutes from './rituals.routes';
@@ -47,6 +48,7 @@ router.use('/finance', authenticateUser, financeRoutes);
 router.use('/rooms', authenticateUser, roomsRoutes);
 router.use('/profiles', authenticateUser, profileRoutes);
 router.use('/appointments', authenticateUser, appointmentsRoutes);
+router.use('/appointments/series', authenticateUser, seriesRoutes);
 router.use('/recruitment', authenticateUser, recruitmentRoutes);
 
 // New Feature Routes

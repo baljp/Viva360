@@ -234,6 +234,60 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
     },
   },
 
+  series: {
+    /** Preview upcoming occurrences + conflicts (no DB write). */
+    preview: async (params: {
+      guardianId: string;
+      clientId: string;
+      startAt: string;
+      durationMin: number;
+      timezone: string;
+      freq: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+      byDay: string[];
+      count?: number;
+      until?: string;
+    }) => {
+      return await request('/appointments/series/preview', {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+    },
+
+    /** Create a series + all occurrences. */
+    create: async (params: {
+      guardianId: string;
+      clientId: string;
+      spaceId?: string;
+      startAt: string;
+      durationMin: number;
+      timezone: string;
+      freq: 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY';
+      byDay: string[];
+      count?: number;
+      until?: string;
+      serviceName: string;
+      price?: number;
+      conflictStrategy?: 'skip' | 'fail';
+    }) => {
+      return await request('/appointments/series', {
+        method: 'POST',
+        body: JSON.stringify(params),
+      });
+    },
+
+    /** Get series with all appointments. */
+    get: async (seriesId: string) => {
+      return await request(`/appointments/series/${seriesId}`);
+    },
+
+    /** Soft-cancel all future appointments in the series. */
+    cancel: async (seriesId: string) => {
+      return await request(`/appointments/series/${seriesId}`, {
+        method: 'DELETE',
+      });
+    },
+  },
+
   reviews: {
     list: async () => {
       try {

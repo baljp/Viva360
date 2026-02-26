@@ -64,8 +64,10 @@ model Profile {
 
   // Relations
   user                   User           @relation(fields: [id], references: [id], onDelete: Cascade)
-  appointments_as_client Appointment[]  @relation("ClientAppointments")
-  appointments_as_pro    Appointment[]  @relation("ProAppointments")
+  appointments_as_client Appointment[]      @relation("ClientAppointments")
+  appointments_as_pro    Appointment[]      @relation("ProAppointments")
+  series_as_guardian     AppointmentSeries[] @relation("GuardianSeries")
+  series_as_client       AppointmentSeries[] @relation("ClientSeries")
   transactions           Transaction[]
   notifications          Notification[]
   products               Product[]
@@ -174,9 +176,45 @@ model Appointment {
   client       Profile? @relation("ClientAppointments", fields: [client_id], references: [id])
   professional Profile? @relation("ProAppointments", fields: [professional_id], references: [id])
 
+  series_id          String?   @db.Uuid
+  occurrence_index   Int?
+  is_exception       Boolean   @default(false)
+  original_start_at  DateTime? @db.Timestamptz(6)
+
+  series AppointmentSeries? @relation(fields: [series_id], references: [id])
+
+  @@unique([series_id, occurrence_index])
   @@index([client_id, status])
   @@index([professional_id, status])
+  @@index([series_id])
   @@map("appointments")
+  @@schema("public")
+}
+
+
+model AppointmentSeries {
+  id               String    @id @default(uuid()) @db.Uuid
+  guardian_id      String    @db.Uuid
+  client_id        String    @db.Uuid
+  space_id         String?   @db.Uuid
+  start_at         DateTime  @db.Timestamptz(6)
+  duration_min     Int       @default(60)
+  timezone         String    @default("America/Fortaleza")
+  freq             String    // WEEKLY | BIWEEKLY | MONTHLY
+  by_day           String[]  @default([])
+  count            Int?
+  until            DateTime? @db.Timestamptz(6)
+  status           String    @default("active") // active | canceled
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime  @updatedAt @db.Timestamptz(6)
+
+  guardian     Profile  @relation("GuardianSeries", fields: [guardian_id], references: [id])
+  client       Profile  @relation("ClientSeries", fields: [client_id], references: [id])
+  appointments Appointment[]
+
+  @@index([guardian_id])
+  @@index([client_id])
+  @@map("appointment_series")
   @@schema("public")
 }
 

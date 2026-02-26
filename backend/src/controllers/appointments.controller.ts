@@ -182,6 +182,13 @@ export const rescheduleAppointment = asyncHandler(async (req: Request, res: Resp
     };
     if (payload.service_name) updatePayload.service_name = payload.service_name;
 
+    // If this appointment belongs to a series, mark it as an exception
+    // and preserve the original start date for audit/display purposes.
+    if (existing.series_id) {
+      updatePayload.is_exception = true;
+      updatePayload.original_start_at = existing.date; // preserve original
+    }
+
     const { data: updated, error: updateError } = await supabaseAdmin
       .from('appointments')
       .update(updatePayload)

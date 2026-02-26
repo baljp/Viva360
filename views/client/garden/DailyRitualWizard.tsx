@@ -7,6 +7,7 @@ import { SoulCard } from '../../../src/components/SoulCard';
 import { phraseService } from '../../../services/phraseService';
 import { gardenService } from '../../../services/gardenService';
 import { api } from '../../../services/api';
+import { roundTripTelemetry } from '../../../lib/telemetry';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { dataUrlToBlob } from '../../../src/utils/dataUrl';
 import { buildLocalImageKey, idbImages } from '../../../src/utils/idbImageStore';
