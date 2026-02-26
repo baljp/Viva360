@@ -120,6 +120,9 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         return [];
       }
     },
+    // TODO(backend): /professionals/:proId/notes e /professionals/access/:pid
+    // nao existem no backend. Dead code — nenhuma view ativa chama estas funcoes.
+    // Quando implementar: usar /records ou /links conforme o dominio correto.
     updateNotes: async (pid: string, proId: string, content: string) => {
       return await request(`/professionals/${proId}/notes`, {
         method: 'POST',

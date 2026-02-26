@@ -148,6 +148,9 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
         return [];
       }
     },
+    // TODO(backend): /spaces/proposals e /spaces/proposals/:id/vote nao existem em space.routes.ts.
+    // Dead code — nenhuma view ativa chama getProposals() ou voteProposal().
+    // Implementar backend ou feature-flag antes de usar.
     getProposals: async () => {
       try {
         return await request('/spaces/proposals');

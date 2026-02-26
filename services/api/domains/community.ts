@@ -279,7 +279,7 @@ export const createCommunityDomain = ({ request }: CommunityDomainDeps) => ({
     searchProfiles: async (q: string): Promise<Array<{ id: string; name: string; avatar: string | null; role: string | null }>> => {
       try {
         if (q.trim().length < 2) return [];
-        const data = await request(`/profile/search?q=${encodeURIComponent(q)}`);
+        const data = await request(`/profiles/search?q=${encodeURIComponent(q)}`);
         return Array.isArray(data) ? data : [];
       } catch (err) {
         captureFrontendError(err, { domain: 'community', op: 'chat.searchProfiles' });
