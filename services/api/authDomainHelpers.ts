@@ -59,6 +59,7 @@ export const toDomainAuthMessage = (input: { code?: string | null; reason?: stri
   if (code === 'EMAIL_ALREADY_EXISTS') return 'Este e-mail já está cadastrado. Entre com ele ou use outro.';
   if (code === 'ROLE_ALREADY_ACTIVE') return 'Este perfil já existe neste e-mail.';
   if (code === 'REGISTRATION_INCOMPLETE' || reason === 'REGISTRATION_INCOMPLETE') return 'Seu cadastro está incompleto, finalize para entrar.';
+  if (code === 'EMAIL_NOT_CONFIRMED' || reason === 'EMAIL_NOT_CONFIRMED') return 'Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.';
   if (reason === 'INVITE_APPROVED_PENDING_REGISTRATION') return 'Seu e-mail está aprovado para cadastro. Finalize o cadastro para entrar.';
   if (reason === 'OPEN_CLIENT_REGISTRATION') return 'Conta ainda não cadastrada. Você pode criar um perfil Buscador sem convite.';
   if (reason === 'INVITE_PENDING_APPROVAL') return 'Seu convite está em análise. Aguarde aprovação para entrar.';

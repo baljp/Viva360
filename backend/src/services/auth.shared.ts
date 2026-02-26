@@ -8,7 +8,9 @@ export type AccessReason =
   | 'INVITE_PENDING_APPROVAL'
   | 'EMAIL_BLOCKED'
   | 'EMAIL_NOT_AUTHORIZED'
-  | 'REGISTRATION_INCOMPLETE';
+  | 'REGISTRATION_INCOMPLETE'
+  | 'PROFILE_MISSING_WILL_AUTOCREATE'
+  | 'EMAIL_NOT_CONFIRMED';
 
 export type AccountState =
   | 'ACTIVE'
@@ -26,7 +28,8 @@ export type NextAction =
   | 'COMPLETE_REGISTRATION'
   | 'REQUEST_INVITE'
   | 'WAIT_APPROVAL'
-  | 'CONTACT_SUPPORT';
+  | 'CONTACT_SUPPORT'
+  | 'CONFIRM_EMAIL';
 
 export type AuthorizationStatus = {
   canLogin: boolean;

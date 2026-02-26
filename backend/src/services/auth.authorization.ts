@@ -26,7 +26,7 @@ export const getAuthorizationStatusInternal = async (
     }),
     prisma.user.findUnique({
       where: { email: normalizedEmail },
-      select: { id: true, raw_user_meta_data: true },
+      select: { id: true, raw_user_meta_data: true, email_confirmed_at: true },
     }),
   ]);
 
@@ -66,14 +66,32 @@ export const getAuthorizationStatusInternal = async (
     const metadataRole = normalizeRole(String(metadata.role || ''));
     const role = metadataRole || allowlistRole || 'CLIENT';
 
+    // Email not confirmed yet — don't allow login
+    if (!authUser.email_confirmed_at) {
+      return {
+        canLogin: false,
+        canRegister: false,
+        role,
+        roles: [role],
+        reason: 'EMAIL_NOT_CONFIRMED',
+        accountState: 'INCOMPLETE_REGISTRATION',
+        nextAction: 'CONFIRM_EMAIL',
+      };
+    }
+
+    // User exists in auth.users with confirmed email but no profile yet.
+    // Allow login — AuthService.login will autocreate the profile on success.
+    // Blocking here with canLogin: false causes "Falha no login" for users
+    // whose profile was not created during registration (e.g. Google OAuth flow,
+    // partial migrations, or registration crash after Supabase account creation).
     return {
-      canLogin: false,
-      canRegister: true,
+      canLogin: true,
+      canRegister: false,
       role,
       roles: [role],
-      reason: 'REGISTRATION_INCOMPLETE',
+      reason: 'PROFILE_MISSING_WILL_AUTOCREATE',
       accountState: 'INCOMPLETE_REGISTRATION',
-      nextAction: 'COMPLETE_REGISTRATION',
+      nextAction: 'LOGIN',
     };
   }
 
