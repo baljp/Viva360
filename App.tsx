@@ -28,6 +28,10 @@ const SmartTutorial = lazyWithRetry(() => import('./components/SmartTutorial').t
 import { NotFoundScreen } from './src/navigation/NotFoundScreen';
 import { preloadRoleViews } from './src/utils/loaderUtils';
 import { lazyWithRetry } from './src/utils/lazyWithRetry';
+import { telemetry } from './lib/telemetry';
+import { installFlowTelemetryRuntime } from './src/flow/flowTelemetryRuntime';
+// Instala runtimes de telemetria no carregamento da app
+installFlowTelemetryRuntime();
 import { VIEW_PATHS, resolveHomePath, resolveViewFromPath } from './src/app/routing';
 import { clearCartStorage, clearPendingInvite, loadCartFromStorage, mergeUserForApp, persistCartToStorage, readPendingInvite } from './src/app/userSession';
 import { useAppSessionBootstrap, useOAuthConfigWarning, useScrollResetOnPathChange } from './src/app/bootstrap';
@@ -103,6 +107,7 @@ const App: React.FC = () => {
     const handleLogin = useCallback((u: any) => {
         if (!u) return;
         handleUpdateUser(u);
+        telemetry.setUser(u.id || null);
         const role = String(u.activeRole || u.role).toUpperCase();
         preloadRoleViews(role);
         console.log("DEBUG: handleLogin Role:", role);
@@ -203,6 +208,7 @@ const App: React.FC = () => {
         } catch (e) {
             console.error("Logout error", e);
         } finally {
+            telemetry.setUser(null);
             setCurrentUser(null);
             navigate('/login');
         }
