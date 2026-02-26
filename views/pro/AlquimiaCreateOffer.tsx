@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { PortalView } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { Plus, Sparkles, Clock, Star } from 'lucide-react';
+import { User } from '../../types';
 import { api } from '../../services/api';
 
-export const AlquimiaCreateOffer: React.FC = () => {
+export const AlquimiaCreateOffer: React.FC<{ user?: User }> = ({ user }) => {
     const { go, back, notify } = useGuardiaoFlow();
     const [formData, setFormData] = useState({
         title: '',
@@ -30,7 +31,7 @@ export const AlquimiaCreateOffer: React.FC = () => {
                 price: formData.credits,
                 category: formData.specialty || 'outros',
                 type: formData.type,
-                ownerId: 'current_user',
+                ownerId: user?.id || 'me', // servidor usa req.user.userId — este campo é ignorado no backend
                 image: formData.type === 'physical' 
                     ? 'https://images.unsplash.com/photo-1512418490979-92798cec1380?q=80&w=800' 
                     : (formData.type === 'digital' 

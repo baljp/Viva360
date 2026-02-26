@@ -34,7 +34,8 @@ type FlowAction =
     | { type: 'CLEAR_NOTIFICATION' }
     | { type: 'SELECT_APPOINTMENT'; payload: Appointment }
     | { type: 'SELECT_PATIENT'; payload: { id: string; name?: string } | null }
-    | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null };
+    | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null }
+    | { type: 'SELECT_SANTUARIO'; payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null };
 
 // Initial State Factory
 const createInitialState = (): GuardiaoContextState => ({
@@ -117,6 +118,7 @@ export type GuardiaoFlowContextValue = {
     selectAppointment: (apt: Appointment) => void;
     selectPatient: (payload: { id: string; name?: string } | null) => void;
     selectChatRoom: (payload: { id: string; name?: string } | null) => void;
+    selectSantuario: (payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null) => void;
 };
 
 const GuardiaoFlowContext = GuardiaoFlowContextStore as React.Context<GuardiaoFlowContextValue | undefined>;
@@ -253,9 +255,10 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const selectAppointment = (apt: Appointment) => dispatch({ type: 'SELECT_APPOINTMENT', payload: apt });
     const selectPatient = (payload: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_PATIENT', payload });
     const selectChatRoom = (payload: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_CHAT_ROOM', payload });
+    const selectSantuario = (payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null) => dispatch({ type: 'SELECT_SANTUARIO', payload });
 
     return (
-        <GuardiaoFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, notify, selectAppointment, selectPatient, selectChatRoom }}>
+        <GuardiaoFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, notify, selectAppointment, selectPatient, selectChatRoom, selectSantuario }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard

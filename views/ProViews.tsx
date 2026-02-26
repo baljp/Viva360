@@ -96,7 +96,7 @@ export const ProViews: React.FC<{
                     <button onClick={() => refreshData(user.id)} className="px-4 py-2 bg-rose-600 rounded-xl text-white hover:bg-rose-700 transition-colors uppercase text-[9px] font-black tracking-widest shadow-lg">Tentar</button>
                 </div>
             )}
-            {flowState.notification && <ZenToast toast={flowState.notification} onClose={() => {}} />} 
+            {/* Toast renderizado pelo GuardiaoFlowContext em top-20 — sem duplicação aqui */}
             <ScreenConnector 
                 profile="GUARDIAO" 
                 user={user} 

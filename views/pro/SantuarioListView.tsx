@@ -18,7 +18,7 @@ interface SantuarioItem {
 }
 
 export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
-    const { go, back, notify } = useGuardiaoFlow();
+    const { go, back, notify, selectSantuario } = useGuardiaoFlow();
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
 
@@ -111,7 +111,17 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
                     return (
                         <div
                             key={s.id}
-                            onClick={() => go('SANTUARIO_PROFILE')}
+                            onClick={() => {
+                            selectSantuario({
+                                id: s.id,
+                                name: s.name,
+                                address: s.address,
+                                city: s.city,
+                                image: s.image,
+                                rating: s.rating,
+                            });
+                            go('SANTUARIO_PROFILE');
+                        }}
                             className="bg-white rounded-[2.5rem] overflow-hidden border border-nature-100 shadow-sm active:scale-[0.98] transition-all cursor-pointer"
                         >
                             <div className="relative h-36">

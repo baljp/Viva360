@@ -87,8 +87,17 @@ export default function PatientProfile() {
 
                <button 
                     onClick={() => {
-                        const text = encodeURIComponent(`Olá Ana! Sou seu Guardião do Viva360. Como você está se sentindo hoje? 🌱`);
-                        window.open(`https://wa.me/5511999999999?text=${text}`, '_blank');
+                        const rawPhone = String((selectedPatient as any)?.phone || '').replace(/\D/g, '');
+                        const phone = rawPhone.length >= 10
+                            ? (rawPhone.startsWith('55') ? rawPhone : `55${rawPhone}`)
+                            : null;
+                        const greeting = `Olá ${patientName.split(' ')[0]}! Sou seu Guardião do Viva360. Como você está se sentindo hoje? 🌱`;
+                        const text = encodeURIComponent(greeting);
+                        if (phone) {
+                            window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
+                        } else {
+                            window.open(`https://wa.me/?text=${text}`, '_blank');
+                        }
                     }}
                     className="w-full p-5 bg-[#25D366] text-white rounded-[2rem] flex items-center gap-4 hover:opacity-90 transition-all shadow-md group text-left"
                 >
