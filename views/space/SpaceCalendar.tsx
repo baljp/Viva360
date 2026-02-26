@@ -27,6 +27,7 @@ type CalendarEvent = {
     status: 'confirmed' | 'pending';
     room: string;
     startDate: Date;
+    duration?: string;
 };
 
 interface SpaceCalendarProps {
@@ -57,6 +58,7 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
                         client: String(event.title || 'Evento'),
                         proId: null,
                         proName: 'Equipe Viva360',
+                        duration: event.duration ? `${event.duration} min` : undefined,
                         status: String(event.type || '').includes('block') ? 'confirmed' : 'pending',
                         room: String(event.details || 'Agenda do Santuário'),
                         startDate,
@@ -155,7 +157,7 @@ export const SpaceCalendar: React.FC<SpaceCalendarProps> = ({ team, setView, flo
                              <div className="absolute left-0 top-0 bottom-0 w-2 bg-indigo-500"></div>
                              <div className="pl-4">
                                 <p className="text-xl font-serif italic text-nature-900">{app.time}</p>
-                                <p className="text-[9px] font-bold uppercase text-nature-300">60 min</p>
+                                <p className="text-[9px] font-bold uppercase text-nature-300">{app.duration || '—'}</p>
                              </div>
                              <div className="flex-1 border-l border-nature-100 pl-4 bg-nature-50/50 rounded-r-2xl py-2">
                                  <div className="flex justify-between items-start">

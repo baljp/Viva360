@@ -217,7 +217,7 @@ export const screenMap: Record<'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO', ScreenMapS
         PATIENT_PROFILE: SpacePatientProfile,
         PATIENT_RECORDS: SpacePatientRecords,
         AGENDA_OVERVIEW: SpaceCalendar,
-        AGENDA_EDIT: SpaceCalendar,
+        AGENDA_EDIT: SpaceEventCreate, // was SpaceCalendar (circular) - now correctly points to event creation
         ROOMS_STATUS: SpaceRooms,
         ROOM_DETAILS: SpaceRooms,
         ROOM_EDIT: SpaceRoomEdit,
