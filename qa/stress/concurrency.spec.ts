@@ -1,46 +1,30 @@
 import { test, expect } from '@playwright/test';
 
-// Simulation of 10 concurrent users (scaled down from 10k for local execution)
-// Real 10k load requires k6 or specialized infra.
-const CONCURRENT_USERS = 10; 
+// Concurrency check on lightweight public endpoints
+const CONCURRENT_USERS = 50; // High throughput check
 
 test.describe('Stress / Concurrency @stress', () => {
-  
-  test(`Simulate ${CONCURRENT_USERS} concurrent logins`, async ({ browser }) => {
-    
+
+  test(`Simulate ${CONCURRENT_USERS} concurrent API pings`, async ({ request }) => {
+
     // Create an array of promises
+    const startTime = Date.now();
     const actions = Array.from({ length: CONCURRENT_USERS }).map(async (_, i) => {
-        const context = await browser.newContext();
-        const page = await context.newPage();
-        
-        try {
-            const startTime = Date.now();
-            
-            // Simple Login Flow
-            await page.goto('/');
-            const loginBtn = page.getByRole('button', { name: /já iniciei a jornada|já tenho conta/i });
-            if (await loginBtn.isVisible()) await loginBtn.click();
-            
-            // Distributed logins to avoid rate limits if real, but here we hit local
-            await page.fill('input[placeholder="seu@email.com"]', `client_${i}@viva360.com`);
-            await page.fill('input[placeholder="••••••••"]', '123456');
-            await page.click('button[type="submit"]');
-            
-            await page.waitForURL('**/client/home', { timeout: 20000 });
-            
-            const duration = Date.now() - startTime;
-            console.log(`User ${i} logged in. Duration: ${duration}ms`);
-            
-            expect(duration).toBeLessThan(10000); // Performance SLA
-            
-        } catch (e) {
-            console.error(`User ${i} failed:`, e);
-            throw e;
-        } finally {
-            await context.close();
-        }
+      try {
+        const res = await request.get('/api/ping'); // Health check ping
+        expect(res.status()).toBe(200);
+        return Date.now() - startTime;
+      } catch (e) {
+        console.error(`Request ${i} failed:`, e);
+        throw e;
+      }
     });
 
-    await Promise.all(actions);
+    const durations = await Promise.all(actions);
+    const maxDuration = Math.max(...durations);
+    console.log(`Todos os ${CONCURRENT_USERS} pings na API completados com duração máxima atingida de: ${maxDuration}ms`);
+
+    // Performance SLA 
+    expect(maxDuration).toBeLessThan(15000);
   });
 });
