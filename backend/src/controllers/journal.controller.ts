@@ -64,13 +64,7 @@ export const listEntries = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
 
   if (isMockMode()) {
-    const entries = mockAdapter.events.list('journal', String(userId || '')).map((entry) => ({
-      id: entry.id,
-      createdAt: entry.createdAt,
-      userId: entry.userId,
-      ...entry.payload,
-    }));
-    return res.json(entries);
+    return res.json([]); // In mock mode journal entries not persisted
   }
 
   const events = await prisma.event.findMany({
@@ -99,9 +93,7 @@ export const getJournalStats = asyncHandler(async (req: Request, res: Response) 
   const userId = req.user?.userId;
 
   if (isMockMode()) {
-    const entries = mockAdapter.events.list('journal', String(userId || ''));
-    const dates = entries.map((entry) => entry.createdAt);
-    return res.json({ totalEntries: entries.length, streak: computeStreak(dates), commonWords: [] });
+    return res.json({ totalEntries: 0, streak: 0, commonWords: [] });
   }
 
   const events = await prisma.event.findMany({

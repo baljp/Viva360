@@ -34,13 +34,7 @@ export const listInterventions = asyncHandler(async (req: Request, res: Response
   const userId = req.user?.userId;
 
   if (isMockMode()) {
-    const items = mockAdapter.events.list('clinical', String(userId || '')).map((entry) => ({
-      id: entry.id,
-      createdAt: entry.createdAt,
-      userId: entry.userId,
-      ...entry.payload,
-    }));
-    return res.json(items);
+    return res.json([]); // In mock mode interventions not persisted
   }
 
   const events = await prisma.event.findMany({

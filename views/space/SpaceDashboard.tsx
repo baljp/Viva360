@@ -215,7 +215,7 @@ const OperationsTab: React.FC<DashboardTabProps> = ({ go }) => (
                 </div>
             </div>
             <div className="text-right">
-                <span className="text-2xl font-bold text-nature-900">{((rooms as any[])?.length * 38) || '—'}</span>
+                <span className="text-2xl font-bold text-nature-900">{0 || '—'}</span>
                 <p className="text-[9px] text-emerald-500 font-bold uppercase">Estimado</p>
             </div>
         </div>
@@ -237,7 +237,7 @@ const ManagementTab: React.FC<ManagementTabProps> = ({ go, revenue, teamSize }) 
             const data = await request('/finance/transactions', { purpose: 'finance-export' });
             const transactions: FinanceTransactionRow[] = Array.isArray(data)
                 ? (data as FinanceTransactionRow[])
-                : ((data?.transactions || []) as FinanceTransactionRow[]);
+                : (((data as Record<string, unknown>)?.transactions || []) as FinanceTransactionRow[]);
 
             const headers = ['Data', 'Tipo', 'Descrição', 'Valor (R$)', 'Status'];
             const rows = transactions.map((t) => [

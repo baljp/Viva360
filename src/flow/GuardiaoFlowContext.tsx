@@ -24,6 +24,7 @@ interface GuardiaoContextState extends BaseFlowState<GuardiaoState> {
     selectedAppointment?: Appointment;
     selectedPatient?: { id: string; name?: string; mood?: string; sessions?: number; phone?: string; karma?: number } | null;
     selectedChatRoom?: { id: string; name?: string } | null;
+    selectedSantuario?: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null;
 }
 
 // Actions

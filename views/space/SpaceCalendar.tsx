@@ -16,6 +16,7 @@ type SpaceEventApiRow = {
     title?: string;
     type?: string;
     details?: string;
+    duration?: number | string;
 };
 
 type CalendarEvent = {

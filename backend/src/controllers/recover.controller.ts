@@ -8,7 +8,7 @@ import { JWT_SECRET } from '../lib/secrets';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
 import prisma from '../lib/prisma';
-import { Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { z } from 'zod';
 
 type RecoveryTokenPayload = jwt.JwtPayload & {
@@ -116,7 +116,7 @@ export const resetPassword = asyncHandler(async (req: Request, res: Response) =>
 
         return res.json({ message: "Senha renovada com harmonia." });
     } catch (error) {
-         if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        if (error instanceof PrismaClientKnownRequestError && (error as { code?: string }).code === 'P2002') {
             logger.warn('auth.recovery_token_reused', { requestId: req.requestId });
             return res.status(409).json({ error: "Este elo de recuperação já foi utilizado.", code: 'RECOVERY_TOKEN_ALREADY_USED' });
          }

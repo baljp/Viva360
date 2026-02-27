@@ -1,7 +1,17 @@
 import prisma from '../lib/prisma';
 import { notificationEngine } from './notificationEngine.service';
 import { auditService } from './audit.service';
-import type { ProfileLink as PrismaProfileLink } from '@prisma/client';
+
+// Local type definition (Prisma generate may not export ProfileLink yet)
+type PrismaProfileLink = {
+  id: string;
+  profile_a_id: string;
+  profile_b_id: string;
+  link_type: string;
+  status: string;
+  created_at: Date;
+  updated_at?: Date;
+};
 
 export type LinkType = 'tribo' | 'paciente' | 'escambo' | 'equipe' | 'bazar';
 export type LinkStatus = 'pending' | 'accepted' | 'active';

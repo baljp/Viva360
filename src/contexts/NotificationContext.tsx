@@ -31,7 +31,7 @@ export interface NotificationContextType {
   requestPush:    () => Promise<boolean>;
   disablePush:    () => Promise<void>;
 }
-export type { NotificationContextType };
+// NotificationContextType is exported via the interface declaration above
 
 const Ctx = NotificationContextStore as React.Context<NotificationContextType>;
 

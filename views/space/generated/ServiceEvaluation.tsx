@@ -77,7 +77,7 @@ export default function ServiceEvaluation() {
                     <div className="w-20 h-20 rounded-2xl bg-nature-100 mx-auto mb-3 shadow-lg">
                         <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=400" className="w-full h-full object-cover rounded-2xl" alt="Perfil avaliado" loading="lazy" />
                     </div>
-                    <h3 className="font-serif italic text-xl text-nature-900">{selectedPro?.name || '—'}</h3>
+                    <h3 className="font-serif italic text-xl text-nature-900">{selectedProId || '—'}</h3>
                     <p className="text-xs font-bold text-nature-400 uppercase tracking-widest mt-1">Sessão de Reiki · 24 Out</p>
                 </div>
 

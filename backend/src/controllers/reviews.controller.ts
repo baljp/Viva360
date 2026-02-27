@@ -2,7 +2,15 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
-import { mockReviewResponse } from '../services/mockAdapter';
+import { isMockMode, mockAdapter, mockReviewResponse } from '../services/mockAdapter';
+
+const parseEventPayload = (payload: unknown): Record<string, unknown> => {
+  if (typeof payload === 'string') {
+    try { return JSON.parse(payload) as Record<string, unknown>; } catch { return {}; }
+  }
+  if (payload && typeof payload === 'object') return payload as Record<string, unknown>;
+  return {};
+};
 
 /**
  * GET /reviews/:spaceId
@@ -39,14 +47,14 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
     }
 
     const [countResult, events] = await Promise.all([
-        prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+        prisma.$queryRawUnsafe(
             `SELECT COUNT(*) as count FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 AND ($2 = 'all' OR payload->>'targetType' = $2)`,
             spaceId, targetType
-        ),
-        prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(
+        ) as Promise<Array<{ count: bigint }>>,
+        prisma.$queryRawUnsafe(
             `SELECT id, payload, created_at FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 AND ($2 = 'all' OR payload->>'targetType' = $2) ORDER BY created_at DESC LIMIT $3 OFFSET $4`,
             spaceId, targetType, limit, skip
-        ),
+        ) as Promise<Array<Record<string, unknown>>>,
     ]);
 
     const total = Number(countResult?.[0]?.count || 0);
@@ -54,13 +62,13 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
         const payload = (e as Record<string, unknown>).payload;
         const p = typeof payload === 'string' ? JSON.parse(payload) : payload;
         return {
-            id: String(row.id || ''),
-            authorName: String(p.authorName || 'Anônimo'),
-            rating: Number(p.rating || 0),
-            comment: String(p.comment || ''),
-            date: row.created_at,
-            targetName: String(p.targetName || ''),
-            targetType: String(p.targetType || 'guardian'),
+            id: String((e as Record<string, unknown>).id || ''),
+            authorName: String((p as Record<string, unknown>).authorName || 'Anônimo'),
+            rating: Number((p as Record<string, unknown>).rating || 0),
+            comment: String((p as Record<string, unknown>).comment || ''),
+            date: (e as Record<string, unknown>).created_at,
+            targetName: String((p as Record<string, unknown>).targetName || ''),
+            targetType: String((p as Record<string, unknown>).targetType || 'guardian'),
         };
     });
 
@@ -96,10 +104,10 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
         return res.json({ averageRating, totalReviews, recommendRate, guardianAverage });
     }
 
-    const events = await prisma.$queryRawUnsafe<Array<Record<string, unknown>>>(
+    const events = (await prisma.$queryRawUnsafe(
         `SELECT payload FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1`,
         spaceId
-    );
+    )) as Array<Record<string, unknown>>;
 
     const ratings = events.map((e) => {
         const payload = (e as Record<string, unknown>).payload;

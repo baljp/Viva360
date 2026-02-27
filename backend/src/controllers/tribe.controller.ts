@@ -319,7 +319,7 @@ export const respondInvite = asyncHandler(async (req: Request, res: Response) =>
 // GET /tribe/pacts/active — retorna pactos ativos do usuário via ProfileLink tipo 'tribo'
 export const getActivePacts = asyncHandler(async (req: Request, res: Response) => {
   const userId = String(req.user?.userId || '').trim();
-  if (!userId) throw new AppError(401, 'Unauthorized');
+  if (!userId) throw new AppError('Unauthorized', 401);
 
   // Busca links do tipo 'tribo' aceitos/ativos onde o usuário é source ou target
   const links = await prisma.profileLink.findMany({

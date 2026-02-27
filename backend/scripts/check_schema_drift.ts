@@ -27,7 +27,7 @@ const REQUIRED: Record<string, Record<string, string[]>> = {
 };
 
 async function getColumns(schema: string, table: string): Promise<Set<string>> {
-  const rows = await prisma.$queryRawUnsafe<Array<{ column_name: string }>>(
+  const rows = (await prisma.$queryRawUnsafe(
     `
       SELECT column_name
       FROM information_schema.columns
@@ -36,7 +36,7 @@ async function getColumns(schema: string, table: string): Promise<Set<string>> {
     `,
     schema,
     table,
-  );
+  )) as Array<{ column_name: string }>;
   return new Set(rows.map((row) => row.column_name));
 }
 

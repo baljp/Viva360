@@ -48,6 +48,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
     const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const ritualDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const soulCardUserId = String(user?.id || 'user_current').trim() || 'user_current';
+    const userStreak = (user as { streak?: number } | undefined)?.streak ?? 1;
     const { performDraw } = useSoulCards(soulCardUserId);
     const photoPreviewUrl = useObjectUrl(photo?.fullBlob || null);
 
@@ -120,7 +121,8 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
             
             // Longer delay for ritualistic feel
             ritualDelayRef.current = setTimeout(() => {
-                const card = performDraw(userStreak || 1, mood); // Uses real streak when available
+                void (async () => {
+                const card = await performDraw(userStreak || 1, mood); // Uses real streak when available
                 setDrewCard(card);
                 // Keep local high-quality photo for UI/canvas.
                 const entryRecord = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};
@@ -135,11 +137,11 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
                 setResult(newSnapResult);
                 // ✅ BUG FIX: atualizar user.snaps localmente para EvolutionView.recentSnaps
                 if (user && updateUser) {
-                    const snapEntry = {
+                    const snapEntry: import('../../types').DailyRitualSnap = {
                         id: newSnapResult.id,
                         date: newSnapResult.timestamp,
                         image: capture.thumbDataUrl,
-                        mood: newSnapResult.mood,
+                        mood: newSnapResult.mood as import('../../types').MoodType | undefined,
                         note: newSnapResult.quote || '',
                     };
                     updateUser({ ...user, snaps: [snapEntry, ...(user.snaps || [])] });
@@ -147,6 +149,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
                 setIsProcessing(false);
                 setShowSoulReveal(true);
                 // setStep(4) will be triggered after reveal closes
+                })();
             }, 2500); 
         } catch (e) {
             captureFrontendError(e, { view: 'MetamorphosisWizard', op: 'processMetamorphosis' });

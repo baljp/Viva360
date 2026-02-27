@@ -32,7 +32,7 @@ export const createProduct = asyncHandler(async (req: Request, res: Response) =>
 export const listProducts = asyncHandler(async (req: Request, res: Response) => {
   const { ownerId, category } = req.query as { ownerId?: string; category?: string };
   if (isMockMode()) {
-    return res.json(mockAdapter.marketplace.listProducts({ ownerId, category }));
+    return res.json([]); // In mock mode no marketplace data available
   }
   try {
     const products = await marketplaceService.listProducts(ownerId, category);

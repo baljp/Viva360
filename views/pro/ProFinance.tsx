@@ -19,7 +19,7 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
         setReadIssue(null);
         try {
             const list = await request('/finance/transactions', { purpose: 'pro-finance', timeoutMs: 8000, retries: 0 });
-            setTransactions(list);
+            setTransactions(list as Transaction[]);
         } catch (err) {
             console.warn('[ProFinance] Failed to load transactions:', err);
             setReadIssue(buildReadFailureCopy(['finance'], isDegradedReadError(err)));
@@ -50,9 +50,9 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
         transactions
             .filter(tx => tx.type === 'income')
             .forEach(tx => {
-                const txDate = new Date(tx.date || tx.createdAt || '');
+                const txDate = new Date(tx.date || '');
                 const weekAgo = Math.floor((now.getTime() - txDate.getTime()) / (7 * 24 * 60 * 60 * 1000));
-                if (weekAgo >= 0 && weekAgo < 7) weeks[6 - weekAgo] += Number(tx.amount || tx.price || 0);
+                if (weekAgo >= 0 && weekAgo < 7) weeks[6 - weekAgo] += Number(tx.amount || 0);
             });
         return weeks.some(v => v > 0) ? weeks : [1200, 1500, 1100, 1800, 1600, 2100, 1840]; // fallback shape
     }, [transactions]);
@@ -63,7 +63,7 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
     const pendingRevenue = React.useMemo(() => {
         return transactions
             .filter(tx => tx.type === 'income' && String((tx as any).status || '').toLowerCase() === 'pending')
-            .reduce((sum, tx) => sum + Number(tx.amount || tx.price || 0), 0);
+            .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
     }, [transactions]);
 
     // Growth: compare this month vs last month income
@@ -75,10 +75,10 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
         const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
         const income = (m: number, y: number) => transactions
             .filter(tx => {
-                const d = new Date(tx.date || (tx as any).createdAt || '');
+                const d = new Date(tx.date || tx.date || '');
                 return tx.type === 'income' && d.getMonth() === m && d.getFullYear() === y;
             })
-            .reduce((s, tx) => s + Number(tx.amount || tx.price || 0), 0);
+            .reduce((s, tx) => s + Number(tx.amount || 0), 0);
         const cur = income(thisMonth, thisYear);
         const prev = income(lastMonth, lastMonthYear);
         if (!prev) return null;

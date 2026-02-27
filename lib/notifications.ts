@@ -90,7 +90,7 @@ export async function subscribePush(): Promise<PushSubscribeResult> {
     if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly:      true,
-        applicationServerKey: b64ToUint8(vapidKey),
+        applicationServerKey: b64ToUint8(vapidKey).buffer as ArrayBuffer,
       });
     }
 

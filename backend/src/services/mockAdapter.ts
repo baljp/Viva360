@@ -73,6 +73,18 @@ export type MockInterview = {
 // ─── STORE INITIALISATION ────────────────────────────────────────────────────
 // Kept on globalThis so state survives hot-reloads in dev without resetting.
 
+export type MockReview = {
+  id: string;
+  spaceId: string;
+  targetId: string | null;
+  targetType: string;
+  targetName: string;
+  authorName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+};
+
 type MockAdapterStores = {
   alchemy: {
     offers: Map<string, MockSwapOffer>;
@@ -84,6 +96,10 @@ type MockAdapterStores = {
   recruitment: {
     applications: Map<string, MockApplication>;
     interviews: Map<string, MockInterview>;
+  };
+  reviews: {
+    listBySpace: (spaceId: string, type: string) => MockReview[];
+    items: Map<string, MockReview>;
   };
 };
 
@@ -101,6 +117,14 @@ if (!globalThis.__vivaMockAdapter) {
     recruitment: {
       applications: new Map<string, MockApplication>(),
       interviews: new Map<string, MockInterview>(),
+    },
+    reviews: {
+      items: new Map<string, MockReview>(),
+      listBySpace(spaceId: string, type: string): MockReview[] {
+        return [...this.items.values()].filter(
+          (r) => r.spaceId === spaceId && (type === 'all' || r.targetType === type)
+        );
+      },
     },
   };
 }

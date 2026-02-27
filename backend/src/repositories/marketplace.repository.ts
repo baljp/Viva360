@@ -1,9 +1,8 @@
 import prisma from '../lib/prisma';
-import { Prisma } from '@prisma/client';
 
 export interface CreateProductData {
     name: string;
-    price: number | Prisma.Decimal;
+    price: number;
     category: string;
     type: string;
     image?: string;
@@ -26,7 +25,7 @@ export class MarketplaceRepository {
         });
     }
 
-    async findAll(where: Prisma.ProductWhereInput = {}) {
+    async findAll(where: Record<string, unknown> = {}) {
         return await prisma.product.findMany({
             where,
             include: {

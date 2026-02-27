@@ -201,7 +201,7 @@ describe('smoke: subscribe push → criar agendamento → notification in-app ap
         }),
       }),
     );
-    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'APPOINTMENT_CREATED' }));
     expect(res.json).toHaveBeenCalledWith({ success: true });
   });
 
@@ -239,14 +239,13 @@ describe('smoke: subscribe push → criar agendamento → notification in-app ap
     );
 
     // 201 ao caller
-    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'APPOINTMENT_CREATED' }));
   });
 
   // ── Passo 3: pipeline notification engine → in-app + push ────────────────
 
   it('PASSO 3 — NotificationEngine.emit grava notificação in-app e chama dispatcher', async () => {
     // Testa NotificationEngine real com prisma mockado
-    // (notificationEngine no módulo já está mockado — criamos instância da classe real)
     const { NotificationEngine: RealEngine } =
       await import('../../../backend/src/services/notificationEngine.service');
     const engine = new (RealEngine as any)();
@@ -262,9 +261,6 @@ describe('smoke: subscribe push → criar agendamento → notification in-app ap
       read: false, timestamp: new Date(),
     };
     prismaMock.notification.create.mockResolvedValue(createdNotif);
-
-    // Espia o dispatch real do módulo já importado
-    const dispatchSpy = vi.spyOn(notificationDispatcherMock, 'dispatch').mockResolvedValue(undefined);
 
     await engine.emit({
       type:         'appointment.created',

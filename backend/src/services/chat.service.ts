@@ -38,6 +38,11 @@ function keyToUuid(key: string): string {
 // In-memory fallback used only in mock/test runtime when Prisma DB is unavailable.
 type MemoryRoom = { id: string; type: string; participants: string[]; [k: string]: unknown };
 type MemoryMessage = { id: string; room_id?: string; chat_id?: string; sender_id: string; receiver_id?: string; content: string; read?: boolean; created_at: string; sender?: { id: string; name: string; avatar: string }; [k: string]: unknown };
+
+/** Minimal shape returned by getOrCreateChat/getOrCreateRoom */
+export type ChatRoomResult = { id: string; [k: string]: unknown };
+/** Minimal shape returned by sendMessage */
+export type ChatMessageResult = { id: string; [k: string]: unknown };
 const memory = {
   roomsById: new Map<string, MemoryRoom>(),
   participantsByRoomId: new Map<string, Set<string>>(),
@@ -54,7 +59,7 @@ export class ChatService {
     profile2Id: string,
     type: 'private' | 'escambo' | 'agendamento' | 'bazar' = 'private',
     contextId?: string
-  ): Promise<unknown> {
+  ): Promise<ChatRoomResult> {
     // Verify link exists
     const hasLink = await profileLinkService.hasActiveLink(profile1Id, profile2Id);
     if (!hasLink && type === 'private') {
@@ -100,7 +105,7 @@ export class ChatService {
     chatId: string,
     senderId: string,
     content: string
-  ): Promise<unknown> {
+  ): Promise<ChatMessageResult> {
     try {
       // Verify sender is participant
       const participant = await prisma.chatParticipant.findFirst({
@@ -352,7 +357,7 @@ export class ChatService {
     profileId: string,
     type: string,
     contextId?: string
-  ): Promise<unknown> {
+  ): Promise<ChatRoomResult> {
     const normalizedContextId = (() => {
       const raw = String(contextId || '').trim();
       if (raw && isUuid(raw)) return raw;

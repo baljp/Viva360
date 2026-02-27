@@ -1,7 +1,27 @@
 import prisma, { prismaRead } from '../lib/prisma';
-import { OracleMessage } from '@prisma/client';
 import { AppError } from '../lib/AppError';
 import { logger } from '../lib/logger';
+
+// Local type definition (Prisma generate may not have OracleMessage exported yet)
+type OracleMessage = {
+  id: string;
+  theme?: string | null;
+  element?: string | null;
+  archetype?: string | null;
+  message?: string | null;
+  ritual?: string | null;
+  affirmation?: string | null;
+  active?: boolean;
+  created_at?: Date;
+  // Extended fields used in fallback deck and filtering logic
+  text?: string;
+  category?: string;
+  moods?: string[];
+  phases?: string[];
+  depth?: number;
+  weight?: number;
+  rarity?: string;
+};
 
 interface OracleContext {
     mood: string;

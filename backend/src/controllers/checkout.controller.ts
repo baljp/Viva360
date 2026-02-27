@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { notificationEngine } from '../services/notificationEngine.service';
 import { supabaseAdmin } from '../services/supabase.service';
-import { isMockMode, mockCheckoutResult } from '../services/mockAdapter';
+import { isMockMode, mockCheckoutResult, CheckoutItem } from '../services/mockAdapter';
 import { asyncHandler } from '../middleware/async.middleware';
 import { interactionService } from '../services/interaction.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
@@ -12,11 +12,6 @@ import { mockAdapter } from '../services/mockAdapter';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-type CheckoutItem = {
-  id?: string | number;
-  price?: number | string;
-  type?: string;
-};
 
 type CheckoutConfirmation = {
   confirmationId?: string | null;
