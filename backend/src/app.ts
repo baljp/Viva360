@@ -57,7 +57,7 @@ app.use(helmet({
       baseUri:     ["'self'"],
       formAction:  ["'self'"],
       frameAncestors: ["'none'"],
-      upgradeInsecureRequests: isProductionRuntime ? [] : undefined,
+      ...(isProductionRuntime ? { upgradeInsecureRequests: [] } : {}),
     },
   },
   crossOriginEmbedderPolicy: false, // Allow Supabase realtime WebSocket
