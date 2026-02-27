@@ -45,9 +45,9 @@ export class AuthService {
     try {
         authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
         logger.debug('auth.register_authorization_status', { email: normalizedEmail, authorization });
-    } catch (err: any) {
+    } catch (err: unknown) {
         logger.error('auth.register_authorization_failed', err);
-        throw new AppError(`Erro interno ao verificar autorização: ${err.message}`, 500);
+        throw new AppError(`Erro interno ao verificar autorização: ${err instanceof Error ? err.message : String(err)}`, 500);
     }
 
     if (!authorization.canRegister) {
@@ -232,10 +232,10 @@ export class AuthService {
             profile_roles: [{ role: finalRole }],
         },
         });
-    } catch (dbError: any) {
+    } catch (dbError: unknown) {
         logger.error('auth.register_profile_create_failed', dbError);
         // Clean up user from Supabase if profile creation fails? maybe later.
-        throw new AppError(`Erro ao criar perfil no banco de dados: ${dbError.message}`, 500, 'DB_ERROR');
+        throw new AppError(`Erro ao criar perfil no banco de dados: ${(dbError as { message?: string })?.message ?? String(dbError)}`, 500, 'DB_ERROR');
     }
   }
 
@@ -255,7 +255,7 @@ export class AuthService {
       },
     }).catch(err => {
         logger.error('auth.login_user_lookup_failed', err);
-        throw new AppError(`Erro de conexão com banco de dados: ${err.message}`, 500);
+        throw new AppError(`Erro de conexão com banco de dados: ${String((err as { message?: string })?.message ?? err)}`, 500);
     });
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -297,7 +297,7 @@ export class AuthService {
       },
     }).catch(err => {
       logger.error('auth.login_user_lookup_by_id_failed', err);
-      throw new AppError(`Erro de conexão com banco de dados: ${err.message}`, 500);
+      throw new AppError(`Erro de conexão com banco de dados: ${String((err as { message?: string })?.message ?? err)}`, 500);
     });
 
     if (!user) {
@@ -343,16 +343,28 @@ export class AuthService {
             ...user,
             profile: { ...profile, profile_roles: [{ role: finalRole }] },
           });
-      } catch (e: any) {
+      } catch (e: unknown) {
           logger.error('auth.login_autocreate_profile_failed', e);
-           throw new AppError(`Erro ao criar perfil automático: ${e.message}`, 500);
+           throw new AppError(`Erro ao criar perfil automático: ${(e as { message?: string })?.message ?? String(e)}`, 500);
       }
     }
 
     return AuthService.generateSession(user);
   }
 
-  private static async generateSession(user: any) {
+  private static async generateSession(user: {
+    id: string;
+    email?: string | null;
+    role?: string | null;
+    profile?: {
+      id: string;
+      role: string | null;
+      active_role?: string | null;
+      profile_roles?: { role: string }[];
+      avatar?: string | null;
+      name?: string | null;
+    } | null;
+  }) {
     const profile = user.profile || null;
     const roles = profile?.id
       ? await AuthService.getRolesByProfile(profile.id, profile.role)

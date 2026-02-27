@@ -23,7 +23,12 @@ export class InteractionReceiptService {
     const action = normalize(input.action);
     const status = normalize(input.status) as ReceiptStatus;
 
-    let record: any;
+    type ReceiptRecord = {
+      id: string; entity_type: string; entity_id: string; action: string;
+      actor_id: string; status: string; next_step: string | null;
+      request_id: string | null; created_at: Date; updated_at: Date;
+    };
+    let record: ReceiptRecord;
     try {
       record = await prisma.interactionReceipt.upsert({
         where: {
@@ -42,13 +47,13 @@ export class InteractionReceiptService {
           status,
           next_step: input.nextStep || null,
           request_id: input.requestId || null,
-          payload: (input.payload as any) || undefined,
+          payload: input.payload !== undefined ? (input.payload as Record<string, unknown>) : undefined,
         },
         update: {
           status,
           next_step: input.nextStep || null,
           request_id: input.requestId || null,
-          payload: (input.payload as any) || undefined,
+          payload: input.payload !== undefined ? (input.payload as Record<string, unknown>) : undefined,
         },
         select: {
           id: true,
@@ -63,13 +68,14 @@ export class InteractionReceiptService {
           updated_at: true,
         },
       });
-    } catch (error: any) {
-      const errorMessage = String(error?.message || '');
-      const isSchemaNotReady = error?.code === 'P2021' || error?.code === 'P2022';
+    } catch (error: unknown) {
+      const e = error as { code?: string; message?: string; meta?: { constraint?: string } };
+      const errorMessage = String(e?.message || '');
+      const isSchemaNotReady = e?.code === 'P2021' || e?.code === 'P2022';
       const isMissingActorInTestData =
-        error?.code === 'P2003' && String(error?.meta?.constraint || '').includes('interaction_receipts_actor_id_fkey');
+        e?.code === 'P2003' && String(e?.meta?.constraint || '').includes('interaction_receipts_actor_id_fkey');
       const isDbUnavailable =
-        ['P1000', 'P1001', 'P1002', 'P1017'].includes(String(error?.code || ''))
+        ['P1000', 'P1001', 'P1002', 'P1017'].includes(String(e?.code || ''))
         || /Authentication failed against database server/i.test(errorMessage)
         || /Can't reach database server/i.test(errorMessage)
         || /ECONNREFUSED|ENOTFOUND|ETIMEDOUT/i.test(errorMessage)

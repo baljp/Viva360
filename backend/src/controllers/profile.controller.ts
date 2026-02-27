@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../middleware/async.middleware';
 import { profileService } from '../services/profile.service';
+import { profileRepository } from '../repositories/profile.repository';
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
@@ -44,11 +45,12 @@ export const searchProfiles = asyncHandler(async (req: Request, res: Response) =
 
   const profiles = await profileRepository.searchByName(q);
   const myId = String(req.user?.userId || '');
+  type SearchRow = { id: string; name?: string | null; avatar?: string | null; role?: string | null };
   return res.json(
-    profiles
-      .filter((p: any) => p.id !== myId) // exclude self
+    (profiles as SearchRow[])
+      .filter((p) => p.id !== myId) // exclude self
       .slice(0, 20)
-      .map((p: any) => ({
+      .map((p) => ({
         id: p.id,
         name: p.name || 'Usuário',
         avatar: p.avatar,
@@ -57,7 +59,7 @@ export const searchProfiles = asyncHandler(async (req: Request, res: Response) =
   );
 });
 
-export const lookupProfile = asyncHandler(async (req: any, res: Response) => {
+export const lookupProfile = asyncHandler(async (req: Request, res: Response) => {
     const requesterRole = String(req.user?.role || '').toUpperCase();
     // Prevent email enumeration for regular users.
     if (!['PROFESSIONAL', 'ADMIN'].includes(requesterRole)) {
@@ -70,17 +72,19 @@ export const lookupProfile = asyncHandler(async (req: any, res: Response) => {
         return res.status(404).json({ error: 'Profile not found' });
     }
 
-    const role = String((profile as any).active_role || (profile as any).role || '').toUpperCase();
+    type ProfileRow = { id: string; name?: string | null; email?: string | null; role?: string | null; active_role?: string | null; avatar?: string | null };
+    const p = profile as ProfileRow;
+    const role = String(p.active_role || p.role || '').toUpperCase();
     // For Guardian -> Buscador internal linking, we only allow looking up Buscadores here.
     if (role !== 'CLIENT') {
         return res.status(404).json({ error: 'Profile not found' });
     }
 
     return res.json({
-        id: (profile as any).id,
-        name: (profile as any).name,
-        email: (profile as any).email,
-        role: (profile as any).role,
-        avatar: (profile as any).avatar,
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        role: p.role,
+        avatar: p.avatar,
     });
 });

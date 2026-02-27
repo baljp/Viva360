@@ -72,8 +72,10 @@ export const createAppointment = asyncHandler(async (req: Request, res: Response
 
     if (error) throw error;
 
-    let confirmation: any = null;
-    const appointmentId = String((data as any)?.id || '');
+    // Supabase .single() returns typed row; id is always present after insert
+    type AppointmentRow = { id: string; [k: string]: unknown };
+    let confirmation: Awaited<ReturnType<typeof interactionService.emitAppointmentLifecycle>> | null = null;
+    const appointmentId = String((data as AppointmentRow).id ?? '');
     const isoDate = requestedDateTime.toISOString();
 
     try {
@@ -175,7 +177,15 @@ export const rescheduleAppointment = asyncHandler(async (req: Request, res: Resp
       return res.status(403).json({ error: 'Sem permissão para reagendar.', code: 'FORBIDDEN' });
     }
 
-    const updatePayload: any = {
+    type AppointmentUpdate = {
+      date: string;
+      time: string;
+      status: string;
+      service_name?: string;
+      is_exception?: boolean;
+      original_start_at?: string | null;
+    };
+    const updatePayload: AppointmentUpdate = {
       date: payload.date,
       time: payload.time,
       status: 'rescheduled',
@@ -213,7 +223,7 @@ export const rescheduleAppointment = asyncHandler(async (req: Request, res: Resp
       })
       .like('details', `%${appointmentTag}%`);
 
-    let confirmation: any = null;
+    let confirmation: Awaited<ReturnType<typeof interactionService.emitAppointmentRescheduled>> | null = null;
     try {
       confirmation = await interactionService.emitAppointmentRescheduled({
         appointmentId: id,
@@ -292,7 +302,7 @@ export const cancelAppointment = asyncHandler(async (req: Request, res: Response
       .delete()
       .like('details', `%${appointmentTag}%`);
 
-    let confirmation: any = null;
+    let confirmation: Awaited<ReturnType<typeof interactionService.emitAppointmentCancelled>> | null = null;
     try {
       confirmation = await interactionService.emitAppointmentCancelled({
         appointmentId: id,

@@ -3,7 +3,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { z } from 'zod';
 import { CloudinaryService } from '../services/cloudinary.service';
-import { isMockMode } from '../services/supabase.service';
+import { isMockMode } from '../lib/appMode';
 
 const getUserIdCompat = (req: Request): string =>
   String(req.user?.userId || req.user?.id || '').trim();

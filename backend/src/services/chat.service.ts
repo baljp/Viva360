@@ -1,11 +1,12 @@
 import prisma from '../lib/prisma';
+import { isMockMode } from '../lib/appMode';
 import { notificationEngine } from './notificationEngine.service';
 import { auditService } from './audit.service';
 import { profileLinkService } from './profileLink.service';
 import crypto from 'crypto';
 
 function isDbUnavailableError(err: unknown): boolean {
-  const e: any = err;
+  const e = err as { name?: string; code?: string; message?: string };
   const name = String(e?.name || '');
   const code = String(e?.code || '');
   const msg = String(e?.message || '');
@@ -32,16 +33,15 @@ function keyToUuid(key: string): string {
   return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
 
-const isProdRuntime = process.env.NODE_ENV === 'production';
-const isMockRuntime =
-  !isProdRuntime
-  && (String(process.env.APP_MODE || '').toUpperCase() === 'MOCK' || process.env.NODE_ENV === 'test');
+// Runtime flags via feature flag central (lib/appMode.ts)
 
 // In-memory fallback used only in mock/test runtime when Prisma DB is unavailable.
+type MemoryRoom = { id: string; type: string; participants: string[]; [k: string]: unknown };
+type MemoryMessage = { id: string; room_id?: string; chat_id?: string; sender_id: string; receiver_id?: string; content: string; read?: boolean; created_at: string; sender?: { id: string; name: string; avatar: string }; [k: string]: unknown };
 const memory = {
-  roomsById: new Map<string, any>(),
+  roomsById: new Map<string, MemoryRoom>(),
   participantsByRoomId: new Map<string, Set<string>>(),
-  messagesByRoomId: new Map<string, any[]>(),
+  messagesByRoomId: new Map<string, MemoryMessage[]>(),
 };
 
 export class ChatService {
@@ -54,7 +54,7 @@ export class ChatService {
     profile2Id: string,
     type: 'private' | 'escambo' | 'agendamento' | 'bazar' = 'private',
     contextId?: string
-  ): Promise<any> {
+  ): Promise<unknown> {
     // Verify link exists
     const hasLink = await profileLinkService.hasActiveLink(profile1Id, profile2Id);
     if (!hasLink && type === 'private') {
@@ -100,7 +100,7 @@ export class ChatService {
     chatId: string,
     senderId: string,
     content: string
-  ): Promise<any> {
+  ): Promise<unknown> {
     try {
       // Verify sender is participant
       const participant = await prisma.chatParticipant.findFirst({
@@ -157,7 +157,7 @@ export class ChatService {
 
       return message;
     } catch (e) {
-      if (!isMockRuntime || !isDbUnavailableError(e)) throw e;
+      if (!isMockMode() || !isDbUnavailableError(e)) throw e;
 
       const participants = memory.participantsByRoomId.get(chatId) || new Set<string>();
       participants.add(senderId);
@@ -198,7 +198,7 @@ export class ChatService {
       });
       return rows;
     } catch (e) {
-      if (!isMockRuntime || !isDbUnavailableError(e)) throw e;
+      if (!isMockMode() || !isDbUnavailableError(e)) throw e;
       const list = memory.messagesByRoomId.get(chatId) || [];
       return [...list].slice(-limit).reverse();
     }
@@ -251,7 +251,7 @@ export class ChatService {
         unreadCount: p.unread_count,
       }));
     } catch (e) {
-      if (!isMockRuntime || !isDbUnavailableError(e)) throw e;
+      if (!isMockMode() || !isDbUnavailableError(e)) throw e;
       const rooms = [...memory.roomsById.values()].filter((room) => {
         const participants = memory.participantsByRoomId.get(room.id);
         if (!participants?.has(profileId)) return false;
@@ -352,7 +352,7 @@ export class ChatService {
     profileId: string,
     type: string,
     contextId?: string
-  ): Promise<any> {
+  ): Promise<unknown> {
     const normalizedContextId = (() => {
       const raw = String(contextId || '').trim();
       if (raw && isUuid(raw)) return raw;
@@ -410,7 +410,7 @@ export class ChatService {
         },
       });
     } catch (e) {
-      if (!isMockRuntime || !isDbUnavailableError(e)) throw e;
+      if (!isMockMode() || !isDbUnavailableError(e)) throw e;
 
       const roomId = keyToUuid(`room:${type}:${normalizedContextId}`);
       const existing = memory.roomsById.get(roomId);

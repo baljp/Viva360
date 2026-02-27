@@ -14,7 +14,8 @@
  */
 
 // ─── Re-export: flag de modo mock (single source of truth para controllers) ──
-export { isMockMode } from './supabase.service';
+// Fonte: lib/appMode — feature flag central do backend
+export { isMockMode } from '../lib/appMode';
 
 // ─── Unique ID factory ────────────────────────────────────────────────────────
 

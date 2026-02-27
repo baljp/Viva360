@@ -57,11 +57,49 @@ const logWorker = new Worker('logs', async (job: Job) => {
     }
 }, { connection });
 
-const notificationWorker = new Worker('notifications', async (job: Job) => {
-    logger.info('worker.notifications.processing', { jobId: job.id, data: job.data });
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 100));
-}, { connection });
+// ─── Notification Worker (real push delivery) ─────────────────────────────────
+//
+// Handles jobs queued by notificationEngine.emit() → NotificationDispatcher
+// Job shape: { userId, title, message, eventType?, entityType?, entityId?, url? }
+//
+const notificationWorker = new Worker('notification-queue', async (job: Job) => {
+    logger.info('worker.push.processing', { jobId: job.id, userId: job.data.userId });
+
+    const { userId, title, message, eventType, entityType, entityId, url } = job.data;
+    if (!userId) { logger.warn('worker.push.no_userId', { jobId: job.id }); return; }
+
+    try {
+        const { pushService } = await import('./services/push.service');
+        const prisma = (await import('./lib/prisma')).default;
+
+        // Fetch push subscriptions for this user
+        const subs = await prisma.pushSubscription.findMany({
+            where:  { user_id: userId },
+            select: { endpoint: true, p256dh: true, auth: true },
+        });
+
+        if (!subs.length) {
+            logger.info('worker.push.no_subscriptions', { userId });
+            return;
+        }
+
+        const expired = await pushService.sendBatch(
+            subs.map(s => ({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } })),
+            { title, body: message, tag: eventType ?? 'viva360', url: url ?? '/',
+              data: { eventType, entityType, entityId } }
+        );
+
+        if (expired.length) {
+            await prisma.pushSubscription.deleteMany({ where: { endpoint: { in: expired } } });
+            logger.info('worker.push.expired_cleaned', { userId, count: expired.length });
+        }
+
+        logger.info('worker.push.delivered', { userId, sent: subs.length - expired.length });
+    } catch (err) {
+        logger.error('worker.push.failed', { jobId: job.id, err });
+        throw err; // BullMQ will retry
+    }
+}, { connection, concurrency: 10 });
 
 const ritualWorker = new Worker('rituals', async (job: Job) => {
     logger.info('worker.rituals.processing', { jobId: job.id, data: job.data });

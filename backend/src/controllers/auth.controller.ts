@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import jwt from 'jsonwebtoken';
 import { AuthService } from '../services/auth.service';
-import { isMockMode } from '../services/supabase.service';
+import { isMockMode } from '../lib/appMode';
 import { asyncHandler } from '../middleware/async.middleware';
 import { JWT_SECRET } from '../lib/secrets';
 import prisma from '../lib/prisma';

@@ -13,7 +13,7 @@ import { whatsappService }    from './whatsapp.service';
 import { pushService, PushPayload } from './push.service';
 import prisma                 from '../lib/prisma';
 import { logger }             from '../lib/logger';
-import { isMockMode }         from './supabase.service';
+import { isMockMode } from '../lib/appMode';
 
 export type NotificationChannel = 'EMAIL' | 'WHATSAPP' | 'PUSH' | 'IN_APP';
 
