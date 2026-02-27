@@ -83,18 +83,21 @@ describe('AuthService authorization policy', () => {
     expect(status.accountState).toBe('BLOCKED');
   });
 
-  it('allows orphan auth user to complete registration (Open Auth)', async () => {
+  it('allows orphan auth user to login and autocreate profile (Open Auth)', async () => {
+    // User exists in auth.users with confirmed email but no profile — fix 4982ed6:
+    // We now allow login and autocreate profile, rather than blocking with canRegister
     prismaMock.profile.findFirst.mockResolvedValue(null);
     prismaMock.authAllowlist.findUnique.mockResolvedValue(null);
     prismaMock.user.findUnique.mockResolvedValue({
       id: 'auth-user',
       raw_user_meta_data: { role: 'SPACE' },
+      email_confirmed_at: new Date().toISOString(),
     });
 
     const status = await AuthService.getAuthorizationStatus('incomplete@example.com');
-    expect(status.canLogin).toBe(false);
-    expect(status.canRegister).toBe(true);
-    expect(status.reason).toBe('REGISTRATION_INCOMPLETE');
+    expect(status.canLogin).toBe(true);
+    expect(status.canRegister).toBe(false);
+    expect(status.reason).toBe('PROFILE_MISSING_WILL_AUTOCREATE');
     expect(status.accountState).toBe('INCOMPLETE_REGISTRATION');
   });
 
@@ -111,7 +114,8 @@ describe('AuthService authorization policy', () => {
     expect(status.accountState).toBe('OPEN_SELF_SERVE');
   });
 
-  it('allows incomplete registration only with approved allowlist', async () => {
+  it('allows login+autocreate for confirmed email with approved allowlist', async () => {
+    // Confirmed email + approved invite + no profile → login allowed, profile autocreated
     prismaMock.profile.findFirst.mockResolvedValue(null);
     prismaMock.authAllowlist.findUnique.mockResolvedValue({
       id: 'invite-3',
@@ -122,12 +126,13 @@ describe('AuthService authorization policy', () => {
     prismaMock.user.findUnique.mockResolvedValue({
       id: 'auth-user',
       raw_user_meta_data: { role: 'SPACE' },
+      email_confirmed_at: new Date().toISOString(),
     });
 
     const status = await AuthService.getAuthorizationStatus('incomplete@example.com');
-    expect(status.canLogin).toBe(false);
-    expect(status.canRegister).toBe(true);
-    expect(status.reason).toBe('REGISTRATION_INCOMPLETE');
+    expect(status.canLogin).toBe(true);
+    expect(status.canRegister).toBe(false);
+    expect(status.reason).toBe('PROFILE_MISSING_WILL_AUTOCREATE');
     expect(status.accountState).toBe('INCOMPLETE_REGISTRATION');
     expect(status.role).toBe('SPACE');
   });
@@ -141,15 +146,17 @@ describe('AuthService authorization policy', () => {
       status: 'APPROVED',
       used_by: null,
     });
+    // With confirmed email: canLogin=true, accountState=INCOMPLETE_REGISTRATION
     prismaMock.user.findUnique.mockResolvedValue({
       id: 'auth-user',
       raw_user_meta_data: { role: 'PROFESSIONAL' },
+      email_confirmed_at: new Date().toISOString(),
     });
 
     const rolesPayload = await AuthService.listRolesForUser('auth-user', 'incomplete@example.com');
     expect(rolesPayload.registrationIncomplete).toBe(true);
     expect(rolesPayload.accountState).toBe('INCOMPLETE_REGISTRATION');
-    expect(rolesPayload.nextAction).toBe('COMPLETE_REGISTRATION');
+    expect(rolesPayload.nextAction).toBe('LOGIN'); // autocreate path → LOGIN
     expect(rolesPayload.roles).toContain('PROFESSIONAL');
   });
 
@@ -160,11 +167,12 @@ describe('AuthService authorization policy', () => {
     prismaMock.user.findUnique.mockResolvedValue({
       id: 'auth-user',
       raw_user_meta_data: { role: 'CLIENT' },
+      email_confirmed_at: new Date().toISOString(),
     });
 
     const rolesPayload = await AuthService.listRolesForUser('auth-user', 'unauthorized@example.com');
     expect(rolesPayload.registrationIncomplete).toBe(true);
     expect(rolesPayload.accountState).toBe('INCOMPLETE_REGISTRATION');
-    expect(rolesPayload.nextAction).toBe('COMPLETE_REGISTRATION');
+    expect(rolesPayload.nextAction).toBe('LOGIN'); // autocreate path
   });
 });

@@ -161,19 +161,21 @@ describe('Fluxo Completo – Registration Incomplete', () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
   });
 
-  it.each(PROFILES)('$role: cadastro incompleto com invite aprovado', async ({ email, role, id }) => {
+  it.each(PROFILES)('$role: email confirmado → login permitido, perfil autocriado', async ({ email, role, id }) => {
+    // fix 4982ed6: confirmed email + no profile → canLogin=true (profile autocreated on login)
     prismaMock.profile.findFirst.mockResolvedValue(null);
     prismaMock.authAllowlist.findUnique.mockResolvedValue({
       id: `invite-inc-${id}`, role, status: 'APPROVED', used_by: null,
     });
     prismaMock.user.findUnique.mockResolvedValue({
       id: `auth-${id}`, raw_user_meta_data: { role },
+      email_confirmed_at: new Date().toISOString(),
     });
 
     const status = await AuthService.getAuthorizationStatus(email);
-    expect(status.canLogin).toBe(false);
-    expect(status.canRegister).toBe(true);
-    expect(status.reason).toBe('REGISTRATION_INCOMPLETE');
+    expect(status.canLogin).toBe(true);
+    expect(status.canRegister).toBe(false);
+    expect(status.reason).toBe('PROFILE_MISSING_WILL_AUTOCREATE');
     expect(status.accountState).toBe('INCOMPLETE_REGISTRATION');
     expect(status.role).toBe(role);
   });

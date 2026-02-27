@@ -26,8 +26,11 @@ vi.mock('../lib/prisma', () => ({
   default: prismaMock,
 }));
 
-vi.mock('../services/supabase.service', () => ({
+vi.mock('../lib/appMode', () => ({
   isMockMode: isMockModeMock,
+}));
+vi.mock('../services/supabase.service', () => ({
+  supabaseAdmin: { auth: { getUser: vi.fn() } },
 }));
 
 vi.mock('../services/audit.service', () => ({

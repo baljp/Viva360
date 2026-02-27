@@ -23,7 +23,8 @@ const { prismaMock, isMockModeMock, receiptMock, interactionMock, tribeServiceMo
 }));
 
 vi.mock('../lib/prisma', () => ({ default: prismaMock }));
-vi.mock('../services/supabase.service', () => ({ isMockMode: isMockModeMock, supabaseAdmin: { auth: { getUser: vi.fn() } } }));
+vi.mock('../lib/appMode', () => ({ isMockMode: isMockModeMock }));
+vi.mock('../services/supabase.service', () => ({ supabaseAdmin: { auth: { getUser: vi.fn() } } }));
 vi.mock('../services/interactionReceipt.service', () => ({ interactionReceiptService: receiptMock }));
 vi.mock('../services/interaction.service', () => ({ interactionService: interactionMock }));
 vi.mock('../services/tribe.service', () => ({ tribeService: tribeServiceMock }));

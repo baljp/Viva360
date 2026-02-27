@@ -76,7 +76,7 @@ const {
     // Must support: .from(t).insert(d).select().single()
     //               .from(t).insert(d)  (fire & forget)
     const apptRow = {
-      id: 'appt-uuid-1', client_id: 'user-client-1', professional_id: 'user-pro-1',
+      id: '33333333-3333-4333-8333-333333333333', client_id: '11111111-1111-4111-8111-111111111111', professional_id: '22222222-2222-4222-8222-222222222222',
       service_name: 'Ritual de Ativação', date: '2026-03-15', time: '10:00',
       price: 150, status: 'pending',
     };
@@ -161,9 +161,9 @@ const flush = () => new Promise((r) => setTimeout(r, 0));
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe('smoke: subscribe push → criar agendamento → notification in-app aparece', () => {
-  const CLIENT_ID  = 'user-client-1';
-  const PRO_ID     = 'user-pro-1';
-  const APPT_ID    = 'appt-uuid-1';
+  const CLIENT_ID  = '11111111-1111-4111-8111-111111111111';
+  const PRO_ID     = '22222222-2222-4222-8222-222222222222';
+  const APPT_ID    = '33333333-3333-4333-8333-333333333333';
   const PUSH_EP    = 'https://fcm.googleapis.com/fcm/send/fake-token-123';
 
   beforeEach(() => {
@@ -201,7 +201,7 @@ describe('smoke: subscribe push → criar agendamento → notification in-app ap
         }),
       }),
     );
-    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ code: 'APPOINTMENT_CREATED' }));
+    // subscribe endpoint returns {success:true} on success
     expect(res.json).toHaveBeenCalledWith({ success: true });
   });
 
@@ -245,9 +245,11 @@ describe('smoke: subscribe push → criar agendamento → notification in-app ap
   // ── Passo 3: pipeline notification engine → in-app + push ────────────────
 
   it('PASSO 3 — NotificationEngine.emit grava notificação in-app e chama dispatcher', async () => {
-    // Testa NotificationEngine real com prisma mockado
+    // Use vi.importActual to get the REAL NotificationEngine (not the module mock)
     const { NotificationEngine: RealEngine } =
-      await import('../../../backend/src/services/notificationEngine.service');
+      await vi.importActual<typeof import('../../../backend/src/services/notificationEngine.service')>(
+        '../../../backend/src/services/notificationEngine.service'
+      );
     const engine = new (RealEngine as any)();
 
     // Profile do destinatário existe

@@ -20,6 +20,19 @@ vi.mock('jsonwebtoken', () => ({
   verify: jwtVerifyMock,
 }));
 
+vi.mock('../lib/prisma', () => ({
+  default: {
+    profile: {
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
+  },
+}));
+
+vi.mock('../lib/appMode', () => ({
+  isMockMode: vi.fn().mockReturnValue(false),
+  APP_MODE: 'MOCK',
+}));
+
 const makeRes = () => {
   const res: any = {};
   res.status = vi.fn().mockReturnValue(res);

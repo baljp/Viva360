@@ -89,7 +89,7 @@ export const listRolesForUserInternal = async (
     const normalizedEmail = String(emailHint || '').trim().toLowerCase();
     if (normalizedEmail) {
       const access = await getAuthorizationStatus(normalizedEmail);
-      if (access.reason === 'REGISTRATION_INCOMPLETE') {
+      if (access.accountState === 'INCOMPLETE_REGISTRATION') {
         const fallbackRole = normalizeRole(access.role) || 'CLIENT';
         const fallbackRoles = normalizeRoleList(access.roles || [fallbackRole]);
         return {
