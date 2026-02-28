@@ -4,6 +4,7 @@ import { Search, Flower, ChevronRight, Activity, Zap, Sprout, MessageCircle, Ref
 import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';
 import { usePullToRefresh } from '../../../src/hooks/usePullToRefresh';
+import { PatientDTO } from '../../../types';
 
 export default function PatientsList() {
   const { go, state, selectPatient } = useGuardiaoFlow();
@@ -12,7 +13,7 @@ export default function PatientsList() {
   const [linkSending, setLinkSending] = useState(false);
   const [linkError, setLinkError] = useState('');
   const [linkSuccess, setLinkSuccess] = useState('');
-  const [patientLinks, setPatientLinks] = useState<any[]>([]);
+  const [patientLinks, setPatientLinks] = useState<any[]>([]); // Links still use generic type for now as they are composite
   const [linksLoading, setLinksLoading] = useState(false);
 
   const loadLinks = async () => {
@@ -51,18 +52,18 @@ export default function PatientsList() {
   }, []);
 
   const patients = useMemo(() => {
-    const map = new Map<string, any>();
+    const map = new Map<string, PatientDTO>();
     for (const appointment of state.data.appointments || []) {
-      const patientId = String((appointment as any).client_id || (appointment as any).clientId || '').trim();
+      const patientId = String(appointment.clientId || '').trim();
       if (!patientId) continue;
-      const dateRaw = String((appointment as any).date || '').slice(0, 10);
+      const dateRaw = String(appointment.date || '').slice(0, 10);
       const dateLabel = dateRaw ? new Date(dateRaw).toLocaleDateString('pt-BR') : 'Sem data';
       const current = map.get(patientId);
       const sessions = Number(current?.sessions || 0) + 1;
       const progress = Math.min(100, sessions * 8);
-      const candidate = {
+      const candidate: PatientDTO = {
         id: patientId,
-        name: String((appointment as any).client_name || (appointment as any).clientName || current?.name || 'Buscador'),
+        name: String(appointment.clientName || current?.name || 'Buscador'),
         sessions,
         mood: String(current?.mood || 'Em Jornada'),
         progress,

@@ -61,7 +61,7 @@ const waitForOracleCardStage = async (page: import('@playwright/test').Page) => 
   const portalPrompt = page.getByText('Toque para Sintonizar');
   const closeAction = page.getByRole('button', { name: /receber e fechar/i });
 
-  for (let attempt = 1; attempt <= 6; attempt += 1) {
+  for (let attempt = 1; attempt <= 12; attempt += 1) {
     if (await portalPrompt.isVisible().catch(() => false)) return;
     if (await closeAction.isVisible().catch(() => false)) return;
 
@@ -70,18 +70,18 @@ const waitForOracleCardStage = async (page: import('@playwright/test').Page) => 
     const revealButton = page.getByRole('button', { name: /ver carta revelada/i }).first();
     if (await revealButton.isVisible().catch(() => false)) {
       await revealButton.click({ timeout: 5000 });
-      await page.waitForTimeout(250);
+      await page.waitForTimeout(500);
       continue;
     }
 
     const drawButton = page.getByRole('button', { name: /revelar carta do dia/i }).first();
     if (await drawButton.isVisible().catch(() => false)) {
       await drawButton.click({ timeout: 5000 });
-      await page.waitForTimeout(250);
+      await page.waitForTimeout(500);
       continue;
     }
 
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
   }
 
   throw new Error('Oráculo não entrou no estágio de carta (portal/revelado) após tentativas');

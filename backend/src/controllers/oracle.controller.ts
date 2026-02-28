@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import prisma from '../lib/prisma';
 import { oracleService } from '../services/oracle.service';
+import { OracleResponseDTO } from '../../../types';
 
 const getUserContext = async (userId: string, moodBody: string) => {
     const profile = await prisma.profile.findUnique({
@@ -33,28 +34,30 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
         return res.status(503).json({ error: 'Oráculo temporariamente indisponível.' });
     }
 
-    return res.json({
+    const response: OracleResponseDTO = {
         drawId: Date.now().toString(),
         card: {
-            id: card.id,
+            id: String(card.id),
             name: 'Oráculo Viva360',
-            insight: (card as any).text || (card as any).message,
-            element: card.element,
+            insight: String((card as any).text || (card as any).message || ''),
+            element: String(card.element || ''),
             intensity: 'Média',
-            category: card.category
+            category: String(card.category || '')
         },
         drawnAt: new Date().toISOString(),
-        moodContext: mood || 'neutral'
-    });
+        moodContext: String(mood || 'neutral')
+    };
+
+    return res.json(response);
 });
 
 export const getHistory = asyncHandler(async (req: Request, res: Response) => {
-     const userId = String((req as any).user?.userId || (req as any).user?.id || '').trim();
-     if (!userId) {
+    const userId = String((req as any).user?.userId || (req as any).user?.id || '').trim();
+    if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
-     }
-     const history = await oracleService.getHistory(userId);
-     return res.json(
+    }
+    const history = await oracleService.getHistory(userId);
+    return res.json(
         history.map((entry) => ({
             drawId: entry.id,
             drawnAt: entry.drawn_at,
@@ -67,7 +70,7 @@ export const getHistory = asyncHandler(async (req: Request, res: Response) => {
             },
             context: entry.context,
         }))
-     );
+    );
 });
 
 export const getToday = asyncHandler(async (req: Request, res: Response) => {
@@ -76,7 +79,7 @@ export const getToday = asyncHandler(async (req: Request, res: Response) => {
         return res.status(401).json({ error: 'Unauthorized' });
     }
     const card = await oracleService.getToday(userId);
-    
+
     if (!card) {
         return res.status(404).json({ error: 'Nenhuma carta revelada hoje ainda.' });
     }

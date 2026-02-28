@@ -1,8 +1,8 @@
 import { Worker, isMainThread, parentPort, workerData } from 'worker_threads';
 
-const TOTAL_USERS = 5000;
-const DURATION_SECONDS = 300; // 5 minutes sustained
-const RAMP_UP_SECONDS = 120; // 2 minutes ramp-up
+const TOTAL_USERS = Number(process.env.TOTAL_USERS || 5000);
+const DURATION_SECONDS = Number(process.env.DURATION_SECONDS || 300); // 5 minutes sustained
+const RAMP_UP_SECONDS = Number(process.env.RAMP_UP_SECONDS || 120); // 2 minutes ramp-up
 const API_URL = 'http://localhost:3000/api';
 
 if (isMainThread) {
@@ -12,11 +12,11 @@ if (isMainThread) {
     let activeUsers = 0;
     const workers = [];
     const stats = { requests: 0, errors: 0, latencySum: 0, actions: {} };
-    
+
     // Spawn Workers in batches
     const userBatchSize = 100;
     const interval = (RAMP_UP_SECONDS * 1000) / (TOTAL_USERS / userBatchSize);
-    
+
     let spawned = 0;
     const spawnInterval = setInterval(() => {
         if (spawned >= TOTAL_USERS) {
@@ -30,18 +30,18 @@ if (isMainThread) {
             const worker = new Worker(new URL(import.meta.url), {
                 workerData: { id: spawned + i }
             });
-            
+
             worker.on('message', (msg) => {
                 if (msg.type === 'metric') {
                     stats.requests++;
                     stats.latencySum += msg.latency;
                     if (!msg.success) stats.errors++;
-                    
+
                     const actionKey = msg.action || 'unknown';
                     stats.actions[actionKey] = (stats.actions[actionKey] || 0) + 1;
                 }
             });
-            
+
             workers.push(worker);
         }
         spawned += batch;
@@ -133,7 +133,7 @@ if (isMainThread) {
                     body: JSON.stringify({ email, password, name: `User ${id}`, role: 'CLIENT' }),
                     signal: AbortSignal.timeout(10000)
                 });
-                
+
                 // Retry login
                 const loginRes2 = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',

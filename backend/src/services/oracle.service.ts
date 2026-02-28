@@ -207,6 +207,7 @@ export class OracleService {
 
     private normalizeUserId(userId?: string) {
         const normalized = String(userId || '').trim();
+        if (this.isSafeFallbackRuntime()) return normalized;
         if (!this.uuidRegex.test(normalized)) {
             throw new AppError('Unauthorized', 401);
         }

@@ -326,6 +326,7 @@ export interface SpaceRoom {
 export interface Transaction {
   id: string;
   userId: string;
+  clientId?: string; // ID of the seeker/client involved
   providerId?: string; // Who receives funds (after split)
   type: 'income' | 'expense' | 'deposit' | 'withdrawal';
   amount: number;
@@ -508,4 +509,79 @@ export interface CreateEventDTO {
   end: string;
   type: string;
   details: string; // JSON string
+}
+
+// Item 4 & 11: Patients & Clinical Records
+export interface PatientDTO {
+  id: string;
+  name: string;
+  sessions: number;
+  mood: string;
+  progress: number;
+  nextSession: string;
+  karma?: number;
+  phone?: string;
+}
+
+export interface ClinicalRecordDTO {
+  id: string;
+  date: string;
+  type: string;
+  summary: string;
+  observations: string;
+}
+
+// Item 6: Oracle Response
+export interface OracleResponseDTO {
+  drawId: string;
+  card: {
+    id: string;
+    name: string;
+    insight: string;
+    element: string;
+    intensity?: string;
+    category?: string;
+  };
+  drawnAt: string;
+  moodContext: string;
+}
+
+// Item 8, 9 & 10: Space & Analytics
+export interface RoomAllocationDTO {
+  roomId: string;
+  roomName: string;
+  status: 'Livre' | 'Ocupado' | 'Manutenção';
+  currentEvent?: string;
+  capacity: number;
+}
+
+export interface SpaceAnalyticsDTO {
+  appointments: number;
+  revenue: number;
+  buscadores: number;
+  occupancy: number;
+  avgRating: number;
+  avgDuration: string;
+  topGuardians: Array<{
+    name: string;
+    sessions: number;
+    revenue: string;
+    rating: number;
+  }>;
+  roomOccupancy: Array<{
+    name: string;
+    sessions: number;
+    pct: number;
+  }>;
+}
+
+// Item 12: Session & Auth
+export interface SessionDTO {
+  user: {
+    id: string;
+    email: string | null;
+    role: UserRole;
+    activeRole: UserRole;
+    roles: UserRole[];
+  };
 }

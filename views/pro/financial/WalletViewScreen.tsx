@@ -212,7 +212,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
     const [donateProcessing, setDonateProcessing] = useState(false);
 
     // SEC-03: Real transactions from API instead of mock/setTimeout
-    const [transactions, setTransactions] = useState<any[]>([]);
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [txLoading, setTxLoading] = useState(true);
 
     useEffect(() => {
@@ -341,7 +341,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                                 ))}
                             </div>
                         ) : transactions.length > 0 ? (
-                            transactions.map((tx: any) => <TransactionItem key={tx.id} tx={tx} />)
+                            transactions.map((tx: Transaction) => <TransactionItem key={tx.id} tx={tx} />)
                         ) : (
                             <div className="text-center py-8 opacity-50">
                                 <p className="text-xs text-nature-400 italic">Nenhuma transação recente.</p>
@@ -355,13 +355,13 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
 
             {activeTab === 'analysis' && (() => {
                 // Derive analytics from real transactions
-                const incomes = transactions.filter(tx => tx.type === 'income');
+                const incomeTransactions = transactions.filter(tx => tx.type === 'income');
 
                 // Weekly chart: last 4 weeks income
                 const weeklyTotals = [0, 0, 0, 0];
                 const now = new Date();
-                incomes.forEach(tx => {
-                    const d = new Date((tx as any).date || (tx as any).created_at || '');
+                incomeTransactions.forEach(tx => {
+                    const d = new Date(tx.date || '');
                     if (isNaN(d.getTime())) return;
                     const diffDays = Math.floor((now.getTime() - d.getTime()) / 86_400_000);
                     const weekIdx = Math.floor(diffDays / 7);
@@ -371,13 +371,16 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                 const hasRealData = weeklyTotals.some(v => v > 0);
 
                 // Ticket médio
-                const avgTicket = incomes.length > 0
-                    ? Math.round(incomes.reduce((s, tx) => s + Number(tx.amount || 0), 0) / incomes.length)
+                const avgTicket = incomeTransactions.length > 0
+                    ? Math.round(incomeTransactions.reduce((s, tx) => s + Number(tx.amount || 0), 0) / incomeTransactions.length)
                     : null;
 
                 // Taxa de retorno: clientes com >1 transação / total clientes
                 const clientCounts: Record<string, number> = {};
-                incomes.forEach(tx => { const k = String((tx as any).client_id || (tx as any).clientId || (tx as any).description || 'desconhecido'); clientCounts[k] = (clientCounts[k] || 0) + 1; });
+                incomeTransactions.forEach(tx => {
+                    const k = String(tx.clientId || tx.description || 'desconhecido');
+                    clientCounts[k] = (clientCounts[k] || 0) + 1;
+                });
                 const totalClients = Object.keys(clientCounts).length;
                 const returningClients = Object.values(clientCounts).filter(v => v > 1).length;
                 const returnRate = totalClients > 0 ? Math.round((returningClients / totalClients) * 100) : null;

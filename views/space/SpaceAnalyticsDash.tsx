@@ -3,19 +3,11 @@ import { User } from '../../types';
 import { BarChart3, TrendingUp, TrendingDown, Users, Calendar, DollarSign, Star, Activity, Clock } from 'lucide-react';
 import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { api } from '../../services/api';
+import { SpaceAnalyticsDTO } from '../../types';
 
 interface MetricCard { label: string; value: string; change: number | null; icon: any; color: string; }
 
-type AnalyticsData = {
-    appointments?: number;
-    revenue?: number;
-    guardians?: number;
-    occupancy?: number;
-    buscadores?: number;
-    avgRating?: number;
-    avgDuration?: string;
-    topGuardians?: any[];
-    roomOccupancy?: any[];
+type AnalyticsData = SpaceAnalyticsDTO & {
     // period comparisons (optional, returned by API)
     prevAppointments?: number;
     prevRevenue?: number;
@@ -43,8 +35,8 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
     const { back } = useSantuarioFlow();
     const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month');
     const [stats, setStats] = useState<AnalyticsData>({
-        appointments: 0, revenue: 0, guardians: 0, occupancy: 0,
-        buscadores: 0, avgRating: 0, avgDuration: '—',
+        appointments: 0, revenue: 0, buscadores: 0, occupancy: 0,
+        avgRating: 0, avgDuration: '—',
         topGuardians: [], roomOccupancy: [], monthlyTrend: []
     });
     const [loading, setLoading] = useState(true);
@@ -52,8 +44,8 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
     React.useEffect(() => {
         setLoading(true);
         api.spaces.getAnalytics()
-            .then((data: any) => { if (data) setStats(data); })
-            .catch(() => {})
+            .then((data: SpaceAnalyticsDTO) => { if (data) setStats(data as AnalyticsData); })
+            .catch(() => { })
             .finally(() => setLoading(false));
     }, [period]);
 
@@ -197,7 +189,7 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
                     <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
                         <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Top Guardiões</h3>
                         <div className="space-y-3">
-                            {topGuardians.map((g: any, i: number) => (
+                            {topGuardians.map((g, i) => (
                                 <div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-nature-50 transition-colors">
                                     <div className="w-8 h-8 rounded-full bg-nature-100 flex items-center justify-center text-xs font-black text-nature-600">#{i + 1}</div>
                                     <div className="flex-1">
