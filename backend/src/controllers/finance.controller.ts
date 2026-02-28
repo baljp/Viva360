@@ -5,7 +5,7 @@ import { handleDbReadFallback } from '../lib/dbReadFallback';
 
 const resolveAuthUserId = (req: Request): string => String(req.user?.userId || req.user?.id || '').trim();
 
-export const getSummary = asyncHandler(async (req: Request, res: Response) => {
+export const getSummaryInternal = async (req: Request, res: Response) => {
   const userId = resolveAuthUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
@@ -21,9 +21,10 @@ export const getSummary = asyncHandler(async (req: Request, res: Response) => {
     })) return;
     throw err;
   }
-});
+};
+export const getSummary = asyncHandler(getSummaryInternal);
 
-export const getTransactions = asyncHandler(async (req: Request, res: Response) => {
+export const getTransactionsInternal = async (req: Request, res: Response) => {
   const userId = resolveAuthUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
@@ -43,4 +44,39 @@ export const getTransactions = asyncHandler(async (req: Request, res: Response) 
     })) return;
     throw err;
   }
-});
+};
+export const getTransactions = asyncHandler(getTransactionsInternal);
+
+export const getClientSummaryInternal = async (req: Request, res: Response) => {
+  const userId = resolveAuthUserId(req);
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+  }
+  try {
+    const [summary, transactions] = await Promise.all([
+      financeService.getSummary(userId),
+      financeService.getTransactions(userId),
+    ]);
+
+    // Calculate derived metrics if needed, or just return raw data for frontend
+    const transactionsList = Array.isArray(transactions) ? transactions : [];
+    const totalPaid = transactionsList
+      .filter(t => t.type === 'expense' && t.status === 'paid')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    return res.json({
+      ...summary,
+      transactions: transactionsList,
+      totalPaid,
+      last30Days: totalPaid, // Simplified for now
+    });
+  } catch (err) {
+    if (handleDbReadFallback(res, err, {
+      route: 'finance.getClientSummary',
+      userId,
+      fallbackPayload: { personal_balance: 0, corporate_balance: 0, transactions: [] },
+    })) return;
+    throw err;
+  }
+};
+export const getClientSummary = asyncHandler(getClientSummaryInternal);

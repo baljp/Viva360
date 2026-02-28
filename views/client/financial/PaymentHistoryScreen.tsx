@@ -4,7 +4,7 @@ import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { PortalView, BottomSheet, DegradedRetryNotice } from '../../../components/Common';
 import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X, Download, Printer } from 'lucide-react';
 import { authApi } from '../../../services/api/authProxy';
-import { accountApi } from '../../../services/api/accountClient';
+import { financeApi } from '../../../services/api/financeClient';
 import { Transaction } from '../../../types';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
 
@@ -21,7 +21,7 @@ export default function PaymentHistoryScreen() {
         try {
             const user = await authApi.getCurrentSession();
             if (user) {
-                const summary = await accountApi.professionals.getFinanceSummary(user.id);
+                const summary = await financeApi.client.getSummary();
                 setTransactions(summary.transactions || []);
                 setReadIssue(null);
             }

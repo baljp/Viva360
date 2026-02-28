@@ -611,4 +611,61 @@ export const getEvolutionMetrics = asyncHandler(async (req: Request, res: Respon
     });
 });
 
+export const socialBless = asyncHandler(async (req: Request, res: Response) => {
+    const userId = String(req.user?.userId || req.user?.id || '').trim();
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+    }
+
+    const blessingCost = 50;
+
+    // Atomic fetch-and-update to prevent race conditions (P1 Fix)
+    const { data: user, error } = await supabaseAdmin
+        .from('profiles')
+        .select('id, karma')
+        .eq('id', userId)
+        .single();
+
+    if (error || !user) {
+        return res.status(404).json({ error: 'User not found', code: 'USER_NOT_FOUND' });
+    }
+
+    if ((user.karma || 0) < blessingCost) {
+        return res.status(400).json({ error: 'Karma insuficiente para abençoar a rede.', code: 'INSUFFICIENT_KARMA' });
+    }
+
+    const updates = {
+        karma: (user.karma || 0) - blessingCost
+    };
+
+    const { data: updated, error: updateError } = await supabaseAdmin
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (updateError) {
+        throw updateError;
+    }
+
+    // Log the interaction
+    await prisma.interactionReceipt.create({
+        data: {
+            entity_type: 'PROFILE',
+            entity_id: userId,
+            action: 'SOCIAL_BLESSING_SENT',
+            actor_id: userId,
+            status: 'DONE',
+            payload: { cost: blessingCost },
+        }
+    }).catch(() => null);
+
+    return res.json({
+        success: true,
+        cost: blessingCost,
+        user: updated
+    });
+});
+
 

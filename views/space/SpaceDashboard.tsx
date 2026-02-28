@@ -22,6 +22,7 @@ type QuickStatProps = {
 
 type DashboardTabProps = {
     go: DashboardGo;
+    state: any;
 };
 
 type ManagementTabProps = DashboardTabProps & {
@@ -209,8 +210,10 @@ const OperationsTab: React.FC<DashboardTabProps> = ({ go }) => (
                 </div>
             </div>
             <div className="text-right">
-                <span className="text-2xl font-bold text-nature-900">{0 || '—'}</span>
-                <p className="text-[9px] text-emerald-500 font-bold uppercase">Estimado</p>
+                <span className="text-2xl font-bold text-nature-900">
+                    {state.data.adminStats.totalPatients || 0}
+                </span>
+                <p className="text-[9px] text-emerald-500 font-bold uppercase">Buscadores</p>
             </div>
         </div>
 
@@ -418,7 +421,7 @@ export const SpaceDashboard: React.FC<{
     Transactions?: Transaction[],
     myProducts?: Product[],
 }> = ({ user, rooms = [], team = [], vacancies = [], Transactions = [], myProducts = [] }) => {
-    const { go } = useSantuarioFlow();
+    const { go, state } = useSantuarioFlow();
     const [activeTab, setActiveTab] = useState<'ops' | 'admin' | 'growth'>('ops');
     const [showNotifications, setShowNotifications] = useState(false);
     const [showRadianceModal, setShowRadianceModal] = useState(false);
@@ -530,7 +533,7 @@ export const SpaceDashboard: React.FC<{
 
                 {/* TAB CONTENT */}
                 <div className="min-h-[400px]">
-                    {activeTab === 'ops' && <OperationsTab go={go} />}
+                    {activeTab === 'ops' && <OperationsTab go={go} state={state} />}
                     {activeTab === 'admin' && <ManagementTab go={go} revenue={revenue} teamSize={team.length} />}
                     {activeTab === 'growth' && <GrowthTab go={go} />}
                 </div>

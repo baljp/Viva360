@@ -52,7 +52,7 @@ export const ProDashboard: React.FC<{
         { id: 'escambo', label: '1 Escambo', done: false },
         { id: 'registros', label: '5 Registros', done: false },
     ]);
-    const [leaderboard, setLeaderboard] = React.useState<Array<{userId:string;name:string;karma:number;avatar?:string|null}>>([]);
+    const [leaderboard, setLeaderboard] = React.useState<Array<{ userId: string; name: string; karma: number; avatar?: string | null }>>([]);
     React.useEffect(() => {
         let cancelled = false;
         api.gamification.getLeaderboard().then((data) => {
@@ -376,14 +376,17 @@ export const ProDashboard: React.FC<{
 
                         <div className="grid grid-cols-2 gap-4">
                             <PortalCard id="portal-marketplace" title="Alquimia" subtitle="BAZAR" icon={ShoppingBag} bgImage="https://images.unsplash.com/photo-1512418490979-92798cec1380?q=80&w=600" onClick={() => go('ESCAMBO_MARKET')} />
-                            <PortalCard id="portal-jobs" title="Chamados" subtitle="VAGAS" icon={Briefcase} bgImage="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=600" onClick={() => go('VAGAS_LIST')} />
+                            <PortalCard id="portal-consert" title="Conselheiros" subtitle="CÍRCULO" icon={MessageCircle} bgImage="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600" onClick={() => notify("Círculo de Conselheiros", "Espaço anônimo para discussão clínica em breve.", "info")} />
                         </div>
 
                         <div className="bg-emerald-50 rounded-[2.5rem] p-6 text-emerald-900 border border-emerald-100 flex items-center justify-between cursor-pointer active:scale-95 transition-all" onClick={async () => {
-                            const updatedUser = { ...user, karma: (user.karma || 0) + 50 };
-                            updateUser(updatedUser);
-                            await api.users.update(updatedUser);
-                            notify("Bênção Global Ativada", "Você enviou luz para todos os buscadores.", "success");
+                            try {
+                                const res = await api.users.bless();
+                                if (res.user) updateUser(res.user);
+                                notify("Bênção Ativada", "Sua luz impulsiona a Radiância da rede.", "success");
+                            } catch (err: any) {
+                                notify("Erro", err.message || "Não foi possível abençoar a rede.", "error");
+                            }
                         }}>
                             <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 bg-emerald-100/50 rounded-2xl flex items-center justify-center text-emerald-600"><Sparkles size={20} /></div>
@@ -401,7 +404,7 @@ export const ProDashboard: React.FC<{
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <Trophy size={20} className="text-amber-500" />
-                                        <h4 className="font-bold text-nature-900">Ranking da Egrégora</h4>
+                                        <h4 className="font-bold text-nature-900">Harmonia da Egrégora</h4>
                                     </div>
                                     <span className="text-[9px] font-bold text-nature-400 uppercase tracking-widest">Semanal</span>
                                 </div>
@@ -409,7 +412,7 @@ export const ProDashboard: React.FC<{
                             <div className="divide-y divide-nature-50">
                                 {leaderboard.length > 0 ? (
                                     (() => {
-                                        const medals = ['🥇','🥈','🥉'];
+                                        const medals = ['🥇', '🥈', '🥉'];
                                         const allEntries = leaderboard.some(e => e.userId === user.id)
                                             ? leaderboard
                                             : [{ userId: user.id, name: user.name, karma: user.karma || 0 }, ...leaderboard];

@@ -78,9 +78,13 @@ const isAuthNeeded = (e: unknown): e is AuthNeeded =>
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
 export const createRequestClient = (deps: RequestClientDeps) => {
-  const canRetryStatus  = (s: number) => deps.retryableStatusCodes.has(s);
-  const responseCache   = new Map<string, { expiresAt: number; payload: unknown }>();
-  const inflightGets    = new Map<string, Promise<unknown>>();
+  const canRetryStatus = (s: number) => deps.retryableStatusCodes.has(s);
+  const responseCache = new Map<string, { expiresAt: number; payload: unknown }>();
+  const inflightGets = new Map<string, Promise<unknown>>();
+  const circuitBreaker = new Map<string, { failures: number; lastFailure: number }>();
+
+  const CIRCUIT_THRESHOLD = 5;
+  const CIRCUIT_RESET_MS = 30_000;
 
   // ── Token refresh lock ─────────────────────────────────────────────────────
   let refreshPromise: Promise<string | null> | null = null;
@@ -135,9 +139,16 @@ export const createRequestClient = (deps: RequestClientDeps) => {
     const method = String(fetchOptions.method || 'GET').toUpperCase();
     let lastError: unknown = null;
 
+    // Circuit Breaker Check
+    const domain = endpoint.split('/')[1] || 'global';
+    const state = circuitBreaker.get(domain);
+    if (state && state.failures >= CIRCUIT_THRESHOLD && Date.now() - state.lastFailure < CIRCUIT_RESET_MS) {
+      throw Object.assign(new Error(`Circuito aberto para ${domain}. Tente novamente mais tarde.`), { status: 503, code: 'CIRCUIT_OPEN' });
+    }
+
     for (let attempt = 0; attempt <= retries; attempt++) {
       const controller = new AbortController();
-      const timeoutId  = setTimeout(() => controller.abort(), timeoutMs);
+      const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
       const relayAbort = () => controller.abort();
 
       if (externalSignal) {
@@ -151,7 +162,7 @@ export const createRequestClient = (deps: RequestClientDeps) => {
         const response = await fetch(`${deps.apiUrl}${endpoint}`, {
           ...fetchOptions,
           credentials: fetchOptions.credentials ?? 'include',
-          signal:  controller.signal,
+          signal: controller.signal,
           headers: { ...deps.getHeaders(), ...fetchOptions.headers },
         });
         clearTimeout(timeoutId);
@@ -165,23 +176,25 @@ export const createRequestClient = (deps: RequestClientDeps) => {
 
         // Erros não-OK
         if (!response.ok) {
-          const body    = await response.json().catch(() => ({}));
+          const body = await response.json().catch(() => ({}));
           const message = body.error || response.statusText || 'Request Failed';
-          const err     = Object.assign(new Error(message), {
+          const err = Object.assign(new Error(message), {
             status: response.status,
-            code:   typeof body.code === 'string' ? body.code : null,
+            code: typeof body.code === 'string' ? body.code : null,
             details: body,
           });
           if (attempt < retries && canRetryStatus(response.status)) {
-            await wait(retryDelayMs * Math.pow(2, attempt));
+            const jitter = Math.random() * 200;
+            await wait((retryDelayMs * Math.pow(2, attempt)) + jitter);
             continue;
           }
           requestTelemetry.record({ endpoint, method, status: response.status, durationMs: Date.now() - t0, purpose, correlationId, error: message });
           throw err;
         }
 
-        // Sucesso
+        // Sucesso -> Reset Circuit
         const payload = await response.json();
+        circuitBreaker.delete(domain);
         requestTelemetry.record({ endpoint, method, status: response.status, durationMs: Date.now() - t0, purpose, correlationId });
         return payload;
 
@@ -200,8 +213,16 @@ export const createRequestClient = (deps: RequestClientDeps) => {
 
         lastError = err;
         const retryable = canRetryStatus(Number(err?.status || 0)) || deps.isLikelyNetworkError(err?.message);
+
+        // Update Circuit
+        if (!retryable || (err?.status && err.status >= 500)) {
+          const cur = circuitBreaker.get(domain) || { failures: 0, lastFailure: 0 };
+          circuitBreaker.set(domain, { failures: cur.failures + 1, lastFailure: Date.now() });
+        }
+
         if (attempt < retries && retryable) {
-          await wait(retryDelayMs * Math.pow(2, attempt));
+          const jitter = Math.random() * 200;
+          await wait((retryDelayMs * Math.pow(2, attempt)) + jitter);
           continue;
         }
       }
@@ -220,23 +241,23 @@ export const createRequestClient = (deps: RequestClientDeps) => {
   // ── Request principal ──────────────────────────────────────────────────────
   return async (endpoint: string, options: RequestOptions = {}) => {
     const {
-      retries         = 2,
-      retryDelayMs    = 350,
-      timeoutMs       = 10_000,
+      retries = 2,
+      retryDelayMs = 350,
+      timeoutMs = 10_000,
       purpose,
-      cacheTtlMs      = 0,
+      cacheTtlMs = 0,
       cacheKey,
-      dedupe          = true,
+      dedupe = true,
       skipAuthRefresh = false,
       ...fetchOptions
     } = options;
 
-    const method         = String(fetchOptions.method || 'GET').toUpperCase();
-    const isCacheable    = method === 'GET';
-    const resolvedKey    = cacheKey || `${method}:${endpoint}`;
+    const method = String(fetchOptions.method || 'GET').toUpperCase();
+    const isCacheable = method === 'GET';
+    const resolvedKey = cacheKey || `${method}:${endpoint}`;
     const externalSignal = fetchOptions.signal as AbortSignal | undefined;
-    const correlationId  = requestTelemetry.newCorrelationId();
-    const attemptOpts    = { retries, retryDelayMs, timeoutMs, purpose, correlationId };
+    const correlationId = requestTelemetry.newCorrelationId();
+    const attemptOpts = { retries, retryDelayMs, timeoutMs, purpose, correlationId };
 
     // ── Cache TTL ────────────────────────────────────────────────────────────
     if (isCacheable && cacheTtlMs > 0) {

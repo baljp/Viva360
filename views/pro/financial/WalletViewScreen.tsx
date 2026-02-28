@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Professional, Transaction } from '../../../types';
 import { PortalView, BottomSheet } from '../../../components/Common'; // ZenToast removido: usa notify() do GuardiaoFlow
 import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
-import { request } from '../../../services/api';
+import { api, request } from '../../../services/api';
 import { useCountUp } from '../../../src/hooks/useCountUp';
 import {
     Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Share2,
@@ -214,17 +214,22 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
     // SEC-03: Real transactions from API instead of mock/setTimeout
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [txLoading, setTxLoading] = useState(true);
+    const [metrics, setMetrics] = useState<{ nps: number; retentionRate: number; averageRating: number } | null>(null);
 
     useEffect(() => {
         let cancelled = false;
         (async () => {
             try {
-                const data = await request('/finance/transactions', { purpose: 'wallet-transactions', timeoutMs: 8000 });
-                if (!cancelled && Array.isArray(data)) {
-                    setTransactions(data);
+                const [txs, met] = await Promise.all([
+                    request('/finance/transactions', { purpose: 'wallet-transactions', timeoutMs: 8000 }),
+                    api.profiles.getMetrics(user.id)
+                ]);
+                if (!cancelled) {
+                    if (Array.isArray(txs)) setTransactions(txs);
+                    if (met) setMetrics(met);
                 }
             } catch (err) {
-                console.warn('[WalletView] Failed to load transactions:', err);
+                console.warn('[WalletView] Failed to load data:', err);
                 // Fallback to flow state data if available
                 if (!cancelled && state.data.transactions?.length) {
                     setTransactions(state.data.transactions);
@@ -234,7 +239,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
             }
         })();
         return () => { cancelled = true; };
-    }, []);
+    }, [user.id]);
 
     const currentBalance = user.personalBalance || 0;
 
@@ -410,16 +415,23 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
-                                <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Ticket Médio</p>
-                                <h4 className="text-2xl font-serif text-nature-900">
-                                    {avgTicket !== null ? `R$ ${avgTicket.toLocaleString('pt-BR')}` : '—'}
-                                </h4>
+                            <div className="bg-white p-5 rounded-[2rem] border border-nature-100 flex flex-col justify-between">
+                                <div>
+                                    <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Ecos de Gratidão (NPS)</p>
+                                    <h4 className="text-2xl font-serif text-nature-900">
+                                        {metrics ? `${metrics.nps}%` : '—'}
+                                    </h4>
+                                </div>
+                                {metrics && metrics.nps >= 90 && (
+                                    <div className="mt-2 flex items-center gap-1.5 text-[8px] font-bold text-emerald-600 uppercase tracking-tighter">
+                                        <Sparkles size={10} /> Alta Ressonância
+                                    </div>
+                                )}
                             </div>
                             <div className="bg-white p-5 rounded-[2rem] border border-nature-100">
                                 <p className="text-[9px] font-bold text-nature-400 uppercase mb-1">Taxa de Retorno</p>
                                 <h4 className="text-2xl font-serif text-nature-900">
-                                    {returnRate !== null ? `${returnRate}%` : '—'}
+                                    {metrics ? `${metrics.retentionRate}%` : (returnRate !== null ? `${returnRate}%` : '—')}
                                 </h4>
                             </div>
                         </div>

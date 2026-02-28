@@ -96,6 +96,12 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         purpose: 'lgpd-export',
       });
     },
+    bless: async () => {
+      return await request('/users/bless', {
+        method: 'POST',
+        purpose: 'social-bless',
+      });
+    },
   },
 
   profiles: {
@@ -112,6 +118,12 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         captureFrontendError(err, { domain: 'account', op: 'profiles.lookupByEmail' });
         return null;
       }
+    },
+    getMetrics: async (id: string) => {
+      return await request(`/profiles/${id}/metrics`, { purpose: 'profile-metrics' });
+    },
+    getSpacePatients: async (id: string) => {
+      return await request(`/profiles/${id}/space-patients`, { purpose: 'space-patients' });
     },
   },
 

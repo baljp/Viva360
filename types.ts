@@ -107,6 +107,8 @@ export interface DailyRitualSnap {
   id: string;
   image: string; // Renamed from imageUrl to match frontend usage
   imageUrl?: string; // Keeping for backward compat if needed
+  photoThumb?: string; // Added for strict types
+  localImageKey?: string; // Added for strict types
   date: string;
   mood?: MoodType;
   note?: string;

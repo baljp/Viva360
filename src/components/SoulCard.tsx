@@ -45,38 +45,38 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
     // Determine element based on mood
     const getElementVisuals = () => {
         const mood = (snap.mood || 'SERENO').toUpperCase();
-        
+
         if (mood.includes('VIBRANTE') || mood.includes('FOCADO') || mood.includes('FELIZ')) {
-             return { 
-                 element: 'FOGO', 
-                 color: '#f43f5e', // Rose 500
-                 aura: 'bg-rose-500/20'
-             };
+            return {
+                element: 'FOGO',
+                color: '#f43f5e', // Rose 500
+                aura: 'bg-rose-500/20'
+            };
         }
         if (mood.includes('MELANCÓLICO') || mood.includes('ANSIOSO') || mood.includes('TRISTE') || mood.includes('EXAUSTO')) {
-             return { 
-                 element: 'ÁGUA', 
-                 color: '#06b6d4', // Cyan 500
-                 aura: 'bg-cyan-500/20'
-             };
+            return {
+                element: 'ÁGUA',
+                color: '#06b6d4', // Cyan 500
+                aura: 'bg-cyan-500/20'
+            };
         }
         if (mood.includes('GRATO') || mood.includes('SERENO') || mood.includes('CALMO')) {
-             return { 
-                 element: 'TERRA', 
-                 color: '#10b981', // Emerald 500
-                 aura: 'bg-emerald-500/20'
-             };
+            return {
+                element: 'TERRA',
+                color: '#10b981', // Emerald 500
+                aura: 'bg-emerald-500/20'
+            };
         }
-        return { 
-            element: 'AR', 
+        return {
+            element: 'AR',
             color: '#6366f1', // Indigo 500
             aura: 'bg-indigo-500/20'
         };
     };
 
     const visuals = getElementVisuals();
-    const localImageKey = (snap as any)?.localImageKey || (snap?.id ? buildLocalImageKey(String(snap.id)) : null);
-    const resolvedSrc = useIdbImageUrl(localImageKey, (snap as any)?.image || (snap as any)?.photoThumb || '');
+    const localImageKey = snap.localImageKey || (snap?.id ? buildLocalImageKey(String(snap.id)) : null);
+    const resolvedSrc = useIdbImageUrl(localImageKey, snap.image || snap.photoThumb || '');
 
     return (
         <motion.div
@@ -89,13 +89,13 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={`relative rounded-[2.5rem] overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.5)] ${isStoriesMode ? 'w-full h-full max-w-md aspect-[9/16]' : 'aspect-[3/4]'} bg-[#0f172a] border border-white/10 ${className}`}
         >
-            
+
             {/* 1. ATMOSPHERIC BASE (Deep Gradients) */}
             <div className={`absolute inset-0 bg-gradient-to-b from-[#1e293b] via-[#0f172a] to-[#020617]`} />
-            
+
             {/* 2. DYNAMIC ELEMENTAL GLOW */}
             <div className={`absolute top-1/4 left-1/2 -translate-x-1/2 w-[120%] h-[80%] rounded-full blur-[100px] animate-pulse-slow ${visuals.aura} opacity-40`} />
-            
+
             {/* 3. PHOTO (PROTAGONIST) */}
             <div className={`absolute inset-0 z-0`}>
                 <div className="relative w-full h-full overflow-hidden">
@@ -108,11 +108,11 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
                                 alt=""
                                 aria-hidden
                             />
-                            <img 
-                                src={resolvedSrc} 
+                            <img
+                                src={resolvedSrc}
                                 crossOrigin="anonymous"
-                                className="w-full h-full object-contain" 
-                                style={{ transform: "translateZ(10px)" }} 
+                                className="w-full h-full object-contain"
+                                style={{ transform: "translateZ(10px)" }}
                                 alt="Registro do ritual"
                             />
                         </>
@@ -121,70 +121,70 @@ export const SoulCard: React.FC<SoulCardProps> = ({ snap, className = "", isStor
                             <Sparkles size={48} className="text-white/5" />
                         </div>
                     )}
-                    
+
                     {/* Inner Vignette / Bottom Fade */}
                     <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
-                    
+
                     {/* Subtle Mood Tint */}
                     <div className="absolute inset-0 opacity-20 mix-blend-soft-light" style={{ backgroundColor: visuals.color }} />
                 </div>
             </div>
 
-                {/* 4. OVERLAYS & CONTENT (The "Floating" feeling) */}
-                <div className="absolute inset-0 z-10 p-10 flex flex-col justify-between pointer-events-none">
-                    
-                    {/* Header (Discrete) */}
-                    <div className="flex justify-between items-start" style={{ transform: "translateZ(50px)" }}>
-                        <div className="space-y-1">
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Frequência</p>
-                            <p className="text-xs font-serif italic text-white/80">{visuals.element}</p>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-[9px] font-mono text-white/30 tracking-widest uppercase">
-                                {snap.date ? new Date(snap.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : 'ESTE INSTANTE'}
-                            </p>
-                        </div>
+            {/* 4. OVERLAYS & CONTENT (The "Floating" feeling) */}
+            <div className="absolute inset-0 z-10 p-10 flex flex-col justify-between pointer-events-none">
+
+                {/* Header (Discrete) */}
+                <div className="flex justify-between items-start" style={{ transform: "translateZ(50px)" }}>
+                    <div className="space-y-1">
+                        <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.4em]">Frequência</p>
+                        <p className="text-xs font-serif italic text-white/80">{visuals.element}</p>
                     </div>
-
-                    {/* Bottom Content Area (Clean & Photogenic) */}
-                    <div className="space-y-6 text-center" style={{ transform: "translateZ(80px)" }}>
-                        
-                        {/* Elegant Quote at the Bottom */}
-                        <div className="px-4">
-                            <p className="text-white font-serif italic text-2xl leading-tight drop-shadow-xl">
-                                "{snap.note || 'O silêncio é o portal para a transformação.'}"
-                            </p>
-                        </div>
-
-                        {/* Signature Seal */}
-                        <div className="flex flex-col items-center gap-3">
-                            <div className="w-16 h-[1px] bg-white/20"></div>
-                            <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.4em] bg-white/5 border border-white/10 text-white/60`}>
-                                {snap.mood || 'SERENO'}
-                            </span>
-                        </div>
-
-                        {/* Footer (Ritual Stamp) */}
-                        <div className="flex justify-center opacity-30">
-                            <p className="text-[10px] font-bold text-white uppercase tracking-[0.6em]">VIVA360</p>
-                        </div>
+                    <div className="text-right">
+                        <p className="text-[9px] font-mono text-white/30 tracking-widest uppercase">
+                            {snap.date ? new Date(snap.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : 'ESTE INSTANTE'}
+                        </p>
                     </div>
                 </div>
 
-                {/* 5. INTERACTIVE EFFECTS */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[2s] pointer-events-none mix-blend-overlay z-30" />
-                
-                {onClose && (
-                    <button 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onClose();
-                        }} 
-                        className="absolute top-6 right-6 z-50 p-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-white hover:bg-white/10 transition-all shadow-xl pointer-events-auto"
-                    >
-                        <X size={20} />
-                    </button>
-                )}
+                {/* Bottom Content Area (Clean & Photogenic) */}
+                <div className="space-y-6 text-center" style={{ transform: "translateZ(80px)" }}>
+
+                    {/* Elegant Quote at the Bottom */}
+                    <div className="px-4">
+                        <p className="text-white font-serif italic text-2xl leading-tight drop-shadow-xl">
+                            "{snap.note || 'O silêncio é o portal para a transformação.'}"
+                        </p>
+                    </div>
+
+                    {/* Signature Seal */}
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="w-16 h-[1px] bg-white/20"></div>
+                        <span className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.4em] bg-white/5 border border-white/10 text-white/60`}>
+                            {snap.mood || 'SERENO'}
+                        </span>
+                    </div>
+
+                    {/* Footer (Ritual Stamp) */}
+                    <div className="flex justify-center opacity-30">
+                        <p className="text-[10px] font-bold text-white uppercase tracking-[0.6em]">VIVA360</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* 5. INTERACTIVE EFFECTS */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[2s] pointer-events-none mix-blend-overlay z-30" />
+
+            {onClose && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onClose();
+                    }}
+                    className="absolute top-6 right-6 z-50 p-2 bg-white/5 backdrop-blur-md rounded-full border border-white/10 text-white hover:bg-white/10 transition-all shadow-xl pointer-events-auto"
+                >
+                    <X size={20} />
+                </button>
+            )}
         </motion.div>
     );
 };

@@ -45,8 +45,8 @@ export const idbImages = {
     await withStore('readwrite', (store) => store.put(blob, key));
   },
   get: async (key: string): Promise<Blob | null> => {
-    const result = await withStore('readonly', (store) => store.get(key));
-    return (result as any) ? (result as Blob) : null;
+    const result = await withStore<Blob | undefined>('readonly', (store) => store.get(key));
+    return result || null;
   },
   del: async (key: string): Promise<void> => {
     await withStore('readwrite', (store) => store.delete(key));
@@ -54,4 +54,3 @@ export const idbImages = {
 };
 
 export const buildLocalImageKey = (id: string) => `img:${id}`;
-

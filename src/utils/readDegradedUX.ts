@@ -26,10 +26,19 @@ const domainLabels: Record<string, string> = {
 
 export const readDomainLabel = (domain: DomainKey) => domainLabels[domain] || domain;
 
+interface ApiError {
+  code?: string;
+  status?: number;
+  details?: {
+    code?: string;
+    status?: number;
+  };
+}
+
 export const getReadErrorMeta = (error: unknown) => {
-  const anyErr = error as any;
-  const code = String(anyErr?.code || anyErr?.details?.code || '').toUpperCase();
-  const status = Number(anyErr?.status || anyErr?.details?.status || 0);
+  const err = error as ApiError;
+  const code = String(err?.code || err?.details?.code || '').toUpperCase();
+  const status = Number(err?.status || err?.details?.status || 0);
   return { code, status };
 };
 

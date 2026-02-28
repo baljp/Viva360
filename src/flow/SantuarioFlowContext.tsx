@@ -1,8 +1,10 @@
-import React, { useReducer, ReactNode } from 'react';
+import React, { useReducer, useEffect, ReactNode } from 'react';
 import { Sparkles, X } from 'lucide-react';
 import { SantuarioState } from './santuarioTypes';
 import { SantuarioFlowEngine } from './SantuarioFlowEngine';
 import { api } from '../../services/api';
+import { realtime } from '../../services/api/realtime';
+import { sounds } from '../../services/api/sounds';
 import { SpaceRoom, Professional, Vacancy, Transaction, Product } from '../../types';
 import { RitualCompletionCard } from '../components/RitualCompletionCard';
 import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
@@ -33,6 +35,7 @@ interface SantuarioContextState extends BaseFlowState<SantuarioState> {
         totalPatients: number;
         occupancyRate: number;
         monthlyRevenue: number;
+        radianceScore: number;
     };
 }
 
@@ -45,7 +48,7 @@ type FlowAction =
     | { type: 'SELECT_PATIENT'; payload: string | null }
     | { type: 'SELECT_EVENT'; payload: string | null }
     | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null }
-    | { type: 'SET_ADMIN_STATS'; payload: { activePros: number; totalPatients: number; occupancyRate: number; monthlyRevenue: number } }
+    | { type: 'SET_ADMIN_STATS'; payload: { activePros: number; totalPatients: number; occupancyRate: number; monthlyRevenue: number; radianceScore: number } }
     | { type: 'CLEAR_NOTIFICATION' };
 
 const createInitialState = (): SantuarioContextState => ({
@@ -62,19 +65,6 @@ const createInitialState = (): SantuarioContextState => ({
         transactions: [],
         myProducts: []
     },
-    selectedProId: null,
-    selectedRoomId: null,
-    selectedPatientId: null,
-    selectedEventId: null,
-    selectedChatRoom: null,
-    adminStats: {
-        // Derived from real data in refreshData - not hardcoded
-        activePros: 0,
-        totalPatients: 0,
-        occupancyRate: 0,
-        monthlyRevenue: 0
-    },
-    ritualCompletion: null
 });
 
 const baseReducer = createFlowReducer<SantuarioState>();
@@ -220,13 +210,25 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
                 ? realRooms.filter((r: any) => String(r.status || '').toLowerCase() === 'occupied').length
                 : 0;
             const occupancyRate = realRooms.length > 0 ? Math.round((occupiedRooms / realRooms.length) * 100) : 0;
+            // ADMIN STATS (P2 Fix: Real patient count)
+            let totalPatients = 0;
+            try {
+                const summary = await api.profiles.getSpacePatients(userId);
+                if (summary && typeof summary.totalPatients === 'number') {
+                    totalPatients = summary.totalPatients;
+                }
+            } catch (pErr) {
+                console.warn('[SantuarioFlow] Failed to load patient summary:', pErr);
+            }
+
             dispatch({
                 type: 'SET_ADMIN_STATS',
                 payload: {
                     activePros: Array.isArray(realTeam) ? realTeam.length : 0,
-                    totalPatients: 0, // requires dedicated endpoint
+                    totalPatients,
                     occupancyRate,
                     monthlyRevenue: Math.round(incomeTotal),
+                    radianceScore: state.adminStats.radianceScore,
                 }
             });
             if (failedDomains.length > 0) {
@@ -234,6 +236,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
                 dispatch({ type: 'SET_ERROR', payload: copy.message });
                 pushNotification({ title: copy.title, message: copy.message, type: 'warning' });
             } else {
+                sounds.play('success');
                 dispatch({ type: 'SET_ERROR', payload: null });
             }
             trackFlowTelemetry({
@@ -271,6 +274,21 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         }
     };
 
+    useEffect(() => {
+        // REALTIME: Radiance Pulse (10/10 Elevation)
+        const unsubscribe = realtime.subscribe('radiance:update', (payload) => {
+            dispatch({
+                type: 'SET_ADMIN_STATS',
+                payload: {
+                    ...state.adminStats,
+                    radianceScore: Math.min(100, Math.max(0, (state.adminStats.radianceScore || 85) + payload.delta))
+                }
+            });
+        });
+
+        return () => unsubscribe();
+    }, [state.adminStats.radianceScore]);
+
     const go = (target: SantuarioState) => {
         trackFlowTelemetry({ profile: 'SANTUARIO', flow: 'core', action: 'go', status: 'attempt', from: state.currentState, to: target });
         dispatch({ type: 'SET_LOADING', payload: true });
@@ -283,6 +301,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         }
 
         dispatch({ type: 'TRANSITION', payload: target });
+        sounds.play('transition');
         dispatch({ type: 'SET_LOADING', payload: false });
     };
 
