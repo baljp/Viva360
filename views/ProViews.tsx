@@ -42,10 +42,10 @@ const proStateRoutes: Partial<Record<GuardiaoState, string>> = {
     END: '/pro/home',
 };
 
-export const ProViews: React.FC<{ 
+export const ProViews: React.FC<{
     user: Professional, view: ViewState, setView: (v: ViewState) => void, updateUser: (u: User) => void, onLogout?: () => void
 }> = ({ user, view, setView, updateUser, onLogout }) => {
-    const { state: flowState, go, jump, back, reset, refreshData } = useGuardiaoFlow();
+    const { state: flowState, go, jump, back, reset, refreshData, notify } = useGuardiaoFlow();
 
     // Sync Router View -> Flow State (Deep Linking Support)
     const map: Record<string, GuardiaoState> = {
@@ -97,13 +97,13 @@ export const ProViews: React.FC<{
                 </div>
             )}
             {/* Toast renderizado pelo GuardiaoFlowContext em top-20 — sem duplicação aqui */}
-            <ScreenConnector 
-                profile="GUARDIAO" 
-                user={user} 
+            <ScreenConnector
+                profile="GUARDIAO"
+                user={user}
                 updateUser={updateUser}
-                setView={setView} 
+                setView={setView}
                 onLogout={onLogout}
-                flow={{ state: flowState, go, back, reset }}
+                flow={{ state: flowState, go, back, jump, reset, notify }}
                 onClose={reset}
                 {...globalData}
             />

@@ -47,7 +47,7 @@ const spaceStateRoutes: Partial<Record<SantuarioState, string>> = {
 };
 
 export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void, onLogout?: () => void }> = ({ user, view, setView, onLogout }) => {
-    const { state: flowState, go, jump, back, reset, refreshData } = useSantuarioFlow();
+    const { state: flowState, go, jump, back, reset, refreshData, notify } = useSantuarioFlow();
 
     // Sync Deep Linking
     const map: Record<string, SantuarioState> = {
@@ -103,8 +103,8 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
         jump(target);
     }, [view, flowState.currentState, jump]);
 
-     // Initial Data Fetch
-     useEffect(() => {
+    // Initial Data Fetch
+    useEffect(() => {
         if (user.id) {
             refreshData(user.id);
         }
@@ -129,12 +129,12 @@ export const SpaceViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 </div>
             )}
             {/* Toast gerenciado pelo SantuarioFlowContext com botão X funcional */}
-            <ScreenConnector 
-                profile="SANTUARIO" 
-                user={user} 
-                setView={setView} 
+            <ScreenConnector
+                profile="SANTUARIO"
+                user={user}
+                setView={setView}
                 onLogout={onLogout}
-                flow={{ state: flowState, go, back, reset }}
+                flow={{ state: flowState, go, jump, back, reset, notify }}
                 onClose={reset}
                 {...globalData}
             />

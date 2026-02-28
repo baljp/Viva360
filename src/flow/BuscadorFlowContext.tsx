@@ -10,6 +10,7 @@ import { isInAppMuted } from '../utils/inAppMute';
 import { BuscadorFlowContextStore } from './BuscadorFlowContextStore';
 import { trackFlowTelemetry } from './flowTelemetry';
 import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
+import { useAppToast } from '../contexts/AppToastContext';
 
 // Define Context State
 interface FlowContextState extends BaseFlowState<BuscadorState> {
@@ -133,6 +134,8 @@ const BuscadorFlowContext = BuscadorFlowContextStore as React.Context<BuscadorFl
 // Provider Component
 export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
+    const { showToast } = useAppToast();
+
     useEffect(() => {
         trackFlowTelemetry({
             profile: 'BUSCADOR',
@@ -255,7 +258,7 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     const notify = (title: string, message: string, type: 'success' | 'info' | 'error' | 'warning' = 'success') => {
         // Retiro Offline silences in-app notifications (toasts/ritual cards) while active.
         if (isInAppMuted()) return;
-        dispatch({ type: 'SHOW_RITUAL', payload: { title, message, type } });
+        showToast({ title, message, type });
     };
 
     return (

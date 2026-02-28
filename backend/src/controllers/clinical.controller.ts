@@ -9,9 +9,8 @@ export const saveIntervention = asyncHandler(async (req: Request, res: Response)
   const userId = req.user?.userId;
   const payload = req.body || {};
 
-  if (isMockMode()) {
-    return res.status(201).json(mockEventResponse('intervention', userId, payload));
-  }
+  // No early return for mock mode here to allow DB persistence in E2E tests if available
+  // if (isMockMode()) { ... }
 
   const created = await prisma.event.create({
     data: {
@@ -33,9 +32,8 @@ export const saveIntervention = asyncHandler(async (req: Request, res: Response)
 export const listInterventions = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
 
-  if (isMockMode()) {
-    return res.json([]); // In mock mode interventions not persisted
-  }
+  // No early return for mock mode here to allow DB persistence in E2E tests if available
+  // if (isMockMode()) { ... }
 
   const events = await prisma.event.findMany({
     where: {

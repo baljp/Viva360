@@ -60,6 +60,8 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     return res.status(403).json({ error: 'Mock tokens are forbidden in production.', code: 'MOCK_TOKEN_BLOCKED' });
   }
 
+  console.log('AUTH MIDDLEWARE DEBUG:', { isMockTokenEnabled, mockTokenConst: MOCK_AUTH_TOKEN, envMockToken: process.env.MOCK_AUTH_TOKEN, token, mockFlagEnabled, isProd });
+
   // Support for strict E2E mock token only outside production.
   if (isMockTokenEnabled && MOCK_AUTH_TOKEN && token === MOCK_AUTH_TOKEN) {
     req.user = {
@@ -131,8 +133,8 @@ export const authenticateUser = async (req: Request, res: Response, next: NextFu
     const payload = jwt.verify(token, JWT_SECRET) as Record<string, unknown>;
     const userId = resolveUserId(
       (payload?.userId as string) ||
-        (payload?.id as string) ||
-        (payload?.sub as string),
+      (payload?.id as string) ||
+      (payload?.sub as string),
     );
     if (!userId) {
       return unauthorized(res, 'Invalid token payload');

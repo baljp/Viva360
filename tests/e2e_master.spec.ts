@@ -14,7 +14,7 @@ async function handleOnboarding(page: any) {
     localStorage.setItem('viva360_smart_tutorial_seen', 'true');
     // Also try to set it for known user IDs if possible, or just the generic one
     for (let i = 0; i < 100; i++) {
-        localStorage.setItem(`viva360_tutorial_seen_${i}`, 'true');
+      localStorage.setItem(`viva360_tutorial_seen_${i}`, 'true');
     }
     // Also for standard mock user
     localStorage.setItem('viva360_tutorial_seen_mock-user-id', 'true');
@@ -36,7 +36,7 @@ test.describe('Master Enterprise E2E Suite', () => {
     test(`Role Discovery & Asset Audit - ${role.name}`, async ({ page }) => {
       // 1. Authentication
       await page.goto('/');
-      
+
       // Close onboarding if present
       await handleOnboarding(page);
 
@@ -44,9 +44,12 @@ test.describe('Master Enterprise E2E Suite', () => {
       await expect(loginBtn).toBeVisible({ timeout: 10000 });
       await loginBtn.click();
 
+      // Wait for login form to settle
+      await page.waitForTimeout(1000);
+
       await page.fill('input[placeholder="seu@email.com"]', role.email);
       await page.fill('input[placeholder="••••••••"]', role.password);
-      await page.click('button[type="submit"]');
+      await page.click('button[type="submit"]', { force: true });
 
       // 2. Dashboard Validation
       await page.waitForURL(role.dashboard, { timeout: 15000 });
@@ -75,9 +78,9 @@ test.describe('Master Enterprise E2E Suite', () => {
         await page.waitForTimeout(500);
 
         // Capture Screenshot for Visual Baseline
-        await page.screenshot({ 
-            path: `test-results/snapshots/${role.name}_page_${count}.png`, 
-            fullPage: true 
+        await page.screenshot({
+          path: `test-results/snapshots/${role.name}_page_${count}.png`,
+          fullPage: true
         });
 
         // Audit: Broken Images (local render check, limited)
@@ -101,7 +104,7 @@ test.describe('Master Enterprise E2E Suite', () => {
         for (const link of links) {
           const href = await link.getAttribute('href');
           if (href && href.startsWith('/') && !visited.has(new URL(href, page.url()).href)) {
-             toVisit.push(new URL(href, page.url()).href);
+            toVisit.push(new URL(href, page.url()).href);
           }
         }
       }
@@ -112,7 +115,7 @@ test.describe('Master Enterprise E2E Suite', () => {
     // 1. CLIENT: Initiate a booking or interest
     const clientContext = await browser.newContext();
     const page = await clientContext.newPage();
-    
+
     await page.goto('/');
     await handleOnboarding(page);
     await page.getByRole('button', { name: /já iniciei a jornada/i }).click();
@@ -130,7 +133,7 @@ test.describe('Master Enterprise E2E Suite', () => {
     // 2. PRO: Verify Dashboard Visibility in ISOLATED context
     const proContext = await browser.newContext();
     const proPage = await proContext.newPage();
-    
+
     await proPage.goto('/');
     await handleOnboarding(proPage);
     await proPage.getByRole('button', { name: /já iniciei a jornada/i }).click();
@@ -139,11 +142,11 @@ test.describe('Master Enterprise E2E Suite', () => {
     await proPage.click('button[type="submit"]');
     await proPage.waitForURL('**/pro/home');
     await handleOnboarding(proPage);
-    
+
     // Check for dashboard elements
     await expect(proPage.locator('text=/Portal de Cura|Egrégora/i').first()).toBeVisible({ timeout: 10000 });
     await proPage.screenshot({ path: 'test-results/integration/pro_dashboard.png' });
-    
+
     await clientContext.close();
     await proContext.close();
   });

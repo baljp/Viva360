@@ -9,6 +9,7 @@ import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 import { SantuarioFlowContextStore } from './SantuarioFlowContextStore';
 import { trackFlowTelemetry } from './flowTelemetry';
 import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
+import { useAppToast } from '../contexts/AppToastContext';
 
 interface SantuarioContextState extends BaseFlowState<SantuarioState> {
     engine: SantuarioFlowEngine;
@@ -87,7 +88,7 @@ const flowReducer = (state: SantuarioContextState, action: FlowAction): Santuari
             }
             const tempEngine = new SantuarioFlowEngine(state.currentState, [...state.history]);
             const success = tempEngine.transition(action.payload);
-            
+
             if (success) {
                 return {
                     ...state,
@@ -155,6 +156,8 @@ const SantuarioFlowContext = SantuarioFlowContextStore as React.Context<Santuari
 
 export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
+    const { showToast } = useAppToast();
+
     React.useEffect(() => {
         trackFlowTelemetry({
             profile: 'SANTUARIO',
@@ -166,8 +169,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     }, [state.currentState]);
 
     const pushNotification = (payload: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' }) => {
-        dispatch({ type: 'NOTIFY', payload });
-        setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);
+        showToast(payload);
     };
 
     const refreshData = async (userId: string) => {
@@ -177,11 +179,11 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         dispatch({ type: 'SET_LOADING', payload: true });
         try {
             const [rResult, tResult, vResult, txResult, prodsResult] = await Promise.allSettled([
-                  api.spaces.getRooms(),
-                  api.spaces.getTeam(),
-                  api.spaces.getVacancies(),
-                  api.spaces.getTransactions(),
-                  api.marketplace.listByOwner(userId)
+                api.spaces.getRooms(),
+                api.spaces.getTeam(),
+                api.spaces.getVacancies(),
+                api.spaces.getTransactions(),
+                api.marketplace.listByOwner(userId)
             ]);
             const failedDomains: string[] = [];
             const degradedDomains: string[] = [];
@@ -196,7 +198,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
                 failedDomains.push('marketplace');
                 if (isDegradedReadError(prodsResult.reason)) degradedDomains.push('marketplace');
             }
-            
+
             const realTeam = tResult.status === 'fulfilled' ? tResult.value : state.data.team;
             const realTx = txResult.status === 'fulfilled' ? txResult.value : state.data.transactions;
             const realRooms = rResult.status === 'fulfilled' ? rResult.value : state.data.rooms;
@@ -272,7 +274,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     const go = (target: SantuarioState) => {
         trackFlowTelemetry({ profile: 'SANTUARIO', flow: 'core', action: 'go', status: 'attempt', from: state.currentState, to: target });
         dispatch({ type: 'SET_LOADING', payload: true });
-        
+
         if (target === 'FINANCE_REPASSES') {
             dispatch({ type: 'SHOW_RITUAL', payload: { title: 'Fluxo Calculado', message: 'Os repasses do santuário foram harmonizados.' } });
         }
@@ -326,29 +328,11 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
         <SantuarioFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, selectPro, selectRoom, selectPatient, selectEvent, selectChatRoom, notify }}>
             {children}
             {state.ritualCompletion && (
-                <RitualCompletionCard 
-                    title={state.ritualCompletion.title} 
-                    message={state.ritualCompletion.message} 
-                    onClose={() => dispatch({ type: 'CLEAR_RITUAL' })} 
+                <RitualCompletionCard
+                    title={state.ritualCompletion.title}
+                    message={state.ritualCompletion.message}
+                    onClose={() => dispatch({ type: 'CLEAR_RITUAL' })}
                 />
-            )}
-            {state.notification && (
-                <div className="fixed top-20 left-0 right-0 z-[1000] px-4 animate-in slide-in-from-top duration-500">
-                     <div className={`p-4 rounded-2xl shadow-2xl border flex items-center gap-3 backdrop-blur-xl ${
-                         state.notification.type === 'success' ? 'bg-emerald-50/90 border-emerald-100 text-emerald-900' :
-                         state.notification.type === 'error' ? 'bg-rose-50/90 border-rose-100 text-rose-900' :
-                         'bg-white/90 border-nature-100 text-nature-900'
-                     }`}>
-                         <Sparkles size={20} className={state.notification.type === 'success' ? 'text-emerald-500' : 'text-nature-400'} />
-                         <div className="flex-1">
-                             <h4 className="font-bold text-xs">{state.notification.title}</h4>
-                             <p className="text-[10px] opacity-70">{state.notification.message}</p>
-                         </div>
-                         <button onClick={() => dispatch({ type: 'CLEAR_NOTIFICATION' })} className="p-1 hover:bg-black/5 rounded-lg transition-colors">
-                             <X size={16} />
-                         </button>
-                     </div>
-                </div>
             )}
         </SantuarioFlowContext.Provider>
     );

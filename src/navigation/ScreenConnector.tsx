@@ -11,6 +11,7 @@ type ConnectorFlowLike = {
     go?: (target: string) => void;
     back?: () => void;
     jump?: (target: string) => void;
+    notify?: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
 };
 
 interface ConnectorProps {

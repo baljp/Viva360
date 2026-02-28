@@ -15,6 +15,8 @@ function isDbUnavailableError(err: unknown): boolean {
   // or at request-time with P10xx codes. We only fallback for these cases.
   if (name.includes('PrismaClientInitializationError')) return true;
   if (code === 'P1000' || code === 'P1001' || code === 'P1002' || code === 'P1017') return true;
+  // Also fallback if foreign key constraint (P2003) or record not found (P2025) fails due to empty mock DB
+  if (code === 'P2003' || code === 'P2025') return true;
 
   // Best-effort string matching for environments where Prisma error shape differs.
   if (/provided database credentials.*not valid/i.test(msg)) return true;
@@ -36,13 +38,13 @@ function keyToUuid(key: string): string {
 // Runtime flags via feature flag central (lib/appMode.ts)
 
 // In-memory fallback used only in mock/test runtime when Prisma DB is unavailable.
-type MemoryRoom = { id: string; type: string; participants: string[]; [k: string]: unknown };
-type MemoryMessage = { id: string; room_id?: string; chat_id?: string; sender_id: string; receiver_id?: string; content: string; read?: boolean; created_at: string; sender?: { id: string; name: string; avatar: string }; [k: string]: unknown };
+type MemoryRoom = { id: string; type: string; participants: string[];[k: string]: unknown };
+type MemoryMessage = { id: string; room_id?: string; chat_id?: string; sender_id: string; receiver_id?: string; content: string; read?: boolean; created_at: string; sender?: { id: string; name: string; avatar: string };[k: string]: unknown };
 
 /** Minimal shape returned by getOrCreateChat/getOrCreateRoom */
-export type ChatRoomResult = { id: string; [k: string]: unknown };
+export type ChatRoomResult = { id: string;[k: string]: unknown };
 /** Minimal shape returned by sendMessage */
-export type ChatMessageResult = { id: string; [k: string]: unknown };
+export type ChatMessageResult = { id: string;[k: string]: unknown };
 const memory = {
   roomsById: new Map<string, MemoryRoom>(),
   participantsByRoomId: new Map<string, Set<string>>(),
@@ -380,19 +382,19 @@ export class ChatService {
       const chat = existing
         ? existing
         : await prisma.chat.create({
-            data: {
-              type,
-              context_id: normalizedContextId,
-              participants: { create: [{ profile_id: profileId }] },
-            },
-            include: {
-              participants: {
-                include: {
-                  profile: { select: { id: true, name: true, avatar: true, role: true } },
-                },
+          data: {
+            type,
+            context_id: normalizedContextId,
+            participants: { create: [{ profile_id: profileId }] },
+          },
+          include: {
+            participants: {
+              include: {
+                profile: { select: { id: true, name: true, avatar: true, role: true } },
               },
             },
-          });
+          },
+        });
 
       const participant = await prisma.chatParticipant.findFirst({
         where: { chat_id: chat.id, profile_id: profileId },

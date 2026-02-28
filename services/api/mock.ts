@@ -22,10 +22,13 @@ const MOCK_ENABLED = String(import.meta.env.VITE_MOCK_ENABLED || '').trim().toLo
 export const TEST_ACCOUNT_PASSWORD = '123456';
 
 const STRICT_TEST_ACCOUNTS: Record<string, { id: string; role: UserRole; name: string }> = {
-  'client0@viva360.com': { id: 'client_0', role: UserRole.CLIENT, name: 'Buscador Teste' },
-  'pro0@viva360.com': { id: 'pro_0', role: UserRole.PROFESSIONAL, name: 'Guardião Teste' },
-  'contato.hub0@viva360.com': { id: 'hub_0', role: UserRole.SPACE, name: 'Santuário Teste' },
-  'admin@viva360.com': { id: 'admin-001', role: UserRole.ADMIN, name: 'Admin Viva360' },
+  'client0@viva360.com': { id: '11111111-1111-4111-8111-111111111111', role: UserRole.CLIENT, name: 'Buscador Teste' },
+  'cliente@viva360.com': { id: '11111111-1111-4111-8111-111111111111', role: UserRole.CLIENT, name: 'Buscador Master' },
+  'pro0@viva360.com': { id: '22222222-2222-4222-8222-222222222222', role: UserRole.PROFESSIONAL, name: 'Guardião Teste' },
+  'pro@viva360.com': { id: '22222222-2222-4222-8222-222222222222', role: UserRole.PROFESSIONAL, name: 'Guardião Master' },
+  'contato.hub0@viva360.com': { id: '33333333-3333-4333-8333-333333333333', role: UserRole.SPACE, name: 'Santuário Teste' },
+  'space@viva360.com': { id: '33333333-3333-4333-8333-333333333333', role: UserRole.SPACE, name: 'Santuário Master' },
+  'admin@viva360.com': { id: '11111111-1111-4111-8111-111111111111', role: UserRole.ADMIN, name: 'Admin Viva360' },
 };
 const STRICT_TEST_EMAILS = new Set(Object.keys(STRICT_TEST_ACCOUNTS));
 

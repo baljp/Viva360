@@ -10,6 +10,7 @@ import { BaseFlowState, BaseFlowAction, createFlowReducer } from './baseFlow';
 import { GuardiaoFlowContextStore } from './GuardiaoFlowContextStore';
 import { trackFlowTelemetry } from './flowTelemetry';
 import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
+import { useAppToast } from '../contexts/AppToastContext';
 
 // Define Context State
 interface GuardiaoContextState extends BaseFlowState<GuardiaoState> {
@@ -126,6 +127,8 @@ const GuardiaoFlowContext = GuardiaoFlowContextStore as React.Context<GuardiaoFl
 
 export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(flowReducer, null, createInitialState);
+    const { showToast } = useAppToast();
+
     useEffect(() => {
         trackFlowTelemetry({
             profile: 'GUARDIAO',
@@ -137,8 +140,7 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     }, [state.currentState]);
 
     const pushNotification = (payload: { title: string; message: string; type?: 'info' | 'success' | 'warning' | 'error' }) => {
-        dispatch({ type: 'NOTIFY', payload });
-        setTimeout(() => dispatch({ type: 'CLEAR_NOTIFICATION' }), 4000);
+        showToast(payload);
     };
 
     const refreshData = async (userId: string) => {
@@ -267,23 +269,6 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
                     message={state.ritualCompletion.message}
                     onClose={() => dispatch({ type: 'CLEAR_RITUAL' })}
                 />
-            )}
-            {state.notification && (
-                <div className="fixed top-20 left-0 right-0 z-[1000] px-4 animate-in slide-in-from-top duration-500">
-                    <div className={`p-4 rounded-2xl shadow-2xl border flex items-center gap-3 backdrop-blur-xl ${state.notification.type === 'success' ? 'bg-emerald-50/90 border-emerald-100 text-emerald-900' :
-                            state.notification.type === 'error' ? 'bg-rose-50/90 border-rose-100 text-rose-900' :
-                                'bg-white/90 border-nature-100 text-nature-900'
-                        }`}>
-                        <Sparkles size={20} className={state.notification.type === 'success' ? 'text-emerald-500' : 'text-nature-400'} />
-                        <div className="flex-1">
-                            <h4 className="font-bold text-xs">{state.notification.title}</h4>
-                            <p className="text-[10px] opacity-70">{state.notification.message}</p>
-                        </div>
-                        <button onClick={() => dispatch({ type: 'CLEAR_NOTIFICATION' })} className="p-1 hover:bg-black/5 rounded-lg transition-colors">
-                            <X size={16} />
-                        </button>
-                    </div>
-                </div>
             )}
         </GuardiaoFlowContext.Provider>
     );
