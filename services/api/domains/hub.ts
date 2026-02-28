@@ -177,6 +177,28 @@ export const createHubDomain = ({ request }: HubDomainDeps) => ({
         return [];
       }
     },
+    getRetreats: async () => {
+      try {
+        return await request('/spaces/retreats');
+      } catch (err) {
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getRetreats' });
+        return [];
+      }
+    },
+    createRetreat: async (event: Record<string, unknown>) => {
+      return await request('/spaces/retreats', {
+        method: 'POST',
+        body: JSON.stringify(event),
+      });
+    },
+    getRoomAgenda: async (roomId: string) => {
+      try {
+        return await request(`/spaces/rooms/${roomId}/agenda`);
+      } catch (err) {
+        captureFrontendError(err, { domain: 'hub', op: 'spaces.getRoomAgenda' });
+        return [];
+      }
+    },
     getEvent: async (eventId: string) => {
       try {
         return await request(`/calendar/${eventId}`, { purpose: 'space-event-detail', timeoutMs: 6000, retries: 1 });

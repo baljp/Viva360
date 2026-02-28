@@ -149,9 +149,9 @@ export default function PatientEvolutionView() {
 
     const [records, setRecords] = useState<PatientEvolutionRecord[]>([]);
     const [loading, setLoading] = useState(true);
-    const [interventions, setInterventions] = useState<Array<{id: string|number; title: string; outcome: string; type: string; date?: string}>>([]);
+    const [interventions, setInterventions] = useState<Array<{ id: string | number; title: string; outcome: string; type: string; date?: string }>>([]);
     const [interventionsLoading, setInterventionsLoading] = useState(true);
-    const [planGoals, setPlanGoals] = useState<Array<{title: string; done: boolean}>>([]);
+    const [planGoals, setPlanGoals] = useState<Array<{ title: string; done: boolean }>>([]);
 
     const PATIENT_ID = String(state.selectedPatient?.id || '').trim();
 
@@ -299,8 +299,7 @@ export default function PatientEvolutionView() {
                 </div>
             )}
 
-            {/* Keeping other tabs static for now as they are complex views */}
-            {/* ... patterns, interventions, plan logic ... */}
+
 
 
             {activeTab === 'patterns' && (
@@ -320,17 +319,22 @@ export default function PatientEvolutionView() {
                             };
                             const pts = records.length > 0
                                 ? records.slice(0, 7).reverse().map(r => moodScore(r.mood))
-                                : [40, 60, 55, 78, 85, 82, 90];
+                                : [];
                             const maxPt = Math.max(...pts, 1);
-                            const trend = pts.length > 1 && pts[pts.length-1] >= pts[0] ? 'Alta' : 'Estável';
-                            return (<>
+                            const trend = pts.length > 1 && pts[pts.length - 1] >= pts[0] ? 'Alta' : 'Estável';
+                            return pts.length > 0 ? (<>
                                 <div className="flex items-end gap-2 h-32 px-4 pb-4 bg-white/5 rounded-2xl border border-white/10">
                                     {pts.map((h, i) => (
-                                        <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500/50 to-emerald-400 rounded-t-lg relative" style={{ height: `${(h/maxPt)*100}%` }}></div>
+                                        <div key={i} className="flex-1 bg-gradient-to-t from-emerald-500/50 to-emerald-400 rounded-t-lg relative" style={{ height: `${(h / maxPt) * 100}%` }}></div>
                                     ))}
                                 </div>
                                 <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-300 mt-4 text-center">Tendência de {trend} Estabilidade</p>
-                            </>);
+                            </>) : (
+                                <div className="h-32 flex flex-col items-center justify-center text-center opacity-60">
+                                    <Activity size={24} className="text-white/40 mb-2" />
+                                    <p className="text-xs text-white">Gráfico indisponível. Cadastre sessões evolutivas.</p>
+                                </div>
+                            );
                         })()}
                     </div>
 
@@ -340,8 +344,8 @@ export default function PatientEvolutionView() {
                             {records.length > 0 ? (() => {
                                 const moodCounts: Record<string, number> = {};
                                 records.forEach(r => { const k = r.mood || 'Neutro'; moodCounts[k] = (moodCounts[k] || 0) + 1; });
-                                const colors = ['bg-rose-50 text-rose-600 border-rose-100','bg-indigo-50 text-indigo-600 border-indigo-100','bg-emerald-50 text-emerald-600 border-emerald-100','bg-amber-50 text-amber-600 border-amber-100'];
-                                return Object.entries(moodCounts).slice(0,4).map(([mood, count], i) => (
+                                const colors = ['bg-rose-50 text-rose-600 border-rose-100', 'bg-indigo-50 text-indigo-600 border-indigo-100', 'bg-emerald-50 text-emerald-600 border-emerald-100', 'bg-amber-50 text-amber-600 border-amber-100'];
+                                return Object.entries(moodCounts).slice(0, 4).map(([mood, count], i) => (
                                     <span key={mood} className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase border ${colors[i % colors.length]}`}>
                                         {mood} · {count}x
                                     </span>

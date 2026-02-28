@@ -4,8 +4,10 @@ import { PortalView } from '../../../components/Common';
 import { Check, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { api } from '../../../services/api';
 
+import { accountApi } from '../../../services/api/accountClient';
+
 export default function AgendaEditScreen() {
-  const { back, go, state, notify, selectAppointment } = useGuardiaoFlow();
+  const { back, go, state, notify, selectAppointment, updateAppointment } = useGuardiaoFlow();
   const apt = state.selectedAppointment;
 
   const [status, setStatus] = useState<string>(apt?.status || 'pending');
@@ -34,9 +36,11 @@ export default function AgendaEditScreen() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = await (api as any).appointments?.update?.(apt.id, { status, time: time || apt.time, notes }).catch(() => null);
+      const updated = await accountApi.appointments.update(apt.id, { status, time: time || apt.time, notes });
       if (updated) {
-        selectAppointment({ ...apt, status: status as any, time: time || apt.time });
+        const mutatedApt = { ...apt, status: status as any, time: time || apt.time };
+        selectAppointment(mutatedApt);
+        updateAppointment(mutatedApt);
       }
       notify('Agendamento Atualizado', `Status de ${apt.clientName} alterado com sucesso.`, 'success');
       go('AGENDA_CONFIRM');
@@ -48,10 +52,10 @@ export default function AgendaEditScreen() {
   };
 
   const statuses = [
-    { value: 'pending',   label: 'Pendente',   color: 'text-amber-600 bg-amber-50 border-amber-200' },
+    { value: 'pending', label: 'Pendente', color: 'text-amber-600 bg-amber-50 border-amber-200' },
     { value: 'confirmed', label: 'Confirmado', color: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    { value: 'completed', label: 'Concluído',  color: 'text-indigo-600 bg-indigo-50 border-indigo-200' },
-    { value: 'cancelled', label: 'Cancelado',  color: 'text-rose-600 bg-rose-50 border-rose-200' },
+    { value: 'completed', label: 'Concluído', color: 'text-indigo-600 bg-indigo-50 border-indigo-200' },
+    { value: 'cancelled', label: 'Cancelado', color: 'text-rose-600 bg-rose-50 border-rose-200' },
   ];
 
   return (
@@ -74,11 +78,10 @@ export default function AgendaEditScreen() {
               <button
                 key={s.value}
                 onClick={() => setStatus(s.value)}
-                className={`py-3 px-4 rounded-2xl border-2 text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 ${
-                  status === s.value
-                    ? s.color + ' border-current shadow-sm'
-                    : 'bg-white text-nature-400 border-nature-100 hover:border-nature-200'
-                }`}
+                className={`py-3 px-4 rounded-2xl border-2 text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 ${status === s.value
+                  ? s.color + ' border-current shadow-sm'
+                  : 'bg-white text-nature-400 border-nature-100 hover:border-nature-200'
+                  }`}
               >
                 {status === s.value && <Check size={12} />}
                 {s.label}

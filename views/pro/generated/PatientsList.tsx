@@ -62,7 +62,7 @@ export default function PatientsList() {
       const progress = Math.min(100, sessions * 8);
       const candidate = {
         id: patientId,
-        name: String((appointment as any).client_name || current?.name || 'Buscador'),
+        name: String((appointment as any).client_name || (appointment as any).clientName || current?.name || 'Buscador'),
         sessions,
         mood: String(current?.mood || 'Em Jornada'),
         progress,

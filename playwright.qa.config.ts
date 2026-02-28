@@ -57,7 +57,7 @@ export default defineConfig({
   /* Run backend + frontend before QA tests */
   webServer: [
     {
-      command: `mkdir -p ${QA_LOG_DIR} && (npx tsx backend/scripts/seed_mock_users.ts) && (env -u NO_COLOR HOST=127.0.0.1 MOCK_AUTH_TOKEN=${MOCK_TOKEN} STRICT_RECORD_CONSENT=true JWT_SECRET=viva360_test_jwt_secret_2026 PORT=${QA_BE_PORT} npm run dev:api:test) > ${QA_LOG_DIR}/qa-backend-webserver.log 2>&1`,
+      command: `mkdir -p ${QA_LOG_DIR} && (env -u NO_COLOR HOST=127.0.0.1 MOCK_AUTH_TOKEN=${MOCK_TOKEN} STRICT_RECORD_CONSENT=true JWT_SECRET=viva360_test_jwt_secret_2026 PORT=${QA_BE_PORT} npm run dev:api:test) > ${QA_LOG_DIR}/qa-backend-webserver.log 2>&1`,
       url: `http://127.0.0.1:${QA_BE_PORT}/api/ping`,
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,

@@ -79,7 +79,7 @@ export const acceptOffer = asyncHandler(async (req: Request, res: Response) => {
   if (!offer) return res.status(404).json({ error: 'Proposta não encontrada.', code: 'ESCAMBO_NOT_FOUND' });
 
   if (isMockMode()) {
-    const updated = { ...offer, status: 'accepted', accepted_at: new Date().toISOString() };
+    const updated: any = { ...offer, status: 'accepted', accepted_at: new Date().toISOString() };
     mockAdapter.alchemy.offers.set(updated.id, updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: updated.id, action: 'ACCEPT', actorId,
@@ -103,7 +103,7 @@ export const rejectOffer = asyncHandler(async (req: Request, res: Response) => {
   if (!offer) return res.status(404).json({ error: 'Proposta não encontrada.', code: 'ESCAMBO_NOT_FOUND' });
 
   if (isMockMode()) {
-    const updated = { ...offer, status: 'rejected' };
+    const updated: any = { ...offer, status: 'rejected' };
     mockAdapter.alchemy.offers.set(updated.id, updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: updated.id, action: 'REJECT', actorId,
@@ -128,7 +128,7 @@ export const counterOffer = asyncHandler(async (req: Request, res: Response) => 
   if (!offer) return res.status(404).json({ error: 'Proposta não encontrada.', code: 'ESCAMBO_NOT_FOUND' });
 
   if (isMockMode()) {
-    const updated = { ...offer, status: 'countered', counter_offer: counterOfferText };
+    const updated: any = { ...offer, status: 'countered', counter_offer: counterOfferText };
     mockAdapter.alchemy.offers.set(updated.id, updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: updated.id, action: 'COUNTER', actorId,
@@ -154,7 +154,7 @@ export const completeOffer = asyncHandler(async (req: Request, res: Response) =>
   if (!offer) return res.status(404).json({ error: 'Proposta não encontrada.', code: 'ESCAMBO_NOT_FOUND' });
 
   if (isMockMode()) {
-    const updated = { ...offer, status: 'completed', completed_at: new Date().toISOString() };
+    const updated: any = { ...offer, status: 'completed', completed_at: new Date().toISOString() };
     mockAdapter.alchemy.offers.set(updated.id, updated);
     const actionReceipt = await interactionReceiptService.upsert({
       entityType: 'ESCAMBO', entityId: updated.id, action: 'COMPLETE', actorId,

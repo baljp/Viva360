@@ -1,0 +1,17 @@
+(node:91662) ExperimentalWarning: CommonJS module /opt/homebrew/lib/node_modules/npm/node_modules/debug/src/node.js is loading ES Module /opt/homebrew/lib/node_modules/npm/node_modules/supports-color/index.js using require().
+Support for loading ES Module in require() is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":"info","message":"env.loaded","timestamp":"2026-02-27T21:19:34.808Z","envPath":"/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/.env"}
+{"level":"info","message":"env.runtime","timestamp":"2026-02-27T21:19:34.809Z","appMode":"MOCK","vercel":false}
+{"level":"info","message":"auth.config.runtime","timestamp":"2026-02-27T21:19:34.809Z","vercelEnv":"unknown","vercelUrl":null,"runtimeOrigin":null,"frontendOrigin":null,"redirectOrigin":null,"supabaseHost":"oqhzisdjbtyxyarjeuhp.supabase.co","authConfigVersion":"unset","issues":["VITE_SUPABASE_AUTH_REDIRECT_URL ausente","FRONTEND_URL ausente","AUTH_CONFIG_VERSION/VITE_AUTH_CONFIG_VERSION ausente (recomendado para paridade Preview/Prod)"]}
+{"level":"warn","message":"auth.config.runtime_issues","timestamp":"2026-02-27T21:19:34.810Z","vercelEnv":"unknown","issues":["VITE_SUPABASE_AUTH_REDIRECT_URL ausente","FRONTEND_URL ausente","AUTH_CONFIG_VERSION/VITE_AUTH_CONFIG_VERSION ausente (recomendado para paridade Preview/Prod)"]}
+{"level":"info","message":"supabase.init","timestamp":"2026-02-27T21:19:35.023Z","mode":"MOCK","hasSupabaseUrl":true,"hasAnonKey":true,"hasServiceRoleKey":"[REDACTED]"}
+{"level":"warn","message":"redis.serverless_no_config_RATE_LIMIT_NOT_DISTRIBUTED","timestamp":"2026-02-27T21:19:35.144Z"}
+{"level":"warn","message":"redis.mock_mode — rate limiting is in-memory only; set REDIS_URL for distributed enforcement","timestamp":"2026-02-27T21:19:35.145Z"}
+{"level":"warn","message":"push_service.vapid_missing","timestamp":"2026-02-27T21:19:35.177Z","hint":"Set VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY + VAPID_CONTACT_EMAIL"}
+{"level":"info","message":"queue.serverless_disabled","timestamp":"2026-02-27T21:19:35.569Z"}
+{"level":"info","message":"queue.workers_skipped","timestamp":"2026-02-27T21:19:35.569Z","reason":"serverless_or_mock"}
+{"level":"info","message":"server.listening","timestamp":"2026-02-27T21:19:35.657Z","port":3001,"pid":91817}
+{"level":"info","message":"http_request","timestamp":"2026-02-27T21:19:39.241Z","requestId":"f0bdf58b-2738-42b2-a487-bbd86a135698","method":"POST","route":"/chat/rooms/join","status":404,"durationMs":3,"ip":"::1","userAgent":"curl/8.7.1"}
+POST /chat/rooms/join 404 155 - 1.406 ms
+{"level":"info","message":"server.sigterm","timestamp":"2026-02-27T21:19:40.367Z"}

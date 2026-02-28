@@ -37,7 +37,8 @@ type FlowAction =
     | { type: 'SELECT_APPOINTMENT'; payload: Appointment }
     | { type: 'SELECT_PATIENT'; payload: { id: string; name?: string; mood?: string; sessions?: number; phone?: string; karma?: number } | null }
     | { type: 'SELECT_CHAT_ROOM'; payload: { id: string; name?: string } | null }
-    | { type: 'SELECT_SANTUARIO'; payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null };
+    | { type: 'SELECT_SANTUARIO'; payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null }
+    | { type: 'UPDATE_APPOINTMENT'; payload: Appointment };
 
 // Initial State Factory
 const createInitialState = (): GuardiaoContextState => ({
@@ -100,6 +101,14 @@ const flowReducer = (state: GuardiaoContextState, action: FlowAction): GuardiaoC
             return { ...state, notification: null };
         case 'SELECT_APPOINTMENT':
             return { ...state, selectedAppointment: action.payload };
+        case 'UPDATE_APPOINTMENT':
+            return {
+                ...state,
+                data: {
+                    ...state.data,
+                    appointments: state.data.appointments.map(a => a.id === action.payload.id ? action.payload : a)
+                }
+            };
         case 'SELECT_PATIENT':
             return { ...state, selectedPatient: action.payload };
         case 'SELECT_CHAT_ROOM':
@@ -118,6 +127,7 @@ export type GuardiaoFlowContextValue = {
     refreshData: (userId: string) => Promise<void>;
     notify: (title: string, message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
     selectAppointment: (apt: Appointment) => void;
+    updateAppointment: (apt: Appointment) => void;
     selectPatient: (payload: { id: string; name?: string; mood?: string; sessions?: number; phone?: string; karma?: number } | null) => void;
     selectChatRoom: (payload: { id: string; name?: string } | null) => void;
     selectSantuario: (payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null) => void;
@@ -256,12 +266,13 @@ export const GuardiaoFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
     };
 
     const selectAppointment = (apt: Appointment) => dispatch({ type: 'SELECT_APPOINTMENT', payload: apt });
+    const updateAppointment = (apt: Appointment) => dispatch({ type: 'UPDATE_APPOINTMENT', payload: apt });
     const selectPatient = (payload: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_PATIENT', payload });
     const selectChatRoom = (payload: { id: string; name?: string } | null) => dispatch({ type: 'SELECT_CHAT_ROOM', payload });
     const selectSantuario = (payload: { id: string; name?: string; phone?: string; address?: string; city?: string; image?: string; rating?: number; description?: string } | null) => dispatch({ type: 'SELECT_SANTUARIO', payload });
 
     return (
-        <GuardiaoFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, notify, selectAppointment, selectPatient, selectChatRoom, selectSantuario }}>
+        <GuardiaoFlowContext.Provider value={{ state, go, jump, back, reset, refreshData, notify, selectAppointment, updateAppointment, selectPatient, selectChatRoom, selectSantuario }}>
             {children}
             {state.ritualCompletion && (
                 <RitualCompletionCard

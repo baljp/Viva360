@@ -27,6 +27,11 @@ const achievementSchema = z.object({
     unlockedAt: z.string().optional(),
 });
 
+const evolutionMetricsSchema = z.object({
+    userId: z.string(),
+});
+
+
 const userUpdateSchema = z.object({
     name: z.string().min(2).optional(),
     bio: z.string().optional(),
@@ -495,3 +500,115 @@ export const exportData = asyncHandler(async (req: Request, res: Response) => {
 
     return res.json(exportPayload);
 });
+
+export const waterPlant = asyncHandler(async (req: Request, res: Response) => {
+    const userId = String(req.user?.userId || req.user?.id || '').trim();
+    if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
+    }
+
+    // Atomic fetch-and-update to prevent race conditions (P1 Fix)
+    const { data: user, error } = await supabaseAdmin
+        .from('profiles')
+        .select('id, plant_xp, plant_health, plant_stage, last_watered_at, name, streak')
+        .eq('id', userId)
+        .single();
+
+    if (error || !user) {
+        return res.status(404).json({ error: 'User not found', code: 'USER_NOT_FOUND' });
+    }
+
+    // Mirroring gardenService logic for atomic action
+    const streak = user.streak || 0;
+    const streakMultiplier = Math.min(2, 1 + (streak / 10));
+    const xpReward = Math.floor(10 * streakMultiplier);
+    const healthReward = 10;
+    const now = new Date().toISOString();
+
+    const updates = {
+        plant_xp: (user.plant_xp || 0) + xpReward,
+        plant_health: Math.min(100, (user.plant_health || 0) + healthReward),
+        last_watered_at: now
+    };
+
+    const { data: updated, error: updateError } = await supabaseAdmin
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (updateError) {
+        throw updateError;
+    }
+
+    // Log the interaction
+    await prisma.interactionReceipt.create({
+        data: {
+            entity_type: 'PROFILE',
+            entity_id: userId,
+            action: 'PLANT_WATERED',
+            actor_id: userId,
+            status: 'DONE',
+            payload: { xp: xpReward, health: healthReward },
+        }
+    }).catch(() => null);
+
+    return res.json({
+        success: true,
+        xpReward,
+        healthReward,
+        user: updated
+    });
+});
+
+export const getEvolutionMetrics = asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    const [events, profile] = await Promise.all([
+        prisma.event.findMany({
+            where: { stream_id: id, type: 'MOOD_LOGGED' },
+            orderBy: { created_at: 'desc' },
+            take: 100, // Look at more for better breakdown
+            select: { payload: true }
+        }),
+        supabaseAdmin.from('profiles').select('streak, karma').eq('id', id).single()
+    ]);
+
+    const snaps = (events || []).map(e => e.payload as any);
+    const positiveMoods = ['happy', 'grateful', 'peaceful', 'excited', '😄', '😊', '😌', 'feliz', 'calmo', 'grato', 'motivado', 'vibrante', 'sereno', 'serena', 'focado', 'focada', 'grata'];
+
+    const positivity = snaps.length > 0
+        ? (snaps.filter(s => {
+            const mood = String(s?.mood || '').toLowerCase();
+            return positiveMoods.some(pm => mood.includes(pm));
+        }).length / snaps.length) * 100
+        : 50;
+
+    const moodMap: Record<string, number> = {};
+    snaps.forEach(s => {
+        const mood = s?.mood || 'Neutro';
+        const label = mood.charAt(0).toUpperCase() + mood.slice(1).toLowerCase();
+        moodMap[label] = (moodMap[label] || 0) + 1;
+    });
+
+    const breakdown = Object.entries(moodMap)
+        .map(([label, count]) => ({
+            label,
+            percent: Math.round((count / (snaps.length || 1)) * 100)
+        }))
+        .sort((a, b) => b.percent - a.percent);
+
+    const streak = profile.data?.streak || 0;
+    const constancy = Math.min(100, streak * 5);
+
+    return res.json({
+        constancy,
+        positivity,
+        breakdown,
+        totalSnaps: snaps.length,
+        evolutionScore: Math.floor((constancy * 0.6) + (positivity * 0.4)) // Simplified weight
+    });
+});
+
+

@@ -417,3 +417,74 @@ export const getPatient = asyncHandler(async (req: Request, res: Response) => {
     })),
   });
 });
+
+// 10. Space Retreats
+export const getRetreats = asyncHandler(async (req: Request, res: Response) => {
+  const spaceId = getUserIdCompat(req);
+  if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const events = await prisma.calendarEvent.findMany({
+    where: { user_id: spaceId },
+    orderBy: { start_time: 'asc' },
+  });
+
+  const retreats = events.filter((e) => {
+    let meta: any = {};
+    try { meta = e.details ? JSON.parse(e.details) : {}; } catch { /* ignore */ }
+    const rawType = String(e.type || '').toLowerCase();
+    const kind = String(meta.kind || '').toLowerCase();
+    return rawType === 'retreat' || kind === 'retreat';
+  });
+
+  return res.json(retreats);
+});
+
+export const createRetreat = asyncHandler(async (req: Request, res: Response) => {
+  const spaceId = getUserIdCompat(req);
+  if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { title, start, end, details } = req.body;
+
+  let mergedDetails = {};
+  if (typeof details === 'string') {
+    try { mergedDetails = JSON.parse(details); } catch { /* ignore */ }
+  } else if (typeof details === 'object' && details !== null) {
+    mergedDetails = details;
+  }
+
+  mergedDetails = { ...mergedDetails, kind: 'retreat' };
+
+  const event = await prisma.calendarEvent.create({
+    data: {
+      user_id: spaceId,
+      title: title || 'Novo Retiro',
+      start_time: new Date(start || Date.now()),
+      end_time: new Date(end || Date.now() + 86400000),
+      type: 'retreat',
+      details: JSON.stringify(mergedDetails),
+    },
+  });
+
+  return res.json(event);
+});
+
+// 11. Space Room Agenda
+export const getRoomAgenda = asyncHandler(async (req: Request, res: Response) => {
+  const spaceId = getUserIdCompat(req);
+  const roomId = String(req.params.roomId || '').trim();
+  if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
+  if (!roomId) return res.status(400).json({ error: 'Missing roomId' });
+
+  const events = await prisma.calendarEvent.findMany({
+    where: { user_id: spaceId },
+    orderBy: { start_time: 'asc' },
+  });
+
+  const agenda = events.filter((e) => {
+    let meta: any = {};
+    try { meta = e.details ? JSON.parse(e.details) : {}; } catch { /* ignore */ }
+    return String(meta.roomId || '') === roomId || String((e as any).roomId || '') === roomId;
+  });
+
+  return res.json(agenda);
+});

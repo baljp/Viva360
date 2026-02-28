@@ -47,13 +47,13 @@ export class InteractionReceiptService {
           status,
           next_step: input.nextStep || null,
           request_id: input.requestId || null,
-          payload: input.payload !== undefined ? (input.payload as Record<string, unknown>) : undefined,
+          payload: input.payload !== undefined ? (input.payload as any) : undefined,
         },
         update: {
           status,
           next_step: input.nextStep || null,
           request_id: input.requestId || null,
-          payload: input.payload !== undefined ? (input.payload as Record<string, unknown>) : undefined,
+          payload: input.payload !== undefined ? (input.payload as any) : undefined,
         },
         select: {
           id: true,

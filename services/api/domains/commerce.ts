@@ -105,7 +105,15 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
         return [];
       }
     },
-    blockUser: async () => true,
+    blockUser: async (id: string) => {
+      try {
+        await request(`/admin/users/${id}/block`, { method: 'POST', purpose: 'admin.blockUser' });
+        return true;
+      } catch (err) {
+        captureFrontendError(err, { domain: 'commerce', op: 'admin.blockUser' });
+        return false;
+      }
+    },
     getMetrics: async () => {
       try {
         return await request('/admin/metrics');

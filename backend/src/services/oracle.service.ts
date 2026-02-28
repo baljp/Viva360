@@ -4,23 +4,23 @@ import { logger } from '../lib/logger';
 
 // Local type definition (Prisma generate may not have OracleMessage exported yet)
 type OracleMessage = {
-  id: string;
-  theme?: string | null;
-  element?: string | null;
-  archetype?: string | null;
-  message?: string | null;
-  ritual?: string | null;
-  affirmation?: string | null;
-  active?: boolean;
-  created_at?: Date;
-  // Extended fields used in fallback deck and filtering logic
-  text?: string;
-  category?: string;
-  moods?: string[];
-  phases?: string[];
-  depth?: number;
-  weight?: number;
-  rarity?: string;
+    id: string;
+    theme?: string | null;
+    element?: string | null;
+    archetype?: string | null;
+    message?: string | null;
+    ritual?: string | null;
+    affirmation?: string | null;
+    active?: boolean;
+    created_at?: Date;
+    // Extended fields used in fallback deck and filtering logic
+    text?: string;
+    category?: string;
+    moods?: string[];
+    phases?: string[];
+    depth?: number;
+    weight?: any;
+    rarity?: string;
 };
 
 interface OracleContext {
@@ -241,7 +241,7 @@ export class OracleService {
             if (count === 0) return null;
             const skip = Math.floor(Math.random() * count);
             const [card] = await prismaRead.oracleMessage.findMany({ take: 1, skip });
-            return card || null;
+            return (card as any) || null;
         } catch (e) {
             if (this.isSafeFallbackRuntime() && this.isDbUnavailableError(e)) {
                 return this.getFallbackByContext('neutral');

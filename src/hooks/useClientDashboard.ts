@@ -11,7 +11,7 @@ import { useAppToast } from '../contexts/AppToastContext';
 import { captureFrontendError } from '../../lib/frontendLogger';
 
 export const useClientDashboard = (
-    user: User, 
+    user: User,
     updateUser: (u: User) => void,
     setView: (v: ViewState) => void
 ) => {
@@ -36,11 +36,11 @@ export const useClientDashboard = (
     };
     const { go } = useBuscadorFlow();
     const { toast, showToast, clearToast } = useAppToast();
-    const setToast = useCallback((next: {title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning'} | null) => {
+    const setToast = useCallback((next: { title: string, message: string, type?: 'success' | 'error' | 'info' | 'warning' } | null) => {
         if (next) showToast(next);
         else clearToast();
     }, [showToast, clearToast]);
-    const [ritualToast, setRitualToast] = useState<{title: string, message: string} | null>(null);
+    const [ritualToast, setRitualToast] = useState<{ title: string, message: string } | null>(null);
     const [activeModal, setActiveModal] = useState<'camera' | 'leaderboard' | null>(null);
     const [showNotifications, setShowNotifications] = useState(false);
     const [notificationsReadIssue, setNotificationsReadIssue] = useState<{ title: string; message: string } | null>(null);
@@ -83,17 +83,11 @@ export const useClientDashboard = (
 
     const handleWaterPlant = useCallback(async () => {
         try {
-            const reward = gardenService.calculateWateringReward(user);
-            const updated = { 
-                ...user, 
-                lastWateredAt: new Date().toISOString(),
-                plantXp: (user.plantXp || 0) + reward.xp,
-                plantHealth: Math.min(100, (user.plantHealth || 0) + 10)
-            };
-            
-            updateUser(updated);
-            setRitualToast({ title: "Essência Nutrida", message: `+${reward.xp} PX. Seu jardim floresce.` });
-            await accountApi.users.update(updated as User);
+            const res = await accountApi.users.water(user.id);
+            if (res?.success) {
+                updateUser(res.user);
+                setRitualToast({ title: "Essência Nutrida", message: `+${res.xpReward} PX. Seu jardim floresce.` });
+            }
         } catch (e) {
             captureFrontendError(e, { hook: 'useClientDashboard', op: 'handleWaterPlant' });
             setToast({ title: "Erro na conexão", message: "Sua intenção foi registrada no éter." });
@@ -139,36 +133,36 @@ export const useClientDashboard = (
     }, [user, updateUser]);
 
     const handleCapture = useCallback(async (capture: CameraCaptureResult) => {
-          const snapId = `dash_${Date.now()}`;
-          const localKey = buildLocalImageKey(snapId);
+        const snapId = `dash_${Date.now()}`;
+        const localKey = buildLocalImageKey(snapId);
 
-          // Local high-quality storage (device only).
-          try {
-              await idbImages.put(localKey, capture.fullBlob);
-          } catch (e) {
-              console.warn('[useClientDashboard] idbImages.put failed', e);
-          }
+        // Local high-quality storage (device only).
+        try {
+            await idbImages.put(localKey, capture.fullBlob);
+        } catch (e) {
+            console.warn('[useClientDashboard] idbImages.put failed', e);
+        }
 
-          const newSnap: DailyRitualSnap = {
-              id: snapId,
-              date: new Date().toISOString(),
-              // Keep a light thumb for immediate UI; backend payload will be stripped to avoid data bloat.
-              image: capture.thumbDataUrl,
-              mood: 'SERENO', 
-              note: 'Registro de Metamorfose'
-          };
-          const updatedUserLocal = { ...user, snaps: [newSnap, ...(user.snaps || [])] };
-          updateUser(updatedUserLocal);
-          setActiveModal(null);
-          setRitualToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada no Akasha." });
+        const newSnap: DailyRitualSnap = {
+            id: snapId,
+            date: new Date().toISOString(),
+            // Keep a light thumb for immediate UI; backend payload will be stripped to avoid data bloat.
+            image: capture.thumbDataUrl,
+            mood: 'SERENO',
+            note: 'Registro de Metamorfose'
+        };
+        const updatedUserLocal = { ...user, snaps: [newSnap, ...(user.snaps || [])] };
+        updateUser(updatedUserLocal);
+        setActiveModal(null);
+        setRitualToast({ title: "Registro Salvo", message: "Sua memória foi cristalizada no Akasha." });
 
-          // Persist without heavy image payload (images are local-only).
-          const payloadUser: User = {
-              ...updatedUserLocal,
-              snaps: (updatedUserLocal.snaps || []).map((s) => ({ ...s, image: '' })),
-          };
-          const saved = await accountApi.users.update(payloadUser);
-          updateUser({ ...(saved as User), snaps: updatedUserLocal.snaps });
+        // Persist without heavy image payload (images are local-only).
+        const payloadUser: User = {
+            ...updatedUserLocal,
+            snaps: (updatedUserLocal.snaps || []).map((s) => ({ ...s, image: '' })),
+        };
+        const saved = await accountApi.users.update(payloadUser);
+        updateUser({ ...(saved as User), snaps: updatedUserLocal.snaps });
     }, [user, updateUser]);
 
     return {

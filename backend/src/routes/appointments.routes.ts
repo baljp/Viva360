@@ -8,5 +8,6 @@ router.get('/me', AppointmentsController.listAppointments);
 router.post('/', AppointmentsController.createAppointment);
 router.patch('/:id/reschedule', AppointmentsController.rescheduleAppointment);
 router.patch('/:id/cancel', AppointmentsController.cancelAppointment);
+router.patch('/:id', AppointmentsController.updateAppointment);
 
 export default router;

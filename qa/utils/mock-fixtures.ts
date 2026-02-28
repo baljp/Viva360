@@ -4,7 +4,7 @@ import { Database } from '../../utils/seedEngine';
 // Define the custom fixtures type
 type JourneyFixtures = {
   mockPage: Page;
-  loginAs: (role: 'client' | 'pro' | 'space', index?: number) => Promise<void>;
+  loginAs: (role: 'client' | 'pro' | 'space' | 'admin', index?: number) => Promise<void>;
   injectMockData: () => Promise<void>;
 };
 
@@ -19,10 +19,10 @@ export const test = base.extend<JourneyFixtures>({
 
   injectMockData: async ({ page }, runFixture) => {
     const inject = async () => {
-        // Intercept API calls if needed
-        await page.route('**/api/user/me', async route => {
-             route.continue();
-        });
+      // Intercept API calls if needed
+      await page.route('**/api/user/me', async route => {
+        route.continue();
+      });
     };
     await inject();
     await runFixture(inject);
@@ -34,27 +34,31 @@ export const test = base.extend<JourneyFixtures>({
      * instead of going through the real Supabase login form.
      * This avoids timeout issues when Supabase is not configured for test environment.
      */
-    const login = async (role: 'client' | 'pro' | 'space', index: number = 0) => {
+    const login = async (role: 'client' | 'pro' | 'space' | 'admin', index: number = 0) => {
       let mockUser: any;
       let dashboardUrl = '';
 
-      switch(role) {
+      switch (role) {
         case 'client':
-            mockUser = Database.clients[index];
-            dashboardUrl = '/client/home';
-            break;
+          mockUser = Database.clients[index];
+          dashboardUrl = '/client/home';
+          break;
         case 'pro':
-            mockUser = Database.pros[index];
-            dashboardUrl = '/pro/home';
-            break;
+          mockUser = Database.pros[index];
+          dashboardUrl = '/pro/home';
+          break;
         case 'space':
-            mockUser = Database.spaces[index];
-            dashboardUrl = '/space/home';
-            break;
+          mockUser = Database.spaces[index];
+          dashboardUrl = '/space/home';
+          break;
+        case 'admin':
+          mockUser = Database.admins[index];
+          dashboardUrl = '/admin/dashboard';
+          break;
       }
 
       console.log(`[E2E] Injecting mock session for ${role} (${mockUser.email})...`);
-      
+
       // SEC-01: Read mock token from env var, never hardcoded.
       const mockAuthToken = process.env.MOCK_AUTH_TOKEN || 'test-token-e2e';
 
@@ -65,24 +69,24 @@ export const test = base.extend<JourneyFixtures>({
         window.localStorage.setItem('viva360.session.mode', 'mock');
         window.localStorage.setItem('viva360.test_mode.active', '1');
         window.localStorage.setItem('viva360.auth.token', token);
-        
+
         // Disable Smart Tutorial for tests
         window.localStorage.setItem('viva360_smart_tutorial_seen', 'true');
-        for(let i = 0; i < 100; i++) {
-           window.localStorage.setItem(`viva360_tutorial_seen_${i}`, 'true');
-           window.localStorage.setItem(`viva360_tutorial_seen_pro-${i}`, 'true');
-           window.localStorage.setItem(`viva360_tutorial_seen_space-${i}`, 'true');
-           window.localStorage.setItem(`viva360_tutorial_seen_client-${i}`, 'true');
+        for (let i = 0; i < 100; i++) {
+          window.localStorage.setItem(`viva360_tutorial_seen_${i}`, 'true');
+          window.localStorage.setItem(`viva360_tutorial_seen_pro-${i}`, 'true');
+          window.localStorage.setItem(`viva360_tutorial_seen_space-${i}`, 'true');
+          window.localStorage.setItem(`viva360_tutorial_seen_client-${i}`, 'true');
         }
         window.localStorage.setItem('viva360_tutorial_seen_mock-user-id', 'true');
       }, { user: mockUser, token: mockAuthToken });
 
       // Navigate directly to the dashboard (skipping login)
       await page.goto(dashboardUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      
+
       // Wait for page to stabilize
       await page.waitForTimeout(1000);
-      
+
       console.log(`[E2E] Mock login successful for ${role}`);
     };
 

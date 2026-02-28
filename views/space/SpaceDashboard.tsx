@@ -39,9 +39,8 @@ type FinanceTransactionRow = {
 };
 
 const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: number, onOpenModal: () => void }) => {
-    const { go } = useSantuarioFlow();
     return (
-        <button onClick={() => go('RADIANCE_DRILLDOWN')} className="w-full text-left bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#020617] rounded-[3rem] p-8 text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden group mb-8 active:scale-[0.98] transition-all outline-none border border-white/5">
+        <button onClick={onOpenModal} className="w-full text-left bg-gradient-to-br from-[#0f172a] via-[#1e1b4b] to-[#020617] rounded-[3rem] p-8 text-white shadow-[0_20px_50px_rgba(0,0,0,0.3)] relative overflow-hidden group mb-8 active:scale-[0.98] transition-all outline-none border border-white/5">
             <div className="absolute top-0 right-0 w-80 h-80 bg-indigo-500/10 rounded-full blur-[100px] -translate-y-24 translate-x-12 animate-pulse-slow"></div>
             <div className="relative z-10 flex justify-between items-center">
                 <div className="space-y-2">
@@ -70,7 +69,7 @@ const RadianceHero = ({ score, trend, onOpenModal }: { score: number, trend: num
     );
 };
 
-const RadianceDetailsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const RadianceDetailsModal = ({ isOpen, onClose, metrics }: { isOpen: boolean, onClose: () => void, metrics: Array<{ label: string; value: number; color: string; bg: string }> }) => {
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 animate-in fade-in duration-300">
@@ -84,12 +83,7 @@ const RadianceDetailsModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: (
                     <h3 className="text-3xl font-serif italic">Radiância Vital</h3>
                 </div>
                 <div className="p-8 space-y-6">
-                    {[
-                        { label: 'Altares em Fluxo', value: 88, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                        { label: 'Abundância Manifestada', value: 92, color: 'text-indigo-500', bg: 'bg-indigo-50' },
-                        { label: 'União dos Guardiões', value: 95, color: 'text-amber-500', bg: 'bg-amber-50' },
-                        { label: 'Ecos de Gratidão', value: 98, color: 'text-rose-500', bg: 'bg-rose-50' },
-                    ].map((m, i) => (
+                    {metrics.map((m, i) => (
                         <div key={i} className="flex items-center justify-between p-4 rounded-3xl border border-nature-50">
                             <div>
                                 <h4 className="font-bold text-nature-900 text-sm">{m.label}</h4>
@@ -427,8 +421,10 @@ export const SpaceDashboard: React.FC<{
     const { go } = useSantuarioFlow();
     const [activeTab, setActiveTab] = useState<'ops' | 'admin' | 'growth'>('ops');
     const [showNotifications, setShowNotifications] = useState(false);
+    const [showRadianceModal, setShowRadianceModal] = useState(false);
 
-    const [notifications, setNotifications] = useState<Array<{id:string;title:string;message:string;type:string;read:boolean}>>([]);
+
+    const [notifications, setNotifications] = useState<Array<{ id: string; title: string; message: string; type: string; read: boolean }>>([]);
     React.useEffect(() => {
         api.notifications.list().then((data: any) => {
             if (Array.isArray(data)) setNotifications(data.map((n: any) => ({
@@ -460,6 +456,18 @@ export const SpaceDashboard: React.FC<{
     const radianceScore = Math.floor(baseline + teamEffect + revenueEffect);
     const trend = 2.4 + (team.length * 0.1); // Dynamic trend
 
+    // P2 FIX: Dynamic metrics for Radiance Details
+    const occupiedCount = (rooms || []).filter(r => r.status === 'occupied').length;
+    const totalRooms = (rooms || []).length || 1;
+    const occupancyRate = Math.round((occupiedCount / totalRooms) * 100);
+
+    const radianceMetrics = [
+        { label: 'Altares em Fluxo', value: occupancyRate, color: 'text-emerald-500', bg: 'bg-emerald-50' },
+        { label: 'Abundância Manifestada', value: Math.min(100, Math.round((revenue / 5000) * 100)), color: 'text-indigo-500', bg: 'bg-indigo-50' },
+        { label: 'União dos Guardiões', value: Math.min(100, team.length * 20), color: 'text-amber-500', bg: 'bg-amber-50' },
+        { label: 'Ecos de Gratidão', value: 98, color: 'text-rose-500', bg: 'bg-rose-50' }, // Still mock as NPS not yet in DB
+    ];
+
     return (
         <div className="flex flex-col animate-in fade-in w-full bg-[#f8faf9] min-h-screen pb-32">
             <NotificationDrawer
@@ -468,6 +476,12 @@ export const SpaceDashboard: React.FC<{
                 notifications={notifications as any}
                 onMarkAsRead={handleMarkAsRead}
                 onMarkAllRead={handleMarkAllRead}
+            />
+
+            <RadianceDetailsModal
+                isOpen={showRadianceModal}
+                onClose={() => setShowRadianceModal(false)}
+                metrics={radianceMetrics}
             />
 
             {/* Header */}
@@ -490,7 +504,7 @@ export const SpaceDashboard: React.FC<{
             </header>
 
             <div className="px-4">
-                <RadianceHero score={radianceScore} trend={trend} onOpenModal={() => { }} />
+                <RadianceHero score={radianceScore} trend={trend} onOpenModal={() => setShowRadianceModal(true)} />
 
                 {/* TABS NAVIGATION */}
                 <div className="flex p-1.5 bg-white rounded-[2rem] border border-nature-100 shadow-sm mb-6 sticky top-4 z-20">

@@ -42,6 +42,14 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         body: JSON.stringify(user),
       });
     },
+    water: async (id: string): Promise<{ success: boolean; xpReward: number; healthReward: number; user: User }> => {
+      return await request(`/users/${id}/water`, {
+        method: 'POST',
+      });
+    },
+    getEvolutionMetrics: async (id: string) => {
+      return await request(`/users/${id}/evolution/metrics`);
+    },
     checkIn: async (_uid: string, reward: number = 50) => {
       let payload: CheckInResponse;
       try {
@@ -230,6 +238,12 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
       return await request(`/appointments/${appointmentId}/cancel`, {
         method: 'PATCH',
         body: JSON.stringify({ reason }),
+      });
+    },
+    update: async (appointmentId: string, data: { status?: string; time?: string; notes?: string }) => {
+      return await request(`/appointments/${appointmentId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
       });
     },
   },

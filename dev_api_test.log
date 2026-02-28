@@ -1,0 +1,31 @@
+
+> viva360-app@1.1.0 dev:api:test
+> NODE_ENV=test APP_MODE=MOCK ENABLE_TEST_MODE=true PORT=${PORT:-3001} npx tsx backend/src/server.ts
+
+(node:82992) ExperimentalWarning: CommonJS module /opt/homebrew/lib/node_modules/npm/node_modules/debug/src/node.js is loading ES Module /opt/homebrew/lib/node_modules/npm/node_modules/supports-color/index.js using require().
+Support for loading ES Module in require() is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"level":"info","message":"env.loaded","timestamp":"2026-02-27T20:40:01.387Z","envPath":"/Users/joaobatistaramalhodelima/Projeto Viva360/Viva360-1/backend/.env"}
+{"level":"info","message":"env.runtime","timestamp":"2026-02-27T20:40:01.388Z","appMode":"MOCK","vercel":false}
+{"level":"info","message":"auth.config.runtime","timestamp":"2026-02-27T20:40:01.388Z","vercelEnv":"unknown","vercelUrl":null,"runtimeOrigin":null,"frontendOrigin":null,"redirectOrigin":null,"supabaseHost":"oqhzisdjbtyxyarjeuhp.supabase.co","authConfigVersion":"unset","issues":["VITE_SUPABASE_AUTH_REDIRECT_URL ausente","FRONTEND_URL ausente","AUTH_CONFIG_VERSION/VITE_AUTH_CONFIG_VERSION ausente (recomendado para paridade Preview/Prod)"]}
+{"level":"warn","message":"auth.config.runtime_issues","timestamp":"2026-02-27T20:40:01.388Z","vercelEnv":"unknown","issues":["VITE_SUPABASE_AUTH_REDIRECT_URL ausente","FRONTEND_URL ausente","AUTH_CONFIG_VERSION/VITE_AUTH_CONFIG_VERSION ausente (recomendado para paridade Preview/Prod)"]}
+{"level":"info","message":"supabase.init","timestamp":"2026-02-27T20:40:01.672Z","mode":"MOCK","hasSupabaseUrl":true,"hasAnonKey":true,"hasServiceRoleKey":"[REDACTED]"}
+{"level":"warn","message":"redis.serverless_no_config_RATE_LIMIT_NOT_DISTRIBUTED","timestamp":"2026-02-27T20:40:01.807Z"}
+{"level":"warn","message":"redis.mock_mode — rate limiting is in-memory only; set REDIS_URL for distributed enforcement","timestamp":"2026-02-27T20:40:01.807Z"}
+{"level":"warn","message":"push_service.vapid_missing","timestamp":"2026-02-27T20:40:01.846Z","hint":"Set VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY + VAPID_CONTACT_EMAIL"}
+{"level":"info","message":"queue.serverless_disabled","timestamp":"2026-02-27T20:40:02.247Z"}
+{"level":"info","message":"queue.workers_skipped","timestamp":"2026-02-27T20:40:02.247Z","reason":"serverless_or_mock"}
+{"level":"info","message":"server.listening","timestamp":"2026-02-27T20:40:02.326Z","port":3001,"pid":83013}
+AUTH MIDDLEWARE DEBUG: {
+  isMockTokenEnabled: false,
+  mockTokenConst: '',
+  envMockToken: undefined,
+  token: 'test-token-e2e',
+  mockFlagEnabled: true,
+  isProd: false
+}
+{"level":"info","message":"http_request","timestamp":"2026-02-27T20:40:06.103Z","requestId":"d1b0cec1-1a26-4f4d-aa23-da5d3f543188","method":"POST","route":"/api/metamorphosis/checkin","status":401,"durationMs":519,"ip":"::ffff:127.0.0.1","userAgent":"curl/8.7.1"}
+POST /api/metamorphosis/checkin 401 36 - 516.867 ms
+{"level":"info","message":"server.sigterm","timestamp":"2026-02-27T20:40:06.147Z"}
+{"level":"info","message":"server.sigterm","timestamp":"2026-02-27T20:40:06.180Z"}
+{"level":"info","message":"server.sigterm","timestamp":"2026-02-27T20:40:06.180Z"}

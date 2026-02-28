@@ -86,8 +86,8 @@ const generateClients = (): User[] => {
                 { id: 'c99', name: 'Lucas Paz', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=c99', needsWatering: true },
                 { id: 'c98', name: 'Ana Luz', avatar: 'https://api.dicebear.com/7.x/notionists/svg?seed=c98', needsWatering: false }
             ],
-            snaps: Array.from({length: 4}).map((_, j) => ({ id: `s_${j}`, imageUrl: `https://picsum.photos/seed/snap${i}${j}/300/400`, date: '2024-05-20' })),
-            activePact: { 
+            snaps: Array.from({ length: 4 }).map((_, j) => ({ id: `s_${j}`, imageUrl: `https://picsum.photos/seed/snap${i}${j}/300/400`, date: '2024-05-20' })),
+            activePact: {
                 id: 'pact_demo',
                 partnerId: 'client_99',
                 partnerName: 'Lucas Paz',
@@ -96,7 +96,7 @@ const generateClients = (): User[] => {
                 myProgress: 3,
                 partnerProgress: 2,
                 target: 5,
-                rewardKarma: 300, 
+                rewardKarma: 300,
                 endDate: new Date(Date.now() + 86400000 * 2).toISOString(),
                 status: 'active'
             }
@@ -151,14 +151,32 @@ const generateSpaces = (): User[] => {
     });
 };
 
+const generateAdmins = (): User[] => {
+    return [{
+        id: 'admin_0',
+        role: UserRole.ADMIN,
+        name: 'Curador Mestre',
+        email: 'admin@viva360.com',
+        avatar: 'https://api.dicebear.com/7.x/shapes/svg?seed=admin',
+        karma: 99999,
+        corporateBalance: 0,
+        personalBalance: 0,
+        snaps: [], constellation: []
+    } as User];
+};
+
 const CACHED_CLIENTS = generateClients();
 const CACHED_PROS = generatePros();
 const CACHED_SPACES = generateSpaces();
+const CACHED_ADMINS = generateAdmins();
+
 
 export const Database = {
     clients: CACHED_CLIENTS,
     pros: CACHED_PROS,
     spaces: CACHED_SPACES,
+    admins: CACHED_ADMINS,
+
     getNotifications: (uid: string, role: UserRole) => [
         { id: 'n1', userId: uid, type: 'ritual', title: 'Sessão Confirmada', message: 'Seu ritual de Reiki começa em 1h.', timestamp: new Date().toISOString(), read: false },
         { id: 'n2', userId: uid, type: 'alert', title: 'Jardim Sedento', message: 'Sua planta precisa de atenção.', timestamp: new Date().toISOString(), read: false }
@@ -178,10 +196,10 @@ export const Database = {
         // Físicos
         { id: 'p1', name: 'Kit Cristais do Alinhamento', price: 120, image: 'https://images.unsplash.com/photo-1515023115689-589c33041d3c?q=80&w=400', category: 'Cristais', type: 'physical', description: 'Pedras brutas selecionadas para equilibrar os 7 chakras.', symptoms: ['Ansiedade', 'Fadiga'], karmaReward: 50 },
         { id: 'p2', name: 'Incenso de Palo Santo', price: 35, image: 'https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=400', category: 'Aromaterapia', type: 'physical', description: 'Limpeza energética profunda com madeira sagrada.', symptoms: ['Estresse', 'Energia Baixa'], karmaReward: 20 },
-        
+
         // Digitais
         { id: 'p3', name: 'Audiofrequência 432Hz', price: 15, image: 'https://images.unsplash.com/photo-1514525253344-f81bad1b7fc7?q=80&w=400', category: 'Som', type: 'digital_content', description: 'Reparo de DNA e relaxamento profundo em alta fidelidade.', symptoms: ['Insônia', 'Ansiedade'], karmaReward: 30 },
-        
+
         // Workshops e Eventos
         { id: 'w1', name: 'Imersão: Respiro Consciente', price: 80, image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?q=80&w=400', category: 'Workshop', type: 'workshop', description: 'Aprenda técnicas de pranayama para controle imediato da ansiedade.', eventDate: new Date(Date.now() + 86400000 * 3).toISOString(), hostName: 'Mestre Ravi', symptoms: ['Ansiedade', 'Pânico'], karmaReward: 100, spotsLeft: 5 },
         { id: 'e1', name: 'Círculo de Lua Cheia', price: 45, image: 'https://images.unsplash.com/photo-1532187643603-ba119c7f1033?q=80&w=400', category: 'Ritual', type: 'event', description: 'Encontro online para manifestação e limpeza emocional sob a lua cheia.', eventDate: new Date(Date.now() + 86400000 * 7).toISOString(), hostName: 'Tenda da Lua', symptoms: ['Tristeza', 'Bloqueio'], karmaReward: 80, spotsLeft: 20 },

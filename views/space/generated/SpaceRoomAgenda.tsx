@@ -41,7 +41,8 @@ export default function SpaceRoomAgenda() {
         let cancelled = false;
         (async () => {
             try {
-                const data = await api.spaces.getEvents();
+                if (!state.selectedRoomId) return;
+                const data = await api.spaces.getRoomAgenda(state.selectedRoomId);
                 if (!cancelled) setEvents(normalizeEvents(Array.isArray(data) ? data : [], state.selectedRoomId));
             } catch {
                 if (!cancelled) { notify('Aviso', 'Não foi possível carregar a agenda deste altar.', 'warning'); setEvents([]); }

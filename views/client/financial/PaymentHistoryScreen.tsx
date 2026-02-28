@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { PortalView, BottomSheet, DegradedRetryNotice } from '../../../components/Common';
-import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X, Download } from 'lucide-react';
+import { Receipt, Calendar, ArrowUpRight, ArrowDownLeft, RefreshCw, Filter, X, Download, Printer } from 'lucide-react';
 import { authApi } from '../../../services/api/authProxy';
 import { accountApi } from '../../../services/api/accountClient';
 import { Transaction } from '../../../types';
@@ -142,48 +142,124 @@ export default function PaymentHistoryScreen() {
             <BottomSheet isOpen={!!selectedTx} onClose={() => setSelectedTx(null)} title="Detalhes da Transação">
                 {selectedTx && (
                     <div className="space-y-6 pb-8">
-                        <div className="text-center">
-                            <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${selectedTx.type === 'expense' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
-                                {selectedTx.type === 'expense' ? <ArrowUpRight size={28} /> : <ArrowDownLeft size={28} />}
+                        {/* THE RECEIPT ITSELF */}
+                        <div id="receipt-container" className="bg-white p-6 rounded-3xl border border-nature-100 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 to-indigo-500"></div>
+
+                            <div className="text-center mb-6 mt-2">
+                                <h4 className="font-serif italic text-xl text-nature-900">Viva360</h4>
+                                <p className="text-[10px] text-nature-400 uppercase tracking-widest">Comprovante de Transação</p>
                             </div>
-                            <h3 className="text-2xl font-serif italic text-nature-900">
-                                {selectedTx.type === 'expense' ? '-' : '+'} R$ {selectedTx.amount.toFixed(2).replace('.', ',')}
-                            </h3>
-                            <p className="text-sm text-nature-500 mt-1">{selectedTx.description}</p>
-                        </div>
-                        <div className="space-y-3">
-                            <div className="flex justify-between p-4 bg-nature-50 rounded-2xl">
-                                <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Data</span>
-                                <span className="text-sm font-bold text-nature-900">{new Date(selectedTx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
+
+                            <div className="text-center mb-6">
+                                <div className={`w-12 h-12 mx-auto rounded-full flex items-center justify-center mb-3 ${selectedTx.type === 'expense' ? 'bg-red-50 text-red-500' : 'bg-emerald-50 text-emerald-500'}`}>
+                                    {selectedTx.type === 'expense' ? <ArrowUpRight size={20} /> : <ArrowDownLeft size={20} />}
+                                </div>
+                                <h3 className="text-3xl font-serif italic text-nature-900">
+                                    {selectedTx.type === 'expense' ? '-' : '+'} R$ {selectedTx.amount.toFixed(2).replace('.', ',')}
+                                </h3>
+                                <p className="text-xs text-nature-500 mt-2 font-bold">{selectedTx.description}</p>
                             </div>
-                            <div className="flex justify-between p-4 bg-nature-50 rounded-2xl">
-                                <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Status</span>
-                                <span className="text-sm font-bold text-emerald-600 uppercase">{selectedTx.status}</span>
+
+                            <div className="space-y-4 border-t border-dashed border-nature-200 pt-6">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest flex items-center gap-1.5"><Calendar size={12} /> Data</span>
+                                    <span className="text-sm font-bold text-nature-900">{new Date(selectedTx.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })} <span className="text-nature-400 font-normal">{new Date(selectedTx.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span></span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Status</span>
+                                    <span className="text-xs font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-0.5 rounded flex items-center gap-1"><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full inline-block"></span> {selectedTx.status}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Tipo</span>
+                                    <span className="text-sm font-bold text-nature-900">{selectedTx.type === 'expense' ? 'Investimento' : 'Retorno'}</span>
+                                </div>
+                                <div className="flex justify-between items-center pt-2">
+                                    <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">ID Transação</span>
+                                    <span className="text-[10px] font-mono text-nature-500 bg-nature-50 px-2 py-1 rounded">{selectedTx.id}</span>
+                                </div>
                             </div>
-                            <div className="flex justify-between p-4 bg-nature-50 rounded-2xl">
-                                <span className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Tipo</span>
-                                <span className="text-sm font-bold text-nature-900">{selectedTx.type === 'expense' ? 'Investimento' : 'Retorno'}</span>
+
+                            <div className="mt-8 text-center">
+                                <p className="text-[8px] text-nature-400 uppercase tracking-widest">Autenticidade Viva360</p>
+                                <p className="text-[8px] text-nature-300 font-mono mt-1">HASH: {btoa(selectedTx.id + selectedTx.date).substring(0, 24)}</p>
                             </div>
                         </div>
 
                         <button
                             onClick={() => {
-                                // Stub for PDF Download (txt generation for now)
-                                const content = `Viva360 - Comprovante de Transação\n--------------------------------\nData: ${new Date(selectedTx.date).toLocaleString('pt-BR')}\nValor: R$ ${selectedTx.amount.toFixed(2).replace('.', ',')}\nDescrição: ${selectedTx.description}\nTipo: ${selectedTx.type === 'expense' ? 'Investimento' : 'Retorno'}\nStatus: ${selectedTx.status.toUpperCase()}\nID da Transação: ${selectedTx.id}`;
-                                const blob = new Blob([content], { type: 'text/plain' });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = `comprovante-viva360-${selectedTx.id?.slice(0, 8)}.txt`;
-                                document.body.appendChild(a);
-                                a.click();
-                                document.body.removeChild(a);
-                                URL.revokeObjectURL(url);
-                                notify('Comprovante Gerado', 'Seu comprovante foi baixado com sucesso.', 'success');
+                                const receiptHtml = document.getElementById('receipt-container')?.innerHTML;
+                                if (!receiptHtml) return;
+
+                                const printWindow = window.open('', '_blank');
+                                if (printWindow) {
+                                    printWindow.document.write(`
+                                        <html>
+                                            <head>
+                                                <title>Comprovante Viva360 - ${selectedTx.id.substring(0, 8)}</title>
+                                                <style>
+                                                    body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; background: #fafafa; display: flex; justify-content: center; }
+                                                    .receipt { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; width: 100%; position: relative; overflow: hidden; }
+                                                    .stripe { position: absolute; top: 0; left: 0; right: 0; height: 8px; background: linear-gradient(90deg, #34d399, #6366f1); }
+                                                    .header { text-align: center; margin-bottom: 30px; margin-top: 10px; }
+                                                    .brand { font-family: serif; font-style: italic; font-size: 24px; margin: 0; color: #171717; }
+                                                    .subtitle { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #a3a3a3; margin: 4px 0 0 0; }
+                                                    .value { text-align: center; margin-bottom: 30px; }
+                                                    .amount { font-family: serif; font-style: italic; font-size: 36px; margin: 0; color: #171717; }
+                                                    .desc { font-size: 14px; font-weight: bold; color: #737373; margin: 8px 0 0 0; }
+                                                    .details { border-top: 1px dashed #e5e5e5; padding-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+                                                    .row { display: flex; justify-content: space-between; align-items: center; }
+                                                    .label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #a3a3a3; }
+                                                    .val { font-size: 14px; font-weight: bold; color: #171717; }
+                                                    .status { font-size: 12px; font-weight: bold; color: #059669; background: #ecfdf5; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+                                                    .mono { font-family: monospace; font-size: 11px; background: #fafafa; padding: 4px 8px; border-radius: 4px; color: #737373; }
+                                                    .footer { margin-top: 40px; text-align: center; }
+                                                    .footer-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: #a3a3a3; margin: 0; }
+                                                    .footer-hash { font-family: monospace; font-size: 9px; color: #d4d4d4; margin: 4px 0 0 0; }
+                                                    @media print { body { background: white; padding: 0; } .receipt { box-shadow: none; max-width: 100%; border: 1px solid #e5e5e5; } }
+                                                </style>
+                                            </head>
+                                            <body>
+                                                <div class="receipt">
+                                                    <div class="stripe"></div>
+                                                    <div class="header">
+                                                        <h1 class="brand">Viva360</h1>
+                                                        <p class="subtitle">Comprovante de Transação</p>
+                                                    </div>
+                                                    <div class="value">
+                                                        <h2 class="amount">${selectedTx.type === 'expense' ? '-' : '+'} R$ ${selectedTx.amount.toFixed(2).replace('.', ',')}</h2>
+                                                        <p class="desc">${selectedTx.description}</p>
+                                                    </div>
+                                                    <div class="details">
+                                                        <div class="row"><span class="label">Data</span><span class="val">${new Date(selectedTx.date).toLocaleDateString('pt-BR')} ${new Date(selectedTx.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span></div>
+                                                        <div class="row"><span class="label">Status</span><span class="status">${selectedTx.status}</span></div>
+                                                        <div class="row"><span class="label">Tipo</span><span class="val">${selectedTx.type === 'expense' ? 'Investimento' : 'Retorno'}</span></div>
+                                                        <div class="row"><span class="label">ID Transação</span><span class="val mono">${selectedTx.id}</span></div>
+                                                    </div>
+                                                    <div class="footer">
+                                                        <p class="footer-label">Autenticidade Viva360</p>
+                                                        <p class="footer-hash">HASH: ${btoa(selectedTx.id + selectedTx.date).substring(0, 24)}</p>
+                                                    </div>
+                                                </div>
+                                                <script>window.onload = function() { window.print(); }</script>
+                                            </body>
+                                        </html>
+                                    `);
+                                    printWindow.document.close();
+                                    notify('Comprovante Gerado', 'O comprovante foi aberto para impressão/pdf.', 'success');
+                                } else {
+                                    // Fallback if popup blocked
+                                    const a = document.createElement('a');
+                                    a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(printWindow?.document.documentElement.outerHTML || '');
+                                    a.download = `comprovante-viva360-${selectedTx.id.substring(0, 8)}.html`;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                }
                             }}
-                            className="w-full mt-6 py-4 bg-nature-900 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
+                            className="w-full mt-2 py-4 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest text-[10px] shadow-xl hover:shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2"
                         >
-                            <Download size={16} /> Baixar Comprovante
+                            <Printer size={16} /> Salvar PDF / Imprimir
                         </button>
                     </div>
                 )}
