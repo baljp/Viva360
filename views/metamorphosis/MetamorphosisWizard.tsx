@@ -8,6 +8,7 @@ import { MOOD_ELEMENTS } from '../../src/data/metamorphosisData';
 import { phraseService } from '../../services/phraseService';
 import { useSoulCards } from '../../src/hooks/useSoulCards';
 import { SoulCardReveal } from './SoulCardReveal';
+import { useAppToast } from '../../src/contexts/AppToastContext';
 import { dataUrlToBlob } from '../../src/utils/dataUrl';
 import { buildLocalImageKey, idbImages } from '../../src/utils/idbImageStore';
 import { useObjectUrl } from '../../src/hooks/useObjectUrl';
@@ -44,6 +45,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [drewCard, setDrewCard] = useState<SoulCard | null>(null);
     const [showSoulReveal, setShowSoulReveal] = useState(false);
+    const { showToast: setToast } = useAppToast();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const processingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const ritualDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -91,6 +93,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
             await idbImages.put(buildLocalImageKey(hash), capture.fullBlob);
         } catch (e) {
             console.warn('[MetamorphosisWizard] idbImages.put failed', e);
+            // Non-critical: local high-res caching failure doesn't stop ritual completion.
         }
         processMetamorphosis(hash, capture);
     };
@@ -114,45 +117,46 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
             setIsProcessing(false);
             setStep(4);
         }, 12000);
-        
+
         try {
             const entry = await api.metamorphosis.checkIn(mood, hash, capture.thumbDataUrl);
             if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
-            
+
             // Longer delay for ritualistic feel
             ritualDelayRef.current = setTimeout(() => {
                 void (async () => {
-                const card = await performDraw(userStreak || 1, mood); // Uses real streak when available
-                setDrewCard(card);
-                // Keep local high-quality photo for UI/canvas.
-                const entryRecord = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};
-                const newSnapResult = {
-                    id: String(entryRecord.id || Date.now()),
-                    mood: String(entryRecord.mood || mood),
-                    photoThumb: capture.thumbDataUrl,
-                    photoHash: hash,
-                    quote: typeof entryRecord.quote === 'string' ? entryRecord.quote : cardPhrase,
-                    timestamp: String(entryRecord.timestamp || new Date().toISOString()),
-                };
-                setResult(newSnapResult);
-                // ✅ BUG FIX: atualizar user.snaps localmente para EvolutionView.recentSnaps
-                if (user && updateUser) {
-                    const snapEntry: import('../../types').DailyRitualSnap = {
-                        id: newSnapResult.id,
-                        date: newSnapResult.timestamp,
-                        image: capture.thumbDataUrl,
-                        mood: newSnapResult.mood as import('../../types').MoodType | undefined,
-                        note: newSnapResult.quote || '',
+                    const card = await performDraw(userStreak || 1, mood); // Uses real streak when available
+                    setDrewCard(card);
+                    // Keep local high-quality photo for UI/canvas.
+                    const entryRecord = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};
+                    const newSnapResult = {
+                        id: String(entryRecord.id || Date.now()),
+                        mood: String(entryRecord.mood || mood),
+                        photoThumb: capture.thumbDataUrl,
+                        photoHash: hash,
+                        quote: typeof entryRecord.quote === 'string' ? entryRecord.quote : cardPhrase,
+                        timestamp: String(entryRecord.timestamp || new Date().toISOString()),
                     };
-                    updateUser({ ...user, snaps: [snapEntry, ...(user.snaps || [])] });
-                }
-                setIsProcessing(false);
-                setShowSoulReveal(true);
-                // setStep(4) will be triggered after reveal closes
+                    setResult(newSnapResult);
+                    // ✅ BUG FIX: atualizar user.snaps localmente para EvolutionView.recentSnaps
+                    if (user && updateUser) {
+                        const snapEntry: import('../../types').DailyRitualSnap = {
+                            id: newSnapResult.id,
+                            date: newSnapResult.timestamp,
+                            image: capture.thumbDataUrl,
+                            mood: newSnapResult.mood as import('../../types').MoodType | undefined,
+                            note: newSnapResult.quote || '',
+                        };
+                        updateUser({ ...user, snaps: [snapEntry, ...(user.snaps || [])] });
+                    }
+                    setIsProcessing(false);
+                    setShowSoulReveal(true);
+                    // setStep(4) will be triggered after reveal closes
                 })();
-            }, 2500); 
+            }, 2500);
         } catch (e) {
             captureFrontendError(e, { view: 'MetamorphosisWizard', op: 'processMetamorphosis' });
+            setToast({ title: 'Ritual em Offline', message: 'Conexão instável. Seu progresso será salvo localmente.', type: 'warning' });
             if (processingTimeoutRef.current) clearTimeout(processingTimeoutRef.current);
             // Fallback for UI continuity
             setResult(fallbackEntry);
@@ -192,7 +196,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
             const dataUrl = canvasRef.current.toDataURL('image/png', 1.0);
             const blob = dataUrlToBlob(dataUrl);
             const file = new File([blob], 'viva360-soulcard.png', { type: 'image/png' });
-            
+
             if (navigator.share) {
                 await navigator.share({
                     title: 'Meu Card da Alma • Viva360',
@@ -236,7 +240,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
     }, [step, result, format, cardPhrase, mood]);
 
     const styling = result ? (MOOD_ELEMENTS[result.mood as keyof typeof MOOD_ELEMENTS] || MOOD_ELEMENTS['Calmo']) : MOOD_ELEMENTS['Calmo'];
-    
+
     // Helper to get Canvas Data URL safely
     const getPreviewUrl = () => {
         if (!canvasRef.current) return result?.photoThumb;
@@ -244,26 +248,26 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
     };
 
     return (
-        <PortalView 
-            title="Card da Alma" 
-            subtitle="RITUAL DE PRESENÇA" 
+        <PortalView
+            title="Card da Alma"
+            subtitle="RITUAL DE PRESENÇA"
             onBack={() => step > 1 ? setStep(step - 1) : flow.back()}
             onClose={onClose || cancelRitual}
             heroImage={step === 1 ? "https://images.unsplash.com/photo-1518609878319-a16322081109?q=80&w=800" : undefined}
         >
             {showSoulReveal && drewCard && photo && (
-                <SoulCardReveal 
-                    card={drewCard} 
-                    userPhoto={photoPreviewUrl || photo.thumbDataUrl} 
+                <SoulCardReveal
+                    card={drewCard}
+                    userPhoto={photoPreviewUrl || photo.thumbDataUrl}
                     onClose={() => {
                         setShowSoulReveal(false);
                         setStep(4);
-                    }} 
+                    }}
                 />
             )}
 
             <div className="flex flex-col h-full min-h-[70vh]">
-                
+
                 {/* STEP 1: MOOD SELECTION */}
                 {step === 1 && (
                     <div className="flex-1 animate-in fade-in slide-in-from-bottom duration-700">
@@ -300,11 +304,11 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
                 {step === 2 && (
                     <div className="flex-1 flex flex-col items-center animate-in fade-in slide-in-from-right duration-500 bg-black">
                         <div className="h-[10%] flex items-center justify-between w-full px-8 pt-4">
-                             <button onClick={() => setStep(1)} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><ArrowRight className="rotate-180" size={20}/></button>
-                             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400">Metamorfose</p>
-                             <button onClick={cancelRitual} className="p-3 rounded-full text-white/60 hover:text-rose-400 transition-colors" title="Cancelar Ritual"><X size={20}/></button>
+                            <button onClick={() => setStep(1)} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><ArrowRight className="rotate-180" size={20} /></button>
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400">Metamorfose</p>
+                            <button onClick={cancelRitual} className="p-3 rounded-full text-white/60 hover:text-rose-400 transition-colors" title="Cancelar Ritual"><X size={20} /></button>
                         </div>
-                        
+
                         <div className="h-[70%] w-full relative overflow-hidden bg-black flex items-center justify-center">
                             <div className="w-full h-full max-w-md relative">
                                 <CameraWidget onCapture={handleCapture} variant="STORY" />
@@ -338,14 +342,14 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
 
                         {/* LIVE PREVIEW - Uses the canvas data manually to show WYSIWYG */}
                         <div className="relative w-full max-w-[350px] shadow-2xl rounded-[10px] overflow-hidden border-4 border-white" style={{ aspectRatio: format === 'STORY' ? '9 / 16' : '4 / 5' }}>
-                             {previewUrl ? (
-                                 <img src={previewUrl} className="w-full h-full object-contain animate-in fade-in duration-500" alt="Soul Card Preview" />
-                             ) : (
-                                 <div className="flex flex-col items-center justify-center h-full gap-4">
-                                     <Sparkles size={32} className="text-amber-400 animate-spin" />
-                                     <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Cristalizando...</p>
-                                 </div>
-                             )}
+                            {previewUrl ? (
+                                <img src={previewUrl} className="w-full h-full object-contain animate-in fade-in duration-500" alt="Soul Card Preview" />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center h-full gap-4">
+                                    <Sparkles size={32} className="text-amber-400 animate-spin" />
+                                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Cristalizando...</p>
+                                </div>
+                            )}
                         </div>
 
                         <MetamorphosisShareControls
@@ -366,7 +370,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
                 )}
 
             </div>
-            
+
             {/* Animations moved to src/index.css for security */}
         </PortalView>
     );

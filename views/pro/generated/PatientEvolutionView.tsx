@@ -183,7 +183,13 @@ export default function PatientEvolutionView() {
                     setPlanGoals(goals);
                 }
             })
-            .catch(() => { if (!cancelled) setInterventions([]); })
+            .catch((e) => {
+                console.error(e);
+                if (!cancelled) {
+                    setInterventions([]);
+                    notify('Erro de Intervenções', 'Não foi possível carregar o histórico clínico completo.', 'error');
+                }
+            })
             .finally(() => { if (!cancelled) setInterventionsLoading(false); });
         return () => { cancelled = true; };
     }, [PATIENT_ID, records.length]);
@@ -200,6 +206,7 @@ export default function PatientEvolutionView() {
             setRecords(normalizeRecords(data));
         } catch (e) {
             console.error(e);
+            notify('Erro de Registro', 'Falha ao buscar registros do paciente.', 'error');
         } finally {
             setLoading(false);
         }
@@ -218,7 +225,13 @@ export default function PatientEvolutionView() {
                 if (cancelled) return;
                 setRecords(normalizeRecords(data));
             })
-            .catch(() => { if (!cancelled) setRecords([]); })
+            .catch((e) => {
+                console.error(e);
+                if (!cancelled) {
+                    setRecords([]);
+                    notify('Erro de Sincronização', 'O prontuário pode estar desatualizado devido a uma falha de rede.', 'warning');
+                }
+            })
             .finally(() => { if (!cancelled) setLoading(false); });
         return () => { cancelled = true; };
     }, [PATIENT_ID]);

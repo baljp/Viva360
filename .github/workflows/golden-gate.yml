@@ -1,0 +1,55 @@
+name: Golden Gate (Enterprise CI)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  audit:
+    name: "Static Audit & Hygiene"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Flow Completeness Audit
+        run: node scripts/audit/flow_completeness.mjs
+
+      - name: Hygiene & Handler Audit
+        run: node scripts/audit/hygiene_checks.mjs
+
+  test:
+    name: "Master E2E & Backend"
+    runs-on: ubuntu-latest
+    needs: audit
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run Backend Tests
+        run: npm run test:backend
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Audit Parity E2E
+        run: npx playwright test qa/flows/audit-parity.spec.ts --config=playwright.qa.config.ts

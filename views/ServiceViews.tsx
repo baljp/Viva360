@@ -5,6 +5,7 @@ import { Video, Mic, MicOff, VideoOff, X, FileText, Heart, ShieldCheck, Ticket, 
 import { DynamicAvatar, OrganicSkeleton, PortalView } from '../components/Common';
 import { useGuardiaoFlow } from '../src/flow/useGuardiaoFlow';
 import { useOrdersList } from '../src/hooks/useOrdersList';
+import { useAppToast } from '../src/contexts/AppToastContext';
 
 // ✅ VideoSessionView — Rules of Hooks compliant, sem mock data, sem window.location
 export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void, flow?: any }> = ({ appointment, onEnd, flow }) => {
@@ -102,15 +103,18 @@ export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView:
   const { state, actions } = useOrdersList(user);
   const { activeTab, items, isLoading } = state;
   const { setActiveTab } = actions;
+  const { showToast: setToast } = useAppToast();
   const [copiedVoucher, setCopiedVoucher] = useState<string | null>(null);
 
   const handleCopyVoucher = async (code: string) => {
     try {
       await navigator.clipboard.writeText(code);
       setCopiedVoucher(code);
+      setToast({ title: 'Chave Copiada', message: 'O código do voucher está na sua área de transferência.', type: 'success' });
       setTimeout(() => setCopiedVoucher(null), 2500);
     } catch (error) {
       console.error('Falha ao copiar voucher', error);
+      setToast({ title: 'Erro ao Copiar', message: 'Não foi possível copiar o código automaticamente.', type: 'error' });
     }
   };
 

@@ -48,8 +48,6 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
     const refreshDashboard = async () => {
         setIsLoading(true);
         try {
-            // Demo data for AdminViews (only visible in dev with VITE_MOCK_ENABLED)
-            // In production: populated by API
             const dash = await api.admin.getDashboard().catch(() => ({
                 totalUsers: 1250,
                 activeUsers: 890,
@@ -57,7 +55,10 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 systemHealth: 98
             }));
             setStats(dash);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            setToast({ title: 'Erro de Sincronização', message: 'Não foi possível atualizar os dados do dashboard.', type: 'error' });
+        }
         setIsLoading(false);
     };
 
@@ -70,7 +71,10 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: UserRole.SPACE, status: 'blocked', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 }
             ]);
             setUsers(list);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            setToast({ title: 'Erro na Listagem', message: 'Falha ao carregar a lista de usuários.', type: 'error' });
+        }
         setIsLoading(false);
     };
 
@@ -123,7 +127,11 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
         if (view === ViewState.ADMIN_METRICS) {
             safeSetLoading(true);
             api.admin.getMetrics()
-                .catch(() => ({}))
+                .catch((e) => {
+                    console.error(e);
+                    if (!cancelled) setToast({ title: 'Erro de Métricas', message: 'Dados de performance indisponíveis.', type: 'warning' });
+                    return {};
+                })
                 .then((res) => { if (!cancelled) setMetrics(res); safeSetLoading(false); });
         }
         return () => { cancelled = true; };

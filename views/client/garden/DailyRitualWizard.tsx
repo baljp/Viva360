@@ -14,6 +14,7 @@ import { buildLocalImageKey, idbImages } from '../../../src/utils/idbImageStore'
 import { useObjectUrl } from '../../../src/hooks/useObjectUrl';
 import { DAILY_RITUAL_MOODS, drawDailyRitualShareCardCanvas } from './dailyRitualCanvas';
 import { DailyRitualCardShareStep, DailyRitualGratitudeStep, DailyRitualIntentionStep, DailyRitualNurtureStep } from './DailyRitualSteps';
+import { useAppToast } from '../../../src/contexts/AppToastContext';
 
 interface DailyRitualWizardProps {
     user: User;
@@ -26,9 +27,10 @@ import { phraseGenerator } from '../../../services/phraseGenerator';
 export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, updateUser, onClose }) => {
     const { go } = useBuscadorFlow();
     const [step, setStep] = useState<'MOOD' | 'CAPTURE' | 'CAPTURE_REVIEW' | 'INTENTION' | 'GRATITUDE' | 'CARD' | 'SHARE' | 'NURTURE' | 'TRIBE'>('CAPTURE');
-    const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({ 
+    const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({
         mood: 'SERENO', image: '', intention: '', gratitude: ''
     });
+    const { showToast: setToast } = useAppToast();
     const [capture, setCapture] = useState<CameraCaptureResult | null>(null);
     const [canvasRef] = useState(() => React.createRef<HTMLCanvasElement>());
     const [isGenerating, setIsGenerating] = useState(false);
@@ -106,6 +108,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 await idbImages.put(buildLocalImageKey(snapId), capture.fullBlob);
             } catch (e) {
                 console.warn('[DailyRitualWizard] idbImages.put failed', e);
+                // Non-critical: local high-res caching failure doesn't stop ritual completion.
             }
 
             // 3. Update user with snap + rewards
@@ -133,6 +136,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
         } catch (error: any) {
             roundTripTelemetry.error('ritual', 'save', rt.correlationId, rt.startMs, error?.message || 'unknown');
             console.error("Auto-save snap failed:", error);
+            setToast({ title: 'Erro ao Salvar', message: 'Houve um problema ao salvar seu ritual na nuvem. Mantivemos uma cópia local.', type: 'error' });
         } finally {
             setIsSaving(false);
         }
@@ -155,7 +159,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.96);
             const blob = dataUrlToBlob(dataUrl);
             const file = new File([blob], 'viva360-ritual.jpg', { type: 'image/jpeg' });
-            
+
             if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     title: 'Meu Jardim Interior • Viva360',
@@ -167,6 +171,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             }
         } catch (error) {
             console.error('Error sharing:', error);
+            setToast({ title: 'Erro ao Compartilhar', message: 'Não foi possível abrir o menu de compartilhamento.', type: 'error' });
             downloadCard();
         }
     };
@@ -208,15 +213,15 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
         return (
             <div className="fixed inset-0 z-[200] bg-white flex flex-col animate-in fade-in overflow-hidden">
                 <div className="p-8 pt-12 relative z-10 flex justify-between items-start w-full max-w-5xl mx-auto">
-                     <div>
+                    <div>
                         <h2 className="text-4xl font-serif italic text-nature-900 mb-2">Como você se sente?</h2>
                         <p className="text-sm text-nature-400 font-medium font-sans">Apenas seja verdadeiro consigo neste momento.</p>
-                     </div>
-                     <button onClick={onClose} className="bg-nature-50 p-4 rounded-full active:scale-95 transition-all shadow-sm hover:bg-nature-100 group">
-                        <X size={24} className="text-nature-400 group-hover:text-nature-600"/>
-                     </button>
+                    </div>
+                    <button onClick={onClose} className="bg-nature-50 p-4 rounded-full active:scale-95 transition-all shadow-sm hover:bg-nature-100 group">
+                        <X size={24} className="text-nature-400 group-hover:text-nature-600" />
+                    </button>
                 </div>
-                
+
                 <div className="flex-1 flex flex-col md:flex-row items-center justify-center gap-12 p-8 max-w-6xl mx-auto w-full overflow-y-auto pb-24 md:pb-8">
                     {/* PHOTO PREVIEW - Elegant & Minimal */}
                     <div
@@ -233,8 +238,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                                 <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center border border-white/10">
                                     <Sparkles className="text-white/40 animate-pulse" size={32} />
                                 </div>
-                                <p className="text-white/40 text-[10px] uppercase font-black tracking-[0.3em] leading-relaxed">Sua luz aguarda<br/>ser capturada</p>
-                                <button 
+                                <p className="text-white/40 text-[10px] uppercase font-black tracking-[0.3em] leading-relaxed">Sua luz aguarda<br />ser capturada</p>
+                                <button
                                     onClick={() => setStep('CAPTURE')}
                                     className="px-6 py-2.5 bg-white text-nature-900 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-nature-50 transition-all shadow-xl active:scale-95"
                                 >
@@ -248,9 +253,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                     {/* MOOD GRID - Clean & High-End */}
                     <div className="flex-1 w-full grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 content-start">
                         {DAILY_RITUAL_MOODS.map(m => (
-                            <button 
-                                key={m.id} 
-                                onClick={() => handleMoodSelect(m.id)} 
+                            <button
+                                key={m.id}
+                                onClick={() => handleMoodSelect(m.id)}
                                 className={`group p-6 rounded-[2rem] text-left transition-all hover:shadow-lg active:scale-95 border border-transparent hover:border-white/50 ${m.color} h-full min-h-[120px] flex flex-col justify-between`}
                             >
                                 <span className="text-4xl block mb-2 group-hover:scale-110 transition-transform origin-left">{m.icon}</span>
@@ -268,9 +273,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col animate-in fade-in">
                 {/* Header controls outside camera area */}
                 <div className="h-[10%] flex items-center justify-between px-8 bg-black relative z-50">
-                     <div className="w-10"></div>
-                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-400">Presença Viva</p>
-                     <button onClick={onClose} className="p-4 rounded-full text-white/60 hover:text-white transition-colors active:scale-90 relative z-50"><X size={24}/></button>
+                    <div className="w-10"></div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-400">Presença Viva</p>
+                    <button onClick={onClose} className="p-4 rounded-full text-white/60 hover:text-white transition-colors active:scale-90 relative z-50"><X size={24} /></button>
                 </div>
 
                 <div className="h-[70%] relative overflow-hidden bg-black flex items-center justify-center">
@@ -282,8 +287,8 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 </div>
 
                 <div className="h-[20%] bg-black p-8 text-center flex flex-col items-center justify-center">
-                     <p className="text-white/40 text-[9px] font-bold uppercase tracking-[0.3em] mb-4">Mantenha a alma em foco</p>
-                     <h3 className="text-white font-serif italic text-lg leading-tight">Este momento é portal para sua cura.</h3>
+                    <p className="text-white/40 text-[9px] font-bold uppercase tracking-[0.3em] mb-4">Mantenha a alma em foco</p>
+                    <h3 className="text-white font-serif italic text-lg leading-tight">Este momento é portal para sua cura.</h3>
                 </div>
             </div>
         );
@@ -356,12 +361,12 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
 
     if (step === 'CARD' || step === 'SHARE') {
-        const snapStub: DailyRitualSnap = { 
-            id: 'temp', 
-            date: new Date().toISOString(), 
-            image: data.image, 
-            mood: data.mood, 
-            note: data.intention 
+        const snapStub: DailyRitualSnap = {
+            id: 'temp',
+            date: new Date().toISOString(),
+            image: data.image,
+            mood: data.mood,
+            note: data.intention
         };
 
         return (
