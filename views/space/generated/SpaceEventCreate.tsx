@@ -4,6 +4,7 @@ import { PortalView } from '../../../components/Common';
 import { Calendar, Users, Ticket, ArrowRight } from 'lucide-react';
 import { api } from '../../../services/api';
 import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
+import { Event } from '../../../types';
 
 export default function SpaceEventCreate() {
     const { back, go, notify, state, selectEvent } = useSantuarioFlow();
@@ -48,14 +49,16 @@ export default function SpaceEventCreate() {
             try {
                 const ev = await api.spaces.getEvent(editingId);
                 if (!mounted || !ev) return;
-                const meta: any = parseMeta((ev as any).details);
-                const start = (ev as any).start_time ? new Date((ev as any).start_time) : new Date();
-                const end = (ev as any).end_time ? new Date((ev as any).end_time) : new Date(start.getTime() + 60 * 60 * 1000);
-                setTitle(String((ev as any).title || ''));
-                setEventType(String(meta.kind || (ev as any).type || preselectedType || 'workshop'));
-                setCapacity(Number(meta.capacity || 15));
-                setRoomName(String(meta.roomName || ''));
-                setPrice(Number(meta.price || 0));
+                const eventData = ev as Event;
+                const meta = parseMeta(eventData.details || eventData.description);
+                const start = eventData.start_time ? new Date(eventData.start_time) : (eventData.date ? new Date(`${eventData.date}T${eventData.time || '00:00'}:00`) : new Date());
+                const end = eventData.end_time ? new Date(eventData.end_time) : new Date(start.getTime() + (eventData.duration || 60) * 60 * 1000);
+
+                setTitle(eventData.title || '');
+                setEventType(String(meta.kind || eventData.tags?.[0] || preselectedType || 'workshop'));
+                setCapacity(eventData.capacity || 15);
+                setRoomName(eventData.location || '');
+                setPrice(eventData.price || 0);
                 setStartDate(start.toISOString().slice(0, 10));
                 setStartTime(start.toISOString().slice(11, 16));
                 setEndDate(end.toISOString().slice(0, 10));
@@ -99,7 +102,7 @@ export default function SpaceEventCreate() {
                             end: safeEnd.toISOString(),
                             type: eventType,
                             details,
-                        } as any);
+                        });
                         return { eventId: editingId, mode: 'update' as const };
                     }
                     const created = await api.spaces.createEvent({
@@ -108,8 +111,8 @@ export default function SpaceEventCreate() {
                         end: safeEnd.toISOString(),
                         type: eventType,
                         details,
-                    } as any);
-                    return { eventId: String((created as any)?.id || ''), mode: 'create' as const };
+                    });
+                    return { eventId: String((created as { id: string })?.id || ''), mode: 'create' as const };
                 },
                 refresh: () => api.spaces.getEvents(),
                 notify,
@@ -139,14 +142,14 @@ export default function SpaceEventCreate() {
     };
 
     return (
-        <PortalView 
-            title="Criar Experiência" 
-            subtitle="EXPANSÃO DA CONSCIÊNCIA" 
+        <PortalView
+            title="Criar Experiência"
+            subtitle="EXPANSÃO DA CONSCIÊNCIA"
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1528642474498-1af0c17fd8c3?q=80&w=800"
         >
             <div className="space-y-6 px-4 pb-24">
-                
+
                 {/* Progress */}
                 <div className="flex gap-2 mb-4">
                     <div className={`h-1 flex-1 rounded-full ${step >= 1 ? 'bg-indigo-500' : 'bg-nature-100'}`}></div>
@@ -173,7 +176,7 @@ export default function SpaceEventCreate() {
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-nature-400 pl-4">Nome do Evento</label>
-                            <input 
+                            <input
                                 placeholder="Ex: Círculo de Mulheres - Lua Nova"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
@@ -193,36 +196,36 @@ export default function SpaceEventCreate() {
 
                 {step === 2 && (
                     <div className="space-y-6 animate-in slide-in-from-right duration-300">
-                         <div className="space-y-2">
+                        <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-nature-400 pl-4">Quando?</label>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
-                                    <Calendar className="text-indigo-400" size={20}/>
-                                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
+                                    <Calendar className="text-indigo-400" size={20} />
+                                    <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent" />
                                 </div>
                                 <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
-                                    <Users className="text-indigo-400" size={20}/>
-                                    <input type="number" value={capacity} onChange={(e) => setCapacity(Number(e.target.value || 0))} placeholder="Vagas" className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
+                                    <Users className="text-indigo-400" size={20} />
+                                    <input type="number" value={capacity} onChange={(e) => setCapacity(Number(e.target.value || 0))} placeholder="Vagas" className="w-full outline-none font-bold text-nature-700 bg-transparent" />
                                 </div>
                                 <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
-                                    <Calendar className="text-emerald-400" size={20}/>
-                                    <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
+                                    <Calendar className="text-emerald-400" size={20} />
+                                    <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent" />
                                 </div>
                                 <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
-                                    <Calendar className="text-amber-400" size={20}/>
-                                    <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
+                                    <Calendar className="text-amber-400" size={20} />
+                                    <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent" />
                                 </div>
                                 {eventType === 'retreat' && (
-                                  <>
-                                    <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
-                                      <Calendar className="text-indigo-400" size={20}/>
-                                      <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent"/>
-                                    </div>
-                                    <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
-                                      <Calendar className="text-indigo-400" size={20}/>
-                                      <span className="text-xs font-bold text-nature-600">Multi-dia</span>
-                                    </div>
-                                  </>
+                                    <>
+                                        <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
+                                            <Calendar className="text-indigo-400" size={20} />
+                                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full outline-none font-bold text-nature-700 bg-transparent" />
+                                        </div>
+                                        <div className="p-4 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
+                                            <Calendar className="text-indigo-400" size={20} />
+                                            <span className="text-xs font-bold text-nature-600">Multi-dia</span>
+                                        </div>
+                                    </>
                                 )}
                             </div>
                         </div>
@@ -235,13 +238,13 @@ export default function SpaceEventCreate() {
                                 <option>Jardim Externo</option>
                             </select>
                         </div>
-                        
+
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold uppercase tracking-widest text-nature-400 pl-4">Valor de Troca</label>
                             <div className="p-5 bg-white border border-nature-100 rounded-2xl flex items-center gap-3">
-                                <Ticket className="text-emerald-500" size={20}/>
+                                <Ticket className="text-emerald-500" size={20} />
                                 <span className="font-bold text-nature-900">R$</span>
-                                <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value || 0))} placeholder="0,00" className="w-full outline-none text-lg font-bold text-nature-900 bg-transparent"/>
+                                <input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value || 0))} placeholder="0,00" className="w-full outline-none text-lg font-bold text-nature-900 bg-transparent" />
                             </div>
                         </div>
                     </div>
@@ -252,5 +255,5 @@ export default function SpaceEventCreate() {
                 </button>
             </div>
         </PortalView>
-    );    
+    );
 }

@@ -15,13 +15,13 @@ export enum ViewState {
   REGISTER_CLIENT = 'REGISTER_CLIENT',
   REGISTER_PRO = 'REGISTER_PRO',
   REGISTER_SPACE = 'REGISTER_SPACE',
-  
-  CLIENT_HOME = 'CLIENT_HOME', 
+
+  CLIENT_HOME = 'CLIENT_HOME',
   CLIENT_JOURNEY = 'CLIENT_JOURNEY',
   CLIENT_RITUAL = 'CLIENT_RITUAL',
   CLIENT_EXPLORE = 'CLIENT_EXPLORE',
   CLIENT_MARKETPLACE = 'CLIENT_MARKETPLACE',
-  CLIENT_TRIBO = 'CLIENT_TRIBO', 
+  CLIENT_TRIBO = 'CLIENT_TRIBO',
   CLIENT_ORACLE = 'CLIENT_ORACLE',
   CLIENT_RITUAL_BUILDER = 'CLIENT_RITUAL_BUILDER',
   CLIENT_METAMORPHOSIS = 'CLIENT_METAMORPHOSIS',
@@ -30,7 +30,7 @@ export enum ViewState {
 
   // Space additions
   SPACE_CALENDAR = 'SPACE_CALENDAR',
-  
+
   CLIENT_PRO_DETAILS = 'CLIENT_PRO_DETAILS',
   CLIENT_PRODUCT_DETAILS = 'CLIENT_PRODUCT_DETAILS',
   CLIENT_CHECKOUT = 'CLIENT_CHECKOUT',
@@ -42,15 +42,15 @@ export enum ViewState {
   PRO_AGENDA = 'PRO_AGENDA',
   PRO_PATIENTS = 'PRO_PATIENTS',
   PRO_PATIENT_DETAILS = 'PRO_PATIENT_DETAILS',
-  PRO_NETWORK = 'PRO_NETWORK', 
-  PRO_OPPORTUNITIES = 'PRO_OPPORTUNITIES', 
+  PRO_NETWORK = 'PRO_NETWORK',
+  PRO_OPPORTUNITIES = 'PRO_OPPORTUNITIES',
   PRO_FINANCE = 'PRO_FINANCE',
   PRO_MARKETPLACE = 'PRO_MARKETPLACE',
 
   SPACE_HOME = 'SPACE_HOME',
   SPACE_TEAM = 'SPACE_TEAM',
   SPACE_TEAM_DETAILS = 'SPACE_TEAM_DETAILS',
-  SPACE_RECRUITMENT = 'SPACE_RECRUITMENT', 
+  SPACE_RECRUITMENT = 'SPACE_RECRUITMENT',
   SPACE_VACANCY_DETAILS = 'SPACE_VACANCY_DETAILS',
   SPACE_DASHBOARD = 'SPACE_DASHBOARD',
   SPACE_FINANCE = 'SPACE_FINANCE',
@@ -120,9 +120,9 @@ export interface DailyJournalEntry {
   userId: string;
   date: string; // ISO
   mood: MoodType;
-  actionIntent: string; 
-  gratitude: string;    
-  cardId?: string;      
+  actionIntent: string;
+  gratitude: string;
+  cardId?: string;
   createdAt: string;
   generatedPhrases?: [string, string];
 }
@@ -175,11 +175,12 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  status?: string;
   activeRole?: UserRole;
   roles?: UserRole[];
   avatar: string;
-  karma: number; 
-  streak: number; 
+  karma: number;
+  streak: number;
   multiplier: number;
   lastCheckIn?: string;
   lastWateredAt?: string; // ISO date for garden logic
@@ -189,7 +190,7 @@ export interface User {
   bio?: string;
   intention?: string;
   plantStage?: PlantStage;
-  plantXp?: number; 
+  plantXp?: number;
   plantType?: string; // Variety (oak, lotus, etc.)
   journeyType?: string; // Archetype (emocional, mental, etc.)
   corporateBalance: number;
@@ -259,12 +260,12 @@ export interface OracleCard {
   depth?: number;
 }
 
-export interface Product { 
-  id: string; 
-  name: string; 
-  price: number; 
-  image: string; 
-  category: string; 
+export interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  category: string;
   type: 'physical' | 'service' | 'digital_content' | 'event' | 'workshop';
   description?: string;
   ownerId?: string;
@@ -412,6 +413,9 @@ export interface Event {
   id: string;
   title: string;
   description: string;
+  details?: string; // JSON string
+  start_time?: string; // ISO
+  end_time?: string;   // ISO
   date: string;
   time: string;
   duration: number; // minutes
@@ -454,4 +458,54 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   status: 'sent' | 'delivered' | 'read' | 'received';
+}
+
+// Tech Debt Refactor: Admin & Governance DTOs
+export interface AdminDashboardDTO {
+  totalUsers: number;
+  activeUsers: number;
+  revenue: number;
+  systemHealth: number;
+}
+
+export interface AdminFinanceDTO {
+  totalVolume: number;
+  pendingPayouts: number | string;
+}
+
+export interface AdminMetricsDTO {
+  seekersEngagement?: string;
+  totalSessions?: string | number;
+  spacesRetention?: string;
+  newSignups?: string | number;
+}
+
+export interface LgpdLogDTO {
+  id?: string;
+  userName?: string;
+  user_id?: string;
+  timestamp: string;
+  hash: string;
+}
+
+export interface SystemHealthDTO {
+  status: 'healthy' | 'degraded' | 'maintenance';
+  uptime: number;
+  activeUsers: number;
+}
+
+export interface MarketplaceOfferDTO {
+  id: string;
+  title: string;
+  status: string;
+  price: number | string;
+}
+
+// Tech Debt Refactor: Space Event DTOs
+export interface CreateEventDTO {
+  title: string;
+  start: string;
+  end: string;
+  type: string;
+  details: string; // JSON string
 }

@@ -4,8 +4,8 @@ import { logsQueue } from '../lib/queue';
 import prisma from '../lib/prisma';
 import { CloudinaryService } from '../services/cloudinary.service';
 import { asyncHandler } from '../middleware/async.middleware';
-import { oracleService } from '../services/oracle.service';
 import { logger } from '../lib/logger';
+import { CheckInSchema } from '../schemas/metamorphosis.schema';
 
 const normalizeMood = (input: string): Mood => {
     const value = String(input || '').trim().toLowerCase();
@@ -21,16 +21,16 @@ const normalizeMood = (input: string): Mood => {
 };
 
 export const checkIn = asyncHandler(async (req: Request, res: Response) => {
-    const userId = String((req as any).user?.userId || '').trim();
-    const mood = String(req.body?.mood || '').trim();
-    const photoHash = String(req.body?.photoHash || req.body?.hash || '').trim() || `hash_${Date.now()}`;
-    const photoThumb = String(req.body?.photoThumb || req.body?.thumb || '').trim();
-
-    if (!userId) {
+    const user = (req as any).user;
+    if (!user?.userId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    if (!mood) return res.status(400).json({ error: 'Mood is required' });
+    const validated = CheckInSchema.parse(req.body);
+    const userId = String(user.userId).trim();
+    const mood = validated.mood;
+    const photoHash = String(validated.photoHash || validated.hash || '').trim() || `hash_${Date.now()}`;
+    const photoThumb = String(validated.photoThumb || validated.thumb || '').trim();
 
     // Asset Optimization: Upload to CDN (best-effort; never block check-in persistence).
     let optimizedPhotoUrl: string | null = null;
@@ -72,31 +72,31 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
 
     // 3. Persist to DB
     await prisma.$transaction(async (tx) => {
-            // 1. Create Event
-            await tx.event.create({
-                data: {
-                    stream_id: userId,
-                    type: 'MOOD_LOGGED',
-                    payload: entry as any
-                }
-            });
-
-            // 2. Upsert Projection
-            await tx.metamorphosisProjection.upsert({
-                where: { user_id: userId },
-                create: {
-                    user_id: userId,
-                    total_checkins: 1,
-                    last_mood: normalizedMood,
-                    evolution_score: 10
-                },
-                update: {
-                    total_checkins: { increment: 1 },
-                    last_mood: normalizedMood,
-                    evolution_score: { increment: 10 }
-                }
-            });
+        // 1. Create Event
+        await tx.event.create({
+            data: {
+                stream_id: userId,
+                type: 'MOOD_LOGGED',
+                payload: entry as any
+            }
         });
+
+        // 2. Upsert Projection
+        await tx.metamorphosisProjection.upsert({
+            where: { user_id: userId },
+            create: {
+                user_id: userId,
+                total_checkins: 1,
+                last_mood: normalizedMood,
+                evolution_score: 10
+            },
+            update: {
+                total_checkins: { increment: 1 },
+                last_mood: normalizedMood,
+                evolution_score: { increment: 10 }
+            }
+        });
+    });
 
     // ASYNC
     logsQueue.add('emotional_log', entry).catch((err: unknown) => logger.warn('queue.logs_add_failed', err));
@@ -106,7 +106,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
 
 export const getEvolution = asyncHandler(async (req: Request, res: Response) => {
     const userId = String((req as any).user?.userId || '').trim();
-    const { days } = req.query; 
+    const { days } = req.query;
 
     if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });

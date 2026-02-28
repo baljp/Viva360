@@ -8,16 +8,24 @@ import {
 } from 'lucide-react';
 import { PortalView, ZenToast, Card, BottomSheet } from '../components/Common';
 import { useAppToast } from '../src/contexts/AppToastContext';
+import {
+    AdminDashboardDTO,
+    AdminFinanceDTO,
+    AdminMetricsDTO,
+    LgpdLogDTO,
+    SystemHealthDTO,
+    MarketplaceOfferDTO
+} from '../types';
 
 export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void }> = ({ user, view, setView }) => {
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<AdminDashboardDTO | null>(null);
     const [users, setUsers] = useState<User[]>([]);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
-    const [lgpdLogs, setLgpdLogs] = useState<any[]>([]);
-    const [systemHealth, setSystemHealth] = useState<any>(null);
-    const [financeGlobal, setFinanceGlobal] = useState<any>(null);
-    const [metrics, setMetrics] = useState<any>(null);
-    const [offers, setOffers] = useState<any[]>([]);
+    const [lgpdLogs, setLgpdLogs] = useState<LgpdLogDTO[]>([]);
+    const [systemHealth, setSystemHealth] = useState<SystemHealthDTO | null>(null);
+    const [financeGlobal, setFinanceGlobal] = useState<AdminFinanceDTO | null>(null);
+    const [metrics, setMetrics] = useState<AdminMetricsDTO | null>(null);
+    const [offers, setOffers] = useState<MarketplaceOfferDTO[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     // ✅ Toast centralizado via AppToastProvider (sem vazamento local)
     const { showToast: setToast, toast, clearToast } = useAppToast();
@@ -57,9 +65,9 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
         setIsLoading(true);
         try {
             const list: User[] = await api.admin.listUsers().catch(() => [
-                { id: 'u1', name: 'Maria Silva', email: import.meta.env.VITE_MOCK_ENABLED === 'true' ? 'maria@email.com' : '', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
-                { id: 'u2', name: 'Dr. João', email: 'joao@email.com', role: UserRole.PROFESSIONAL, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
-                { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: UserRole.SPACE, status: 'blocked', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any
+                { id: 'u1', name: 'Maria Silva', email: import.meta.env.VITE_MOCK_ENABLED === 'true' ? 'maria@email.com' : '', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 },
+                { id: 'u2', name: 'Dr. João', email: 'joao@email.com', role: UserRole.PROFESSIONAL, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 },
+                { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: UserRole.SPACE, status: 'blocked', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 }
             ]);
             setUsers(list);
         } catch (e) { console.error(e); }
@@ -82,9 +90,9 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
             safeSetLoading(true);
             api.admin.listUsers()
                 .catch(() => [
-                    { id: 'u1', name: 'Maria Silva', email: import.meta.env.VITE_MOCK_ENABLED === 'true' ? 'maria@email.com' : '', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
-                    { id: 'u2', name: 'Dr. João', email: 'joao@email.com', role: UserRole.PROFESSIONAL, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
-                    { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: UserRole.SPACE, status: 'blocked', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 } as any,
+                    { id: 'u1', name: 'Maria Silva', email: import.meta.env.VITE_MOCK_ENABLED === 'true' ? 'maria@email.com' : '', role: UserRole.CLIENT, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 },
+                    { id: 'u2', name: 'Dr. João', email: 'joao@email.com', role: UserRole.PROFESSIONAL, status: 'active', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 },
+                    { id: 'u3', name: 'Espaço Zen', email: 'zen@email.com', role: UserRole.SPACE, status: 'blocked', avatar: '', karma: 0, streak: 0, multiplier: 1, corporateBalance: 0, personalBalance: 0 },
                 ])
                 .then((list) => { safeSetUsers(list); safeSetLoading(false); });
         }
@@ -106,8 +114,8 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                 api.admin.getMarketplaceOffers().catch(() => [])
             ]).then(([finResult, offersResult]) => {
                 if (!cancelled) {
-                    setFinanceGlobal(finResult.status === 'fulfilled' ? finResult.value : {});
-                    setOffers(offersResult.status === 'fulfilled' ? offersResult.value : []);
+                    setFinanceGlobal(finResult.status === 'fulfilled' ? (finResult.value as AdminFinanceDTO) : { totalVolume: 0, pendingPayouts: 0 });
+                    setOffers(offersResult.status === 'fulfilled' ? (offersResult.value as MarketplaceOfferDTO[]) : []);
                     safeSetLoading(false);
                 }
             });
@@ -189,11 +197,11 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                     </div>
 
                     <div className="space-y-4">
-                        {users.filter((u: any) =>
+                        {users.filter((u: User) =>
                             !searchTerm ||
                             u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                             u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-                        ).map((u: any) => (
+                        ).map((u: User) => (
                             <div key={u.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xs ${u.role === 'CLIENT' ? 'bg-primary-50 text-primary-600' : u.role === 'PROFESSIONAL' ? 'bg-amber-50 text-amber-600' : 'bg-indigo-50 text-indigo-600'}`}>
@@ -212,7 +220,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                                             const success = await api.admin.blockUser(u.id);
                                             if (success) {
                                                 setToast({ title: "Usuário Bloqueado", message: `${u.name} foi bloqueado.`, type: 'success' });
-                                                setUsers((prev: any[]) => prev.map(user => user.id === u.id ? { ...user, status: 'blocked' } : user));
+                                                setUsers((prev: User[]) => prev.map(user => user.id === u.id ? { ...user, status: 'blocked' } : user));
                                             } else {
                                                 setToast({ title: "Erro", message: "Falha ao bloquear usuário.", type: 'error' });
                                             }
@@ -248,7 +256,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                                 </div>
                                 <div className="bg-nature-50 p-4 rounded-2xl">
                                     <p className="text-[10px] text-nature-400 font-bold uppercase">Status</p>
-                                    <p className="font-bold text-emerald-600 uppercase">{(selectedUser as any).status || 'Ativo'}</p>
+                                    <p className="font-bold text-emerald-600 uppercase">{selectedUser.status || 'Ativo'}</p>
                                 </div>
                                 <div className="bg-nature-50 p-4 rounded-2xl">
                                     <p className="text-[10px] text-nature-400 font-bold uppercase">Streak</p>
@@ -283,7 +291,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                             {lgpdLogs.length === 0 && !isLoading ? (
                                 <p className="text-xs text-nature-400 italic text-center p-4">Nenhum evento de consentimento registrado ainda.</p>
                             ) : lgpdLogs.length > 0 ? (
-                                lgpdLogs.map((log: any, i) => (
+                                lgpdLogs.map((log: LgpdLogDTO, i) => (
                                     <div key={log.id || i} className="flex items-center gap-3 p-3 bg-nature-50 rounded-2xl">
                                         <CheckCircle size={16} className="text-emerald-500 shrink-0" />
                                         <p className="text-[10px] text-nature-600 leading-tight">
@@ -356,7 +364,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
                             <p className="text-xs text-nature-500 italic">Nenhuma oferta do marketplace ativa no momento.</p>
                         </div>
                     ) : (
-                        offers.map((offer: any) => (
+                        offers.map((offer: MarketplaceOfferDTO) => (
                             <div key={offer.id} className="bg-white p-5 rounded-[2.5rem] border border-nature-100 shadow-sm flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-nature-50 rounded-2xl flex items-center justify-center text-nature-400">
