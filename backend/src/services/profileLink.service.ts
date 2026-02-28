@@ -5,9 +5,9 @@ import { auditService } from './audit.service';
 // Local type definition (Prisma generate may not export ProfileLink yet)
 type PrismaProfileLink = {
   id: string;
-  profile_a_id: string;
-  profile_b_id: string;
-  link_type: string;
+  source_id: string;
+  target_id: string;
+  type: string;
   status: string;
   created_at: Date;
   updated_at?: Date;
