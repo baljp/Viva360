@@ -18,7 +18,8 @@ export const VideoPrepScreen: React.FC = () => {
     }
 
     const startWhatsApp = () => {
-        const rawPhone = String((apt as any)?.clientPhone || (apt as any)?.client_phone || (apt as any)?.phone || '');
+        const aptExt = apt as unknown as Record<string, unknown>;
+        const rawPhone = String(aptExt?.clientPhone || aptExt?.client_phone || aptExt?.phone || '');
         const phone = rawPhone.replace(/\D/g, '');
         if (!phone) {
             notify('WhatsApp indisponível', 'Este agendamento não possui telefone cadastrado.', 'warning');

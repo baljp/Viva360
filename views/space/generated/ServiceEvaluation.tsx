@@ -13,7 +13,7 @@ export default function ServiceEvaluation() {
     const [submitting, setSubmitting] = useState(false);
 
     // Resolve the professional being evaluated from flow state
-    const selectedProId = String((state as any)?.selectedPro?.id || '').trim();
+    const selectedProId = String(state.selectedProId || '').trim();
 
     const availableTags = ['Empatia Profunda', 'Ambiente Sagrado', 'Pontualidade', 'Energia Elevada', 'Clareza', 'Transformador'];
 

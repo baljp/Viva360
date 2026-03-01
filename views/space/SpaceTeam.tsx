@@ -17,10 +17,12 @@ type TeamContract = {
 };
 
 type TeamMember = Professional & {
+    nextSession?: string;
+    next_session?: string;
+    isOccupied?: boolean;
     id: string | number;
     roleLabel?: string;
     karma?: number;
-    isOccupied?: boolean;
     specialty?: string[];
     contract?: TeamContract | null;
 };
@@ -33,7 +35,7 @@ interface SpaceTeamProps {
 }
 
 // Derived from professional data - no random mock
-const getNextSession = (pro: any) => {
+const getNextSession = (pro: TeamMember) => {
     if (pro.nextSession || pro.next_session) return pro.nextSession || pro.next_session;
     if (pro.isOccupied) return 'Em atendimento';
     return null; // Will show nothing instead of fake time
@@ -154,7 +156,7 @@ export const SpaceTeam: React.FC<SpaceTeamProps> = ({ view, setView, team, flow 
                                         <span className={`text-[9px] font-bold ${pro.isOccupied ? 'text-rose-500' : 'text-emerald-600'}`}>
                                             {pro.isOccupied ? 'Em sessão' : 'Disponível'}
                                         </span>
-                                        {(() => { const ns = getNextSession(pro); return ns && !pro.isOccupied ? <span className="text-[9px] text-nature-300 font-medium ml-1">· {ns}</span> : null; })()}
+                                        {(() => { const ns = getNextSession(pro); return ns && !pro.isOccupied ? <span className="text-[9px] text-nature-300 font-medium ml-1">· {String(ns)}</span> : null; })()}
                                     </div>
                                     {pro.contract && (
                                         <div className="flex flex-wrap gap-1.5 mt-2">

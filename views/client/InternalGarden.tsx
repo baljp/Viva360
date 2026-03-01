@@ -43,9 +43,9 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
     const selectJourney = async (type: string) => {
         const updatedUser = { 
             ...user, 
-            journeyType: type as any,
-            plantType: gardenService.getVarietyByJourney(type) as any,
-            plantStage: 'seed' as any,
+            journeyType: type,
+            plantType: gardenService.getVarietyByJourney(type),
+            plantStage: 'seed' as const,
             plantXp: 0,
             plantHealth: 100
         };
@@ -176,7 +176,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                                     let inviteUrl: string | undefined;
                                     try {
                                         const created = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' });
-                                        inviteUrl = String((created as any)?.url || '').trim() || undefined;
+                                        inviteUrl = String((created as Record<string, unknown>)?.url || '').trim() || undefined;
                                     } catch {
                                         // ignore
                                     }

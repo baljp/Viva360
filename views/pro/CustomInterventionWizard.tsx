@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Sparkles, ChevronLeft, Send, Clock, Flame, Wind, Droplets, Mountain, Plus, X } from 'lucide-react';
 import { api } from '../../services/api';
 import { roundTripTelemetry } from '../../lib/telemetry';
+import type { GuardiaoFlowContextValue } from '../../src/flow/GuardiaoFlowContext';
 
-export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
+export const CustomInterventionWizard: React.FC<{ flow: Pick<GuardiaoFlowContextValue, 'go' | 'back' | 'notify'> }> = ({ flow }) => {
     const [step, setStep] = useState(1);
     const [isSaving, setIsSaving] = useState(false);
     const [formData, setFormData] = useState({
@@ -126,7 +127,7 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
                                 ].map(t => (
                                     <button 
                                         key={t.id}
-                                        onClick={() => setFormData({ ...formData, type: t.id as any })}
+                                        onClick={() => setFormData({ ...formData, type: t.id as 'ritual' | 'prescricao' })}
                                         className={`flex-1 p-4 rounded-2xl text-[10px] font-bold uppercase tracking-widest border transition-all ${formData.type === t.id ? 'bg-nature-900 text-white border-nature-900 shadow-lg' : 'bg-white text-nature-400 border-nature-100'}`}
                                     >
                                         {t.label}
@@ -141,7 +142,7 @@ export const CustomInterventionWizard: React.FC<{ flow: any }> = ({ flow }) => {
                                 {elements.map(el => (
                                     <button 
                                         key={el.id}
-                                        onClick={() => setFormData({ ...formData, element: el.id as any })}
+                                        onClick={() => setFormData({ ...formData, element: el.id as 'fire' | 'air' | 'water' | 'earth' })}
                                         className={`flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all ${formData.element === el.id ? 'border-nature-900 bg-nature-50 shadow-sm scale-105' : 'border-nature-100 bg-white'}`}
                                     >
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${el.bg} ${el.color}`}>

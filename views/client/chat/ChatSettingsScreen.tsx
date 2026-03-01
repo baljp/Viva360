@@ -130,7 +130,7 @@ export default function ChatSettingsScreen({ roomId }: { roomId?: string }) {
               <div className="divide-y divide-nature-50">
                 {(settings?.participants ?? []).map((p) => (
                   <div key={p.id} className="px-6 py-4 flex items-center gap-4">
-                    <DynamicAvatar user={{ name: p.name, avatar: p.avatar ?? '' } as any} size="sm" />
+                    <DynamicAvatar user={{ name: p.name, avatar: p.avatar ?? '' }} size="sm" />
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-nature-900 text-sm truncate">{p.name}</p>
                       <p className="text-[10px] text-nature-400 uppercase font-bold tracking-wider mt-0.5">

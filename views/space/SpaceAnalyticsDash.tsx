@@ -5,7 +5,7 @@ import { useSantuarioFlow } from '../../src/flow/useSantuarioFlow';
 import { api } from '../../services/api';
 import { SpaceAnalyticsDTO } from '../../types';
 
-interface MetricCard { label: string; value: string; change: number | null; icon: any; color: string; }
+interface MetricCard { label: string; value: string; change: number | null; icon: React.ElementType; color: string; }
 
 type AnalyticsData = SpaceAnalyticsDTO & {
     // period comparisons (optional, returned by API)
@@ -100,7 +100,7 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
             month,
             value: i === monthLabels.length - 1 ? (stats.appointments || 0) : 0
         }));
-    const maxTrend = Math.max(1, ...monthlyTrend.map((m: any) => m.value));
+    const maxTrend = Math.max(1, ...monthlyTrend.map((m: { month: string; value: number }) => m.value));
 
     return (
         <div className="min-h-screen bg-[#f8faf9] pb-32">
@@ -154,7 +154,7 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
                         )}
                     </div>
                     <div className="flex items-end justify-between gap-2 h-40">
-                        {monthlyTrend.map((m: any, i: number) => (
+                        {monthlyTrend.map((m: { month: string; value: number }, i: number) => (
                             <div key={i} className="flex-1 flex flex-col items-center gap-2">
                                 <span className="text-[9px] font-bold text-nature-500">{m.value > 0 ? m.value : ''}</span>
                                 <div className="w-full bg-nature-50 rounded-t-xl relative overflow-hidden" style={{ height: `${Math.max(4, (m.value / maxTrend) * 100)}%` }}>
@@ -170,7 +170,7 @@ export const SpaceAnalyticsDash: React.FC<{ user: User }> = ({ user }) => {
                     <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100">
                         <h3 className="text-xs font-bold text-nature-400 uppercase tracking-widest mb-4">Ocupação por Altar</h3>
                         <div className="space-y-4">
-                            {roomOccupancy.map((r: any, i: number) => (
+                            {roomOccupancy.map((r: { name: string; sessions: number; pct: number }, i: number) => (
                                 <div key={i} className="space-y-2">
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm font-bold text-nature-900">{r.name}</span>

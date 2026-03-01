@@ -16,24 +16,24 @@ type RoomEvent = {
 const normalizeEvents = (raw: unknown[], roomId: string | null): RoomEvent[] => {
     if (!Array.isArray(raw)) return [];
     return raw
-        .filter((e: any) => !roomId || !e.roomId || String(e.roomId) === String(roomId))
-        .map((e: any) => ({
-            id: e.id || Math.random(),
-            time: e.start_time || e.startTime || e.time || '—',
-            endTime: e.end_time || e.endTime || '',
-            title: e.title || e.name || e.service_name || 'Evento',
-            host: e.host || e.organizer || e.professional_name || e.guardian || 'Santuário',
-            type: e.type || e.eventType || 'Ritual',
-        }))
+        .filter((e: unknown) => { const ev = e as Record<string, unknown>; return !roomId || !ev.roomId || String(ev.roomId) === String(roomId); })
+        .map((e: unknown) => { const ev = e as Record<string, unknown>; return {
+            id: (ev.id as string | number) || Math.random(),
+            time: String(ev.start_time || ev.startTime || ev.time || '—'),
+            endTime: String(ev.end_time || ev.endTime || ''),
+            title: String(ev.title || ev.name || ev.service_name || 'Evento'),
+            host: String(ev.host || ev.organizer || ev.professional_name || ev.guardian || 'Santuário'),
+            type: String(ev.type || ev.eventType || 'Ritual'),
+        }; })
         .sort((a, b) => a.time.localeCompare(b.time));
 };
 
 export default function SpaceRoomAgenda() {
     const { state, back, go, notify } = useSantuarioFlow();
     const todayLabel = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' });
-    const selected = state.data.rooms?.find((r: any) => r.id === state.selectedRoomId) || null;
-    const roomName = (selected as any)?.name || 'Altar';
-    const hero = (selected as any)?.imageUrl || 'https://images.unsplash.com/photo-1596131397935-33ec8a7e0892?q=80&w=600';
+    const selected = state.data.rooms?.find(r => r.id === state.selectedRoomId) ?? null;
+    const roomName = (selected as { name?: string; imageUrl?: string } | null)?.name || 'Altar';
+    const hero = (selected as { name?: string; imageUrl?: string } | null)?.imageUrl || 'https://images.unsplash.com/photo-1596131397935-33ec8a7e0892?q=80&w=600';
     const [events, setEvents] = useState<RoomEvent[]>([]);
     const [loading, setLoading] = useState(true);
 

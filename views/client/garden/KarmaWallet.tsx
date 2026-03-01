@@ -91,7 +91,7 @@ export default function KarmaWallet({ user }: { user: User }) {
                     ].map(tab => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => setActiveTab(tab.id as Parameters<typeof setActiveTab>[0])}
                             className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex flex-col items-center gap-1 ${activeTab === tab.id ? 'bg-nature-50 text-nature-900 ring-1 ring-nature-200' : 'text-nature-400 hover:bg-nature-50'}`}
                         >
                             <tab.icon size={16} className={activeTab === tab.id ? 'text-indigo-600' : 'text-nature-300'} />

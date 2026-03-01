@@ -22,8 +22,8 @@ const PRE_MADE_PACTS = [
 export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
     const { back, jump, notify} = useBuscadorFlow();
     const [step, setStep] = useState<'PARTNER' | 'PACT' | 'CUSTOM' | 'SUCCESS'>('PARTNER');
-    const [selectedPartner, setSelectedPartner] = useState<any>(null);
-    const [selectedPact, setSelectedPact] = useState<any>(null);
+    const [selectedPartner, setSelectedPartner] = useState<{ id: string; name: string; avatar: string } | null>(null);
+    const [selectedPact, setSelectedPact] = useState<{ id: string; label?: string; title?: string } | null>(null);
     const [customPact, setCustomPact] = useState('');
     const [inviteLoading, setInviteLoading] = useState(false);
     // ✅ Membros reais via API — sem MOCK_MEMBERS
@@ -45,12 +45,12 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
         return () => { cancelled = true; };
     }, []);
 
-    const handleSelectPartner = (p: any) => {
+    const handleSelectPartner = (p: { id: string; name: string; avatar: string }) => {
         setSelectedPartner(p);
         setStep('PACT');
     };
 
-    const handleSelectPact = (p: any) => {
+    const handleSelectPact = (p: { id: string; label?: string; title?: string }) => {
         setSelectedPact(p);
         if (p.id === 'custom') {
             setStep('CUSTOM');
@@ -67,8 +67,8 @@ export const SoulPactInteraction: React.FC<{ user: User }> = ({ user }) => {
         if (inviteLoading) return;
         setInviteLoading(true);
         try {
-            const invite = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' } as any);
-            const url = String((invite as any)?.url || window.location.origin);
+            const invite = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' });
+            const url = String((invite as Record<string, unknown>)?.url || window.location.origin);
             const text = encodeURIComponent(
                 `🌿 Olá! Sinto um chamado para que você faça parte da minha Tribo no Viva360. Vamos trilhar um caminho de luz e sintonização juntos? 🌱\n\nAcesse aqui: ${url}`
             );

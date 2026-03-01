@@ -3,7 +3,7 @@ import { Moon, Sun, BellOff, ShieldAlert, ChevronLeft, VolumeX, Sparkles } from 
 import { api } from '../../../services/api';
 import { clearInAppMute, getInAppMuteUntil, setInAppMuteUntil } from '../../../src/utils/inAppMute';
 
-export const OfflineRetreat: React.FC<{ flow: any }> = ({ flow }) => {
+export const OfflineRetreat: React.FC<{ flow: { go: (s: string) => void; back?: () => void; notify?: (title: string, message: string, type?: string) => void } }> = ({ flow }) => {
     const [isActive, setIsActive] = useState(false);
     const [duration, setDuration] = useState(60); // minutes
     const [timeLeft, setTimeLeft] = useState(duration * 60);
@@ -18,7 +18,7 @@ export const OfflineRetreat: React.FC<{ flow: any }> = ({ flow }) => {
     }, []);
 
     useEffect(() => {
-        let timer: any;
+        let timer: ReturnType<typeof setTimeout>;
         if (isActive && timeLeft > 0) {
             timer = setInterval(() => {
                 setTimeLeft(prev => prev - 1);

@@ -130,7 +130,7 @@ export default function AgendaView() {
                            <button 
                                 onClick={(e) => { 
                                     e.stopPropagation(); 
-                                    selectAppointment(apt as any);
+                                    selectAppointment(apt as unknown as import('../../../types').Appointment);
                                     go('VIDEO_PREP'); 
                                 }} 
                                 className="p-3 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-600 hover:text-white transition-colors"
@@ -138,7 +138,7 @@ export default function AgendaView() {
                                <Video size={16}/>
                            </button>
                        ) : (
-                           <button onClick={(e) => { e.stopPropagation(); selectAppointment(apt as any); go('AGENDA_CONFIRM'); }} className="p-3 bg-nature-50 text-nature-400 rounded-xl">
+                           <button onClick={(e) => { e.stopPropagation(); selectAppointment(apt as unknown as import('../../../types').Appointment); go('AGENDA_CONFIRM'); }} className="p-3 bg-nature-50 text-nature-400 rounded-xl">
                                <MoreHorizontal size={16}/>
                            </button>
                        )}

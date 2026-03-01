@@ -6,7 +6,7 @@ import { useEvolution } from '../../../src/hooks/useEvolution';
 import { useIdbImageUrl } from '../../../src/hooks/useIdbImageUrl';
 import { buildLocalImageKey } from '../../../src/utils/idbImageStore';
 
-const SnapThumb: React.FC<{ snap: any }> = ({ snap }) => {
+const SnapThumb: React.FC<{ snap: { id?: string | number; url?: string; image?: string; photoThumb?: string; date?: string } }> = ({ snap }) => {
     const key = snap?.id ? buildLocalImageKey(String(snap.id)) : null;
     const src = useIdbImageUrl(key, snap?.image || '');
     return <img src={src || snap?.image} alt="Snap" className="w-16 h-16 rounded-xl object-cover" />;
@@ -52,7 +52,7 @@ export const EvolutionView: React.FC<{ user: User }> = ({ user }) => {
                             >
                                 <div className="w-full flex justify-between items-center mb-6">
                                     <span className="text-[10px] font-black text-nature-400 uppercase tracking-widest">{layer.label}</span>
-                                    {renderTrend(layer.state.trend as any)}
+                                    {renderTrend((layer.state.trend as 'up' | 'down' | 'right') ?? 'right')}
                                 </div>
 
                                 <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-500">

@@ -12,7 +12,7 @@ interface SpaceMarketplaceProps {
     user: User;
     myProducts: Product[];
     refreshData: () => Promise<void>;
-    flow: any;
+    flow: { go: (...args: unknown[]) => void; notify?: (...args: unknown[]) => void };
 }
 
 export const SpaceMarketplace: React.FC<SpaceMarketplaceProps> = ({ view, setView, user, myProducts, refreshData, flow }) => {

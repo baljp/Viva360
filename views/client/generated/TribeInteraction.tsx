@@ -105,7 +105,7 @@ export default function TribeInteraction() {
       setIsConnecting(true);
       setJoinError(null);
       const result = await api.chat.joinRoom({ type: roomType, contextId: roomContextId });
-      const chat = (result as any)?.chat as ApiChatRoom | undefined;
+      const chat = (result as Record<string, unknown>)?.chat as ApiChatRoom | undefined;
       if (!chat || cancelled) {
         if (!cancelled) {
           setJoinError('Não foi possível abrir o portal agora. Tente novamente.');

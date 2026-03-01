@@ -81,7 +81,7 @@ export const SpacePatientProfile: React.FC = () => {
         <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <DynamicAvatar user={{ name } as any} size="lg" className="border-4 border-white shadow-lg" />
+              <DynamicAvatar user={{ name }} size="lg" className="border-4 border-white shadow-lg" />
               <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full border-2 border-white ${health > 70 ? 'bg-emerald-500' : health > 40 ? 'bg-amber-500' : 'bg-rose-500'}`} />
             </div>
             <div className="min-w-0 flex-1">
@@ -118,17 +118,20 @@ export const SpacePatientProfile: React.FC = () => {
             <p className="text-sm text-nature-400 italic">Nenhuma sessão encontrada para este vínculo.</p>
           ) : (
             <div className="space-y-3">
-              {(detail?.appointments || []).slice(0, 6).map((a: any) => (
-                <div key={a.id} className="flex items-center justify-between p-4 bg-nature-50 rounded-2xl border border-nature-100">
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-nature-900 truncate">{a.serviceName}</p>
-                    <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest mt-1 truncate">
-                      {new Date(a.date).toLocaleDateString('pt-BR')} · {a.time} · {a.guardian?.name || 'Guardião'}
-                    </p>
+              {(detail?.appointments || []).map((a_raw: unknown) => {
+                const a = a_raw as { id?: string | number; date?: string; serviceName?: string; status?: string; time?: string; guardian?: { name?: string } };
+                return (
+                  <div key={String(a.id ?? Math.random())} className="flex items-center justify-between p-4 bg-nature-50 rounded-2xl border border-nature-100">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-nature-900 truncate">{a.serviceName}</p>
+                      <p className="text-[9px] font-bold text-nature-400 uppercase tracking-widest mt-1 truncate">
+                        {a.date ? new Date(a.date).toLocaleDateString('pt-BR') : '—'} · {a.time} · {a.guardian?.name || 'Guardião'}
+                      </p>
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-nature-500">{String(a.status || '').toUpperCase()}</span>
                   </div>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-nature-500">{String(a.status || '').toUpperCase()}</span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -12,17 +12,20 @@ type AuditLog = {
     severity: 'high' | 'medium' | 'low';
 };
 
-const normalizeLog = (raw: any, i: number): AuditLog => ({
-    id: raw.id || i,
-    action: raw.action || raw.operation || raw.event || 'Operação',
-    user: raw.user || raw.actor || raw.performed_by || raw.user_email || 'Sistema',
-    target: raw.target || raw.resource || raw.entity || raw.description || '—',
-    date: raw.created_at || raw.date || raw.timestamp
-        ? new Date(raw.created_at || raw.date || raw.timestamp).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
-        : '—',
-    type: raw.type || raw.category || 'system',
-    severity: raw.severity || (raw.type === 'finance' ? 'high' : raw.type === 'security' ? 'medium' : 'low'),
-});
+const normalizeLog = (raw: unknown, i: number): AuditLog => {
+    const r = raw as Record<string, unknown>;
+    return {
+        id: (r.id as string | number) || i,
+        action: String(r.action || r.operation || r.event || 'Operação'),
+        user: String(r.user || r.actor || r.performed_by || r.user_email || 'Sistema'),
+        target: String(r.target || r.resource || r.entity || r.description || '—'),
+        date: (r.created_at || r.date || r.timestamp)
+            ? new Date(r.created_at as string || r.date as string || r.timestamp as string).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+            : '—',
+        type: String(r.type || r.category || 'system'),
+        severity: (r.severity || (r.type === 'finance' ? 'high' : r.type === 'security' ? 'medium' : 'low')) as 'high' | 'medium' | 'low',
+    };
+};
 
 const getSeverityStyles = (severity: string) => {
     switch (severity) {
@@ -35,7 +38,7 @@ const getSeverityStyles = (severity: string) => {
 const TABS = ['Todos', 'Contratos', 'Financeiro', 'Salas', 'Equipe'] as const;
 type Tab = typeof TABS[number];
 
-export const SpaceAuditLog: React.FC<{ flow: any }> = ({ flow }) => {
+export const SpaceAuditLog: React.FC<{ flow: { go: (s: string) => void; back?: () => void; notify?: (title: string, message: string, type?: 'info'|'success'|'warning'|'error') => void } }> = ({ flow }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<Tab>('Todos');
     const [logs, setLogs] = useState<AuditLog[]>([]);

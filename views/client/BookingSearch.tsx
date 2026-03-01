@@ -103,7 +103,7 @@ export const BookingSearch: React.FC<{ pros?: Professional[], isLoading?: boolea
                         return (
                             <button 
                                 key={area.label} 
-                                onClick={() => setActiveJourney(area.label as any)}
+                                onClick={() => setActiveJourney(area.label as Parameters<typeof setActiveJourney>[0])}
                                 className={`flex flex-col items-center gap-3 p-5 rounded-[2.5rem] transition-all duration-300 ${area.color} ${area.hover} group shadow-sm active:scale-95`}
                             >
                                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-white/40 backdrop-blur-sm shadow-inner group-hover:scale-110 transition-transform">

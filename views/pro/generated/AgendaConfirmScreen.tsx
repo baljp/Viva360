@@ -42,7 +42,7 @@ export default function AgendaConfirmScreen() {
   const handleConfirm = async () => {
     setConfirming(true);
     try {
-      await (api as any).appointments?.update?.(apt.id, { status: 'confirmed' }).catch(() => null);
+      await (api.appointments as unknown as { update?: (id: string, d: unknown) => Promise<unknown> })?.update?.(apt.id, { status: 'confirmed' }).catch(() => null);
       selectAppointment({ ...apt, status: 'confirmed' });
       notify('Ritual Confirmado', `Sessão com ${apt.clientName} confirmada!`, 'success');
       go('AGENDA_VIEW');
@@ -56,7 +56,7 @@ export default function AgendaConfirmScreen() {
   const handleCancel = async () => {
     setCancelling(true);
     try {
-      await (api as any).appointments?.update?.(apt.id, { status: 'cancelled' }).catch(() => null);
+      await (api.appointments as unknown as { update?: (id: string, d: unknown) => Promise<unknown> })?.update?.(apt.id, { status: 'cancelled' }).catch(() => null);
       selectAppointment({ ...apt, status: 'cancelled' });
       notify('Ritual Cancelado', `Sessão com ${apt.clientName} cancelada.`, 'info');
       go('AGENDA_VIEW');

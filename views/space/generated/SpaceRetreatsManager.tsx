@@ -4,6 +4,26 @@ import { PortalView, BottomSheet } from '../../../components/Common';
 import { Calendar, Users, Plus, ArrowRight, Edit3, Trash2 } from 'lucide-react';
 import { api } from '../../../services/api';
 
+interface RetreatItem extends Record<string, unknown> {
+  id?: string;
+  title?: string;
+  date?: string;
+  start_time?: string;
+  end_time?: string;
+  image?: string;
+  dates?: string;
+  _capacity?: number;
+  _enrolled?: number;
+  _isRetreat?: boolean;
+  details?: string;
+  type?: string;
+  facilitatorName?: string;
+  location?: string;
+  price?: number;
+  status?: string;
+  revenue?: string | number;
+}
+
 export default function SpaceRetreatsManager() {
     const { back, go, selectEvent, notify } = useSantuarioFlow();
     const [isLoading, setIsLoading] = useState(true);
@@ -29,14 +49,14 @@ export default function SpaceRetreatsManager() {
 
     const retreats = useMemo(() => {
         const list = events
-            .map((e: any) => {
-                let meta: any = {};
-                try { meta = e.details ? JSON.parse(e.details) : {}; } catch { /* ignore malformed details */ }
+            .map((e: Record<string, unknown>) => {
+                let meta: Record<string, unknown> = {};
+                try { meta = e.details ? JSON.parse(String(e.details)) : {}; } catch { /* ignore malformed details */ }
                 const rawType = String(e.type || '').toLowerCase();
                 const kind = String(meta.kind || '').toLowerCase();
                 const isRetreat = rawType === 'retreat' || kind === 'retreat';
-                const start = e.start_time ? new Date(e.start_time) : null;
-                const end = e.end_time ? new Date(e.end_time) : null;
+                const start = e.start_time ? new Date(String(e.start_time)) : null;
+                const end = e.end_time ? new Date(String(e.end_time)) : null;
                 const dates = start
                     ? `${start.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}${end ? ` - ${end.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}` : ''}`
                     : '--';
@@ -60,7 +80,7 @@ export default function SpaceRetreatsManager() {
                     _capacity: capacity,
                 };
             })
-            .filter((e: any) => e._isRetreat);
+            .filter((e: Record<string, unknown>) => e._isRetreat) as RetreatItem[];
         return list;
     }, [events]);
 
@@ -108,7 +128,7 @@ export default function SpaceRetreatsManager() {
                     <div
                         key={retreat.id}
                         className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm overflow-hidden group cursor-pointer active:scale-[0.99] transition-all"
-                        onClick={() => { selectEvent(retreat.id); setSelected(retreat); }}
+                        onClick={() => { if (retreat.id) selectEvent(retreat.id); setSelected(retreat); }}
                     >
                         <div className="h-32 relative">
                             <img src={retreat.image} className="w-full h-full object-cover" alt={retreat.title || 'Retiro'} />
@@ -131,12 +151,12 @@ export default function SpaceRetreatsManager() {
                             <div className="w-full bg-nature-50 h-2 rounded-full overflow-hidden mb-4">
                                 <div
                                     className="bg-indigo-500 h-full rounded-full"
-                                    style={{ width: `${Math.min(100, Math.round(((retreat as any)._enrolled || 0) / Math.max(1, (retreat as any)._capacity || 0) * 100))}%` }}
+                                    style={{ width: `${Math.min(100, Math.round((Number((retreat as Record<string, unknown>)._enrolled || 0)) / Math.max(1, Number((retreat as Record<string, unknown>)._capacity || 0)) * 100))}%` }}
                                 ></div>
                             </div>
 
                             <div className="flex justify-between items-center">
-                                <p className="text-[10px] text-nature-500 font-bold uppercase flex items-center gap-2"><Users size={12} /> {retreat.spots} Vagas preenchidas</p>
+                                <p className="text-[10px] text-nature-500 font-bold uppercase flex items-center gap-2"><Users size={12} /> {String(retreat.spots ?? "")} Vagas preenchidas</p>
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();

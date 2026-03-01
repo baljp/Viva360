@@ -133,10 +133,10 @@ export default function CheckoutScreen() {
               { id: 'card', icon: CreditCard, label: 'Cartão de Crédito', sub: 'Até 3x sem juros', color: 'bg-emerald-50 text-emerald-600', border: 'border-emerald-100' },
               { id: 'pix', icon: Smartphone, label: 'PIX Instantâneo', sub: 'Até 10% de cashback', color: 'bg-indigo-50 text-indigo-600', border: 'border-indigo-100' },
               { id: 'direct', icon: MessageCircle, label: 'Direto com Guardião', sub: 'Combinar via Voucher', color: 'bg-amber-50 text-amber-600', border: 'border-amber-100' }
-            ].map((m: any) => (
+            ].map((m: { id: string; label: string; icon: React.ElementType; color: string; sub: string; border: string }) => (
               <div
                 key={m.id}
-                onClick={() => setMethod(m.id)}
+                onClick={() => setMethod(m.id as 'card' | 'pix' | 'direct')}
                 className={`flex items-center gap-4 p-5 rounded-[2.5rem] border-2 transition-all cursor-pointer group ${method === m.id ? 'border-nature-900 bg-white shadow-xl scale-[1.02]' : 'border-nature-50 bg-nature-50/30 grayscale hover:grayscale-0'}`}
               >
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 ${m.color}`}>

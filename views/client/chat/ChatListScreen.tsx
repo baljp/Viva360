@@ -171,7 +171,7 @@ export default function ChatListScreen() {
                 >
                   <div className="relative">
                     <div className="w-16 h-16 rounded-full border-2 border-indigo-400 p-0.5">
-                      <DynamicAvatar user={{ name: other.name, avatar: other.avatar } as any} size="lg" />
+                      <DynamicAvatar user={{ name: other.name, avatar: other.avatar }} size="lg" />
                     </div>
                     <div className="absolute -bottom-1 -right-1 bg-amber-500 text-white p-1 rounded-full border-2 border-white">
                       <Flame size={10} />
@@ -228,7 +228,7 @@ export default function ChatListScreen() {
                   className={`p-4 flex items-center gap-4 hover:bg-nature-50 cursor-pointer transition-colors ${i !== regularRooms.length - 1 ? 'border-b border-nature-50' : ''
                     }`}
                 >
-                  <DynamicAvatar user={{ name: other.name, avatar: other.avatar } as any} size="md" />
+                  <DynamicAvatar user={{ name: other.name, avatar: other.avatar }} size="md" />
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-baseline mb-1">
                       <h4 className="font-bold text-nature-900 text-sm">{other.name}</h4>

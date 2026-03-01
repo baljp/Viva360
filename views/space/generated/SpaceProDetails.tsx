@@ -41,7 +41,8 @@ export default function SpaceProDetails() {
     };
 
     // Professionals in state.data.team might have contract data attached if fetched via space API
-    const contract = (pro as any).contract || null;
+    interface ProContract { status?: string; revenueShare?: number; revenue_share?: number; hoursPerWeek?: number; hours_per_week?: number; signed?: boolean; roomsAllowed?: string[]; endDate?: string; end_date?: string; }
+const contract = (pro as Record<string, unknown>).contract as ProContract | null || null;
     const isMaster = stats.karma > 800;
 
     return (
@@ -55,7 +56,7 @@ export default function SpaceProDetails() {
                 {/* Profile Card */}
                 <div className="bg-white p-6 rounded-[2.5rem] shadow-xl border border-nature-100 text-center relative overflow-hidden mb-6">
                     <div className="w-24 h-24 rounded-[2rem] mx-auto mb-4 relative overflow-hidden border-4 border-white shadow-lg">
-                        <img src={pro.avatar || (pro as any).image} className="w-full h-full object-cover" alt={pro.name || 'Guardião'} />
+                        <img src={pro.avatar || String((pro as Record<string, unknown>).image || "")} className="w-full h-full object-cover" alt={pro.name || 'Guardião'} />
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-1">
                         <h2 className="font-serif italic text-2xl text-nature-900">{pro.name}</h2>
@@ -64,7 +65,7 @@ export default function SpaceProDetails() {
                     <p className="text-xs font-bold uppercase tracking-widest text-nature-400 mb-4">{isMaster ? 'Mestre' : 'Guardião'}</p>
 
                     <div className="flex flex-wrap justify-center gap-2 mb-6">
-                        {(pro.specialty || (pro as any).specialties || []).map((s: string) => (
+                        {((pro.specialty || (pro as Record<string, unknown>).specialties || []) as string[]).map((s: string) => (
                             <span key={s} className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-bold uppercase tracking-wider">{s}</span>
                         ))}
                     </div>

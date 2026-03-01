@@ -24,7 +24,7 @@ export const SantuarioListView: React.FC<{ user: User }> = ({ user }) => {
     const [loading, setLoading] = useState(true);
 
     // Ambiente de dev mostra dados de demonstração (sufixo [Demo]) até API retornar dados reais
-    const devFallback = import.meta.env.VITE_MOCK_ENABLED === 'true' ? (TEST_SANTUARIOS as any) : [];
+    const devFallback = import.meta.env.VITE_MOCK_ENABLED === 'true' ? (TEST_SANTUARIOS as SantuarioItem[]) : [];
     const [santuarios, setSantuarios] = useState<SantuarioItem[]>(devFallback);
 
     useEffect(() => {

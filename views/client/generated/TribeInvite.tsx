@@ -28,7 +28,7 @@ export default function TribeInvite() {
       }
       try {
         const created = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' });
-        const url = String((created as any)?.url || '').trim();
+        const url = String((created as Record<string, unknown>)?.url || '').trim();
         if (url) setInviteLink(url);
       } catch (e) {
         console.warn('Invite create failed, falling back to generic /invite route', e);

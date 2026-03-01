@@ -222,7 +222,7 @@ export const ClientQuestsView: React.FC<{ user: User, updateUser: (u: User) => v
 
             setTimeout(() => {
                 setAnimatingId(null);
-                go(route as any);
+                go(route as Parameters<typeof go>[0]);
             }, 1200);
         }
     };

@@ -217,10 +217,10 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
             });
             // Derive adminStats from real data
             const incomeTotal = Array.isArray(realTx)
-                ? realTx.filter((t: any) => t.type === 'income').reduce((s: number, t: any) => s + Number(t.amount || 0), 0)
+                ? (realTx as Array<{ type: string; amount?: number }>).filter(t => t.type === 'income').reduce((s, t) => s + Number(t.amount || 0), 0)
                 : 0;
             const occupiedRooms = Array.isArray(realRooms)
-                ? realRooms.filter((r: any) => String(r.status || '').toLowerCase() === 'occupied').length
+                ? (realRooms as Array<{ status?: string }>).filter(r => String(r.status || '').toLowerCase() === 'occupied').length
                 : 0;
             const occupancyRate = realRooms.length > 0 ? Math.round((occupiedRooms / realRooms.length) * 100) : 0;
             // ADMIN STATS (P2 Fix: Real patient count)

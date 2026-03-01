@@ -76,7 +76,7 @@ export const AlquimiaCreateOffer: React.FC<{ user?: User }> = ({ user }) => {
                             ].map(t => (
                                 <button 
                                     key={t.id}
-                                    onClick={() => setFormData({...formData, type: t.id as any})}
+                                    onClick={() => setFormData(prev => ({...prev, type: t.id as typeof prev.type}))}
                                     className={`py-3 rounded-xl text-[9px] font-bold uppercase tracking-widest border transition-all ${formData.type === t.id ? 'bg-indigo-900 text-white border-indigo-900 shadow-md' : 'bg-white text-nature-400 border-nature-100 shadow-sm'}`}
                                 >
                                     {t.label}

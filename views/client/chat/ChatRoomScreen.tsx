@@ -144,7 +144,7 @@ export default function ChatRoomScreen({ roomId }: { roomId?: string }) {
           <button onClick={back} className="mr-1 text-nature-600 hover:bg-black/5 p-2 rounded-full">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
           </button>
-          <DynamicAvatar user={{ name: roomLabel, avatar: '' } as any} size="sm" />
+          <DynamicAvatar user={{ name: roomLabel, avatar: '' }} size="sm" />
           <div>
             <h4 className="font-bold text-gray-800 text-sm leading-none">{roomLabel}</h4>
             <span className="text-[10px] text-nature-500 font-medium">

@@ -19,7 +19,7 @@ export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
         api.metamorphosis.getEvolution().then(res => {
             const entries = res.entries || [];
             // Map common fields and ensure valid dates
-            const mapped = entries.map((e: any) => {
+            const mapped = (entries as Record<string, unknown>[]).map((e) => {
                 const photoHash = String(e.photoHash || e.hash || '').trim() || null;
                 return {
                     id: e.id || photoHash || `${Date.now()}_${Math.random()}`,

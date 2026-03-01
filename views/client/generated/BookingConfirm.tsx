@@ -40,7 +40,7 @@ export default function BookingConfirm({ user, onClose }: { user?: User; onClose
       if (recurrence.enabled) {
         // ── Recorrente: criar série ────────────────────────────────────────
         const hasConflicts = (recurrence.preview ?? []).some(o => o.hasConflict);
-        const result: any = await (api as any).series.create({
+        const result = await (api.series as unknown as { create: (d: unknown) => Promise<{ createdCount?: number }> }).create({
           guardianId:       pro.id,
           clientId:         user.id,
           startAt:          startAtIso,
@@ -82,7 +82,7 @@ export default function BookingConfirm({ user, onClose }: { user?: User; onClose
     } catch (err: any) {
       roundTripTelemetry.error('booking', 'confirm', rt.correlationId, rt.startMs, err?.message || 'unknown');
       if (err?.code === 'RECURRENCE_CONFLICTS' && err?.conflicts?.length) {
-        const dates = err.conflicts.slice(0, 3).map((c: any) =>
+        const dates = (err.conflicts as Array<{ date?: string; time?: string }>).slice(0, 3).map(c =>
           new Date(c.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
         ).join(', ');
         notify('Conflito de horários', `Datas com conflito: ${dates}. Ative "pular conflitos" ou mude os horários.`, 'error');

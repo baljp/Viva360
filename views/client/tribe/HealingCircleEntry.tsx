@@ -41,11 +41,17 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
                     description: 'Um encontro de almas para cura e expansão da consciência.',
                     image: 'https://images.unsplash.com/photo-1528644490543-950c4dfceb28?q=80&w=800',
                     price: 33.00,
-                    facilitatorName: '',  // Populated from API
+                    facilitatorId: '',
+                    facilitatorName: '',
                     enrolled: 12,
                     capacity: 20,
-                    date: new Date().toISOString()
-                } as any);
+                    date: new Date().toISOString(),
+                    time: '19:00',
+                    duration: 90,
+                    location: 'Online',
+                    status: 'upcoming' as const,
+                    tags: [],
+                });
             } finally {
                 setLoading(false);
             }

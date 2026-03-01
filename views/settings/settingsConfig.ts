@@ -31,7 +31,7 @@ export type SettingsRoleConfig = {
     title: string;
     subtitle: string;
     saveLabel: string;
-    items: Array<{ key: NotificationPrefKey; label: string; sub: string; icon: any; color: string }>;
+    items: Array<{ key: NotificationPrefKey; label: string; sub: string; icon: React.ElementType; color: string }>;
   };
   assets: {
     route: ViewState;

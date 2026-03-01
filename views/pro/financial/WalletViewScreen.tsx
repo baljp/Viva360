@@ -305,7 +305,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                 ].map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => setActiveTab(tab.id as Parameters<typeof setActiveTab>[0])}
                         className={`px-4 py-3 rounded-2xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-nature-900 text-white border-nature-900 shadow-lg' : 'bg-white text-nature-400 border-nature-100'}`}
                     >
                         <tab.icon size={14} /> {tab.label}

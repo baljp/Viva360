@@ -80,7 +80,7 @@ export default function PaymentHistoryScreen() {
                         ].map(f => (
                             <button
                                 key={f.id}
-                                onClick={() => setFilter(f.id as any)}
+                                onClick={() => setFilter(f.id as Parameters<typeof setFilter>[0])}
                                 className={`px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all ${filter === f.id ? 'bg-nature-900 text-white shadow-sm' : 'bg-nature-50 text-nature-400'}`}
                             >
                                 {f.label}

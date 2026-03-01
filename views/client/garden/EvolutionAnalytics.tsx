@@ -51,7 +51,7 @@ export const EvolutionAnalytics: React.FC<{ user: User }> = ({ user }) => {
                     <h4 className="text-sm font-bold uppercase tracking-[0.2em] mb-6">Mapa dos Sentires</h4>
                     {evolution.total > 0 && evolution.breakdown && evolution.breakdown.length > 0 ? (
                         <div className="space-y-4">
-                            {evolution.breakdown.slice(0, 5).map((mood: any, idx: number) => (
+                            {(evolution.breakdown as { label: string; percent: number }[]).slice(0, 5).map((mood, idx: number) => (
                                 <div key={idx} className="space-y-2">
                                     <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest opacity-60">
                                         <span>{mood.label}</span>

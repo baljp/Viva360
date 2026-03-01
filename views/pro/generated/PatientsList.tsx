@@ -265,14 +265,14 @@ export default function PatientsList() {
           <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-3">
             <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Vinculos</h4>
             {patientLinks.slice(0, 6).map((link) => {
-              const source = (link as any)?.source || {};
-              const target = (link as any)?.target || {};
+              const source = (link as Record<string, unknown>)?.source as Record<string, unknown> || {};
+              const target = (link as Record<string, unknown>)?.target as Record<string, unknown> || {};
               const other = String(source?.id || '') === myId ? target : source;
-              const status = String((link as any)?.status || '').toUpperCase();
+              const status = String((link as Record<string, unknown>)?.status || '').toUpperCase();
               return (
                 <div key={String(link.id)} className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-nature-50 border border-nature-100">
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-nature-900 truncate">{other?.name || 'Buscador'}</p>
+                    <p className="text-xs font-bold text-nature-900 truncate">{String(other?.name || 'Buscador')}</p>
                     <p className="text-[10px] font-bold text-nature-400 uppercase tracking-widest mt-1 truncate">
                       {status === 'PENDING' ? 'Pendente de aceite' : 'Vinculado'}
                     </p>

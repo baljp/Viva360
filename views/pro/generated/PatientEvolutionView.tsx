@@ -160,19 +160,19 @@ export default function PatientEvolutionView() {
         let cancelled = false;
         setInterventionsLoading(true);
         api.clinical.listInterventions()
-            .then((data: any) => {
+            .then((data: unknown) => {
                 if (cancelled) return;
-                const list = Array.isArray(data) ? data : [];
+                const list = (Array.isArray(data) ? data : []) as Record<string, unknown>[];
                 // Filter by patient if possible
                 const patientInterventions = PATIENT_ID
-                    ? list.filter((i: any) => !i.patient_id || String(i.patient_id) === PATIENT_ID)
+                    ? list.filter(i => !i.patient_id || String(i.patient_id) === PATIENT_ID)
                     : list;
-                setInterventions(patientInterventions.map((i: any) => ({
-                    id: i.id || Date.now(),
-                    title: i.title || i.name || 'Intervenção',
-                    outcome: i.outcome || i.result || i.notes || '',
-                    type: i.type || 'pratica',
-                    date: i.created_at || i.date || '',
+                setInterventions(patientInterventions.map(i => ({
+                    id: (i.id as string | number) || Date.now(),
+                    title: String(i.title || i.name || 'Intervenção'),
+                    outcome: String(i.outcome || i.result || i.notes || ''),
+                    type: String(i.type || 'pratica'),
+                    date: String(i.created_at || i.date || ''),
                 })));
                 // Derive plan goals from records content
                 if (!cancelled) {
@@ -295,7 +295,7 @@ export default function PatientEvolutionView() {
                 ].map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id as any)}
+                        onClick={() => setActiveTab(tab.id as 'timeline' | 'patterns' | 'interventions' | 'plan')}
                         className={`px-4 py-3 rounded-2xl flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest border transition-all whitespace-nowrap ${activeTab === tab.id ? 'bg-nature-900 text-white border-nature-900 shadow-lg' : 'bg-white text-nature-400 border-nature-100'}`}
                     >
                         <tab.icon size={14} /> {tab.label}

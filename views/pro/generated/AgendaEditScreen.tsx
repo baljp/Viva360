@@ -38,7 +38,7 @@ export default function AgendaEditScreen() {
     try {
       const updated = await accountApi.appointments.update(apt.id, { status, time: time || apt.time, notes });
       if (updated) {
-        const mutatedApt = { ...apt, status: status as any, time: time || apt.time };
+        const mutatedApt = { ...apt, status: status as 'confirmed' | 'pending' | 'cancelled' | 'completed', time: time || apt.time };
         selectAppointment(mutatedApt);
         updateAppointment(mutatedApt);
       }

@@ -148,7 +148,7 @@ export default function ChatNewScreen() {
                 className="w-full px-5 py-4 flex items-center gap-4 hover:bg-nature-50 active:bg-nature-100 transition-colors text-left group disabled:opacity-60"
               >
                 <DynamicAvatar
-                  user={{ name: profile.name, avatar: profile.avatar ?? '' } as any}
+                  user={{ name: profile.name, avatar: profile.avatar ?? '' }}
                   size="md"
                 />
                 <div className="flex-1 min-w-0">

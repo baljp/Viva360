@@ -38,7 +38,7 @@ export const SantuarioProfileView: React.FC<{ user: User }> = ({ user }) => {
         (async () => {
             try {
                 // Try to fetch full details from API
-                const data = await (api as any).spaces?.getById?.(selectedSantuario.id).catch(() => null);
+                const data = await (api.spaces as unknown as { getById?: (id: string) => Promise<SantuarioDetails | null> })?.getById?.(selectedSantuario.id).catch(() => null);
                 if (!cancelled) {
                     if (data) {
                         setSpace({

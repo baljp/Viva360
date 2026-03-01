@@ -3,6 +3,7 @@ import { ViewState, Professional, User } from '../../types';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { PortalView, DynamicAvatar, ZenSkeleton, ZenEmptyState, PresenceBadge } from '../../components/Common';
 import { useJourneyEngine } from '../../src/hooks/useJourneyEngine';
+import type { MicroJourney } from '../../src/data/journeys';
 import { Play, Search, MapPin, Sparkle, Sun, Moon, Wind, Clock, Star, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { MicroJourneyModal } from './map/MicroJourneyModal';
 import { api } from '../../services/api';
@@ -66,7 +67,7 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
         });
     }, [pros, searchQuery, activeGuardians, activeFilter]);
 
-    const handleStartJourney = (j: any) => {
+    const handleStartJourney = (j: MicroJourney) => {
         setActiveMicroJourney(j.category); 
     };
 

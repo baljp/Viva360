@@ -20,7 +20,7 @@ export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }
         const load = async () => {
             try {
                 const status = await api.presence.getStatus(pro.id);
-                if (!cancelled) setPresence((status || 'OFFLINE') as any);
+                if (!cancelled) setPresence((status || 'OFFLINE') as 'ONLINE' | 'OFFLINE' | 'UNKNOWN');
             } catch {
                 if (!cancelled) setPresence('UNKNOWN');
             }

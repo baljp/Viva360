@@ -523,8 +523,12 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
     );
 };
 // ─── Push-enabled Notifications Settings ─────────────────────────────────────
+interface NotifItem { key: string; label: string; description?: string; sub?: string; icon?: React.ElementType; color?: string; }
+interface RoleConfig { notifications: { items: NotifItem[]; title?: string; subtitle?: string; saveLabel?: string } }
+type NotifPrefs = Record<string, boolean>;
+
 function SettingsNotificationsSection({ roleConfig, notifPrefs, setNotifPrefs, handleSaveNotifications, onBack }: {
-    roleConfig: any; notifPrefs: any; setNotifPrefs: any;
+    roleConfig: RoleConfig; notifPrefs: NotifPrefs; setNotifPrefs: React.Dispatch<React.SetStateAction<NotifPrefs>>;
     handleSaveNotifications: () => void; onBack: () => void;
 }) {
     const { pushPermission, pushSubscribed, requestPush, disablePush } = useNotifications();
@@ -587,7 +591,7 @@ function SettingsNotificationsSection({ roleConfig, notifPrefs, setNotifPrefs, h
                 </div>
 
                 {/* Per-category toggles */}
-                {roleConfig.notifications.items.map((item: any) => (
+                {roleConfig.notifications.items.map((item: NotifItem) => (
                     <div key={item.key} className="bg-white p-6 rounded-[2.5rem] border border-nature-100 flex justify-between items-center shadow-sm">
                         <div className="flex items-center gap-5">
                             <div className={`p-4 ${item.color} rounded-2xl`}><item.icon size={20} /></div>
@@ -596,7 +600,7 @@ function SettingsNotificationsSection({ roleConfig, notifPrefs, setNotifPrefs, h
                                 <p className="text-[9px] text-nature-400 font-bold uppercase mt-1 tracking-widest">{item.sub}</p>
                             </div>
                         </div>
-                        <SettingsToggle active={notifPrefs[item.key]} onToggle={() => setNotifPrefs((s: any) => ({ ...s, [item.key]: !s[item.key] }))} />
+                        <SettingsToggle active={notifPrefs[item.key]} onToggle={() => setNotifPrefs(s => ({ ...s, [item.key]: !s[item.key] }))} />
                     </div>
                 ))}
 

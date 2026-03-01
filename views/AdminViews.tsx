@@ -80,7 +80,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
 
     useEffect(() => {
         let cancelled = false;
-        const safeSetStats = (v: any) => { if (!cancelled) setStats(v); };
+        const safeSetStats = (v: AdminDashboardDTO) => { if (!cancelled) setStats(v); };
         const safeSetUsers = (v: User[]) => { if (!cancelled) setUsers(v); };
         const safeSetLoading = (v: boolean) => { if (!cancelled) setIsLoading(v); };
 

@@ -14,7 +14,7 @@ const SpacePatients: React.FC = () => {
   const [patientsData, setPatientsData] = useState<SpacePatientApi[] | null>(null);
 
   // Fallback visual apenas em dev (dados rotulados [Demo] deixam claro que não são reais)
-  const fallbackPatients = import.meta.env.VITE_MOCK_ENABLED === 'true' ? (TEST_PATIENTS as any) : [];
+  const fallbackPatients = import.meta.env.VITE_MOCK_ENABLED === 'true' ? (TEST_PATIENTS as SpacePatientCard[]) : [];
 
   React.useEffect(() => {
     let mounted = true;

@@ -126,9 +126,9 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             await Promise.all([
                 // Strip heavy image payload before sending. Images are device-local (IndexedDB).
                 api.users.update({
-                    ...(updatedUser as any),
-                    snaps: (updatedUser.snaps || []).map((s) => ({ ...(s as any), image: '' })),
-                }),
+                    ...updatedUser,
+                    snaps: (updatedUser.snaps || []).map(s => ({ ...s, image: '' })),
+                } as Parameters<typeof api.users.update>[0]),
                 // Metamorphosis stores a tiny thumb (CDN) for cross-device list; full stays local.
                 api.metamorphosis.checkIn(data.mood, snapId, capture.thumbDataUrl)
             ]);

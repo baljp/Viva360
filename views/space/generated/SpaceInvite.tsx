@@ -20,15 +20,15 @@ export default function SpaceInvite() {
         try {
             await runConfirmedAction({
                 action: () => api.spaces.createInvite({ role: roleMap[selectedRole], uses: 1 }),
-                validateResult: (data) => !!(data as any)?.code,
+                validateResult: (data) => !!(data as Record<string, unknown>)?.code,
                 notify,
                 failToast: {
                     title: 'Erro',
-                    message: (err) => (err as any)?.message || 'Falha ao gerar convite',
+                    message: (err) => (err as Error)?.message || 'Falha ao gerar convite',
                     type: 'error',
                 },
                 onSuccess: ({ result }) => {
-                    setInviteCode(String((result as any).code));
+                    setInviteCode(String((result as Record<string, unknown>).code));
                 },
             });
         } finally { setLoading(false); }
@@ -48,8 +48,8 @@ export default function SpaceInvite() {
         try {
             const rolePt = selectedRole === 'Guardian' ? 'Guardião' : selectedRole === 'Facilitator' ? 'Facilitador' : 'Mestre';
             await runConfirmedAction({
-                action: () => api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: inviteCode } as any),
-                validateResult: (invite) => !!(invite as any)?.url,
+                action: () => api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: inviteCode }),
+                validateResult: (invite) => !!(invite as Record<string, unknown>)?.url,
                 notify,
                 failToast: {
                     title: 'Erro',
@@ -57,7 +57,7 @@ export default function SpaceInvite() {
                     type: 'error',
                 },
                 onSuccess: ({ result }) => {
-                    const url = String((result as any).url);
+                    const url = String((result as Record<string, unknown>).url);
                     const text = `🌿 Convite Viva360\n\nVocê foi convidado para integrar o Santuário como *${rolePt}*.\n\nAcesse aqui: ${url}\n\n(Código de backup: *${inviteCode}*)`;
                     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
                 },
@@ -78,7 +78,7 @@ export default function SpaceInvite() {
                         { label: 'Master', pt: 'Mestre', icon: Crown }
                     ].map((role) => (
                         <button key={role.label}
-                            onClick={() => { setSelectedRole(role.label as any); setInviteCode(''); }}
+                            onClick={() => { setSelectedRole(role.label as 'Guardian' | 'Facilitator' | 'Master'); setInviteCode(''); }}
                             className={`p-4 rounded-2xl border transition-all flex flex-col items-center gap-2 ${selectedRole === role.label ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : 'bg-white border-nature-100'}`}>
                             <role.icon size={20} className={selectedRole === role.label ? 'text-indigo-600' : 'text-nature-300'} />
                             <span className={`text-[9px] font-bold uppercase ${selectedRole === role.label ? 'text-indigo-900' : 'text-nature-500'}`}>{role.pt}</span>

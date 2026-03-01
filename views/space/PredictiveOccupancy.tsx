@@ -1,7 +1,7 @@
 import React from 'react';
 import { ChevronLeft, TrendingUp, Clock, Calendar, Zap, AlertCircle } from 'lucide-react';
 
-export const PredictiveOccupancy: React.FC<{ flow: any }> = ({ flow }) => {
+export const PredictiveOccupancy: React.FC<{ flow: { go: (s: string) => void } }> = ({ flow }) => {
     const hours = ['08:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'];
     const days = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 

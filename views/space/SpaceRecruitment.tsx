@@ -5,13 +5,15 @@ import { PortalView, VacancyFormModal } from '../../components/Common';
 import { api } from '../../services/api';
 import { runConfirmedAction } from '../../src/utils/runConfirmedAction';
 
+import type { SantuarioFlowContextValue } from '../../src/flow/SantuarioFlowContext';
+
 interface SpaceRecruitmentProps {
     view: ViewState;
     setView: (v: ViewState) => void;
     user: User;
     vacancies: Vacancy[];
     refreshData: () => Promise<void>;
-    flow: any;
+    flow: Pick<SantuarioFlowContextValue, 'go' | 'notify'>;
 }
 
 export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setView, user, vacancies, refreshData, flow }) => {
@@ -54,10 +56,10 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                                 await runConfirmedAction({
                                     action: async () => {
                                         const codeRes = await api.spaces.createInvite({ role: 'GUARDIAN', uses: 1 });
-                                        const code = String((codeRes as any)?.code || '').trim();
+                                        const code = String((codeRes as Record<string, unknown>)?.code || '').trim();
                                         if (!code) throw new Error('Código inválido do servidor.');
-                                        const invite = await api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: code } as any);
-                                        const url = String((invite as any)?.url || '').trim();
+                                        const invite = await api.invites.create({ kind: 'space', targetRole: 'PROFESSIONAL', contextRef: code });
+                                        const url = String((invite as Record<string, unknown>)?.url || '').trim();
                                         if (!url) throw new Error('Link de convite inválido.');
                                         return { code, url };
                                     },
@@ -69,7 +71,7 @@ export const SpaceRecruitment: React.FC<SpaceRecruitmentProps> = ({ view, setVie
                                     },
                                     failToast: {
                                         title: 'Falha ao gerar convite',
-                                        message: (err) => (err as any)?.message || 'Não foi possível abrir o portal de convite agora.',
+                                        message: (err) => (err as Error)?.message || 'Não foi possível abrir o portal de convite agora.',
                                         type: 'error',
                                     },
                                     onSuccess: ({ result }) => {

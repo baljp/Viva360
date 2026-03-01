@@ -37,7 +37,7 @@ export default function SpaceSummon() {
                 },
                 failToast: {
                     title: 'Erro',
-                    message: (err) => (err as any)?.message || 'Não foi possível enviar a convocação.',
+                    message: (err) => (err as Error)?.message || 'Não foi possível enviar a convocação.',
                     type: 'error',
                 },
                 navigate: () => go('PROS_LIST'),

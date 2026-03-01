@@ -22,7 +22,7 @@ export const RitualsView: React.FC<{ user: User, updateUser: (u: User) => void, 
     const [nightRoutine, setNightRoutine] = useState<RoutineStep[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { showToast: setToast } = useAppToast();
-    const [activeInteraction, setActiveInteraction] = useState<{ title: string; message: string; icon: any } | null>(null);
+    const [activeInteraction, setActiveInteraction] = useState<{ title: string; message: string; icon: React.ReactNode } | null>(null);
 
     useEffect(() => {
         loadRoutines();
@@ -57,7 +57,7 @@ export const RitualsView: React.FC<{ user: User, updateUser: (u: User) => void, 
         setActiveInteraction({
             title: "Ritual Concluído",
             message: "Sua energia nutriu o jardim. +10 de Karma recebido.",
-            icon: Sparkles
+            icon: <Sparkles size={24} />
         });
     };
 
@@ -72,7 +72,7 @@ export const RitualsView: React.FC<{ user: User, updateUser: (u: User) => void, 
                     setActiveInteraction({
                         title: "Hábito Cristalizado",
                         message: `Sua essência brilha com a conclusão de: ${step.title}. +10 XP`,
-                        icon: Sparkles
+                        icon: <Sparkles size={24} />
                     });
                 }
                 return { ...step, completed: newState };
@@ -96,7 +96,7 @@ export const RitualsView: React.FC<{ user: User, updateUser: (u: User) => void, 
         return Math.round((completed / all.length) * 100);
     };
 
-    const renderRoutineSection = (title: string, icon: any, period: 'morning' | 'night', steps: RoutineStep[]) => {
+    const renderRoutineSection = (title: string, icon: React.ReactNode, period: 'morning' | 'night', steps: RoutineStep[]) => {
         const completedCount = steps.filter(s => s.completed).length;
         const totalCount = steps.length;
         const isAllDone = totalCount > 0 && completedCount === totalCount;

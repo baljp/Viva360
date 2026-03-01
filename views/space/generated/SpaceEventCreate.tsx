@@ -123,7 +123,7 @@ export default function SpaceEventCreate() {
                 },
                 failToast: {
                     title: 'Falha ao publicar',
-                    message: (e) => (e as any)?.message || 'Não foi possível criar o evento.',
+                    message: (e) => (e as Error)?.message || 'Não foi possível criar o evento.',
                     type: 'error',
                 },
                 onSuccess: () => {

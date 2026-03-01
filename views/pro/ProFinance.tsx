@@ -62,7 +62,7 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
     // Pending revenue: income transactions with status 'pending'
     const pendingRevenue = React.useMemo(() => {
         return transactions
-            .filter(tx => tx.type === 'income' && String((tx as any).status || '').toLowerCase() === 'pending')
+            .filter(tx => tx.type === 'income' && String((tx as unknown as Record<string, unknown>).status || '').toLowerCase() === 'pending')
             .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
     }, [transactions]);
 
