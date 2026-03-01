@@ -58,7 +58,7 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
           purpose: 'daily-checkin',
           timeoutMs: 7000,
           retries: 0,
-          body: JSON.stringify({ reward }),
+          body: JSON.stringify({ reward, mood: 'sereno', photoHash: `blessing_${Date.now()}` }),
         });
       } catch (error) {
         const reqError = error as RequestErrorLike;

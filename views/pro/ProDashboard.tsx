@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ViewState, Professional, User, Notification } from '../../types';
+import { ViewState, Professional, User, Notification, Appointment } from '../../types';
 import { Zap, History, Calendar, Flower, Briefcase, Wallet, ShoppingBag, Sparkles, Plus, Stethoscope, Layers, ChevronRight, Bell, MessageCircle, Video, Trophy, Target, Flame, Star, CheckCircle2, Award, Lock } from 'lucide-react';
 import { DynamicAvatar, PortalCard, Logo, NotificationDrawer } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
@@ -13,6 +13,8 @@ type DashboardAppointmentLike = {
     date?: string;
     time?: string;
     clientName?: string;
+    notes?: string;
+    clinical_notes?: string;
     [key: string]: unknown;
 };
 
@@ -190,7 +192,7 @@ export const ProDashboard: React.FC<{
                                     notify('Nenhuma sessão', 'Você não tem sessões confirmadas agora.', 'info');
                                     return;
                                 }
-                                selectAppointment(nextAppointment as any);
+                                selectAppointment(nextAppointment as unknown as Appointment);
                                 go('VIDEO_PREP');
                             }}
                             className="bg-white text-emerald-800 px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:shadow-2xl hover:-translate-y-0.5 active:scale-95 transition-all relative z-10"
@@ -219,10 +221,11 @@ export const ProDashboard: React.FC<{
                     <div className="grid grid-cols-3 gap-3">
                         {(() => {
                             const todayStr = new Date().toISOString().slice(0, 10);
-                            const todayApts = (state.data.appointments || []).filter((a: any) => String(a.date || '').slice(0, 10) === todayStr);
-                            const attended = todayApts.filter((a: any) => ['completed', 'confirmed'].includes(String(a.status || ''))).length;
+                            const allApts = (state.data.appointments || []) as unknown as DashboardAppointmentLike[];
+                            const todayApts = allApts.filter(a => String(a.date || '').slice(0, 10) === todayStr);
+                            const attended = todayApts.filter(a => ['completed', 'confirmed'].includes(String(a.status || ''))).length;
                             const totalToday = Math.max(todayApts.length, attended);
-                            const registered = todayApts.filter((a: any) => !!a.notes || !!a.clinical_notes).length;
+                            const registered = todayApts.filter(a => !!a.notes || !!a.clinical_notes).length;
                             return [
                                 { label: 'Atender', done: attended, total: Math.max(totalToday, 1), icon: Stethoscope, color: 'text-indigo-500', bg: 'bg-indigo-50' },
                                 { label: 'Registrar', done: registered, total: Math.max(totalToday, 1), icon: Flower, color: 'text-emerald-500', bg: 'bg-emerald-50' },
@@ -282,14 +285,16 @@ export const ProDashboard: React.FC<{
 
                 {/* TAB SELECTOR - More modern and integrated */}
                 <div className="flex p-1.5 bg-nature-100/50 rounded-2xl backdrop-blur-sm shadow-inner">
-                    {[
+                    {(
+                      [
                         { id: 'consultorio', label: 'Consultório', icon: Stethoscope },
                         { id: 'financeiro', label: 'Abundância', icon: Wallet },
                         { id: 'comunidade', label: 'Egrégora', icon: Zap }
-                    ].map((tab) => (
+                      ] as { id: 'consultorio' | 'financeiro' | 'comunidade'; label: string; icon: React.ElementType }[]
+                    ).map((tab) => (
                         <button
                             key={tab.id}
-                            onClick={() => setActiveTab(tab.id as any)}
+                            onClick={() => setActiveTab(tab.id)}
                             className={`flex-1 py-3 px-2 text-[9px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 ${activeTab === tab.id ? 'bg-white shadow-md text-nature-900 ring-1 ring-nature-100/50' : 'text-nature-400 hover:text-nature-600'}`}
                         >
                             <tab.icon size={14} /> {tab.label}

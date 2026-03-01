@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product } from '../../types';
+import { User, Professional, SpaceRoom, ViewState, Vacancy, Transaction, Product, Notification } from '../../types';
 import {
     Users, BarChart3, Sparkles, Activity, Briefcase, DoorOpen, Award, Calendar, TrendingUp, ShoppingBag, Wallet, Layers, Map, CheckCircle2, Zap, Globe, Shield, Heart, Search, Settings, Bell, MessageCircle, X, Info, Plus, FileText, ChevronRight, Trophy, Lock, Moon, Loader2
 } from 'lucide-react';
@@ -22,7 +22,7 @@ type QuickStatProps = {
 
 type DashboardTabProps = {
     go: DashboardGo;
-    state: any;
+    state: import('../../src/flow/SantuarioFlowContext').SantuarioFlowContextValue['state'];
 };
 
 type ManagementTabProps = DashboardTabProps & {
@@ -211,7 +211,7 @@ const OperationsTab: React.FC<DashboardTabProps> = ({ go, state }) => (
             </div>
             <div className="text-right">
                 <span className="text-2xl font-bold text-nature-900">
-                    {state.data.adminStats.totalPatients || 0}
+                    {state.adminStats.totalPatients || 0}
                 </span>
                 <p className="text-[9px] text-emerald-500 font-bold uppercase">Buscadores</p>
             </div>
@@ -427,14 +427,16 @@ export const SpaceDashboard: React.FC<{
     const [showRadianceModal, setShowRadianceModal] = useState(false);
 
 
-    const [notifications, setNotifications] = useState<Array<{ id: string; title: string; message: string; type: string; read: boolean }>>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     React.useEffect(() => {
-        api.notifications.list().then((data: any) => {
-            if (Array.isArray(data)) setNotifications(data.map((n: any) => ({
+        api.notifications.list().then((data: unknown) => {
+            if (Array.isArray(data)) setNotifications(data.map((n: Record<string, unknown>): Notification => ({
                 id: String(n.id || Math.random()),
-                title: n.title || n.type || 'Aviso',
-                message: n.message || n.body || n.content || '',
-                type: n.type || 'info',
+                userId: String(n.userId || n.user_id || ''),
+                title: String(n.title || n.type || 'Aviso'),
+                message: String(n.message || n.body || n.content || ''),
+                type: (['alert', 'message', 'ritual', 'finance'].includes(String(n.type)) ? n.type : 'alert') as Notification['type'],
+                timestamp: String(n.timestamp || n.created_at || new Date().toISOString()),
                 read: Boolean(n.read || n.is_read),
             })));
         }).catch(() => setNotifications([]));
@@ -476,7 +478,7 @@ export const SpaceDashboard: React.FC<{
             <NotificationDrawer
                 isOpen={showNotifications}
                 onClose={() => setShowNotifications(false)}
-                notifications={notifications as any}
+                notifications={notifications}
                 onMarkAsRead={handleMarkAsRead}
                 onMarkAllRead={handleMarkAllRead}
             />

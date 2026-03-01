@@ -290,11 +290,14 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
     useEffect(() => {
         // REALTIME: Radiance Pulse (10/10 Elevation)
         const unsubscribe = realtime.subscribe('radiance:update', (payload) => {
+            const delta = typeof payload === 'object' && payload !== null && 'delta' in payload
+                ? Number((payload as { delta?: unknown }).delta ?? 0)
+                : 0;
             dispatch({
                 type: 'SET_ADMIN_STATS',
                 payload: {
                     ...state.adminStats,
-                    radianceScore: Math.min(100, Math.max(0, (state.adminStats.radianceScore || 85) + payload.delta))
+                    radianceScore: Math.min(100, Math.max(0, (state.adminStats.radianceScore || 85) + delta))
                 }
             });
         });

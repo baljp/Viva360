@@ -2,16 +2,18 @@ import React, { useMemo } from 'react';
 import { TrendingUp, ArrowUpRight, ArrowDownRight, BarChart3, Users, Wallet, AlertTriangle, Clock, Calendar, CheckCircle2 } from 'lucide-react';
 import { ViewState, Transaction } from '../../types';
 import { PortalView } from '../../components/Common';
+import type { SantuarioFlowContextValue } from '../../src/flow/SantuarioFlowContext';
+import type { SantuarioState } from '../../src/flow/santuarioTypes';
 
 interface SpaceFinanceProps {
     view: ViewState;
     setView: (v: ViewState) => void;
     transactions: Transaction[];
-    flow: any;
+    flow: Pick<SantuarioFlowContextValue, 'go' | 'notify' | 'state'>;
 }
 
 export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, transactions, flow }) => {
-    const navigateTo = (screen: string) => flow.go(screen);
+    const navigateTo = (screen: SantuarioState) => flow.go(screen);
     const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') =>
         flow?.notify?.(title, message, type);
 
@@ -26,7 +28,7 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
         const totalIncome = income.reduce((s, t) => s + Number(t.amount || 0), 0);
         const totalExpenses = expenses.reduce((s, t) => s + Number(t.amount || 0), 0);
         const pending = transactions
-            .filter(t => String((t as any).status || '').toLowerCase() === 'pending')
+            .filter(t => String(t.status || '').toLowerCase() === 'pending')
             .reduce((s, t) => s + Number(t.amount || 0), 0);
 
         // Guardian repasses (60% share, platform keeps 40%)
@@ -43,7 +45,7 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
         const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
         const lastMonthYear = thisMonth === 0 ? thisYear - 1 : thisYear;
         const monthIncome = (m: number, y: number) => income
-            .filter(t => { const d = new Date((t as any).date || (t as any).created_at || ''); return d.getMonth() === m && d.getFullYear() === y; })
+            .filter(t => { const d = new Date(t.date || ''); return d.getMonth() === m && d.getFullYear() === y; })
             .reduce((s, t) => s + Number(t.amount || 0), 0);
         const cur = monthIncome(thisMonth, thisYear);
         const prev = monthIncome(lastMonth, lastMonthYear);
@@ -55,19 +57,19 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
 
     // Team occupancy from real team data (passed via flow state)
     const teamOccupancy = useMemo(() => {
-        const team = flow?.state?.data?.team || [];
-        return team.slice(0, 3).map((p: any) => ({
+        const team: Array<{ name?: string; specialty?: string | string[]; occupancyPct?: number; occupancy?: number; karma?: number }> = flow?.state?.data?.team || [];
+        return team.slice(0, 3).map(p => ({
             name: p.name || 'Guardião',
             role: Array.isArray(p.specialty) ? (p.specialty[0] || 'Terapia') : (p.specialty || 'Terapia'),
-            occ: Math.min(100, Math.max(0, Number(p.occupancyPct || p.occupancy || (p.karma > 800 ? 92 : 75)))),
+            occ: Math.min(100, Math.max(0, Number(p.occupancyPct || p.occupancy || ((p.karma ?? 0) > 800 ? 92 : 75)))),
         }));
     }, [flow?.state?.data?.team]);
 
     // Room occupancy from state
     const rooms = useMemo(() => {
-        const rs = flow?.state?.data?.rooms || [];
+        const rs: Array<{ name?: string; occupancyPct?: number; occupancy_pct?: number; status?: string }> = flow?.state?.data?.rooms || [];
         if (rs.length === 0) return [];
-        return rs.slice(0, 4).map((r: any) => ({
+        return rs.slice(0, 4).map(r => ({
             name: r.name || 'Altar',
             level: Number(r.occupancyPct || r.occupancy_pct || (r.status === 'occupied' ? 78 : 40)),
             color: r.status === 'occupied' ? 'bg-emerald-500' : r.status === 'maintenance' ? 'bg-stone-400' : 'bg-indigo-400',

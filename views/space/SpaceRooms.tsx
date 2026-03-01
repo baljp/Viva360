@@ -5,6 +5,39 @@ import { Plus, Edit3, Image as ImageIcon, ChevronRight, Calendar, Settings, Cloc
 import { SpaceRoom, RoomAllocationDTO } from '../../types';
 import { TEST_ROOMS } from '../../src/data/test';
 
+// Shape of TEST_ROOMS entries (dev-only fallback)
+interface TestRoom {
+  id: string;
+  name: string;
+  capacity: number;
+  current: number;
+  status: 'Livre' | 'Ocupado' | 'Manutenção';
+  dailyOccupancy: number;
+  nextUse?: string | null;
+  currentEvent?: string;
+  returnDate?: string;
+  image?: string;
+}
+
+// Extended view model — adds display-only fields on top of RoomAllocationDTO
+interface RoomViewDTO extends RoomAllocationDTO {
+  image?: string;
+  dailyOccupancy?: number;
+  nextUse?: string;
+  returnDate?: string;
+}
+
+// Shape of calendar events from state.data.events
+interface CalendarEventLike {
+  id?: string;
+  roomId?: string;
+  title?: string;
+  start?: string;
+  end?: string;
+  date?: string;
+  [key: string]: unknown;
+}
+
 export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData }) => {
     const { state, go, selectRoom, notify } = useSantuarioFlow();
 
@@ -14,17 +47,22 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
     }, [refreshData]);
 
     // Fallback visual apenas em ambiente dev (sufixo [Demo] indica dado não-real)
-    const fallbackRooms: RoomAllocationDTO[] = import.meta.env.VITE_MOCK_ENABLED === 'true'
-        ? (TEST_ROOMS as any[]).map(r => ({
+    const fallbackRooms: RoomViewDTO[] = import.meta.env.VITE_MOCK_ENABLED === 'true'
+        ? (TEST_ROOMS as TestRoom[]).map(r => ({
             roomId: String(r.id),
             roomName: String(r.name),
-            status: 'Livre',
-            capacity: Number(r.capacity || 1)
+            status: (r.status as RoomAllocationDTO['status']) ?? 'Livre',
+            capacity: Number(r.capacity || 1),
+            image: r.image,
+            dailyOccupancy: r.dailyOccupancy,
+            nextUse: r.nextUse ?? undefined,
+            returnDate: r.returnDate,
+            currentEvent: r.currentEvent,
         }))
         : [];
 
-    const rooms: RoomAllocationDTO[] = (Array.isArray(state.data.rooms) && state.data.rooms.length > 0)
-        ? state.data.rooms.map((r: SpaceRoom) => ({
+    const rooms: RoomViewDTO[] = (Array.isArray(state.data.rooms) && state.data.rooms.length > 0)
+        ? state.data.rooms.map((r: SpaceRoom): RoomViewDTO => ({
             roomId: r.id,
             roomName: r.name,
             capacity: r.capacity || 1,
@@ -41,19 +79,18 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
 
     // C5-FIX: Timeline derived from real events in context (populated by SpaceCalendar via api.spaces.getEvents)
     const todayKey = new Date().toISOString().slice(0, 10);
-    const rawEvents = Array.isArray((state as any).data?.events)
-        ? (state as any).data.events
-        : [];
+    const stateData = state.data as { events?: CalendarEventLike[] };
+    const rawEvents: CalendarEventLike[] = Array.isArray(stateData?.events) ? stateData.events : [];
     const timeline = rawEvents
-        .filter((e: any) => {
-            const d = e.start_time || e.startTime || e.date || '';
+        .filter((e: CalendarEventLike) => {
+            const d = (e.start_time as string | undefined) || (e.startTime as string | undefined) || String(e.date || '');
             return String(d).slice(0, 10) === todayKey;
         })
         .slice(0, 5)
-        .map((e: any) => ({
-            time: String(e.start_time || e.startTime || e.time || '—').slice(11, 16) || '—',
-            room: String(e.room_name || e.roomName || rooms.find((r) => r.roomId === e.roomId)?.roomName || 'Altar'),
-            event: String(e.title || e.name || e.service_name || 'Evento'),
+        .map((e: CalendarEventLike) => ({
+            time: String((e.start_time as string | undefined) || (e.startTime as string | undefined) || (e.time as string | undefined) || '—').slice(11, 16) || '—',
+            room: String((e.room_name as string | undefined) || (e.roomName as string | undefined) || rooms.find((r) => r.roomId === e.roomId)?.roomName || 'Altar'),
+            event: String(e.title || e.name || (e.service_name as string | undefined) || 'Evento'),
         }));
 
     const handleAction = (action: string) => {
@@ -97,7 +134,7 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
                         <div key={room.roomId} className="bg-white rounded-[2.5rem] border border-nature-100 shadow-sm overflow-hidden p-1">
                             <div className="flex gap-4 p-4 items-start">
                                 <div className="w-20 h-20 rounded-2xl bg-nature-100 overflow-hidden shrink-0">
-                                    <img src={(room as any).image} className="w-full h-full object-cover" alt={room.roomName || 'Altar'} />
+                                    <img src={room.image} className="w-full h-full object-cover" alt={room.roomName || 'Altar'} />
                                 </div>
                                 <div className="flex-1 min-w-0 pt-1">
                                     <div className="flex justify-between items-start">
@@ -118,14 +155,14 @@ export const SpaceRooms: React.FC<{ refreshData?: () => void }> = ({ refreshData
                                     <div className="grid grid-cols-2 gap-2 mt-4">
                                         <div className="p-2 bg-nature-50 rounded-xl">
                                             <p className="text-[9px] font-bold text-nature-400 uppercase">Ocupação Hoje</p>
-                                            <p className="text-xs font-bold text-nature-900">{(room as any).dailyOccupancy || 0}%</p>
+                                            <p className="text-xs font-bold text-nature-900">{room.dailyOccupancy || 0}%</p>
                                         </div>
                                         <div className="p-2 bg-nature-50 rounded-xl">
                                             <p className="text-[9px] font-bold text-nature-400 uppercase">
                                                 {room.status === 'Livre' ? 'Próximo Uso' : room.status === 'Ocupado' ? 'Evento Atual' : 'Retorno'}
                                             </p>
                                             <p className="text-xs font-bold text-nature-900 truncate">
-                                                {room.status === 'Livre' ? ((room as any).nextUse || '—') : room.status === 'Ocupado' ? (room.currentEvent || 'Em andamento') : ((room as any).returnDate || '—')}
+                                                {room.status === 'Livre' ? (room.nextUse || '—') : room.status === 'Ocupado' ? (room.currentEvent || 'Em andamento') : (room.returnDate || '—')}
                                             </p>
                                         </div>
                                     </div>

@@ -88,4 +88,7 @@ router.use('/gamification', authenticateUser, gamificationRoutes);
 import soulCardsRoutes from './soulCards.routes';
 router.use('/soul-cards', authenticateUser, soulCardsRoutes);
 
+import videoRoutes from './video.routes';
+router.use('/video', authenticateUser, videoRoutes);
+
 export default router;

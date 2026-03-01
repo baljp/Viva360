@@ -135,6 +135,7 @@ export const screenMap: Record<'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO', ScreenMapS
         TRIBE_INVITE: TribeInvite,
         TRIBE_INTERACTION: TribeInteraction,
         HEALING_CIRCLE: HealingCircleEntry,
+        VIDEO_SESSION: VideoSessionView,
         CHAT_LIST: ChatListScreen,
         CHAT_ROOM: ChatRoomScreen,
         CHAT_SETTINGS: ChatSettingsScreen,

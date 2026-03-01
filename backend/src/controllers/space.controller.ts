@@ -1,6 +1,5 @@
 
 import { Request, Response } from 'express';
-import { Prisma } from '@prisma/client';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
@@ -26,27 +25,36 @@ type AuthenticatedRequest = Request & {
   };
 };
 
-type RevenueRow = { total: Prisma.Decimal | number | string | null };
+// ✅ P1 Fix: Replace Prisma.Decimal (unavailable without prisma generate) with plain number | string | null
+type DecimalLike = number | string | null;
+
+type RevenueRow = { total: DecimalLike };
 type AvgDurationRow = { avg_dur: number | null };
-type TopGuardianRow = { name: string | null; sessions: number | string | null; revenue: Prisma.Decimal | number | string | null };
-type ReviewRatingRow = { rating: Prisma.Decimal | number | string | null };
+type TopGuardianRow = { name: string | null; sessions: number | string | null; revenue: DecimalLike };
+type ReviewRatingRow = { rating: DecimalLike };
 type RoomOccupancyRow = { name: string | null; capacity: number | null; current_occupant: string | null };
-type ContractWithGuardian = Prisma.ContractGetPayload<{
-  include: {
-    guardian: {
-      select: {
-        id: true;
-        name: true;
-        avatar: true;
-        karma: true;
-        specialty: true;
-        rating: true;
-        review_count: true;
-        location: true;
-      };
-    };
-  };
-}>;
+
+// ✅ P1 Fix: Replace Prisma.ContractGetPayload<...> with an explicit interface
+interface ContractGuardian {
+  id: string;
+  name: string | null;
+  avatar: string | null;
+  karma: number | null;
+  specialty: string[] | null;
+  rating: DecimalLike;
+  review_count: number | null;
+  location: string | null;
+}
+interface ContractWithGuardian {
+  id: string;
+  space_id: string;
+  guardian_id: string;
+  status: string;
+  monthly_fee: DecimalLike;
+  revenue_share: DecimalLike;
+  guardian: ContractGuardian;
+  [key: string]: unknown;
+}
 
 const getUserId = (req: Request): string => {
   return (req as AuthenticatedRequest).user?.id || '';
@@ -193,8 +201,8 @@ export const getContract = asyncHandler(async (req: Request, res: Response) => {
     start_date: Date;
     end_date: Date;
     status: string;
-    monthly_fee: Prisma.Decimal | number | string | null;
-    revenue_share: Prisma.Decimal | number | string | null;
+    monthly_fee: DecimalLike;
+    revenue_share: DecimalLike;
     rooms_allowed: string[] | null;
     hours_per_week: number | null;
     benefits: string[] | null;

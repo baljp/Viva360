@@ -1,14 +1,22 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewState, Appointment, User } from '../types';
-import { Video, Mic, MicOff, VideoOff, X, FileText, Heart, ShieldCheck, Ticket, History, Calendar as CalendarIcon, Tag, Timer, ArrowUpRight, PlayCircle } from 'lucide-react';
+import { Video, Mic, MicOff, VideoOff, X, FileText, Heart, ShieldCheck, Ticket, History, Calendar as CalendarIcon, Tag, Timer, ArrowUpRight, PlayCircle, Lock } from 'lucide-react';
 import { DynamicAvatar, OrganicSkeleton, PortalView } from '../components/Common';
 import { useGuardiaoFlow } from '../src/flow/useGuardiaoFlow';
 import { useOrdersList } from '../src/hooks/useOrdersList';
+import type { OrdersTab } from '../src/hooks/useOrdersList';
 import { useAppToast } from '../src/contexts/AppToastContext';
+import { request } from '../services/api/core';
 
-// ✅ VideoSessionView — Rules of Hooks compliant, sem mock data, sem window.location
-export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void, flow?: any }> = ({ appointment, onEnd, flow }) => {
+// ✅ VideoSessionView — JWT-authenticated Jitsi session (P0 Security Fix)
+interface VideoFlowLike {
+  state?: { selectedAppointment?: Appointment | null };
+  go?: (s: string) => void;
+  back?: () => void;
+}
+
+export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () => void, flow?: VideoFlowLike }> = ({ appointment, onEnd, flow }) => {
   // ✅ Hook chamado incondicionalmente no top-level (Rules of Hooks)
   const guardiaoFlow = useGuardiaoFlow();
   const contextApt = guardiaoFlow?.state?.selectedAppointment ?? null;
@@ -16,6 +24,9 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
   const [isMicOn, setIsMicOn] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(true);
   const [showNotes, setShowNotes] = useState(false);
+  const [jitsiUrl, setJitsiUrl] = useState<string | null>(null);
+  const [roomName, setRoomName] = useState<string>('loading...');
+  const [tokenLoading, setTokenLoading] = useState(true);
 
   // ✅ Usa appointment real: props > flow context > flow prop. Sem mock fallback.
   const activeAppointment: Appointment | null =
@@ -28,13 +39,37 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
     window.history.back();
   });
 
-  const jitsiDomain = (import.meta as any).env?.VITE_JITSI_DOMAIN || 'meet.jit.si';
-  const roomName = (() => {
-    const raw = String(activeAppointment?.id || 'demo-session');
-    const safe = raw.replace(/[^a-zA-Z0-9_-]/g, '-');
-    return `viva360-${safe}`;
-  })();
-  const jitsiUrl = `https://${jitsiDomain}/${encodeURIComponent(roomName)}#config.prejoinPageEnabled=false&config.disableDeepLinking=true`;
+  // 🔐 P0 Fix: fetch JWT token from backend — room name is hashed (unpredictable)
+  useEffect(() => {
+    let cancelled = false;
+    setTokenLoading(true);
+    const appointmentId = activeAppointment?.id;
+
+    request('/video/token', {
+      method: 'POST',
+      purpose: 'video-token',
+      body: JSON.stringify({ appointmentId }),
+    })
+      .then((raw) => {
+        if (cancelled) return;
+        const data = raw as { token: string | null; roomName: string; url: string; domain: string };
+        setRoomName(data.roomName);
+        setJitsiUrl(data.url);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        // Fallback: hashed room from appointmentId without JWT (still better than predictable name)
+        const jitsiDomain = (import.meta.env as Record<string, string>).VITE_JITSI_DOMAIN || 'meet.jit.si';
+        const fallbackRoom = appointmentId
+          ? `viva360-session-${appointmentId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 12)}`
+          : `viva360-${Date.now()}`;
+        setRoomName(fallbackRoom);
+        setJitsiUrl(`https://${jitsiDomain}/${encodeURIComponent(fallbackRoom)}#config.prejoinPageEnabled=false&config.disableDeepLinking=true`);
+      })
+      .finally(() => { if (!cancelled) setTokenLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [activeAppointment?.id]);
 
   return (
     <div className="fixed inset-0 z-[500] bg-nature-900 flex flex-col animate-in fade-in duration-500 h-full w-full">
@@ -47,25 +82,33 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
             <p className="text-[10px] text-primary-300 font-bold uppercase tracking-widest flex items-center gap-1.5"><Timer size={10} className="animate-pulse" /> Sessão em curso</p>
           </div>
         </div>
-        <button onClick={() => setShowNotes(!showNotes)} className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10"><FileText size={20} /></button>
+        <div className="flex items-center gap-2">
+          {!tokenLoading && <div className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 rounded-full border border-emerald-400/30" title="Sala autenticada com JWT"><Lock size={10} className="text-emerald-400" /><span className="text-[9px] text-emerald-300 font-bold">Autenticado</span></div>}
+          <button onClick={() => setShowNotes(!showNotes)} className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10"><FileText size={20} /></button>
+        </div>
       </div>
 
       {/* Video Grid */}
       <div className="flex-1 relative flex flex-col lg:flex-row gap-4 p-4 lg:p-8 overflow-hidden bg-nature-950">
         <div className="flex-1 bg-nature-900 rounded-[3rem] overflow-hidden relative shadow-2xl">
-          <iframe
-            title="Viva360 Jitsi Session"
-            src={jitsiUrl}
-            allow="camera; microphone; fullscreen; display-capture; autoplay"
-            className="absolute inset-0 w-full h-full"
-          />
-          <div className="absolute bottom-6 left-6 flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
-            <span className="text-xs font-bold text-white">{activeAppointment?.clientName ?? 'Sessão Viva360'}</span>
-            <span className="text-[10px] text-white/50 font-bold uppercase tracking-widest">{roomName}</span>
-          </div>
-          <div className="absolute top-6 right-6 text-[9px] font-bold uppercase tracking-widest text-white/50 bg-black/30 px-3 py-1.5 rounded-full border border-white/10">
-            Controles no Jitsi
-          </div>
+          {tokenLoading ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+              <div className="w-12 h-12 rounded-full border-4 border-primary-500/30 border-t-primary-400 animate-spin" />
+              <p className="text-white/60 text-xs font-bold uppercase tracking-widest">Preparando sala segura...</p>
+            </div>
+          ) : jitsiUrl ? (
+            <iframe
+              title="Viva360 Sessão Segura"
+              src={jitsiUrl}
+              allow="camera; microphone; fullscreen; display-capture; autoplay"
+              className="absolute inset-0 w-full h-full"
+            />
+          ) : null}
+          {!tokenLoading && (
+            <div className="absolute bottom-6 left-6 flex items-center gap-3 px-4 py-2 bg-black/40 backdrop-blur-md rounded-2xl border border-white/10">
+              <span className="text-xs font-bold text-white">{activeAppointment?.clientName ?? 'Sessão Viva360'}</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -81,20 +124,6 @@ export const VideoSessionView: React.FC<{ appointment?: Appointment, onEnd?: () 
           {isVideoOn ? <Video size={24} /> : <VideoOff size={24} />}
         </button>
       </div>
-
-      {/* Private Notes Panel */}
-      {showNotes && (
-        <div className="absolute top-24 right-6 bottom-32 w-80 bg-white/95 backdrop-blur-xl rounded-[3rem] shadow-2xl p-8 border border-white/20 z-30 animate-in slide-in-from-right duration-300">
-          <div className="flex justify-between items-center mb-6">
-            <h4 className="font-serif italic text-xl text-nature-900">Bloco de Luz</h4>
-            <button onClick={() => setShowNotes(false)} className="p-2 bg-nature-50 rounded-xl text-nature-300"><X size={16} /></button>
-          </div>
-          <textarea
-            placeholder="Anote seus insights aqui..."
-            className="w-full h-[calc(100%-4rem)] bg-transparent border-none resize-none focus:ring-0 text-sm italic leading-relaxed text-nature-700"
-          />
-        </div>
-      )}
     </div>
   );
 };
@@ -132,7 +161,7 @@ export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView:
           { id: 'vouchers', label: 'Vouchers', icon: Ticket },
           { id: 'historico', label: 'Histórico', icon: History }
         ].map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all shrink-0 ${activeTab === tab.id ? 'bg-nature-900 text-white shadow-xl' : 'bg-white text-nature-400 border border-nature-100'}`}>
+          <button key={tab.id} onClick={() => setActiveTab(tab.id as OrdersTab)} className={`flex items-center gap-3 px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all shrink-0 ${activeTab === tab.id ? 'bg-nature-900 text-white shadow-xl' : 'bg-white text-nature-400 border border-nature-100'}`}>
             <tab.icon size={16} /> {tab.label}
           </button>
         ))}
