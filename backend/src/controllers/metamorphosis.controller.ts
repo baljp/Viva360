@@ -101,7 +101,17 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     // ASYNC
     logsQueue.add('emotional_log', entry).catch((err: unknown) => logger.warn('queue.logs_add_failed', err));
 
-    return res.json({ success: true, entry });
+    // 4. Fetch updated profile for the frontend
+    const updatedProfile = await prisma.profile.findUnique({
+        where: { id: userId }
+    });
+
+    return res.json({
+        ok: true,
+        success: true,
+        entry,
+        user: updatedProfile
+    });
 });
 
 export const getEvolution = asyncHandler(async (req: Request, res: Response) => {

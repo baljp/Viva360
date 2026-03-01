@@ -74,13 +74,8 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
                      <div className="w-10 h-10 bg-indigo-200 rounded-xl flex items-center justify-center shrink-0"><Plus size={18} className="text-indigo-700" /></div>
                      <div className="min-w-0">
                         <h5 className="font-bold text-indigo-900 text-xs truncate">Expandir Tribo</h5>
-                        <p className="text-[10px] text-indigo-400 font-bold uppercase mt-0.5 truncate">Convidar nova alma • 3 aceitos</p>
+                        <p className="text-[10px] text-indigo-400 font-bold uppercase mt-0.5 truncate">Convidar nova alma para o Viva360</p>
                      </div>
-                  </div>
-                  <div className="flex -space-x-2">
-                     <div className="w-8 h-8 rounded-full bg-indigo-200 border-2 border-white flex items-center justify-center text-[10px]">👩‍🎨</div>
-                     <div className="w-8 h-8 rounded-full bg-emerald-200 border-2 border-white flex items-center justify-center text-[10px]">🧑‍💻</div>
-                     <div className="w-8 h-8 rounded-full bg-amber-200 border-2 border-white flex items-center justify-center text-[10px]">🦸‍♀️</div>
                   </div>
                </div>
 
@@ -229,6 +224,6 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
                </div>
             </BottomSheet>
          </div>
-      </PortalView>
+      </PortalView >
    );
 };

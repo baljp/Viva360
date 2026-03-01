@@ -62,7 +62,7 @@ export const getClientSummaryInternal = async (req: Request, res: Response) => {
     const transactionsList = Array.isArray(transactions) ? transactions : [];
     const totalPaid = transactionsList
       .filter(t => t.type === 'expense' && t.status === 'paid')
-      .reduce((acc, t) => acc + t.amount, 0);
+      .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
     return res.json({
       ...summary,

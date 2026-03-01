@@ -40,14 +40,14 @@ export class AuthService {
   static async register(email: string, password: string, name: string, role: string = 'CLIENT') {
     logger.debug('auth.register_authorization_check', { email });
     const normalizedEmail = email.trim().toLowerCase();
-    
+
     let authorization;
     try {
-        authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
-        logger.debug('auth.register_authorization_status', { email: normalizedEmail, authorization });
+      authorization = await AuthService.getAuthorizationStatus(normalizedEmail);
+      logger.debug('auth.register_authorization_status', { email: normalizedEmail, authorization });
     } catch (err: unknown) {
-        logger.error('auth.register_authorization_failed', err);
-        throw new AppError(`Erro interno ao verificar autorização: ${err instanceof Error ? err.message : String(err)}`, 500);
+      logger.error('auth.register_authorization_failed', err);
+      throw new AppError(`Erro interno ao verificar autorização: ${err instanceof Error ? err.message : String(err)}`, 500);
     }
 
     if (!authorization.canRegister) {
@@ -94,8 +94,8 @@ export class AuthService {
         },
       },
     }).catch(err => {
-        logger.error('auth.register_user_lookup_failed', err);
-        throw new AppError(`Erro de banco de dados (User Check): ${err.message}`, 500);
+      logger.error('auth.register_user_lookup_failed', err);
+      throw new AppError(`Erro de banco de dados (User Check): ${err.message}`, 500);
     });
 
     if (existing?.profile) {
@@ -112,7 +112,7 @@ export class AuthService {
       if (existing.encrypted_password) {
         const validPassword = await bcrypt.compare(password, existing.encrypted_password);
         if (!validPassword) {
-           throw new AppError('Este e-mail já está cadastrado. Entre com ele ou use outro.', 409, 'EMAIL_ALREADY_EXISTS');
+          throw new AppError('Este e-mail já está cadastrado. Entre com ele ou use outro.', 409, 'EMAIL_ALREADY_EXISTS');
         }
       }
 
@@ -163,7 +163,7 @@ export class AuthService {
         logger.error('auth.register_supabase_update_failed', updateError);
         throw new AppError(`Erro ao atualizar credenciais: ${updateError.message}`, 500, 'AUTH_UPDATE_FAILED');
       }
-      
+
       userId = existing.id;
     } else {
       logger.info('auth.register_supabase_create_user');
@@ -177,7 +177,7 @@ export class AuthService {
       if (authError) {
         logger.error('auth.register_supabase_create_failed', authError);
         if (authError.message.includes('already registered')) {
-            throw new AppError('Este e-mail já está em uso.', 409, 'EMAIL_ALREADY_EXISTS');
+          throw new AppError('Este e-mail já está em uso.', 409, 'EMAIL_ALREADY_EXISTS');
         }
         throw new AppError(`Erro no cadastro (Supabase): ${authError.message}`, 500, 'AUTH_PROVIDER_ERROR');
       }
@@ -193,49 +193,49 @@ export class AuthService {
 
     logger.info('auth.register_profile_create');
     try {
-        const profile = await prisma.profile.create({
+      const profile = await prisma.profile.create({
         data: {
-            id: userId,
-            email: normalizedEmail,
-            name,
-            role: finalRole,
-            active_role: finalRole,
-            avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userId}`,
-            personal_balance: 1000,
-            multiplier: 1,
+          id: userId,
+          email: normalizedEmail,
+          name,
+          role: finalRole,
+          active_role: finalRole,
+          avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${userId}`,
+          personal_balance: 1000,
+          multiplier: 1,
         },
-        });
-        logger.info('auth.register_profile_created');
+      });
+      logger.info('auth.register_profile_created');
 
-        await prisma.profileRole.upsert({
+      await prisma.profileRole.upsert({
         where: {
-            profile_id_role: {
+          profile_id_role: {
             profile_id: userId,
             role: finalRole,
-            },
+          },
         },
         create: {
-            profile_id: userId,
-            role: finalRole,
+          profile_id: userId,
+          role: finalRole,
         },
         update: {},
-        });
-        
-        await AuthService.markAllowlistAsUsed(normalizedEmail, userId);
+      });
 
-        logger.debug('auth.register_generate_session');
-        return AuthService.generateSession({
+      await AuthService.markAllowlistAsUsed(normalizedEmail, userId);
+
+      logger.debug('auth.register_generate_session');
+      return AuthService.generateSession({
         id: userId,
         email: normalizedEmail,
         profile: {
-            ...profile,
-            profile_roles: [{ role: finalRole }],
+          ...profile,
+          profile_roles: [{ role: finalRole }],
         },
-        });
+      });
     } catch (dbError: unknown) {
-        logger.error('auth.register_profile_create_failed', dbError);
-        // Clean up user from Supabase if profile creation fails? maybe later.
-        throw new AppError(`Erro ao criar perfil no banco de dados: ${(dbError as { message?: string })?.message ?? String(dbError)}`, 500, 'DB_ERROR');
+      logger.error('auth.register_profile_create_failed', dbError);
+      // Clean up user from Supabase if profile creation fails? maybe later.
+      throw new AppError(`Erro ao criar perfil no banco de dados: ${(dbError as { message?: string })?.message ?? String(dbError)}`, 500, 'DB_ERROR');
     }
   }
 
@@ -254,8 +254,8 @@ export class AuthService {
         },
       },
     }).catch(err => {
-        logger.error('auth.login_user_lookup_failed', err);
-        throw new AppError(`Erro de conexão com banco de dados: ${String((err as { message?: string })?.message ?? err)}`, 500);
+      logger.error('auth.login_user_lookup_failed', err);
+      throw new AppError(`Erro de conexão com banco de dados: ${String((err as { message?: string })?.message ?? err)}`, 500);
     });
 
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
@@ -274,15 +274,15 @@ export class AuthService {
       if (userByEmail?.encrypted_password) {
         const isValidManual = await bcrypt.compare(password, userByEmail.encrypted_password);
         if (isValidManual) {
-           logger.warn('auth.login_manual_fallback_success', { email: normalizedEmail });
+          logger.warn('auth.login_manual_fallback_success', { email: normalizedEmail });
         } else {
-           throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
+          throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
         }
       } else {
         throw new AppError('Credenciais inválidas.', 401, 'INVALID_CREDENTIALS');
       }
     }
-    
+
     logger.debug('auth.login_verified');
 
     // Prefer the DB snapshot we already fetched, but if it's missing try loading by the
@@ -318,34 +318,34 @@ export class AuthService {
       const fallbackName = String(metadata.full_name || metadata.name || normalizedEmail.split('@')[0] || 'Viajante');
 
       try {
-          const profile = await prisma.profile.create({
-            data: {
-              id: user.id,
-              email: normalizedEmail,
-              name: fallbackName,
-              role: finalRole,
-              active_role: finalRole,
-              avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`,
-              personal_balance: 1000,
-              multiplier: 1,
-            },
-          });
+        const profile = await prisma.profile.create({
+          data: {
+            id: user.id,
+            email: normalizedEmail,
+            name: fallbackName,
+            role: finalRole,
+            active_role: finalRole,
+            avatar: `https://api.dicebear.com/7.x/notionists/svg?seed=${user.id}`,
+            personal_balance: 1000,
+            multiplier: 1,
+          },
+        });
 
-          await prisma.profileRole.upsert({
-            where: { profile_id_role: { profile_id: user.id, role: finalRole } },
-            create: { profile_id: user.id, role: finalRole },
-            update: {},
-          });
+        await prisma.profileRole.upsert({
+          where: { profile_id_role: { profile_id: user.id, role: finalRole } },
+          create: { profile_id: user.id, role: finalRole },
+          update: {},
+        });
 
-          await AuthService.markAllowlistAsUsed(normalizedEmail, user.id);
+        await AuthService.markAllowlistAsUsed(normalizedEmail, user.id);
 
-          return AuthService.generateSession({
-            ...user,
-            profile: { ...profile, profile_roles: [{ role: finalRole }] },
-          });
+        return AuthService.generateSession({
+          ...user,
+          profile: { ...profile, profile_roles: [{ role: finalRole }] },
+        });
       } catch (e: unknown) {
-          logger.error('auth.login_autocreate_profile_failed', e);
-           throw new AppError(`Erro ao criar perfil automático: ${(e as { message?: string })?.message ?? String(e)}`, 500);
+        logger.error('auth.login_autocreate_profile_failed', e);
+        throw new AppError(`Erro ao criar perfil automático: ${(e as { message?: string })?.message ?? String(e)}`, 500);
       }
     }
 
@@ -445,10 +445,29 @@ export class AuthService {
   static async selectActiveRole(userId: string, requestedRole: string) {
     logger.info('auth.select_active_role', { requestedRole });
     const current = await AuthService.listRolesForUser(userId);
-    return selectActiveRoleInternal(userId, requestedRole, current.roles).catch((err) => {
+
+    // 1. Perform the DB updates
+    await selectActiveRoleInternal(userId, requestedRole, current.roles).catch((err) => {
       logger.error('auth.select_active_role_update_failed', err);
       throw err;
     });
+
+    // 2. Fetch the updated user with profile to generate a fresh token
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: {
+          include: { profile_roles: true },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new AppError('Usuário não encontrado após troca de perfil.', 404, 'USER_NOT_FOUND');
+    }
+
+    // 3. Return a full session (token + user details)
+    return AuthService.generateSession(user);
   }
 
   static async addRole(userId: string, requestedRole: string) {

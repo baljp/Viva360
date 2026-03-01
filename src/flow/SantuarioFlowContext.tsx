@@ -58,12 +58,25 @@ const createInitialState = (): SantuarioContextState => ({
     isLoading: false,
     error: null,
     notification: null,
+    ritualCompletion: null,
     data: {
         rooms: [],
         team: [],
         vacancies: [],
         transactions: [],
         myProducts: []
+    },
+    selectedProId: null,
+    selectedRoomId: null,
+    selectedPatientId: null,
+    selectedEventId: null,
+    selectedChatRoom: null,
+    adminStats: {
+        activePros: 0,
+        totalPatients: 0,
+        occupancyRate: 0,
+        monthlyRevenue: 0,
+        radianceScore: 0,
     },
 });
 

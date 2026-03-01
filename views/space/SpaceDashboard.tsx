@@ -118,7 +118,7 @@ const QuickStat: React.FC<QuickStatProps> = ({ label, value, icon: Icon, color }
 
 // --- TABS CONTENT ---
 
-const OperationsTab: React.FC<DashboardTabProps> = ({ go }) => (
+const OperationsTab: React.FC<DashboardTabProps> = ({ go, state }) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         {/* TEAM CHALLENGE - Gamificação do Santuário */}
         <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2.5rem] p-6 text-white shadow-xl relative overflow-hidden">
@@ -220,7 +220,7 @@ const OperationsTab: React.FC<DashboardTabProps> = ({ go }) => (
     </div>
 );
 
-const ManagementTab: React.FC<ManagementTabProps> = ({ go, revenue, teamSize }) => {
+const ManagementTab: React.FC<ManagementTabProps> = ({ go, state, revenue, teamSize }) => {
     const [exporting, setExporting] = useState(false);
     const animatedRevenue = useCountUp(Number(revenue) || 0, 1000, 2);
     const animatedTeam = useCountUp(Number(teamSize) || 0, 700);
@@ -346,7 +346,7 @@ const ManagementTab: React.FC<ManagementTabProps> = ({ go, revenue, teamSize }) 
     );
 };
 
-const GrowthTab: React.FC<DashboardTabProps> = ({ go }) => (
+const GrowthTab: React.FC<DashboardTabProps> = ({ go, state }) => (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div onClick={() => go('VAGAS_LIST')} className="bg-indigo-900 p-8 rounded-[3.5rem] shadow-xl flex items-center gap-6 cursor-pointer hover:bg-black transition-all group relative overflow-hidden">
             <div className="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-10 translate-x-10"></div>
@@ -534,8 +534,8 @@ export const SpaceDashboard: React.FC<{
                 {/* TAB CONTENT */}
                 <div className="min-h-[400px]">
                     {activeTab === 'ops' && <OperationsTab go={go} state={state} />}
-                    {activeTab === 'admin' && <ManagementTab go={go} revenue={revenue} teamSize={team.length} />}
-                    {activeTab === 'growth' && <GrowthTab go={go} />}
+                    {activeTab === 'admin' && <ManagementTab go={go} state={state} revenue={revenue} teamSize={team.length} />}
+                    {activeTab === 'growth' && <GrowthTab go={go} state={state} />}
                 </div>
             </div>
         </div>

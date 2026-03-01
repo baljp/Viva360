@@ -173,22 +173,9 @@ export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView:
             )}
 
             {activeTab === 'vouchers' && (
-              <div className="space-y-6">
-                <div className="bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 p-8 rounded-[3.5rem] text-white shadow-2xl relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -translate-y-12 translate-x-12"></div>
-                  <Tag size={120} className="absolute -left-10 -bottom-10 opacity-10 rotate-12" />
-                  <div className="relative z-10 flex justify-between items-start mb-10">
-                    <div className="space-y-2">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-amber-100">CÓDIGO: VIVA2024</p>
-                      <h4 className="text-4xl font-serif italic leading-none">R$ 50 OFF</h4>
-                      <p className="text-xs font-bold uppercase tracking-widest opacity-80 mt-2">Em Rituais de Reiki</p>
-                    </div>
-                    <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20"><Ticket size={32} /></div>
-                  </div>
-                  <button onClick={() => handleCopyVoucher('VIVA2024')} className="w-full py-4 bg-white text-amber-600 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-xl">
-                    {copiedVoucher === 'VIVA2024' ? 'Chave Copiada' : 'Copiar Chave'}
-                  </button>
-                </div>
+              <div className="py-20 text-center space-y-4 opacity-30">
+                <Ticket size={60} className="mx-auto" />
+                <p className="italic text-sm">O cofre está vazio... <br />Nenhum voucher ativo no momento.</p>
               </div>
             )}
 

@@ -36,18 +36,18 @@ export default function KarmaWallet({ user }: { user: User }) {
     const unlockedCount = getUnlockedCount(achievements);
 
     return (
-        <PortalView 
-            title="Karma & Energia" 
-            subtitle="SUA CARTEIRA" 
+        <PortalView
+            title="Karma & Energia"
+            subtitle="SUA CARTEIRA"
             onBack={back}
             heroImage="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=800"
         >
             <div className="px-4 pb-24 space-y-6">
-                
+
                 {/* Balance Card */}
                 <div className="bg-nature-900 text-white p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden text-center">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500 rounded-full blur-[80px] -mr-32 -mt-32 opacity-20"></div>
-                    
+
                     <div className="relative z-10">
                         <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest border border-white/10 mb-4">
                             <Sparkles size={12} className="text-amber-400" />
@@ -75,7 +75,7 @@ export default function KarmaWallet({ user }: { user: User }) {
 
                         {/* Achievements Summary */}
                         <div className="mt-6 flex items-center justify-center gap-3">
-                            <Award size={14} className="text-amber-400"/>
+                            <Award size={14} className="text-amber-400" />
                             <span className="text-[10px] font-bold text-amber-200/80 uppercase tracking-widest">{unlockedCount}/{achievements.length} conquistas</span>
                             <button onClick={() => go('EVOLUTION_ACHIEVEMENTS')} className="text-[9px] font-bold text-amber-400 underline uppercase tracking-widest">Ver todas</button>
                         </div>
@@ -89,7 +89,7 @@ export default function KarmaWallet({ user }: { user: User }) {
                         { id: 'earn', label: 'Ganhar', icon: TrendingUp },
                         { id: 'rewards', label: 'Trocar', icon: Gift }
                     ].map(tab => (
-                        <button 
+                        <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex flex-col items-center gap-1 ${activeTab === tab.id ? 'bg-nature-50 text-nature-900 ring-1 ring-nature-200' : 'text-nature-400 hover:bg-nature-50'}`}
@@ -118,7 +118,7 @@ export default function KarmaWallet({ user }: { user: User }) {
                                 <div key={item.id} className="bg-white p-4 rounded-[2rem] border border-nature-100 flex items-center justify-between shadow-sm">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${item.type === 'earn' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
-                                            {item.type === 'earn' ? <TrendingUp size={18}/> : <ShoppingBag size={18}/>}
+                                            {item.type === 'earn' ? <TrendingUp size={18} /> : <ShoppingBag size={18} />}
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-sm text-nature-900">{item.action}</h4>
@@ -137,46 +137,46 @@ export default function KarmaWallet({ user }: { user: User }) {
                         <div className="space-y-3">
                             <div onClick={() => go('CLIENT_QUESTS')} className="bg-gradient-to-r from-amber-500 to-orange-500 p-5 rounded-[2rem] text-white shadow-lg flex items-center justify-between group active:scale-95 transition-all">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center"><Star size={24}/></div>
+                                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center"><Star size={24} /></div>
                                     <div>
                                         <h4 className="font-bold text-sm">Missões do Dia</h4>
                                         <p className="text-[10px] uppercase font-bold opacity-80">Até +50 Karma/dia</p>
                                     </div>
                                 </div>
-                                <ArrowRight size={20} className="opacity-70"/>
+                                <ArrowRight size={20} className="opacity-70" />
                             </div>
 
                             <div onClick={() => go('METAMORPHOSIS_CHECKIN')} className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500"><Zap size={24}/></div>
+                                    <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-500"><Zap size={24} /></div>
                                     <div>
                                         <h4 className="font-bold text-sm text-nature-900">Check-in Diário</h4>
                                         <p className="text-[10px] text-indigo-500 uppercase font-bold">+5 Karma</p>
                                     </div>
                                 </div>
-                                <ArrowRight size={20} className="text-nature-300"/>
+                                <ArrowRight size={20} className="text-nature-300" />
                             </div>
 
                             <div onClick={() => go('TRIBE_INVITE')} className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500"><Users size={24}/></div>
+                                    <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-500"><Users size={24} /></div>
                                     <div>
                                         <h4 className="font-bold text-sm text-nature-900">Convidar Amigos</h4>
                                         <p className="text-[10px] text-emerald-500 uppercase font-bold">+50 Karma por convite</p>
                                     </div>
                                 </div>
-                                <ArrowRight size={20} className="text-nature-300"/>
+                                <ArrowRight size={20} className="text-nature-300" />
                             </div>
 
                             <div onClick={() => go('TRIBE_DASH')} className="bg-white p-5 rounded-[2rem] border border-nature-100 shadow-sm flex items-center justify-between group active:scale-95 transition-all">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500"><Gift size={24}/></div>
+                                    <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-500"><Gift size={24} /></div>
                                     <div>
                                         <h4 className="font-bold text-sm text-nature-900">Regar Plantas da Tribo</h4>
                                         <p className="text-[10px] text-rose-500 uppercase font-bold">+25 Karma por rega</p>
                                     </div>
                                 </div>
-                                <ArrowRight size={20} className="text-nature-300"/>
+                                <ArrowRight size={20} className="text-nature-300" />
                             </div>
                         </div>
                     )}
@@ -190,24 +190,19 @@ export default function KarmaWallet({ user }: { user: User }) {
                                         <h3 className="font-serif text-2xl italic">10% OFF no Bazar</h3>
                                         <p className="text-xs font-bold mt-2 bg-white/20 inline-block px-3 py-1 rounded-lg">Custo: 100 Karma</p>
                                     </div>
-                                    <ShoppingBag size={40} className="opacity-50 group-hover:scale-110 transition-transform"/>
+                                    <ShoppingBag size={40} className="opacity-50 group-hover:scale-110 transition-transform" />
                                 </div>
                             </div>
 
-                             <div className="bg-nature-100 p-6 rounded-[2.5rem] opacity-70 flex items-center justify-between">
-                                  <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-nature-200 rounded-2xl flex items-center justify-center text-nature-500"><Lock size={20}/></div>
-                                    <div>
-                                        <h4 className="font-bold text-sm text-nature-500">Mentoria Exclusiva</h4>
-                                        <p className="text-[10px] text-nature-400 uppercase font-bold">Nível Broto Necessário</p>
-                                    </div>
-                                </div>
-                             </div>
+                            <div className="bg-nature-50 p-6 rounded-[2.5rem] border border-dashed border-nature-200 flex flex-col items-center justify-center text-center">
+                                <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Mais recompensas em breve</p>
+                                <p className="text-xs text-nature-300 italic mt-1">Acumule Karma para desbloquear novas possibilidades.</p>
+                            </div>
                         </div>
                     )}
                 </div>
 
             </div>
         </PortalView>
-    );    
+    );
 }

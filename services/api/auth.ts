@@ -98,7 +98,10 @@ export const createAuthApi = (request: RequestFn) => {
       }
 
       const payload = await response.json();
-      promoteToRealSession();
+      const accessToken = payload?.session?.access_token;
+      if (accessToken) {
+        promoteToRealSession(accessToken);
+      }
       clearOAuthIntentStorage();
 
       // Best-effort: establish Supabase session too.
@@ -268,7 +271,10 @@ export const createAuthApi = (request: RequestFn) => {
     }
 
     const payload = await response.json();
-    if (payload?.session?.access_token) promoteToRealSession();
+    const accessToken = payload?.session?.access_token;
+    if (accessToken) {
+      promoteToRealSession(accessToken);
+    }
 
     try {
       const { data: signInData, error } = await supabase.auth.signInWithPassword({

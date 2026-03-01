@@ -102,7 +102,9 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
         ? 'Seu cadastro está incompleto, finalize para entrar.'
         : 'Conta não autorizada para login.',
       code: isIncomplete ? 'REGISTRATION_INCOMPLETE' : 'EMAIL_NOT_AUTHORIZED',
+      reason: access.reason,
       accountState: access.accountState,
+      nextAction: access.nextAction,
     });
   }
 
@@ -161,8 +163,23 @@ export const ensureOAuthProfile = asyncHandler(async (req: Request, res: Respons
 
 export const register = asyncHandler(async (req: Request, res: Response) => {
   const { email, password, name, role } = registerSchema.parse(req.body);
+  const normalizedEmail = email.trim().toLowerCase();
 
-  const result = await AuthService.register(email, password, name, role || 'CLIENT');
+  if (isMockMode()) {
+    return res.status(403).json({
+      error: 'Cadastro real desabilitado no modo teste. Use as contas pré-definidas.',
+      code: 'MOCK_MODE_BLOCKED'
+    });
+  }
+
+  if (STRICT_MOCK_TEST_USERS[normalizedEmail]) {
+    return res.status(400).json({
+      error: 'Este e-mail é reservado para ambiente de testes.',
+      code: 'TEST_EMAIL_RESERVED'
+    });
+  }
+
+  const result = await AuthService.register(normalizedEmail, password, name, role || 'CLIENT');
   if (!result) {
     return res.status(400).json({ error: 'Falha ao realizar cadastro.' });
   }
