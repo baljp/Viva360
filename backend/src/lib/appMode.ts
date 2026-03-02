@@ -6,8 +6,8 @@
  * process.env diretamente ou importar de supabase.service.
  *
  * Hierarquia de decisão (da mais específica para a mais geral):
- *   1. process.env.APP_MODE = 'mock'  → MOCK (apenas em não-prod)
- *   2. process.env.NODE_ENV = 'test'  → MOCK (ambientes de CI)
+ *   1. process.env.NODE_ENV = 'test'  → MOCK (ambientes de CI)
+ *   2. process.env.APP_MODE = 'mock' + ENABLE_TEST_MODE=true → MOCK (somente harness de teste, nunca runtime real)
  *   3. Qualquer outro caso            → PROD
  *
  * Semântica:
@@ -17,9 +17,10 @@
  */
 
 const raw = String(process.env.APP_MODE || '').trim().toUpperCase();
+const explicitTestMode = String(process.env.ENABLE_TEST_MODE || '').trim().toLowerCase() === 'true';
 const isNonProd = process.env.NODE_ENV !== 'production';
 const isTestEnv = process.env.NODE_ENV === 'test';
-const isExplicitMock = raw === 'MOCK' && isNonProd;
+const isExplicitMock = raw === 'MOCK' && isNonProd && explicitTestMode;
 const isExplicitDemo = raw === 'DEMO';
 
 export type AppMode = 'MOCK' | 'DEMO' | 'PROD';

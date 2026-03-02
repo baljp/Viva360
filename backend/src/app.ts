@@ -9,7 +9,7 @@ import { chaosMiddleware } from './lib/chaos';
 import register, { httpRequestDurationMicroseconds, httpRequestErrors } from './lib/metrics';
 import compression from 'compression';
 import { initTelemetry } from './lib/instrumentation';
-import { assertCriticalProdConfig } from './lib/runtimeGuard';
+import { assertCriticalProdConfig, enforceNoProdMockLeakage } from './lib/runtimeGuard';
 import { getAuthConfigHealthSnapshot } from './lib/authConfigHealth';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
@@ -26,6 +26,7 @@ const blockedProdRoutePatterns = [
 
 // Initialize Telemetry
 initTelemetry();
+enforceNoProdMockLeakage();
 const criticalProdConfigIssues = assertCriticalProdConfig();
 const hasCriticalProdConfigIssues = isProductionRuntime && criticalProdConfigIssues.length > 0;
 

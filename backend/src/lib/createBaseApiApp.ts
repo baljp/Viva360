@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { securityHardening } from '../middleware/security.middleware';
 import { attachRequestContext } from '../middleware/request.middleware';
 import { circuitBreaker } from '../middleware/circuitBreaker';
-import { assertCriticalProdConfig } from './runtimeGuard';
+import { assertCriticalProdConfig, enforceNoProdMockLeakage } from './runtimeGuard';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
 const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
@@ -27,6 +27,7 @@ export type BaseApiConfig = {
 };
 
 export const createBaseApiApp = (): { app: Express; config: BaseApiConfig } => {
+  enforceNoProdMockLeakage();
   const criticalProdConfigIssues = assertCriticalProdConfig();
   const hasCriticalProdConfigIssues = isProductionRuntime && criticalProdConfigIssues.length > 0;
 

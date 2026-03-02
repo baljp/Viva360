@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { assertCriticalProdConfig, getCriticalProdConfigIssues } from '../lib/runtimeGuard';
+import {
+  assertCriticalProdConfig,
+  enforceNoProdMockLeakage,
+  getCriticalProdConfigIssues,
+  getProdMockLeakageIssues,
+} from '../lib/runtimeGuard';
 
 const ORIGINAL_ENV = { ...process.env };
 
@@ -58,5 +63,27 @@ describe('runtime guard', () => {
 
     expect(getCriticalProdConfigIssues()).toEqual([]);
     expect(assertCriticalProdConfig()).toEqual([]);
+  });
+
+  it('blocks boot when production mock leakage is detected', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.APP_MODE = 'MOCK';
+    process.env.ENABLE_TEST_MODE = 'true';
+
+    expect(getProdMockLeakageIssues()).toContain('APP_MODE_MUST_BE_PROD');
+    expect(getProdMockLeakageIssues()).toContain('TEST_MODE_MUST_BE_DISABLED');
+    expect(() => enforceNoProdMockLeakage()).toThrow(/Production mock\/test leakage detected/);
+  });
+
+  it('does not block boot when production has no mock leakage', async () => {
+    process.env.NODE_ENV = 'production';
+    process.env.APP_MODE = 'PROD';
+    process.env.ENABLE_TEST_MODE = 'false';
+    process.env.VITE_ENABLE_TEST_MODE = 'false';
+    delete process.env.MOCK_AUTH_TOKEN;
+    delete process.env.MOCK_ENABLED;
+
+    expect(getProdMockLeakageIssues()).toEqual([]);
+    expect(() => enforceNoProdMockLeakage()).not.toThrow();
   });
 });
