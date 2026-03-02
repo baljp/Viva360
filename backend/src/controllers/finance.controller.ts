@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { financeService } from '../services/finance.service';
 import { handleDbReadFallback } from '../lib/dbReadFallback';
+import { listMockFinanceTransactions } from '../services/mockAdapter';
 
 const resolveAuthUserId = (req: Request): string => String(req.user?.userId || req.user?.id || '').trim();
 
@@ -29,6 +30,7 @@ export const getTransactionsInternal = async (req: Request, res: Response) => {
   if (!userId) {
     return res.status(401).json({ error: 'Unauthorized', code: 'UNAUTHORIZED' });
   }
+  const mockTransactions = listMockFinanceTransactions(userId);
   try {
     const transactions = await financeService.getTransactions(userId);
     // Defensive filter: response scope is always the authenticated user.
@@ -40,7 +42,7 @@ export const getTransactionsInternal = async (req: Request, res: Response) => {
     if (handleDbReadFallback(res, err, {
       route: 'finance.getTransactions',
       userId,
-      fallbackPayload: [],
+      fallbackPayload: mockTransactions,
     })) return;
     throw err;
   }

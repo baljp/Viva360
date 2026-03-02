@@ -6,6 +6,8 @@ import { interactionReceiptService } from '../services/interactionReceipt.servic
 import { supabaseAdmin } from '../services/supabase.service';
 import { AppError } from '../lib/AppError';
 import prisma from '../lib/prisma';
+import { isDbUnavailableError } from '../lib/dbReadFallback';
+import { isMockMode, mockAdapter } from '../services/mockAdapter';
 
 const inviteSchema = z.object({
   email: z.string().email(),
@@ -70,6 +72,15 @@ export const inviteMember = asyncHandler(async (req: Request, res: Response) => 
           contextRef: payload.contextRef || null,
           expiresAt,
       });
+      if (isMockMode()) {
+        mockAdapter.tribe.invites.set(String(invite.id), {
+          id: String(invite.id),
+          hub_id: String(invite.hub_id || hubId || ''),
+          email: String(invite.email || payload.email),
+          status: String(invite.status || 'pending'),
+          created_at: new Date().toISOString(),
+        });
+      }
       const actionReceipt = await interactionReceiptService.upsert({
         entityType: 'TRIBE_INVITE',
         entityId: invite.id,
@@ -99,16 +110,30 @@ export const inviteMember = asyncHandler(async (req: Request, res: Response) => 
 
 export const listInvites = asyncHandler(async (req: Request, res: Response) => {
   const hubId = req.user?.userId;
-  
-  const invites = await tribeService.listInvites(hubId);
-  return res.json(invites);
+  try {
+    const invites = await tribeService.listInvites(hubId);
+    return res.json(invites);
+  } catch (error) {
+    if (isMockMode() && isDbUnavailableError(error)) {
+      const fallback = [...mockAdapter.tribe.invites.values()].filter((invite) => String(invite.hub_id) === String(hubId || ''));
+      return res.json(fallback);
+    }
+    throw error;
+  }
 });
 
 export const listMembers = asyncHandler(async (req: Request, res: Response) => {
   const hubId = req.user?.userId;
-
-  const members = await tribeService.listMembers(hubId);
-  return res.json(members);
+  try {
+    const members = await tribeService.listMembers(hubId);
+    return res.json(members);
+  } catch (error) {
+    if (isMockMode() && isDbUnavailableError(error)) {
+      const fallback = [...mockAdapter.tribe.members.values()].filter((member) => String(member.hub_id) === String(hubId || ''));
+      return res.json(fallback);
+    }
+    throw error;
+  }
 });
 
 export const listPosts = asyncHandler(async (_req: Request, res: Response) => {

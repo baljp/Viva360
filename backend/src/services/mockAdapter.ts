@@ -85,6 +85,73 @@ export type MockReview = {
   createdAt: string;
 };
 
+export type MockMarketplaceProduct = {
+  id: string;
+  name: string;
+  price: number;
+  category: string;
+  type: string;
+  image: string | null;
+  description: string;
+  owner_id: string;
+  created_at: string;
+};
+
+export type MockRoom = {
+  id: string;
+  name: string;
+  type: string;
+  capacity: number;
+  hub_id: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  current_occupant: string | null;
+};
+
+export type MockMetamorphosisEntry = {
+  id: string;
+  userId: string;
+  timestamp: string;
+  mood: string;
+  photoHash?: string | null;
+  photoThumb?: string | null;
+  quote?: string | null;
+  reflection?: string | null;
+};
+
+export type MockClinicalIntervention = {
+  id: string;
+  stream_id: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
+export type MockFinanceTransaction = {
+  id: string;
+  user_id: string;
+  type: string;
+  amount: number;
+  description: string;
+  status: string;
+  date: string;
+};
+
+export type MockTribeInvite = {
+  id: string;
+  hub_id: string;
+  email: string;
+  status: string;
+  created_at: string;
+};
+
+export type MockTribeMember = {
+  id: string;
+  hub_id: string;
+  role: string;
+  name: string;
+};
+
 type MockAdapterStores = {
   alchemy: {
     offers: Map<string, MockSwapOffer>;
@@ -100,6 +167,25 @@ type MockAdapterStores = {
   reviews: {
     listBySpace: (spaceId: string, type: string) => MockReview[];
     items: Map<string, MockReview>;
+  };
+  marketplace: {
+    products: Map<string, MockMarketplaceProduct>;
+  };
+  spaces: {
+    rooms: Map<string, MockRoom>;
+  };
+  metamorphosis: {
+    entries: Map<string, MockMetamorphosisEntry>;
+  };
+  clinical: {
+    interventions: Map<string, MockClinicalIntervention>;
+  };
+  finance: {
+    transactions: Map<string, MockFinanceTransaction>;
+  };
+  tribe: {
+    invites: Map<string, MockTribeInvite>;
+    members: Map<string, MockTribeMember>;
   };
 };
 
@@ -125,6 +211,25 @@ if (!globalThis.__vivaMockAdapter) {
           (r) => r.spaceId === spaceId && (type === 'all' || r.targetType === type)
         );
       },
+    },
+    marketplace: {
+      products: new Map<string, MockMarketplaceProduct>(),
+    },
+    spaces: {
+      rooms: new Map<string, MockRoom>(),
+    },
+    metamorphosis: {
+      entries: new Map<string, MockMetamorphosisEntry>(),
+    },
+    clinical: {
+      interventions: new Map<string, MockClinicalIntervention>(),
+    },
+    finance: {
+      transactions: new Map<string, MockFinanceTransaction>(),
+    },
+    tribe: {
+      invites: new Map<string, MockTribeInvite>(),
+      members: new Map<string, MockTribeMember>(),
     },
   };
 }
@@ -266,3 +371,56 @@ export const mockReviewResponse = (params: {
   comment: params.comment ?? '',
   createdAt: new Date().toISOString(),
 });
+
+export const saveMockMarketplaceProduct = (product: MockMarketplaceProduct) => {
+  mockAdapter.marketplace.products.set(product.id, product);
+  return product;
+};
+
+export const listMockMarketplaceProducts = (ownerId?: string, category?: string) => {
+  const normalizedOwnerId = ownerId ? String(ownerId) : '';
+  const normalizedCategory = category ? String(category).toLowerCase() : '';
+  return [...mockAdapter.marketplace.products.values()].filter((product) => {
+    if (normalizedOwnerId && String(product.owner_id) !== normalizedOwnerId) return false;
+    if (normalizedCategory && String(product.category || '').toLowerCase() !== normalizedCategory) return false;
+    return true;
+  });
+};
+
+export const saveMockRoom = (room: MockRoom) => {
+  mockAdapter.spaces.rooms.set(room.id, room);
+  return room;
+};
+
+export const listMockRoomsByHub = (hubId: string) =>
+  [...mockAdapter.spaces.rooms.values()].filter((room) => String(room.hub_id) === String(hubId));
+
+export const saveMockMetamorphosisEntry = (entry: MockMetamorphosisEntry) => {
+  mockAdapter.metamorphosis.entries.set(entry.id, entry);
+  return entry;
+};
+
+export const listMockMetamorphosisEntries = (userId: string) =>
+  [...mockAdapter.metamorphosis.entries.values()]
+    .filter((entry) => String(entry.userId) === String(userId))
+    .sort((a, b) => (a.timestamp > b.timestamp ? -1 : 1));
+
+export const saveMockClinicalIntervention = (entry: MockClinicalIntervention) => {
+  mockAdapter.clinical.interventions.set(entry.id, entry);
+  return entry;
+};
+
+export const listMockClinicalInterventions = (streamId: string) =>
+  [...mockAdapter.clinical.interventions.values()]
+    .filter((entry) => String(entry.stream_id) === String(streamId))
+    .sort((a, b) => (a.created_at > b.created_at ? -1 : 1));
+
+export const saveMockFinanceTransaction = (tx: MockFinanceTransaction) => {
+  mockAdapter.finance.transactions.set(tx.id, tx);
+  return tx;
+};
+
+export const listMockFinanceTransactions = (userId: string) =>
+  [...mockAdapter.finance.transactions.values()]
+    .filter((tx) => String(tx.user_id) === String(userId))
+    .sort((a, b) => (a.date > b.date ? -1 : 1));

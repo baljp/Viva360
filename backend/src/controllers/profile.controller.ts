@@ -132,41 +132,36 @@ export const getProfessionalMetrics = asyncHandler(async (req: Request, res: Res
 export const getSpacePatientsSummary = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    // Count unique patients via appointments or series (P2 Fix)
-    // First, find all series (regular appointments) for this space
-    const series = await prisma.appointmentSeries.findMany({
-        where: { space_id: id },
-        select: { client_id: true }
-    });
+    const orm = prisma as any;
+    const canReadSeries = orm?.appointmentSeries && typeof orm.appointmentSeries.findMany === 'function';
 
-    // Also check standalone appointments if any room belongs to this hub (space)
-    const rooms = await prisma.room.findMany({
-        where: { hub_id: id },
-        select: { id: true }
-    });
-    const roomIds = rooms.map(r => r.id);
+    const [series, directAppointments] = await Promise.all([
+        canReadSeries
+            ? orm.appointmentSeries.findMany({
+                where: { space_id: id },
+                select: { client_id: true }
+            }).catch(() => [])
+            : Promise.resolve([]),
+        orm.appointment.findMany({
+            where: {
+                OR: [
+                    { professional_id: id },
+                    { client_id: { not: null } }
+                ]
+            },
+            select: { client_id: true }
+        }).catch(() => []),
+    ]);
 
-    // Standing in for potential standalone appointments (checking by client_id)
-    const directAppointments = await prisma.appointment.findMany({
-        where: {
-            OR: [
-                { professional_id: id }, // In case space-as-pro logic is used elsewhere
-                { client_id: { not: null } }
-            ]
-        },
-        select: { client_id: true }
-    });
-
-    // We filter by room if it was in the schema, but since it's not, we rely on series.
-    // However, to be robust, let's combine unique clients from series.
     const uniquePatients = new Set([
-        ...series.map(s => s.client_id),
-        // adding a few from direct if needed, but series is the primary source for space-id
+        ...(Array.isArray(series) ? series.map((s: any) => s?.client_id) : []),
+        ...(Array.isArray(directAppointments) ? directAppointments.map((a: any) => a?.client_id) : []),
     ].filter(Boolean));
 
+    const totalPatients = uniquePatients.size;
     return res.json({
-        totalPatients: uniquePatients.size,
-        activeThisMonth: Math.round(uniquePatients.size * 0.75)
+        totalPatients,
+        activeThisMonth: Math.round(totalPatients * 0.75)
     });
 });
 

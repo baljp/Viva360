@@ -4,6 +4,8 @@ import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
+import { isDbUnavailableError } from '../lib/dbReadFallback';
+import { isMockMode, mockId, saveMockRoom } from '../services/mockAdapter';
 
 // --- SCHEMAS ---
 const createRoomSchema = z.object({
@@ -168,8 +170,43 @@ export const createRoom = asyncHandler(async (req: Request, res: Response) => {
   const { name, type, capacity } = createRoomSchema.parse(req.body);
   const userId = getUserId(req);
   if (!userId) { res.status(401).json({ error: 'Unauthorized' }); return; }
-  const room = await prisma.room.create({ data: { name, type, capacity: capacity || 10, hub_id: userId } });
-  return res.json(room);
+  try {
+    const room = await prisma.room.create({ data: { name, type, capacity: capacity || 10, hub_id: userId } });
+    if (isMockMode()) {
+      const persisted = room as any;
+      saveMockRoom({
+        id: String(persisted.id),
+        name: String(persisted.name),
+        type: String(persisted.type),
+        capacity: Number(persisted.capacity || capacity || 10),
+        hub_id: String(persisted.hub_id || userId),
+        status: String(persisted.status || 'available'),
+        created_at: persisted.created_at instanceof Date ? persisted.created_at.toISOString() : new Date().toISOString(),
+        updated_at: persisted.updated_at instanceof Date
+          ? persisted.updated_at.toISOString()
+          : (persisted.created_at instanceof Date ? persisted.created_at.toISOString() : new Date().toISOString()),
+        current_occupant: persisted.current_occupant ?? null,
+      });
+    }
+    return res.json(room);
+  } catch (error) {
+    if (isMockMode() && isDbUnavailableError(error)) {
+      const now = new Date().toISOString();
+      const fallback = saveMockRoom({
+        id: mockId('mock-room'),
+        name: String(name),
+        type: String(type),
+        capacity: Number(capacity || 10),
+        hub_id: String(userId),
+        status: 'available',
+        created_at: now,
+        updated_at: now,
+        current_occupant: null,
+      });
+      return res.json(fallback);
+    }
+    throw error;
+  }
 });
 
 // 4. Generate Invite — PERSISTS TO DB

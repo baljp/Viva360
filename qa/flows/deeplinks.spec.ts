@@ -14,6 +14,7 @@ test.describe('Deep Links críticos', () => {
       for (const route of roleRoutes[role]) {
         await page.goto(route, { waitUntil: 'domcontentloaded' });
         await expect(page).toHaveURL(new RegExp(route.replace(/\//g, '\\/')));
+        await page.waitForSelector('button, a[href], input, [role="button"]', { timeout: 10000 });
 
         const interactiveCount = await page.locator('button, a[href], input, [role="button"]').count();
         expect(interactiveCount).toBeGreaterThan(0);

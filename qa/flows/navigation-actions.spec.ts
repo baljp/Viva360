@@ -12,9 +12,11 @@ test.describe('Navegação Back/Close', () => {
       await loginAs(role);
       for (const route of routesByRole[role]) {
         await page.goto(route);
+        await page.waitForTimeout(200);
         const headerButtons = page.locator('header button');
         const total = await headerButtons.count();
         if (total === 0) {
+          await page.waitForSelector('button', { timeout: 10000 });
           const fallbackButtons = await page.locator('button').count();
           expect(fallbackButtons).toBeGreaterThan(0);
           continue;

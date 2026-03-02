@@ -4,6 +4,8 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { z } from 'zod';
 import { CloudinaryService } from '../services/cloudinary.service';
 import { isMockMode } from '../lib/appMode';
+import { isDbUnavailableError } from '../lib/dbReadFallback';
+import { listMockRoomsByHub, mockAdapter, saveMockRoom } from '../services/mockAdapter';
 
 const getUserIdCompat = (req: Request): string =>
   String(req.user?.userId || req.user?.id || '').trim();
@@ -38,20 +40,38 @@ const serializeRoomMeta = (existing: string | null | undefined, updates: Partial
 
 export const getRealTime = asyncHandler(async (req: Request, res: Response) => {
   const hubId = getUserIdCompat(req);
-  // Filter rooms by hub (space) by default.
-  const rooms = await prisma.room.findMany({
-    where: hubId ? { hub_id: hubId } : undefined,
-    orderBy: { created_at: 'desc' },
-  });
-  const shaped = rooms.map((room) => {
-    const { meta } = parseRoomMeta(room.current_occupant);
-    return {
-      ...room,
-      imageUrl: meta?.imageUrl || null,
-      description: meta?.description || null,
-    };
-  });
-  return res.json(shaped);
+  try {
+    // Filter rooms by hub (space) by default.
+    const rooms = await prisma.room.findMany({
+      where: hubId ? { hub_id: hubId } : undefined,
+      orderBy: { created_at: 'desc' },
+    });
+    const shaped = rooms.map((room) => {
+      const { meta } = parseRoomMeta(room.current_occupant);
+      return {
+        ...room,
+        imageUrl: meta?.imageUrl || null,
+        description: meta?.description || null,
+      };
+    });
+    return res.json(shaped);
+  } catch (error) {
+    if (isMockMode() && isDbUnavailableError(error)) {
+      const fallbackRooms = hubId
+        ? listMockRoomsByHub(hubId)
+        : [...mockAdapter.spaces.rooms.values()];
+      const shaped = fallbackRooms.map((room) => {
+        const { meta } = parseRoomMeta(room.current_occupant);
+        return {
+          ...room,
+          imageUrl: meta?.imageUrl || null,
+          description: meta?.description || null,
+        };
+      });
+      return res.json(shaped);
+    }
+    throw error;
+  }
 });
 
 export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
@@ -104,40 +124,70 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
   if (!id) return res.status(400).json({ error: 'Missing room id' });
   if (!hubId) return res.status(401).json({ error: 'Unauthorized' });
 
-  const room = await prisma.room.findUnique({ where: { id } });
-  if (!room) return res.status(404).json({ error: 'Room not found' });
-  if (String(room.hub_id) !== hubId) {
-    return res.status(403).json({ error: 'Forbidden' });
+  try {
+    const room = await prisma.room.findUnique({ where: { id } });
+    if (!room) return res.status(404).json({ error: 'Room not found' });
+    if (String(room.hub_id) !== hubId) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    let imageUrl: string | null = null;
+    if (payload.imageBase64) {
+      // If Cloudinary is configured, store URL; otherwise persist the data URL as a last-resort
+      // so the UX "Alterar Foto" actually works in environments without external storage.
+      const uploaded = await CloudinaryService.uploadImage(payload.imageBase64, 'viva360/rooms');
+      imageUrl = uploaded || payload.imageBase64;
+    }
+
+    const nextMetaUpdates: Partial<RoomMeta> = {};
+    if (typeof payload.description === 'string') nextMetaUpdates.description = payload.description;
+    if (imageUrl) nextMetaUpdates.imageUrl = imageUrl;
+
+    const updated = await prisma.room.update({
+      where: { id },
+      data: {
+        ...(payload.name ? { name: payload.name } : {}),
+        ...(typeof payload.capacity === 'number' ? { capacity: payload.capacity } : {}),
+        ...(payload.status ? { status: payload.status } : {}),
+        ...(Object.keys(nextMetaUpdates).length ? { current_occupant: serializeRoomMeta(room.current_occupant, nextMetaUpdates) } : {}),
+      },
+    });
+
+    const { meta } = parseRoomMeta(updated.current_occupant);
+    return res.json({
+      ...updated,
+      imageUrl: meta?.imageUrl || null,
+      description: meta?.description || null,
+    });
+  } catch (error) {
+    if (isMockMode() && isDbUnavailableError(error)) {
+      const room = mockAdapter.spaces.rooms.get(id);
+      if (!room) return res.status(404).json({ error: 'Room not found' });
+      if (String(room.hub_id) !== hubId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+      const nextMetaUpdates: Partial<RoomMeta> = {};
+      if (typeof payload.description === 'string') nextMetaUpdates.description = payload.description;
+      if (payload.imageBase64) nextMetaUpdates.imageUrl = payload.imageBase64;
+      const updated = saveMockRoom({
+        ...room,
+        ...(payload.name ? { name: payload.name } : {}),
+        ...(typeof payload.capacity === 'number' ? { capacity: payload.capacity } : {}),
+        ...(payload.status ? { status: payload.status } : {}),
+        current_occupant: Object.keys(nextMetaUpdates).length
+          ? serializeRoomMeta(room.current_occupant, nextMetaUpdates)
+          : room.current_occupant,
+        updated_at: new Date().toISOString(),
+      });
+      const { meta } = parseRoomMeta(updated.current_occupant);
+      return res.json({
+        ...updated,
+        imageUrl: meta?.imageUrl || null,
+        description: meta?.description || null,
+      });
+    }
+    throw error;
   }
-
-  let imageUrl: string | null = null;
-  if (payload.imageBase64) {
-    // If Cloudinary is configured, store URL; otherwise persist the data URL as a last-resort
-    // so the UX "Alterar Foto" actually works in environments without external storage.
-    const uploaded = await CloudinaryService.uploadImage(payload.imageBase64, 'viva360/rooms');
-    imageUrl = uploaded || payload.imageBase64;
-  }
-
-  const nextMetaUpdates: Partial<RoomMeta> = {};
-  if (typeof payload.description === 'string') nextMetaUpdates.description = payload.description;
-  if (imageUrl) nextMetaUpdates.imageUrl = imageUrl;
-
-  const updated = await prisma.room.update({
-    where: { id },
-    data: {
-      ...(payload.name ? { name: payload.name } : {}),
-      ...(typeof payload.capacity === 'number' ? { capacity: payload.capacity } : {}),
-      ...(payload.status ? { status: payload.status } : {}),
-      ...(Object.keys(nextMetaUpdates).length ? { current_occupant: serializeRoomMeta(room.current_occupant, nextMetaUpdates) } : {}),
-    },
-  });
-
-  const { meta } = parseRoomMeta(updated.current_occupant);
-  return res.json({
-    ...updated,
-    imageUrl: meta?.imageUrl || null,
-    description: meta?.description || null,
-  });
 });
 
 export const createVacancy = asyncHandler(async (req: Request, res: Response) => {
