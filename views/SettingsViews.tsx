@@ -6,7 +6,7 @@ import {
     Heart, Sparkles, Lock, Bell, Check, Mail, MapPin,
     Briefcase, Smartphone, Sun, DoorOpen, DollarSign, List, Activity,
     Building, CreditCard, Wallet, Shield, MessageSquare, Megaphone, Smartphone as PhoneIcon,
-    Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2, Trash2, Download
+    Eye, EyeOff, Globe, ShoppingBag, History, ArrowUpRight, ArrowDownRight, Save, Moon, Loader2, Trash2
 } from 'lucide-react';
 import { DynamicAvatar, Card, WalletSplit, PortalView, DegradedRetryNotice } from '../components/Common';
 import { useNotifications } from '../src/contexts/useNotifications';
@@ -16,7 +16,7 @@ import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
 import { supabase } from '../lib/supabase';
 import { SettingsToggle } from './settings/SettingsToggle';
 import { getSettingsRoleConfig, homeForRole, roleLabel } from './settings/settingsConfig';
-import { downloadJsonFile, normalizeSettingsTransactions } from './settings/settingsUtils';
+import { normalizeSettingsTransactions } from './settings/settingsUtils';
 import { type FlowBridge, type PrivacyState, type SettingsNotifState, errorMessage } from './settings/settingsViewHelpers';
 import { SettingsHomeFooterActions, SettingsHomeHeader, SettingsMenuCards, SettingsRoleSwitcherCard, type SettingsMenuItem } from './settings/SettingsHomeSections';
 import { useAppToast } from '../src/contexts/AppToastContext';
@@ -34,7 +34,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
 }) => {
     const roleConfig = getSettingsRoleConfig(user.role);
     const { showToast, clearToast } = useAppToast();
-    const setToast = useCallback((next: { title: string; message: string } | null) => {
+    const setToast = useCallback((next: { title: string; message: string; type?: 'success' | 'error' | 'warning' | 'info' } | null) => {
         if (next) showToast(next);
         else clearToast();
     }, [showToast, clearToast]);
@@ -56,7 +56,7 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
     const [roleBusy, setRoleBusy] = useState(false);
     const [showAllTransactions, setShowAllTransactions] = useState(false);
     const [deleteBusy, setDeleteBusy] = useState(false);
-    const [exportBusy, setExportBusy] = useState(false);
+    const [profileBusy, setProfileBusy] = useState(false);
     const normalizedTransactions = normalizeSettingsTransactions(transactions);
 
     // Ref para o input de arquivo (foto de perfil)
@@ -137,10 +137,21 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
     };
 
     const handleSaveProfile = async () => {
-        const updated = { ...user, ...editingUser };
-        await accountApi.users.update(updated as User);
-        updateUser(updated as User);
-        setToast({ title: "Perfil Sincronizado", message: "Suas alterações foram ancoradas no fluxo." });
+        if (profileBusy) return;
+        setProfileBusy(true);
+        try {
+            const updated = { ...user, ...editingUser } as User;
+            const persisted = await accountApi.users.update(updated);
+            const savedUser = (persisted && typeof persisted === 'object')
+                ? (persisted as User)
+                : updated;
+            updateUser(savedUser);
+            setToast({ title: "Alterações Ancoradas", message: "Seu manifesto foi salvo com sucesso.", type: 'success' });
+        } catch (err: unknown) {
+            setToast({ title: "Falha ao ancorar", message: errorMessage(err, "Não foi possível salvar suas alterações agora."), type: 'error' });
+        } finally {
+            setProfileBusy(false);
+        }
     };
 
     const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -224,20 +235,6 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
         }
     };
 
-    const handleExportData = async () => {
-        if (exportBusy) return;
-        setExportBusy(true);
-        try {
-            const response = await accountApi.users.exportData(user.id);
-            downloadJsonFile(`viva360-dados-${user.id}.json`, response);
-            setToast({ title: 'Exportação Concluída', message: 'Seus dados foram baixados no formato JSON.' });
-        } catch (err: unknown) {
-            setToast({ title: 'Erro', message: errorMessage(err, 'Não foi possível exportar seus dados agora.') });
-        } finally {
-            setExportBusy(false);
-        }
-    };
-
     if (view === ViewState.SETTINGS_PROFILE) {
         return (
             <PortalView title={roleConfig.profile.title} subtitle={roleConfig.profile.subtitle} onBack={() => setView(ViewState.SETTINGS)}>
@@ -300,9 +297,11 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
 
                     <button
                         onClick={handleSaveProfile}
-                        className="w-full py-5 bg-nature-900 text-white rounded-3xl font-bold uppercase tracking-widest text-[11px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2"
+                        disabled={profileBusy}
+                        className="w-full py-5 bg-nature-900 text-white rounded-3xl font-bold uppercase tracking-widest text-[11px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
                     >
-                        <Save size={16} /> Ancorar Alterações
+                        {profileBusy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                        {profileBusy ? 'Ancorando...' : 'Ancorar Alterações'}
                     </button>
                 </div>
             </PortalView>
@@ -430,15 +429,6 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
                         <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest px-2 mt-8 mb-4">Direitos & Remoção (LGPD)</h4>
 
                         <button
-                            onClick={handleExportData}
-                            disabled={exportBusy}
-                            className="w-full py-4 bg-nature-100 text-nature-700 rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-sm active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60 hover:bg-nature-200"
-                        >
-                            {exportBusy ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
-                            Exportar Meus Dados (LGPD Art. 18)
-                        </button>
-
-                        <button
                             onClick={handleDeleteAccount}
                             disabled={deleteBusy}
                             className="w-full py-4 bg-rose-600 text-white rounded-2xl font-bold uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all mt-2 flex items-center justify-center gap-2 disabled:opacity-60"
@@ -502,21 +492,6 @@ export const SettingsViews: React.FC<SettingsProps & { flow?: FlowBridge }> = ({
                     onGoToRoleHome={() => setView(homeForRole(activeRole))}
                 />
                 <SettingsMenuCards items={menuItems} onSelect={setView} />
-                <button
-                    onClick={handleExportData}
-                    disabled={exportBusy}
-                    className="w-full bg-white p-6 rounded-[2.5rem] border border-nature-100 flex items-center justify-between group active:scale-[0.98] transition-all hover:shadow-xl shadow-sm disabled:opacity-60"
-                >
-                    <div className="flex items-center gap-6">
-                        <div className="bg-emerald-50 text-emerald-700 p-5 rounded-2xl shadow-inner">
-                            {exportBusy ? <Loader2 size={22} className="animate-spin" /> : <Download size={22} />}
-                        </div>
-                        <div className="text-left space-y-1">
-                            <p className="font-bold text-nature-900 text-sm leading-tight">Exportar Dados (LGPD Art. 18)</p>
-                            <p className="text-[9px] text-nature-300 font-bold uppercase tracking-widest">PORTABILIDADE E ACESSO</p>
-                        </div>
-                    </div>
-                </button>
             </div>
             <SettingsHomeFooterActions onLogout={handleLogoutFallback} onBackToHome={handleBackToHome} />
         </div>
@@ -614,5 +589,3 @@ function SettingsNotificationsSection({ roleConfig, notifPrefs, setNotifPrefs, h
         </PortalView>
     );
 }
-
-

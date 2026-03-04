@@ -9,6 +9,8 @@ import { CheckInSchema } from '../schemas/metamorphosis.schema';
 import { isMockMode } from '../lib/appMode';
 import { isDbUnavailableError } from '../lib/dbReadFallback';
 import { listMockMetamorphosisEntries, saveMockMetamorphosisEntry } from '../services/mockAdapter';
+import { AppError } from '../lib/AppError';
+import { supabaseAdmin } from '../services/supabase.service';
 
 const normalizeMood = (input: string): Mood => {
     const value = String(input || '').trim().toLowerCase();
@@ -23,6 +25,145 @@ const normalizeMood = (input: string): Mood => {
     return 'Calmo';
 };
 
+const isMissingMetamorphosisPersistenceError = (error: unknown): boolean => {
+    const code = String((error as { code?: string })?.code || '').toUpperCase();
+    if (code === 'P2021' || code === 'P2022') {
+        return true;
+    }
+
+    const metaCode = String((error as { meta?: { code?: string } })?.meta?.code || '').toUpperCase();
+    if (metaCode === '42P01' || metaCode === '42703') {
+        return true;
+    }
+
+    const message = String((error as { message?: string })?.message || '').toLowerCase();
+    return message.includes('events') || message.includes('metamorphosis_projections');
+};
+
+const buildDailyBlessingAction = (date: Date) => `DAILY_BLESSING_${date.toISOString().slice(0, 10)}`;
+
+type BlessingFallbackResult =
+    | { alreadyDone: true; lastCheckIn: Date | null }
+    | { alreadyDone: false; user: Record<string, unknown>; reward: number; lastCheckIn: string };
+
+const applyDailyBlessingFallback = async (userId: string, reward: number, requestId: string): Promise<BlessingFallbackResult> => {
+    const now = new Date();
+    const todayAction = buildDailyBlessingAction(now);
+    const yesterday = new Date(now);
+    yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+    const yesterdayAction = buildDailyBlessingAction(yesterday);
+
+    const receiptWhere = {
+        entity_type_entity_id_action_actor_id: {
+            entity_type: 'PROFILE',
+            entity_id: userId,
+            action: todayAction,
+            actor_id: userId,
+        },
+    } as const;
+
+    let hadYesterday = false;
+    try {
+        await prisma.interactionReceipt.create({
+            data: {
+                entity_type: 'PROFILE',
+                entity_id: userId,
+                action: todayAction,
+                actor_id: userId,
+                status: 'PENDING',
+                request_id: requestId || null,
+                payload: { reward, source: 'metamorphosis.checkin.fallback' },
+            },
+        });
+        const yesterdayReceipt = await prisma.interactionReceipt.findUnique({
+            where: {
+                entity_type_entity_id_action_actor_id: {
+                    entity_type: 'PROFILE',
+                    entity_id: userId,
+                    action: yesterdayAction,
+                    actor_id: userId,
+                },
+            },
+            select: { id: true },
+        });
+        hadYesterday = Boolean(yesterdayReceipt?.id);
+    } catch (createError) {
+        if (String((createError as { code?: string })?.code || '') === 'P2002') {
+            const existing = await prisma.interactionReceipt.findUnique({
+                where: receiptWhere,
+                select: { created_at: true },
+            });
+            return { alreadyDone: true, lastCheckIn: existing?.created_at || null };
+        }
+        if (isMissingMetamorphosisPersistenceError(createError)) {
+            throw new AppError(
+                'Benção temporariamente indisponível. Tente novamente em instantes.',
+                503,
+                'METAMORPHOSIS_UNAVAILABLE',
+            );
+        }
+        throw createError;
+    }
+
+    const { data: currentProfile, error: currentProfileError } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (currentProfileError || !currentProfile) {
+        throw new AppError('Perfil não encontrado para receber benção.', 404, 'PROFILE_NOT_FOUND');
+    }
+
+    const nextStreak = hadYesterday
+        ? Math.max(1, Number((currentProfile as { streak?: number }).streak || 0) + 1)
+        : 1;
+    const nextKarma = Number((currentProfile as { karma?: number }).karma || 0) + reward;
+
+    const { data: updatedProfile, error: updateProfileError } = await supabaseAdmin
+        .from('profiles')
+        .update({
+            karma: nextKarma,
+            streak: nextStreak,
+        })
+        .eq('id', userId)
+        .select('*')
+        .single();
+
+    if (updateProfileError || !updatedProfile) {
+        await prisma.interactionReceipt.update({
+            where: receiptWhere,
+            data: {
+                status: 'ERROR',
+                request_id: requestId || null,
+                payload: { reward, reason: 'PROFILE_UPDATE_FAILED', source: 'metamorphosis.checkin.fallback' },
+            },
+        }).catch(() => null);
+        throw new AppError('Não foi possível finalizar sua benção agora.', 503, 'CHECKIN_PROFILE_UPDATE_FAILED');
+    }
+
+    const checkInAt = now.toISOString();
+    await prisma.interactionReceipt.update({
+        where: receiptWhere,
+        data: {
+            status: 'DONE',
+            request_id: requestId || null,
+            next_step: 'NONE',
+            payload: { reward, streak: nextStreak, source: 'metamorphosis.checkin.fallback' },
+        },
+    }).catch(() => null);
+
+    return {
+        alreadyDone: false,
+        reward,
+        lastCheckIn: checkInAt,
+        user: {
+            ...(updatedProfile as Record<string, unknown>),
+            lastCheckIn: checkInAt,
+        },
+    };
+};
+
 export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     const user = (req as any).user;
     if (!user?.userId) {
@@ -31,6 +172,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
 
     const validated = CheckInSchema.parse(req.body);
     const userId = String(user.userId).trim();
+    const reward = Math.max(1, Math.min(1500, Number(validated.reward || 50)));
     const mood = validated.mood;
     const photoHash = String(validated.photoHash || validated.hash || '').trim() || `hash_${Date.now()}`;
     const photoThumb = String(validated.photoThumb || validated.thumb || '').trim();
@@ -67,6 +209,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         id: Date.now().toString(),
         userId,
         timestamp: new Date().toISOString(),
+        reward,
         mood: normalizedMood,
         photoHash,
         photoThumb: optimizedPhotoUrl || photoThumb || null,
@@ -112,6 +255,40 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
                 photoThumb: entry.photoThumb ? String(entry.photoThumb) : null,
                 quote: recommendation.quote ? String(recommendation.quote) : null,
             });
+        } else if (isMissingMetamorphosisPersistenceError(error)) {
+            logger.warn('metamorphosis.checkin.persistence_fallback', {
+                userId,
+                requestId: String((req as any)?.requestId || ''),
+                errorCode: String((error as { code?: string })?.code || ''),
+                message: String((error as { message?: string })?.message || ''),
+            });
+
+            const fallback = await applyDailyBlessingFallback(
+                userId,
+                reward,
+                String((req as any)?.requestId || ''),
+            );
+
+            if (fallback.alreadyDone) {
+                return res.status(409).json({
+                    ok: true,
+                    code: 'CHECKIN_ALREADY_DONE',
+                    status: 'ALREADY_DONE',
+                    reward: 0,
+                    lastCheckIn: fallback.lastCheckIn,
+                });
+            }
+
+            const successfulFallback = fallback as Exclude<BlessingFallbackResult, { alreadyDone: true }>;
+            return res.json({
+                ok: true,
+                success: true,
+                reward: successfulFallback.reward,
+                lastCheckIn: successfulFallback.lastCheckIn,
+                source: 'PROFILE_RECEIPT_FALLBACK',
+                entry,
+                user: successfulFallback.user,
+            });
         } else {
             throw error;
         }
@@ -136,6 +313,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     return res.json({
         ok: true,
         success: true,
+        reward,
         entry,
         user: updatedProfile
     });
