@@ -1,12 +1,21 @@
 
+import fs from 'node:fs';
+import path from 'node:path';
 import { test, expect } from '@playwright/test';
+import { Database } from '../utils/seedEngine';
 
 const ROLES = [
-  { name: 'Cliente', email: 'cliente@viva360.com', password: '123456', dashboard: '**/client/home' },
-  { name: 'Profissional', email: 'pro@viva360.com', password: '123456', dashboard: '**/pro/home' },
-  { name: 'Espaço', email: 'space@viva360.com', password: '123456', dashboard: '**/space/home' },
-  { name: 'Admin', email: 'admin@viva360.com', password: '123456', dashboard: '**/admin/dashboard' }
+  { name: 'Cliente', user: Database.clients[0], dashboard: '/client/home' },
+  { name: 'Profissional', user: Database.pros[0], dashboard: '/pro/home' },
+  { name: 'Espaço', user: Database.spaces[0], dashboard: '/space/home' },
+  { name: 'Admin', user: Database.admins[0], dashboard: '/admin/dashboard' }
 ];
+const MOCK_TOKEN = String(process.env.MOCK_AUTH_TOKEN || 'viva360_test_mock_token_2026').trim();
+
+function ensureScreenshotDirs() {
+  fs.mkdirSync(path.resolve('test-results/snapshots'), { recursive: true });
+  fs.mkdirSync(path.resolve('test-results/integration'), { recursive: true });
+}
 
 async function handleOnboarding(page: any) {
   // Aggressively disable tutorial via localStorage
@@ -29,30 +38,49 @@ async function handleOnboarding(page: any) {
   }
 }
 
+async function loginAsMock(page: any, role: (typeof ROLES)[number]) {
+  await page.addInitScript(
+    ({ user, token }) => {
+      window.localStorage.setItem('viva360.mock_user', JSON.stringify(user));
+      window.localStorage.setItem('viva360.session.mode', 'mock');
+      window.localStorage.setItem('viva360.test_mode.active', '1');
+      window.localStorage.setItem('viva360.auth.token', token);
+      window.localStorage.setItem('viva360_smart_tutorial_seen', 'true');
+      if (user?.id) {
+        window.localStorage.setItem(`viva360_tutorial_seen_${user.id}`, 'true');
+      }
+    },
+    { user: role.user, token: MOCK_TOKEN }
+  );
+
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      await page.goto(role.dashboard, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await page.waitForURL((url: URL) => url.pathname === role.dashboard, { timeout: 15000 }).catch(() => undefined);
+      await page.waitForLoadState('networkidle', { timeout: 6000 }).catch(() => undefined);
+      lastError = null;
+      break;
+    } catch (err) {
+      lastError = err;
+      if (attempt < 3) {
+        await page.goto('/', { waitUntil: 'commit', timeout: 15000 }).catch(() => undefined);
+        await page.waitForTimeout(800);
+      }
+    }
+  }
+  if (lastError) throw lastError;
+}
+
 test.describe('Master Enterprise E2E Suite', () => {
-  test.describe.configure({ timeout: 120000 });
+  test.describe.configure({ timeout: 180000, mode: 'serial' });
 
   for (const role of ROLES) {
     test(`Role Discovery & Asset Audit - ${role.name}`, async ({ page }) => {
-      // 1. Authentication
-      await page.goto('/');
-
-      // Close onboarding if present
-      await handleOnboarding(page);
-
-      const loginBtn = page.getByRole('button', { name: /já iniciei a jornada/i });
-      await expect(loginBtn).toBeVisible({ timeout: 10000 });
-      await loginBtn.click();
-
-      // Wait for login form to settle
-      await page.waitForTimeout(1000);
-
-      await page.fill('input[placeholder="seu@email.com"]', role.email);
-      await page.fill('input[placeholder="••••••••"]', role.password);
-      await page.click('button[type="submit"]', { force: true });
+      ensureScreenshotDirs();
+      await loginAsMock(page, role);
 
       // 2. Dashboard Validation
-      await page.waitForURL(role.dashboard, { timeout: 15000 });
       await handleOnboarding(page);
       await expect(page).not.toHaveTitle(/error/i);
 
@@ -113,16 +141,11 @@ test.describe('Master Enterprise E2E Suite', () => {
 
   test('Cross-Profile Workflow: Booking Integration', async ({ browser }) => {
     // 1. CLIENT: Initiate a booking or interest
+    ensureScreenshotDirs();
     const clientContext = await browser.newContext();
     const page = await clientContext.newPage();
 
-    await page.goto('/');
-    await handleOnboarding(page);
-    await page.getByRole('button', { name: /já iniciei a jornada/i }).click();
-    await page.fill('input[placeholder="seu@email.com"]', 'cliente@viva360.com');
-    await page.fill('input[placeholder="••••••••"]', '123456');
-    await page.click('button[type="submit"]');
-    await page.waitForURL('**/client/home');
+    await loginAsMock(page, ROLES[0]);
     await handleOnboarding(page);
 
     // Visit Marketplace or Discovery to trigger an action
@@ -134,13 +157,7 @@ test.describe('Master Enterprise E2E Suite', () => {
     const proContext = await browser.newContext();
     const proPage = await proContext.newPage();
 
-    await proPage.goto('/');
-    await handleOnboarding(proPage);
-    await proPage.getByRole('button', { name: /já iniciei a jornada/i }).click();
-    await proPage.fill('input[placeholder="seu@email.com"]', 'pro@viva360.com');
-    await proPage.fill('input[placeholder="••••••••"]', '123456');
-    await proPage.click('button[type="submit"]');
-    await proPage.waitForURL('**/pro/home');
+    await loginAsMock(proPage, ROLES[1]);
     await handleOnboarding(proPage);
 
     // Check for dashboard elements

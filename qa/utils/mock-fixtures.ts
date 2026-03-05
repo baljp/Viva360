@@ -72,6 +72,9 @@ export const test = base.extend<JourneyFixtures>({
 
         // Disable Smart Tutorial for tests
         window.localStorage.setItem('viva360_smart_tutorial_seen', 'true');
+        if (user?.id) {
+          window.localStorage.setItem(`viva360_tutorial_seen_${user.id}`, 'true');
+        }
         for (let i = 0; i < 100; i++) {
           window.localStorage.setItem(`viva360_tutorial_seen_${i}`, 'true');
           window.localStorage.setItem(`viva360_tutorial_seen_pro-${i}`, 'true');
@@ -81,8 +84,23 @@ export const test = base.extend<JourneyFixtures>({
         window.localStorage.setItem('viva360_tutorial_seen_mock-user-id', 'true');
       }, { user: mockUser, token: mockAuthToken });
 
-      // Navigate directly to the dashboard (skipping login)
-      await page.goto(dashboardUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      // Navigate directly to the dashboard (skipping login), with retry against flaky dev-server startup.
+      let lastError: unknown = null;
+      for (let attempt = 1; attempt <= 3; attempt += 1) {
+        try {
+          await page.goto(dashboardUrl, { waitUntil: 'domcontentloaded', timeout: 45000 });
+          await page.waitForURL((url) => url.pathname === dashboardUrl, { timeout: 10000 }).catch(() => undefined);
+          lastError = null;
+          break;
+        } catch (err) {
+          lastError = err;
+          if (attempt < 3) {
+            await page.goto('/', { waitUntil: 'commit', timeout: 15000 }).catch(() => undefined);
+            await page.waitForTimeout(800);
+          }
+        }
+      }
+      if (lastError) throw lastError;
 
       // Wait for page to stabilize
       await page.waitForTimeout(1000);

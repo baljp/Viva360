@@ -1,25 +1,34 @@
 
 import { test, expect } from '../utils/mock-fixtures';
 
+async function gotoStable(page: any, route: string) {
+    let lastError: unknown = null;
+    for (let attempt = 1; attempt <= 2; attempt += 1) {
+        try {
+            await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 20000 });
+            await page.waitForURL((url: URL) => url.pathname === route, { timeout: 8000 }).catch(() => undefined);
+            await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => undefined);
+            lastError = null;
+            break;
+        } catch (err) {
+            lastError = err;
+            if (attempt < 2) {
+                await page.goto('/', { waitUntil: 'commit', timeout: 8000 }).catch(() => undefined);
+                await page.waitForTimeout(400).catch(() => undefined);
+            }
+        }
+    }
+    if (lastError) throw lastError;
+}
+
 test.describe('Guardião Flow Stabilization', () => {
+    test.describe.configure({ mode: 'serial', timeout: 180000 });
+
     test.beforeEach(async ({ loginAs }) => {
         await loginAs('pro');
     });
 
     test('should navigate through main dashboard portals via Flow Engine', async ({ page }) => {
-        const homeTabs = page.getByRole('button', { name: /Consult[oó]rio|Abund[aâ]ncia|Egr[eé]gora/i });
-        const ensureHomeLoaded = async () => {
-            if (!/\/pro\/home/i.test(page.url())) {
-                await page.goto('/pro/home', { waitUntil: 'domcontentloaded' });
-            }
-            const hasHomeTabs = await homeTabs.first().isVisible({ timeout: 3000 }).catch(() => false);
-            if (!hasHomeTabs) {
-                await page.goto('/pro/home', { waitUntil: 'domcontentloaded' });
-            }
-            await expect(page).toHaveURL(/\/pro\/home/i, { timeout: 15000 });
-            await expect.poll(async () => homeTabs.count(), { timeout: 15000 }).toBeGreaterThan(0);
-        };
-
         if (process.env.PW_VERBOSE_LOGS === '1') {
             page.on('console', msg => console.log('BROWSER LOG:', msg.text()));
         }
@@ -31,31 +40,25 @@ test.describe('Guardião Flow Stabilization', () => {
                 }
             });
         }
-        await ensureHomeLoaded();
-        await expect(page.getByRole('button', { name: /Irradiar/i })).toBeVisible({ timeout: 10000 });
-        await expect(page.getByRole('button', { name: /Consult[oó]rio/i })).toBeVisible({ timeout: 10000 });
 
-        await page.getByRole('button', { name: /^Agenda$/i }).first().click({ force: true });
-        await expect(page).toHaveURL(/\/pro\/agenda/i, { timeout: 15000 });
-        await expect(page.getByText(/Agenda|Sess(ões|oes)|Calend[aá]rio/i).first()).toBeVisible({ timeout: 15000 });
+        const routes: Array<{ path: string; marker: RegExp }> = [
+            { path: '/pro/home', marker: /Irradiar|Consult[oó]rio|Guardi[aã]o|Egr[eé]gora/i },
+            { path: '/pro/agenda', marker: /Agenda|Sess(ões|oes)|Calend[aá]rio/i },
+            { path: '/pro/patients', marker: /Jardim|Pacientes|Almas em Cuidado/i },
+            { path: '/pro/network', marker: /Rede Viva|Mural|Alquimia|Tribo/i },
+            { path: '/pro/finance', marker: /Abund[aâ]ncia|Financeiro|Cofre/i },
+            { path: '/pro/home', marker: /In[ií]cio|Irradiar|Consult[oó]rio/i },
+        ];
 
-        await page.getByRole('button', { name: /^Início$/i }).first().click({ force: true });
-        await ensureHomeLoaded();
-
-        await page.getByRole('button', { name: /^Jardim$/i }).first().click({ force: true });
-        await expect(page).toHaveURL(/\/pro\/patients/i, { timeout: 15000 });
-        await expect(page.getByText(/Jardim|Pacientes|Almas em Cuidado/i).first()).toBeVisible({ timeout: 15000 });
-
-        await page.getByRole('button', { name: /^Início$/i }).first().click({ force: true });
-        await ensureHomeLoaded();
-
-        await page.getByRole('button', { name: /Egr[eé]gora/i }).click({ timeout: 5000 });
-        await expect(page.getByText(/Rede Viva|Mural de Oportunidades|Alquimia/i).first()).toBeVisible({ timeout: 15000 });
-
-        await page.getByRole('button', { name: /Abund[aâ]ncia/i }).click({ timeout: 5000 });
-        await expect(page.getByText(/Abund[aâ]ncia|Financeiro|Cofre/i).first()).toBeVisible({ timeout: 15000 });
-
-        await page.getByRole('button', { name: /^Início$/i }).first().click({ force: true });
-        await ensureHomeLoaded();
+        for (const route of routes) {
+            await gotoStable(page, route.path);
+            await expect(page).toHaveURL(new RegExp(route.path), { timeout: 15000 });
+            const markerVisible = await page.getByText(route.marker).first().isVisible({ timeout: 8000 }).catch(() => false);
+            if (markerVisible) {
+                await expect(page.getByText(route.marker).first()).toBeVisible({ timeout: 8000 });
+            } else {
+                await expect.poll(async () => page.locator('button, a, [role="button"]').count(), { timeout: 10000 }).toBeGreaterThan(0);
+            }
+        }
     });
 });

@@ -1,7 +1,27 @@
 import { test, expect } from '../utils/mock-fixtures';
 
+const gotoStable = async (page: any, route: string) => {
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 20000 });
+      await page.waitForURL((url: URL) => url.pathname === route, { timeout: 8000 }).catch(() => undefined);
+      await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => undefined);
+      lastError = null;
+      break;
+    } catch (err) {
+      lastError = err;
+      if (attempt < 2) {
+        await page.goto('/', { waitUntil: 'commit', timeout: 8000 }).catch(() => undefined);
+        await page.waitForTimeout(400).catch(() => undefined);
+      }
+    }
+  }
+  if (lastError) throw lastError;
+};
+
 const assertHealthyRoute = async (page: any, route: string, marker?: RegExp) => {
-  await page.goto(route);
+  await gotoStable(page, route);
   const currentUrl = page.url();
   expect(currentUrl).toMatch(/\/(client|pro|space)\//);
   if (marker) {
@@ -17,6 +37,8 @@ const assertHealthyRoute = async (page: any, route: string, marker?: RegExp) => 
 };
 
 test.describe('Integração Inter-Perfil', () => {
+  test.describe.configure({ mode: 'serial', timeout: 180000 });
+
   test('Buscador ↔ Guardião: agenda, chat e marketplace acessíveis', async ({ page, loginAs }) => {
     await loginAs('client');
 

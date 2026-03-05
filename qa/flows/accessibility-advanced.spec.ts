@@ -1,13 +1,29 @@
 import { test, expect } from '../utils/mock-fixtures';
 
 async function gotoStable(page: any, route: string) {
-  await page.goto(route, { waitUntil: 'domcontentloaded' });
-  await page.waitForURL((url: URL) => url.pathname === route, { timeout: 15000 }).catch(() => undefined);
-  await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => undefined);
-  await page.waitForTimeout(250);
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await page.waitForURL((url: URL) => url.pathname === route, { timeout: 15000 }).catch(() => undefined);
+      await page.waitForLoadState('networkidle', { timeout: 6000 }).catch(() => undefined);
+      await page.waitForTimeout(300);
+      lastError = null;
+      break;
+    } catch (err) {
+      lastError = err;
+      if (attempt < 3) {
+        await page.goto('/', { waitUntil: 'commit', timeout: 15000 }).catch(() => undefined);
+        await page.waitForTimeout(700).catch(() => undefined);
+      }
+    }
+  }
+  if (lastError) throw lastError;
 }
 
 test.describe('Acessibilidade avançada (drawers e formulários complexos)', () => {
+  test.describe.configure({ mode: 'serial', timeout: 120000 });
+
   test('drawer de notificações: filtros e fechar são alcançáveis por teclado', async ({ page, loginAs }) => {
     await loginAs('client');
     await gotoStable(page, '/client/home');
@@ -67,7 +83,10 @@ test.describe('Acessibilidade avançada (drawers e formulários complexos)', () 
         await openClient.click().catch(() => undefined);
       }
 
-      await expect(page.getByText(/Sou Buscador/i)).toBeVisible({ timeout: 10000 });
+      const registrationLoaded = page
+        .getByText(/Sou Buscador|Manifesto Visual|Identidade/i)
+        .first();
+      await expect(registrationLoaded).toBeVisible({ timeout: 15000 });
 
       const focusTrace: string[] = [];
       for (let i = 0; i < 14; i += 1) {

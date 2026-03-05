@@ -1,10 +1,24 @@
 import { test, expect } from '../utils/mock-fixtures';
 
 async function gotoStable(page: any, route: string) {
-  await page.goto(route, { waitUntil: 'domcontentloaded' });
-  await page.waitForURL((url: URL) => url.pathname === route, { timeout: 15000 }).catch(() => undefined);
-  await page.waitForLoadState('networkidle', { timeout: 4000 }).catch(() => undefined);
-  await page.waitForTimeout(250);
+  let lastError: unknown = null;
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    try {
+      await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 45000 });
+      await page.waitForURL((url: URL) => url.pathname === route, { timeout: 15000 }).catch(() => undefined);
+      await page.waitForLoadState('networkidle', { timeout: 6000 }).catch(() => undefined);
+      await page.waitForTimeout(300);
+      lastError = null;
+      break;
+    } catch (err) {
+      lastError = err;
+      if (attempt < 3) {
+        await page.goto('/', { waitUntil: 'commit', timeout: 15000 }).catch(() => undefined);
+        await page.waitForTimeout(700).catch(() => undefined);
+      }
+    }
+  }
+  if (lastError) throw lastError;
 }
 
 async function dismissDailyBlessingIfPresent(page: any) {
@@ -27,6 +41,8 @@ async function openOracleDialog(page: any) {
 }
 
 test.describe('Acessibilidade operacional (WCAG)', () => {
+  test.describe.configure({ mode: 'serial', timeout: 120000 });
+
   test('teclado: foco visível aparece no primeiro controle navegável', async ({ page, loginAs }) => {
     await loginAs('client');
     await gotoStable(page, '/client/home');
@@ -113,18 +129,17 @@ test.describe('Acessibilidade operacional (WCAG)', () => {
       await gotoStable(page, '/login');
       const currentPath = new URL(page.url()).pathname;
       test.skip(currentPath !== '/login', 'Ambiente de teste redirecionou para dashboard com sessão pré-existente');
-      const openLoginSheet = page.getByRole('button', { name: /já iniciei a jornada/i }).first();
-      if (await openLoginSheet.isVisible().catch(() => false)) {
-        await openLoginSheet.click().catch(() => undefined);
-        await page.waitForTimeout(250);
+      const emailLocator = page.locator('input[type="email"], input[name*="email" i], input[placeholder*="mail" i]').first();
+      if (!(await emailLocator.isVisible().catch(() => false))) {
+        const openLoginSheet = page.getByRole('button', { name: /já iniciei a jornada|entrar no fluxo/i }).first();
+        if (await openLoginSheet.isVisible().catch(() => false)) {
+          await openLoginSheet.click().catch(() => undefined);
+          await page.waitForTimeout(350);
+        }
       }
-      const emailVisible = await page
-        .locator('input[type="email"], input[name*="email" i], input[placeholder*="mail" i]')
-        .first()
-        .isVisible()
-        .catch(() => false);
+      const emailVisible = await emailLocator.isVisible().catch(() => false);
       const passwordVisible = await page
-        .locator('input[type="password"], input[name*="senha" i], input[placeholder*="senha" i]')
+        .locator('input[type="password"], input[name*="senha" i], input[placeholder*="senha" i], input[placeholder*="••••" i]')
         .first()
         .isVisible()
         .catch(() => false);

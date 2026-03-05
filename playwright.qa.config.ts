@@ -21,14 +21,14 @@ export default defineConfig({
      */
     timeout: 10000
   },
-  /* Run tests in files in parallel */
-  fullyParallel: true,
+  /* Prefer deterministic execution for QA stability in local/CI. */
+  fullyParallel: false,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* Allow override via PW_WORKERS; default to single worker to reduce flakiness. */
+  workers: Number(process.env.PW_WORKERS || '1'),
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html', { outputFolder: 'qa/reports/playwright-report' }],
