@@ -5,6 +5,7 @@ import { PortalView } from '../../../components/Common';
 import { OracleCardPremium } from '../../../src/components/OracleCardPremium';
 import { api } from '../../../services/api';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 type OracleHistoryItem = {
     drawId?: string;
@@ -38,7 +39,7 @@ export const OracleGrimoire: React.FC<{ user: User }> = ({ user }) => {
             setHistory(sorted);
             setIsLoading(false);
         }).catch(err => {
-            console.error("Failed to load oracles", err);
+            captureFrontendError(err, { view: 'OracleGrimoire', op: 'history' });
             setIsLoading(false);
         });
     }, []);

@@ -6,6 +6,7 @@ import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { useChat } from '../../../src/contexts/useChat';
 import { communityApi } from '../../../services/api/communityClient';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 interface ChatRoom {
   id: string;
@@ -75,7 +76,7 @@ export default function ChatListScreen() {
       const normalized = Array.isArray(data) ? (data as ApiChatRoomRow[]).map(mapApiRoom) : [];
       setRooms(normalized);
     } catch (err: unknown) {
-      console.error('[ChatListScreen] listRooms failed:', errorMessage(err));
+      captureFrontendError(err, { view: 'ChatListScreen', op: 'listRooms', message: errorMessage(err) });
       setReadIssue(buildReadFailureCopy(['chat'], isDegradedReadError(err)));
       setRooms([]);
     } finally {

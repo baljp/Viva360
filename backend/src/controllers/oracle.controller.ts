@@ -3,11 +3,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import prisma from '../lib/prisma';
 import { oracleService } from '../services/oracle.service';
 import { OracleResponseDTO } from '../../../types';
-import { AuthUser } from '../middleware/auth.middleware';
-
-type AuthenticatedRequest = Request & {
-    user?: AuthUser;
-};
+import type { AuthenticatedRequest } from '../types/request';
 
 type OracleCardView = {
     id: string;

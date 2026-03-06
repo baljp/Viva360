@@ -5,6 +5,7 @@ import { Search, ShoppingBag, Package, Star, RefreshCw } from 'lucide-react';
 import { commerceApi } from '../services/api/commerceClient';
 import { DegradedRetryNotice } from './Common';
 import { buildReadFailureCopy } from '../src/utils/readDegradedUX';
+import { captureFrontendError } from '../lib/frontendLogger';
 
 interface MarketplaceExplorerProps {
     onPurchase: (product: Product) => void;
@@ -30,7 +31,7 @@ export const MarketplaceExplorer: React.FC<MarketplaceExplorerProps> = React.mem
             setProducts(data);
             setReadIssue(null);
         } catch (error) {
-            console.error("Failed to load marketplace", error);
+            captureFrontendError(error, { component: 'MarketplaceExplorer', op: 'loadMarketplace' });
             setReadIssue(buildReadFailureCopy(['marketplace'], products.length > 0 || false));
         } finally {
             setIsLoading(false);

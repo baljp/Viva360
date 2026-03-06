@@ -5,6 +5,7 @@ import { Sparkles, Heart, Wind, Zap, Users, UserPlus, Search, Droplets, Loader2,
 import { BottomSheet, DynamicAvatar } from '../Common';
 import { api } from '../../services/api';
 import { useAppToast } from '../../src/contexts/AppToastContext';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 // --- USER AURA (GAMIFICADA) ---
 export const UserAura: React.FC<{ user: User }> = ({ user }) => {
@@ -368,7 +369,7 @@ export const GlobalMandala: React.FC<{ user: User, onUpdateUser: (u: User) => vo
                 if (navigator.vibrate) navigator.vibrate([10, 50, 10]);
             }
         } catch (e) {
-            console.error(e);
+            captureFrontendError(e, { component: 'SocialFeatureWidgets', op: 'syncVibration' });
         }
     };
 

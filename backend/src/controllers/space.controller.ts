@@ -6,6 +6,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
 import { isDbUnavailableError } from '../lib/dbReadFallback';
 import { isMockMode, mockAdapter, mockId, saveMockRoom } from '../services/mockAdapter';
+import type { AuthenticatedRequest } from '../types/request';
 
 // --- SCHEMAS ---
 const createRoomSchema = z.object({
@@ -18,14 +19,6 @@ const createInviteSchema = z.object({
   role: z.enum(['GUARDIAN', 'ADMIN', 'MEMBER']),
   uses: z.number().int().positive().default(1),
 });
-
-// --- HELPERS ---
-type AuthenticatedRequest = Request & {
-  user?: {
-    id?: string;
-    userId?: string;
-  };
-};
 
 type DecimalLike = number | string | { toString(): string } | null;
 

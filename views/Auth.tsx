@@ -5,7 +5,7 @@ import { Sparkles, ArrowRight, Mail, X, LogIn, Lock, Check, AlertCircle, FileWar
 import { request } from '../services/api/core';
 import { authApi } from '../services/api/authProxy';
 import { supabase, isMockMode, isDemoMode, envStatus } from '../lib/supabase';
-import { errorMessage as getErrorMessage } from '../lib/frontendLogger';
+import { captureFrontendError, errorMessage as getErrorMessage } from '../lib/frontendLogger';
 // Logo import removed
 
 interface AuthProps {
@@ -173,7 +173,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
             const user = await authApi.loginWithPassword(email, password);
             onSubmit(user);
         } catch (err: unknown) {
-            console.error(err);
+            captureFrontendError(err, { view: 'Auth', op: 'loginWithPassword' });
             let msg = asMessage(err, 'Erro ao sintonizar.');
 
             // Detect specific error types
@@ -206,7 +206,7 @@ const LoginForm: React.FC<{ onBack: () => void, onSubmit: (u: User) => void }> =
         } catch (err: unknown) {
             const msg = asMessage(err, '');
             if (msg !== 'REDIRECTING_TO_GOOGLE') {
-                console.error(err);
+                captureFrontendError(err, { view: 'Auth', op: 'loginWithGoogle' });
 
                 // Detect DNS/network errors
                 if (msg.includes('DNS') ||

@@ -7,6 +7,7 @@ import { gardenService } from '../../../services/gardenService';
 import { Calendar as CalendarIcon, Filter, Search } from 'lucide-react';
 import { SoulCard } from '../../../src/components/SoulCard';
 import { buildLocalImageKey } from '../../../src/utils/idbImageStore';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();
@@ -36,7 +37,7 @@ export const EmotionalHistory: React.FC<{ user: User }> = ({ user }) => {
             setSnaps(mapped);
             setIsLoading(false);
         }).catch(err => {
-            console.error("Evolution History Error:", err);
+            captureFrontendError(err, { view: 'EmotionalHistory', op: 'getEvolution' });
             setIsLoading(false);
         });
     }, []);

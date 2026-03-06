@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Share2, Instagram, Download, X } from 'lucide-react';
 import { dataUrlToBlob } from '../utils/dataUrl';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 interface OracleMessage {
     id: string;
@@ -195,7 +196,7 @@ export const OracleCard: React.FC<OracleCardProps> = ({ card, onClose }) => {
                 link.click();
             }
         } catch (e) {
-            console.error("Share failed", e);
+            captureFrontendError(e, { component: 'OracleCard', op: 'share' });
         } finally {
             setIsSharing(false);
         }

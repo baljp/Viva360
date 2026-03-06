@@ -12,6 +12,7 @@ import { listMockMetamorphosisEntries, saveMockMetamorphosisEntry } from '../ser
 import { AppError } from '../lib/AppError';
 import { supabaseAdmin } from '../services/supabase.service';
 import { AuthUser } from '../middleware/auth.middleware';
+import type { AuthenticatedRequest } from '../types/request';
 
 const normalizeMood = (input: string): Mood => {
     const value = String(input || '').trim().toLowerCase();
@@ -46,11 +47,6 @@ const buildDailyBlessingAction = (date: Date) => `DAILY_BLESSING_${date.toISOStr
 type BlessingFallbackResult =
     | { alreadyDone: true; lastCheckIn: Date | null }
     | { alreadyDone: false; user: Record<string, unknown>; reward: number; lastCheckIn: string };
-
-type AuthenticatedRequest = Request & {
-    user?: AuthUser;
-    requestId?: string;
-};
 
 type MetamorphosisEventPayload = {
     mood?: string;

@@ -1,4 +1,6 @@
 
+import { captureFrontendError } from '../../lib/frontendLogger';
+
 /**
  * Preloads the major view containers for a specific role.
  * This should be called as soon as the user role is determined (e.g., after login or session init).
@@ -27,7 +29,7 @@ export const preloadRoleViews = (role: string) => {
     const loader = views[roleUpper];
     if (loader) {
         schedule(() => {
-            loader().catch(err => console.error(`[FlowLoader] Preload failed for ${roleUpper}`, err));
+            loader().catch(err => captureFrontendError(err, { util: 'loaderUtils', role: roleUpper }));
         }, 600);
     }
 

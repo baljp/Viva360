@@ -6,6 +6,7 @@
  * It will log warnings to the console with the element details.
  * Only active in non-production environments.
  */
+import { captureFrontendMessage } from '../../lib/frontendLogger';
 
 const INTERACTIVE_TAGS = new Set(['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA', 'LABEL']);
 const INTERACTIVE_ROLES = new Set(['button', 'link', 'tab', 'menuitem', 'checkbox', 'radio', 'switch']);
@@ -80,10 +81,13 @@ function handleClick(e: MouseEvent) {
             prev.count++;
             prev.lastTime = now;
             if (prev.count >= 2) {
-                console.warn(
-                    `💀 [DeathClick] Element clicked ${prev.count}x with no handler:\n  ${descriptor}\n`,
-                    el
-                );
+                captureFrontendMessage('death_click_detected', {
+                    util: 'deathClickTracker',
+                    count: prev.count,
+                    descriptor,
+                    tagName: el.tagName,
+                    dataTestId: el.getAttribute('data-testid'),
+                });
             }
         } else {
             clickHistory.set(descriptor, { count: 1, lastTime: now });

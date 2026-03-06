@@ -1,6 +1,7 @@
 // ─── services/api/sounds.ts ────────────────────────────────────────────────────
 // Enterprise Sound Design Layer (Immersive UX 10/10)
 // ─────────────────────────────────────────────────────────────────────────────
+import { captureFrontendMessage } from '../../lib/frontendLogger';
 
 class SoundManager {
     private audioContext: AudioContext | null = null;
@@ -55,7 +56,10 @@ class SoundManager {
                 osc.stop(now + 0.2);
             }
         } catch (e) {
-            console.debug('[SOUND] Audio context blocked or unavailable', e);
+            captureFrontendMessage('sound_audio_context_unavailable', {
+                service: 'sounds',
+                reason: e instanceof Error ? e.message : String(e),
+            });
         }
     }
 }

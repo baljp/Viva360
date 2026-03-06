@@ -6,6 +6,7 @@ import { PortalView, DegradedRetryNotice } from '../../../components/Common';
 import { hubApi } from '../../../services/api/hubClient';
 import { roundTripTelemetry } from '../../../lib/telemetry';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 type Vacancy = {
   id: string;
@@ -67,7 +68,7 @@ export default function VagasList() {
       const data = await hubApi.spaces.getVacancies({ strict: true });
       setVacancies(mapVacancies(data));
     } catch (err: unknown) {
-      console.warn('[VagasList] Failed to load vacancies:', errorMessage(err));
+      captureFrontendError(err, { view: 'VagasList', op: 'loadVacancies', message: errorMessage(err) });
       setVacancies([]);
       setReadIssue(buildReadFailureCopy(['vacancies'], isDegradedReadError(err)));
     } finally {

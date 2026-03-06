@@ -4,7 +4,7 @@ import { supabaseAdmin } from '../services/supabase.service';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { getMockProfile, isMockMode, saveMockProfile } from '../services/mockAdapter';
-import { AuthUser } from '../middleware/auth.middleware';
+import type { AuthenticatedRequest } from '../types/request';
 
 const checkInSchema = z.object({
     reward: z.number().int().min(1).max(1500).optional()
@@ -76,11 +76,6 @@ const asQuestArray = (value: unknown) => {
 const asAchievementArray = (value: unknown) => {
     const parsed = z.array(achievementSchema).safeParse(value);
     return parsed.success ? parsed.data : undefined;
-};
-
-type AuthenticatedRequest = Request & {
-    user?: AuthUser;
-    requestId?: string;
 };
 
 type MoodEventPayload = {

@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 interface Props {
   children: ReactNode;
@@ -21,7 +22,10 @@ export class GlobalErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("[GlobalErrorBoundary] Uncaught error:", error, errorInfo);
+    captureFrontendError(error, {
+      component: 'GlobalErrorBoundary',
+      reactComponentStack: errorInfo.componentStack,
+    });
   }
 
   private handleReset = () => {

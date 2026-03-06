@@ -7,6 +7,7 @@ import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { request } from '../../services/api/core';
 import { financeApi } from '../../services/api/financeClient';
 import { buildReadFailureCopy, isDegradedReadError } from '../../src/utils/readDegradedUX';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions: propTransactions = [] }) => {
     const { go, notify } = useGuardiaoFlow();
@@ -22,7 +23,7 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
             const list = await request('/finance/transactions', { purpose: 'pro-finance', timeoutMs: 8000, retries: 0 });
             setTransactions(list as Transaction[]);
         } catch (err) {
-            console.warn('[ProFinance] Failed to load transactions:', err);
+            captureFrontendError(err, { view: 'ProFinance', op: 'loadTransactions' });
             setReadIssue(buildReadFailureCopy(['finance'], isDegradedReadError(err)));
             setTransactions([]);
         } finally {

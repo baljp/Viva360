@@ -72,7 +72,7 @@ self.addEventListener('pushsubscriptionchange', event => {
           newSubscription: JSON.parse(JSON.stringify(newSub)),
         }));
       } catch (e) {
-        console.warn('[SW] pushsubscriptionchange error:', e);
+        // Best-effort flow: tabs will re-register on next session if rotation fails.
       }
     })()
   );

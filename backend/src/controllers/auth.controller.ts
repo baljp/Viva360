@@ -13,28 +13,27 @@ import {
   setAuthSessionCookie,
 } from '../lib/authCookie';
 import { getMockProfile } from '../services/mockAdapter';
+import type { AuthenticatedRequest } from '../types/request';
 // Use relative path to avoid rootDir issues in backend tsc
 import { SessionDTO } from '../../../types';
 type SessionRole = SessionDTO['user']['role'];
-type AuthenticatedRequest = Request & {
-  requestId?: string;
-  user?: {
-    id?: string;
-    userId?: string;
-    email?: string;
-    role?: SessionRole;
-    activeRole?: SessionRole;
-    roles?: SessionRole[];
-  };
+type AuthSessionUser = {
+  id?: string;
+  userId?: string;
+  email?: string;
+  role?: SessionRole;
+  activeRole?: SessionRole;
+  roles?: SessionRole[];
 };
+type AuthSessionRequest = AuthenticatedRequest<AuthSessionUser>;
 type AuthRegisterResult = {
   user: { id: string; role: SessionRole };
   session?: { access_token?: string };
   access_token?: string;
 };
 
-const getRequestId = (req: Request) => (req as AuthenticatedRequest).requestId;
-const getRequestUser = (req: Request) => (req as AuthenticatedRequest).user;
+const getRequestId = (req: Request) => (req as AuthSessionRequest).requestId;
+const getRequestUser = (req: Request) => (req as AuthSessionRequest).user;
 const getRequestUserId = (req: Request) => String(getRequestUser(req)?.userId || getRequestUser(req)?.id || '').trim();
 
 const MOCK_TEST_PASSWORD = '123456';

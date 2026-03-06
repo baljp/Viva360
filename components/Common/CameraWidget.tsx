@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { Camera, ImageIcon } from 'lucide-react';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 export type CameraCaptureResult = {
   fullBlob: Blob;
@@ -41,7 +42,7 @@ export const CameraWidget: React.FC<{
             setCamError(null);
         })
         .catch(err => {
-            console.error("Camera error:", err);
+            captureFrontendError(err, { component: 'CameraWidget', op: 'getUserMedia' });
             setCamError("Não foi possível acessar a câmera. Verifique as permissões ou use o upload.");
         }); 
 
@@ -195,7 +196,7 @@ export const CameraWidget: React.FC<{
 
       onCapture({ fullBlob, thumbDataUrl, width: w, height: h });
     } catch (e) {
-      console.error('[CameraWidget] capture failed', e);
+      captureFrontendError(e, { component: 'CameraWidget', op: 'capture' });
       setCamError('Não foi possível capturar a foto. Tente novamente ou use o upload.');
     } finally {
       setIsCapturing(false);

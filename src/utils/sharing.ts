@@ -3,6 +3,7 @@
  * Advanced Sharing Utility for Viva360
  * Generates high-quality, non-distorted canvas images for IG Stories or WhatsApp.
  */
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 export type SharePlatform = 'generic' | 'whatsapp' | 'instagram';
 export type ShareFormat = 'story' | 'feed';
@@ -216,7 +217,7 @@ export const shareToSocial = async (blob: Blob, input: string | ShareRequest, fa
             await navigator.share(sharePayload);
             return true;
         } catch (error) {
-            console.error('WebShare failed', error);
+            captureFrontendError(error, { util: 'sharing', op: 'navigator.share' });
         }
     }
 

@@ -6,6 +6,7 @@ import { PortalView, BottomSheet, InteractiveButton, DegradedRetryNotice } from 
 import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
 import { commerceApi } from '../../../services/api/commerceClient';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 type MarketplaceListingApi = {
     id?: string | number;
@@ -89,7 +90,7 @@ export const ProTribe: React.FC<{ user: Professional }> = ({ user }) => {
                 setGlobalListings(allListings.filter((l) => String(l.owner_id) && String(l.owner_id) !== String(user.id)));
             }
         } catch (e: unknown) {
-            console.warn('[ProTribe] Failed to load escambo listings:', errorMessage(e));
+            captureFrontendError(e, { view: 'ProTribe', op: 'loadEscambo', message: errorMessage(e) });
             if (!cancelled.value) {
                 setReadIssue(buildReadFailureCopy(['marketplace'], isDegradedReadError(e)));
                 setGlobalListings([]);

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
 import prisma from '../lib/prisma';
-import { AuthUser } from '../middleware/auth.middleware';
+import type { AuthenticatedRequest } from '../types/request';
 
 type RoutineStep = {
     id: string;
@@ -10,10 +10,6 @@ type RoutineStep = {
     duration: number;
     icon: string;
     completed?: boolean;
-};
-
-type AuthenticatedRequest = Request & {
-    user?: AuthUser;
 };
 
 type RoutineInputStep = Partial<RoutineStep>;

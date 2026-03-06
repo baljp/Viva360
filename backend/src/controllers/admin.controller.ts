@@ -4,14 +4,8 @@ import { AuditService } from '../services/audit.service';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
 import { handleDbReadFallback } from '../lib/dbReadFallback';
-import { isMockMode, mockAdapter } from '../services/mockAdapter';
-
-type AuthenticatedRequest = Request & {
-    user?: {
-        id?: string;
-        userId?: string;
-    };
-};
+import { mockAdapter } from '../services/mockAdapter';
+import type { AuthenticatedRequest } from '../types/request';
 
 const getAdminId = (req: Request) => {
     const authReq = req as AuthenticatedRequest;

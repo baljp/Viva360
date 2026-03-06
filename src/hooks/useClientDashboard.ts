@@ -140,7 +140,7 @@ export const useClientDashboard = (
         try {
             await idbImages.put(localKey, capture.fullBlob);
         } catch (e) {
-            console.warn('[useClientDashboard] idbImages.put failed', e);
+            captureFrontendError(e, { hook: 'useClientDashboard', op: 'idbImages.put', localKey });
         }
 
         const newSnap: DailyRitualSnap = {
