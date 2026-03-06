@@ -4,6 +4,7 @@ import { supabaseAdmin } from '../services/supabase.service';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { getMockProfile, isMockMode, saveMockProfile } from '../services/mockAdapter';
+import { AuthUser } from '../middleware/auth.middleware';
 
 const checkInSchema = z.object({
     reward: z.number().int().min(1).max(1500).optional()
@@ -45,13 +46,13 @@ const userUpdateSchema = z.object({
     plantStage: z.string().optional(),
     plantXp: z.number().optional(),
     plantHealth: z.number().min(0).max(100).optional(),
-    snaps: z.any().optional(),
+    snaps: z.unknown().optional(),
     dailyQuests: z.array(dailyQuestSchema).max(30).optional(),
     achievements: z.array(achievementSchema).max(200).optional(),
 });
 
 const isMissingTableOrColumnError = (error: unknown) => {
-    const code = String((error as any)?.code || '');
+    const code = String((error as { code?: string })?.code || '');
     return code === 'P2021' || code === 'P2022';
 };
 
@@ -77,10 +78,27 @@ const asAchievementArray = (value: unknown) => {
     return parsed.success ? parsed.data : undefined;
 };
 
+type AuthenticatedRequest = Request & {
+    user?: AuthUser;
+    requestId?: string;
+};
+
+type MoodEventPayload = {
+    mood?: string;
+    photoHash?: string;
+    hash?: string;
+    photoThumb?: string;
+    thumb?: string;
+    image?: string;
+    reflection?: string;
+    quote?: string;
+};
+
 export const checkIn = asyncHandler(async (req: Request, res: Response) => {
+    const request = req as AuthenticatedRequest;
     const parsed = checkInSchema.parse(req.body || {});
     const reward = parsed.reward ?? 50;
-    const userId = String(req.user?.userId || req.user?.id || '').trim();
+    const userId = String(request.user?.userId || request.user?.id || '').trim();
     if (!userId) {
         return res.status(401).json({ error: 'Unauthorized check-in', code: 'UNAUTHORIZED_CHECKIN' });
     }
@@ -102,7 +120,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     const yesterday = new Date(now);
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
     const yesterdayAction = `DAILY_BLESSING_${yesterday.toISOString().slice(0, 10)}`;
-    const requestId = String((req as any).requestId || '');
+    const requestId = String(request.requestId || '');
 
     const uniqueWhere = {
         entity_type_entity_id_action_actor_id: {
@@ -140,8 +158,8 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
             },
             select: { id: true },
         });
-    } catch (createError: any) {
-        if (createError?.code === 'P2002') {
+    } catch (createError) {
+        if ((createError as { code?: string })?.code === 'P2002') {
             const existing = await prisma.interactionReceipt.findUnique({
                 where: uniqueWhere,
                 select: { created_at: true },
@@ -207,8 +225,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
                 },
             });
         }
-
-        hadYesterday = hadYesterdayEvent as any;
+        hadYesterday = hadYesterdayEvent;
     }
 
     // Apply Reward
@@ -350,7 +367,7 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
     ]);
 
     const snaps = (events || []).map((event) => {
-        const payload = event.payload as any;
+        const payload = (event.payload as MoodEventPayload | null) || {};
         const photoHash = String(payload?.photoHash || payload?.hash || '').trim();
         const stableId = photoHash || String(event.id);
         return {
@@ -629,7 +646,7 @@ export const getEvolutionMetrics = asyncHandler(async (req: Request, res: Respon
         supabaseAdmin.from('profiles').select('streak, karma').eq('id', id).single()
     ]);
 
-    const snaps = (events || []).map(e => e.payload as any);
+    const snaps = (events || []).map((event) => (event.payload as MoodEventPayload | null) || {});
     const positiveMoods = ['happy', 'grateful', 'peaceful', 'excited', '😄', '😊', '😌', 'feliz', 'calmo', 'grato', 'motivado', 'vibrante', 'sereno', 'serena', 'focado', 'focada', 'grata'];
 
     const positivity = snaps.length > 0

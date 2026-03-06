@@ -498,6 +498,20 @@ export const listMockFinanceTransactions = (userId: string) =>
 export const getMockProfile = (userId: string) =>
   mockAdapter.profiles.get(String(userId)) || null;
 
+export const getMockProfileByEmail = (email: string) => {
+  const normalizedEmail = String(email || '').trim().toLowerCase();
+  if (!normalizedEmail) return null;
+  return [...mockAdapter.profiles.values()].find((profile) => String(profile.email || '').trim().toLowerCase() === normalizedEmail) || null;
+};
+
+export const listMockProfiles = (role?: string) => {
+  const normalizedRole = String(role || '').trim().toUpperCase();
+  return [...mockAdapter.profiles.values()].filter((profile) => {
+    if (!normalizedRole) return true;
+    return String(profile.active_role || profile.role || '').trim().toUpperCase() === normalizedRole;
+  });
+};
+
 export const saveMockProfile = (profile: MockProfile) => {
   mockAdapter.profiles.set(String(profile.id), profile);
   return profile;

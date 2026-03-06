@@ -3,6 +3,19 @@ import { asyncHandler } from '../middleware/async.middleware';
 import prisma from '../lib/prisma';
 import { oracleService } from '../services/oracle.service';
 import { OracleResponseDTO } from '../../../types';
+import { AuthUser } from '../middleware/auth.middleware';
+
+type AuthenticatedRequest = Request & {
+    user?: AuthUser;
+};
+
+type OracleCardView = {
+    id: string;
+    text?: string | null;
+    message?: string | null;
+    element?: string | null;
+    category?: string | null;
+};
 
 const getUserContext = async (userId: string, moodBody: string) => {
     const profile = await prisma.profile.findUnique({
@@ -21,7 +34,8 @@ const getUserContext = async (userId: string, moodBody: string) => {
 };
 
 export const drawCard = asyncHandler(async (req: Request, res: Response) => {
-    const userId = String((req as any).user?.userId || (req as any).user?.id || '').trim();
+    const request = req as AuthenticatedRequest;
+    const userId = String(request.user?.userId || request.user?.id || '').trim();
     if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -39,7 +53,7 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
         card: {
             id: String(card.id),
             name: 'Oráculo Viva360',
-            insight: String((card as any).text || (card as any).message || ''),
+            insight: String((card as OracleCardView).text || (card as OracleCardView).message || ''),
             element: String(card.element || ''),
             intensity: 'Média',
             category: String(card.category || '')
@@ -52,7 +66,8 @@ export const drawCard = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getHistory = asyncHandler(async (req: Request, res: Response) => {
-    const userId = String((req as any).user?.userId || (req as any).user?.id || '').trim();
+    const request = req as AuthenticatedRequest;
+    const userId = String(request.user?.userId || request.user?.id || '').trim();
     if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -74,7 +89,8 @@ export const getHistory = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getToday = asyncHandler(async (req: Request, res: Response) => {
-    const userId = String((req as any).user?.userId || (req as any).user?.id || '').trim();
+    const request = req as AuthenticatedRequest;
+    const userId = String(request.user?.userId || request.user?.id || '').trim();
     if (!userId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -88,7 +104,7 @@ export const getToday = asyncHandler(async (req: Request, res: Response) => {
         card: {
             id: card.id,
             name: 'Guia Diário',
-            insight: (card as any).text || (card as any).message,
+            insight: (card as OracleCardView).text || (card as OracleCardView).message,
             element: card.element
         }
     });

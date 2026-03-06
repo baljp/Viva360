@@ -9,30 +9,44 @@ const QUEUE_NAME = 'checkout-queue';
 const isServerless = !!(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY);
 const isMock = process.env.MOCK_MODE === 'true' || isServerless || !isRedisEnabled;
 
+type MockQueueJob = {
+  id: string;
+  data: unknown;
+};
+
+type QueueLike = {
+  add: (name: string, data: unknown) => Promise<MockQueueJob>;
+};
+
+type CheckoutJobData = {
+  amount: number;
+  description?: string;
+  user_id?: string;
+  receiver_id?: string;
+};
+
+const createMockQueue = (prefix: string): QueueLike => ({
+  add: async (_name: string, data: unknown) => ({ id: `${prefix}_${Date.now()}`, data }),
+});
+
 if (isServerless) {
     logger.info('queue.serverless_disabled');
 }
 
 export const checkoutQueue = isMock ? 
-  { 
-    add: async (name: string, data: unknown) => ({ id: `mock_job_${Date.now()}`, data }) 
-  } as any : 
+  createMockQueue('mock_job') :
   new Queue(QUEUE_NAME, {
     connection: redisConnection,
   });
 
 export const notificationQueue = isMock ?
-  {
-    add: async (name: string, data: unknown) => ({ id: `mock_notif_${Date.now()}`, data })
-  } as any :
+  createMockQueue('mock_notif') :
   new Queue('notification-queue', {
     connection: redisConnection,
   });
 
 export const logsQueue = isMock ?
-  {
-    add: async (name: string, data: unknown) => ({ id: `mock_log_${Date.now()}`, data })
-  } as any :
+  createMockQueue('mock_log') :
   new Queue('logs-queue', {
     connection: redisConnection,
   });
@@ -42,7 +56,7 @@ if (!isMock && isRedisEnabled) {
     const worker = new Worker(QUEUE_NAME, async (job) => {
     logger.info('queue.job_started', { jobId: job.id, queue: QUEUE_NAME, data: job.data });
     
-    const { amount, description, user_id, receiver_id } = job.data;
+    const { amount, description, receiver_id } = job.data as CheckoutJobData;
 
     try {
         const { data, error } = await supabaseAdmin.rpc('process_payment', {
@@ -55,7 +69,7 @@ if (!isMock && isRedisEnabled) {
         logger.info('queue.job_completed', { jobId: job.id, queue: QUEUE_NAME, result: data });
         return data;
 
-    } catch (error: any) {
+    } catch (error) {
         logger.error('queue.job_failed', { jobId: job.id, queue: QUEUE_NAME, error });
         throw error;
     }

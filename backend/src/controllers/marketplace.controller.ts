@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { marketplaceService } from '../services/marketplace.service';
 import prisma from '../lib/prisma';
-import { isMockMode, mockId, mockProductResponse, saveMockMarketplaceProduct, listMockMarketplaceProducts } from '../services/mockAdapter';
+import { isMockMode, mockCheckoutResult, mockId, mockProductResponse, saveMockFinanceTransaction, saveMockMarketplaceProduct, listMockMarketplaceProducts } from '../services/mockAdapter';
 import { handleDbReadFallback, isDbUnavailableError } from '../lib/dbReadFallback';
 
 export const createProduct = asyncHandler(async (req: Request, res: Response) => {
@@ -128,13 +128,34 @@ export const deleteProduct = asyncHandler(async (req: Request, res: Response) =>
 export const purchaseProduct = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
   const { product_id, amount, description } = req.body;
+  try {
+    const transaction = await marketplaceService.purchaseProduct({
+      product_id,
+      amount,
+      description,
+      user_id: userId
+    });
 
-  const transaction = await marketplaceService.purchaseProduct({
-    product_id,
-    amount,
-    description,
-    user_id: userId
-  });
-
-  return res.json(transaction);
+    return res.json(transaction);
+  } catch (error) {
+    if (isMockMode() && isDbUnavailableError(error)) {
+      const mockResult = mockCheckoutResult({
+        userId,
+        amount: Number(amount || 0),
+        description: String(description || `Purchase: ${product_id}`),
+        items: [{ id: String(product_id || 'compat_product'), price: Number(amount || 0), type: 'marketplace' }],
+      });
+      saveMockFinanceTransaction({
+        id: mockResult.id,
+        user_id: String(userId || ''),
+        type: 'expense',
+        amount: Number(mockResult.amount || 0),
+        description: String(mockResult.description || ''),
+        status: String(mockResult.status || 'completed'),
+        date: String(mockResult.created_at || new Date().toISOString()),
+      });
+      return res.json(mockResult);
+    }
+    throw error;
+  }
 });

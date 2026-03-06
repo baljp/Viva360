@@ -1,8 +1,10 @@
+import { AuditEvent, Prisma } from '@prisma/client';
 import prisma from '../lib/prisma';
 import { logger } from '../lib/logger';
 
 const REDACTED = '[REDACTED]';
 const sensitiveKeyPattern = /(password|secret|token|authorization|cookie|jwt|email|phone|cpf|ssn|content|note|anamnesis|record)/i;
+type SanitizedJson = string | number | boolean | null | SanitizedJson[] | { [key: string]: SanitizedJson };
 
 const sanitizeText = (input?: string) => {
   const text = String(input || '');
@@ -13,22 +15,26 @@ const sanitizeText = (input?: string) => {
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, REDACTED);
 };
 
-const sanitizePayload = (input: unknown, depth = 0): unknown => {
+const sanitizePayload = (input: unknown, depth = 0): SanitizedJson => {
   if (depth > 4) return REDACTED;
-  if (input == null) return input;
+  if (input == null) return null;
   if (typeof input === 'string') return sanitizeText(input);
+  if (typeof input === 'number' || typeof input === 'boolean') return input;
   if (Array.isArray(input)) return input.map((item) => sanitizePayload(item, depth + 1));
   if (typeof input === 'object') {
     const value = input as Record<string, unknown>;
-    const next: Record<string, unknown> = {};
+    const next: Record<string, SanitizedJson> = {};
     Object.keys(value).forEach((key) => {
       if (sensitiveKeyPattern.test(key)) { next[key] = REDACTED; return; }
       next[key] = sanitizePayload(value[key], depth + 1);
     });
     return next;
   }
-  return input;
+  return String(input);
 };
+
+const extractErrorMessage = (error: unknown) => (error as { message?: string })?.message;
+const toInputJsonValue = (input: SanitizedJson): Prisma.InputJsonValue => input as Prisma.InputJsonValue;
 
 export class AuditService {
   static async logAccess(userId: string, resource: string, action: string, status: 'SUCCESS' | 'FAILURE' = 'SUCCESS', details?: string) {
@@ -40,11 +46,11 @@ export class AuditService {
           action,
           entity_type: 'ACCESS',
           entity_id: resource,
-          payload: { status, details: sanitizedDetails } as any,
+          payload: { status, details: sanitizedDetails },
         },
       });
     } catch (e) {
-      logger.warn('audit.logAccess_fallback', { userId, action, resource, status, error: (e as any)?.message });
+      logger.warn('audit.logAccess_fallback', { userId, action, resource, status, error: extractErrorMessage(e) });
     }
   }
 
@@ -57,7 +63,7 @@ export class AuditService {
           action,
           entity_type: entityType,
           entity_id: entityId,
-          payload: sanitizedPayload as any,
+          payload: toInputJsonValue(sanitizedPayload),
         },
       });
     } catch (e) {
@@ -65,7 +71,7 @@ export class AuditService {
     }
   }
 
-  async getEventsForEntity(entityType: string, entityId: string, limit: number = 50): Promise<any[]> {
+  async getEventsForEntity(entityType: string, entityId: string, limit: number = 50): Promise<AuditEvent[]> {
     try {
       return await prisma.auditEvent.findMany({
         where: { entity_type: entityType, entity_id: entityId },
@@ -78,7 +84,7 @@ export class AuditService {
     }
   }
 
-  async getEventsByActor(actorId: string, limit: number = 50): Promise<any[]> {
+  async getEventsByActor(actorId: string, limit: number = 50): Promise<AuditEvent[]> {
     try {
       return await prisma.auditEvent.findMany({
         where: { actor_id: actorId },

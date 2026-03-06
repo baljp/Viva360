@@ -14,11 +14,17 @@ type RateLimiterConfig = {
     bypassLocalDev?: boolean;
 };
 
+type RedisCounter = {
+    incr: (key: string) => Promise<number>;
+    expire: (key: string, seconds: number) => Promise<number>;
+};
+
 const localBuckets = new Map<string, LocalBucket>();
+const redisCounter = redisConnection as RedisCounter | null;
 const useDistributedRedis = String(process.env.RATE_LIMIT_BACKEND || '').toLowerCase() !== 'memory'
     && isRedisEnabled
-    && typeof (redisConnection as any)?.incr === 'function'
-    && typeof (redisConnection as any)?.expire === 'function';
+    && typeof redisCounter?.incr === 'function'
+    && typeof redisCounter?.expire === 'function';
 
 const getLocalCount = (key: string, waitWindowSeconds: number) => {
     const now = Date.now();
@@ -64,10 +70,10 @@ export const createRateLimiter = (config: RateLimiterConfig) => {
 
         try {
             if (useDistributedRedis) {
-                const current = await (redisConnection as any).incr(key);
+                const current = await redisCounter!.incr(key);
 
                 if (current === 1) {
-                    await (redisConnection as any).expire(key, config.windowSeconds);
+                    await redisCounter!.expire(key, config.windowSeconds);
                 }
 
                 const resetAtMs = Date.now() + config.windowSeconds * 1000;

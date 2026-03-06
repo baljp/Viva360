@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
 import prisma from '../lib/prisma';
+import { AuthUser } from '../middleware/auth.middleware';
 
 type RoutineStep = {
     id: string;
@@ -10,6 +11,12 @@ type RoutineStep = {
     icon: string;
     completed?: boolean;
 };
+
+type AuthenticatedRequest = Request & {
+    user?: AuthUser;
+};
+
+type RoutineInputStep = Partial<RoutineStep>;
 
 const DEFAULT_ROUTINES: Record<string, RoutineStep[]> = {
     morning: [
@@ -23,7 +30,8 @@ const DEFAULT_ROUTINES: Record<string, RoutineStep[]> = {
 };
 
 export const getRoutine = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
+    const request = req as AuthenticatedRequest;
+    const userId = request.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthenticated' });
 
     const routineType = ((req.query.type as string) || req.params.period || 'morning').toLowerCase();
@@ -41,7 +49,8 @@ export const getRoutine = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const saveRoutine = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
+    const request = req as AuthenticatedRequest;
+    const userId = request.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthenticated' });
 
     const { type, period, steps, data } = req.body || {};
@@ -52,7 +61,7 @@ export const saveRoutine = asyncHandler(async (req: Request, res: Response) => {
         return res.status(400).json({ error: 'Missing data' });
     }
 
-    const sanitizedSteps = routineSteps.map((step: any, idx: number) => ({
+    const sanitizedSteps = routineSteps.map((step: RoutineInputStep, idx: number) => ({
         id: String(step?.id || `${idx + 1}`),
         title: String(step?.title || `Ritual ${idx + 1}`),
         duration: Number(step?.duration || 5),
@@ -71,7 +80,8 @@ export const saveRoutine = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const toggleRoutine = asyncHandler(async (req: Request, res: Response) => {
-    const userId = (req as any).user?.userId;
+    const request = req as AuthenticatedRequest;
+    const userId = request.user?.userId;
     if (!userId) return res.status(401).json({ error: 'Unauthenticated' });
 
     const { period, id } = req.params;

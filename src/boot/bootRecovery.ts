@@ -9,6 +9,19 @@ type RecoveryReason =
 const RECOVERY_ATTEMPTS_KEY = 'viva360.boot_recovery.attempts';
 const RECOVERY_MAX_ATTEMPTS = 3;
 
+type BootRecoveryWindow = Window & {
+  __VIVA360_MOUNTED__?: boolean;
+};
+
+type AssetErrorEvent = Event & {
+  message?: string;
+  target?: (EventTarget & {
+    src?: string;
+    href?: string;
+    tagName?: string;
+  }) | null;
+};
+
 function getRecoveryAttempts(): number {
   try {
     const raw = sessionStorage.getItem(RECOVERY_ATTEMPTS_KEY) || '0';
@@ -94,13 +107,15 @@ function isLikelyChunkLoadFailure(message: string): boolean {
 }
 
 export function installBootRecovery(): void {
+  const bootWindow = window as BootRecoveryWindow;
+
   // 1) Catch typical chunk-load failures (usually stale SW cache after deploy).
   window.addEventListener('error', (event: Event) => {
     // Script load errors may come via event.target (HTMLScriptElement)
-    const anyEvent = event as any;
-    const msg: string = String(anyEvent?.message || '');
+    const assetEvent = event as AssetErrorEvent;
+    const msg = String(assetEvent.message || '');
 
-    const target = anyEvent?.target;
+    const target = assetEvent.target;
     const src: string | undefined = target?.src;
     const href: string | undefined = target?.href;
     const tagName = String(target?.tagName || '').toUpperCase();
@@ -141,7 +156,7 @@ export function installBootRecovery(): void {
   // 2) Watchdog: if React never mounts, offer a recovery reload.
   // Avoid being aggressive: this only triggers once per tab-session.
   window.setTimeout(() => {
-    const mounted = (window as any).__VIVA360_MOUNTED__ === true;
+    const mounted = bootWindow.__VIVA360_MOUNTED__ === true;
     if (!mounted) {
       void recover('boot_timeout');
     }
@@ -152,7 +167,7 @@ export function installBootRecovery(): void {
   const runCssSanityCheck = () => {
     // Small delay lets the stylesheet load + React mount settle.
     window.setTimeout(() => {
-      const mounted = (window as any).__VIVA360_MOUNTED__ === true;
+      const mounted = bootWindow.__VIVA360_MOUNTED__ === true;
       if (!mounted) return;
       void (async () => {
         if (await hasCssIntegrityProblem()) {
@@ -166,7 +181,7 @@ export function installBootRecovery(): void {
 
     // Safari/slow network guard: second pass catches late stylesheet failures after initial mount.
     window.setTimeout(() => {
-      const mounted = (window as any).__VIVA360_MOUNTED__ === true;
+      const mounted = bootWindow.__VIVA360_MOUNTED__ === true;
       if (!mounted) return;
       void (async () => {
         if (await hasCssIntegrityProblem()) {

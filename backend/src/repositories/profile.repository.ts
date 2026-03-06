@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '../services/supabase.service';
 import prisma from '../lib/prisma';
+import { getMockProfile, getMockProfileByEmail, isMockMode, listMockProfiles, saveMockProfile } from '../services/mockAdapter';
 
 export interface UpdateProfileData {
     name?: string;
@@ -10,6 +11,10 @@ export interface UpdateProfileData {
 
 export class ProfileRepository {
     async findById(id: string) {
+        if (isMockMode()) {
+            return getMockProfile(id);
+        }
+
         const { data, error } = await supabaseAdmin
             .from('profiles')
             .select('*')
@@ -27,6 +32,10 @@ export class ProfileRepository {
     async findByEmail(email: string) {
         const normalizedEmail = String(email || '').trim().toLowerCase();
         if (!normalizedEmail) return null;
+
+        if (isMockMode()) {
+            return getMockProfileByEmail(normalizedEmail);
+        }
 
         // Prefer profile.email when present, but do a case-insensitive match to avoid
         // "email exists but not found" issues due to casing differences.
@@ -52,6 +61,18 @@ export class ProfileRepository {
     }
 
     async update(id: string, updates: UpdateProfileData) {
+        if (isMockMode()) {
+            const current = getMockProfile(id);
+            if (!current) return null;
+            return saveMockProfile({
+                ...current,
+                ...(updates.name !== undefined ? { name: updates.name } : {}),
+                ...(updates.bio !== undefined ? { bio: updates.bio } : {}),
+                ...(updates.location !== undefined ? { location: updates.location } : {}),
+                ...(updates.specialty !== undefined ? { specialty: updates.specialty } : {}),
+            });
+        }
+
         const { data, error } = await supabaseAdmin
             .from('profiles')
             .update(updates)
@@ -64,6 +85,13 @@ export class ProfileRepository {
     }
 
     async searchByName(query: string) {
+        if (isMockMode()) {
+            const normalizedQuery = String(query || '').trim().toLowerCase();
+            return listMockProfiles().filter((profile) =>
+                String(profile.name || '').trim().toLowerCase().includes(normalizedQuery)
+            ).slice(0, 20);
+        }
+
         const { data, error } = await supabaseAdmin
             .from('profiles')
             .select('id, name, avatar, role')
@@ -74,6 +102,10 @@ export class ProfileRepository {
     }
 
     async findAllByRole(role?: string) {
+        if (isMockMode()) {
+            return listMockProfiles(role);
+        }
+
         let query = supabaseAdmin.from('profiles').select('*');
         if (role) query = query.eq('role', role);
         

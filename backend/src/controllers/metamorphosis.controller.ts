@@ -11,6 +11,7 @@ import { isDbUnavailableError } from '../lib/dbReadFallback';
 import { listMockMetamorphosisEntries, saveMockMetamorphosisEntry } from '../services/mockAdapter';
 import { AppError } from '../lib/AppError';
 import { supabaseAdmin } from '../services/supabase.service';
+import { AuthUser } from '../middleware/auth.middleware';
 
 const normalizeMood = (input: string): Mood => {
     const value = String(input || '').trim().toLowerCase();
@@ -45,6 +46,22 @@ const buildDailyBlessingAction = (date: Date) => `DAILY_BLESSING_${date.toISOStr
 type BlessingFallbackResult =
     | { alreadyDone: true; lastCheckIn: Date | null }
     | { alreadyDone: false; user: Record<string, unknown>; reward: number; lastCheckIn: string };
+
+type AuthenticatedRequest = Request & {
+    user?: AuthUser;
+    requestId?: string;
+};
+
+type MetamorphosisEventPayload = {
+    mood?: string;
+    quote?: string;
+    reflection?: string;
+    photoThumb?: string;
+    thumb?: string;
+    image?: string;
+    photoHash?: string;
+    hash?: string;
+};
 
 const applyDailyBlessingFallback = async (userId: string, reward: number, requestId: string): Promise<BlessingFallbackResult> => {
     const now = new Date();
@@ -165,7 +182,8 @@ const applyDailyBlessingFallback = async (userId: string, reward: number, reques
 };
 
 export const checkIn = asyncHandler(async (req: Request, res: Response) => {
-    const user = (req as any).user;
+    const request = req as AuthenticatedRequest;
+    const user = request.user;
     if (!user?.userId) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -198,7 +216,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         select: { payload: true },
     }).catch(() => []);
     const recentMoods = previousEvents
-        .map((event) => normalizeMood(String((event.payload as any)?.mood || '')))
+        .map((event) => normalizeMood(String((event.payload as MetamorphosisEventPayload | null)?.mood || '')))
         .filter(Boolean) as Mood[];
 
     // 2. Run Deterministic Engine
@@ -224,7 +242,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
                 data: {
                     stream_id: userId,
                     type: 'MOOD_LOGGED',
-                    payload: entry as any
+                    payload: entry
                 }
             });
 
@@ -258,7 +276,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         } else if (isMissingMetamorphosisPersistenceError(error)) {
             logger.warn('metamorphosis.checkin.persistence_fallback', {
                 userId,
-                requestId: String((req as any)?.requestId || ''),
+                requestId: String(request.requestId || ''),
                 errorCode: String((error as { code?: string })?.code || ''),
                 message: String((error as { message?: string })?.message || ''),
             });
@@ -266,7 +284,7 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
             const fallback = await applyDailyBlessingFallback(
                 userId,
                 reward,
-                String((req as any)?.requestId || ''),
+                String(request.requestId || ''),
             );
 
             if (fallback.alreadyDone) {
@@ -320,7 +338,8 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getEvolution = asyncHandler(async (req: Request, res: Response) => {
-    const userId = String((req as any).user?.userId || '').trim();
+    const request = req as AuthenticatedRequest;
+    const userId = String(request.user?.userId || '').trim();
     const { days } = req.query;
 
     if (!userId) {
@@ -361,15 +380,17 @@ export const getEvolution = asyncHandler(async (req: Request, res: Response) => 
         });
     }
 
-    const dbEntries = events.map(e => ({
+    const dbEntries = events.map(e => {
+        const payload = (e.payload as MetamorphosisEventPayload | null) || {};
+        return ({
         id: e.id,
         timestamp: e.created_at,
-        mood: (e.payload as any).mood,
-        quote: (e.payload as any).quote,
-        reflection: (e.payload as any).reflection,
-        photoThumb: (e.payload as any).photoThumb || (e.payload as any).thumb || (e.payload as any).image || null,
-        photoHash: (e.payload as any).photoHash || (e.payload as any).hash || null,
-    }));
+        mood: payload.mood,
+        quote: payload.quote,
+        reflection: payload.reflection,
+        photoThumb: payload.photoThumb || payload.thumb || payload.image || null,
+        photoHash: payload.photoHash || payload.hash || null,
+    })});
     const fallbackEntries = mockEntries.map((entry) => ({
         id: entry.id,
         timestamp: entry.timestamp,
