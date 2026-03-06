@@ -46,6 +46,12 @@ type MemoryMessage = { id: string; room_id?: string; chat_id?: string; sender_id
 export type ChatRoomResult = { id: string;[k: string]: unknown };
 /** Minimal shape returned by sendMessage */
 export type ChatMessageResult = { id: string;[k: string]: unknown };
+type ChatSettingsResult = {
+  id: string;
+  type: string;
+  participants: Array<{ id: string; name: string; avatar: string | null; role: string | null }>;
+  mySettings: { muted: boolean; mutedUntil: Date | string | null };
+};
 const memory = {
   roomsById: new Map<string, MemoryRoom>(),
   participantsByRoomId: new Map<string, Set<string>>(),
@@ -222,7 +228,7 @@ export class ChatService {
   /**
    * Get chat history
    */
-  async getChatHistory(chatId: string, profileId: string, limit: number = 50): Promise<any[]> {
+  async getChatHistory(chatId: string, profileId: string, limit: number = 50): Promise<ChatMessageResult[]> {
     try {
       await this.requireParticipant(chatId, profileId);
       const rows = await prisma.chatMessage.findMany({
@@ -250,7 +256,7 @@ export class ChatService {
   async getChatsForProfile(
     profileId: string,
     options?: { contextType?: string; contextId?: string; limit?: number }
-  ): Promise<any[]> {
+  ): Promise<ChatRoomResult[]> {
     const contextType = String(options?.contextType || '').trim();
     const contextId = String(options?.contextId || '').trim();
     const limit = Number.isFinite(options?.limit) ? Math.max(1, Math.min(100, Number(options?.limit))) : 50;
@@ -344,7 +350,7 @@ export class ChatService {
     return result._sum.unread_count || 0;
   }
 
-  async getRoomSettings(chatId: string, profileId: string) {
+  async getRoomSettings(chatId: string, profileId: string): Promise<ChatSettingsResult> {
     try {
       const participant = await this.requireParticipant(chatId, profileId);
       const chat = await prisma.chat.findUnique({
@@ -463,7 +469,7 @@ export class ChatService {
     profile2Id: string,
     type: string,
     contextId?: string
-  ): Promise<any | null> {
+  ): Promise<ChatRoomResult | null> {
     // For context-based chats, match on context_id
     if (contextId) {
       return prisma.chat.findFirst({

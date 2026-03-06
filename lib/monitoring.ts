@@ -11,6 +11,11 @@ const enableReplay = String(import.meta.env.VITE_SENTRY_ENABLE_REPLAY ?? 'false'
 
 let initialized = false;
 let sentryModule: typeof import("@sentry/browser") | null = null;
+type LogRocketWindow = Window & {
+    LogRocket?: {
+        init: (appId: string) => void;
+    };
+};
 
 const getSentry = async () => {
     if (!sentryModule) {
@@ -24,7 +29,7 @@ export const initMonitoring = async () => {
     initialized = true;
 
     if (!dsn) {
-        console.info("[Monitoring] Sentry DSN ausente. Observabilidade remota desativada.");
+        errorTelemetry.captureMessage('monitoring.sentry.disabled', { domain: 'monitoring', op: 'initMonitoring' });
     } else {
         const Sentry = await getSentry();
         const activeSampleRate = Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.2;
@@ -61,9 +66,10 @@ export const initMonitoring = async () => {
     }
 
     // LogRocket opcional por script externo/CDN sem dependência hard.
-    if (logrocketId && typeof window !== 'undefined' && (window as any).LogRocket?.init) {
+    const logRocketWindow = typeof window !== 'undefined' ? (window as LogRocketWindow) : null;
+    if (logrocketId && logRocketWindow?.LogRocket?.init) {
         try {
-            (window as any).LogRocket.init(logrocketId);
+            logRocketWindow.LogRocket.init(logrocketId);
         } catch (err) {
             errorTelemetry.capture(err, { domain: 'monitoring', op: 'logrocket.init' });
         }

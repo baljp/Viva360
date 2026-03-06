@@ -12,6 +12,19 @@ type PrismaProfileLink = {
   created_at: Date;
   updated_at?: Date;
 };
+type PrismaProfileSummary = {
+  id: string;
+  name: string | null;
+  avatar: string | null;
+  role: string | null;
+};
+type PrismaProfileLinkWithPeers = PrismaProfileLink & {
+  source: PrismaProfileSummary;
+  target: PrismaProfileSummary;
+};
+type PrismaPendingProfileLink = PrismaProfileLink & {
+  source: PrismaProfileSummary;
+};
 
 export type LinkType = 'tribo' | 'paciente' | 'escambo' | 'equipe' | 'bazar';
 export type LinkStatus = 'pending' | 'accepted' | 'active';
@@ -72,7 +85,7 @@ export class ProfileLinkService {
    * Accept a pending link request
    * Generates notification for both users
    */
-  async acceptLink(linkId: string, acceptorId: string): Promise<any> {
+  async acceptLink(linkId: string, acceptorId: string): Promise<PrismaProfileLink> {
     const link = await prisma.profileLink.findUnique({
       where: { id: linkId },
     });
@@ -116,7 +129,7 @@ export class ProfileLinkService {
   /**
    * Get all links for a profile (as source or target)
    */
-  async getLinksForProfile(profileId: string): Promise<any[]> {
+  async getLinksForProfile(profileId: string): Promise<PrismaProfileLinkWithPeers[]> {
     const links = await prisma.profileLink.findMany({
       where: {
         OR: [{ source_id: profileId }, { target_id: profileId }],
@@ -138,7 +151,7 @@ export class ProfileLinkService {
   /**
    * Get pending link requests for a profile
    */
-  async getPendingRequests(profileId: string): Promise<any[]> {
+  async getPendingRequests(profileId: string): Promise<PrismaPendingProfileLink[]> {
     return prisma.profileLink.findMany({
       where: {
         target_id: profileId,
@@ -202,7 +215,7 @@ export class ProfileLinkService {
     });
   }
 
-  async rejectLink(linkId: string, rejectorId: string): Promise<any> {
+  async rejectLink(linkId: string, rejectorId: string): Promise<PrismaProfileLink> {
     const link = await prisma.profileLink.findUnique({
       where: { id: linkId },
     });

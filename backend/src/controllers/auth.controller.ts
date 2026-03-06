@@ -15,6 +15,27 @@ import {
 import { getMockProfile } from '../services/mockAdapter';
 // Use relative path to avoid rootDir issues in backend tsc
 import { SessionDTO } from '../../../types';
+type SessionRole = SessionDTO['user']['role'];
+type AuthenticatedRequest = Request & {
+  requestId?: string;
+  user?: {
+    id?: string;
+    userId?: string;
+    email?: string;
+    role?: SessionRole;
+    activeRole?: SessionRole;
+    roles?: SessionRole[];
+  };
+};
+type AuthRegisterResult = {
+  user: { id: string; role: SessionRole };
+  session?: { access_token?: string };
+  access_token?: string;
+};
+
+const getRequestId = (req: Request) => (req as AuthenticatedRequest).requestId;
+const getRequestUser = (req: Request) => (req as AuthenticatedRequest).user;
+const getRequestUserId = (req: Request) => String(getRequestUser(req)?.userId || getRequestUser(req)?.id || '').trim();
 
 const MOCK_TEST_PASSWORD = '123456';
 const STRICT_MOCK_TEST_USERS: Record<string, { id: string; role: 'CLIENT' | 'PROFESSIONAL' | 'SPACE' | 'ADMIN'; name: string }> = {
@@ -69,9 +90,9 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     const userPayload: SessionDTO['user'] = {
       id: strictUser.id,
       email: normalizedEmail,
-      role: strictUser.role as any,
-      activeRole: strictUser.role as any,
-      roles: [strictUser.role as any],
+      role: strictUser.role as SessionRole,
+      activeRole: strictUser.role as SessionRole,
+      roles: [strictUser.role as SessionRole],
     };
 
     const token = jwt.sign({
@@ -92,7 +113,7 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
   if (!access.canLogin) {
     const isIncomplete = access.reason === 'REGISTRATION_INCOMPLETE';
     logger.warn('auth.login_denied_precheck', {
-      requestId: (req as any).requestId,
+      requestId: getRequestId(req),
       email: normalizedEmail,
       reason: access.reason,
       accountState: access.accountState,
@@ -133,7 +154,7 @@ export const precheckLogin = asyncHandler(async (req: Request, res: Response) =>
 
   const access = await AuthService.getAuthorizationStatus(normalizedEmail);
   logger.info('auth.precheck', {
-    requestId: (req as any).requestId,
+    requestId: getRequestId(req),
     email: normalizedEmail,
     canLogin: access.canLogin,
   });
@@ -147,7 +168,7 @@ export const ensureOAuthProfile = asyncHandler(async (req: Request, res: Respons
   }
 
   const validated = ensureOAuthProfileSchema.parse(req.body);
-  const userId = (req as any).user?.userId || (req as any).user?.id;
+  const userId = getRequestUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
@@ -155,7 +176,7 @@ export const ensureOAuthProfile = asyncHandler(async (req: Request, res: Respons
   // NOTE: AuthService doesn't have ensureProfile, but it has register/login logic.
   // Assuming fallback or simple success if not strictly implemented for now.
   logger.info('auth.oauth_profile_ensured', {
-    requestId: (req as any).requestId,
+    requestId: getRequestId(req),
     userId,
   });
 
@@ -186,10 +207,11 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // AuthService.register returns the session/user object
-  setAuthSessionCookie(res, (result as any).session?.access_token || (result as any).access_token, req);
+  const registerResult = result as AuthRegisterResult;
+  setAuthSessionCookie(res, registerResult.session?.access_token || registerResult.access_token, req);
 
   logger.info('auth.user_registered', {
-    requestId: (req as any).requestId,
+    requestId: getRequestId(req),
     userId: result.user.id,
     role: result.user.role,
   });
@@ -199,7 +221,7 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
 
 export const selectRole = asyncHandler(async (req: Request, res: Response) => {
   const { role } = roleSchema.parse(req.body);
-  const userId = (req as any).user?.userId || (req as any).user?.id;
+  const userId = getRequestUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
@@ -212,7 +234,7 @@ export const selectRole = asyncHandler(async (req: Request, res: Response) => {
   setAuthSessionCookie(res, result.session.access_token, req);
 
   logger.info('auth.role_switched', {
-    requestId: (req as any).requestId,
+    requestId: getRequestId(req),
     userId,
     newRole: role,
   });
@@ -221,7 +243,7 @@ export const selectRole = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const deleteAccount = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId || (req as any).user?.id;
+  const userId = getRequestUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
@@ -231,7 +253,7 @@ export const deleteAccount = asyncHandler(async (req: Request, res: Response) =>
     return res.status(400).json({ error: 'Texto de confirmação inválido.' });
   }
 
-  const emailHint = (req as any).user?.email;
+  const emailHint = getRequestUser(req)?.email;
   const success = await AuthService.deleteAccount(userId, emailHint);
   if (!success) {
     return res.status(500).json({ error: 'Erro ao deletar conta.' });
@@ -239,7 +261,7 @@ export const deleteAccount = asyncHandler(async (req: Request, res: Response) =>
 
   clearAuthSessionCookie(res, req);
   logger.info('auth.account_deleted', {
-    requestId: (req as any).requestId,
+    requestId: getRequestId(req),
     userId,
   });
 
@@ -247,7 +269,7 @@ export const deleteAccount = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const getSession = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId || (req as any).user?.id;
+  const userId = getRequestUserId(req);
   if (!userId) {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
@@ -258,9 +280,10 @@ export const getSession = asyncHandler(async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Usuário não encontrado.' });
     }
 
-    const activeRole = (req as any).user?.activeRole || (req as any).user?.role || user.active_role || user.role;
-    const roles = Array.isArray((req as any).user?.roles) && (req as any).user.roles.length > 0
-      ? (req as any).user.roles
+    const requestUser = getRequestUser(req);
+    const activeRole = requestUser?.activeRole || requestUser?.role || user.active_role || user.role;
+    const roles = Array.isArray(requestUser?.roles) && requestUser.roles.length > 0
+      ? requestUser.roles
       : [user.active_role || user.role];
 
     return res.json({
@@ -287,9 +310,9 @@ export const getSession = asyncHandler(async (req: Request, res: Response) => {
     user: {
       id: user.id,
       email: user.email,
-      role: (req as any).user?.activeRole || (req as any).user?.role || user.role,
-      activeRole: (req as any).user?.activeRole || (req as any).user?.role || user.role,
-      roles: (req as any).user?.roles || (user.profile_roles || []).map(r => r.role) || [user.role],
+      role: getRequestUser(req)?.activeRole || getRequestUser(req)?.role || user.role,
+      activeRole: getRequestUser(req)?.activeRole || getRequestUser(req)?.role || user.role,
+      roles: getRequestUser(req)?.roles || (user.profile_roles || []).map(r => r.role) || [user.role],
     }
   });
 });
@@ -309,7 +332,7 @@ export const logout = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const listRoles = asyncHandler(async (req: Request, res: Response) => {
-  const userId = (req as any).user?.userId || (req as any).user?.id;
+  const userId = getRequestUserId(req);
   if (!userId) return res.status(401).json({ error: 'Não autenticado.' });
   const result = await AuthService.listRolesForUser(userId);
   return res.json({ roles: result.roles });
@@ -317,7 +340,7 @@ export const listRoles = asyncHandler(async (req: Request, res: Response) => {
 
 export const addRole = asyncHandler(async (req: Request, res: Response) => {
   const { role } = roleSchema.parse(req.body);
-  const userId = (req as any).user?.userId || (req as any).user?.id;
+  const userId = getRequestUserId(req);
   if (!userId) return res.status(401).json({ error: 'Não autenticado.' });
 
   await AuthService.addRole(userId, role);

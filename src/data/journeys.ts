@@ -6,6 +6,7 @@
  * Substituído futuramente por GET /journeys
  */
 import { Wind, Sun, Moon, Battery, Heart, Brain, CloudRain, Flame, Zap } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export interface MicroJourney {
     id: string;
@@ -14,7 +15,7 @@ export interface MicroJourney {
     duration: number; // minutes
     moods: string[];
     description: string;
-    icon?: any;
+    icon?: LucideIcon;
     xp: number;
 }
 

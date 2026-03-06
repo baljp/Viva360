@@ -15,6 +15,7 @@ import { useObjectUrl } from '../../../src/hooks/useObjectUrl';
 import { DAILY_RITUAL_MOODS, drawDailyRitualShareCardCanvas } from './dailyRitualCanvas';
 import { DailyRitualCardShareStep, DailyRitualGratitudeStep, DailyRitualIntentionStep, DailyRitualNurtureStep } from './DailyRitualSteps';
 import { useAppToast } from '../../../src/contexts/AppToastContext';
+import { captureFrontendError, captureFrontendMessage } from '../../../lib/frontendLogger';
 
 interface DailyRitualWizardProps {
     user: User;
@@ -69,7 +70,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     const handleCardConfirm = () => {
         // Start saving in background - don't await to avoid blocking UI
-        autoSaveSnap().catch(err => console.error("Ritual auto-save background error:", err));
+        autoSaveSnap().catch(err => captureFrontendError(err, { view: 'DailyRitualWizard', op: 'autoSave.background' }));
         setStep('SHARE');
     };
 
@@ -107,7 +108,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             try {
                 await idbImages.put(buildLocalImageKey(snapId), capture.fullBlob);
             } catch (e) {
-                console.warn('[DailyRitualWizard] idbImages.put failed', e);
+                captureFrontendMessage('daily_ritual.local_cache_failed', { view: 'DailyRitualWizard', op: 'idbImages.put', error: String(e) });
                 // Non-critical: local high-res caching failure doesn't stop ritual completion.
             }
 
@@ -133,9 +134,10 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 api.metamorphosis.checkIn(data.mood, snapId, capture.thumbDataUrl)
             ]);
             roundTripTelemetry.success('ritual', 'save', rt.correlationId, rt.startMs);
-        } catch (error: any) {
-            roundTripTelemetry.error('ritual', 'save', rt.correlationId, rt.startMs, error?.message || 'unknown');
-            console.error("Auto-save snap failed:", error);
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'unknown';
+            roundTripTelemetry.error('ritual', 'save', rt.correlationId, rt.startMs, message);
+            captureFrontendError(error, { view: 'DailyRitualWizard', op: 'autoSave' });
             setToast({ title: 'Erro ao Salvar', message: 'Houve um problema ao salvar seu ritual na nuvem. Mantivemos uma cópia local.', type: 'error' });
         } finally {
             setIsSaving(false);
@@ -170,7 +172,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 downloadCard();
             }
         } catch (error) {
-            console.error('Error sharing:', error);
+            captureFrontendError(error, { view: 'DailyRitualWizard', op: 'shareCard' });
             setToast({ title: 'Erro ao Compartilhar', message: 'Não foi possível abrir o menu de compartilhamento.', type: 'error' });
             downloadCard();
         }

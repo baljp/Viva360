@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-02-25T12:52:04.378Z",
+  "generatedAt": "2026-03-06T15:38:11.227Z",
   "totals": {
-    "allMatches": 774,
-    "runtime": 175,
-    "frontendRuntime": 59,
+    "allMatches": 745,
+    "runtime": 109,
+    "frontendRuntime": 32,
     "backendRuntime": 6,
     "frontendConsoleLog": 0,
-    "runtimeOutsideAllowlist": 169
+    "runtimeOutsideAllowlist": 103
   },
   "byMethod": {
-    "error": 67,
-    "warn": 26,
-    "log": 79,
-    "info": 3
+    "log": 64,
+    "error": 30,
+    "warn": 14,
+    "debug": 1
   },
   "allowlisted": [
     "backend/src/lib/logger.ts"
@@ -20,48 +20,6 @@
   "disallowedSamples": {
     "frontendConsoleLog": [],
     "runtimeOutsideAllowlist": [
-      {
-        "file": "src/flow/GuardiaoFlowContext.tsx",
-        "line": 197,
-        "method": "error",
-        "text": "console.error('Failed to fetch Guardiao data', e);"
-      },
-      {
-        "file": "src/flow/SantuarioFlowEngine.ts",
-        "line": 24,
-        "method": "warn",
-        "text": "console.warn(`[SantuarioFlow] Invalid transition blocked: ${this.currentState} -> ${target}`);"
-      },
-      {
-        "file": "src/flow/BuscadorFlowEngine.ts",
-        "line": 24,
-        "method": "warn",
-        "text": "console.warn(`[FlowEngine] Invalid transition blocked: ${this.currentState} -> ${target}`);"
-      },
-      {
-        "file": "src/contexts/ChatContext.tsx",
-        "line": 249,
-        "method": "error",
-        "text": "console.error(\"Failed to send message\", error);"
-      },
-      {
-        "file": "src/flow/BuscadorFlowContext.tsx",
-        "line": 190,
-        "method": "error",
-        "text": "console.error('Failed to fetch Buscador data', e);"
-      },
-      {
-        "file": "src/hooks/useOracle.ts",
-        "line": 41,
-        "method": "error",
-        "text": "console.error(\"Failed to load daily card\", e);"
-      },
-      {
-        "file": "src/hooks/useOracle.ts",
-        "line": 68,
-        "method": "error",
-        "text": "console.error(\"Oracle Draw Error:\", e);"
-      },
       {
         "file": "validate-env.ts",
         "line": 28,
@@ -153,106 +111,22 @@
         "text": "console.log('📖 Veja: VERCEL_ENV_VARS.md para mais detalhes\\n');"
       },
       {
-        "file": "src/flow/GuardiaoFlowEngine.ts",
-        "line": 24,
-        "method": "warn",
-        "text": "console.warn(`[GuardiaoFlow] Invalid transition blocked: ${this.currentState} -> ${target}`);"
-      },
-      {
-        "file": "components/ErrorBoundary.tsx",
-        "line": 24,
-        "method": "error",
-        "text": "console.error(\"[FlowGuard] Uncaught frequency shift:\", error, errorInfo);"
-      },
-      {
-        "file": "src/hooks/useClientDashboard.ts",
-        "line": 149,
-        "method": "warn",
-        "text": "console.warn('[useClientDashboard] idbImages.put failed', e);"
-      },
-      {
-        "file": "src/flow/SantuarioFlowContext.tsx",
-        "line": 230,
-        "method": "error",
-        "text": "console.error('Failed to fetch Santuario data', e);"
-      },
-      {
-        "file": "lib/supabase.ts",
-        "line": 151,
-        "method": "warn",
-        "text": "console.warn(\"⚠️ Viva360: SUPABASE_URL ou SUPABASE_ANON_KEY não configurados! Operação real ficará indisponível.\");"
-      },
-      {
-        "file": "lib/supabase.ts",
-        "line": 155,
-        "method": "error",
-        "text": "console.error(\"Erro ao inicializar Supabase (Non-blocking):\", error);"
-      },
-      {
-        "file": "lib/supabase.ts",
-        "line": 182,
-        "method": "info",
-        "text": "console.info('[auth.config.runtime_ok]', runtimeFingerprint);"
-      },
-      {
-        "file": "lib/supabase.ts",
-        "line": 184,
-        "method": "warn",
-        "text": "console.warn('[auth.config.runtime_issues]', { ...runtimeFingerprint, issues: diagnostics.issues });"
-      },
-      {
-        "file": "lib/monitoring.ts",
-        "line": 25,
-        "method": "info",
-        "text": "console.info(\"[Monitoring] Sentry DSN ausente. Observabilidade remota desativada.\");"
-      },
-      {
-        "file": "lib/monitoring.ts",
-        "line": 63,
-        "method": "warn",
-        "text": "console.warn(\"[Monitoring] Falha ao iniciar LogRocket\", err);"
-      },
-      {
-        "file": "lib/monitoring.ts",
-        "line": 73,
-        "method": "error",
-        "text": "console.error(\"[FrontendError]\", error, context);"
-      },
-      {
-        "file": "lib/monitoring.ts",
-        "line": 76,
-        "method": "error",
-        "text": "console.error(\"[FrontendError]\", error);"
-      },
-      {
-        "file": "lib/monitoring.ts",
-        "line": 83,
-        "method": "warn",
-        "text": "console.warn(\"[FrontendMessage]\", message, context || {});"
-      },
-      {
-        "file": "lib/frontendLogger.ts",
-        "line": 3,
-        "method": "error",
-        "text": "console.error('[FrontendError]', error, context);"
-      },
-      {
-        "file": "lib/frontendLogger.ts",
-        "line": 6,
-        "method": "error",
-        "text": "console.error('[FrontendError]', error);"
-      },
-      {
-        "file": "lib/frontendLogger.ts",
-        "line": 10,
-        "method": "warn",
-        "text": "console.warn('[FrontendMessage]', message, context || {});"
-      },
-      {
         "file": "components/social/SocialFeatureWidgets.tsx",
-        "line": 337,
+        "line": 371,
         "method": "error",
         "text": "console.error(e);"
+      },
+      {
+        "file": "components/Common/CameraWidget.tsx",
+        "line": 44,
+        "method": "error",
+        "text": "console.error(\"Camera error:\", err);"
+      },
+      {
+        "file": "components/Common/CameraWidget.tsx",
+        "line": 198,
+        "method": "error",
+        "text": "console.error('[CameraWidget] capture failed', e);"
       },
       {
         "file": "components/MarketplaceExplorer.tsx",
@@ -261,10 +135,178 @@
         "text": "console.error(\"Failed to load marketplace\", error);"
       },
       {
+        "file": "src/hooks/useClientDashboard.ts",
+        "line": 143,
+        "method": "warn",
+        "text": "console.warn('[useClientDashboard] idbImages.put failed', e);"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 7,
+        "method": "log",
+        "text": "console.log(\"Testing Client Login...\");"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 19,
+        "method": "log",
+        "text": "console.log(\"Login Status:\", res.status);"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 21,
+        "method": "error",
+        "text": "console.error(\"Login Failed:\", data);"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 25,
+        "method": "log",
+        "text": "console.log(\"User Role:\", data.user.role);"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 26,
+        "method": "log",
+        "text": "console.log(\"Token:\", data.session.access_token);"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 30,
+        "method": "log",
+        "text": "console.log(\"\\nTesting Get Profile...\");"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 38,
+        "method": "log",
+        "text": "console.log(\"Profile Status:\", resProfile.status);"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 39,
+        "method": "log",
+        "text": "console.log(\"Profile Role:\", profileData.role);"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 41,
+        "method": "error",
+        "text": "if (data.user.role !== 'CLIENT') console.error(\"MISMATCH! Expected 'CLIENT'\");"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 42,
+        "method": "error",
+        "text": "if (profileData.role !== 'CLIENT') console.error(\"PROFILE MISMATCH! Expected 'CLIENT'\");"
+      },
+      {
+        "file": "backend/test_login.ts",
+        "line": 45,
+        "method": "error",
+        "text": "console.error(e);"
+      },
+      {
+        "file": "public/sw-push.js",
+        "line": 75,
+        "method": "warn",
+        "text": "console.warn('[SW] pushsubscriptionchange error:', e);"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 6,
+        "method": "log",
+        "text": "console.log('🔄 STARTING 100,000 FULL LIFECYCLE SIMULATIONS...');"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 32,
+        "method": "log",
+        "text": "console.log(`   ...processed ${i} cycles`);"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 40,
+        "method": "log",
+        "text": "console.log('\\n📊 LIFECYCLE METRICS');"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 41,
+        "method": "log",
+        "text": "console.log('====================');"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 42,
+        "method": "log",
+        "text": "console.log(`Total Cycles: ${TOTAL_CYCLES}`);"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 43,
+        "method": "log",
+        "text": "console.log(`Success Rate: ${((TOTAL_CYCLES - errors) / TOTAL_CYCLES * 100).toFixed(2)}%`);"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 44,
+        "method": "log",
+        "text": "console.log(`Total Duration: ${duration}ms`);"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 45,
+        "method": "log",
+        "text": "console.log(`Avg Cycle Time: ${(duration / TOTAL_CYCLES).toFixed(4)}ms`);"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 48,
+        "method": "log",
+        "text": "console.log('\\n✅ LIFECYCLE STATUS: 100% INTEGRITY');"
+      },
+      {
+        "file": "backend/validate_lifecycle.ts",
+        "line": 50,
+        "method": "log",
+        "text": "console.log('\\n❌ LIFECYCLE STATUS: FAILED');"
+      },
+      {
         "file": "src/components/GlobalErrorBoundary.tsx",
         "line": 24,
         "method": "error",
         "text": "console.error(\"[GlobalErrorBoundary] Uncaught error:\", error, errorInfo);"
+      },
+      {
+        "file": "backend/smoke_auth.ts",
+        "line": 57,
+        "method": "log",
+        "text": "console.log(`[OK] ${label} (${res.status}) ${elapsedMs}ms`);"
+      },
+      {
+        "file": "backend/smoke_auth.ts",
+        "line": 70,
+        "method": "log",
+        "text": "console.log(`🔎 Smoke auth test: ${API_URL}`);"
+      },
+      {
+        "file": "backend/smoke_auth.ts",
+        "line": 123,
+        "method": "log",
+        "text": "console.log('ℹ️ Skipping allowlisted happy path (set SMOKE_ALLOWLIST_EMAIL + SMOKE_ALLOWLIST_PASSWORD).');"
+      },
+      {
+        "file": "backend/smoke_auth.ts",
+        "line": 126,
+        "method": "log",
+        "text": "console.log('✅ Smoke auth test completed');"
+      },
+      {
+        "file": "backend/smoke_auth.ts",
+        "line": 130,
+        "method": "error",
+        "text": "console.error('❌ Smoke auth test failed:', err?.message || err);"
       },
       {
         "file": "src/components/OracleCard.tsx",
@@ -273,52 +315,10 @@
         "text": "console.error(\"Share failed\", e);"
       },
       {
-        "file": "src/utils/sharing.ts",
-        "line": 219,
-        "method": "error",
-        "text": "console.error('WebShare failed', error);"
-      },
-      {
-        "file": "src/utils/deathClickTracker.ts",
-        "line": 83,
-        "method": "warn",
-        "text": "console.warn("
-      },
-      {
-        "file": "src/utils/loaderUtils.ts",
-        "line": 30,
-        "method": "error",
-        "text": "loader().catch(err => console.error(`[FlowLoader] Preload failed for ${roleUpper}`, err));"
-      },
-      {
-        "file": "App.tsx",
-        "line": 108,
+        "file": "backend/benchmark.js",
+        "line": 3,
         "method": "log",
-        "text": "console.log(\"DEBUG: handleLogin Role:\", role);"
-      },
-      {
-        "file": "App.tsx",
-        "line": 114,
-        "method": "log",
-        "text": "console.log(\"DEBUG: handleLogin Redirecting to:\", dest);"
-      },
-      {
-        "file": "App.tsx",
-        "line": 124,
-        "method": "warn",
-        "text": "console.warn('Invite accept failed:', e);"
-      },
-      {
-        "file": "App.tsx",
-        "line": 195,
-        "method": "error",
-        "text": "console.error(\"Checkout failed\", e);"
-      },
-      {
-        "file": "App.tsx",
-        "line": 204,
-        "method": "error",
-        "text": "console.error(\"Logout error\", e);"
+        "text": "console.log('Latency: ' + (Date.now() - start) + 'ms');"
       }
     ]
   }

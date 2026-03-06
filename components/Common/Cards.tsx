@@ -1,4 +1,5 @@
 import React from 'react';
+import type { LucideIcon } from 'lucide-react';
 import { ICON_SIZE } from './constants';
 
 export const HeroCard: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className = "" }) => (
@@ -36,7 +37,7 @@ export const RitualCard: React.FC<{ children: React.ReactNode, color?: 'green' |
     );
 };
 
-export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string, icon: React.FC<any>, bgImage: string, onClick: () => void, delay?: number }> = ({ id, title, subtitle, icon: Icon, bgImage, onClick, delay = 0 }) => (
+export const PortalCard: React.FC<{ id?: string, title: string, subtitle: string, icon: LucideIcon, bgImage: string, onClick: () => void, delay?: number }> = ({ id, title, subtitle, icon: Icon, bgImage, onClick, delay = 0 }) => (
     <button id={id} onClick={onClick} style={{ animationDelay: `${delay}ms` }} className="relative aspect-square rounded-2xl overflow-hidden group shadow-lg hover:shadow-[0_20px_40px_rgba(0,0,0,0.18)] hover:-translate-y-1 transition-all duration-500 animate-in fade-in slide-up">
         <img
             src={bgImage}

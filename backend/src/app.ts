@@ -12,6 +12,7 @@ import { initTelemetry } from './lib/instrumentation';
 import { assertCriticalProdConfig, enforceNoProdMockLeakage } from './lib/runtimeGuard';
 import { getAuthConfigHealthSnapshot } from './lib/authConfigHealth';
 import { attachRawBody, buildCorsOptions, getApiHelmetOptions } from './lib/httpSecurity';
+import type { Socket } from 'net';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
 const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
@@ -24,6 +25,38 @@ const blockedProdRoutePatterns = [
     /^\/api\/test(?:\/|$|-)/i,
     /^\/api\/mock(?:\/|$|-)/i,
 ];
+type DebugErrorPayload = {
+    error: string;
+    name?: string;
+    stack?: string[];
+    code?: string;
+    statusCode?: number;
+};
+type DebugNetResults = {
+    active_url_masked: string;
+    pooler_url_masked: string;
+    db_url_masked: string;
+    dns: { ok: boolean; addresses?: string[]; error?: string } | null;
+    tcp: { ok: boolean; error?: string } | null;
+    env_present: Record<string, boolean>;
+    parsed?: { host: string; port: number };
+    urlParseError?: string;
+};
+type DebugDbResults = {
+    connect: { ok: boolean; error?: string; code?: string; meta?: unknown } | null;
+    query: { ok: boolean; result?: unknown; error?: string } | null;
+};
+type ErrorWithShape = {
+    message?: string;
+    name?: string;
+    stack?: string;
+    code?: string;
+    statusCode?: number;
+    errorCode?: string;
+    meta?: unknown;
+};
+const asErrorShape = (error: unknown): ErrorWithShape =>
+    (typeof error === 'object' && error !== null ? error : {}) as ErrorWithShape;
 
 // Initialize Telemetry
 initTelemetry();
@@ -168,14 +201,15 @@ if (isDebugRoutesEnabled) {
             const { AuthService } = require('./services/auth.service');
             const result = await AuthService.login(req.body.email || '', req.body.password || '');
             res.json({ ok: true, result });
-        } catch (err: any) {
+        } catch (err) {
+            const error = asErrorShape(err);
             res.status(500).json({
-                error: err.message,
-                name: err.name,
-                stack: err.stack?.split('\n').slice(0, 5),
-                code: err.code,
-                statusCode: err.statusCode,
-            });
+                error: error.message || 'Unknown error',
+                name: error.name,
+                stack: error.stack?.split('\n').slice(0, 5),
+                code: error.code,
+                statusCode: error.statusCode,
+            } satisfies DebugErrorPayload);
         }
     });
 
@@ -187,7 +221,7 @@ if (isDebugRoutesEnabled) {
         const dbUrl = process.env.DATABASE_URL || 'NOT_SET';
         const activeUrl = process.env.SUPABASE_POOLER_URL || process.env.DATABASE_URL || 'NOT_SET';
 
-        const results: any = {
+        const results: DebugNetResults = {
             active_url_masked: activeUrl.replace(/:[^:@]+@/, ':***@'),
             pooler_url_masked: poolerUrl.replace(/:[^:@]+@/, ':***@'),
             db_url_masked: dbUrl.replace(/:[^:@]+@/, ':***@'),
@@ -209,24 +243,24 @@ if (isDebugRoutesEnabled) {
             try {
                 const addresses = await dns.resolve(host);
                 results.dns = { ok: true, addresses };
-            } catch (e: any) {
-                results.dns = { ok: false, error: e.message };
+            } catch (e) {
+                results.dns = { ok: false, error: asErrorShape(e).message || 'DNS error' };
             }
             try {
                 await new Promise<void>((resolve, reject) => {
-                    const socket = new net.Socket();
+                    const socket: Socket = new net.Socket();
                     socket.setTimeout(5000);
                     socket.on('connect', () => { socket.destroy(); resolve(); });
                     socket.on('timeout', () => { socket.destroy(); reject(new Error('TCP timeout (5s)')); });
-                    socket.on('error', (e: any) => { reject(e); });
+                    socket.on('error', (e: Error) => { reject(e); });
                     socket.connect(port, host);
                 });
                 results.tcp = { ok: true };
-            } catch (e: any) {
-                results.tcp = { ok: false, error: e.message };
+            } catch (e) {
+                results.tcp = { ok: false, error: asErrorShape(e).message || 'TCP error' };
             }
-        } catch (e: any) {
-            results.urlParseError = e.message;
+        } catch (e) {
+            results.urlParseError = asErrorShape(e).message || 'URL parse error';
         }
         res.json(results);
     });
@@ -234,19 +268,20 @@ if (isDebugRoutesEnabled) {
     // Raw DB Diagnostic Endpoint (debug only)
     app.get('/api/debug-db', async (req, res) => {
         const prisma = require('./lib/prisma').default;
-        const results: any = { connect: null, query: null };
+        const results: DebugDbResults = { connect: null, query: null };
         try {
             await prisma.$connect();
             results.connect = { ok: true };
-        } catch (e: any) {
-            results.connect = { ok: false, error: e.message, code: e.errorCode, meta: e.meta };
+        } catch (e) {
+            const error = asErrorShape(e);
+            results.connect = { ok: false, error: error.message || 'Connect error', code: error.errorCode, meta: error.meta };
         }
         if (results.connect.ok) {
             try {
                 const r = await prisma.$queryRaw`SELECT 1 as test`;
                 results.query = { ok: true, result: r };
-            } catch (e: any) {
-                results.query = { ok: false, error: e.message };
+            } catch (e) {
+                results.query = { ok: false, error: asErrorShape(e).message || 'Query error' };
             }
         }
         res.json(results);

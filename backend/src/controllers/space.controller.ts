@@ -34,6 +34,10 @@ type AvgDurationRow = { avg_dur: number | null };
 type TopGuardianRow = { name: string | null; sessions: number | string | null; revenue: DecimalLike };
 type ReviewRatingRow = { rating: DecimalLike };
 type RoomOccupancyRow = { name: string | null; capacity: number | null; current_occupant: string | null };
+type CalendarEventDetails = {
+  kind?: string;
+  roomId?: string;
+};
 
 // ✅ P1 Fix: Replace Prisma.ContractGetPayload<...> with an explicit interface
 interface ContractGuardian {
@@ -97,6 +101,21 @@ const getScopedReviewWhere = (spaceId: string, guardianIds: string[], roomIds: s
   }
 
   return filters.length > 0 ? { OR: filters } : undefined;
+};
+
+const parseCalendarEventDetails = (details: unknown): CalendarEventDetails => {
+  if (typeof details === 'string') {
+    try {
+      const parsed = JSON.parse(details) as CalendarEventDetails;
+      return typeof parsed === 'object' && parsed !== null ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  if (typeof details === 'object' && details !== null) {
+    return details as CalendarEventDetails;
+  }
+  return {};
 };
 
 // 1. Analytics Dashboard — ALL REAL DATA
@@ -390,19 +409,16 @@ export const createRoom = asyncHandler(async (req: Request, res: Response) => {
   try {
     const room = await prisma.room.create({ data: { name, type, capacity: capacity || 10, hub_id: userId } });
     if (isMockMode()) {
-      const persisted = room as any;
       saveMockRoom({
-        id: String(persisted.id),
-        name: String(persisted.name),
-        type: String(persisted.type),
-        capacity: Number(persisted.capacity || capacity || 10),
-        hub_id: String(persisted.hub_id || userId),
-        status: String(persisted.status || 'available'),
-        created_at: persisted.created_at instanceof Date ? persisted.created_at.toISOString() : new Date().toISOString(),
-        updated_at: persisted.updated_at instanceof Date
-          ? persisted.updated_at.toISOString()
-          : (persisted.created_at instanceof Date ? persisted.created_at.toISOString() : new Date().toISOString()),
-        current_occupant: persisted.current_occupant ?? null,
+        id: String(room.id),
+        name: String(room.name),
+        type: String(room.type),
+        capacity: Number(room.capacity || capacity || 10),
+        hub_id: String(room.hub_id || userId),
+        status: String(room.status || 'available'),
+        created_at: room.created_at instanceof Date ? room.created_at.toISOString() : new Date().toISOString(),
+        updated_at: room.created_at instanceof Date ? room.created_at.toISOString() : new Date().toISOString(),
+        current_occupant: room.current_occupant ?? null,
       });
     }
     return res.json(room);
@@ -691,8 +707,7 @@ export const getRetreats = asyncHandler(async (req: Request, res: Response) => {
   });
 
   const retreats = events.filter((e) => {
-    let meta: any = {};
-    try { meta = e.details ? JSON.parse(e.details) : {}; } catch { /* ignore */ }
+    const meta = parseCalendarEventDetails(e.details);
     const rawType = String(e.type || '').toLowerCase();
     const kind = String(meta.kind || '').toLowerCase();
     return rawType === 'retreat' || kind === 'retreat';
@@ -743,9 +758,8 @@ export const getRoomAgenda = asyncHandler(async (req: Request, res: Response) =>
   });
 
   const agenda = events.filter((e) => {
-    let meta: any = {};
-    try { meta = e.details ? JSON.parse(e.details) : {}; } catch { /* ignore */ }
-    return String(meta.roomId || '') === roomId || String((e as any).roomId || '') === roomId;
+    const meta = parseCalendarEventDetails(e.details);
+    return String(meta.roomId || '') === roomId;
   });
 
   return res.json(agenda);

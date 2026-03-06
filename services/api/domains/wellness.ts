@@ -28,6 +28,8 @@ type OracleHistoryApiEntry = {
   moodContext: string;
   card: OracleCachedEntry['card'];
 };
+type RitualSavePayload = Record<string, unknown>;
+type ClinicalInterventionPayload = Record<string, unknown>;
 
 export const createWellnessDomain = ({
   request,
@@ -144,7 +146,7 @@ export const createWellnessDomain = ({
   },
 
   rituals: {
-    save: async (period: string, data: any) => {
+    save: async (period: string, data: RitualSavePayload) => {
       try {
         return await request('/rituals', {
           method: 'POST',
@@ -228,7 +230,7 @@ export const createWellnessDomain = ({
   },
 
   clinical: {
-    saveIntervention: async (data: any) => {
+    saveIntervention: async (data: ClinicalInterventionPayload) => {
       try {
         return await request('/clinical/interventions', {
           method: 'POST',

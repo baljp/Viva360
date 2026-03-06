@@ -1,5 +1,6 @@
 
 import { BuscadorState, transitions } from './types';
+import { captureFrontendMessage } from '../../lib/frontendLogger';
 
 export class BuscadorFlowEngine {
     public currentState: BuscadorState;
@@ -21,7 +22,12 @@ export class BuscadorFlowEngine {
 
     public transition(target: BuscadorState): boolean {
         if (!this.canTransitionTo(target)) {
-            console.warn(`[FlowEngine] Invalid transition blocked: ${this.currentState} -> ${target}`);
+            captureFrontendMessage('flow.transition.blocked', {
+                domain: 'flow',
+                engine: 'buscador',
+                from: this.currentState,
+                to: target,
+            });
             return false;
         }
         this.history.push(this.currentState);

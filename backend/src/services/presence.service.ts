@@ -1,6 +1,12 @@
 import prisma from '../lib/prisma';
 
 export type PresenceStatus = 'ONLINE' | 'OFFLINE' | 'BUSY';
+type GuardianPresenceRecord = {
+  guardian_id: string;
+  status: string;
+  last_activity_at: Date;
+  expires_at: Date;
+};
 
 export class PresenceService {
   // Default presence duration in minutes
@@ -10,7 +16,7 @@ export class PresenceService {
    * Set guardian presence status
    * Only applicable to PROFESSIONAL role
    */
-  async setStatus(guardianId: string, status: PresenceStatus): Promise<any> {
+  async setStatus(guardianId: string, status: PresenceStatus): Promise<GuardianPresenceRecord> {
     const expiresAt = new Date(
       Date.now() + PresenceService.PRESENCE_DURATION_MINUTES * 60 * 1000
     );
@@ -37,21 +43,21 @@ export class PresenceService {
   /**
    * Set guardian to ONLINE
    */
-  async goOnline(guardianId: string): Promise<any> {
+  async goOnline(guardianId: string): Promise<GuardianPresenceRecord> {
     return this.setStatus(guardianId, 'ONLINE');
   }
 
   /**
    * Set guardian to OFFLINE
    */
-  async goOffline(guardianId: string): Promise<any> {
+  async goOffline(guardianId: string): Promise<GuardianPresenceRecord> {
     return this.setStatus(guardianId, 'OFFLINE');
   }
 
   /**
    * Ping to extend presence session
    */
-  async ping(guardianId: string): Promise<any> {
+  async ping(guardianId: string): Promise<GuardianPresenceRecord> {
     const existing = await prisma.guardianPresence.findUnique({
       where: { guardian_id: guardianId },
     });

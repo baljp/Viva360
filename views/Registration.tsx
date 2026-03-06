@@ -4,6 +4,7 @@ import { ViewState, UserRole, User, Professional } from '../types';
 import { User as UserIcon, Briefcase, Building, ChevronRight, ArrowLeft, Mail, Lock, Sparkles, Heart, Activity, Brain, MapPin, DollarSign, List, Home, Check, Leaf, Loader2 } from 'lucide-react';
 import { authApi } from '../services/api/authProxy';
 import { useAppToast } from '../src/contexts/AppToastContext';
+import { captureFrontendError } from '../lib/frontendLogger';
 
 interface RegistrationProps {
     view: ViewState;
@@ -119,7 +120,7 @@ const ClientForm: React.FC<FormProps> = ({ setView, onRegister }) => {
             await onRegister({ ...formData, role: UserRole.CLIENT });
             setToast({ title: "Boas-vindas!", message: "Seu perfil foi criado com sucesso. A jornada começa." });
         } catch (e: unknown) {
-            console.error(e);
+            captureFrontendError(e, { view: 'Registration', op: 'client.register' });
             setToast({
                 title: 'Não foi possível concluir',
                 message: errorMessage(e) || 'Revise seus dados e tente novamente.',
@@ -193,7 +194,7 @@ const ProForm: React.FC<FormProps> = ({ setView, onRegister }) => {
             await onRegister({ ...formData, role: UserRole.PROFESSIONAL, rating: 5, swapCredits: 100, isAvailableForSwap: true, needs: [], offers: [] });
             setToast({ title: "Guardião Ativado", message: "Seu dom agora está disponível para o mundo." });
         } catch (e: unknown) {
-            console.error(e);
+            captureFrontendError(e, { view: 'Registration', op: 'professional.register' });
             setToast({
                 title: 'Não foi possível concluir',
                 message: errorMessage(e) || 'Revise seus dados e tente novamente.',
@@ -264,7 +265,7 @@ const SpaceForm: React.FC<FormProps> = ({ setView, onRegister }) => {
             await onRegister({ ...formData, role: UserRole.SPACE });
             setToast({ title: "Santuário Criado", message: "Seu hub de cura está pronto para receber almas." });
         } catch (e: unknown) {
-            console.error(e);
+            captureFrontendError(e, { view: 'Registration', op: 'space.register' });
             setToast({
                 title: 'Não foi possível concluir',
                 message: errorMessage(e) || 'Revise seus dados e tente novamente.',

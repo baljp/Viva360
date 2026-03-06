@@ -10,6 +10,18 @@ import {
 } from './session';
 
 type OAuthIntent = 'login' | 'register';
+type AuthRolePayload = {
+  userId?: string;
+  roles?: unknown;
+  activeRole?: unknown;
+  data?: AuthRolePayload;
+};
+
+const getAuthRolePayload = (payload: unknown): AuthRolePayload => {
+  if (!payload || typeof payload !== 'object') return {};
+  const source = payload as AuthRolePayload;
+  return source.data && typeof source.data === 'object' ? source.data : source;
+};
 
 export const clearOAuthIntentStorage = () => {
   localStorage.removeItem(OAUTH_EXPECTED_EMAIL_KEY);
@@ -66,12 +78,12 @@ export const startGoogleOAuthRedirect = async (params: {
 };
 
 export const normalizeAuthRoleMutationPayload = (
-  payload: any,
+  payload: unknown,
   fallbackRole: UserRole,
 ): { userId: string; roles: UserRole[]; activeRole: UserRole } => {
-  const source = payload?.data || payload;
-  const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : [fallbackRole]);
-  const activeRole = normalizeRole(source?.activeRole || roles[0] || fallbackRole);
+  const source = getAuthRolePayload(payload);
+  const roles = normalizeRoleList(Array.isArray(source.roles) ? source.roles : [fallbackRole]);
+  const activeRole = normalizeRole(String(source.activeRole || roles[0] || fallbackRole));
   return {
     userId: String(source?.userId || ''),
     roles: roles.length ? roles : [activeRole],
@@ -80,11 +92,11 @@ export const normalizeAuthRoleMutationPayload = (
 };
 
 export const normalizeAuthRoleListPayload = (
-  payload: any,
+  payload: unknown,
 ): { userId: string; roles: UserRole[]; activeRole: UserRole } => {
-  const source = payload?.data || payload;
-  const roles = normalizeRoleList(Array.isArray(source?.roles) ? source.roles : []);
-  const activeRole = normalizeRole(source?.activeRole || roles[0] || UserRole.CLIENT);
+  const source = getAuthRolePayload(payload);
+  const roles = normalizeRoleList(Array.isArray(source.roles) ? source.roles : []);
+  const activeRole = normalizeRole(String(source.activeRole || roles[0] || UserRole.CLIENT));
   return {
     userId: String(source?.userId || ''),
     roles: roles.length ? roles : [activeRole],

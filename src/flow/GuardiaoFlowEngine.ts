@@ -1,5 +1,6 @@
 
 import { GuardiaoState, guardiaoTransitions } from './guardiaoTypes';
+import { captureFrontendMessage } from '../../lib/frontendLogger';
 
 export class GuardiaoFlowEngine {
     public currentState: GuardiaoState;
@@ -21,7 +22,12 @@ export class GuardiaoFlowEngine {
 
     public transition(target: GuardiaoState): boolean {
         if (!this.canTransitionTo(target)) {
-            console.warn(`[GuardiaoFlow] Invalid transition blocked: ${this.currentState} -> ${target}`);
+            captureFrontendMessage('flow.transition.blocked', {
+                domain: 'flow',
+                engine: 'guardiao',
+                from: this.currentState,
+                to: target,
+            });
             return false;
         }
         this.history.push(this.currentState);

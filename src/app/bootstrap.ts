@@ -6,6 +6,7 @@ import { APP_MODE, validateOAuthRuntimeConfig } from '../../lib/supabase';
 import { preloadRoleViews } from '../utils/loaderUtils';
 import { isPublicPath, resolveHomePath } from './routing';
 import { normalizeUserForApp } from './userSession';
+import { captureFrontendError, captureFrontendMessage } from '../../lib/frontendLogger';
 
 type ToastSetter = (toast: { title: string; message: string } | null) => void;
 
@@ -46,7 +47,7 @@ export const useAppSessionBootstrap = ({
           navigate('/login');
         }
       } catch (e) {
-        console.error('Initialization Error', e);
+        captureFrontendError(e, { domain: 'bootstrap', op: 'initSession' });
         navigate('/login');
       } finally {
         setIsLoading(false);
@@ -62,7 +63,7 @@ export const useOAuthConfigWarning = (setToast: ToastSetter) => {
     if (APP_MODE !== 'PROD') return;
     const { ok, issues } = validateOAuthRuntimeConfig();
     if (!ok) {
-      console.warn('[OAuth Validation] Problemas detectados:', issues);
+      captureFrontendMessage('oauth.runtime.invalid', { domain: 'auth', op: 'oauthRuntimeValidation', issues });
       setToast({
         title: 'OAuth Google',
         message: 'Configuração de redirect inválida. Verifique domínio e URL de callback no Supabase.',

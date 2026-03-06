@@ -3,6 +3,8 @@ import { X, Sun } from 'lucide-react';
 import { User as UserType } from '../../types';
 import { getDailyWisdom } from '../../src/utils/dailyWisdom';
 
+type DailyBlessingResult = { ok: boolean; alreadyDone?: boolean } | void;
+
 export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: number) => Promise<{ ok: boolean; alreadyDone?: boolean } | void> }> = ({ user, onCheckIn }) => {
     const [dismissed, setDismissed] = useState(false);
     const [claiming, setClaiming] = useState(false);
@@ -23,8 +25,8 @@ export const DailyBlessing: React.FC<{ user: UserType, onCheckIn: (reward: numbe
         const previousClaim = claimedToday;
         setClaimedToday(true);
         try {
-            const result = await onCheckIn(wisdom.reward);
-            const succeeded = !result || Boolean((result as any).ok);
+            const result: DailyBlessingResult = await onCheckIn(wisdom.reward);
+            const succeeded = !result || Boolean(result.ok);
             if (succeeded) {
                 localStorage.setItem(claimStorageKey, '1');
                 setDismissed(true);

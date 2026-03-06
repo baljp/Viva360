@@ -4,6 +4,7 @@ import type { User } from '../../types';
 import { supabase, isMockMode } from '../../lib/supabase';
 import { api } from '../../services/api';
 import { ChatContextStore } from './ChatContextStore';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 // Define minimal types locally or import from types.ts
 export interface ChatMessage {
@@ -246,7 +247,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         
         if (error) {
-            console.error("Failed to send message", error);
+            captureFrontendError(error, { domain: 'chat', op: 'sendMessage' });
             throw error;
         }
     };

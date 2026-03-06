@@ -1,5 +1,6 @@
 
 import { SantuarioState, santuarioTransitions } from './santuarioTypes';
+import { captureFrontendMessage } from '../../lib/frontendLogger';
 
 export class SantuarioFlowEngine {
     public currentState: SantuarioState;
@@ -21,7 +22,12 @@ export class SantuarioFlowEngine {
 
     public transition(target: SantuarioState): boolean {
         if (!this.canTransitionTo(target)) {
-            console.warn(`[SantuarioFlow] Invalid transition blocked: ${this.currentState} -> ${target}`);
+            captureFrontendMessage('flow.transition.blocked', {
+                domain: 'flow',
+                engine: 'santuario',
+                from: this.currentState,
+                to: target,
+            });
             return false;
         }
         this.history.push(this.currentState);

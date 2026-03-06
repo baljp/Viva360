@@ -51,6 +51,11 @@ import {
   toDomainAuthMessage,
 } from './authDomainHelpers';
 
+type ScopedSignOut = { scope: 'global' | 'local' };
+const getUserMetadata = (metadata: unknown): SupabaseUserMetadata => (
+  metadata && typeof metadata === 'object' ? metadata as SupabaseUserMetadata : {}
+);
+
 export const createAuthApi = (request: RequestFn) => {
   const auth = {} as AuthApi;
   const errCode = (error: unknown) =>
@@ -342,13 +347,14 @@ export const createAuthApi = (request: RequestFn) => {
           throw new Error('Não foi possível estabelecer a sessão segura.');
         }
 
+        const userMetadata = getUserMetadata(session.user.user_metadata);
         let eligibility = await fetchLoginEligibility(sessionEmail);
         if (!eligibility.allowed) {
           try {
             await ensureOAuthProfile(
               session.access_token,
-              oauthRole || (UserRole.CLIENT as any),
-              String((session.user.user_metadata as any)?.full_name || '').trim() || undefined,
+              oauthRole || UserRole.CLIENT,
+              String(userMetadata.full_name || '').trim() || undefined,
             );
             try {
               eligibility = await fetchLoginEligibility(sessionEmail);
@@ -379,8 +385,8 @@ export const createAuthApi = (request: RequestFn) => {
           const alreadyHasRole = Array.isArray(eligibility.roles) && eligibility.roles.includes(oauthRole);
           if (!alreadyHasRole) {
             try {
-              await auth.addRole(oauthRole as any);
-              await auth.selectRole(oauthRole as any);
+              await auth.addRole(oauthRole);
+              await auth.selectRole(oauthRole);
               try {
                 eligibility = await fetchLoginEligibility(sessionEmail);
               } catch {
@@ -392,7 +398,7 @@ export const createAuthApi = (request: RequestFn) => {
           }
         }
 
-        const metadataRoleValue = String((session.user.user_metadata as any)?.role || '').trim();
+        const metadataRoleValue = String(userMetadata.role || '').trim();
         const metadataRole = metadataRoleValue ? normalizeRole(metadataRoleValue) : null;
         const resolvedRole = eligibility.role || metadataRole || inferRoleFromEmail(sessionEmail);
         const resolvedRoles = normalizeRoleList(
@@ -406,11 +412,11 @@ export const createAuthApi = (request: RequestFn) => {
           baseUser({
             id: session.user.id,
             email: sessionEmail,
-            name: (session.user.user_metadata as any).full_name || session.user.email?.split('@')[0] || 'Viajante',
+            name: userMetadata.full_name || session.user.email?.split('@')[0] || 'Viajante',
             role: resolvedRole,
             activeRole: resolvedRole,
             roles: resolvedRoles,
-            avatar: (session.user.user_metadata as any).avatar_url || '',
+            avatar: userMetadata.avatar_url || '',
           }),
         );
       }
@@ -499,8 +505,8 @@ export const createAuthApi = (request: RequestFn) => {
     }
     try {
       if (!canUseMockSession()) {
-        await supabase.auth.signOut({ scope: 'global' as any });
-        await supabase.auth.signOut({ scope: 'local' as any });
+        await supabase.auth.signOut({ scope: 'global' } as ScopedSignOut);
+        await supabase.auth.signOut({ scope: 'local' } as ScopedSignOut);
       }
     } catch {
       // ignore

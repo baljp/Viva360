@@ -7,6 +7,7 @@ import { useAppToast } from '../../src/contexts/AppToastContext';
 import { TimeLapseShareModal } from './TimeLapseShareModal';
 import { normalizeTimeLapseEntries } from './timeLapseUtils';
 import type { GardenSnap, TimeLapseEntry, TimeLapseFlowBridge, TimeLapseModal } from './timeLapseTypes';
+import { captureFrontendError, captureFrontendMessage } from '../../lib/frontendLogger';
 
 type TimeLapseProps = { flow: TimeLapseFlowBridge; setView: (v: ViewState) => void };
 
@@ -302,7 +303,7 @@ export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setVie
             const selectedMime = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
 
             if (!selectedMime) {
-                console.warn("Nenhum formato de vídeo suportado encontrado. Tentando default.");
+                captureFrontendMessage('timelapse.recording.mime_fallback', { view: 'TimeLapseView', op: 'startRecording' });
             }
 
             const options = selectedMime
@@ -323,7 +324,7 @@ export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setVie
             };
 
             recorder.onerror = (e) => {
-                console.error("Recording Error:", e);
+                captureFrontendError(e, { view: 'TimeLapseView', op: 'mediaRecorder.onerror' });
                 setIsRecording(false);
                 setToast({ title: "Erro na Gravação", message: "Ocorreu um erro ao gerar o vídeo. Tente novamente.", type: "error" });
             };
@@ -331,7 +332,7 @@ export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setVie
             mediaRecorderRef.current = recorder;
             recorder.start();
         } catch (err) {
-            console.error("Failed to start recording:", err);
+            captureFrontendError(err, { view: 'TimeLapseView', op: 'startRecording' });
             setIsRecording(false);
             setToast({ title: "Dispositivo Não Suportado", message: "Não foi possível iniciar a gravação neste dispositivo.", type: "error" });
         }
@@ -392,7 +393,7 @@ export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setVie
                 downloadVideo();
             }
         } catch (e) {
-            console.error("Share failed", e);
+            captureFrontendError(e, { view: 'TimeLapseView', op: 'share' });
             downloadVideo();
         }
     };

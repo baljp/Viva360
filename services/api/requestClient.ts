@@ -77,9 +77,10 @@ const clonePayload = <T>(value: T): T => {
 /** Sentinel: sinaliza 401 de executeAttempts → runRequest sem passar pela lógica de retry normal */
 const AUTH_SENTINEL = Symbol('AUTH_NEEDED');
 type AuthNeeded = { readonly _s: typeof AUTH_SENTINEL };
+type AuthSentinelCarrier = { _s?: symbol };
 const mkAuthNeeded = (): AuthNeeded => ({ _s: AUTH_SENTINEL });
 const isAuthNeeded = (e: unknown): e is AuthNeeded =>
-  typeof e === 'object' && e !== null && (e as any)._s === AUTH_SENTINEL;
+  typeof e === 'object' && e !== null && (e as AuthSentinelCarrier)._s === AUTH_SENTINEL;
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
@@ -237,8 +238,11 @@ export const createRequestClient = (deps: RequestClientDeps) => {
 
     // Estouro de tentativas ou AbortError: captura telemetria e lança
     deps.captureError(lastError, { endpoint, purpose });
+    const lastErrorStatus = typeof lastError === 'object' && lastError !== null && 'status' in lastError
+      ? Number((lastError as { status?: unknown }).status || 0)
+      : 0;
     requestTelemetry.record({
-      endpoint, method, status: (lastError as any)?.status || 0,
+      endpoint, method, status: lastErrorStatus,
       durationMs: 0, purpose, correlationId,
       error: lastError instanceof Error ? lastError.message : 'unknown',
     });

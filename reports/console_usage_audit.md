@@ -1,12 +1,12 @@
 # Console Usage Audit
 
-Gerado em: 2026-02-25T12:52:04.378Z
+Gerado em: 2026-03-06T15:38:11.227Z
 
-Runtime total: 175
-Frontend runtime: 59
+Runtime total: 109
+Frontend runtime: 32
 Backend runtime: 6
 Frontend console.log (disallow target): 0
-Runtime console fora da allowlist: 169
+Runtime console fora da allowlist: 103
 
-Métodos: {"error":67,"warn":26,"log":79,"info":3}
+Métodos: {"log":64,"error":30,"warn":14,"debug":1}
 

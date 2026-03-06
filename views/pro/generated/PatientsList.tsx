@@ -5,6 +5,20 @@ import { PortalView } from '../../../components/Common';
 import { api } from '../../../services/api';
 import { usePullToRefresh } from '../../../src/hooks/usePullToRefresh';
 import { PatientDTO } from '../../../types';
+import { errorMessage } from '../../../lib/frontendLogger';
+
+type PatientLinkParty = {
+  id: string;
+  name?: string | null;
+};
+
+type PatientLink = {
+  id: string;
+  type: string;
+  status: string;
+  source?: PatientLinkParty | null;
+  target?: PatientLinkParty | null;
+};
 
 export default function PatientsList() {
   const { go, state, selectPatient } = useGuardiaoFlow();
@@ -13,14 +27,14 @@ export default function PatientsList() {
   const [linkSending, setLinkSending] = useState(false);
   const [linkError, setLinkError] = useState('');
   const [linkSuccess, setLinkSuccess] = useState('');
-  const [patientLinks, setPatientLinks] = useState<any[]>([]); // Links still use generic type for now as they are composite
+  const [patientLinks, setPatientLinks] = useState<PatientLink[]>([]);
   const [linksLoading, setLinksLoading] = useState(false);
 
   const loadLinks = async () => {
     setLinksLoading(true);
     try {
       const links = await api.links.getMyLinks();
-      const list = Array.isArray(links) ? links : [];
+      const list = Array.isArray(links) ? links as PatientLink[] : [];
       setPatientLinks(list.filter((l) => String(l?.type || '').toLowerCase() === 'paciente'));
     } catch {
       setPatientLinks([]);
@@ -39,7 +53,7 @@ export default function PatientsList() {
       try {
         const links = await api.links.getMyLinks();
         if (cancelled) return;
-        const list = Array.isArray(links) ? links : [];
+        const list = Array.isArray(links) ? links as PatientLink[] : [];
         setPatientLinks(list.filter((l) => String(l?.type || '').toLowerCase() === 'paciente'));
       } catch {
         if (!cancelled) setPatientLinks([]);
@@ -247,8 +261,8 @@ export default function PatientsList() {
                 setLinkSuccess('Convite interno enviado. Aguarde o aceite do Buscador.');
                 setLinkEmail('');
                 await loadLinks();
-              } catch (e: any) {
-                setLinkError(e?.message || 'Falha ao enviar convite.');
+              } catch (e) {
+                setLinkError(errorMessage(e) || 'Falha ao enviar convite.');
               } finally {
                 setLinkSending(false);
               }
@@ -265,10 +279,10 @@ export default function PatientsList() {
           <div className="bg-white p-6 rounded-[2.5rem] border border-nature-100 shadow-sm space-y-3">
             <h4 className="text-[10px] font-bold text-nature-400 uppercase tracking-widest">Vinculos</h4>
             {patientLinks.slice(0, 6).map((link) => {
-              const source = (link as Record<string, unknown>)?.source as Record<string, unknown> || {};
-              const target = (link as Record<string, unknown>)?.target as Record<string, unknown> || {};
+              const source: PatientLinkParty = link.source || { id: '' };
+              const target: PatientLinkParty = link.target || { id: '' };
               const other = String(source?.id || '') === myId ? target : source;
-              const status = String((link as Record<string, unknown>)?.status || '').toUpperCase();
+              const status = String(link.status || '').toUpperCase();
               return (
                 <div key={String(link.id)} className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-nature-50 border border-nature-100">
                   <div className="min-w-0">

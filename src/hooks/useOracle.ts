@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../../services/api';
 import { useAppToast } from '../contexts/AppToastContext';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 // Shared type definition for consistency
 export interface OracleMessage {
@@ -38,7 +39,7 @@ export const useOracle = (userId: string) => {
                     setDailyCard(card);
                 }
             } catch (e) {
-                console.error("Failed to load daily card", e);
+                captureFrontendError(e, { domain: 'oracle', op: 'loadDailyCard' });
             }
         };
 
@@ -65,7 +66,7 @@ export const useOracle = (userId: string) => {
             setDailyCard(newCard);
             setShowCard(true);
         } catch (e) {
-            console.error("Oracle Draw Error:", e);
+            captureFrontendError(e, { domain: 'oracle', op: 'draw' });
             showToast({
                 title: "Interferência Mística", 
                 message: "A conexão com o oráculo oscilou. Respire e tente novamente." 

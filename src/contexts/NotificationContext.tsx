@@ -19,6 +19,7 @@ import {
   getPushSubscriptionState, getPushPermissionState,
   PushPermissionState,
 } from '../../lib/notifications';
+import type { User } from '../../types';
 
 export interface NotificationContextType {
   notifications:  Notification[];
@@ -37,7 +38,7 @@ const Ctx = NotificationContextStore as React.Context<NotificationContextType>;
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [notifications,  setNotifications]  = useState<Notification[]>([]);
-  const [user,           setUser]           = useState<any>(null);
+  const [user,           setUser]           = useState<User | null>(null);
   const [muteNonce,      setMuteNonce]      = useState(0);
   const [pushPermission, setPushPermission] = useState<PushPermissionState>(getPushPermissionState);
   const [pushSubscribed, setPushSubscribed] = useState(false);

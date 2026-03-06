@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../../services/api';
 import { roundTripTelemetry } from '../../../lib/telemetry';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 type PatientEvolutionRecord = {
     id: string | number;
@@ -184,7 +185,7 @@ export default function PatientEvolutionView() {
                 }
             })
             .catch((e) => {
-                console.error(e);
+                captureFrontendError(e, { view: 'PatientEvolutionView', op: 'listInterventions' });
                 if (!cancelled) {
                     setInterventions([]);
                     notify('Erro de Intervenções', 'Não foi possível carregar o histórico clínico completo.', 'error');
@@ -205,7 +206,7 @@ export default function PatientEvolutionView() {
             const data = await api.records.list(PATIENT_ID);
             setRecords(normalizeRecords(data));
         } catch (e) {
-            console.error(e);
+            captureFrontendError(e, { view: 'PatientEvolutionView', op: 'fetchRecords' });
             notify('Erro de Registro', 'Falha ao buscar registros do paciente.', 'error');
         } finally {
             setLoading(false);
@@ -226,7 +227,7 @@ export default function PatientEvolutionView() {
                 setRecords(normalizeRecords(data));
             })
             .catch((e) => {
-                console.error(e);
+                captureFrontendError(e, { view: 'PatientEvolutionView', op: 'listRecords' });
                 if (!cancelled) {
                     setRecords([]);
                     notify('Erro de Sincronização', 'O prontuário pode estar desatualizado devido a uma falha de rede.', 'warning');

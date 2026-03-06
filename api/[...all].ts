@@ -9,6 +9,7 @@
 // @ts-ignore — dist is generated at build time; not available during local type-check
 import appModule from '../backend/dist/app.js';
 
-const app = (appModule as any)?.default ?? appModule;
+type AppModuleShape = { default?: unknown };
+const app = (appModule as AppModuleShape).default ?? appModule;
 
 export default app;

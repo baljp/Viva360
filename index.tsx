@@ -9,6 +9,7 @@ import './src/index.css'; // Global Design System
 import { installBootRecovery } from './src/boot/bootRecovery';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { registerSW } from 'virtual:pwa-register';
+import { captureFrontendError, captureFrontendMessage } from './lib/frontendLogger';
 
 // Setup PWA Service Worker for automated cache invalidation post-deploy
 const updateSW = registerSW({
@@ -18,7 +19,7 @@ const updateSW = registerSW({
   },
   onOfflineReady() {
     if (import.meta.env.DEV) {
-      console.info('[PWA] Ready for offline use');
+      captureFrontendMessage('pwa.offline_ready', { domain: 'pwa', op: 'offlineReady' });
     }
   }
 });
@@ -55,7 +56,7 @@ if (shouldLoadMonitoring) {
   scheduleIdle(() => {
     import('./lib/monitoring')
       .then((m) => m.initMonitoring())
-      .catch((err) => console.warn('[Monitoring] Deferred init failed', err));
+      .catch((err) => captureFrontendError(err, { domain: 'monitoring', op: 'deferredInit' }));
   });
 }
 
@@ -84,4 +85,5 @@ root.render(
 );
 
 // Used by boot recovery watchdog as a signal that hydration succeeded.
-(window as any).__VIVA360_MOUNTED__ = true;
+type Viva360Window = Window & { __VIVA360_MOUNTED__?: boolean };
+(window as Viva360Window).__VIVA360_MOUNTED__ = true;

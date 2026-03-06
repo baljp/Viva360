@@ -34,6 +34,7 @@ import { clearCartStorage, clearPendingInvite, loadCartFromStorage, mergeUserFor
 import { useAppSessionBootstrap, useOAuthConfigWarning, useScrollResetOnPathChange } from './src/app/bootstrap';
 import { useGlobalAuthStateListener } from './src/app/listeners';
 import { RequireAuth, RequireRole } from './src/app/guards';
+import { captureFrontendError, captureFrontendMessage } from './lib/frontendLogger';
 
 // Loading Component
 const PageLoader = () => (
@@ -96,12 +97,12 @@ const App: React.FC = () => {
         if (targetPath) navigate(targetPath);
     };
 
-    const handleUpdateUser = useCallback((u: any) => {
+    const handleUpdateUser = useCallback((u: User | Partial<User> | null) => {
         if (!u) return;
         setCurrentUser(prev => mergeUserForApp(prev, u));
     }, []);
 
-    const handleLogin = useCallback((u: any) => {
+    const handleLogin = useCallback((u: User | Partial<User> | null) => {
         if (!u) return;
         handleUpdateUser(u);
         telemetry.setUser(u.id || null);
@@ -121,7 +122,7 @@ const App: React.FC = () => {
                 await api.invites.accept(pendingToken);
                 setToast({ title: 'Vínculo ativado', message: 'Seu chamado foi aceito e o vínculo foi concluído.' });
             } catch (e) {
-                console.warn('Invite accept failed:', e);
+                captureFrontendError(e, { domain: 'invite', op: 'accept.pending_after_login' });
                 setToast({ title: 'Convite', message: 'Não foi possível concluir o vínculo automaticamente.' });
             } finally {
                 clearPendingInvite();
@@ -192,7 +193,7 @@ const App: React.FC = () => {
                 },
             });
         } catch (e) {
-            console.error("Checkout failed", e);
+            captureFrontendError(e, { domain: 'checkout', op: 'processCheckout' });
             setToast({ title: "Erro na Alquimia", message: "Não foi possível completar a troca energética." });
         }
     };
@@ -201,7 +202,7 @@ const App: React.FC = () => {
         try {
             await api.auth.logout();
         } catch (e) {
-            console.error("Logout error", e);
+            captureFrontendMessage('auth.logout.failed', { domain: 'auth', op: 'logout', error: String(e) });
         } finally {
             telemetry.setUser(null);
             setCurrentUser(null);

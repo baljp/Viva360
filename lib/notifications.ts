@@ -21,13 +21,14 @@ function b64ToUint8(b64: string): Uint8Array {
 // ── VAPID key (fetched once, then cached) ─────────────────────────────────────
 
 let _vapidKey: string | null = null;
+type ImportMetaEnvLike = { VITE_VAPID_PUBLIC_KEY?: string };
 
 async function getVapidKey(): Promise<string | null> {
   if (_vapidKey) return _vapidKey;
 
   // 1. Build-time env var (fastest)
   const env = typeof import.meta !== 'undefined'
-    ? (import.meta as any).env?.VITE_VAPID_PUBLIC_KEY
+    ? (import.meta.env as ImportMetaEnvLike | undefined)?.VITE_VAPID_PUBLIC_KEY
     : null;
   if (env) { _vapidKey = env; return _vapidKey; }
 

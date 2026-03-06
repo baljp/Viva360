@@ -6,6 +6,7 @@ import { api } from '../../../services/api';
 import type { User } from '../../../types';
 import { roundTripTelemetry } from '../../../lib/telemetry';
 import { RecurrenceToggle, type RecurrenceState } from '../../../components/RecurrenceToggle';
+import { errorMessage } from '../../../lib/frontendLogger';
 
 // user é injetado pelo ScreenConnector via props spread
 export default function BookingConfirm({ user, onClose }: { user?: User; onClose?: () => void }) {
@@ -79,15 +80,16 @@ export default function BookingConfirm({ user, onClose }: { user?: User; onClose
         notify('Agendamento confirmado!', `Sessão com ${pro.name} registrada com sucesso.`, 'success');
       }
       go('CHECKOUT');
-    } catch (err: any) {
-      roundTripTelemetry.error('booking', 'confirm', rt.correlationId, rt.startMs, err?.message || 'unknown');
-      if (err?.code === 'RECURRENCE_CONFLICTS' && err?.conflicts?.length) {
-        const dates = (err.conflicts as Array<{ date?: string; time?: string }>).slice(0, 3).map(c =>
+    } catch (err) {
+      const normalizedError = err && typeof err === 'object' ? err as { code?: string; conflicts?: Array<{ date?: string; time?: string }> } : {};
+      roundTripTelemetry.error('booking', 'confirm', rt.correlationId, rt.startMs, errorMessage(err));
+      if (normalizedError.code === 'RECURRENCE_CONFLICTS' && normalizedError.conflicts?.length) {
+        const dates = normalizedError.conflicts.slice(0, 3).map(c =>
           new Date(c.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
         ).join(', ');
         notify('Conflito de horários', `Datas com conflito: ${dates}. Ative "pular conflitos" ou mude os horários.`, 'error');
       } else {
-        notify('Falha no agendamento', err?.message || 'Não foi possível confirmar. Tente novamente.', 'error');
+        notify('Falha no agendamento', errorMessage(err) || 'Não foi possível confirmar. Tente novamente.', 'error');
       }
     } finally {
       setIsBooking(false);
@@ -110,8 +112,8 @@ export default function BookingConfirm({ user, onClose }: { user?: User; onClose
       link.remove();
       URL.revokeObjectURL(url);
       notify('Sincronizado', 'Arquivo da agenda gerado para importar no celular ou desktop.', 'info');
-    } catch (error: any) {
-      notify('Falha na sincronização', error?.message || 'Não foi possível sincronizar sua agenda agora.', 'error');
+    } catch (error) {
+      notify('Falha na sincronização', errorMessage(error) || 'Não foi possível sincronizar sua agenda agora.', 'error');
     } finally {
       setIsSyncing(false);
     }

@@ -9,6 +9,8 @@ import { MicroJourneyModal } from './map/MicroJourneyModal';
 import { api } from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 
+type PresenceStatus = 'ONLINE' | 'OFFLINE' | 'BUSY';
+
 interface MapaDaCuraProps {
     pros?: Professional[];
     isLoading?: boolean;
@@ -22,16 +24,19 @@ export const MapaDaCuraView: React.FC<MapaDaCuraProps> = ({ pros = [], isLoading
     const navigate = useNavigate();
     const { journey, context: journeyContext } = useJourneyEngine(user);
     const [searchQuery, setSearchQuery] = useState("");
-    const [activeMicroJourney, setActiveMicroJourney] = useState<any>(null);
-    
-    const [activeGuardians, setActiveGuardians] = useState<Record<string, any>>({});
+    const [activeMicroJourney, setActiveMicroJourney] = useState<MicroJourney['category'] | null>(null);
+    const [activeGuardians, setActiveGuardians] = useState<Record<string, PresenceStatus>>({});
     const [activeFilter, setActiveFilter] = useState<string | null>(null);
 
     // Load Active Guardians
     useEffect(() => {
         const loadPresence = async () => {
             const active = await api.presence.listActive();
-            setActiveGuardians(active);
+            const next: Record<string, PresenceStatus> = {};
+            active.forEach((guardianId) => {
+                next[String(guardianId)] = 'ONLINE';
+            });
+            setActiveGuardians(next);
         };
         loadPresence();
         const interval = setInterval(loadPresence, 30000); // Poll every 30s

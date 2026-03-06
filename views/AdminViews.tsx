@@ -16,6 +16,7 @@ import {
     SystemHealthDTO,
     MarketplaceOfferDTO
 } from '../types';
+import { captureFrontendError } from '../lib/frontendLogger';
 
 export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: ViewState) => void }> = ({ user, view, setView }) => {
     const [stats, setStats] = useState<AdminDashboardDTO | null>(null);
@@ -56,7 +57,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
             }));
             setStats(dash);
         } catch (e) {
-            console.error(e);
+            captureFrontendError(e, { view: 'AdminViews', op: 'refreshDashboard' });
             setToast({ title: 'Erro de Sincronização', message: 'Não foi possível atualizar os dados do dashboard.', type: 'error' });
         }
         setIsLoading(false);
@@ -72,7 +73,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
             ]);
             setUsers(list);
         } catch (e) {
-            console.error(e);
+            captureFrontendError(e, { view: 'AdminViews', op: 'fetchUsers' });
             setToast({ title: 'Erro na Listagem', message: 'Falha ao carregar a lista de usuários.', type: 'error' });
         }
         setIsLoading(false);
@@ -128,7 +129,7 @@ export const AdminViews: React.FC<{ user: User, view: ViewState, setView: (v: Vi
             safeSetLoading(true);
             api.admin.getMetrics()
                 .catch((e) => {
-                    console.error(e);
+                    captureFrontendError(e, { view: 'AdminViews', op: 'getMetrics' });
                     if (!cancelled) setToast({ title: 'Erro de Métricas', message: 'Dados de performance indisponíveis.', type: 'warning' });
                     return {};
                 })

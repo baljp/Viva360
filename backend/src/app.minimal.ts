@@ -1,5 +1,6 @@
 // Diagnostic Minimal App — captures import errors on boot
 import express from 'express';
+import type { Router } from 'express';
 import { logger } from './lib/logger';
 
 const app = express();
@@ -12,14 +13,19 @@ app.get('/api/health', (req, res) => {
 
 // Diagnostic: capture the EXACT error from importing auth routes
 let bootError: string | null = null;
-let authRouter: any = null;
+let authRouter: Router | null = null;
+
+const formatUnknownError = (error: unknown) => {
+    if (error instanceof Error) return `${error.message}\n${error.stack || ''}`.trim();
+    return String(error);
+};
 
 try {
     // Eagerly require the auth routes to capture any init-time crash
     const mod = require('./routes/auth.routes');
     authRouter = mod.default || mod;
-} catch (err: any) {
-    bootError = `[BOOT_CRASH] ${err.message}\n${err.stack}`;
+} catch (err) {
+    bootError = `[BOOT_CRASH] ${formatUnknownError(err)}`;
     logger.error('boot.minimal_auth_router_import_failed', { bootError });
 }
 
