@@ -108,7 +108,7 @@ export class PresenceService {
       select: { guardian_id: true },
     });
 
-    return presences.map((p: any) => p.guardian_id);
+    return presences.map((p) => p.guardian_id);
   }
 
   /**
@@ -126,7 +126,7 @@ export class PresenceService {
     const result: Record<string, PresenceStatus> = {};
 
     for (const id of guardianIds) {
-      const presence = presences.find((p: any) => p.guardian_id === id);
+      const presence = presences.find((p) => p.guardian_id === id);
       if (!presence || new Date() > presence.expires_at) {
         result[id] = 'OFFLINE';
       } else {

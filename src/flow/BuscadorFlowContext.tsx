@@ -11,6 +11,7 @@ import { BuscadorFlowContextStore } from './BuscadorFlowContextStore';
 import { trackFlowTelemetry } from './flowTelemetry';
 import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
 import { useAppToast } from '../contexts/AppToastContext';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 // Define Context State
 interface FlowContextState extends BaseFlowState<BuscadorState> {
@@ -191,7 +192,7 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
                 },
             });
         } catch (e) {
-            console.error('Failed to fetch Buscador data', e);
+            captureFrontendError(e, { domain: 'buscador-flow', op: 'refreshData' });
             const copy = buildReadFailureCopy(['marketplace'], false);
             dispatch({ type: 'SET_ERROR', payload: copy.message });
             trackFlowTelemetry({

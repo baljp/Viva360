@@ -7,6 +7,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { errorTelemetry, sessionTelemetry } from '../../lib/telemetry';
+import { supabase } from '../../lib/supabase';
 import { createRequestClient } from './requestClient';
 import {
   API_URL,
@@ -15,9 +16,6 @@ import {
 } from './session';
 import { MOCK_AUTH_TOKEN, MOCK_USER_KEY, canUseMockSession } from './mock';
 import { getSessionMode } from './session';
-
-// Importação lazy do Supabase para não criar dependência circular em testes
-const getSupabase = () => import('../../lib/supabase').then(m => m.supabase);
 
 const getHeader = () => {
   const isMockSession =
@@ -52,7 +50,6 @@ const handleUnauthorized = async (_endpoint: string): Promise<string | null> => 
   if (canUseMockSession() && getSessionMode() === 'mock') return null;
 
   try {
-    const supabase = await getSupabase();
     const { data, error } = await supabase.auth.refreshSession();
 
     if (error || !data.session?.access_token) {

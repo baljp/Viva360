@@ -7,6 +7,7 @@
  *  3. SW message listener handles VAPID key rotation automatically
  */
 import { api } from '../services/api';
+import { captureFrontendError, captureFrontendMessage } from './frontendLogger';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -104,7 +105,7 @@ export async function subscribePush(): Promise<PushSubscribeResult> {
     _setupKeyRotationListener();
     return { success: true };
   } catch (err) {
-    console.error('[Push] subscribe error:', err);
+    captureFrontendError(err, { domain: 'push', op: 'subscribe' });
     return { success: false, reason: 'error' };
   }
 }
@@ -122,7 +123,7 @@ export async function unsubscribePush(): Promise<boolean> {
     await api.notifications.unsubscribePush(ep);
     return true;
   } catch (err) {
-    console.error('[Push] unsubscribe error:', err);
+    captureFrontendError(err, { domain: 'push', op: 'unsubscribe' });
     return false;
   }
 }
@@ -155,7 +156,9 @@ function _setupKeyRotationListener() {
         keys:      { p256dh: s.keys?.p256dh ?? '', auth: s.keys?.auth ?? '' },
         userAgent: navigator.userAgent,
       });
-      console.log('[Push] Key rotation: new subscription saved to backend');
-    } catch { console.warn('[Push] Key rotation: failed to save'); }
+      captureFrontendMessage('push.subscription_rotated', { domain: 'push', op: 'rotation' });
+    } catch (error) {
+      captureFrontendError(error, { domain: 'push', op: 'rotation' });
+    }
   });
 }

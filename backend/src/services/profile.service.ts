@@ -1,11 +1,15 @@
 import { profileRepository, UpdateProfileData } from '../repositories/profile.repository';
 
+type ProfileUserRef = {
+    id: string;
+};
+
 export class ProfileService {
-    async getProfile(user: any) {
+    async getProfile(user: ProfileUserRef) {
         return await profileRepository.findById(user.id);
     }
 
-    async updateProfile(user: any, updates: UpdateProfileData) {
+    async updateProfile(user: ProfileUserRef, updates: UpdateProfileData) {
         return await profileRepository.update(user.id, updates);
     }
 

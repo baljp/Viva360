@@ -1,3 +1,5 @@
+import { errorTelemetry } from './telemetry';
+
 const dsn = import.meta.env.VITE_SENTRY_DSN;
 const environment = import.meta.env.MODE || "development";
 const tracesSampleRate = Number(import.meta.env.VITE_SENTRY_TRACES_SAMPLE_RATE || 0.2);
@@ -27,7 +29,10 @@ export const initMonitoring = async () => {
         const Sentry = await getSentry();
         const activeSampleRate = Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.2;
         const enforcedSampleRate = environment === 'production' ? Math.max(activeSampleRate, 0.1) : activeSampleRate;
-        const integrations: any[] = [];
+        const integrations: Array<
+            ReturnType<typeof Sentry.browserTracingIntegration> |
+            ReturnType<typeof Sentry.replayIntegration>
+        > = [];
         if (enableTracing) {
             integrations.push(Sentry.browserTracingIntegration());
         }
@@ -60,7 +65,7 @@ export const initMonitoring = async () => {
         try {
             (window as any).LogRocket.init(logrocketId);
         } catch (err) {
-            console.warn("[Monitoring] Falha ao iniciar LogRocket", err);
+            errorTelemetry.capture(err, { domain: 'monitoring', op: 'logrocket.init' });
         }
     }
 };
@@ -69,18 +74,14 @@ export const captureFrontendError = (error: unknown, context?: Record<string, un
     if (dsn && sentryModule) {
         sentryModule.captureException(error, { extra: context });
     }
-    if (context) {
-        console.error("[FrontendError]", error, context);
-        return;
-    }
-    console.error("[FrontendError]", error);
+    errorTelemetry.capture(error, context);
 };
 
 export const captureFrontendMessage = (message: string, context?: Record<string, unknown>) => {
     if (dsn && sentryModule) {
         sentryModule.captureMessage(message, { level: "warning", extra: context });
     }
-    console.warn("[FrontendMessage]", message, context || {});
+    errorTelemetry.captureMessage(message, context);
 };
 
 export const setMonitoringUser = (user: { id?: string; email?: string; role?: string } | null) => {

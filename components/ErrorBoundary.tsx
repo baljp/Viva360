@@ -21,7 +21,6 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error("[FlowGuard] Uncaught frequency shift:", error, errorInfo);
     captureFrontendError(error, { component: 'ErrorBoundary', errorInfo });
   }
 

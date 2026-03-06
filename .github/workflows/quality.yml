@@ -12,7 +12,7 @@ jobs:
     timeout-minutes: 20
 
     env:
-      JWT_SECRET: viva360_quality_mock_jwt_secret
+      JWT_SECRET: qa-mock-${{ github.run_id }}-${{ github.run_attempt }}
       MOCK_MODE: "true"
       APP_MODE: "MOCK"
       ENABLE_TEST_MODE: "true"

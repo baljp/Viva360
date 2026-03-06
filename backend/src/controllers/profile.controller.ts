@@ -5,6 +5,26 @@ import { profileService } from '../services/profile.service';
 import { profileRepository } from '../repositories/profile.repository';
 import prisma from '../lib/prisma';
 
+type ReviewEventPayload = {
+    rating?: number;
+    comment?: string;
+    userId?: string;
+};
+
+type ReviewEventRow = {
+    payload: ReviewEventPayload | null;
+    created_at: Date;
+};
+
+type AppointmentSeriesClientRef = {
+    client_id: string | null;
+};
+
+const getReviewPayload = (value: unknown): ReviewEventPayload => {
+    if (typeof value !== 'object' || value === null) return {};
+    return value as ReviewEventPayload;
+};
+
 const updateProfileSchema = z.object({
     name: z.string().min(2).optional(),
     bio: z.string().optional(),
@@ -94,29 +114,37 @@ export const getProfessionalMetrics = asyncHandler(async (req: Request, res: Res
     const { id } = req.params;
 
     // NPS calculation (P2 Fix)
-    const events = await (prisma as any).event.findMany({
+    const orm = prisma as typeof prisma & {
+        event: {
+            findMany: (args: {
+                where: { type: string; payload: { path: string[]; equals: string } };
+                select: { payload: true; created_at: true };
+            }) => Promise<ReviewEventRow[]>;
+        };
+    };
+    const events = await orm.event.findMany({
         where: { type: 'REVIEW_SUBMITTED', payload: { path: ['targetId'], equals: id } },
-        select: { payload: true }
+        select: { payload: true, created_at: true }
     });
 
-    const ratings = events.map((e: any) => Number(e.payload?.rating || 0)).filter((r: number) => r > 0);
+    const ratings = events.map((e) => Number(getReviewPayload(e.payload).rating || 0)).filter((r: number) => r > 0);
     const nps = ratings.length > 5
         ? Math.round((ratings.filter(r => r >= 9).length / ratings.length) * 100) - Math.round((ratings.filter(r => r <= 6).length / ratings.length) * 100)
         : 88; // Decent baseline
 
     // Retention: repeat clients
-    const clients = events.map((e: any) => e.payload?.userId).filter(Boolean);
+    const clients = events.map((e) => getReviewPayload(e.payload).userId).filter(Boolean);
     const uniqueClientsCount = new Set(clients).size;
     const repeatingClientsCount = clients.length - uniqueClientsCount;
     const retentionRate = uniqueClientsCount > 0 ? Math.round((repeatingClientsCount / uniqueClientsCount) * 100) : 78;
 
     // Feedback extraction (Ecos de Gratidão)
     const feedbacks = events
-        .filter((e: any) => e.payload?.comment)
+        .filter((e) => getReviewPayload(e.payload).comment)
         .slice(0, 3)
-        .map((e: any) => ({
-            comment: e.payload.comment,
-            rating: e.payload.rating,
+        .map((e) => ({
+            comment: getReviewPayload(e.payload).comment,
+            rating: getReviewPayload(e.payload).rating,
             date: e.created_at
         }));
 
@@ -132,7 +160,11 @@ export const getProfessionalMetrics = asyncHandler(async (req: Request, res: Res
 export const getSpacePatientsSummary = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
 
-    const orm = prisma as any;
+    const orm = prisma as typeof prisma & {
+        appointmentSeries?: {
+            findMany: (args: { where: { space_id: string }; select: { client_id: true } }) => Promise<AppointmentSeriesClientRef[]>;
+        };
+    };
     const canReadSeries = orm?.appointmentSeries && typeof orm.appointmentSeries.findMany === 'function';
 
     const [series, directAppointments] = await Promise.all([
@@ -154,8 +186,8 @@ export const getSpacePatientsSummary = asyncHandler(async (req: Request, res: Re
     ]);
 
     const uniquePatients = new Set([
-        ...(Array.isArray(series) ? series.map((s: any) => s?.client_id) : []),
-        ...(Array.isArray(directAppointments) ? directAppointments.map((a: any) => a?.client_id) : []),
+        ...(Array.isArray(series) ? series.map((s) => s?.client_id) : []),
+        ...(Array.isArray(directAppointments) ? directAppointments.map((a) => a?.client_id) : []),
     ].filter(Boolean));
 
     const totalPatients = uniquePatients.size;

@@ -4,12 +4,13 @@ import type { User } from '../../types';
 import { api } from '../../services/api';
 import { supabase, APP_MODE } from '../../lib/supabase';
 import { telemetry, sessionTelemetry } from '../../lib/telemetry';
+import { captureFrontendError, errorMessage } from '../../lib/frontendLogger';
 
 type ToastSetter = (toast: { title: string; message: string } | null) => void;
 
 type AuthListenerParams = {
   navigate: NavigateFunction;
-  onLogin: (user: any) => void;
+  onLogin: (user: User) => void;
   setCurrentUser: (user: User | null) => void;
   setToast: ToastSetter;
 };
@@ -33,11 +34,11 @@ export const useGlobalAuthStateListener = ({
             sessionTelemetry.record('login', { provider: 'supabase', userId: user.id });
             onLogin(user);
           }
-        } catch (err: any) {
-          console.error('OAuth callback error:', err);
+        } catch (err) {
+          captureFrontendError(err, { domain: 'auth', op: 'onAuthStateChange.SIGNED_IN' });
           setToast({
             title: 'Acesso não autorizado',
-            message: err?.message || 'Sua conta não está autorizada para este login.',
+            message: errorMessage(err) || 'Sua conta não está autorizada para este login.',
           });
           await api.auth.logout();
           navigate('/login');

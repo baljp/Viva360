@@ -79,18 +79,9 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react-router-dom')) return 'vendor-routing';
-            if (id.includes('react') || id.includes('react-dom')) return 'vendor-core';
-            // UI/Animation — framer-motion + lucide in the same async chunk
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) return 'vendor-core';
             if (id.includes('framer-motion') || id.includes('lucide-react')) return 'vendor-ui';
-            // Data/Auth layer
             if (id.includes('supabase')) return 'vendor-supabase';
-            if (id.includes('zod')) return 'vendor-validation';
-            if (id.includes('axios')) return 'vendor-http';
-            if (id.includes('jsonwebtoken')) return 'vendor-auth-utils';
-            if (id.includes('@prisma/client')) return 'vendor-data';
-            // Monitoring — loaded last, non-blocking
-            if (id.includes('@sentry')) return 'vendor-monitoring';
             return 'vendor-misc';
           }
           return undefined;

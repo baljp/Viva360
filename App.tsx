@@ -29,9 +29,6 @@ import { NotFoundScreen } from './src/navigation/NotFoundScreen';
 import { preloadRoleViews } from './src/utils/loaderUtils';
 import { lazyWithRetry } from './src/utils/lazyWithRetry';
 import { telemetry } from './lib/telemetry';
-import { installFlowTelemetryRuntime } from './src/flow/flowTelemetryRuntime';
-// Instala runtimes de telemetria no carregamento da app
-installFlowTelemetryRuntime();
 import { VIEW_PATHS, resolveHomePath, resolveViewFromPath } from './src/app/routing';
 import { clearCartStorage, clearPendingInvite, loadCartFromStorage, mergeUserForApp, persistCartToStorage, readPendingInvite } from './src/app/userSession';
 import { useAppSessionBootstrap, useOAuthConfigWarning, useScrollResetOnPathChange } from './src/app/bootstrap';
@@ -110,13 +107,11 @@ const App: React.FC = () => {
         telemetry.setUser(u.id || null);
         const role = String(u.activeRole || u.role).toUpperCase();
         preloadRoleViews(role);
-        console.log("DEBUG: handleLogin Role:", role);
         const homePath = resolveHomePath(role);
         const pending = readPendingInvite();
         const pendingToken = pending.token;
         const pendingDest = pending.destination;
         const dest = pendingDest || homePath;
-        console.log("DEBUG: handleLogin Redirecting to:", dest);
         navigate(dest);
 
         // Accept pending invite post-login (best-effort, non-blocking).

@@ -1,6 +1,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import { parseAllowedOriginPatterns, parseAllowedOrigins, resolveOAuthRedirectPolicy } from './oauthRedirectPolicy';
+import { captureFrontendError, captureFrontendMessage } from './frontendLogger';
 
 // Tenta pegar das variáveis de ambiente com segurança
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -148,18 +149,17 @@ try {
     const finalKey = supabaseAnonKey || 'dummy-anon-key';
     
     if (!supabaseUrl || !supabaseAnonKey) {
-        console.warn("⚠️ Viva360: SUPABASE_URL ou SUPABASE_ANON_KEY não configurados! Operação real ficará indisponível.");
+        captureFrontendMessage('supabase.config.missing', {
+            domain: 'supabase',
+            op: 'bootstrap',
+            hasUrl: Boolean(supabaseUrl),
+            hasKey: Boolean(supabaseAnonKey),
+        });
     }
     client = createClient(finalUrl, finalKey);
 } catch (error) {
-    console.error("Erro ao inicializar Supabase (Non-blocking):", error);
-    // Return a basic client structure to prevent crashes
-    client = {
-        auth: {
-            getSession: async () => ({ data: { session: null }, error: null }),
-            signInWithPassword: async () => ({ data: {}, error: new Error('Supabase not configured') }),
-        }
-    } as any;
+    captureFrontendError(error, { domain: 'supabase', op: 'bootstrap.createClient' });
+    client = createClient('https://viva360-mock.supabase.co', 'dummy-anon-key');
 }
 
 export const supabase = client;
@@ -178,10 +178,11 @@ if (typeof window !== 'undefined') {
         authConfigVersion: authConfigVersion || 'unset',
         publicAppUrl: publicAppUrl || 'unset',
     };
-    if (diagnostics.ok) {
-        console.info('[auth.config.runtime_ok]', runtimeFingerprint);
-    } else {
-        console.warn('[auth.config.runtime_issues]', { ...runtimeFingerprint, issues: diagnostics.issues });
+    if (!diagnostics.ok) {
+        captureFrontendMessage('auth.config.runtime_issues', {
+            ...runtimeFingerprint,
+            issues: diagnostics.issues,
+        });
     }
 }
 

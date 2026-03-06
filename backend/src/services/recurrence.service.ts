@@ -17,6 +17,25 @@ import prisma from '../lib/prisma';
 import { supabaseAdmin } from './supabase.service';
 import { logger } from '../lib/logger';
 
+type ExistingAppointmentSlotRow = {
+  id: string;
+  date: Date | string;
+  time: string | null;
+};
+
+type RecurrenceConflictError = Error & {
+  code: 'RECURRENCE_CONFLICTS';
+  conflicts: Array<{
+    occurrenceIndex: number;
+    date: string;
+    conflictingAppointmentId: string;
+  }>;
+};
+
+type PrismaErrorLike = {
+  code?: string;
+};
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 export const FREQ = {
@@ -191,7 +210,7 @@ export async function detectConflicts(
     return [];
   }
 
-  const existingRanges = (existing ?? []).map((row: any) => {
+  const existingRanges = (existing ?? []).map((row: ExistingAppointmentSlotRow) => {
     const start = new Date(`${String(row.date).slice(0, 10)}T${String(row.time || '00:00')}:00Z`);
     const end   = new Date(start.getTime() + durationMin * 60 * 1000);
     return { id: String(row.id), start, end };
@@ -265,13 +284,14 @@ export async function createSeries(input: CreateSeriesInput): Promise<CreateSeri
   const allConflicts = await detectConflicts(guardianId, occurrenceDates, durationMin);
 
   if (allConflicts.length > 0 && conflictStrategy === 'fail') {
-    const err: any = new Error('Conflitos de horário detectados.');
-    err.code = 'RECURRENCE_CONFLICTS';
-    err.conflicts = allConflicts.map(c => ({
-      occurrenceIndex: c.occurrenceIndex,
-      date: c.date.toISOString(),
-      conflictingAppointmentId: c.conflictingAppointmentId,
-    }));
+    const err: RecurrenceConflictError = Object.assign(new Error('Conflitos de horário detectados.'), {
+      code: 'RECURRENCE_CONFLICTS' as const,
+      conflicts: allConflicts.map(c => ({
+        occurrenceIndex: c.occurrenceIndex,
+        date: c.date.toISOString(),
+        conflictingAppointmentId: c.conflictingAppointmentId,
+      })),
+    });
     throw err;
   }
 
@@ -346,9 +366,10 @@ export async function createSeries(input: CreateSeriesInput): Promise<CreateSeri
           startAt: apt.date.toISOString(),
           occurrenceIndex: i,
         });
-      } catch (err: any) {
+      } catch (err) {
+        const prismaError = err as PrismaErrorLike;
         // P2002 = unique constraint violation → duplicate, skip silently
-        if (err?.code === 'P2002') {
+        if (prismaError?.code === 'P2002') {
           logger.info('recurrence.create.duplicate_skipped', {
             seriesId: series.id, occurrenceIndex: i,
           });

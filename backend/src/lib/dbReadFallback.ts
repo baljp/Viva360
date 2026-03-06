@@ -1,6 +1,6 @@
 import type { Response } from 'express';
 import { logger } from './logger';
-import { isMockMode } from '../services/supabase.service';
+import { isMockMode } from './appMode';
 
 type ReadFallbackOptions<T> = {
   route: string;
@@ -11,7 +11,7 @@ type ReadFallbackOptions<T> = {
 const isTestRuntime = process.env.NODE_ENV === 'test';
 
 export function isDbUnavailableError(err: unknown): boolean {
-  const e: any = err;
+  const e = err as { name?: string; code?: string; message?: string };
   const name = String(e?.name || '');
   const code = String(e?.code || '');
   const msg = String(e?.message || '');

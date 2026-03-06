@@ -11,8 +11,10 @@ export interface NotificationEvent {
   data?: unknown;
 }
 
+type NotificationTemplateData = Record<string, unknown>;
+
 // Mapping: Event Type -> Notification Title/Message
-const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (data: any) => string }> = {
+const EVENT_TEMPLATES: Record<string, { title: (data: NotificationTemplateData) => string; message: (data: NotificationTemplateData) => string }> = {
   'link.created': {
     title: () => 'Novo Convite',
     message: (data) => `Você recebeu um convite de conexão (${data.linkType}).`,
@@ -35,7 +37,7 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
   },
   'escambo.countered': {
     title: () => 'Contraproposta de Escambo',
-    message: (data) => data.counterOffer || 'Você recebeu uma contraproposta de escambo.',
+    message: (data) => String(data.counterOffer || 'Você recebeu uma contraproposta de escambo.'),
   },
   'escambo.completed': {
     title: () => 'Escambo Concluído',
@@ -83,11 +85,11 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
   },
   'series.created': {
     title: () => 'Sessões Recorrentes Criadas',
-    message: (data: any) => `${data.createdCount} sessão(ões) de "${data.serviceName}" agendadas com sucesso.`,
+    message: (data) => `${data.createdCount} sessão(ões) de "${data.serviceName}" agendadas com sucesso.`,
   },
   'series.canceled': {
     title: () => 'Série de Sessões Cancelada',
-    message: (data: any) => `${data.canceledCount} sessão(ões) futuras foram canceladas.`,
+    message: (data) => `${data.canceledCount} sessão(ões) futuras foram canceladas.`,
   },
   'record.updated': {
     title: () => 'Prontuário Atualizado',
@@ -127,7 +129,7 @@ const EVENT_TEMPLATES: Record<string, { title: (data: any) => string; message: (
   },
   'chat.message': {
     title: () => 'Nova Mensagem',
-    message: (data) => data.preview || 'Você recebeu uma nova mensagem.',
+    message: (data) => String(data.preview || 'Você recebeu uma nova mensagem.'),
   },
 };
 
@@ -148,8 +150,9 @@ export class NotificationEngine {
       return;
     }
 
-    const title = template.title(event.data || {});
-    const message = template.message(event.data || {});
+    const payload = (typeof event.data === 'object' && event.data !== null ? event.data : {}) as NotificationTemplateData;
+    const title = template.title(payload);
+    const message = template.message(payload);
 
     const targetUserId = String(event.targetUserId || '').trim();
     if (!UUID_REGEX.test(targetUserId)) {

@@ -19,7 +19,7 @@ type OracleMessage = {
     moods?: string[];
     phases?: string[];
     depth?: number;
-    weight?: any;
+    weight?: number | { toString(): string };
     rarity?: string;
 };
 
@@ -40,7 +40,7 @@ export class OracleService {
             moods: ['neutral', 'focado', 'ansioso'],
             phases: ['inicio', 'crescimento'],
             depth: 1,
-            weight: 1 as any,
+            weight: 1,
             rarity: 'common',
             created_at: new Date('2026-01-01T00:00:00.000Z'),
         },
@@ -52,7 +52,7 @@ export class OracleService {
             moods: ['triste', 'ansioso', 'cansado'],
             phases: ['inicio', 'integracao'],
             depth: 1,
-            weight: 1 as any,
+            weight: 1,
             rarity: 'common',
             created_at: new Date('2026-01-01T00:00:00.000Z'),
         },
@@ -64,7 +64,7 @@ export class OracleService {
             moods: ['focado', 'motivado', 'neutral'],
             phases: ['crescimento', 'expansao'],
             depth: 1,
-            weight: 1 as any,
+            weight: 1,
             rarity: 'common',
             created_at: new Date('2026-01-01T00:00:00.000Z'),
         },
@@ -149,7 +149,7 @@ export class OracleService {
                 data: {
                     user_id: safeUserId,
                     message_id: winner.id,
-                    context: context as any
+                    context: context as unknown as object
                 }
             });
         } catch (e) {
@@ -262,9 +262,10 @@ export class OracleService {
         return process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toUpperCase() === 'MOCK';
     }
 
-    private isDbUnavailableError(error: any): boolean {
-        const code = String(error?.code || '');
-        const message = String(error?.message || '');
+    private isDbUnavailableError(error: unknown): boolean {
+        const parsed = error as { code?: string; message?: string };
+        const code = String(parsed?.code || '');
+        const message = String(parsed?.message || '');
         return ['P1000', 'P1001', 'P1002', 'P1017'].includes(code)
             || /authentication failed against database server/i.test(message)
             || /circuit breaker open/i.test(message)

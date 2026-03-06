@@ -59,6 +59,12 @@ export type RequestOptions = RequestInit & {
   skipAuthRefresh?: boolean;
 };
 
+type RequestError = Error & {
+  status?: number;
+  code?: string | null;
+  details?: unknown;
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
@@ -198,24 +204,25 @@ export const createRequestClient = (deps: RequestClientDeps) => {
         requestTelemetry.record({ endpoint, method, status: response.status, durationMs: Date.now() - t0, purpose, correlationId });
         return payload;
 
-      } catch (err: any) {
+      } catch (err) {
+        const requestError = err as RequestError;
         clearTimeout(timeoutId);
         externalSignal?.removeEventListener('abort', relayAbort);
 
         // Sentinel 401: propaga diretamente, sem capture
-        if (isAuthNeeded(err)) throw err;
+        if (isAuthNeeded(requestError)) throw requestError;
 
         // AbortError: não retenta — registra e sai do loop para capture
-        if (err?.name === 'AbortError') {
-          lastError = err;
+        if (requestError?.name === 'AbortError') {
+          lastError = requestError;
           break;
         }
 
-        lastError = err;
-        const retryable = canRetryStatus(Number(err?.status || 0)) || deps.isLikelyNetworkError(err?.message);
+        lastError = requestError;
+        const retryable = canRetryStatus(Number(requestError?.status || 0)) || deps.isLikelyNetworkError(requestError?.message);
 
         // Update Circuit
-        if (!retryable || (err?.status && err.status >= 500)) {
+        if (!retryable || (requestError?.status && requestError.status >= 500)) {
           const cur = circuitBreaker.get(domain) || { failures: 0, lastFailure: 0 };
           circuitBreaker.set(domain, { failures: cur.failures + 1, lastFailure: Date.now() });
         }
@@ -291,9 +298,10 @@ export const createRequestClient = (deps: RequestClientDeps) => {
         saveCache(payload);
         return payload;
 
-      } catch (firstErr: any) {
+      } catch (firstErr) {
+        const initialError = firstErr as RequestError;
         // 401 → tenta refresh, depois UMA segunda passagem
-        if (isAuthNeeded(firstErr) && !skipAuthRefresh) {
+        if (isAuthNeeded(initialError) && !skipAuthRefresh) {
           const ok = await acquireToken(endpoint);
 
           if (!ok) {
@@ -309,19 +317,20 @@ export const createRequestClient = (deps: RequestClientDeps) => {
             saveCache(payload);
             return payload;
 
-          } catch (retryErr: any) {
-            if (isAuthNeeded(retryErr)) {
+          } catch (retryErr) {
+            const retryError = retryErr as RequestError;
+            if (isAuthNeeded(retryError)) {
               // 401 mesmo após refresh → sessão definitivamente expirada
               const err = sessionExpiredError('still_401_after_refresh');
               requestTelemetry.record({ endpoint, method, status: 401, durationMs: 0, purpose, correlationId, error: 'session_expired_after_refresh' });
               emitSessionExpired();
               throw err;
             }
-            throw retryErr;
+            throw retryError;
           }
         }
 
-        throw firstErr;
+        throw initialError;
       }
     };
 

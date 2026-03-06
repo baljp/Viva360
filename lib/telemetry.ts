@@ -192,31 +192,10 @@ const updateAggregate = (entry: TelemetryEntry) => {
   schedulePersist();
 };
 
-// ─── Dev console output ──────────────────────────────────────────────────────
+// ─── Dev hooks ────────────────────────────────────────────────────────────────
 
-const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV;
-
-const devLog = (entry: TelemetryEntry) => {
-  if (!isDev) return;
-  if (entry.kind === 'request') {
-    const ok = !entry.error && entry.status >= 200 && entry.status < 300;
-    const slow = entry.durationMs > 2000;
-    const icon = entry.cacheHit ? '📦' : ok ? (slow ? '🐢' : '✅') : '❌';
-    const msg = `${icon} [${entry.method}] ${entry.endpoint} → ${entry.status} (${entry.durationMs}ms)`;
-    if (!ok) console.warn('[Telemetry:request]', msg, entry);
-    // Request ok: silencioso em dev, não polui console
-  }
-  if (entry.kind === 'error') {
-    console.error('[Telemetry:error]', entry.message, entry.context || {});
-  }
-  if (entry.kind === 'session') {
-    const icons: Record<string, string> = { login: '🔑', logout: '🚪', token_refresh_ok: '🔄✅', token_refresh_fail: '🔄❌', session_expired: '⏰' };
-    console.info(`[Telemetry:session] ${icons[entry.event] || ''} ${entry.event}`, entry.meta || {});
-  }
-  if (entry.kind === 'round_trip') {
-    const icon = entry.status === 'success' ? '🔁✅' : entry.status === 'error' ? '🔁❌' : '🔁⏳';
-    console.info(`[Telemetry:round_trip] ${icon} ${entry.flow}.${entry.action}`, entry);
-  }
+const devLog = (_entry: TelemetryEntry) => {
+  // Sem console em runtime; o snapshot continua acessível via export/download.
 };
 
 // ─── API pública ─────────────────────────────────────────────────────────────
@@ -300,8 +279,14 @@ export const errorTelemetry = {
     } as ErrorTelemetryEntry);
   },
   captureMessage: (message: string, context?: Record<string, unknown>) => {
-    // Mensagens não são erros — logamos só em dev
-    if (isDev) console.info('[Telemetry:msg]', message, context || {});
+    telemetry.record({
+      kind: 'error',
+      correlationId: requestTelemetry.newCorrelationId(),
+      message,
+      domain: context?.domain as string,
+      op: context?.op as string,
+      context,
+    } as ErrorTelemetryEntry);
   },
 };
 

@@ -1,11 +1,19 @@
 import { Request, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 import { asyncHandler } from '../middleware/async.middleware';
 import prisma from '../lib/prisma';
 import { profileLinkService } from '../services/profileLink.service';
 
 type InviteKind = 'tribo' | 'guardian' | 'space';
 type TargetRole = 'CLIENT' | 'PROFESSIONAL' | 'SPACE';
+type ProfileLinkKind = 'tribo' | 'paciente';
+type InviteTokenPayload = JwtPayload & {
+  purpose: 'invite';
+  inviterId: string;
+  kind?: InviteKind;
+  targetRole?: TargetRole;
+  contextRef?: string;
+};
 
 const getSecret = () => {
   return process.env.INVITE_JWT_SECRET || process.env.JWT_SECRET || '';
@@ -20,19 +28,26 @@ const getBaseUrl = (req: Request) => {
   return `${proto}://${host}`;
 };
 
-const normalizeKind = (input: any): InviteKind => {
+const normalizeKind = (input: unknown): InviteKind => {
   const v = String(input || '').toLowerCase();
   if (v === 'guardian') return 'guardian';
   if (v === 'space') return 'space';
   return 'tribo';
 };
 
-const normalizeTargetRole = (input: any): TargetRole | null => {
+const normalizeTargetRole = (input: unknown): TargetRole | null => {
   const v = String(input || '').toUpperCase();
   if (v === 'CLIENT') return 'CLIENT';
   if (v === 'PROFESSIONAL') return 'PROFESSIONAL';
   if (v === 'SPACE') return 'SPACE';
   return null;
+};
+
+const parseInvitePayload = (token: string, secret: string): InviteTokenPayload | null => {
+  const payload = jwt.verify(token, secret);
+  if (!payload || typeof payload === 'string') return null;
+  if (payload.purpose !== 'invite' || !payload.inviterId) return null;
+  return payload as InviteTokenPayload;
 };
 
 export const createInvite = asyncHandler(async (req: Request, res: Response) => {
@@ -74,31 +89,27 @@ export const resolveInvite = asyncHandler(async (req: Request, res: Response) =>
   const token = String(req.params.token || '').trim();
   if (!token) return res.status(400).json({ error: 'token is required' });
 
-  let payload: any;
   try {
-    payload = jwt.verify(token, secret);
+    const payload = parseInvitePayload(token, secret);
+    if (!payload) return res.status(400).json({ error: 'invalid token payload' });
+
+    const inviter = await prisma.profile.findUnique({
+      where: { id: payload.inviterId },
+      select: { id: true, name: true, avatar: true, role: true },
+    });
+
+    return res.json({
+      ok: true,
+      kind: payload.kind,
+      targetRole: payload.targetRole,
+      contextRef: payload.contextRef || null,
+      inviter: inviter
+        ? { id: inviter.id, name: inviter.name || 'Viva360', avatar: inviter.avatar || '', role: inviter.role }
+        : null,
+    });
   } catch {
     return res.status(400).json({ error: 'invalid token' });
   }
-
-  if (payload?.purpose !== 'invite' || !payload?.inviterId) {
-    return res.status(400).json({ error: 'invalid token payload' });
-  }
-
-  const inviter = await prisma.profile.findUnique({
-    where: { id: payload.inviterId },
-    select: { id: true, name: true, avatar: true, role: true },
-  });
-
-  return res.json({
-    ok: true,
-    kind: payload.kind,
-    targetRole: payload.targetRole,
-    contextRef: payload.contextRef || null,
-    inviter: inviter
-      ? { id: inviter.id, name: inviter.name || 'Viva360', avatar: inviter.avatar || '', role: inviter.role }
-      : null,
-  });
 });
 
 export const acceptInvite = asyncHandler(async (req: Request, res: Response) => {
@@ -109,101 +120,91 @@ export const acceptInvite = asyncHandler(async (req: Request, res: Response) => 
   const token = String(req.body?.token || '').trim();
   if (!token) return res.status(400).json({ error: 'token is required' });
 
-  let payload: any;
   try {
-    payload = jwt.verify(token, secret);
-  } catch {
-    return res.status(400).json({ error: 'invalid token' });
-  }
+    const payload = parseInvitePayload(token, secret);
+    if (!payload) return res.status(400).json({ error: 'invalid token payload' });
 
-  if (payload?.purpose !== 'invite' || !payload?.inviterId) {
-    return res.status(400).json({ error: 'invalid token payload' });
-  }
+    if (String(payload.inviterId) === String(userId)) {
+      return res.status(400).json({ error: 'cannot accept own invite' });
+    }
 
-  if (String(payload.inviterId) === String(userId)) {
-    return res.status(400).json({ error: 'cannot accept own invite' });
-  }
+    const kind: InviteKind = normalizeKind(payload.kind);
+    const inviterId = String(payload.inviterId);
 
-  const kind: InviteKind = normalizeKind(payload.kind);
-  const inviterId = String(payload.inviterId);
+    if (kind === 'space') {
+      const code = String(payload.contextRef || '').trim();
+      if (!code) return res.status(400).json({ error: 'missing space invite code' });
 
-  if (kind === 'space') {
-    const code = String(payload.contextRef || '').trim();
-    if (!code) return res.status(400).json({ error: 'missing space invite code' });
+      const invite = await prisma.spaceInvite.findUnique({ where: { code } });
+      if (!invite) return res.status(404).json({ error: 'invite code not found' });
+      if (invite.status !== 'active') return res.status(400).json({ error: 'invite code inactive' });
+      if (invite.expires_at.getTime() <= Date.now()) return res.status(400).json({ error: 'invite code expired' });
+      if (invite.space_id !== inviterId) return res.status(400).json({ error: 'invite code mismatch' });
 
-    const invite = await prisma.spaceInvite.findUnique({ where: { code } });
-    if (!invite) return res.status(404).json({ error: 'invite code not found' });
-    if (invite.status !== 'active') return res.status(400).json({ error: 'invite code inactive' });
-    if (invite.expires_at.getTime() <= Date.now()) return res.status(400).json({ error: 'invite code expired' });
-    if (invite.space_id !== inviterId) return res.status(400).json({ error: 'invite code mismatch' });
+      const nextUsage = invite.usage + 1;
+      await prisma.spaceInvite.update({
+        where: { code },
+        data: {
+          usage: nextUsage,
+          status: nextUsage >= invite.max_usage ? 'used' : 'active',
+        },
+      });
 
-    // Consume usage
-    const nextUsage = invite.usage + 1;
-    await prisma.spaceInvite.update({
-      where: { code },
-      data: {
-        usage: nextUsage,
-        status: nextUsage >= invite.max_usage ? 'used' : 'active',
+      const existing = await prisma.contract.findFirst({
+        where: { space_id: invite.space_id, guardian_id: userId, status: { in: ['active', 'pending'] } },
+      });
+      if (!existing) {
+        await prisma.contract.create({
+          data: {
+            space_id: invite.space_id,
+            guardian_id: userId,
+            space_name: 'Santuário',
+            start_date: new Date(),
+            end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+            status: 'active',
+            monthly_fee: 0,
+            revenue_share: 15,
+            rooms_allowed: [],
+            hours_per_week: 0,
+            benefits: [],
+            rules: [],
+            terms: null,
+            signed: false,
+            version: '1.0',
+          },
+        });
+      }
+
+      return res.json({ ok: true, kind, linked: true });
+    }
+
+    const linkType: ProfileLinkKind = kind === 'guardian' ? 'paciente' : 'tribo';
+    const existingLink = await prisma.profileLink.findFirst({
+      where: {
+        type: linkType,
+        OR: [
+          { source_id: inviterId, target_id: userId },
+          { source_id: userId, target_id: inviterId },
+        ],
       },
     });
 
-    // Create contract if absent
-    const existing = await prisma.contract.findFirst({
-      where: { space_id: invite.space_id, guardian_id: userId, status: { in: ['active', 'pending'] } },
-    });
-    if (!existing) {
-      await prisma.contract.create({
-        data: {
-          space_id: invite.space_id,
-          guardian_id: userId,
-          space_name: 'Santuário',
-          start_date: new Date(),
-          end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-          status: 'active',
-          monthly_fee: 0,
-          revenue_share: 15,
-          rooms_allowed: [],
-          hours_per_week: 0,
-          benefits: [],
-          rules: [],
-          terms: null,
-          signed: false,
-          version: '1.0',
-        },
-      });
+    if (existingLink?.status === 'accepted' || existingLink?.status === 'active') {
+      return res.json({ ok: true, kind, linked: true, linkId: existingLink.id });
     }
 
-    return res.json({ ok: true, kind, linked: true });
-  }
-
-  const linkType = kind === 'guardian' ? 'paciente' : 'tribo';
-
-  // Idempotent accept: if link already accepted/active, keep success.
-  const existingLink = await prisma.profileLink.findFirst({
-    where: {
-      type: linkType,
-      OR: [
-        { source_id: inviterId, target_id: userId },
-        { source_id: userId, target_id: inviterId },
-      ],
-    },
-  });
-
-  if (existingLink?.status === 'accepted' || existingLink?.status === 'active') {
-    return res.json({ ok: true, kind, linked: true, linkId: existingLink.id });
-  }
-
-  if (existingLink?.status === 'pending') {
-    // Accept if the current user is the target, otherwise keep pending.
-    if (existingLink.target_id === userId) {
-      const accepted = await profileLinkService.acceptLink(existingLink.id, userId);
-      return res.json({ ok: true, kind, linked: true, linkId: accepted.id });
+    if (existingLink?.status === 'pending') {
+      if (existingLink.target_id === userId) {
+        const accepted = await profileLinkService.acceptLink(existingLink.id, userId);
+        return res.json({ ok: true, kind, linked: true, linkId: accepted.id });
+      }
+      return res.json({ ok: true, kind, linked: false, linkId: existingLink.id });
     }
-    return res.json({ ok: true, kind, linked: false, linkId: existingLink.id });
-  }
 
-  const created = await profileLinkService.createLink(inviterId, userId, linkType as any);
-  const accepted = await profileLinkService.acceptLink(created.id, userId);
-  return res.json({ ok: true, kind, linked: true, linkId: accepted.id });
+    const created = await profileLinkService.createLink(inviterId, userId, linkType);
+    const accepted = await profileLinkService.acceptLink(created.id, userId);
+    return res.json({ ok: true, kind, linked: true, linkId: accepted.id });
+  } catch {
+    return res.status(400).json({ error: 'invalid token' });
+  }
 });
-

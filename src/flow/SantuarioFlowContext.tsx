@@ -12,6 +12,7 @@ import { SantuarioFlowContextStore } from './SantuarioFlowContextStore';
 import { trackFlowTelemetry } from './flowTelemetry';
 import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegradedUX';
 import { useAppToast } from '../contexts/AppToastContext';
+import { captureFrontendError, captureFrontendMessage } from '../../lib/frontendLogger';
 
 interface SantuarioContextState extends BaseFlowState<SantuarioState> {
     engine: SantuarioFlowEngine;
@@ -231,7 +232,11 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
                     totalPatients = summary.totalPatients;
                 }
             } catch (pErr) {
-                console.warn('[SantuarioFlow] Failed to load patient summary:', pErr);
+                captureFrontendMessage('santuario.patient_summary.unavailable', {
+                    domain: 'santuario-flow',
+                    op: 'refreshData.patientSummary',
+                    error: pErr instanceof Error ? pErr.message : String(pErr || 'unknown'),
+                });
             }
 
             dispatch({
@@ -269,7 +274,7 @@ export const SantuarioFlowProvider: React.FC<{ children: ReactNode }> = ({ child
                 },
             });
         } catch (e) {
-            console.error('Failed to fetch Santuario data', e);
+            captureFrontendError(e, { domain: 'santuario-flow', op: 'refreshData' });
             const copy = buildReadFailureCopy(['marketplace', 'finance'], false);
             dispatch({ type: 'SET_ERROR', payload: copy.message });
             pushNotification({ title: copy.title, message: copy.message, type: 'error' });

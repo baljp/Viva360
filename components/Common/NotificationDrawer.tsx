@@ -3,6 +3,17 @@ import { Sparkles, Wallet, AlertCircle, MessageSquare, Bell, X, Check } from 'lu
 import { Notification } from '../../types';
 import { communityApi } from '../../services/api/communityClient';
 import { DegradedRetryNotice } from './DegradedRetryNotice';
+import { errorMessage } from '../../lib/frontendLogger';
+
+type PendingLink = {
+  id: string | number;
+  status?: string;
+  type?: string;
+  source?: { name?: string };
+};
+
+type NotificationFilter = 'all' | 'ritual' | 'finance' | 'alert';
+type NotificationIcon = React.ComponentType<{ size?: number; className?: string }>;
 
 export const NotificationDrawer: React.FC<{
   isOpen: boolean;
@@ -13,8 +24,8 @@ export const NotificationDrawer: React.FC<{
   onMarkAsRead: (id: string) => void;
   onMarkAllRead: () => void;
 }> = ({ isOpen, onClose, notifications, readIssue, onRetryNotifications, onMarkAsRead, onMarkAllRead }) => {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'ritual' | 'finance' | 'alert'>('all');
-  const [pendingLinks, setPendingLinks] = useState<any[]>([]);
+  const [activeFilter, setActiveFilter] = useState<NotificationFilter>('all');
+  const [pendingLinks, setPendingLinks] = useState<PendingLink[]>([]);
   const [loadingLinks, setLoadingLinks] = useState(false);
   const [linksError, setLinksError] = useState<string>('');
 
@@ -30,10 +41,10 @@ export const NotificationDrawer: React.FC<{
         const raw = await communityApi.links.getPendingRequests();
         const list = Array.isArray(raw) ? raw : [];
         // Only show link requests that can be actioned here.
-        const normalized = list.filter((l) => l && l.id && l.status === 'pending');
+        const normalized = list.filter((l): l is PendingLink => Boolean(l && typeof l === 'object' && 'id' in l && 'status' in l && (l as PendingLink).status === 'pending'));
         if (mounted) setPendingLinks(normalized);
-      } catch (e: any) {
-        if (mounted) setLinksError(e?.message || 'Falha ao carregar convites.');
+      } catch (e) {
+        if (mounted) setLinksError(errorMessage(e) || 'Falha ao carregar convites.');
       } finally {
         if (mounted) setLoadingLinks(false);
       }
@@ -48,7 +59,7 @@ export const NotificationDrawer: React.FC<{
   if (!isOpen) return null;
 
   // Configurações visuais por tipo de notificação
-  const typeConfig: Record<string, { icon: any, color: string, bg: string }> = {
+  const typeConfig: Record<string, { icon: NotificationIcon, color: string, bg: string }> = {
     ritual: { icon: Sparkles, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     finance: { icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     alert: { icon: AlertCircle, color: 'text-amber-600', bg: 'bg-amber-50' },
@@ -123,9 +134,9 @@ export const NotificationDrawer: React.FC<{
                   communityApi.links.getPendingRequests()
                     .then((raw) => {
                       const list = Array.isArray(raw) ? raw : [];
-                      setPendingLinks(list.filter((l) => l && l.id && l.status === 'pending'));
+                  setPendingLinks(list.filter((l): l is PendingLink => Boolean(l && typeof l === 'object' && 'id' in l && 'status' in l && (l as PendingLink).status === 'pending')));
                     })
-                    .catch((e: any) => setLinksError(e?.message || 'Falha ao carregar convites.'))
+                    .catch((e) => setLinksError(errorMessage(e) || 'Falha ao carregar convites.'))
                     .finally(() => setLoadingLinks(false));
                 }}
                 compact
@@ -137,8 +148,8 @@ export const NotificationDrawer: React.FC<{
               </div>
             )}
             {pendingLinks.map((link) => {
-              const source = (link as { source?: { name?: string } }).source || {};
-              const linkType = String((link as { type?: string }).type || '').toLowerCase();
+              const source = link.source || {};
+              const linkType = String(link.type || '').toLowerCase();
               const label =
                 linkType === 'paciente'
                   ? 'Vinculo com Guardiao'
@@ -164,8 +175,8 @@ export const NotificationDrawer: React.FC<{
                             try {
                               await communityApi.links.accept(String(link.id));
                               setPendingLinks((prev) => prev.filter((x) => String((x as { id: string | number }).id) !== String(link.id)));
-                            } catch (err: any) {
-                              setLinksError(err?.message || 'Falha ao aceitar convite.');
+                            } catch (err) {
+                              setLinksError(errorMessage(err) || 'Falha ao aceitar convite.');
                             }
                           }}
                           className="flex-1 py-3 rounded-2xl bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
@@ -178,9 +189,9 @@ export const NotificationDrawer: React.FC<{
                             e.stopPropagation();
                             try {
                               await communityApi.links.reject(String(link.id));
-                              setPendingLinks((prev) => prev.filter((x) => String((x as { id: string | number }).id) !== String(link.id)));
-                            } catch (err: any) {
-                              setLinksError(err?.message || 'Falha ao recusar convite.');
+                              setPendingLinks((prev) => prev.filter((x) => String(x.id) !== String(link.id)));
+                            } catch (err) {
+                              setLinksError(errorMessage(err) || 'Falha ao recusar convite.');
                             }
                           }}
                           className="flex-1 py-3 rounded-2xl bg-white text-nature-500 border border-nature-200 text-[10px] font-bold uppercase tracking-widest active:scale-95 transition-all"
