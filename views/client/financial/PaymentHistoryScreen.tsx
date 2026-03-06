@@ -188,73 +188,100 @@ export default function PaymentHistoryScreen() {
 
                         <button
                             onClick={() => {
-                                const receiptHtml = document.getElementById('receipt-container')?.innerHTML;
-                                if (!receiptHtml) return;
-
-                                const printWindow = window.open('', '_blank');
+                                const printWindow = window.open('', '_blank', 'noopener,noreferrer');
                                 if (printWindow) {
-                                    printWindow.document.write(`
-                                        <html>
-                                            <head>
-                                                <title>Comprovante Viva360 - ${selectedTx.id.substring(0, 8)}</title>
-                                                <style>
-                                                    body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; background: #fafafa; display: flex; justify-content: center; }
-                                                    .receipt { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; width: 100%; position: relative; overflow: hidden; }
-                                                    .stripe { position: absolute; top: 0; left: 0; right: 0; height: 8px; background: linear-gradient(90deg, #34d399, #6366f1); }
-                                                    .header { text-align: center; margin-bottom: 30px; margin-top: 10px; }
-                                                    .brand { font-family: serif; font-style: italic; font-size: 24px; margin: 0; color: #171717; }
-                                                    .subtitle { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #a3a3a3; margin: 4px 0 0 0; }
-                                                    .value { text-align: center; margin-bottom: 30px; }
-                                                    .amount { font-family: serif; font-style: italic; font-size: 36px; margin: 0; color: #171717; }
-                                                    .desc { font-size: 14px; font-weight: bold; color: #737373; margin: 8px 0 0 0; }
-                                                    .details { border-top: 1px dashed #e5e5e5; padding-top: 24px; display: flex; flex-direction: column; gap: 16px; }
-                                                    .row { display: flex; justify-content: space-between; align-items: center; }
-                                                    .label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #a3a3a3; }
-                                                    .val { font-size: 14px; font-weight: bold; color: #171717; }
-                                                    .status { font-size: 12px; font-weight: bold; color: #059669; background: #ecfdf5; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
-                                                    .mono { font-family: monospace; font-size: 11px; background: #fafafa; padding: 4px 8px; border-radius: 4px; color: #737373; }
-                                                    .footer { margin-top: 40px; text-align: center; }
-                                                    .footer-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: #a3a3a3; margin: 0; }
-                                                    .footer-hash { font-family: monospace; font-size: 9px; color: #d4d4d4; margin: 4px 0 0 0; }
-                                                    @media print { body { background: white; padding: 0; } .receipt { box-shadow: none; max-width: 100%; border: 1px solid #e5e5e5; } }
-                                                </style>
-                                            </head>
-                                            <body>
-                                                <div class="receipt">
-                                                    <div class="stripe"></div>
-                                                    <div class="header">
-                                                        <h1 class="brand">Viva360</h1>
-                                                        <p class="subtitle">Comprovante de Transação</p>
-                                                    </div>
-                                                    <div class="value">
-                                                        <h2 class="amount">${selectedTx.type === 'expense' ? '-' : '+'} R$ ${selectedTx.amount.toFixed(2).replace('.', ',')}</h2>
-                                                        <p class="desc">${selectedTx.description}</p>
-                                                    </div>
-                                                    <div class="details">
-                                                        <div class="row"><span class="label">Data</span><span class="val">${new Date(selectedTx.date).toLocaleDateString('pt-BR')} ${new Date(selectedTx.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span></div>
-                                                        <div class="row"><span class="label">Status</span><span class="status">${selectedTx.status}</span></div>
-                                                        <div class="row"><span class="label">Tipo</span><span class="val">${selectedTx.type === 'expense' ? 'Investimento' : 'Retorno'}</span></div>
-                                                        <div class="row"><span class="label">ID Transação</span><span class="val mono">${selectedTx.id}</span></div>
-                                                    </div>
-                                                    <div class="footer">
-                                                        <p class="footer-label">Autenticidade Viva360</p>
-                                                        <p class="footer-hash">HASH: ${btoa(selectedTx.id + selectedTx.date).substring(0, 24)}</p>
-                                                    </div>
-                                                </div>
-                                                <script>window.onload = function() { window.print(); }</script>
-                                            </body>
-                                        </html>
-                                    `);
-                                    printWindow.document.close();
+                                    const doc = printWindow.document;
+                                    const style = doc.createElement('style');
+                                    style.textContent = `
+                                        body { font-family: system-ui, -apple-system, sans-serif; padding: 40px; background: #fafafa; display: flex; justify-content: center; }
+                                        .receipt { background: white; padding: 40px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); max-width: 400px; width: 100%; position: relative; overflow: hidden; }
+                                        .stripe { position: absolute; top: 0; left: 0; right: 0; height: 8px; background: linear-gradient(90deg, #34d399, #6366f1); }
+                                        .header { text-align: center; margin-bottom: 30px; margin-top: 10px; }
+                                        .brand { font-family: serif; font-style: italic; font-size: 24px; margin: 0; color: #171717; }
+                                        .subtitle { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #a3a3a3; margin: 4px 0 0 0; }
+                                        .value { text-align: center; margin-bottom: 30px; }
+                                        .amount { font-family: serif; font-style: italic; font-size: 36px; margin: 0; color: #171717; }
+                                        .desc { font-size: 14px; font-weight: bold; color: #737373; margin: 8px 0 0 0; }
+                                        .details { border-top: 1px dashed #e5e5e5; padding-top: 24px; display: flex; flex-direction: column; gap: 16px; }
+                                        .row { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+                                        .label { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; color: #a3a3a3; }
+                                        .val { font-size: 14px; font-weight: bold; color: #171717; text-align: right; }
+                                        .status { font-size: 12px; font-weight: bold; color: #059669; background: #ecfdf5; padding: 4px 8px; border-radius: 4px; text-transform: uppercase; }
+                                        .mono { font-family: monospace; font-size: 11px; background: #fafafa; padding: 4px 8px; border-radius: 4px; color: #737373; }
+                                        .footer { margin-top: 40px; text-align: center; }
+                                        .footer-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: #a3a3a3; margin: 0; }
+                                        .footer-hash { font-family: monospace; font-size: 9px; color: #d4d4d4; margin: 4px 0 0 0; }
+                                        @media print { body { background: white; padding: 0; } .receipt { box-shadow: none; max-width: 100%; border: 1px solid #e5e5e5; } }
+                                    `;
+                                    doc.head.replaceChildren();
+                                    doc.head.appendChild(style);
+                                    doc.title = `Comprovante Viva360 - ${selectedTx.id.substring(0, 8)}`;
+
+                                    const receipt = doc.createElement('div');
+                                    receipt.className = 'receipt';
+
+                                    const stripe = doc.createElement('div');
+                                    stripe.className = 'stripe';
+                                    receipt.appendChild(stripe);
+
+                                    const header = doc.createElement('div');
+                                    header.className = 'header';
+                                    const brand = doc.createElement('h1');
+                                    brand.className = 'brand';
+                                    brand.textContent = 'Viva360';
+                                    const subtitle = doc.createElement('p');
+                                    subtitle.className = 'subtitle';
+                                    subtitle.textContent = 'Comprovante de Transação';
+                                    header.append(brand, subtitle);
+                                    receipt.appendChild(header);
+
+                                    const value = doc.createElement('div');
+                                    value.className = 'value';
+                                    const amount = doc.createElement('h2');
+                                    amount.className = 'amount';
+                                    amount.textContent = `${selectedTx.type === 'expense' ? '-' : '+'} R$ ${selectedTx.amount.toFixed(2).replace('.', ',')}`;
+                                    const description = doc.createElement('p');
+                                    description.className = 'desc';
+                                    description.textContent = selectedTx.description;
+                                    value.append(amount, description);
+                                    receipt.appendChild(value);
+
+                                    const details = doc.createElement('div');
+                                    details.className = 'details';
+                                    const appendRow = (labelText: string, valueText: string, valueClassName = 'val') => {
+                                        const row = doc.createElement('div');
+                                        row.className = 'row';
+                                        const label = doc.createElement('span');
+                                        label.className = 'label';
+                                        label.textContent = labelText;
+                                        const valueNode = doc.createElement('span');
+                                        valueNode.className = valueClassName;
+                                        valueNode.textContent = valueText;
+                                        row.append(label, valueNode);
+                                        details.appendChild(row);
+                                    };
+                                    appendRow('Data', `${new Date(selectedTx.date).toLocaleDateString('pt-BR')} ${new Date(selectedTx.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`);
+                                    appendRow('Status', selectedTx.status, 'status');
+                                    appendRow('Tipo', selectedTx.type === 'expense' ? 'Investimento' : 'Retorno');
+                                    appendRow('ID Transação', selectedTx.id, 'val mono');
+                                    receipt.appendChild(details);
+
+                                    const footer = doc.createElement('div');
+                                    footer.className = 'footer';
+                                    const footerLabel = doc.createElement('p');
+                                    footerLabel.className = 'footer-label';
+                                    footerLabel.textContent = 'Autenticidade Viva360';
+                                    const footerHash = doc.createElement('p');
+                                    footerHash.className = 'footer-hash';
+                                    footerHash.textContent = `HASH: ${btoa(selectedTx.id + selectedTx.date).substring(0, 24)}`;
+                                    footer.append(footerLabel, footerHash);
+                                    receipt.appendChild(footer);
+
+                                    doc.body.replaceChildren(receipt);
+                                    printWindow.setTimeout(() => printWindow.print(), 50);
                                     notify('Comprovante Gerado', 'O comprovante foi aberto para impressão/pdf.', 'success');
                                 } else {
-                                    // Fallback if popup blocked
-                                    const a = document.createElement('a');
-                                    a.href = 'data:text/html;charset=utf-8,' + encodeURIComponent(printWindow?.document.documentElement.outerHTML || '');
-                                    a.download = `comprovante-viva360-${selectedTx.id.substring(0, 8)}.html`;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    document.body.removeChild(a);
+                                    notify('Popup bloqueado', 'Permita a nova janela para gerar o comprovante.', 'warning');
                                 }
                             }}
                             className="w-full mt-2 py-4 bg-nature-900 text-white rounded-[2rem] font-bold uppercase tracking-widest text-[10px] shadow-xl hover:shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2"

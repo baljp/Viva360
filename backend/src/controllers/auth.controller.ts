@@ -12,6 +12,7 @@ import {
   readAuthTokenFromRequest,
   setAuthSessionCookie,
 } from '../lib/authCookie';
+import { getMockProfile } from '../services/mockAdapter';
 // Use relative path to avoid rootDir issues in backend tsc
 import { SessionDTO } from '../../../types';
 
@@ -251,6 +252,28 @@ export const getSession = asyncHandler(async (req: Request, res: Response) => {
     return res.status(401).json({ error: 'Não autenticado.' });
   }
 
+  if (isMockMode()) {
+    const user = getMockProfile(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuário não encontrado.' });
+    }
+
+    const activeRole = (req as any).user?.activeRole || (req as any).user?.role || user.active_role || user.role;
+    const roles = Array.isArray((req as any).user?.roles) && (req as any).user.roles.length > 0
+      ? (req as any).user.roles
+      : [user.active_role || user.role];
+
+    return res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        role: activeRole,
+        activeRole,
+        roles,
+      }
+    });
+  }
+
   const user = await prisma.profile.findUnique({
     where: { id: userId },
     include: { profile_roles: true }
@@ -272,13 +295,11 @@ export const getSession = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const establishSessionCookie = asyncHandler(async (req: Request, res: Response) => {
-  const token = readAuthTokenFromRequest(req);
+  const { token } = readAuthTokenFromRequest(req);
   if (!token) {
     return res.status(401).json({ error: 'Sem token para estabelecer sessão.' });
   }
-  // If token is a string, set it. If it's an object from header/cookie parsing, handle accordingly.
-  const tokenStr = typeof token === 'string' ? token : (token as any).token;
-  setAuthSessionCookie(res, tokenStr, req);
+  setAuthSessionCookie(res, token, req);
   return res.json({ success: true });
 });
 

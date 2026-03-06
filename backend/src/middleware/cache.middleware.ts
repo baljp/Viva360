@@ -1,11 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import IORedis from 'ioredis';
 import { logger } from '../lib/logger';
-
-const redis = new IORedis({
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379')
-});
+import { cacheGet, cacheSet } from '../lib/cache';
 
 export const cacheMiddleware = (durationInSeconds: number) => {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -16,17 +11,17 @@ export const cacheMiddleware = (durationInSeconds: number) => {
         const key = `cache:${req.originalUrl || req.url}`;
         
         try {
-            const cachedBody = await redis.get(key);
-            if (cachedBody) {
+            const cachedBody = await cacheGet(key);
+            if (cachedBody != null) {
                 res.setHeader('X-Cache', 'HIT');
-                res.send(JSON.parse(cachedBody));
+                res.send(cachedBody);
                 return;
             }
 
             // Capture send to cache response
             const originalSend = res.send;
             res.send = (body: any) => {
-                redis.setex(key, durationInSeconds, JSON.stringify(body)); // Async set
+                void cacheSet(key, body, durationInSeconds);
                 res.setHeader('X-Cache', 'MISS');
                 return originalSend.call(res, body);
             };

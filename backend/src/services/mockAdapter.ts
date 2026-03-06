@@ -137,6 +137,25 @@ export type MockFinanceTransaction = {
   date: string;
 };
 
+export type MockProfile = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  active_role: string;
+  avatar: string;
+  bio?: string | null;
+  location?: string | null;
+  specialty?: string[] | null;
+  personal_balance: number;
+  corporate_balance: number;
+  karma: number;
+  streak: number;
+  multiplier: number;
+  dailyQuests?: unknown[];
+  achievements?: unknown[];
+};
+
 export type MockTribeInvite = {
   id: string;
   hub_id: string;
@@ -183,6 +202,7 @@ type MockAdapterStores = {
   finance: {
     transactions: Map<string, MockFinanceTransaction>;
   };
+  profiles: Map<string, MockProfile>;
   tribe: {
     invites: Map<string, MockTribeInvite>;
     members: Map<string, MockTribeMember>;
@@ -227,6 +247,56 @@ if (!globalThis.__vivaMockAdapter) {
     finance: {
       transactions: new Map<string, MockFinanceTransaction>(),
     },
+    profiles: new Map<string, MockProfile>([
+      ['11111111-1111-4111-8111-111111111111', {
+        id: '11111111-1111-4111-8111-111111111111',
+        name: 'Buscador Teste',
+        email: 'client0@viva360.com',
+        role: 'CLIENT',
+        active_role: 'CLIENT',
+        avatar: '',
+        bio: '',
+        location: '',
+        specialty: [],
+        personal_balance: 1200,
+        corporate_balance: 0,
+        karma: 100,
+        streak: 3,
+        multiplier: 1,
+      }],
+      ['22222222-2222-4222-8222-222222222222', {
+        id: '22222222-2222-4222-8222-222222222222',
+        name: 'Guardião Teste',
+        email: 'pro0@viva360.com',
+        role: 'PROFESSIONAL',
+        active_role: 'PROFESSIONAL',
+        avatar: '',
+        bio: '',
+        location: '',
+        specialty: ['Reiki'],
+        personal_balance: 1800,
+        corporate_balance: 0,
+        karma: 250,
+        streak: 6,
+        multiplier: 1,
+      }],
+      ['33333333-3333-4333-8333-333333333333', {
+        id: '33333333-3333-4333-8333-333333333333',
+        name: 'Santuário Teste',
+        email: 'space0@viva360.com',
+        role: 'SPACE',
+        active_role: 'SPACE',
+        avatar: '',
+        bio: '',
+        location: '',
+        specialty: [],
+        personal_balance: 0,
+        corporate_balance: 3200,
+        karma: 400,
+        streak: 10,
+        multiplier: 1,
+      }],
+    ]),
     tribe: {
       invites: new Map<string, MockTribeInvite>(),
       members: new Map<string, MockTribeMember>(),
@@ -424,3 +494,11 @@ export const listMockFinanceTransactions = (userId: string) =>
   [...mockAdapter.finance.transactions.values()]
     .filter((tx) => String(tx.user_id) === String(userId))
     .sort((a, b) => (a.date > b.date ? -1 : 1));
+
+export const getMockProfile = (userId: string) =>
+  mockAdapter.profiles.get(String(userId)) || null;
+
+export const saveMockProfile = (profile: MockProfile) => {
+  mockAdapter.profiles.set(String(profile.id), profile);
+  return profile;
+};

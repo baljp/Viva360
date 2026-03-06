@@ -32,6 +32,7 @@ export const AppToastProvider: React.FC<{
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAppToast = () => {
   const context = useContext(AppToastContext);
   if (!context) throw new Error('useAppToast must be used within AppToastProvider');

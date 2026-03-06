@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { asyncHandler } from '../middleware/async.middleware';
 import { chatService } from '../services/chat.service';
 import { interactionReceiptService } from '../services/interactionReceipt.service';
+import { AppError } from '../lib/AppError';
 
 const chatLimitSchema = z.coerce.number().int().min(1).max(100).optional();
 const sendMessageSchema = z.object({
@@ -59,17 +60,19 @@ export const sendMessage = asyncHandler(async (req: Request, res: Response) => {
 
 export const getHistory = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
+  if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
   const { otherUserId, limit } = historyQuerySchema.parse(req.query || {});
 
   // Backward compatibility: resolve/create private room and return history
   const chat = await chatService.getOrCreateChat(userId, otherUserId);
-  const messages = await chatService.getChatHistory(chat.id, limit ?? 50);
+  const messages = await chatService.getChatHistory(chat.id, userId, limit ?? 50);
 
   return res.json(messages);
 });
 
 export const listRooms = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
+  if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
   const { contextType = '', contextId = '', limit } = listRoomsQuerySchema.parse(req.query || {});
   const rooms = await chatService.getChatsForProfile(userId, {
     contextType,
@@ -80,14 +83,17 @@ export const listRooms = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getRoomMessages = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.user?.userId;
+  if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
   const { roomId } = roomParamsSchema.parse(req.params || {});
   const { limit } = roomMessagesQuerySchema.parse(req.query || {});
-  const messages = await chatService.getChatHistory(roomId, limit ?? 50);
+  const messages = await chatService.getChatHistory(roomId, userId, limit ?? 50);
   return res.json(messages);
 });
 
 export const sendRoomMessage = asyncHandler(async (req: Request, res: Response) => {
   const senderId = req.user?.userId;
+  if (!senderId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
   const { roomId } = roomParamsSchema.parse(req.params || {});
   const { content } = sendRoomMessageSchema.parse(req.body || {});
   const message = await chatService.sendMessage(roomId, senderId, content);
@@ -111,6 +117,7 @@ export const sendRoomMessage = asyncHandler(async (req: Request, res: Response) 
 
 export const joinRoom = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.user?.userId;
+  if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
   const { type, contextId } = joinRoomSchema.parse(req.body || {});
 
   const chat = await chatService.getOrCreateContextRoom(userId, type, contextId);
@@ -122,41 +129,10 @@ export const joinRoom = asyncHandler(async (req: Request, res: Response) => {
 // ──────────────────────────────────────────────
 export const getRoomSettings = asyncHandler(async (req: Request, res: Response) => {
   const userId = String(req.user?.userId || '').trim();
+  if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
   const { roomId } = roomParamsSchema.parse(req.params || {});
-
-  const chat = await prisma.chat.findUnique({
-    where: { id: roomId },
-    include: {
-      participants: {
-        where: { left_at: null },
-        include: {
-          profile: { select: { id: true, name: true, avatar: true, role: true } },
-        },
-      },
-    },
-  });
-
-  if (!chat) return res.status(404).json({ error: 'Room not found' });
-
-  const myParticipant = chat.participants.find((p) => p.profile_id === userId);
-  const now = new Date();
-  const isMuted =
-    myParticipant?.muted_until != null && new Date(myParticipant.muted_until) > now;
-
-  return res.json({
-    id: chat.id,
-    type: chat.type,
-    participants: chat.participants.map((p) => ({
-      id: p.profile.id,
-      name: p.profile.name || 'Usuário',
-      avatar: p.profile.avatar,
-      role: p.profile.role,
-    })),
-    mySettings: {
-      muted: isMuted,
-      mutedUntil: myParticipant?.muted_until ?? null,
-    },
-  });
+  const settings = await chatService.getRoomSettings(roomId, userId);
+  return res.json(settings);
 });
 
 // ──────────────────────────────────────────────
@@ -164,28 +140,10 @@ export const getRoomSettings = asyncHandler(async (req: Request, res: Response) 
 // ──────────────────────────────────────────────
 export const toggleMuteRoom = asyncHandler(async (req: Request, res: Response) => {
   const userId = String(req.user?.userId || '').trim();
+  if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
   const { roomId } = roomParamsSchema.parse(req.params || {});
-
-  const participant = await prisma.chatParticipant.findUnique({
-    where: { chat_id_profile_id: { chat_id: roomId, profile_id: userId } },
-  });
-
-  if (!participant) return res.status(404).json({ error: 'Participant not found' });
-
-  const now = new Date();
-  const currentlyMuted =
-    participant.muted_until != null && new Date(participant.muted_until as Date) > now;
-
-  const newMutedUntil = currentlyMuted
-    ? null // unmute
-    : new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // mute for 1 year (= permanent toggle)
-
-  await prisma.chatParticipant.update({
-    where: { chat_id_profile_id: { chat_id: roomId, profile_id: userId } },
-    data: { muted_until: newMutedUntil },
-  });
-
-  return res.json({ muted: !currentlyMuted, mutedUntil: newMutedUntil });
+  const result = await chatService.toggleMute(roomId, userId);
+  return res.json(result);
 });
 
 // ──────────────────────────────────────────────
@@ -193,14 +151,10 @@ export const toggleMuteRoom = asyncHandler(async (req: Request, res: Response) =
 // ──────────────────────────────────────────────
 export const leaveRoom = asyncHandler(async (req: Request, res: Response) => {
   const userId = String(req.user?.userId || '').trim();
+  if (!userId) throw new AppError('Unauthorized', 401, 'UNAUTHORIZED');
   const { roomId } = roomParamsSchema.parse(req.params || {});
-
-  await prisma.chatParticipant.updateMany({
-    where: { chat_id: roomId, profile_id: userId },
-    data: { left_at: new Date() },
-  });
-
-  return res.json({ success: true });
+  const result = await chatService.leaveRoom(roomId, userId);
+  return res.json(result);
 });
 
 // ──────────────────────────────────────────────

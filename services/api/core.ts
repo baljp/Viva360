@@ -1,6 +1,7 @@
 // ─── services/api/core.ts ─────────────────────────────────────────────────────
 // Monta o requestClient com:
-//   • Headers de auth (Bearer token do localStorage)
+//   • Sessão real via cookie HttpOnly
+//   • Header Bearer apenas para sessão mock
 //   • Silent 401 refresh via Supabase
 //   • Telemetria estruturada (lib/telemetry)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8,7 +9,6 @@
 import { errorTelemetry, sessionTelemetry } from '../../lib/telemetry';
 import { createRequestClient } from './requestClient';
 import {
-  AUTH_TOKEN_KEY,
   API_URL,
   RETRYABLE_STATUS_CODES,
   isLikelyNetworkError,
@@ -24,12 +24,9 @@ const getHeader = () => {
     canUseMockSession() &&
     getSessionMode() === 'mock' &&
     !!localStorage.getItem(MOCK_USER_KEY);
-  const token =
-    localStorage.getItem(AUTH_TOKEN_KEY) ||
-    (isMockSession && MOCK_AUTH_TOKEN ? MOCK_AUTH_TOKEN : '');
   return {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(isMockSession && MOCK_AUTH_TOKEN ? { Authorization: `Bearer ${MOCK_AUTH_TOKEN}` } : {}),
   };
 };
 
@@ -44,8 +41,8 @@ const getHeader = () => {
  * handleUnauthorized — chamado pelo requestClient em 401.
  *
  * Contrato:
- *   • Salva o novo token no localStorage ANTES de retornar.
- *   • Retorna o token (string) em sucesso, null em falha.
+ *   • Renova a sessão Supabase e replica o token para cookie HttpOnly.
+ *   • Retorna o token em sucesso, null em falha.
  *   • NÃO dispara 'viva360:session-expired' — isso é responsabilidade
  *     do requestClient, que é o único ponto de despacho do evento.
  *     (Evita duplo dispatch quando refresh falha.)
@@ -66,7 +63,23 @@ const handleUnauthorized = async (_endpoint: string): Promise<string | null> => 
     }
 
     const newToken = data.session.access_token;
-    localStorage.setItem(AUTH_TOKEN_KEY, newToken);
+    const cookieResponse = await fetch(`${API_URL}/auth/session/cookie`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${newToken}`,
+      },
+      body: '{}',
+    });
+
+    if (!cookieResponse.ok) {
+      sessionTelemetry.record('token_refresh_fail', {
+        error: `cookie_${cookieResponse.status}`,
+      });
+      return null;
+    }
+
     sessionTelemetry.record('token_refresh_ok');
     return newToken;
   } catch (err) {

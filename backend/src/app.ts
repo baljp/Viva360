@@ -11,6 +11,7 @@ import compression from 'compression';
 import { initTelemetry } from './lib/instrumentation';
 import { assertCriticalProdConfig, enforceNoProdMockLeakage } from './lib/runtimeGuard';
 import { getAuthConfigHealthSnapshot } from './lib/authConfigHealth';
+import { attachRawBody, buildCorsOptions, getApiHelmetOptions } from './lib/httpSecurity';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
 const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
@@ -41,46 +42,13 @@ const app = express();
 app.use(compression());
 
 // Middleware
-// SEC-CSP: Content-Security-Policy active on API responses.
-// Tightened for serverless (Vercel Functions) — no inline scripts needed on API.
-// Frontend static CSP is handled separately via vercel.json headers.
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc:  ["'self'"],
-      scriptSrc:   ["'self'"],
-      styleSrc:    ["'self'"],
-      imgSrc:      ["'self'", "data:"],
-      connectSrc:  ["'self'", "https://*.supabase.co", "wss://*.supabase.co"],
-      fontSrc:     ["'self'"],
-      objectSrc:   ["'none'"],
-      frameSrc:    ["'none'"],
-      baseUri:     ["'self'"],
-      formAction:  ["'self'"],
-      frameAncestors: ["'none'"],
-      ...(isProductionRuntime ? { upgradeInsecureRequests: [] } : {}),
-    },
-  },
-  crossOriginEmbedderPolicy: false, // Allow Supabase realtime WebSocket
-})); 
-const allowedOrigins = (process.env.CORS_ORIGINS || '')
-  .split(',')
-  .map((origin) => origin.trim())
-  .filter(Boolean);
-
-const corsOptions: CorsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.length === 0) {
-      return callback(null, process.env.NODE_ENV !== 'production');
-    }
-    return callback(null, allowedOrigins.includes(origin));
-  },
-  credentials: true,
-};
-
+app.use(helmet(getApiHelmetOptions()));
+const corsOptions: CorsOptions = buildCorsOptions();
 app.use(cors(corsOptions)); 
-app.use(express.json({ limit: jsonBodyLimit }));
+app.use(express.json({
+  limit: jsonBodyLimit,
+  verify: attachRawBody,
+}));
 app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
 app.use(attachRequestContext);
 app.use(securityHardening); // Excellence Layer: WAF & Headers

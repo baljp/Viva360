@@ -116,4 +116,12 @@ export const FLOW_PERSISTENCE_EVIDENCE: Record<string, FlowPersistenceEvidence> 
     rationale: 'Marketplace de eventos/retiros do Santuário validado por roundtrip explícito em endpoints de marketplace.',
     evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
   },
+  buscador_shell_e_config: {
+    rationale: 'Configurações do buscador possuem roundtrip explícito de persistência de perfil via users.update/users.get.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
+  guardiao_shell_e_config: {
+    rationale: 'Configurações do guardião possuem roundtrip explícito de persistência de perfil via users.update/users.get.',
+    evidence: ['qa/flows/roundtrip-evidence.spec.ts'],
+  },
 };

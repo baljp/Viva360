@@ -99,9 +99,7 @@ export const createAuthApi = (request: RequestFn) => {
 
       const payload = await response.json();
       const accessToken = payload?.session?.access_token;
-      if (accessToken) {
-        promoteToRealSession(accessToken);
-      }
+      if (accessToken) promoteToRealSession();
       clearOAuthIntentStorage();
 
       // Best-effort: establish Supabase session too.
@@ -109,7 +107,7 @@ export const createAuthApi = (request: RequestFn) => {
         const { data, error } = await supabase.auth.signInWithPassword({ email: normalized, password });
         if (error) throw error;
         if (data.session?.access_token) {
-          promoteToRealSession(data.session.access_token);
+          promoteToRealSession();
           clearOAuthIntentStorage();
         }
       } catch {
@@ -143,7 +141,7 @@ export const createAuthApi = (request: RequestFn) => {
       if (error) throw error;
       if (!data.session?.access_token) throw new Error('Login failed: No session data returned');
 
-      promoteToRealSession(data.session.access_token);
+      promoteToRealSession();
       clearOAuthIntentStorage();
 
       const user = await auth.getCurrentSession();
@@ -272,9 +270,7 @@ export const createAuthApi = (request: RequestFn) => {
 
     const payload = await response.json();
     const accessToken = payload?.session?.access_token;
-    if (accessToken) {
-      promoteToRealSession(accessToken);
-    }
+    if (accessToken) promoteToRealSession();
 
     try {
       const { data: signInData, error } = await supabase.auth.signInWithPassword({
@@ -283,7 +279,7 @@ export const createAuthApi = (request: RequestFn) => {
       });
       if (error) throw error;
       if (signInData.session?.access_token) {
-        promoteToRealSession(signInData.session.access_token);
+        promoteToRealSession();
         clearOAuthIntentStorage();
       }
     } catch {
@@ -330,9 +326,9 @@ export const createAuthApi = (request: RequestFn) => {
         const oauthIntent = String(localStorage.getItem(OAUTH_INTENT_KEY) || '').toLowerCase();
         const oauthRole = normalizeRole(localStorage.getItem(OAUTH_ROLE_KEY) || '');
 
-        promoteToRealSession(session.access_token);
+        promoteToRealSession();
         try {
-          await fetchWithTimeout(`${API_URL}/auth/session/cookie`, {
+          const cookieResponse = await fetchWithTimeout(`${API_URL}/auth/session/cookie`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -341,8 +337,9 @@ export const createAuthApi = (request: RequestFn) => {
             body: '{}',
             timeoutMs: 6000,
           });
+          if (!cookieResponse.ok) throw new Error(`cookie_${cookieResponse.status}`);
         } catch {
-          // Ignore. Authorization header path remains available.
+          throw new Error('Não foi possível estabelecer a sessão segura.');
         }
 
         let eligibility = await fetchLoginEligibility(sessionEmail);
@@ -423,37 +420,35 @@ export const createAuthApi = (request: RequestFn) => {
       // Fallthrough to JWT hydration.
     }
 
-    if (!localStorage.getItem(AUTH_TOKEN_KEY)) {
-      try {
-        const sessionPayload = await request<{ user?: Record<string, unknown> }>('/auth/session', {
-          purpose: 'session-cookie-restore',
-          timeoutMs: 5000,
-          retries: 0,
-        });
-        const rawUser = sessionPayload?.user || {};
-        const id = String(rawUser.id || '').trim();
-        const email = String(rawUser.email || '').trim().toLowerCase();
-        if (id && email) {
-          const role = normalizeRole(String(rawUser.activeRole || rawUser.role || inferRoleFromEmail(email)));
-          return hydrateUserFromProfileApi(
-            request,
-            baseUser({
-              id,
-              email,
-              name: email.split('@')[0] || 'Viajante',
-              role,
-              activeRole: role,
-              roles: normalizeRoleList(
-                Array.isArray(rawUser.roles)
-                  ? (rawUser.roles as Array<string | UserRole>)
-                  : [role],
-              ),
-            }),
-          );
-        }
-      } catch {
-        // Fall through to legacy JWT localStorage path.
+    try {
+      const sessionPayload = await request<{ user?: Record<string, unknown> }>('/auth/session', {
+        purpose: 'session-cookie-restore',
+        timeoutMs: 5000,
+        retries: 0,
+      });
+      const rawUser = sessionPayload?.user || {};
+      const id = String(rawUser.id || '').trim();
+      const email = String(rawUser.email || '').trim().toLowerCase();
+      if (id && email) {
+        const role = normalizeRole(String(rawUser.activeRole || rawUser.role || inferRoleFromEmail(email)));
+        return hydrateUserFromProfileApi(
+          request,
+          baseUser({
+            id,
+            email,
+            name: email.split('@')[0] || 'Viajante',
+            role,
+            activeRole: role,
+            roles: normalizeRoleList(
+              Array.isArray(rawUser.roles)
+                ? (rawUser.roles as Array<string | UserRole>)
+                : [role],
+            ),
+          }),
+        );
       }
+    } catch {
+      // Fall through to legacy JWT localStorage path.
     }
 
     const token = localStorage.getItem(AUTH_TOKEN_KEY);

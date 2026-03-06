@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma';
+import { isDbUnavailableError } from '../lib/dbReadFallback';
 
 export type GamificationQuest = {
   id: string;
@@ -56,6 +57,44 @@ export type GamificationLeaderboardState = {
   leaderboard: GamificationLeaderboardEntry[];
 };
 
+export type SeasonalReward = {
+  position: number;
+  label: string;
+  karmaBonus: number;
+  badge?: string;
+};
+
+export type SeasonalLeaderboardEntry = GamificationLeaderboardEntry & {
+  seasonKarma: number;
+  seasonalPosition: number;
+  reward?: SeasonalReward | null;
+};
+
+export type SeasonalLeaderboardState = {
+  season: {
+    id: string;
+    slug: string;
+    title: string;
+    subtitle: string | null;
+    status: string;
+    startsAt: string;
+    endsAt: string;
+    closesInMs: number;
+    closedAt: string | null;
+    prizeTitle: string | null;
+    prizeSummary: string | null;
+    rewards: SeasonalReward[];
+  };
+  me: {
+    userId: string;
+    seasonKarma: number;
+    seasonalPosition: number | null;
+    reward?: SeasonalReward | null;
+  };
+  leaderboard: SeasonalLeaderboardEntry[];
+  podium: SeasonalLeaderboardEntry[];
+};
+
 const QUEST_ENTITY_TYPE = 'GAMIFICATION';
 const QUEST_ENTITY_PREFIX = 'DAILY_QUEST_';
 const ACHIEVEMENT_ENTITY_PREFIX = 'ACHIEVEMENT_UNLOCK_';
@@ -76,6 +115,12 @@ const CLIENT_RANKS = [
   { level: 5, name: 'Fruto', min: 2501, max: 5000 },
   { level: 6, name: 'Arvore Mestre', min: 5001, max: Number.POSITIVE_INFINITY },
 ] as const;
+
+const DEFAULT_SEASON_REWARDS: SeasonalReward[] = [
+  { position: 1, label: 'Aurora Mestre', karmaBonus: 250, badge: 'aurora-mestre' },
+  { position: 2, label: 'Aurora Guardiã', karmaBonus: 150, badge: 'aurora-guardia' },
+  { position: 3, label: 'Aurora Raiz', karmaBonus: 75, badge: 'aurora-raiz' },
+];
 
 const resolveClientRank = (karma: number) =>
   CLIENT_RANKS.find((rank) => karma >= rank.min && karma <= rank.max) || CLIENT_RANKS[CLIENT_RANKS.length - 1];
@@ -124,6 +169,82 @@ const asAchievement = (value: unknown): GamificationAchievement | null => {
     threshold: Number(raw.threshold || 0),
     unlockedAt: raw.unlockedAt ? String(raw.unlockedAt) : undefined,
   };
+};
+
+const asReward = (value: unknown): SeasonalReward | null => {
+  const raw = asRecord(value);
+  const position = Number(raw.position || 0);
+  const label = String(raw.label || '').trim();
+  const karmaBonus = Number(raw.karmaBonus || 0);
+  if (!position || !label) return null;
+  return {
+    position,
+    label,
+    karmaBonus,
+    badge: raw.badge ? String(raw.badge) : undefined,
+  };
+};
+
+const getMonthWindow = (date = new Date()) => {
+  const startsAt = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 0, 0, 0, 0));
+  const endsAt = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 1, 0, 0, 0, -1));
+  return { startsAt, endsAt };
+};
+
+const buildSeasonSlug = (date = new Date()) =>
+  `season-${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+
+const buildSeasonTitle = (date = new Date()) => {
+  const monthLabel = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  return `Temporada Radiante ${monthLabel}`;
+};
+
+const normalizeRewards = (payload: unknown): SeasonalReward[] => {
+  const rewardsValue = asRecord(payload).rewards;
+  if (!Array.isArray(rewardsValue)) return DEFAULT_SEASON_REWARDS;
+  const rewards = rewardsValue.map(asReward).filter((value): value is SeasonalReward => !!value);
+  return rewards.length > 0 ? rewards.sort((a, b) => a.position - b.position) : DEFAULT_SEASON_REWARDS;
+};
+
+const isSafeSeasonFallbackRuntime = () =>
+  process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toLowerCase() === 'mock';
+
+const isSeasonTableUnavailableError = (error: unknown) => {
+  const message = String((error as { message?: string } | null)?.message || '');
+  const code = String((error as { code?: string } | null)?.code || '');
+  return code === 'P2021'
+    || /gamification_seasons/i.test(message)
+    || /table .* does not exist/i.test(message)
+    || isDbUnavailableError(error);
+};
+
+const resolveReceiptReward = (action: string, payload: unknown) => {
+  const record = asRecord(payload);
+  const reward = Number(record.reward ?? record.karma ?? 0);
+  if (Number.isFinite(reward) && reward !== 0) return reward;
+
+  const normalizedAction = String(action || '').toUpperCase();
+  if (normalizedAction.includes('CHECKIN')) return 5;
+  if (normalizedAction.includes('QUEST')) return 15;
+  if (normalizedAction.includes('ORACLE')) return 5;
+  if (normalizedAction.includes('TRIBE')) return 15;
+  if (normalizedAction.includes('RITUAL')) return 10;
+  return 0;
+};
+
+type SeasonRecord = {
+  id: string;
+  slug: string;
+  title: string;
+  subtitle: string | null;
+  starts_at: Date;
+  ends_at: Date;
+  prize_title: string | null;
+  prize_summary: string | null;
+  prize_payload: unknown;
+  status: string;
+  closed_at: Date | null;
+  final_results: unknown;
 };
 
 export class GamificationService {
@@ -331,6 +452,250 @@ export class GamificationService {
         },
       },
       leaderboard,
+    };
+  }
+
+  private async ensureActiveSeason(now = new Date()): Promise<SeasonRecord> {
+    await this.autoCloseExpiredSeasons(now);
+
+    let seasonStoreUnavailable = false;
+    const activeSeason = await prisma.gamificationSeason.findFirst({
+      where: {
+        starts_at: { lte: now },
+        ends_at: { gte: now },
+      },
+      orderBy: { starts_at: 'desc' },
+    }).catch((error) => {
+      if (isSeasonTableUnavailableError(error)) {
+        seasonStoreUnavailable = true;
+        return null;
+      }
+      throw error;
+    });
+
+    if (activeSeason) {
+      if (activeSeason.status !== 'ACTIVE') {
+        return prisma.gamificationSeason.update({
+          where: { id: activeSeason.id },
+          data: { status: 'ACTIVE' },
+        }).catch(() => activeSeason);
+      }
+      return activeSeason;
+    }
+
+    const { startsAt, endsAt } = getMonthWindow(now);
+    const slug = buildSeasonSlug(now);
+    if (seasonStoreUnavailable && isSafeSeasonFallbackRuntime()) {
+      return {
+        id: slug,
+        slug,
+        title: buildSeasonTitle(now),
+        subtitle: 'Karma acumulado em missões, oráculo, tribo e metamorfose',
+        starts_at: startsAt,
+        ends_at: endsAt,
+        prize_title: 'Premiação Aurora',
+        prize_summary: 'Top 3 recebem badge sazonal e bônus automático de karma.',
+        prize_payload: { rewards: DEFAULT_SEASON_REWARDS },
+        status: 'ACTIVE',
+        closed_at: null,
+        final_results: null,
+      };
+    }
+
+    const created = await prisma.gamificationSeason.upsert({
+      where: { slug },
+      create: {
+        slug,
+        title: buildSeasonTitle(now),
+        subtitle: 'Karma acumulado em missões, oráculo, tribo e metamorfose',
+        starts_at: startsAt,
+        ends_at: endsAt,
+        prize_title: 'Premiação Aurora',
+        prize_summary: 'Top 3 recebem badge sazonal e bônus automático de karma.',
+        prize_payload: { rewards: DEFAULT_SEASON_REWARDS },
+        status: 'ACTIVE',
+      },
+      update: {
+        title: buildSeasonTitle(now),
+        subtitle: 'Karma acumulado em missões, oráculo, tribo e metamorfose',
+        starts_at: startsAt,
+        ends_at: endsAt,
+        prize_title: 'Premiação Aurora',
+        prize_summary: 'Top 3 recebem badge sazonal e bônus automático de karma.',
+        prize_payload: { rewards: DEFAULT_SEASON_REWARDS },
+        status: now >= startsAt && now <= endsAt ? 'ACTIVE' : 'SCHEDULED',
+      },
+    }).catch((error) => {
+      if (isSeasonTableUnavailableError(error)) return null;
+      throw error;
+    });
+
+    if (created) return created;
+
+    return {
+      id: slug,
+      slug,
+      title: buildSeasonTitle(now),
+      subtitle: 'Karma acumulado em missões, oráculo, tribo e metamorfose',
+      starts_at: startsAt,
+      ends_at: endsAt,
+      prize_title: 'Premiação Aurora',
+      prize_summary: 'Top 3 recebem badge sazonal e bônus automático de karma.',
+      prize_payload: { rewards: DEFAULT_SEASON_REWARDS },
+      status: 'ACTIVE',
+      closed_at: null,
+      final_results: null,
+    };
+  }
+
+  private async autoCloseExpiredSeasons(now = new Date()) {
+    const expired = await prisma.gamificationSeason.findMany({
+      where: {
+        ends_at: { lt: now },
+        status: { not: 'CLOSED' },
+      },
+      orderBy: { ends_at: 'asc' },
+    }).catch((error) => {
+      if (isSeasonTableUnavailableError(error)) return [];
+      throw error;
+    });
+
+    for (const season of expired) {
+      const computed = await this.computeSeasonalSnapshot(season);
+      await prisma.gamificationSeason.update({
+        where: { id: season.id },
+        data: {
+          status: 'CLOSED',
+          closed_at: now,
+          final_results: computed,
+        },
+      }).catch((error) => {
+        if (isSeasonTableUnavailableError(error)) return undefined;
+        throw error;
+      });
+    }
+  }
+
+  private async computeSeasonalSnapshot(season: SeasonRecord) {
+    const rewards = normalizeRewards(season.prize_payload);
+    const receipts = await prisma.interactionReceipt.findMany({
+      where: {
+        actor_id: { not: null },
+        status: { in: ['DONE', 'COMPLETED', 'CREATED'] },
+        created_at: {
+          gte: season.starts_at,
+          lte: season.ends_at,
+        },
+      },
+      select: {
+        actor_id: true,
+        action: true,
+        payload: true,
+      },
+    }).catch(() => []);
+
+    const scores = new Map<string, number>();
+    for (const receipt of receipts) {
+      const actorId = String(receipt.actor_id || '').trim();
+      if (!actorId) continue;
+      const reward = resolveReceiptReward(receipt.action, receipt.payload);
+      if (!reward) continue;
+      scores.set(actorId, (scores.get(actorId) || 0) + reward);
+    }
+
+    const orderedIds = [...scores.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 20)
+      .map(([userId]) => userId);
+
+    const profiles = orderedIds.length > 0
+      ? await prisma.profile.findMany({
+          where: { id: { in: orderedIds } },
+          select: { id: true, name: true, avatar: true, karma: true },
+        }).catch(() => [])
+      : [];
+
+    const profilesById = new Map(profiles.map((profile) => [profile.id, profile]));
+
+    const leaderboard: SeasonalLeaderboardEntry[] = orderedIds.map((userId, index) => {
+      const profile = profilesById.get(userId);
+      const karma = Number(profile?.karma || 0);
+      const rank = resolveClientRank(karma);
+      const reward = rewards.find((item) => item.position === index + 1) || null;
+      return {
+        userId,
+        name: String(profile?.name || 'Buscador'),
+        avatar: profile?.avatar || null,
+        karma,
+        rankLevel: rank.level,
+        rankName: rank.name,
+        seasonKarma: Number(scores.get(userId) || 0),
+        seasonalPosition: index + 1,
+        reward,
+      };
+    });
+
+    return {
+      generatedAt: new Date().toISOString(),
+      rewards,
+      leaderboard,
+      podium: leaderboard.slice(0, 3),
+    };
+  }
+
+  async getSeasonalLeaderboard(userId: string): Promise<SeasonalLeaderboardState> {
+    const season = await this.ensureActiveSeason();
+    const stored = asRecord(season.final_results);
+    const useStored = season.status === 'CLOSED' && Array.isArray(stored.leaderboard);
+    const computed = useStored ? stored : await this.computeSeasonalSnapshot(season);
+    const leaderboard = Array.isArray(computed.leaderboard)
+      ? computed.leaderboard.map((entry) => {
+          const raw = asRecord(entry);
+          return {
+            userId: String(raw.userId || ''),
+            name: String(raw.name || 'Buscador'),
+            avatar: raw.avatar ? String(raw.avatar) : null,
+            karma: Number(raw.karma || 0),
+            rankLevel: Number(raw.rankLevel || 1),
+            rankName: String(raw.rankName || 'Semente'),
+            seasonKarma: Number(raw.seasonKarma || 0),
+            seasonalPosition: Number(raw.seasonalPosition || 0),
+            reward: raw.reward ? asReward(raw.reward) : null,
+          };
+        }).filter((entry) => !!entry.userId)
+      : [];
+
+    const rewards = normalizeRewards(
+      Array.isArray(asRecord(computed).rewards)
+        ? { rewards: asRecord(computed).rewards }
+        : season.prize_payload,
+    );
+
+    const me = leaderboard.find((entry) => entry.userId === userId) || null;
+
+    return {
+      season: {
+        id: season.id,
+        slug: season.slug,
+        title: season.title,
+        subtitle: season.subtitle || null,
+        status: season.status,
+        startsAt: season.starts_at.toISOString(),
+        endsAt: season.ends_at.toISOString(),
+        closesInMs: Math.max(0, season.ends_at.getTime() - Date.now()),
+        closedAt: season.closed_at?.toISOString() || null,
+        prizeTitle: season.prize_title || null,
+        prizeSummary: season.prize_summary || null,
+        rewards,
+      },
+      me: {
+        userId,
+        seasonKarma: me?.seasonKarma || 0,
+        seasonalPosition: me?.seasonalPosition || null,
+        reward: me?.reward || null,
+      },
+      leaderboard,
+      podium: leaderboard.slice(0, 3),
     };
   }
 }

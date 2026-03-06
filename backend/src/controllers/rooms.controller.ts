@@ -9,6 +9,7 @@ import { listMockRoomsByHub, mockAdapter, saveMockRoom } from '../services/mockA
 
 const getUserIdCompat = (req: Request): string =>
   String(req.user?.userId || req.user?.id || '').trim();
+const getRole = (req: Request): string => String(req.user?.role || '').trim().toUpperCase();
 
 type RoomMeta = {
   imageUrl?: string;
@@ -75,37 +76,79 @@ export const getRealTime = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
-  // Aggregate data
-  const totalRooms = await prisma.room.count();
-  const occupied = await prisma.room.count({ where: { status: 'occupied' } });
+  const hubId = getUserIdCompat(req);
+  const role = getRole(req);
+  try {
+    const roomWhere = role === 'ADMIN' ? undefined : { hub_id: hubId };
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+    const totalRooms = await prisma.room.count({ where: roomWhere });
+    const occupied = await prisma.room.count({
+      where: {
+        ...(roomWhere || {}),
+        status: 'occupied',
+      },
+    });
 
-  const revenueAgg = await prisma.transaction.aggregate({
-    _sum: { amount: true },
-    where: {
-      status: 'completed',
-      date: { gte: today },
-    },
-  });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-  return res.json({
-    total_rooms: totalRooms,
-    occupied_rate: totalRooms > 0 ? (occupied / totalRooms) * 100 : 0,
-    revenue_today: Number(revenueAgg._sum?.amount || 0)
-  });
+    const revenueWhere = role === 'ADMIN'
+      ? {
+        status: 'completed',
+        date: { gte: today },
+      }
+      : {
+        user_id: hubId,
+        status: 'completed',
+        date: { gte: today },
+      };
+
+    const revenueAgg = await prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: revenueWhere,
+    });
+
+    return res.json({
+      total_rooms: totalRooms,
+      occupied_rate: totalRooms > 0 ? (occupied / totalRooms) * 100 : 0,
+      revenue_today: Number(revenueAgg._sum?.amount || 0)
+    });
+  } catch (error) {
+    if (isMockMode() && isDbUnavailableError(error)) {
+      const rooms = role === 'ADMIN'
+        ? [...mockAdapter.spaces.rooms.values()]
+        : listMockRoomsByHub(hubId);
+      const occupied = rooms.filter((room) => String(room.status || '').toLowerCase() === 'occupied').length;
+      return res.json({
+        total_rooms: rooms.length,
+        occupied_rate: rooms.length > 0 ? (occupied / rooms.length) * 100 : 0,
+        revenue_today: 0,
+        _fallback: true,
+      });
+    }
+    throw error;
+  }
 });
 
 export const updateStatus = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const { status } = req.body;
+  const userId = getUserIdCompat(req);
+  const role = getRole(req);
 
-  const room = await prisma.room.update({
+  if (!id) return res.status(400).json({ error: 'Missing room id' });
+
+  const room = await prisma.room.findUnique({ where: { id } });
+  if (!room) return res.status(404).json({ error: 'Room not found' });
+  if (role !== 'ADMIN' && String(room.hub_id) !== userId) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const updated = await prisma.room.update({
     where: { id },
     data: { status }
   });
-  return res.json(room);
+  return res.json(updated);
 });
 
 const updateRoomSchema = z.object({
@@ -192,19 +235,26 @@ export const updateRoom = asyncHandler(async (req: Request, res: Response) => {
 
 export const createVacancy = asyncHandler(async (req: Request, res: Response) => {
   const { title, description, specialties, availability } = req.body;
+  const actorId = getUserIdCompat(req);
+  const role = getRole(req);
+  const spaceId = role === 'ADMIN'
+    ? String(req.body?.spaceId || actorId).trim()
+    : actorId;
 
   const vacancy = await prisma.vacancy.create({
     data: {
       title,
       description,
       specialties: specialties || [],
-      space_id: req.user?.userId || 'unknown'
+      space_id: spaceId || 'unknown'
     }
   });
   return res.status(201).json(vacancy);
 });
 
 export const listVacancies = asyncHandler(async (req: Request, res: Response) => {
+  const role = getRole(req);
+  const userId = getUserIdCompat(req);
   if (isMockMode()) {
     return res.json([
       {
@@ -225,7 +275,16 @@ export const listVacancies = asyncHandler(async (req: Request, res: Response) =>
   }
 
   try {
-    const vacancies = await prisma.vacancy.findMany();
+    const where = role === 'ADMIN'
+      ? undefined
+      : role === 'SPACE'
+        ? { space_id: userId }
+        : { status: 'open' };
+    const vacancies = await prisma.vacancy.findMany({
+      where,
+      orderBy: { created_at: 'desc' },
+      take: 200,
+    });
     return res.json(vacancies);
   } catch (error: unknown) {
     // If the table/columns are missing (common when DB wasn't migrated yet),

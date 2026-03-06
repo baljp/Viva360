@@ -8,4 +8,5 @@ import { checkoutSchema } from '../schemas/checkout.schema';
 
 router.post('/pay', requireRoles('CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN'), validate(checkoutSchema), CheckoutController.processPayment);
 router.post('/contextual', requireRoles('CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN'), validate(checkoutSchema), CheckoutController.processContextualCheckout);
+router.get('/transactions/:transactionId/status', requireRoles('CLIENT', 'PROFESSIONAL', 'SPACE', 'ADMIN'), CheckoutController.getTransactionStatus);
 export default router;

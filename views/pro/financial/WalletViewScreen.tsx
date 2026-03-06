@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Professional, Transaction } from '../../../types';
 import { PortalView, BottomSheet } from '../../../components/Common'; // ZenToast removido: usa notify() do GuardiaoFlow
 import { useGuardiaoFlow } from '../../../src/flow/useGuardiaoFlow';
-import { api, request } from '../../../services/api';
+import { api } from '../../../services/api';
+import { financeApi } from '../../../services/api/financeClient';
 import { useCountUp } from '../../../src/hooks/useCountUp';
+import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
 import {
     Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Share2,
     Leaf, Heart, Shuffle, Landmark, CreditCard, ChevronRight,
@@ -172,22 +174,21 @@ const DonateForm: React.FC<{ onConfirm: (amount: number, cause: string) => void;
 
 // --- MODALS ---
 
-const ReinvestModal: React.FC<{ isOpen: boolean, onClose: () => void, balance: number, onConfirm: (type: string, amount: number) => void }> = ({ isOpen, onClose, balance, onConfirm }) => {
-    const [amount, setAmount] = useState(50);
+const ReinvestModal: React.FC<{ isOpen: boolean, onClose: () => void, balance: number, onConfirm: (type: string, amount: number) => void; processing: boolean }> = ({ isOpen, onClose, balance, onConfirm, processing }) => {
     if (!isOpen) return null;
     return (
         <BottomSheet isOpen={isOpen} onClose={onClose} title="Semear o Futuro">
             <div className="space-y-6 pb-6">
                 <p className="text-sm text-nature-600 italic">"Ao reinvestir no seu Jardim, você amplifica sua capacidade de cura e atrai mais abundância."</p>
                 <div className="grid grid-cols-1 gap-3">
-                    <button onClick={() => onConfirm('garden', 100)} className="bg-emerald-50 p-4 rounded-3xl border border-emerald-100 text-left hover:bg-emerald-100 transition-colors group">
+                    <button disabled={processing || balance < 100} onClick={() => onConfirm('garden', 100)} className="bg-emerald-50 p-4 rounded-3xl border border-emerald-100 text-left hover:bg-emerald-100 transition-colors group disabled:opacity-50">
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-emerald-800 text-xs uppercase tracking-widest">Melhorar meu Jardim</span>
                             <Leaf size={16} className="text-emerald-500" />
                         </div>
                         <p className="text-[10px] text-emerald-600 leading-tight">Desbloqueia novos itens decorativos e aumenta a vibração do perfil.</p>
                     </button>
-                    <button onClick={() => onConfirm('scholarship', 150)} className="bg-indigo-50 p-4 rounded-3xl border border-indigo-100 text-left hover:bg-indigo-100 transition-colors">
+                    <button disabled={processing || balance < 150} onClick={() => onConfirm('scholarship', 150)} className="bg-indigo-50 p-4 rounded-3xl border border-indigo-100 text-left hover:bg-indigo-100 transition-colors disabled:opacity-50">
                         <div className="flex items-center justify-between mb-2">
                             <span className="font-bold text-indigo-800 text-xs uppercase tracking-widest">Bolsa Terapêutica</span>
                             <Heart size={16} className="text-indigo-500" />
@@ -203,45 +204,56 @@ const ReinvestModal: React.FC<{ isOpen: boolean, onClose: () => void, balance: n
 // --- MAIN SCREEN ---
 
 export default function WalletViewScreen({ user }: { user: Professional }) {
-    const { notify, back, go, state } = useGuardiaoFlow();
+    const { notify, go, state } = useGuardiaoFlow();
     const [activeTab, setActiveTab] = useState<'overview' | 'analysis' | 'services'>('overview');
     const [showReinvest, setShowReinvest] = useState(false);
     const [showWithdraw, setShowWithdraw] = useState(false);
     const [showDonate, setShowDonate] = useState(false);
     const [withdrawProcessing, setWithdrawProcessing] = useState(false);
     const [donateProcessing, setDonateProcessing] = useState(false);
+    const [reinvestProcessing, setReinvestProcessing] = useState(false);
 
     // SEC-03: Real transactions from API instead of mock/setTimeout
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [txLoading, setTxLoading] = useState(true);
     const [metrics, setMetrics] = useState<{ nps: number; retentionRate: number; averageRating: number } | null>(null);
+    const [currentBalance, setCurrentBalance] = useState(user.personalBalance || 0);
+
+    const refreshFinance = useCallback(async () => {
+        const [summary, txs, met] = await Promise.all([
+            financeApi.operations.getSummary(),
+            financeApi.operations.getTransactions(),
+            api.profiles.getMetrics(user.id),
+        ]);
+        if (Array.isArray(txs)) setTransactions(txs as Transaction[]);
+        if (met) setMetrics(met);
+        const summaryRecord = (summary && typeof summary === 'object') ? summary as Record<string, unknown> : {};
+        setCurrentBalance(Number(summaryRecord.personal_balance || user.personalBalance || 0));
+        return { summary: summaryRecord, transactions: Array.isArray(txs) ? txs : [] };
+    }, [user.id, user.personalBalance]);
 
     useEffect(() => {
         let cancelled = false;
+        setTxLoading(true);
         (async () => {
             try {
-                const [txs, met] = await Promise.all([
-                    request('/finance/transactions', { purpose: 'wallet-transactions', timeoutMs: 8000 }),
-                    api.profiles.getMetrics(user.id)
-                ]);
                 if (!cancelled) {
-                    if (Array.isArray(txs)) setTransactions(txs);
-                    if (met) setMetrics(met);
+                    await refreshFinance();
                 }
             } catch (err) {
                 console.warn('[WalletView] Failed to load data:', err);
-                // Fallback to flow state data if available
                 if (!cancelled && state.data.transactions?.length) {
                     setTransactions(state.data.transactions);
+                }
+                if (!cancelled) {
+                    setCurrentBalance(user.personalBalance || 0);
                 }
             } finally {
                 if (!cancelled) setTxLoading(false);
             }
         })();
         return () => { cancelled = true; };
-    }, [user.id]);
-
-    const currentBalance = user.personalBalance || 0;
+    }, [refreshFinance, state.data.transactions, user.personalBalance]);
 
     const handleAction = (action: string) => {
         if (action === 'withdraw') setShowWithdraw(true);
@@ -249,40 +261,82 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
         if (action === 'donate') setShowDonate(true);
     };
 
-    // SEC-03: Financial operations show honest "Em implementação" instead of fake setTimeout success.
     const handleWithdrawConfirm = async (amount: number) => {
         setWithdrawProcessing(true);
         try {
-            // When POST /api/finance/withdraw exists, uncomment:
-            // const result = await request('/finance/withdraw', { method: 'POST', body: { amount }, purpose: 'withdraw' });
-            // notify('Saque Solicitado', `R$ ${amount},00 serão transferidos. Protocolo #${result.protocol}`, 'success');
-            notify('Funcionalidade em Implementação', 'O saque via PIX estará disponível em breve. Sua solicitação foi registrada.', 'info');
-        } catch (err: any) {
-            notify('Erro', err?.message || 'Não foi possível processar o saque.', 'error');
+            const result = await runConfirmedAction({
+                action: () => financeApi.operations.requestWithdrawal(amount, 'pix'),
+                refresh: refreshFinance,
+                notify,
+                successToast: {
+                    title: 'Saque solicitado',
+                    message: `Solicitação registrada para R$ ${amount.toLocaleString('pt-BR')}.`,
+                    type: 'success',
+                },
+                failToast: {
+                    title: 'Falha no saque',
+                    message: (err) => (err && typeof err === 'object' && 'message' in err)
+                        ? String((err as { message?: unknown }).message || 'Não foi possível processar o saque.')
+                        : 'Não foi possível processar o saque.',
+                    type: 'error',
+                },
+            });
+            if (result.ok) setShowWithdraw(false);
         } finally {
             setWithdrawProcessing(false);
-            setShowWithdraw(false);
         }
     };
 
     const handleDonateConfirm = async (amount: number, cause: string) => {
         setDonateProcessing(true);
         try {
-            // When POST /api/finance/donate exists, uncomment:
-            // const result = await request('/finance/donate', { method: 'POST', body: { amount, cause }, purpose: 'donate' });
-            // notify('Ação de Graça', `R$ ${amount},00 doados para "${cause}". +${amount} Karma!`, 'success');
-            notify('Funcionalidade em Implementação', 'Doações estarão disponíveis em breve. Obrigado pela intenção!', 'info');
-        } catch (err: any) {
-            notify('Erro', err?.message || 'Não foi possível processar a doação.', 'error');
+            const result = await runConfirmedAction({
+                action: () => financeApi.operations.donate(amount, cause),
+                refresh: refreshFinance,
+                notify,
+                successToast: {
+                    title: 'Doação confirmada',
+                    message: `R$ ${amount.toLocaleString('pt-BR')} enviados para ${cause}.`,
+                    type: 'success',
+                },
+                failToast: {
+                    title: 'Falha na doação',
+                    message: (err) => (err && typeof err === 'object' && 'message' in err)
+                        ? String((err as { message?: unknown }).message || 'Não foi possível processar a doação.')
+                        : 'Não foi possível processar a doação.',
+                    type: 'error',
+                },
+            });
+            if (result.ok) setShowDonate(false);
         } finally {
             setDonateProcessing(false);
-            setShowDonate(false);
         }
     };
 
-    const handleReinvestConfirm = (type: string, amount: number) => {
-        setShowReinvest(false);
-        notify('Funcionalidade em Implementação', 'Reinvestimento estará disponível em breve.', 'info');
+    const handleReinvestConfirm = async (type: string, amount: number) => {
+        setReinvestProcessing(true);
+        try {
+            const result = await runConfirmedAction({
+                action: () => financeApi.operations.reinvest(amount, type),
+                refresh: refreshFinance,
+                notify,
+                successToast: {
+                    title: 'Reinvestimento confirmado',
+                    message: `R$ ${amount.toLocaleString('pt-BR')} realocados para ${type}.`,
+                    type: 'success',
+                },
+                failToast: {
+                    title: 'Falha no reinvestimento',
+                    message: (err) => (err && typeof err === 'object' && 'message' in err)
+                        ? String((err as { message?: unknown }).message || 'Não foi possível reinvestir agora.')
+                        : 'Não foi possível reinvestir agora.',
+                    type: 'error',
+                },
+            });
+            if (result.ok) setShowReinvest(false);
+        } finally {
+            setReinvestProcessing(false);
+        }
     };
 
     return (
@@ -451,7 +505,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                 </div>
             )}
 
-            <ReinvestModal isOpen={showReinvest} onClose={() => setShowReinvest(false)} balance={currentBalance} onConfirm={handleReinvestConfirm} />
+            <ReinvestModal isOpen={showReinvest} onClose={() => setShowReinvest(false)} balance={currentBalance} onConfirm={handleReinvestConfirm} processing={reinvestProcessing} />
 
             {/* Withdraw BottomSheet */}
             <BottomSheet isOpen={showWithdraw} onClose={() => setShowWithdraw(false)} title="Solicitar Saque">

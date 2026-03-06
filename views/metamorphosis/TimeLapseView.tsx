@@ -28,6 +28,7 @@ export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setVie
     const audioRef = useRef<HTMLAudioElement>(null);
     const [volume, setVolume] = useState(0.5);
     const [format, setFormat] = useState<'STORY' | 'POST'>('STORY');
+    const totalFrames = entries.length;
 
     // Load Data — cancelled guard prevents setState on unmounted component
     useEffect(() => {
@@ -207,6 +208,38 @@ export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setVie
         }
     };
 
+    const stepFrame = (direction: -1 | 1) => {
+        setIsPlaying(false);
+        setProgress(0);
+        setCurrentIndex((prev) => {
+            if (entries.length === 0) return 0;
+            return Math.min(entries.length - 1, Math.max(0, prev + direction));
+        });
+        if (audioRef.current) audioRef.current.pause();
+    };
+
+    const scrubToFrame = (index: number) => {
+        setIsPlaying(false);
+        setProgress(0);
+        setCurrentIndex(Math.min(entries.length - 1, Math.max(0, index)));
+        if (audioRef.current) audioRef.current.pause();
+    };
+
+    useEffect(() => {
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'ArrowLeft') {
+                event.preventDefault();
+                stepFrame(-1);
+            }
+            if (event.key === 'ArrowRight') {
+                event.preventDefault();
+                stepFrame(1);
+            }
+        };
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, [entries.length]);
+
     // Animation Loop
     useEffect(() => {
         if (!entries.length || !isPlaying) return;
@@ -237,12 +270,12 @@ export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setVie
         return () => {
             if (progressInterval.current) clearInterval(progressInterval.current);
         };
-    }, [currentIndex, isPlaying, entries.length, isRecording, gardenSnaps]); // Added gardenSnaps to dependencies
+    }, [currentIndex, isPlaying, entries.length, isRecording, gardenSnaps, format]); // Added gardenSnaps to dependencies
 
     // Initial Draw Force
     useEffect(() => {
         if (entries[currentIndex]) drawFrame(entries, currentIndex, 0);
-    }, [currentIndex, entries, gardenSnaps]); // Added gardenSnaps to dependencies
+    }, [currentIndex, entries, gardenSnaps, format]); // Added gardenSnaps to dependencies
 
 
     // RECORDER
@@ -468,6 +501,51 @@ export const TimeLapseView: React.FC<TimeLapseProps> = ({ flow, setView: _setVie
                         }}
                         className="w-24 accent-white"
                     />
+                </div>
+
+                <div className="rounded-[2rem] border border-white/10 bg-white/5 p-4 space-y-3">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40">Scrubber Temporal</p>
+                            <p className="text-xs text-white/80">
+                                Quadro {totalFrames > 0 ? currentIndex + 1 : 0}/{totalFrames} • {entries[currentIndex] ? new Date(entries[currentIndex].timestamp).toLocaleDateString('pt-BR') : 'Sem memória'}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => stepFrame(-1)}
+                                disabled={totalFrames <= 1}
+                                className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-40"
+                                aria-label="Quadro anterior"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                            <button
+                                onClick={() => stepFrame(1)}
+                                disabled={totalFrames <= 1}
+                                className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-40"
+                                aria-label="Próximo quadro"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        </div>
+                    </div>
+                    <input
+                        type="range"
+                        min={0}
+                        max={Math.max(0, totalFrames - 1)}
+                        step={1}
+                        value={Math.min(currentIndex, Math.max(0, totalFrames - 1))}
+                        onChange={(event) => scrubToFrame(Number(event.target.value))}
+                        disabled={totalFrames <= 1}
+                        className="w-full accent-amber-400"
+                        aria-label="Navegar pelos quadros do replay"
+                    />
+                    <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-white/30">
+                        <span>Início</span>
+                        <span>Frame a frame</span>
+                        <span>Agora</span>
+                    </div>
                 </div>
 
                 <div className="flex justify-between items-center bg-white/5 p-4 rounded-[2rem] border border-white/10">

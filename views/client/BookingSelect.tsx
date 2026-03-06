@@ -73,7 +73,7 @@ export const BookingSelect: React.FC<{ pros?: Professional[] }> = ({ pros = [] }
                         onClick={() => {
                             // Simple mock behavior for messaging
                             const msg = `Olá ${pro.name}, gostaria de saber mais sobre o seu trabalho.`;
-                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+                            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
                         }}
                         className="p-3 bg-nature-50 text-nature-600 rounded-2xl border border-nature-100 hover:bg-white transition-all active:scale-95 shadow-sm"
                         title="Enviar Mensagem"

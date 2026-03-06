@@ -381,7 +381,7 @@ export const ProDashboard: React.FC<{
 
                         <div className="grid grid-cols-2 gap-4">
                             <PortalCard id="portal-marketplace" title="Alquimia" subtitle="BAZAR" icon={ShoppingBag} bgImage="https://images.unsplash.com/photo-1512418490979-92798cec1380?q=80&w=600" onClick={() => go('ESCAMBO_MARKET')} />
-                            <PortalCard id="portal-consert" title="Conselheiros" subtitle="CÍRCULO" icon={MessageCircle} bgImage="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600" onClick={() => notify("Círculo de Conselheiros", "Espaço anônimo para discussão clínica em breve.", "info")} />
+                            <PortalCard id="portal-consert" title="Conselheiros" subtitle="CÍRCULO" icon={MessageCircle} bgImage="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=600" onClick={() => { notify("Círculo de Conselheiros", "Abrindo a comunidade para troca clínica entre guardiões.", "info"); go('TRIBE_PRO'); }} />
                         </div>
 
                         <div className="bg-emerald-50 rounded-[2.5rem] p-6 text-emerald-900 border border-emerald-100 flex items-center justify-between cursor-pointer active:scale-95 transition-all" onClick={async () => {

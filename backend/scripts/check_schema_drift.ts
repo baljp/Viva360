@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -27,16 +27,14 @@ const REQUIRED: Record<string, Record<string, string[]>> = {
 };
 
 async function getColumns(schema: string, table: string): Promise<Set<string>> {
-  const rows = (await prisma.$queryRawUnsafe(
-    `
+  const rows = await prisma.$queryRaw<Array<{ column_name: string }>>(
+    Prisma.sql`
       SELECT column_name
       FROM information_schema.columns
-      WHERE table_schema = $1
-        AND table_name = $2
+      WHERE table_schema = ${schema}
+        AND table_name = ${table}
     `,
-    schema,
-    table,
-  )) as Array<{ column_name: string }>;
+  );
   return new Set(rows.map((row) => row.column_name));
 }
 

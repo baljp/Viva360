@@ -206,7 +206,7 @@ const SpacePatients: React.FC = () => {
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     const text = encodeURIComponent(`Olá ${patient.name}, entrando em contato via Santuário Viva360. 🌱`);
-                                    window.open(`https://wa.me/?text=${text}`, '_blank');
+                                    window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
                                 }}
                                 className="w-8 h-8 rounded-full bg-[#25D366]/10 text-[#25D366] flex items-center justify-center hover:bg-[#25D366] hover:text-white transition-all"
                                 title="Contatar via WhatsApp"

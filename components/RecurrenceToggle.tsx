@@ -37,6 +37,11 @@ export interface PreviewOccurrence {
   conflictingAppointmentId?: string;
 }
 
+type PreviewResponse = {
+  occurrences?: PreviewOccurrence[];
+  totalCount?: number;
+};
+
 export interface RecurrenceState {
   enabled: boolean;
   config: RecurrenceConfig;
@@ -87,10 +92,6 @@ export const RecurrenceToggle: React.FC<Props> = ({
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState<string | null>(null);
   const [previewed, setPreviewed] = useState(false);
-
-  // Don't render at all when flag is off
-  if (!RECURRENCE_ENABLED) return null;
-
   const byDay = [deriveDow(startAt)];
 
   const notify = useCallback((nextEnabled: boolean, nextFreq: RecurrenceFreq, nextCount: number, nextPreview: PreviewOccurrence[] | null, nextTotal: number) => {
@@ -100,7 +101,10 @@ export const RecurrenceToggle: React.FC<Props> = ({
       preview: nextPreview,
       totalCount: nextTotal,
     });
-  }, [onChange, byDay.join(',')]);
+  }, [byDay, onChange]);
+
+  // Don't render at all when flag is off
+  if (!RECURRENCE_ENABLED) return null;
 
   const handleToggle = () => {
     const next = !enabled;
@@ -129,7 +133,7 @@ export const RecurrenceToggle: React.FC<Props> = ({
     setLoading(true);
     setError(null);
     try {
-      const result: any = await api.series.preview({
+      const result = await api.series.preview({
         guardianId,
         clientId,
         startAt,
@@ -138,13 +142,13 @@ export const RecurrenceToggle: React.FC<Props> = ({
         freq,
         byDay,
         count,
-      });
+      }) as PreviewResponse;
       setPreview(result.occurrences ?? []);
       setTotalCount(result.totalCount ?? count);
       setPreviewed(true);
       notify(enabled, freq, count, result.occurrences ?? [], result.totalCount ?? count);
-    } catch (err: any) {
-      setError(err?.message || 'Não foi possível carregar o preview.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Não foi possível carregar o preview.');
     } finally {
       setLoading(false);
     }

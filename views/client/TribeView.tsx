@@ -6,13 +6,14 @@ import { PortalView, BottomSheet, DynamicAvatar, InteractiveButton } from '../..
 import { ConstellationOrbit, GlobalMandala } from '../../components/SocialFeatures';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { api } from '../../services/api';
-import type { GamificationLeaderboardResponse } from '../../services/api/domains/gamification';
+import type { GamificationLeaderboardResponse, SeasonalLeaderboardResponse } from '../../services/api/domains/gamification';
 import { captureFrontendError } from '../../lib/frontendLogger';
 
 export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
    const { go, back, selectTribeRoomContext } = useBuscadorFlow();
    const [activeModal, setActiveModal] = useState<'camera' | 'invite' | 'leaderboard' | null>(null);
    const [leaderboard, setLeaderboard] = useState<GamificationLeaderboardResponse | null>(null);
+   const [seasonalLeaderboard, setSeasonalLeaderboard] = useState<SeasonalLeaderboardResponse | null>(null);
    const [leaderboardLoading, setLeaderboardLoading] = useState(false);
    const [activePacts, setActivePacts] = useState<ConstellationPact[]>([]);
    const [pactsLoading, setPactsLoading] = useState(true);
@@ -38,8 +39,12 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
       if (leaderboard || leaderboardLoading) return;
       setLeaderboardLoading(true);
       try {
-         const payload = await api.gamification.getLeaderboard();
+         const [payload, seasonalPayload] = await Promise.all([
+            api.gamification.getLeaderboard(),
+            api.gamification.getSeasonalLeaderboard(),
+         ]);
          setLeaderboard(payload);
+         setSeasonalLeaderboard(seasonalPayload);
       } catch (error) {
          captureFrontendError(error, { view: 'TribeView', op: 'openLeaderboard' });
       } finally {
@@ -202,10 +207,33 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
 
                   <div className="bg-white border border-nature-100 rounded-3xl p-5 space-y-3">
                      <div className="flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-nature-900">Ranking da Tribo</h4>
+                        <div>
+                           <h4 className="text-xs font-bold text-nature-900">Leaderboard Sazonal</h4>
+                           {seasonalLeaderboard?.season ? (
+                              <p className="text-[10px] text-nature-400 uppercase tracking-widest mt-1">
+                                 {seasonalLeaderboard.season.title} • prêmio {seasonalLeaderboard.season.prizeTitle || 'Aurora'}
+                              </p>
+                           ) : null}
+                        </div>
                         {leaderboardLoading && <span className="text-[10px] text-nature-400">Carregando...</span>}
                      </div>
-                     {(leaderboard?.leaderboard || []).slice(0, 8).map((entry, index) => (
+                     {seasonalLeaderboard?.season ? (
+                        <div className="rounded-2xl bg-amber-50 border border-amber-100 p-4 text-[11px] text-amber-900 space-y-2">
+                           <div className="flex items-center justify-between gap-3">
+                              <span className="font-bold uppercase tracking-widest text-[10px]">Sua posição sazonal</span>
+                              <span className="font-black text-base">#{seasonalLeaderboard.me.seasonalPosition || '--'}</span>
+                           </div>
+                           <div className="flex items-center justify-between gap-3 text-[10px] uppercase tracking-widest text-amber-700">
+                              <span>{seasonalLeaderboard.me.seasonKarma} karma na temporada</span>
+                              <span>{Math.max(0, Math.ceil(seasonalLeaderboard.season.closesInMs / (1000 * 60 * 60 * 24)))} dias restantes</span>
+                           </div>
+                        </div>
+                     ) : null}
+                     {(seasonalLeaderboard?.leaderboard || leaderboard?.leaderboard || []).slice(0, 8).map((entry, index) => {
+                        const rewardLabel = 'reward' in entry && entry.reward && typeof entry.reward === 'object' && 'label' in entry.reward
+                           ? String(entry.reward.label)
+                           : null;
+                        return (
                         <div key={entry.userId} className="flex items-center justify-between gap-3">
                            <div className="flex items-center gap-3 min-w-0">
                               <span className="w-6 text-[10px] font-black text-indigo-300">#{index + 1}</span>
@@ -214,12 +242,19 @@ export const TribeView: React.FC<{ user: User, updateUser: (u: User) => void, on
                               </div>
                               <div className="min-w-0">
                                  <p className="text-xs font-bold text-nature-900 truncate">{entry.name}</p>
-                                 <p className="text-[10px] text-nature-400 uppercase">{entry.rankName}</p>
+                                 <p className="text-[10px] text-nature-400 uppercase">
+                                    {'seasonKarma' in entry ? `${entry.rankName} • ${entry.seasonKarma} karma` : entry.rankName}
+                                 </p>
                               </div>
                            </div>
-                           <span className="text-xs font-black text-nature-800">{entry.karma}</span>
+                           <div className="text-right">
+                              <span className="block text-xs font-black text-nature-800">{entry.karma}</span>
+                              {rewardLabel ? (
+                                 <span className="text-[9px] font-bold text-amber-600 uppercase">{rewardLabel}</span>
+                              ) : null}
+                           </div>
                         </div>
-                     ))}
+                     )})}
                   </div>
                </div>
             </BottomSheet>

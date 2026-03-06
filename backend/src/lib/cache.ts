@@ -1,35 +1,36 @@
-import Redis from 'ioredis';
-import dotenv from 'dotenv';
 import { logger } from './logger';
-dotenv.config();
+import { redisConnection } from './redis';
 
-// Create Redis Client
-const redis = new Redis({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: Number(process.env.REDIS_PORT) || 6379,
-  maxRetriesPerRequest: 1, // Fail fast
-  retryStrategy: (times) => {
-    if (times > 3) return null; // Stop retrying after 3 attempts (prevents hanging)
-    return Math.min(times * 50, 2000);
-  }
-});
+type RedisLike = {
+  get?: (key: string) => Promise<string | null>;
+  set?: (key: string, value: string, mode?: string, ttlSeconds?: number) => Promise<unknown>;
+  del?: (...keys: string[]) => Promise<unknown>;
+  unlink?: (...keys: string[]) => Promise<unknown>;
+  scan?: (cursor: string, match: string, pattern: string, count: string, size: string) => Promise<[string, string[]]>;
+};
 
-redis.on('error', (err) => {
-  if (process.env.NODE_ENV !== 'test') logger.warn('cache.redis_error', { message: (err as any)?.message || String(err) });
-});
+const redis = redisConnection as RedisLike;
 
-export const cacheGet = async (key: string): Promise<any | null> => {
+const safeParse = (value: string) => {
   try {
-    const data = await redis.get(key);
-    return data ? JSON.parse(data) : null;
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+};
+
+export const cacheGet = async <T = unknown>(key: string): Promise<T | null> => {
+  try {
+    const data = await redis.get?.(key);
+    return data ? (safeParse(data) as T) : null;
   } catch (e) {
     return null; // Fail safe
   }
 };
 
-export const cacheSet = async (key: string, value: any, ttlSeconds: number = 60) => {
+export const cacheSet = async (key: string, value: unknown, ttlSeconds: number = 60) => {
   try {
-    await redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+    await redis.set?.(key, JSON.stringify(value), 'EX', ttlSeconds);
   } catch (e) {
     // Ignore cache write errors
   }
@@ -37,11 +38,24 @@ export const cacheSet = async (key: string, value: any, ttlSeconds: number = 60)
 
 export const cacheInvalidate = async (pattern: string) => {
   try {
-    const keys = await redis.keys(pattern);
-    if (keys.length > 0) await redis.del(...keys);
+    if (!pattern.includes('*')) {
+      await redis.del?.(pattern);
+      return;
+    }
+
+    let cursor = '0';
+    do {
+      const [nextCursor, keys] = await redis.scan?.(cursor, 'MATCH', pattern, 'COUNT', '100') ?? ['0', []];
+      if (keys.length > 0) {
+        if (redis.unlink) {
+          await redis.unlink(...keys);
+        } else {
+          await redis.del?.(...keys);
+        }
+      }
+      cursor = nextCursor;
+    } while (cursor !== '0');
   } catch (e) {
-     // Ignore
+    logger.warn('cache.invalidate_error', { pattern, message: e instanceof Error ? e.message : String(e) });
   }
 };
-
-export default redis;

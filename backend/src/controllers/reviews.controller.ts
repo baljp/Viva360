@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { Prisma } from '@prisma/client';
 import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
@@ -46,15 +47,24 @@ export const getReviews = asyncHandler(async (req: Request, res: Response) => {
         return res.json({ reviews, total: allReviews.length, page, limit, averageRating });
     }
 
+    const baseWhere = targetType === 'all'
+        ? Prisma.sql`type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = ${spaceId}`
+        : Prisma.sql`type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = ${spaceId} AND payload->>'targetType' = ${targetType}`;
+
     const [countResult, events] = await Promise.all([
-        prisma.$queryRawUnsafe(
-            `SELECT COUNT(*) as count FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 AND ($2 = 'all' OR payload->>'targetType' = $2)`,
-            spaceId, targetType
-        ) as Promise<Array<{ count: bigint }>>,
-        prisma.$queryRawUnsafe(
-            `SELECT id, payload, created_at FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1 AND ($2 = 'all' OR payload->>'targetType' = $2) ORDER BY created_at DESC LIMIT $3 OFFSET $4`,
-            spaceId, targetType, limit, skip
-        ) as Promise<Array<Record<string, unknown>>>,
+        prisma.$queryRaw<Array<{ count: bigint }>>(
+            Prisma.sql`SELECT COUNT(*)::bigint as count FROM public.events WHERE ${baseWhere}`
+        ),
+        prisma.$queryRaw<Array<Record<string, unknown>>>(
+            Prisma.sql`
+                SELECT id, payload, created_at
+                FROM public.events
+                WHERE ${baseWhere}
+                ORDER BY created_at DESC
+                LIMIT ${limit}
+                OFFSET ${skip}
+            `
+        ),
     ]);
 
     const total = Number(countResult?.[0]?.count || 0);
@@ -104,10 +114,14 @@ export const getReviewSummary = asyncHandler(async (req: Request, res: Response)
         return res.json({ averageRating, totalReviews, recommendRate, guardianAverage });
     }
 
-    const events = (await prisma.$queryRawUnsafe(
-        `SELECT payload FROM public.events WHERE type = 'REVIEW_SUBMITTED' AND payload->>'spaceId' = $1`,
-        spaceId
-    )) as Array<Record<string, unknown>>;
+    const events = await prisma.$queryRaw<Array<Record<string, unknown>>>(
+        Prisma.sql`
+            SELECT payload
+            FROM public.events
+            WHERE type = 'REVIEW_SUBMITTED'
+              AND payload->>'spaceId' = ${spaceId}
+        `
+    );
 
     const ratings = events.map((e) => {
         const payload = (e as Record<string, unknown>).payload;
@@ -189,7 +203,7 @@ export const createReview = asyncHandler(async (req: Request, res: Response) => 
         comment,
     };
 
-    const created = await (prisma as any).event.create({
+    const created = await prisma.event.create({
         data: {
             stream_id: userId,
             type: 'REVIEW_SUBMITTED',
@@ -199,7 +213,7 @@ export const createReview = asyncHandler(async (req: Request, res: Response) => 
 
     logger.info('reviews.created', { spaceId: resolvedSpaceId, userId, rating: numericRating });
     return res.status(201).json({
-        id: String((created as any)?.id || ''),
+        id: String(created.id || ''),
         ...payload,
     });
 });

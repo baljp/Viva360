@@ -88,7 +88,7 @@ export const clearMockArtifacts = (opts?: { preserveAuthToken?: boolean }) => {
 export const promoteToRealSession = (token?: string) => {
   clearMockArtifacts({ preserveAuthToken: true });
   clearTestMode();
-  if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+  if (token === MOCK_AUTH_TOKEN && token) localStorage.setItem(AUTH_TOKEN_KEY, token);
   else localStorage.removeItem(AUTH_TOKEN_KEY);
   setSessionMode('real');
 };

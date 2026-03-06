@@ -215,6 +215,27 @@ test.describe('Roundtrip: BUSCADOR', () => {
     const found = list.some((e: any) => String(e.id) === String(entryId) || e.mood === 'Grato');
     expect(found, `[${label}] ritual deve aparecer no histórico`).toBeTruthy();
   });
+
+  /**
+   * buscador_shell_e_config
+   * save  → PUT /api/users/:id
+   * reload → GET /api/users/:id
+   */
+  test('buscador_shell_e_config: perfil do buscador persiste após salvar em settings', async ({ request }) => {
+    const label = 'buscador_shell_e_config';
+    const bio = `bio-settings-client-${uid()}`;
+
+    const save = await request.put(`/api/users/${CLIENT_ID}`, {
+      headers: AUTH,
+      data: { bio },
+    });
+    expect(save.ok(), `[${label}] PUT users/:id deve retornar 2xx`).toBeTruthy();
+
+    const reload = await request.get(`/api/users/${CLIENT_ID}`, { headers: AUTH });
+    expect(reload.ok(), `[${label}] GET users/:id deve retornar 2xx`).toBeTruthy();
+    const user = await reload.json() as Record<string, unknown>;
+    expect(String(user.bio || ''), `[${label}] bio deve refletir o valor salvo`).toContain(bio);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -317,6 +338,27 @@ test.describe('Roundtrip: GUARDIAO', () => {
     expect(reload.ok(), `[${label}] GET summary deve retornar 2xx`).toBeTruthy();
     const body = await reload.json() as any;
     expect(body.personal_balance, `[${label}] deve ter saldo`).toBeDefined();
+  });
+
+  /**
+   * guardiao_shell_e_config
+   * save  → PUT /api/users/:id
+   * reload → GET /api/users/:id
+   */
+  test('guardiao_shell_e_config: perfil do guardião persiste após salvar em settings', async ({ request }) => {
+    const label = 'guardiao_shell_e_config';
+    const location = `bairro-qa-${uid()}`;
+
+    const save = await request.put(`/api/users/${PRO_ID}`, {
+      headers: AUTH,
+      data: { location, bio: `bio-pro-${uid()}` },
+    });
+    expect(save.ok(), `[${label}] PUT users/:id deve retornar 2xx`).toBeTruthy();
+
+    const reload = await request.get(`/api/users/${PRO_ID}`, { headers: AUTH });
+    expect(reload.ok(), `[${label}] GET users/:id deve retornar 2xx`).toBeTruthy();
+    const user = await reload.json() as Record<string, unknown>;
+    expect(String(user.location || ''), `[${label}] location deve refletir o valor salvo`).toContain(location);
   });
 });
 

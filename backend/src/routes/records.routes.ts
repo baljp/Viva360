@@ -11,6 +11,7 @@ router.post('/', RecordsController.createNote);
 router.patch('/:recordId', RecordsController.updateNote);
 router.get('/', RecordsController.listNotes);
 router.get('/export', RecordsController.exportData);
+router.get('/access', RecordsController.listAccess);
 router.post('/grant', RecordsController.grantAccess);
 router.post('/revoke', RecordsController.revokeAccess);
 router.get('/:patientId', RecordsController.listNotes);

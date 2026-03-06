@@ -5,7 +5,7 @@ import prisma from '../lib/prisma';
 import { asyncHandler } from '../middleware/async.middleware';
 import { logger } from '../lib/logger';
 import { isDbUnavailableError } from '../lib/dbReadFallback';
-import { isMockMode, mockId, saveMockRoom } from '../services/mockAdapter';
+import { isMockMode, mockAdapter, mockId, saveMockRoom } from '../services/mockAdapter';
 
 // --- SCHEMAS ---
 const createRoomSchema = z.object({
@@ -27,8 +27,7 @@ type AuthenticatedRequest = Request & {
   };
 };
 
-// ✅ P1 Fix: Replace Prisma.Decimal (unavailable without prisma generate) with plain number | string | null
-type DecimalLike = number | string | null;
+type DecimalLike = number | string | { toString(): string } | null;
 
 type RevenueRow = { total: DecimalLike };
 type AvgDurationRow = { avg_dur: number | null };
@@ -68,80 +67,298 @@ const getUserIdCompat = (req: Request): string => {
   return String(user?.userId || user?.id || '').trim();
 };
 
-// 1. Analytics Dashboard — ALL REAL DATA
-export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
-  const totalAppointments = await prisma.appointment.count();
-  const activeGuardians = await prisma.profile.count({ where: { role: 'PROFESSIONAL' } });
+const getRole = (req: Request): string => String((req as AuthenticatedRequest).user?.role || '').trim().toUpperCase();
 
-  let revenue = 0;
-  try {
-    const result = await prisma.$queryRaw<RevenueRow[]>`
-        SELECT COALESCE(SUM(amount), 0)::numeric as total FROM public.transactions WHERE status = 'completed'
-      `;
-    revenue = Number(result?.[0]?.total || 0);
-  } catch (err) {
-    logger.warn('getAnalytics: revenue query failed, using estimate', { error: String(err) });
-    revenue = totalAppointments * 180;
+const listLinkedGuardianIds = async (spaceId: string): Promise<string[]> => {
+  const contracts = await prisma.contract.findMany({
+    where: { space_id: spaceId, status: { in: ['active', 'pending'] } },
+    select: { guardian_id: true },
+    take: 500,
+  });
+  return Array.from(
+    new Set(
+      contracts
+        .map((contract) => String(contract.guardian_id || '').trim())
+        .filter(Boolean),
+    ),
+  );
+};
+
+const getScopedReviewWhere = (spaceId: string, guardianIds: string[], roomIds: string[]) => {
+  const profileTargetIds = Array.from(new Set([spaceId, ...guardianIds].filter(Boolean)));
+  const directTargetIds = Array.from(new Set([spaceId, ...guardianIds, ...roomIds].filter(Boolean)));
+  const filters = [];
+
+  if (directTargetIds.length > 0) {
+    filters.push({ target_id: { in: directTargetIds } });
+  }
+  if (profileTargetIds.length > 0) {
+    filters.push({ profileId: { in: profileTargetIds } });
   }
 
-  const roomCount = await prisma.room.count();
-  const recentAppointments = await prisma.appointment.count({
-    where: { date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }
-  });
-  const maxSlots = Math.max(1, roomCount * 30 * 8);
-  const occupancy = Math.min(100, Math.round((recentAppointments / maxSlots) * 100));
-  const activeBuscadores = await prisma.profile.count({ where: { role: 'CLIENT' } });
+  return filters.length > 0 ? { OR: filters } : undefined;
+};
 
-  let avgRating = 0;
+// 1. Analytics Dashboard — ALL REAL DATA
+export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
+  const role = getRole(req);
+  const spaceId = getUserIdCompat(req);
   try {
-    const reviews = await prisma.review.findMany({ take: 5000, select: { rating: true } }) as ReviewRatingRow[];
-    if (reviews.length > 0) avgRating = reviews.reduce((acc, r) => acc + Number(r.rating), 0) / reviews.length;
-  } catch (err) { logger.warn('getAnalytics: avgRating query failed', { error: String(err) }); }
+    if (role !== 'ADMIN') {
+      if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
 
-  let avgDuration = 50;
-  try {
-    const result = await prisma.$queryRaw<AvgDurationRow[]>`
-        SELECT COALESCE(AVG(duration_min), 50)::int as avg_dur FROM public.appointments WHERE duration_min > 0
-      `;
-    avgDuration = Number(result?.[0]?.avg_dur || 50);
-  } catch (err) { logger.warn('getAnalytics: avgDuration query failed', { error: String(err) }); }
+      const [guardianIds, rooms] = await Promise.all([
+        listLinkedGuardianIds(spaceId),
+        prisma.room.findMany({
+          where: { hub_id: spaceId },
+          select: { id: true, name: true, capacity: true, current_occupant: true },
+          take: 200,
+        }),
+      ]);
 
-  let topGuardians: Array<{ name: string; sessions: number; revenue: string; rating: string }> = [];
-  try {
-    const result = await prisma.$queryRaw<TopGuardianRow[]>`
-        SELECT p.name, COUNT(a.id)::int as sessions, COALESCE(SUM(a.price), 0)::numeric as revenue
-        FROM public.profiles p LEFT JOIN public.appointments a ON a.professional_id = p.id
-        WHERE p.role = 'PROFESSIONAL' GROUP BY p.id, p.name ORDER BY sessions DESC LIMIT 5
-      `;
-    topGuardians = (result || []).map((g) => ({
-      name: g.name || 'Guardião', sessions: Number(g.sessions || 0),
-      revenue: `R$ ${(Number(g.revenue || 0) / 1000).toFixed(1)}k`,
-      rating: avgRating > 0 ? avgRating.toFixed(1) : '5.0'
-    }));
-  } catch (err) { logger.warn('getAnalytics: topGuardians query failed', { error: String(err) }); }
+      const roomIds = rooms.map((room) => room.id);
+      const appointments = guardianIds.length > 0
+        ? await prisma.appointment.findMany({
+          where: { professional_id: { in: guardianIds } },
+          select: {
+            id: true,
+            date: true,
+            price: true,
+            client_id: true,
+            professional_id: true,
+            status: true,
+          },
+          take: 5000,
+        })
+        : [];
 
-  let roomOccupancy: Array<{ name: string | null; pct: number; sessions: number }> = [];
-  try {
-    const rooms = await prisma.room.findMany({
-      take: 10,
-      select: { name: true, capacity: true, current_occupant: true },
-    }) as RoomOccupancyRow[];
-    roomOccupancy = rooms.map((r) => ({
-      name: r.name,
-      pct: r.current_occupant ? 100 : 0,
-      sessions: r.current_occupant ? 1 : 0,
-    }));
-  } catch (err) { logger.warn('getAnalytics: roomOccupancy query failed', { error: String(err) }); }
+      const guardians = guardianIds.length > 0
+        ? await prisma.profile.findMany({
+          where: { id: { in: guardianIds } },
+          select: { id: true, name: true, rating: true },
+        })
+        : [];
 
-  return res.json({
-    appointments: totalAppointments, revenue, guardians: activeGuardians, occupancy,
-    buscadores: activeBuscadores, avgRating: avgRating > 0 ? Number(avgRating.toFixed(1)) : 0,
-    avgDuration: `${avgDuration}min`, topGuardians, roomOccupancy
-  });
+      const reviewWhere = getScopedReviewWhere(spaceId, guardianIds, roomIds);
+      const reviews: ReviewRatingRow[] = reviewWhere
+        ? await prisma.review.findMany({ where: reviewWhere, take: 5000, select: { rating: true } })
+        : [];
+
+      const totalAppointments = appointments.length;
+      const activeGuardians = guardians.length;
+      const recentCutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const recentAppointments = appointments.filter((appointment) => appointment.date >= recentCutoff).length;
+      const roomCount = rooms.length;
+      const maxSlots = Math.max(1, roomCount * 30 * 8);
+      const occupancy = Math.min(100, Math.round((recentAppointments / maxSlots) * 100));
+      const activeBuscadores = new Set(
+        appointments
+          .map((appointment) => String(appointment.client_id || '').trim())
+          .filter(Boolean),
+      ).size;
+      const avgRating = reviews.length > 0
+        ? reviews.reduce((acc, review) => acc + Number(review.rating), 0) / reviews.length
+        : 0;
+
+      const guardianStats = new Map<string, { name: string; sessions: number; revenue: number; rating: number }>();
+      guardians.forEach((guardian) => {
+        guardianStats.set(guardian.id, {
+          name: guardian.name || 'Guardião',
+          sessions: 0,
+          revenue: 0,
+          rating: Number(guardian.rating || 0),
+        });
+      });
+
+      appointments.forEach((appointment) => {
+        const key = String(appointment.professional_id || '').trim();
+        const entry = guardianStats.get(key);
+        if (!entry) return;
+        entry.sessions += 1;
+        if (!['cancelled', 'canceled'].includes(String(appointment.status || '').toLowerCase())) {
+          entry.revenue += Number(appointment.price || 0);
+        }
+      });
+
+      const topGuardians = Array.from(guardianStats.values())
+        .sort((left, right) => right.sessions - left.sessions)
+        .slice(0, 5)
+        .map((guardian) => ({
+          name: guardian.name,
+          sessions: guardian.sessions,
+          revenue: `R$ ${(guardian.revenue / 1000).toFixed(1)}k`,
+          rating: guardian.rating > 0 ? guardian.rating.toFixed(1) : (avgRating > 0 ? avgRating.toFixed(1) : '0.0'),
+        }));
+
+      const roomOccupancy = rooms.map((room) => ({
+        name: room.name,
+        pct: room.current_occupant ? 100 : 0,
+        sessions: room.current_occupant ? 1 : 0,
+      }));
+
+      const revenue = Array.from(guardianStats.values()).reduce((acc, guardian) => acc + guardian.revenue, 0);
+
+      return res.json({
+        appointments: totalAppointments,
+        revenue,
+        guardians: activeGuardians,
+        occupancy,
+        buscadores: activeBuscadores,
+        avgRating: avgRating > 0 ? Number(avgRating.toFixed(1)) : 0,
+        avgDuration: '50min',
+        topGuardians,
+        roomOccupancy,
+      });
+    }
+
+    const totalAppointments = await prisma.appointment.count();
+    const activeGuardians = await prisma.profile.count({ where: { role: 'PROFESSIONAL' } });
+
+    let revenue = 0;
+    try {
+      const result = await prisma.$queryRaw<RevenueRow[]>`
+          SELECT COALESCE(SUM(amount), 0)::numeric as total FROM public.transactions WHERE status = 'completed'
+        `;
+      revenue = Number(result?.[0]?.total || 0);
+    } catch (err) {
+      logger.warn('getAnalytics: revenue query failed, using estimate', { error: String(err) });
+      revenue = totalAppointments * 180;
+    }
+
+    const roomCount = await prisma.room.count();
+    const recentAppointments = await prisma.appointment.count({
+      where: { date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } }
+    });
+    const maxSlots = Math.max(1, roomCount * 30 * 8);
+    const occupancy = Math.min(100, Math.round((recentAppointments / maxSlots) * 100));
+    const activeBuscadores = await prisma.profile.count({ where: { role: 'CLIENT' } });
+
+    let avgRating = 0;
+    try {
+      const reviews: ReviewRatingRow[] = await prisma.review.findMany({ take: 5000, select: { rating: true } });
+      if (reviews.length > 0) avgRating = reviews.reduce((acc, r) => acc + Number(r.rating), 0) / reviews.length;
+    } catch (err) { logger.warn('getAnalytics: avgRating query failed', { error: String(err) }); }
+
+    let avgDuration = 50;
+    try {
+      const result = await prisma.$queryRaw<AvgDurationRow[]>`
+          SELECT COALESCE(AVG(duration_min), 50)::int as avg_dur FROM public.appointments WHERE duration_min > 0
+        `;
+      avgDuration = Number(result?.[0]?.avg_dur || 50);
+    } catch (err) { logger.warn('getAnalytics: avgDuration query failed', { error: String(err) }); }
+
+    let topGuardians: Array<{ name: string; sessions: number; revenue: string; rating: string }> = [];
+    try {
+      const result = await prisma.$queryRaw<TopGuardianRow[]>`
+          SELECT p.name, COUNT(a.id)::int as sessions, COALESCE(SUM(a.price), 0)::numeric as revenue
+          FROM public.profiles p LEFT JOIN public.appointments a ON a.professional_id = p.id
+          WHERE p.role = 'PROFESSIONAL' GROUP BY p.id, p.name ORDER BY sessions DESC LIMIT 5
+        `;
+      topGuardians = (result || []).map((g) => ({
+        name: g.name || 'Guardião', sessions: Number(g.sessions || 0),
+        revenue: `R$ ${(Number(g.revenue || 0) / 1000).toFixed(1)}k`,
+        rating: avgRating > 0 ? avgRating.toFixed(1) : '5.0'
+      }));
+    } catch (err) { logger.warn('getAnalytics: topGuardians query failed', { error: String(err) }); }
+
+    let roomOccupancy: Array<{ name: string | null; pct: number; sessions: number }> = [];
+    try {
+      const rooms = await prisma.room.findMany({
+        take: 10,
+        select: { name: true, capacity: true, current_occupant: true },
+      }) as RoomOccupancyRow[];
+      roomOccupancy = rooms.map((r) => ({
+        name: r.name,
+        pct: r.current_occupant ? 100 : 0,
+        sessions: r.current_occupant ? 1 : 0,
+      }));
+    } catch (err) { logger.warn('getAnalytics: roomOccupancy query failed', { error: String(err) }); }
+
+    return res.json({
+      appointments: totalAppointments, revenue, guardians: activeGuardians, occupancy,
+      buscadores: activeBuscadores, avgRating: avgRating > 0 ? Number(avgRating.toFixed(1)) : 0,
+      avgDuration: `${avgDuration}min`, topGuardians, roomOccupancy
+    });
+  } catch (error) {
+    if (isMockMode() && isDbUnavailableError(error)) {
+      const rooms = role === 'ADMIN'
+        ? [...mockAdapter.spaces.rooms.values()]
+        : [...mockAdapter.spaces.rooms.values()].filter((room) => String(room.hub_id) === spaceId);
+      const occupied = rooms.filter((room) => String(room.status || '').toLowerCase() === 'occupied').length;
+      return res.json({
+        appointments: 0,
+        revenue: 0,
+        guardians: 0,
+        occupancy: rooms.length > 0 ? Math.round((occupied / rooms.length) * 100) : 0,
+        buscadores: 0,
+        avgRating: 0,
+        avgDuration: '50min',
+        topGuardians: [],
+        roomOccupancy: rooms.slice(0, 10).map((room) => ({
+          name: room.name,
+          pct: room.current_occupant ? 100 : 0,
+          sessions: room.current_occupant ? 1 : 0,
+        })),
+        _fallback: true,
+      });
+    }
+    throw error;
+  }
 });
 
 // 2. Reviews — REAL DATA
 export const getReviews = asyncHandler(async (req: Request, res: Response) => {
+  const role = getRole(req);
+  const spaceId = getUserIdCompat(req);
+  if (role !== 'ADMIN') {
+    if (!spaceId) return res.status(401).json({ error: 'Unauthorized' });
+    const [guardianIds, rooms] = await Promise.all([
+      listLinkedGuardianIds(spaceId),
+      prisma.room.findMany({
+        where: { hub_id: spaceId },
+        select: { id: true },
+        take: 200,
+      }),
+    ]);
+    const roomIds = rooms.map((room) => room.id);
+    const where = getScopedReviewWhere(spaceId, guardianIds, roomIds);
+    if (!where) {
+      return res.json({ average: '0.0', count: 0, recommends: 0, avgGuardian: '0.0', reviews: [] });
+    }
+
+    const reviews = await prisma.review.findMany({
+      where,
+      take: 50,
+      orderBy: { created_at: 'desc' },
+      include: { author: { select: { name: true, avatar: true } } },
+    });
+
+    const count = reviews.length;
+    const avg = count > 0 ? reviews.reduce((acc, review) => acc + Number(review.rating), 0) / count : 0;
+    const recommends = count > 0 ? Math.round((reviews.filter((review) => Number(review.rating) >= 7).length / count) * 100) : 0;
+    const guardianTargetIds = new Set([spaceId, ...guardianIds]);
+    const guardianReviews = reviews.filter((review) => guardianTargetIds.has(String(review.target_id || '').trim()));
+    const avgGuardian = guardianReviews.length > 0
+      ? guardianReviews.reduce((acc, review) => acc + Number(review.rating), 0) / guardianReviews.length
+      : avg;
+
+    return res.json({
+      average: avg.toFixed(1),
+      count,
+      recommends,
+      avgGuardian: avgGuardian > 0 ? avgGuardian.toFixed(1) : avg.toFixed(1),
+      reviews: reviews.map((review) => ({
+        id: review.id,
+        author: review.author?.name || 'Anônimo',
+        avatar: review.author?.avatar || '',
+        rating: Number(review.rating),
+        comment: review.comment,
+        date: review.created_at,
+        target: review.target_id,
+      })),
+    });
+  }
+
   const reviews = await prisma.review.findMany({
     take: 50, orderBy: { created_at: 'desc' },
     include: { author: { select: { name: true, avatar: true } } }
@@ -253,7 +470,7 @@ export const getContract = asyncHandler(async (req: Request, res: Response) => {
       where: { OR: [{ guardian_id: userId }, { space_id: userId }], status: 'active' },
       include: { space: { select: { name: true } }, guardian: { select: { name: true } } },
       orderBy: { created_at: 'desc' }
-    });
+    }) as typeof contract;
   } catch (e: unknown) { logger.warn('space.contract_query_failed', { message: e instanceof Error ? e.message : String(e) }); }
 
   if (contract) {
@@ -324,7 +541,7 @@ export const getTeam = asyncHandler(async (req: Request, res: Response) => {
         },
       },
       orderBy: { created_at: 'desc' },
-    });
+    }) as ContractWithGuardian[];
   } catch (e: unknown) {
     return res.json({ team: [], _error: e instanceof Error ? e.message : String(e) });
   }

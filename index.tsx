@@ -37,6 +37,10 @@ const scheduleIdle = (cb: () => void) => {
   window.setTimeout(cb, 800);
 };
 
+const shouldLoadMonitoring = Boolean(
+  import.meta.env.VITE_SENTRY_DSN || import.meta.env.VITE_LOGROCKET_APP_ID,
+);
+
 // Dev-only: load click tracker lazily to avoid startup cost in production.
 if (import.meta.env.DEV) {
   scheduleIdle(() => {
@@ -46,9 +50,8 @@ if (import.meta.env.DEV) {
   });
 }
 
-// Monitoring is non-critical for first paint; defer to idle so the UI boots sooner.
-const shouldLoadMonitoring = Boolean(import.meta.env.VITE_SENTRY_DSN || import.meta.env.VITE_LOGROCKET_APP_ID);
 if (shouldLoadMonitoring) {
+  // Monitoring is non-critical for first paint; defer to idle so the UI boots sooner.
   scheduleIdle(() => {
     import('./lib/monitoring')
       .then((m) => m.initMonitoring())

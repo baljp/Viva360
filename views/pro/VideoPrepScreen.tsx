@@ -31,7 +31,7 @@ export const VideoPrepScreen: React.FC = () => {
         notify('Iniciando WhatsApp', 'Abrindo conversa externa...', 'info');
         
         setTimeout(() => {
-            window.open(url, '_blank');
+            window.open(url, '_blank', 'noopener,noreferrer');
             // stay in prep or go to dashboard
             go('DASHBOARD');
         }, 1500);

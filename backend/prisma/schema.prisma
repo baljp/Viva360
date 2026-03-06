@@ -7,6 +7,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
   schemas  = ["public", "auth"]
 }
 
@@ -244,13 +245,41 @@ model Transaction {
   amount      Decimal
   description String?
   status      String?  @default("completed")
+  provider    String?  @default("internal_wallet")
+  provider_ref String?
+  provider_status String? @default("completed")
+  context_type String?
+  context_ref  String?
+  metadata    Json?
   date        DateTime @default(now()) @db.Timestamptz(6)
 
   user Profile @relation(fields: [user_id], references: [id])
 
+  @@index([provider, provider_ref])
   @@index([status, date])
   @@index([user_id, date])
   @@map("transactions")
+  @@schema("public")
+}
+
+model GamificationSeason {
+  id            String    @id @default(uuid()) @db.Uuid
+  slug          String    @unique
+  title         String
+  subtitle      String?
+  starts_at     DateTime  @db.Timestamptz(6)
+  ends_at       DateTime  @db.Timestamptz(6)
+  prize_title   String?
+  prize_summary String?
+  prize_payload Json?
+  status        String    @default("SCHEDULED")
+  closed_at     DateTime? @db.Timestamptz(6)
+  final_results Json?
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime  @updatedAt @db.Timestamptz(6)
+
+  @@index([status, starts_at, ends_at])
+  @@map("gamification_seasons")
   @@schema("public")
 }
 

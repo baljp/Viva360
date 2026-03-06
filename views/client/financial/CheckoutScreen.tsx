@@ -14,6 +14,12 @@ export default function CheckoutScreen() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [successMessage, setSuccessMessage] = useState('Sua semente foi plantada com sucesso. A abundância retorna a você.');
   const [errorMessage, setErrorMessage] = useState('');
+  const [providerPending, setProviderPending] = useState<null | {
+    transactionId: string;
+    provider: string;
+    method: 'card' | 'pix';
+    url?: string | null;
+  }>(null);
 
   const postCheckout = (() => {
     try {
@@ -35,36 +41,76 @@ export default function CheckoutScreen() {
   const isHealingCircleCheckout =
     postCheckout.intent === 'healing_circle' || state.tribeRoomContext?.type === 'healing_circle';
 
-  const handlePayment = async () => {
-    if (method === 'pix' && !showPixQR) {
-      setShowPixQR(true);
-      return;
-    }
+  const checkoutAmount = isHealingCircleCheckout && postCheckout.amount > 0 ? postCheckout.amount : 150.0;
+  const checkoutDescription = isHealingCircleCheckout && postCheckout.description
+    ? postCheckout.description
+    : 'Troca Energética - Viva360';
 
+  const openProviderWindow = (url?: string | null) => {
+    if (!url) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handlePayment = async () => {
     setLoading(true);
     setErrorMessage('');
     try {
-      const amount = isHealingCircleCheckout && postCheckout.amount > 0 ? postCheckout.amount : 150.0;
-      const description = isHealingCircleCheckout && postCheckout.description
-        ? postCheckout.description
-        : 'Troca Energética - Viva360';
       const contextType = isHealingCircleCheckout ? 'TRIBO' : (method === 'direct' ? 'TRIBO' : 'BAZAR');
       const contextRef = isHealingCircleCheckout
         ? `healing_circle:${postCheckout.contextId || ''}`.replace(/:$/, '')
         : (method === 'direct' ? 'tribe-direct-flow' : 'bazar-checkout-flow');
-
-      // MOD-01: Use real provider ID from flow state instead of hardcoded 'pro_001'
       const providerId = state.selectedProfessionalId || undefined;
 
-      const response = await api.payment.checkout(amount, description, providerId, {
+      if (providerPending) {
+        const response = await api.payment.getCheckoutStatus(providerPending.transactionId);
+        if (response?.code === 'CHECKOUT_CONFIRMED') {
+          const confirmationCode = String(response?.confirmation?.confirmationId || '').slice(0, 8).toUpperCase();
+          setSuccessMessage(
+            confirmationCode
+              ? `Sua semente foi plantada com sucesso. Protocolo ${confirmationCode}.`
+              : 'Sua semente foi plantada com sucesso. A abundância retorna a você.'
+          );
+          setProviderPending(null);
+          setShowPixQR(false);
+          setShowSuccess(true);
+          return;
+        }
+        if (response?.code === 'CHECKOUT_PROVIDER_PENDING') {
+          setErrorMessage('Pagamento ainda pendente no provedor. Finalize a cobrança e valide novamente.');
+          if (response?.providerAction?.url) openProviderWindow(String(response.providerAction.url));
+          return;
+        }
+        throw new Error(response?.message || 'O provedor ainda não confirmou o pagamento.');
+      }
+
+      const response = await api.payment.checkout(checkoutAmount, checkoutDescription, providerId, {
         contextType,
         contextRef,
-        items: [{ id: 'checkout-guided-service', price: amount, type: 'service' }],
+        paymentMethod: method,
+        items: [{ id: 'checkout-guided-service', price: checkoutAmount, type: 'service' }],
       });
+
+      if (response?.code === 'CHECKOUT_PROVIDER_PENDING') {
+        const transactionId = String(response?.transaction?.id || '').trim();
+        if (!transactionId) {
+          throw new Error('Checkout iniciado sem transação rastreável.');
+        }
+        const providerMethod: 'card' | 'pix' = method === 'pix' ? 'pix' : 'card';
+        setProviderPending({
+          transactionId,
+          provider: String(response?.providerAction?.provider || 'stripe'),
+          method: providerMethod,
+          url: response?.providerAction?.url || null,
+        });
+        setShowPixQR(method === 'pix');
+        setSuccessMessage('Pagamento iniciado no provedor. Finalize a cobrança e volte para validar.');
+        openProviderWindow(response?.providerAction?.url ? String(response.providerAction.url) : null);
+        return;
+      }
 
       const confirmationCode = String(response?.confirmation?.confirmationId || '').slice(0, 8).toUpperCase();
       if (response?.code !== 'CHECKOUT_CONFIRMED') {
-        throw new Error('Checkout não confirmado pela API.');
+        throw new Error(response?.message || 'Checkout não confirmado pela API.');
       }
 
       setSuccessMessage(
@@ -72,7 +118,6 @@ export default function CheckoutScreen() {
           ? `Sua semente foi plantada com sucesso. Protocolo ${confirmationCode}.`
           : 'Sua semente foi plantada com sucesso. A abundância retorna a você.'
       );
-
       setShowSuccess(true);
     } catch (error: any) {
       setErrorMessage(error?.message || 'Não foi possível concluir sua oferenda agora.');
@@ -123,7 +168,7 @@ export default function CheckoutScreen() {
         <div className="text-center py-6 mb-4">
           <p className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.3em] mb-2">Total a Integralizar</p>
           <h2 className="text-5xl font-serif italic text-nature-900 group">
-            <span className="text-2xl text-nature-400 not-italic mr-1">R$</span>150,00
+            <span className="text-2xl text-nature-400 not-italic mr-1">R$</span>{checkoutAmount.toFixed(2).replace('.', ',')}
           </h2>
         </div>
 
@@ -175,17 +220,22 @@ export default function CheckoutScreen() {
           </div>
         ) : (
           <div className="px-4 py-8 flex flex-col items-center text-center animate-in zoom-in duration-500">
-            <div className="w-64 h-64 bg-white p-4 rounded-[2.5rem] shadow-elegant border-4 border-nature-900 mb-8 relative group">
-              <QrCode size={224} className="text-nature-900" />
-              <div className="absolute inset-0 bg-nature-900/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-[2.5rem]">
-                <p className="text-[10px] font-black text-nature-900 uppercase tracking-widest bg-white px-4 py-2 rounded-full border border-nature-200">Copiar Código</p>
-              </div>
+            <div className="w-64 min-h-64 bg-white p-6 rounded-[2.5rem] shadow-elegant border-4 border-nature-900 mb-8 flex flex-col items-center justify-center gap-4">
+              <QrCode size={128} className="text-nature-900" />
+              <p className="text-xs text-nature-600 leading-relaxed">
+                O PIX agora é criado no provedor real. Abra a cobrança para concluir o pagamento.
+              </p>
+              <button
+                onClick={() => openProviderWindow(providerPending?.url)}
+                className="px-5 py-3 rounded-full bg-nature-900 text-white text-[10px] font-black uppercase tracking-widest"
+              >
+                Abrir cobrança PIX
+              </button>
             </div>
             <h3 className="text-2xl font-serif italic text-nature-900 mb-2">Escaneie para Vibrar</h3>
-            <p className="text-xs text-nature-500 max-w-xs leading-relaxed">O Pix é processado instantaneamente e sua semente será plantada agora.</p>
+            <p className="text-xs text-nature-500 max-w-xs leading-relaxed">Depois de pagar no provedor, volte aqui para validar a confirmação 2xx no backend.</p>
             <button onClick={() => {
-              setLoading(true);
-              setTimeout(() => { setShowPixQR(false); setLoading(false); }, 400);
+              setShowPixQR(false);
             }} className="flex items-center gap-2 mt-8 px-6 py-3 bg-nature-50 rounded-full text-[10px] font-black text-nature-500 uppercase tracking-widest hover:bg-nature-100 hover:text-nature-700 transition-all active:scale-95">
               Voltar aos Métodos
             </button>
@@ -204,7 +254,17 @@ export default function CheckoutScreen() {
             className="btn-primary w-full h-16 rounded-[2.5rem]"
           >
             {loading ? <Loader2 size={24} className="animate-spin text-primary-400" /> : <Lock size={20} className="text-primary-400" />}
-            <span className="ml-2">{loading ? 'Sincronizando...' : method === 'direct' ? 'Gerar Voucher' : showPixQR ? 'Já Realizei o Pix' : 'Concluir Oferenda'}</span>
+            <span className="ml-2">
+              {loading
+                ? 'Sincronizando...'
+                : providerPending
+                  ? 'Validar pagamento'
+                  : method === 'direct'
+                    ? 'Gerar Voucher'
+                    : method === 'pix'
+                      ? 'Criar cobrança Pix'
+                      : 'Ir para o provedor'}
+            </span>
           </button>
           {errorMessage && (
             <p className="text-center text-[10px] text-rose-500 font-bold uppercase tracking-widest mt-4">

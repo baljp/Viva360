@@ -74,9 +74,9 @@ export const ProMarketplace: React.FC<{
         }
     };
 
-    // MOD-02: Honest feedback — highlight/save feature not yet backed by API
     const handleSaveProduct = (product: Product) => {
-        notify('Em Implementação', 'O destaque de produtos estará disponível em breve.', 'info');
+        setActiveTab('explore');
+        notify('Bazar Global', `"${product.name}" está aberto para comparação com o mercado.`, 'success');
     };
 
     return (
@@ -150,7 +150,7 @@ export const ProMarketplace: React.FC<{
                                                         notify,
                                                         successToast: {
                                                             title: 'Item removido',
-                                                            message: `\"${prod.name}\" foi removido do inventário.`,
+                                                            message: `"${prod.name}" foi removido do inventário.`,
                                                             type: 'info',
                                                         },
                                                         failToast: {

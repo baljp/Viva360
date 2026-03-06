@@ -31,6 +31,7 @@ import journalRoutes from './journal.routes';
 import clinicalRoutes from './clinical.routes';
 import auditRoutes from './audit.routes';
 import spaceRoutes from './space.routes';
+import * as CheckoutController from '../controllers/checkout.controller';
 
 const router = Router();
 router.use(rateLimiter); // Upgrade 9.5: Global Rate Limit
@@ -41,6 +42,7 @@ router.get('/ping', (req, res) => {
 });
 
 router.use('/auth', authRoutes);
+router.post('/checkout/providers/stripe/webhook', CheckoutController.handleStripeWebhook);
 
 // Protected Routes
 router.use('/rituals', authenticateUser, ritualsRoutes);

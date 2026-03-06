@@ -12,7 +12,7 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
       amount: number,
       description: string,
       providerId?: string,
-      opts?: { contextType?: 'BAZAR' | 'TRIBO' | 'RECRUTAMENTO' | 'ESCAMBO' | 'AGENDA' | 'GERAL'; contextRef?: string; items?: Array<{ id: string; price?: number; type?: string }> },
+      opts?: { contextType?: 'BAZAR' | 'TRIBO' | 'RECRUTAMENTO' | 'ESCAMBO' | 'AGENDA' | 'GERAL'; contextRef?: string; items?: Array<{ id: string; price?: number; type?: string }>; paymentMethod?: 'card' | 'pix' | 'direct' },
     ) => {
       return await request('/checkout/pay', {
         method: 'POST',
@@ -21,10 +21,18 @@ export const createCommerceDomain = ({ request }: CommerceDomainDeps) => ({
           amount,
           description,
           receiverId: providerId,
+          paymentMethod: opts?.paymentMethod,
           contextType: opts?.contextType || 'GERAL',
           contextRef: opts?.contextRef,
           items: opts?.items || [],
         }),
+      });
+    },
+    getCheckoutStatus: async (transactionId: string) => {
+      return await request(`/checkout/transactions/${encodeURIComponent(transactionId)}/status`, {
+        purpose: 'checkout-status',
+        timeoutMs: 7000,
+        retries: 0,
       });
     },
   },

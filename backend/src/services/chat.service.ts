@@ -4,6 +4,7 @@ import { notificationEngine } from './notificationEngine.service';
 import { auditService } from './audit.service';
 import { profileLinkService } from './profileLink.service';
 import crypto from 'crypto';
+import { AppError } from '../lib/AppError';
 
 function isDbUnavailableError(err: unknown): boolean {
   const e = err as { name?: string; code?: string; message?: string };
@@ -49,9 +50,45 @@ const memory = {
   roomsById: new Map<string, MemoryRoom>(),
   participantsByRoomId: new Map<string, Set<string>>(),
   messagesByRoomId: new Map<string, MemoryMessage[]>(),
+  mutedUntilByParticipant: new Map<string, string | null>(),
 };
 
 export class ChatService {
+  private getParticipantMemoryKey(chatId: string, profileId: string): string {
+    return `${chatId}:${profileId}`;
+  }
+
+  private async requireParticipant(chatId: string, profileId: string) {
+    try {
+      const participant = await prisma.chatParticipant.findFirst({
+        where: {
+          chat_id: chatId,
+          profile_id: profileId,
+          left_at: null,
+        },
+      });
+
+      if (!participant) {
+        throw new AppError('Você não participa desta sala.', 403, 'CHAT_ROOM_FORBIDDEN');
+      }
+
+      return participant;
+    } catch (e) {
+      if (!isMockMode() || !isDbUnavailableError(e)) throw e;
+      const participants = memory.participantsByRoomId.get(chatId);
+      if (!participants?.has(profileId)) {
+        throw new AppError('Você não participa desta sala.', 403, 'CHAT_ROOM_FORBIDDEN');
+      }
+      const mutedUntil = memory.mutedUntilByParticipant.get(this.getParticipantMemoryKey(chatId, profileId));
+      return {
+        chat_id: chatId,
+        profile_id: profileId,
+        muted_until: mutedUntil ? new Date(mutedUntil) : null,
+        left_at: null,
+      };
+    }
+  }
+
   /**
    * Get or create a chat room between two profiles
    * Requires an active link between them
@@ -110,13 +147,7 @@ export class ChatService {
   ): Promise<ChatMessageResult> {
     try {
       // Verify sender is participant
-      const participant = await prisma.chatParticipant.findFirst({
-        where: { chat_id: chatId, profile_id: senderId },
-      });
-
-      if (!participant) {
-        throw new Error('You are not a participant of this chat');
-      }
+      await this.requireParticipant(chatId, senderId);
 
       // Get other participants
       const otherParticipants = await prisma.chatParticipant.findMany({
@@ -191,8 +222,9 @@ export class ChatService {
   /**
    * Get chat history
    */
-  async getChatHistory(chatId: string, limit: number = 50): Promise<any[]> {
+  async getChatHistory(chatId: string, profileId: string, limit: number = 50): Promise<any[]> {
     try {
+      await this.requireParticipant(chatId, profileId);
       const rows = await prisma.chatMessage.findMany({
         where: { chat_id: chatId },
         include: {
@@ -206,6 +238,7 @@ export class ChatService {
       return rows;
     } catch (e) {
       if (!isMockMode() || !isDbUnavailableError(e)) throw e;
+      await this.requireParticipant(chatId, profileId);
       const list = memory.messagesByRoomId.get(chatId) || [];
       return [...list].slice(-limit).reverse();
     }
@@ -225,6 +258,7 @@ export class ChatService {
       const participations = await prisma.chatParticipant.findMany({
         where: {
           profile_id: profileId,
+          left_at: null,
           ...(contextType || contextId ? {
             chat: {
               ...(contextType ? { type: contextType } : {}),
@@ -294,7 +328,7 @@ export class ChatService {
 
     // Reset unread count
     await prisma.chatParticipant.updateMany({
-      where: { chat_id: chatId, profile_id: profileId },
+      where: { chat_id: chatId, profile_id: profileId, left_at: null },
       data: { unread_count: 0 },
     });
   }
@@ -304,10 +338,124 @@ export class ChatService {
    */
   async getTotalUnreadCount(profileId: string): Promise<number> {
     const result = await prisma.chatParticipant.aggregate({
-      where: { profile_id: profileId },
+      where: { profile_id: profileId, left_at: null },
       _sum: { unread_count: true },
     });
     return result._sum.unread_count || 0;
+  }
+
+  async getRoomSettings(chatId: string, profileId: string) {
+    try {
+      const participant = await this.requireParticipant(chatId, profileId);
+      const chat = await prisma.chat.findUnique({
+        where: { id: chatId },
+        include: {
+          participants: {
+            where: { left_at: null },
+            include: {
+              profile: {
+                select: { id: true, name: true, avatar: true, role: true },
+              },
+            },
+          },
+        },
+      });
+
+      if (!chat) {
+        throw new AppError('Sala não encontrada.', 404, 'CHAT_ROOM_NOT_FOUND');
+      }
+
+      const now = new Date();
+      const isMuted = participant.muted_until != null && new Date(participant.muted_until) > now;
+
+      return {
+        id: chat.id,
+        type: chat.type,
+        participants: chat.participants.map((entry) => ({
+          id: entry.profile.id,
+          name: entry.profile.name || 'Usuário',
+          avatar: entry.profile.avatar,
+          role: entry.profile.role,
+        })),
+        mySettings: {
+          muted: isMuted,
+          mutedUntil: participant.muted_until ?? null,
+        },
+      };
+    } catch (e) {
+      if (!isMockMode() || !isDbUnavailableError(e)) throw e;
+      await this.requireParticipant(chatId, profileId);
+      const participants = [...(memory.participantsByRoomId.get(chatId) || new Set<string>())];
+      const room = memory.roomsById.get(chatId);
+      const mutedUntil = memory.mutedUntilByParticipant.get(this.getParticipantMemoryKey(chatId, profileId));
+      const now = new Date();
+
+      return {
+        id: chatId,
+        type: String(room?.type || 'private'),
+        participants: participants.map((id) => ({
+          id,
+          name: id === profileId ? 'Você' : 'Usuário',
+          avatar: '',
+          role: null,
+        })),
+        mySettings: {
+          muted: !!mutedUntil && new Date(mutedUntil) > now,
+          mutedUntil,
+        },
+      };
+    }
+  }
+
+  async toggleMute(chatId: string, profileId: string) {
+    try {
+      const participant = await this.requireParticipant(chatId, profileId);
+      const now = new Date();
+      const currentlyMuted =
+        participant.muted_until != null && new Date(participant.muted_until as Date) > now;
+      const newMutedUntil = currentlyMuted
+        ? null
+        : new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+      await prisma.chatParticipant.update({
+        where: { chat_id_profile_id: { chat_id: chatId, profile_id: profileId } },
+        data: { muted_until: newMutedUntil },
+      });
+
+      return { muted: !currentlyMuted, mutedUntil: newMutedUntil };
+    } catch (e) {
+      if (!isMockMode() || !isDbUnavailableError(e)) throw e;
+      const participant = await this.requireParticipant(chatId, profileId);
+      const now = new Date();
+      const currentlyMuted =
+        participant.muted_until != null && new Date(participant.muted_until as Date) > now;
+      const newMutedUntil = currentlyMuted
+        ? null
+        : new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+      memory.mutedUntilByParticipant.set(
+        this.getParticipantMemoryKey(chatId, profileId),
+        newMutedUntil ? newMutedUntil.toISOString() : null,
+      );
+      return { muted: !currentlyMuted, mutedUntil: newMutedUntil };
+    }
+  }
+
+  async leaveRoom(chatId: string, profileId: string) {
+    try {
+      await this.requireParticipant(chatId, profileId);
+      await prisma.chatParticipant.updateMany({
+        where: { chat_id: chatId, profile_id: profileId },
+        data: { left_at: new Date() },
+      });
+      return { success: true };
+    } catch (e) {
+      if (!isMockMode() || !isDbUnavailableError(e)) throw e;
+      await this.requireParticipant(chatId, profileId);
+      const participants = memory.participantsByRoomId.get(chatId);
+      participants?.delete(profileId);
+      memory.mutedUntilByParticipant.delete(this.getParticipantMemoryKey(chatId, profileId));
+      return { success: true };
+    }
   }
 
   private async findExistingChat(
@@ -322,6 +470,7 @@ export class ChatService {
         where: { type, context_id: contextId },
         include: {
           participants: {
+            where: { left_at: null },
             include: {
               profile: {
                 select: { id: true, name: true, avatar: true, role: true },
@@ -337,11 +486,13 @@ export class ChatService {
       where: {
         type: 'private',
         participants: {
-          some: { profile_id: profile1Id },
+          some: { profile_id: profile1Id, left_at: null },
         },
       },
       include: {
-        participants: true,
+        participants: {
+          where: { left_at: null },
+        },
       },
     });
 
@@ -372,6 +523,7 @@ export class ChatService {
         where: { type, context_id: normalizedContextId },
         include: {
           participants: {
+            where: { left_at: null },
             include: {
               profile: { select: { id: true, name: true, avatar: true, role: true } },
             },
@@ -404,12 +556,18 @@ export class ChatService {
         await prisma.chatParticipant
           .create({ data: { chat_id: chat.id, profile_id: profileId } })
           .catch(() => undefined);
+      } else if (participant.left_at) {
+        await prisma.chatParticipant.update({
+          where: { chat_id_profile_id: { chat_id: chat.id, profile_id: profileId } },
+          data: { left_at: null },
+        });
       }
 
       return prisma.chat.findUnique({
         where: { id: chat.id },
         include: {
           participants: {
+            where: { left_at: null },
             include: {
               profile: { select: { id: true, name: true, avatar: true, role: true } },
             },

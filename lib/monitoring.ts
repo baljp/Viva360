@@ -8,11 +8,11 @@ const enableTracing = String(import.meta.env.VITE_SENTRY_ENABLE_TRACING ?? 'true
 const enableReplay = String(import.meta.env.VITE_SENTRY_ENABLE_REPLAY ?? 'false').toLowerCase() === 'true';
 
 let initialized = false;
-let sentryModule: typeof import("@sentry/react") | null = null;
+let sentryModule: typeof import("@sentry/browser") | null = null;
 
 const getSentry = async () => {
     if (!sentryModule) {
-        sentryModule = await import("@sentry/react");
+        sentryModule = await import("@sentry/browser");
     }
     return sentryModule;
 };

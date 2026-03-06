@@ -1,0 +1,3134 @@
+{
+  "generatedAt": "2026-03-06T01:51:25.695Z",
+  "endpointCount": 184,
+  "frontendContractCount": 134,
+  "screenCount": 113,
+  "screensWithBackendCount": 104,
+  "screensClientOnlyCount": 9,
+  "validatedScreensCount": 104,
+  "pendingEvidenceScreensCount": 0,
+  "placeholderHits": [],
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/admin/dashboard",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/executive/metrics",
+      "file": "backend/src/routes/executive.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/finance/global",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/lgpd/audit",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/marketplace/offers",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/metrics",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/metrics/guardians",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/metrics/sanctuaries",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/metrics/seekers",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/system/health",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/:id/block",
+      "file": "backend/src/routes/admin.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/alchemy/offers",
+      "file": "backend/src/routes/alchemy.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/alchemy/offers",
+      "file": "backend/src/routes/alchemy.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/alchemy/offers/:id/accept",
+      "file": "backend/src/routes/alchemy.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/alchemy/offers/:id/complete",
+      "file": "backend/src/routes/alchemy.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/alchemy/offers/:id/counter",
+      "file": "backend/src/routes/alchemy.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/alchemy/offers/:id/reject",
+      "file": "backend/src/routes/alchemy.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/appointments/",
+      "file": "backend/src/routes/appointments.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/appointments/",
+      "file": "backend/src/routes/appointments.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/appointments/:id",
+      "file": "backend/src/routes/appointments.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/appointments/:id/cancel",
+      "file": "backend/src/routes/appointments.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/appointments/:id/reschedule",
+      "file": "backend/src/routes/appointments.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/appointments/me",
+      "file": "backend/src/routes/appointments.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/appointments/series/",
+      "file": "backend/src/routes/series.routes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/appointments/series/:id",
+      "file": "backend/src/routes/series.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/appointments/series/:id",
+      "file": "backend/src/routes/series.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/appointments/series/:id",
+      "file": "backend/src/routes/series.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/appointments/series/preview",
+      "file": "backend/src/routes/series.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/audit/logs",
+      "file": "backend/src/routes/audit.routes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/account",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/add-role",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/forgot-password",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/oauth/ensure-profile",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/precheck-login",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/reset-password",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/roles",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/select-role",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/session",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/session/cookie",
+      "file": "backend/src/routes/auth.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/calendar/",
+      "file": "backend/src/routes/calendar.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/calendar/",
+      "file": "backend/src/routes/calendar.routes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/calendar/:id",
+      "file": "backend/src/routes/calendar.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/calendar/:id",
+      "file": "backend/src/routes/calendar.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/calendar/:id",
+      "file": "backend/src/routes/calendar.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/calendar/sync",
+      "file": "backend/src/routes/calendar.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/chat/history",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/chat/rooms",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/chat/rooms/:roomId/leave",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/chat/rooms/:roomId/messages",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/chat/rooms/:roomId/messages",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/chat/rooms/:roomId/mute",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/chat/rooms/:roomId/settings",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/chat/rooms/join",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/chat/send",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/chat/start",
+      "file": "backend/src/routes/chat.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/checkout/contextual",
+      "file": "backend/src/routes/checkout.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/checkout/pay",
+      "file": "backend/src/routes/checkout.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/checkout/providers/stripe/webhook",
+      "file": "backend/src/routes/index.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/checkout/transactions/:transactionId/status",
+      "file": "backend/src/routes/checkout.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/clinical/interventions",
+      "file": "backend/src/routes/clinical.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/clinical/interventions",
+      "file": "backend/src/routes/clinical.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/finance/client/summary",
+      "file": "backend/src/routes/finance.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/finance/donate",
+      "file": "backend/src/routes/finance.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/finance/export",
+      "file": "backend/src/routes/finance.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/finance/reinvest",
+      "file": "backend/src/routes/finance.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/finance/summary",
+      "file": "backend/src/routes/finance.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/finance/transactions",
+      "file": "backend/src/routes/finance.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/finance/withdraw",
+      "file": "backend/src/routes/finance.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/gamification/achievements/sync",
+      "file": "backend/src/routes/gamification.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/gamification/history",
+      "file": "backend/src/routes/gamification.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/gamification/leaderboard",
+      "file": "backend/src/routes/gamification.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/gamification/leaderboard/seasonal",
+      "file": "backend/src/routes/gamification.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/gamification/quests/:questId/complete",
+      "file": "backend/src/routes/gamification.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/gamification/state",
+      "file": "backend/src/routes/gamification.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/invites/accept",
+      "file": "backend/src/routes/invites.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/invites/create",
+      "file": "backend/src/routes/invites.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/invites/resolve/:token",
+      "file": "backend/src/routes/invites.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/journal/",
+      "file": "backend/src/routes/journal.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/journal/",
+      "file": "backend/src/routes/journal.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/journal/stats",
+      "file": "backend/src/routes/journal.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/marketplace/",
+      "file": "backend/src/routes/marketplace.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/marketplace/",
+      "file": "backend/src/routes/marketplace.routes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/marketplace/:id",
+      "file": "backend/src/routes/marketplace.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/marketplace/products",
+      "file": "backend/src/routes/marketplace.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/marketplace/products",
+      "file": "backend/src/routes/marketplace.routes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/marketplace/products/:id",
+      "file": "backend/src/routes/marketplace.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/marketplace/purchase",
+      "file": "backend/src/routes/marketplace.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/metamorphosis/checkin",
+      "file": "backend/src/routes/metamorphosis.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/metamorphosis/evolution",
+      "file": "backend/src/routes/metamorphosis.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/",
+      "file": "backend/src/routes/notifications.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/:id/read",
+      "file": "backend/src/routes/notifications.routes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/notifications/push/subscribe",
+      "file": "backend/src/routes/notifications.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/push/subscribe",
+      "file": "backend/src/routes/notifications.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/notifications/push/vapid-key",
+      "file": "backend/src/routes/notifications.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/notifications/read-all",
+      "file": "backend/src/routes/notifications.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/oracle/draw",
+      "file": "backend/src/routes/oracle.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/oracle/history",
+      "file": "backend/src/routes/oracle.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/oracle/today",
+      "file": "backend/src/routes/oracle.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/ping",
+      "file": "backend/src/routes/index.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/presence/",
+      "file": "backend/src/routes/presence.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/presence/:guardianId",
+      "file": "backend/src/routes/presence.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/presence/batch",
+      "file": "backend/src/routes/presence.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/presence/me",
+      "file": "backend/src/routes/presence.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/presence/offline",
+      "file": "backend/src/routes/presence.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/presence/online",
+      "file": "backend/src/routes/presence.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/presence/ping",
+      "file": "backend/src/routes/presence.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/profileLinks/",
+      "file": "backend/src/routes/profileLinks.routes.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/profileLinks/:id",
+      "file": "backend/src/routes/profileLinks.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/profileLinks/:id/accept",
+      "file": "backend/src/routes/profileLinks.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/profileLinks/:id/reject",
+      "file": "backend/src/routes/profileLinks.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profileLinks/check/:targetId",
+      "file": "backend/src/routes/profileLinks.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profileLinks/me",
+      "file": "backend/src/routes/profileLinks.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profileLinks/pending",
+      "file": "backend/src/routes/profileLinks.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profiles/",
+      "file": "backend/src/routes/profile.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/profiles/:id/boost",
+      "file": "backend/src/routes/profile.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profiles/:id/metrics",
+      "file": "backend/src/routes/profile.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profiles/:id/space-patients",
+      "file": "backend/src/routes/profile.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profiles/lookup",
+      "file": "backend/src/routes/profile.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profiles/me",
+      "file": "backend/src/routes/profile.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/profiles/me",
+      "file": "backend/src/routes/profile.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/profiles/search",
+      "file": "backend/src/routes/profile.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/records/",
+      "file": "backend/src/routes/records.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/records/",
+      "file": "backend/src/routes/records.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/records/:patientId",
+      "file": "backend/src/routes/records.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/records/:recordId",
+      "file": "backend/src/routes/records.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/records/access",
+      "file": "backend/src/routes/records.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/records/export",
+      "file": "backend/src/routes/records.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/records/grant",
+      "file": "backend/src/routes/records.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/records/revoke",
+      "file": "backend/src/routes/records.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/recruitment/applications",
+      "file": "backend/src/routes/recruitment.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/recruitment/applications",
+      "file": "backend/src/routes/recruitment.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/recruitment/applications/:id/decision",
+      "file": "backend/src/routes/recruitment.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/recruitment/applications/:id/interview",
+      "file": "backend/src/routes/recruitment.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/recruitment/interviews/:id/respond",
+      "file": "backend/src/routes/recruitment.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/reviews/",
+      "file": "backend/src/routes/reviews.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/reviews/:spaceId",
+      "file": "backend/src/routes/reviews.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/reviews/:spaceId/summary",
+      "file": "backend/src/routes/reviews.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/rituals/",
+      "file": "backend/src/routes/rituals.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/rituals/",
+      "file": "backend/src/routes/rituals.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/rituals/:period",
+      "file": "backend/src/routes/rituals.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/rituals/:period/:id/toggle",
+      "file": "backend/src/routes/rituals.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/rooms/",
+      "file": "backend/src/routes/rooms.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/rooms/:id",
+      "file": "backend/src/routes/rooms.routes.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/rooms/:id/status",
+      "file": "backend/src/routes/rooms.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/rooms/analytics",
+      "file": "backend/src/routes/rooms.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/rooms/real-time",
+      "file": "backend/src/routes/rooms.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/rooms/vacancies",
+      "file": "backend/src/routes/rooms.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/rooms/vacancies",
+      "file": "backend/src/routes/rooms.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/soulCards/collection",
+      "file": "backend/src/routes/soulCards.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/soulCards/draw",
+      "file": "backend/src/routes/soulCards.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/analytics",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/contract",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/spaces/invites",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/patients",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/patients/:id",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/retreats",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/spaces/retreats",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/reviews",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/spaces/rooms",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/rooms/:roomId/agenda",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/spaces/team",
+      "file": "backend/src/routes/space.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/tribe/invite",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/tribe/invites",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/tribe/invites/:id/respond",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/tribe/join",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/tribe/members",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/tribe/pacts/active",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/tribe/posts",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/tribe/posts",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/tribe/posts/:id/like",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/tribe/presence",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/tribe/sync",
+      "file": "backend/src/routes/tribe.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/users/:id",
+      "file": "backend/src/routes/users.routes.ts"
+    },
+    {
+      "method": "PUT",
+      "path": "/users/:id",
+      "file": "backend/src/routes/users.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/users/:id/evolution/metrics",
+      "file": "backend/src/routes/users.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/users/:id/water",
+      "file": "backend/src/routes/users.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/users/bless",
+      "file": "backend/src/routes/users.routes.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/users/me/export",
+      "file": "backend/src/routes/users.routes.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/video/token",
+      "file": "backend/src/routes/video.routes.ts"
+    }
+  ],
+  "frontendContracts": [
+    {
+      "path": "/admin/dashboard",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/admin/finance/global",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/admin/lgpd/audit",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/admin/marketplace/offers",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/admin/metrics",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/admin/system/health",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/admin/users",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/admin/users/${id}/block",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/alchemy/offers",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/alchemy/offers/${offerId}/accept",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/alchemy/offers/${offerId}/complete",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/alchemy/offers/${offerId}/counter",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/alchemy/offers/${offerId}/reject",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/appointments",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/appointments/${appointmentId}",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/appointments/${appointmentId}/cancel",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/appointments/${appointmentId}/reschedule",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/appointments/series",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/appointments/series/${seriesId}",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/appointments/series/preview",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/audit/logs",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/calendar",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/calendar/${eventId}",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/calendar/sync",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/chat/rooms/${roomId}/leave",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/chat/rooms/${roomId}/messages",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/chat/rooms/${roomId}/mute",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/chat/rooms/${roomId}/settings",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/chat/rooms/join",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/chat/start",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/checkout/pay",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/checkout/transactions/${encodeURIComponent(transactionId)}/status",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/clinical/interventions",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/finance/client/summary",
+      "file": "services/api/domains/finance.ts"
+    },
+    {
+      "path": "/finance/donate",
+      "file": "services/api/domains/finance.ts"
+    },
+    {
+      "path": "/finance/export",
+      "file": "services/api/domains/finance.ts"
+    },
+    {
+      "path": "/finance/reinvest",
+      "file": "services/api/domains/finance.ts"
+    },
+    {
+      "path": "/finance/summary",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/finance/summary",
+      "file": "services/api/domains/finance.ts"
+    },
+    {
+      "path": "/finance/transactions",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/finance/transactions",
+      "file": "services/api/domains/finance.ts"
+    },
+    {
+      "path": "/finance/transactions",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/finance/withdraw",
+      "file": "services/api/domains/finance.ts"
+    },
+    {
+      "path": "/gamification/achievements/sync",
+      "file": "services/api/domains/gamification.ts"
+    },
+    {
+      "path": "/gamification/history?limit=${limit}",
+      "file": "services/api/domains/gamification.ts"
+    },
+    {
+      "path": "/gamification/leaderboard",
+      "file": "services/api/domains/gamification.ts"
+    },
+    {
+      "path": "/gamification/leaderboard/seasonal",
+      "file": "services/api/domains/gamification.ts"
+    },
+    {
+      "path": "/gamification/quests/${encodeURIComponent(quest.id)}/complete",
+      "file": "services/api/domains/gamification.ts"
+    },
+    {
+      "path": "/gamification/state${query}",
+      "file": "services/api/domains/gamification.ts"
+    },
+    {
+      "path": "/invites/accept",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/invites/create",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/invites/resolve/${encodeURIComponent(token)}",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/journal",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/journal/stats",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/links",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/links/${linkId}/accept",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/links/${linkId}/reject",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/links/check/${targetId}${params}",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/links/me",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/links/pending",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/marketplace/products",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/marketplace/products?ownerId=${encodeURIComponent(String(oid))}",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/marketplace/products/${id}",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/marketplace/products${qs ? ",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/marketplace/purchase",
+      "file": "services/api/domains/commerce.ts"
+    },
+    {
+      "path": "/metamorphosis/checkin",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/metamorphosis/checkin",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/metamorphosis/evolution",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/notifications",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/notifications/${id}/read",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/notifications/push/subscribe",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/notifications/read-all",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/oracle/draw",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/oracle/history",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/oracle/today",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/presence",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/presence/${guardianId}",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/presence/batch",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/presence/offline",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/presence/online",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/presence/ping",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/profiles?role=PROFESSIONAL",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/profiles?role=PROFESSIONAL",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/profiles/${id}/metrics",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/profiles/${id}/space-patients",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/profiles/lookup?email=${encodeURIComponent(normalized)}",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/profiles/search?q=${encodeURIComponent(q)}",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/records",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/records/${patientId}",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/records/${pid}",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/records/${recordId}",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/records/access",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/records/grant",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/records/revoke",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/recruitment/applications",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/recruitment/applications",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/recruitment/applications?scope=${scope}",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/recruitment/applications/${applicationId}/decision",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/recruitment/applications/${applicationId}/interview",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/recruitment/interviews/${interviewId}/respond",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/reviews",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/rituals",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/rituals/${period}",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/rituals/${period}/${id}/toggle",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/rooms/${roomId}",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/rooms/real-time",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/rooms/vacancies",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/soul-cards/collection",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/soul-cards/draw",
+      "file": "services/api/domains/wellness.ts"
+    },
+    {
+      "path": "/spaces",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/analytics",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/contract",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/invites",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/patients",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/patients/${patientId}",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/retreats",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/reviews",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/rooms",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/rooms/${roomId}/agenda",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/spaces/team",
+      "file": "services/api/domains/hub.ts"
+    },
+    {
+      "path": "/tribe/invite",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/tribe/invites/${inviteId}/respond",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/tribe/members",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/tribe/pacts/active",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/tribe/posts",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/tribe/posts/${id}/like",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/tribe/presence",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/tribe/sync",
+      "file": "services/api/domains/community.ts"
+    },
+    {
+      "path": "/users/${id}",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/users/${id}/evolution/metrics",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/users/${id}/water",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/users/${user.id}",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/users/bless",
+      "file": "services/api/domains/account.ts"
+    },
+    {
+      "path": "/users/me/export",
+      "file": "services/api/domains/account.ts"
+    }
+  ],
+  "screens": [
+    {
+      "profile": "BUSCADOR",
+      "screen": "START",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*",
+        "/api/auth/roles",
+        "/api/auth/select-role",
+        "/api/checkout/contextual",
+        "/api/finance/*",
+        "/api/marketplace/*",
+        "/api/oracle/*",
+        "/api/soulgarden/*",
+        "/api/tribe/*",
+        "/api/users/:id"
+      ],
+      "flows": [
+        "buscador_shell_e_config"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "DASHBOARD",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*",
+        "/api/auth/roles",
+        "/api/auth/select-role",
+        "/api/chat/*",
+        "/api/checkout/contextual",
+        "/api/finance/*",
+        "/api/marketplace/*",
+        "/api/metamorphosis/*",
+        "/api/metamorphosis/checkin",
+        "/api/metamorphosis/evolution",
+        "/api/oracle/*",
+        "/api/oracle/history",
+        "/api/soulgarden/*",
+        "/api/tribe/*",
+        "/api/users/:id"
+      ],
+      "flows": [
+        "buscador_chat_social",
+        "buscador_grimorio_colecao",
+        "buscador_jornada_analitica_e_journal",
+        "buscador_metamorfose_karma_timelapse",
+        "buscador_metamorfose_ritual_retorno",
+        "buscador_missoes_diarias",
+        "buscador_oraculo_completo",
+        "buscador_ritual_diario",
+        "buscador_shell_e_config"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "ORACLE_PORTAL",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/oracle/*"
+      ],
+      "flows": [
+        "buscador_oraculo_completo"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "ORACLE_SHUFFLE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/oracle/*"
+      ],
+      "flows": [
+        "buscador_oraculo_completo"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "ORACLE_REVEAL",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/oracle/*"
+      ],
+      "flows": [
+        "buscador_oraculo_completo"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "ORACLE_HISTORY",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/oracle/*"
+      ],
+      "flows": [
+        "buscador_oraculo_completo"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "METAMORPHOSIS_CHECKIN",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/*",
+        "/api/metamorphosis/checkin",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_metamorfose_ritual_retorno",
+        "buscador_ritual_diario"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "METAMORPHOSIS_CAMERA",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/checkin",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_ritual_diario"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "METAMORPHOSIS_MESSAGE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/checkin",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_ritual_diario"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "METAMORPHOSIS_RITUAL",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/*",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_metamorfose_ritual_retorno"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "METAMORPHOSIS_FEEDBACK",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/checkin",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_ritual_diario"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "TRIBE_DASH",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/calendar",
+        "/api/chat/*",
+        "/api/checkout/pay",
+        "/api/invites/create",
+        "/api/notifications/*",
+        "/api/tribe/*",
+        "/api/tribe/sync"
+      ],
+      "flows": [
+        "buscador_chat_social",
+        "buscador_circulo_de_cura_checkout",
+        "buscador_pacto_de_alma",
+        "buscador_retiro_offline",
+        "buscador_tribo_convite"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "TRIBE_INVITE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_tribo_convite"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "TRIBE_INTERACTION",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_tribo_convite"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "BOOKING_SEARCH",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/checkout/pay",
+        "/api/notifications/*"
+      ],
+      "flows": [
+        "buscador_busca_agenda_confirmacao"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "BOOKING_SELECT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/checkout/pay",
+        "/api/notifications/*"
+      ],
+      "flows": [
+        "buscador_busca_agenda_confirmacao"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "BOOKING_CONFIRM",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/checkout/contextual",
+        "/api/checkout/pay",
+        "/api/notifications/*"
+      ],
+      "flows": [
+        "buscador_busca_agenda_confirmacao"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "CHECKOUT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/calendar",
+        "/api/checkout/contextual",
+        "/api/checkout/pay",
+        "/api/marketplace/products",
+        "/api/notifications/*"
+      ],
+      "flows": [
+        "buscador_busca_agenda_confirmacao",
+        "buscador_circulo_de_cura_checkout",
+        "buscador_marketplace_checkout"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "PAYMENT_SUCCESS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/calendar",
+        "/api/checkout/contextual",
+        "/api/checkout/pay",
+        "/api/marketplace/products",
+        "/api/notifications/*"
+      ],
+      "flows": [
+        "buscador_busca_agenda_confirmacao",
+        "buscador_circulo_de_cura_checkout",
+        "buscador_marketplace_checkout"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "HISTORY",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/metamorphosis/*",
+        "/api/metamorphosis/checkin",
+        "/api/oracle/*",
+        "/api/oracle/history",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_jornada_analitica_e_journal",
+        "buscador_ritual_diario"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "PAYMENT_HISTORY",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/checkout/contextual",
+        "/api/checkout/pay",
+        "/api/marketplace/products"
+      ],
+      "flows": [
+        "buscador_marketplace_checkout"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "CHAT_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_chat_social"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "CHAT_ROOM",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_chat_social",
+        "buscador_tribo_convite"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "CHAT_SETTINGS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_chat_social"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "CHAT_NEW",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_chat_social"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "GARDEN_VIEW",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/soulgarden/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_grimorio_colecao"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "EVOLUTION",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/metamorphosis/*",
+        "/api/metamorphosis/evolution",
+        "/api/oracle/history",
+        "/api/soulgarden/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_jornada_analitica_e_journal",
+        "buscador_metamorfose_karma_timelapse"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "EVOLUTION_ANALYTICS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/*",
+        "/api/oracle/history",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_jornada_analitica_e_journal"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "EVOLUTION_ACHIEVEMENTS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/*",
+        "/api/oracle/history",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_jornada_analitica_e_journal"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "EVOLUTION_HISTORY",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/*",
+        "/api/oracle/history",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_jornada_analitica_e_journal"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "EVOLUTION_TIMELAPSE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/evolution",
+        "/api/oracle/history",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_metamorfose_karma_timelapse"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "TIME_LAPSE_EXPERIENCE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/metamorphosis/evolution",
+        "/api/oracle/history",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_metamorfose_karma_timelapse"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "CLIENT_QUESTS",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/*"
+      ],
+      "flows": [
+        "buscador_missoes_diarias"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "SETTINGS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/auth/roles",
+        "/api/auth/select-role",
+        "/api/finance/*",
+        "/api/users/:id"
+      ],
+      "flows": [
+        "buscador_shell_e_config"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "MARKETPLACE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/checkout/contextual",
+        "/api/checkout/pay",
+        "/api/marketplace/*",
+        "/api/marketplace/products"
+      ],
+      "flows": [
+        "buscador_marketplace_checkout"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "KARMA_WALLET",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/*",
+        "/api/marketplace/*",
+        "/api/soulgarden/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_missoes_diarias"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "EVO_GRIMOIRE",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/*",
+        "/api/soulgarden/*"
+      ],
+      "flows": [
+        "buscador_grimorio_colecao"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "CLIENT_JOURNAL",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*",
+        "/api/metamorphosis/*",
+        "/api/oracle/history",
+        "/api/soulgarden/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_jornada_analitica_e_journal"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "HEALING_CIRCLE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/calendar",
+        "/api/checkout/contextual",
+        "/api/checkout/pay",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_circulo_de_cura_checkout"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "VIDEO_SESSION",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*",
+        "/api/checkout/pay",
+        "/api/notifications/*"
+      ],
+      "flows": [
+        "buscador_busca_agenda_confirmacao"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "SOUL_PACT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/invites/create",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "buscador_pacto_de_alma"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "OFFLINE_RETREAT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/notifications/*",
+        "/api/tribe/*",
+        "/api/tribe/sync"
+      ],
+      "flows": [
+        "buscador_retiro_offline"
+      ]
+    },
+    {
+      "profile": "BUSCADOR",
+      "screen": "END",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/auth/roles",
+        "/api/auth/select-role",
+        "/api/finance/*",
+        "/api/users/:id"
+      ],
+      "flows": [
+        "buscador_shell_e_config"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "START",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/alchemy/offers/*",
+        "/api/appointments/*",
+        "/api/auth/roles",
+        "/api/auth/select-role",
+        "/api/chat/*",
+        "/api/finance/*",
+        "/api/professionals/*",
+        "/api/records/*",
+        "/api/recruitment/*",
+        "/api/tribe/*",
+        "/api/users/:id"
+      ],
+      "flows": [
+        "guardiao_agenda_video",
+        "guardiao_shell_e_config"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "DASHBOARD",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/alchemy/offers/*",
+        "/api/appointments/*",
+        "/api/auth/roles",
+        "/api/auth/select-role",
+        "/api/chat/*",
+        "/api/clinical/interventions",
+        "/api/finance/*",
+        "/api/marketplace/products",
+        "/api/professionals/*",
+        "/api/records/*",
+        "/api/recruitment/*",
+        "/api/spaces/*",
+        "/api/tribe/*",
+        "/api/users/:id"
+      ],
+      "flows": [
+        "guardiao_agenda_video",
+        "guardiao_alquimia_criar_oferta",
+        "guardiao_financeiro_expandido",
+        "guardiao_intervencao_clinica",
+        "guardiao_santuarios_parceria",
+        "guardiao_shell_e_config",
+        "guardiao_tribo_chat",
+        "guardiao_vagas_completas"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "AGENDA_VIEW",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*"
+      ],
+      "flows": [
+        "guardiao_agenda_video"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "AGENDA_CONFIRM",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*"
+      ],
+      "flows": [
+        "guardiao_agenda_video"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "AGENDA_EDIT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*"
+      ],
+      "flows": [
+        "guardiao_agenda_video"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "VIDEO_SESSION",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*"
+      ],
+      "flows": [
+        "guardiao_agenda_video"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "PATIENTS_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/alchemy/*",
+        "/api/professionals/*",
+        "/api/records/*"
+      ],
+      "flows": [
+        "guardiao_paciente_plano_e_trade",
+        "guardiao_prontuario_consentido"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "PATIENT_PROFILE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/professionals/*",
+        "/api/records/*"
+      ],
+      "flows": [
+        "guardiao_prontuario_consentido"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "PATIENT_RECORDS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/professionals/*",
+        "/api/records/*"
+      ],
+      "flows": [
+        "guardiao_prontuario_consentido"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "FINANCE_OVERVIEW",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/finance/*"
+      ],
+      "flows": [
+        "guardiao_financeiro_expandido"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "FINANCE_DETAILS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/finance/*"
+      ],
+      "flows": [
+        "guardiao_financeiro_expandido"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "FINANCIAL_DASHBOARD",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/finance/*"
+      ],
+      "flows": [
+        "guardiao_financeiro_expandido"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "TRIBE_PRO",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/alchemy/offers/*",
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "guardiao_tribo_chat"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "TRIBE_CHAT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "guardiao_tribo_chat"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "CHAT_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "guardiao_tribo_chat"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "CHAT_ROOM",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "guardiao_tribo_chat"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "ESCAMBO_MARKET",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/alchemy/*",
+        "/api/alchemy/offers/*",
+        "/api/chat/*",
+        "/api/marketplace/products",
+        "/api/records/*"
+      ],
+      "flows": [
+        "guardiao_alquimia_criar_oferta",
+        "guardiao_escambo",
+        "guardiao_paciente_plano_e_trade"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "ALQUIMIA_CREATE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/alchemy/offers/*",
+        "/api/marketplace/products",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "guardiao_alquimia_criar_oferta"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "ESCAMBO_PROPOSE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/alchemy/offers/*",
+        "/api/chat/*",
+        "/api/tribe/*"
+      ],
+      "flows": [
+        "guardiao_escambo"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "ESCAMBO_CONFIRM",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/alchemy/*",
+        "/api/alchemy/offers/*",
+        "/api/chat/*",
+        "/api/records/*"
+      ],
+      "flows": [
+        "guardiao_escambo",
+        "guardiao_paciente_plano_e_trade"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "VAGAS_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "flows": [
+        "guardiao_vagas_completas"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "VAGA_DETAILS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "flows": [
+        "guardiao_vagas_completas"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "VAGA_APPLY",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "flows": [
+        "guardiao_vagas_completas"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "SANTUARIO_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "guardiao_santuarios_parceria"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "SANTUARIO_PROFILE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "guardiao_santuarios_parceria"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "SANTUARIO_CONTRACT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "guardiao_santuarios_parceria"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "SETTINGS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/auth/roles",
+        "/api/auth/select-role",
+        "/api/finance/*",
+        "/api/users/:id"
+      ],
+      "flows": [
+        "guardiao_shell_e_config"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "PATIENT_PLAN",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/alchemy/*",
+        "/api/professionals/*",
+        "/api/records/*"
+      ],
+      "flows": [
+        "guardiao_paciente_plano_e_trade"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "ESCAMBO_TRADE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/alchemy/*",
+        "/api/alchemy/offers/*",
+        "/api/records/*"
+      ],
+      "flows": [
+        "guardiao_paciente_plano_e_trade"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "VIDEO_PREP",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*"
+      ],
+      "flows": [
+        "guardiao_agenda_video"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "CUSTOM_INTERVENTION",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/clinical/interventions"
+      ],
+      "flows": [
+        "guardiao_intervencao_clinica"
+      ]
+    },
+    {
+      "profile": "GUARDIAO",
+      "screen": "END",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/auth/roles",
+        "/api/auth/select-role",
+        "/api/finance/*",
+        "/api/users/:id"
+      ],
+      "flows": [
+        "guardiao_shell_e_config"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "START",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*",
+        "/api/chat/*",
+        "/api/marketplace/*",
+        "/api/records/*",
+        "/api/recruitment/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_pacientes_operacao",
+        "santuario_shell_e_encerramento"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "EXEC_DASHBOARD",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/analytics/*",
+        "/api/appointments/*",
+        "/api/chat/*",
+        "/api/events/*",
+        "/api/finance/*",
+        "/api/marketplace/*",
+        "/api/records/*",
+        "/api/recruitment/*",
+        "/api/reviews/*",
+        "/api/rooms/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_analytics_reputacao_chat",
+        "santuario_auditoria_interna",
+        "santuario_avaliacao_servico",
+        "santuario_financeiro_expandido",
+        "santuario_inteligencia_preditiva",
+        "santuario_marketplace_eventos_retiros",
+        "santuario_operacao_completa",
+        "santuario_pacientes_operacao",
+        "santuario_recrutamento_completo",
+        "santuario_salaseestrutura_expandida",
+        "santuario_shell_e_encerramento",
+        "santuario_time_e_avaliacao_servico",
+        "santuario_vagas_entrevista"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "PROS_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/finance/*",
+        "/api/reviews/*",
+        "/api/rooms/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_operacao_completa",
+        "santuario_time_e_avaliacao_servico"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "PRO_PROFILE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/reviews/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_avaliacao_servico",
+        "santuario_time_e_avaliacao_servico"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "PRO_PERFORMANCE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/reviews/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_time_e_avaliacao_servico"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "PATIENTS_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/records/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_pacientes_operacao"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "PATIENT_PROFILE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/records/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_pacientes_operacao"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "PATIENT_RECORDS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/records/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_pacientes_operacao"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "AGENDA_OVERVIEW",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/finance/*",
+        "/api/rooms/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_operacao_completa"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "AGENDA_EDIT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/records/*"
+      ],
+      "flows": [
+        "santuario_pacientes_operacao"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "ROOMS_STATUS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*",
+        "/api/finance/*",
+        "/api/rooms/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_operacao_completa",
+        "santuario_salaseestrutura_expandida"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "ROOM_CREATE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/rooms/*"
+      ],
+      "flows": [
+        "santuario_salaseestrutura_expandida"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "ROOM_DETAILS",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*",
+        "/api/rooms/*"
+      ],
+      "flows": [
+        "santuario_salaseestrutura_expandida"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "FINANCE_OVERVIEW",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/finance/*",
+        "/api/rooms/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_financeiro_expandido",
+        "santuario_operacao_completa"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "FINANCE_REPASSES",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/finance/*"
+      ],
+      "flows": [
+        "santuario_financeiro_expandido"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "FINANCE_FORECAST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/finance/*"
+      ],
+      "flows": [
+        "santuario_financeiro_expandido"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "MARKETPLACE_MANAGE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/events/*",
+        "/api/marketplace/*"
+      ],
+      "flows": [
+        "santuario_marketplace_eventos_retiros"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "MARKETPLACE_CREATE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/events/*",
+        "/api/marketplace/*"
+      ],
+      "flows": [
+        "santuario_marketplace_eventos_retiros"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "EVENTS_MANAGE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/events/*",
+        "/api/marketplace/*"
+      ],
+      "flows": [
+        "santuario_marketplace_eventos_retiros"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "EVENT_CREATE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/events/*",
+        "/api/marketplace/*"
+      ],
+      "flows": [
+        "santuario_marketplace_eventos_retiros"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "RETREATS_MANAGE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/events/*",
+        "/api/marketplace/*"
+      ],
+      "flows": [
+        "santuario_marketplace_eventos_retiros"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "VAGAS_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "flows": [
+        "santuario_recrutamento_completo",
+        "santuario_vagas_entrevista"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "VAGA_CREATE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "flows": [
+        "santuario_recrutamento_completo"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "VAGA_CANDIDATES",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/recruitment/*"
+      ],
+      "flows": [
+        "santuario_recrutamento_completo",
+        "santuario_vagas_entrevista"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "REPUTATION_OVERVIEW",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/analytics/*",
+        "/api/chat/*"
+      ],
+      "flows": [
+        "santuario_analytics_reputacao_chat"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "ANALYTICS_DASH",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/analytics/*",
+        "/api/chat/*"
+      ],
+      "flows": [
+        "santuario_analytics_reputacao_chat"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "GOVERNANCE",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/*"
+      ],
+      "flows": [
+        "santuario_auditoria_interna"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "CHAT_LIST",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/analytics/*",
+        "/api/chat/*"
+      ],
+      "flows": [
+        "santuario_analytics_reputacao_chat"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "CHAT_ROOM",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/analytics/*",
+        "/api/chat/*"
+      ],
+      "flows": [
+        "santuario_analytics_reputacao_chat"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "TEAM_SUMMON",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/reviews/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_time_e_avaliacao_servico"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "TEAM_INVITE",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/reviews/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_time_e_avaliacao_servico"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "ROOM_EDIT",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/rooms/*"
+      ],
+      "flows": [
+        "santuario_salaseestrutura_expandida"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "ROOM_AGENDA",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/appointments/*",
+        "/api/rooms/*"
+      ],
+      "flows": [
+        "santuario_inteligencia_preditiva",
+        "santuario_salaseestrutura_expandida"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "SERVICE_EVALUATION",
+      "persistence": "P2",
+      "scope": "critico_validado",
+      "endpoints": [
+        "/api/*",
+        "/api/reviews/*",
+        "/api/spaces/*"
+      ],
+      "flows": [
+        "santuario_avaliacao_servico",
+        "santuario_time_e_avaliacao_servico"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "PREDICTIVE_OCCUPANCY",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/*",
+        "/api/appointments/*"
+      ],
+      "flows": [
+        "santuario_inteligencia_preditiva"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "AUDIT_LOG",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/*"
+      ],
+      "flows": [
+        "santuario_auditoria_interna"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "RADIANCE_DRILLDOWN",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/*"
+      ],
+      "flows": [
+        "santuario_auditoria_interna"
+      ]
+    },
+    {
+      "profile": "SANTUARIO",
+      "screen": "END",
+      "persistence": "P2",
+      "scope": "client_only_intencional",
+      "endpoints": [
+        "/api/*"
+      ],
+      "flows": [
+        "santuario_shell_e_encerramento"
+      ]
+    }
+  ]
+}

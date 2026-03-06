@@ -230,6 +230,66 @@ export const revokeAccess = asyncHandler(async (req: Request, res: Response) => 
     return res.json({ success: true, consent: { patientId, professionalId, status: 'REVOKED' } });
 });
 
+export const listAccess = asyncHandler(async (req: Request, res: Response) => {
+    const actorId = String(req.user?.userId || '').trim();
+    const role = normalizeRole(req.user?.role);
+    if (!actorId) return res.status(401).json({ error: 'Unauthorized' });
+
+    if (isMockMode()) {
+        const entries = Array.from(mockAdapter.records.consents.entries())
+            .filter(([key]) => {
+                const [patientId, professionalId] = key.split('::');
+                return role === 'CLIENT' ? patientId === actorId : professionalId === actorId;
+            })
+            .map(([key, status], index) => {
+                const [patientId, professionalId] = key.split('::');
+                return {
+                    id: `mock-consent-${index}`,
+                    patientId,
+                    ownerProId: professionalId,
+                    grantedToProId: professionalId,
+                    grantedToProName: role === 'CLIENT' ? 'Guardião autorizado' : 'Você',
+                    grantedToProAvatar: '',
+                    permissions: 'write',
+                    status: String(status || '').toLowerCase() === 'active' ? 'active' : 'revoked',
+                    grantedAt: new Date().toISOString(),
+                    consentHash: consentKey(patientId, professionalId),
+                };
+            });
+        return res.json(entries);
+    }
+
+    const links = await prisma.profileLink.findMany({
+        where: role === 'CLIENT'
+            ? { source_id: actorId, type: CONSENT_LINK_TYPE }
+            : role === 'PROFESSIONAL'
+                ? { target_id: actorId, type: CONSENT_LINK_TYPE }
+                : { type: CONSENT_LINK_TYPE, target: { hub_id: actorId } },
+        include: {
+            source: { select: { id: true, name: true, avatar: true } },
+            target: { select: { id: true, name: true, avatar: true } },
+        },
+        orderBy: { created_at: 'desc' },
+    }).catch((error: unknown) => {
+        const code = typeof error === 'object' && error && 'code' in error ? String((error as { code?: string }).code || '') : '';
+        if (code === 'P2021' || code === 'P2022') return [];
+        throw error;
+    });
+
+    return res.json(links.map((link) => ({
+        id: link.id,
+        patientId: link.source_id,
+        ownerProId: link.target_id,
+        grantedToProId: link.target_id,
+        grantedToProName: link.target?.name || 'Guardião',
+        grantedToProAvatar: link.target?.avatar || '',
+        permissions: 'write',
+        status: normalizeStatus(link.status) === 'ACTIVE' ? 'active' : 'revoked',
+        grantedAt: link.created_at.toISOString(),
+        consentHash: consentKey(link.source_id, link.target_id),
+    })));
+});
+
 export const exportData = asyncHandler(async (req: Request, res: Response) => {
     const userId = String(req.user?.userId || '').trim();
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });

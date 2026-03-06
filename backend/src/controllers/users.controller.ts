@@ -3,6 +3,7 @@ import { asyncHandler } from '../middleware/async.middleware';
 import { supabaseAdmin } from '../services/supabase.service';
 import { z } from 'zod';
 import prisma from '../lib/prisma';
+import { getMockProfile, isMockMode, saveMockProfile } from '../services/mockAdapter';
 
 const checkInSchema = z.object({
     reward: z.number().int().min(1).max(1500).optional()
@@ -279,6 +280,28 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
 
 export const getById = asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params;
+
+    if (isMockMode()) {
+        const mockProfile = getMockProfile(id);
+        if (!mockProfile) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        return res.json({
+            ...mockProfile,
+            lastCheckIn: null,
+            last_mood: null,
+            evolution_score: 0,
+            snaps: [],
+            dailyQuests: mockProfile.dailyQuests || [],
+            achievements: mockProfile.achievements || [],
+            grimoireMeta: {
+                totalCards: 0,
+                lastSyncedAt: null,
+                source: 'mock_profile',
+            },
+        });
+    }
+
     const { data, error } = await supabaseAdmin
         .from('profiles')
         .select('*')
@@ -396,6 +419,37 @@ export const updateById = asyncHandler(async (req: Request, res: Response) => {
     const hasGamificationSnapshot = Array.isArray(dailyQuests) || Array.isArray(achievements);
     if (Object.keys(sanitized).length === 0 && !hasGamificationSnapshot) {
         return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    if (isMockMode()) {
+        const normalizedUpdates = updates as Partial<{
+            name: string;
+            bio: string;
+            avatar: string;
+            location: string;
+            specialty: string[];
+            karma: number;
+            streak: number;
+            multiplier: number;
+        }>;
+        const current = getMockProfile(id);
+        if (!current) {
+            return res.status(404).json({ error: 'User not found or update failed' });
+        }
+        const updated = saveMockProfile({
+            ...current,
+            ...(normalizedUpdates.name !== undefined ? { name: normalizedUpdates.name } : {}),
+            ...(normalizedUpdates.bio !== undefined ? { bio: normalizedUpdates.bio } : {}),
+            ...(normalizedUpdates.avatar !== undefined ? { avatar: normalizedUpdates.avatar } : {}),
+            ...(normalizedUpdates.location !== undefined ? { location: normalizedUpdates.location } : {}),
+            ...(normalizedUpdates.specialty !== undefined ? { specialty: normalizedUpdates.specialty } : {}),
+            ...(normalizedUpdates.karma !== undefined ? { karma: normalizedUpdates.karma } : {}),
+            ...(normalizedUpdates.streak !== undefined ? { streak: normalizedUpdates.streak } : {}),
+            ...(normalizedUpdates.multiplier !== undefined ? { multiplier: normalizedUpdates.multiplier } : {}),
+            ...(Array.isArray(dailyQuests) ? { dailyQuests } : {}),
+            ...(Array.isArray(achievements) ? { achievements } : {}),
+        });
+        return res.json(updated);
     }
 
     let data: Record<string, unknown> | null = null;
@@ -667,5 +721,3 @@ export const socialBless = asyncHandler(async (req: Request, res: Response) => {
         user: updated
     });
 });
-
-

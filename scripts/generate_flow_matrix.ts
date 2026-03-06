@@ -4,6 +4,7 @@ import { transitions } from '../src/flow/types';
 import { guardiaoTransitions } from '../src/flow/guardiaoTypes';
 import { santuarioTransitions } from '../src/flow/santuarioTypes';
 import { flowRegistry, type FlowDefinition } from '../src/flow/registry';
+import { FLOW_PERSISTENCE_EVIDENCE } from './persistence_evidence_catalog';
 
 type TransitionMap = Record<string, string[]>;
 type Profile = 'BUSCADOR' | 'GUARDIAO' | 'SANTUARIO';
@@ -136,6 +137,9 @@ const classifyPersistencia = (
 ): Pick<MatrixEntry, 'persistenciaClassificacao' | 'persistenciaEscopo' | 'persistenciaEvidencias' | 'persistenciaRacional'> => {
   const flows = draft.flowIds.map((id) => flowById.get(id)).filter(Boolean) as FlowDefinition[];
   const allClientOnly = flows.length > 0 && flows.every((flow) => flow.clientOnly);
+  const explicitFlowEvidence = draft.flowIds
+    .map((id) => ({ id, evidence: FLOW_PERSISTENCE_EVIDENCE[id] }))
+    .filter((entry): entry is { id: string; evidence: { rationale: string; evidence: string[] } } => Boolean(entry.evidence));
   const hasSpecificEndpoint = draft.endpointsTocados.some((e) => e !== '/api/*');
   const hasCriticalValidatedEndpoint = draft.endpointsTocados.some((e) =>
     CRITICAL_VALIDATED_ENDPOINTS.some((pattern) => matchesEndpoint(e, pattern)),
@@ -152,6 +156,15 @@ const classifyPersistencia = (
         'src/flow/registry.ts (clientOnly=true)',
       ],
       persistenciaRacional: 'Fluxo sem persistência por design, documentado no flow registry.',
+    };
+  }
+
+  if (explicitFlowEvidence.length > 0 && hasSpecificEndpoint) {
+    return {
+      persistenciaClassificacao: 'P2',
+      persistenciaEscopo: 'critico_validado',
+      persistenciaEvidencias: explicitFlowEvidence.flatMap((entry) => entry.evidence.evidence),
+      persistenciaRacional: explicitFlowEvidence.map((entry) => entry.evidence.rationale).join(' | '),
     };
   }
 
@@ -226,8 +239,17 @@ for (const flow of flowRegistry) {
 for (const domain of transitionMaps) {
   Object.entries(domain.transitions).forEach(([state, nextStates]) => {
     nextStates.forEach((nextState) => {
-      const endpointsTocados = inferEndpoints(domain.profile, state, nextState);
       const flowIds = flowByProfileAndScreen.get(`${domain.profile}:${state}`) || [];
+      const flowDeclaredEndpoints = flowIds
+        .map((id) => flowById.get(id))
+        .filter(Boolean)
+        .flatMap((flow) => flow?.endpoints || []);
+      const endpointsTocados = Array.from(
+        new Set([
+          ...inferEndpoints(domain.profile, state, nextState),
+          ...flowDeclaredEndpoints,
+        ]),
+      );
       const botoesVisiveis = inferButtons(state, nextState);
       const persistencia = classifyPersistencia({
         flowIds,

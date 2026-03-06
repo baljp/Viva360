@@ -8,11 +8,10 @@ import { securityHardening } from '../middleware/security.middleware';
 import { attachRequestContext } from '../middleware/request.middleware';
 import { circuitBreaker } from '../middleware/circuitBreaker';
 import { assertCriticalProdConfig, enforceNoProdMockLeakage } from './runtimeGuard';
+import { attachRawBody, buildCorsOptions, getApiHelmetOptions } from './httpSecurity';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
 const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
-
-const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
 
 const blockedProdRoutePatterns = [
   /^\/api\/debug(?:\/|$|-)/i,
@@ -34,30 +33,12 @@ export const createBaseApiApp = (): { app: Express; config: BaseApiConfig } => {
   const app = express();
 
   app.use(compression());
-  app.use(
-    helmet({
-      contentSecurityPolicy: false,
-    }),
-  );
+  app.use(helmet(getApiHelmetOptions()));
 
-  const allowedOrigins = (process.env.CORS_ORIGINS || '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean);
-
-  const corsOptions: CorsOptions = {
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-      if (allowedOrigins.length === 0) {
-        return callback(null, process.env.NODE_ENV !== 'production');
-      }
-      return callback(null, allowedOrigins.includes(origin));
-    },
-    credentials: true,
-  };
+  const corsOptions: CorsOptions = buildCorsOptions();
 
   app.use(cors(corsOptions));
-  app.use(express.json({ limit: jsonBodyLimit }));
+  app.use(express.json({ limit: jsonBodyLimit, verify: attachRawBody }));
   app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
   app.use(attachRequestContext);
   app.use(securityHardening);

@@ -1,6 +1,6 @@
 import React from 'react';
-import * as Sentry from "@sentry/react";
 import { ShieldAlert, RefreshCw } from 'lucide-react';
+import { captureFrontendError } from '../lib/frontendLogger';
 
 interface Props {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("[FlowGuard] Uncaught frequency shift:", error, errorInfo);
-    Sentry.captureException(error);
+    captureFrontendError(error, { component: 'ErrorBoundary', errorInfo });
   }
 
   render() {

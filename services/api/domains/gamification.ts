@@ -39,6 +39,44 @@ export type GamificationLeaderboardResponse = {
   leaderboard: GamificationLeaderboardEntry[];
 };
 
+export type SeasonalReward = {
+  position: number;
+  label: string;
+  karmaBonus: number;
+  badge?: string;
+};
+
+export type SeasonalLeaderboardEntry = GamificationLeaderboardEntry & {
+  seasonKarma: number;
+  seasonalPosition: number;
+  reward?: SeasonalReward | null;
+};
+
+export type SeasonalLeaderboardResponse = {
+  season: {
+    id: string;
+    slug: string;
+    title: string;
+    subtitle: string | null;
+    status: string;
+    startsAt: string;
+    endsAt: string;
+    closesInMs: number;
+    closedAt: string | null;
+    prizeTitle: string | null;
+    prizeSummary: string | null;
+    rewards: SeasonalReward[];
+  };
+  me: {
+    userId: string;
+    seasonKarma: number;
+    seasonalPosition: number | null;
+    reward?: SeasonalReward | null;
+  };
+  leaderboard: SeasonalLeaderboardEntry[];
+  podium: SeasonalLeaderboardEntry[];
+};
+
 
 export type KarmaHistoryItem = {
   id: string;
@@ -80,6 +118,18 @@ export const createGamificationDomain = ({ request }: GamificationDomainDeps) =>
         });
       } catch (err) {
         captureFrontendError(err, { domain: 'gamification', op: 'getLeaderboard' });
+        return null;
+      }
+    },
+    getSeasonalLeaderboard: async (): Promise<SeasonalLeaderboardResponse | null> => {
+      try {
+        return await request('/gamification/leaderboard/seasonal', {
+          purpose: 'gamification-seasonal-leaderboard',
+          timeoutMs: 7000,
+          retries: 1,
+        });
+      } catch (err) {
+        captureFrontendError(err, { domain: 'gamification', op: 'getSeasonalLeaderboard' });
         return null;
       }
     },

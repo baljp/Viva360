@@ -140,25 +140,25 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         return [];
       }
     },
-    // TODO(backend): /professionals/:proId/notes e /professionals/access/:pid
-    // nao existem no backend. Dead code — nenhuma view ativa chama estas funcoes.
-    // Quando implementar: usar /records ou /links conforme o dominio correto.
-    updateNotes: async (pid: string, proId: string, content: string) => {
-      return await request(`/professionals/${proId}/notes`, {
+    updateNotes: async (pid: string, _proId: string, content: string) => {
+      return await request('/records', {
         method: 'POST',
-        body: JSON.stringify({ patientId: pid, content }),
+        body: JSON.stringify({ patientId: pid, content, type: 'session' }),
       });
     },
-    getNotes: async (pid: string, proId: string) => {
+    getNotes: async (pid: string, _proId: string) => {
       try {
-        return await request(`/professionals/${proId}/notes/${pid}`);
+        return await request(`/records/${pid}`, { purpose: 'record-notes-list' });
       } catch (err) {
         captureFrontendError(err, { domain: 'account', op: 'professionals.getNotes' });
         return [];
       }
     },
-    grantAccess: async (pid: string) => {
-      return await request(`/professionals/access/${pid}`, { method: 'POST' });
+    grantAccess: async (professionalId: string) => {
+      return await request('/records/grant', {
+        method: 'POST',
+        body: JSON.stringify({ professionalId }),
+      });
     },
     revokeAccess: async (professionalId: string) => {
       return await request('/records/revoke', {
@@ -166,8 +166,20 @@ export const createAccountDomain = ({ request, normalizeProfilePayload }: Accoun
         body: JSON.stringify({ professionalId }),
       });
     },
-    getRecordAccessList: async () => [],
-    applyToVacancy: async (_vid: string) => ({ success: true }),
+    getRecordAccessList: async () => {
+      try {
+        return await request('/records/access', { purpose: 'record-access-list' });
+      } catch (err) {
+        captureFrontendError(err, { domain: 'account', op: 'professionals.getRecordAccessList' });
+        return [];
+      }
+    },
+    applyToVacancy: async (vacancyId: string, notes?: string) => {
+      return await request('/recruitment/applications', {
+        method: 'POST',
+        body: JSON.stringify({ vacancyId, notes }),
+      });
+    },
     getFinanceSummary: async (_pid: string) => {
       try {
         const [summary, transactions] = await Promise.all([

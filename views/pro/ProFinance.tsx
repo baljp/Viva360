@@ -5,6 +5,7 @@ import { TrendingUp, Filter, ArrowUpRight, ArrowDownRight, Share2 } from 'lucide
 import { PortalView, DegradedRetryNotice } from '../../components/Common';
 import { useGuardiaoFlow } from '../../src/flow/useGuardiaoFlow';
 import { request } from '../../services/api/core';
+import { financeApi } from '../../services/api/financeClient';
 import { buildReadFailureCopy, isDegradedReadError } from '../../src/utils/readDegradedUX';
 
 export const ProFinance: React.FC<{ user: Professional, transactions?: Transaction[] }> = ({ user, transactions: propTransactions = [] }) => {
@@ -86,6 +87,22 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
     }, [transactions]);
 
     const filteredTransactions = transactions.filter((tx) => txFilter === 'all' || tx.type === txFilter);
+
+    const handleExport = React.useCallback(async () => {
+        try {
+            const payload = await financeApi.operations.exportReport();
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `viva360-finance-${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            notify('Relatório gerado', 'O extrato mensal foi baixado com sucesso.', 'success');
+        } catch (err) {
+            notify('Falha no relatório', isDegradedReadError(err) ? 'A leitura está degradada. Tente novamente em instantes.' : 'Não foi possível gerar o relatório agora.', 'error');
+        }
+    }, [notify]);
 
     return (
     <PortalView title="Abundância" subtitle="FLUXO DE PROSPERIDADE" onBack={() => go('DASHBOARD')} heroImage="https://images.unsplash.com/photo-1633158829585-23ba8f7c8caf?q=80&w=800">
@@ -172,10 +189,7 @@ export const ProFinance: React.FC<{ user: Professional, transactions?: Transacti
             )}
         </div>
 
-        <button onClick={() => {
-            // SEC-03: Honest feedback instead of fake setTimeout success.
-            notify('Funcionalidade em Implementação', 'O relatório PDF estará disponível em breve.', 'info');
-        }} className="w-full py-5 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-white transition-all"><Share2 size={16}/> Baixar Relatório Mensal</button>
+        <button onClick={() => void handleExport()} className="w-full py-5 border-2 border-dashed border-nature-100 rounded-[2.5rem] text-nature-400 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-white transition-all"><Share2 size={16}/> Baixar Relatório Mensal</button>
       </div>
     </PortalView>
     );

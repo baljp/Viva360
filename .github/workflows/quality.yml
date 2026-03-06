@@ -6,16 +6,16 @@ on:
     - cron: '0 4 * * *'
 
 jobs:
-  test:
-    name: Run E2E & Visual Audit
+  qa-mock:
+    name: Run Regression Checklist (Mock)
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_SECRET: viva360_quality_mock_jwt_secret
       MOCK_MODE: "true"
+      APP_MODE: "MOCK"
+      ENABLE_TEST_MODE: "true"
 
     steps:
     - uses: actions/checkout@v4
@@ -27,7 +27,7 @@ jobs:
         cache: 'npm'
 
     - name: Install dependencies
-      run: npm install
+      run: npm ci
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
@@ -42,6 +42,32 @@ jobs:
         name: playwright-report
         path: playwright-report/
         retention-days: 7
+
+  build-real:
+    name: Build Application (Real Config)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: qa-mock
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      POSTGRES_PRISMA_URL: ${{ secrets.POSTGRES_PRISMA_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
+      MOCK_MODE: "false"
+      APP_MODE: "REAL"
+      ENABLE_TEST_MODE: "false"
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
 
     - name: Build Application
       run: npm run build

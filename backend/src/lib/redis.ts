@@ -26,21 +26,70 @@ if (isServerless && !isMock) {
 
 // Mock Redis Class
 class MockRedis {
+  private values = new Map<string, string>();
   private counters = new Map<string, number>();
+  private expirations = new Map<string, number>();
+
+  private touchExpiry(key: string) {
+    const expiry = this.expirations.get(key);
+    if (expiry && expiry <= Date.now()) {
+      this.expirations.delete(key);
+      this.values.delete(key);
+      this.counters.delete(key);
+    }
+  }
+
   on(event: string, cb: (...args: unknown[]) => void) { 
       if (event === 'connect') setTimeout(cb, 0); 
       return this; 
   }
   async incr(key: string) {
+      this.touchExpiry(key);
       const next = (this.counters.get(key) || 0) + 1;
       this.counters.set(key, next);
       return next;
   }
-  async expire() { return 1; }
+  async expire(key: string, seconds: number) {
+      this.expirations.set(key, Date.now() + seconds * 1000);
+      return 1;
+  }
   async publish() { return 1; }
-  async get() { return null; }
-  async set() { return 'OK'; }
-  async del() { return 1; }
+  async get(key: string) {
+      this.touchExpiry(key);
+      return this.values.get(key) ?? null;
+  }
+  async set(key: string, value: string, mode?: string, ttlSeconds?: number) {
+      this.values.set(key, value);
+      if (String(mode || '').toUpperCase() === 'EX' && typeof ttlSeconds === 'number') {
+        await this.expire(key, ttlSeconds);
+      }
+      return 'OK';
+  }
+  async setex(key: string, ttlSeconds: number, value: string) {
+      this.values.set(key, value);
+      await this.expire(key, ttlSeconds);
+      return 'OK';
+  }
+  async del(...keys: string[]) {
+      let deleted = 0;
+      keys.forEach((key) => {
+        this.touchExpiry(key);
+        deleted += Number(this.values.delete(key)) + Number(this.counters.delete(key));
+        this.expirations.delete(key);
+      });
+      return deleted;
+  }
+  async unlink(...keys: string[]) {
+      return this.del(...keys);
+  }
+  async scan(cursor: string, _match: string, pattern: string) {
+      const regex = new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*')}$`);
+      const keys = [...new Set([...this.values.keys(), ...this.counters.keys()])].filter((key) => {
+        this.touchExpiry(key);
+        return regex.test(key);
+      });
+      return [cursor === '0' ? '0' : '0', keys] as const;
+  }
   async quit() { return 'OK'; }
 }
 

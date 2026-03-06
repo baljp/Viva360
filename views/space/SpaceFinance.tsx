@@ -4,6 +4,7 @@ import { ViewState, Transaction } from '../../types';
 import { PortalView } from '../../components/Common';
 import type { SantuarioFlowContextValue } from '../../src/flow/SantuarioFlowContext';
 import type { SantuarioState } from '../../src/flow/santuarioTypes';
+import { financeApi } from '../../services/api/financeClient';
 
 interface SpaceFinanceProps {
     view: ViewState;
@@ -17,8 +18,25 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
     const notify = (title: string, message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') =>
         flow?.notify?.(title, message, type);
 
-    const showImplementing = (feature: string) => {
-        notify('Em Implementação', `${feature} estará disponível em breve.`, 'info');
+    const openBlockingFlow = () => {
+        notify('Bloqueio de horários', 'Abra a agenda para selecionar os períodos que deseja bloquear.', 'info');
+        navigateTo('AGENDA_OVERVIEW');
+    };
+
+    const exportAccounting = async () => {
+        try {
+            const payload = await financeApi.operations.exportReport();
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `viva360-space-finance-${new Date().toISOString().slice(0, 10)}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+            notify('Exportação concluída', 'O pacote contábil foi baixado com sucesso.', 'success');
+        } catch {
+            notify('Falha na exportação', 'Não foi possível gerar o pacote contábil agora.', 'error');
+        }
     };
 
     // ── Derive all metrics from real transactions ──
@@ -148,7 +166,7 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                         {[
                             { label: 'Abrir Horários', icon: Calendar, action: () => navigateTo('AGENDA_OVERVIEW') },
                             { label: 'Criar Evento', icon: Users, action: () => navigateTo('EVENT_CREATE') },
-                            { label: 'Bloquear', icon: AlertTriangle, action: () => showImplementing('Bloqueio de horários') }
+                            { label: 'Bloquear', icon: AlertTriangle, action: openBlockingFlow }
                         ].map(act => (
                             <button key={act.label} onClick={act.action} className="flex-1 py-3 border border-nature-100 rounded-xl flex flex-col items-center gap-1 hover:bg-nature-50 transition-colors active:scale-95">
                                 <act.icon size={14} className="text-nature-400" />
@@ -211,9 +229,9 @@ export const SpaceFinance: React.FC<SpaceFinanceProps> = ({ view, setView, trans
                     <div className="flex flex-col gap-3 pt-2">
                         <div className="grid grid-cols-2 gap-3">
                             <button onClick={() => navigateTo('FINANCE_OVERVIEW')} className="py-3 bg-white border border-indigo-100 rounded-xl text-[10px] font-bold text-indigo-600 uppercase hover:bg-indigo-50 transition-colors">Ver Extrato</button>
-                            <button onClick={() => showImplementing('Solicitação de saque')} className="py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors active:scale-95">Solicitar Saque</button>
+                            <button onClick={() => { notify('Fluxo de saque', 'Defina o valor do saque no painel detalhado.', 'info'); navigateTo('FINANCE_OVERVIEW'); }} className="py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors active:scale-95">Solicitar Saque</button>
                         </div>
-                        <button onClick={() => showImplementing('Exportação contábil')} className="w-full py-3 bg-nature-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-colors">
+                        <button onClick={() => void exportAccounting()} className="w-full py-3 bg-nature-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-colors">
                             Exportar p/ Contabilidade
                         </button>
                     </div>
