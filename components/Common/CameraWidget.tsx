@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react';
-import { ArrowLeft, Camera, ImageIcon, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, Camera, CheckCircle2, ImageIcon, Sparkles, X } from 'lucide-react';
 import { captureFrontendError } from '../../lib/frontendLogger';
+import { useAppToast } from '../../src/contexts/AppToastContext';
 
 export type CameraCaptureResult = {
   fullBlob: Blob;
@@ -286,7 +287,10 @@ export const CameraWidget: React.FC<{
   const [camError, setCamError] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const [flash, setFlash] = useState(false);
+  const [uploadState, setUploadState] = useState<'idle' | 'processing' | 'ready'>('idle');
+  const [lastImportedLabel, setLastImportedLabel] = useState<string | null>(null);
   const effectPreset = useMemo(() => resolveCameraEffectPreset(effectKey), [effectKey]);
+  const { showToast } = useAppToast();
 
   useEffect(() => {
     let mediaStream: MediaStream | null = null;
@@ -457,6 +461,8 @@ export const CameraWidget: React.FC<{
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setUploadState('processing');
+    setLastImportedLabel(file.name);
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = async () => {
@@ -471,12 +477,26 @@ export const CameraWidget: React.FC<{
         ctx.imageSmoothingQuality = 'high';
         drawFramedPhoto(ctx, img, img.width, img.height, w, h);
         await finishCapture();
+        setUploadState('ready');
+        showToast({
+          title: 'Foto importada',
+          message: 'Imagem da galeria preparada com o mesmo tratamento premium da câmera.',
+          type: 'success',
+        });
       } catch (error) {
         captureFrontendError(error, { component: 'CameraWidget', op: 'uploadCapture' });
         setCamError('Não foi possível preparar essa imagem. Tente outra foto.');
+        setUploadState('idle');
       } finally {
         URL.revokeObjectURL(url);
+        e.target.value = '';
       }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      e.target.value = '';
+      setUploadState('idle');
+      setCamError('Não foi possível abrir essa imagem. Tente outro arquivo.');
     };
     img.src = url;
   };
@@ -510,7 +530,7 @@ export const CameraWidget: React.FC<{
         <canvas ref={canvasRef} className="hidden" />
 
         {flash && <div className="pointer-events-none absolute inset-0 z-30 bg-white/80" />}
-        {isCapturing && <div className="pointer-events-none absolute inset-0 z-20 bg-black/20 backdrop-blur-[1px]" />}
+        {(isCapturing || uploadState === 'processing') && <div className="pointer-events-none absolute inset-0 z-20 bg-black/20 backdrop-blur-[1px]" />}
 
         <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_38%)]" />
         <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle,transparent_45%,rgba(0,0,0,0.42)_100%)]" />
@@ -566,6 +586,28 @@ export const CameraWidget: React.FC<{
 
         {!camError && (
           <>
+            {uploadState !== 'idle' && (
+              <div className="pointer-events-none absolute inset-x-4 top-[8.5rem] z-20 flex justify-center sm:inset-x-6 sm:top-[9.5rem]">
+                <div className="max-w-md rounded-[1.6rem] border border-white/10 bg-black/28 px-4 py-3 text-center backdrop-blur-2xl shadow-xl">
+                  <div className="flex items-center justify-center gap-2">
+                    {uploadState === 'processing' ? (
+                      <>
+                        <Sparkles size={14} className="text-white/80 animate-spin" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.24em] text-white/80">Lapidando imagem da galeria</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 size={14} className="text-emerald-200" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.24em] text-white/80">Galeria integrada ao ritual</span>
+                      </>
+                    )}
+                  </div>
+                  {lastImportedLabel ? (
+                    <p className="mt-2 truncate text-[11px] text-white/56">{lastImportedLabel}</p>
+                  ) : null}
+                </div>
+              </div>
+            )}
             <div className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-5 ${immersive ? 'pb-24 pt-36 sm:px-10 sm:pb-28' : 'pb-12 pt-12 sm:px-8'}`}>
               <div className="relative h-full max-h-[72vh] w-full max-w-[26rem] rounded-[2.8rem] border shadow-[0_0_60px_rgba(0,0,0,0.25)] sm:max-w-[28rem]"
                 style={{ borderColor: effectPreset.borderColor }}
@@ -594,10 +636,10 @@ export const CameraWidget: React.FC<{
                 <>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="flex h-14 min-w-[5rem] items-center justify-center gap-2 rounded-[1.4rem] border border-white/10 bg-white/8 px-4 text-white/90 transition-all hover:bg-white/14 active:scale-95"
+                    className={`flex h-14 min-w-[5rem] items-center justify-center gap-2 rounded-[1.4rem] border px-4 transition-all active:scale-95 ${uploadState === 'ready' ? 'border-emerald-200/30 bg-emerald-100/12 text-emerald-50 hover:bg-emerald-100/16' : 'border-white/10 bg-white/8 text-white/90 hover:bg-white/14'}`}
                   >
                     <ImageIcon size={18} />
-                    <span className="text-[10px] font-black uppercase tracking-[0.18em]">{uploadLabel}</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.18em]">{uploadState === 'ready' ? 'Importado' : uploadLabel}</span>
                   </button>
                   <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
                 </>
