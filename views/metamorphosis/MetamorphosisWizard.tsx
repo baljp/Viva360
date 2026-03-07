@@ -352,31 +352,79 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
 
                 {/* STEP 4: THE SOUL CARD REVEAL */}
                 {step === 4 && result && (
-                    <div className="flex-1 flex flex-col items-center animate-in zoom-in duration-1000">
+                    <div className="flex-1 animate-in zoom-in duration-1000">
                         {/* Hidden Canvas - Source of Truth */}
                         <canvas ref={canvasRef} className="hidden" />
 
-                        {/* LIVE PREVIEW - Uses the canvas data manually to show WYSIWYG */}
-                        <div className="relative w-full max-w-[350px] shadow-2xl rounded-[10px] overflow-hidden border-4 border-white" style={{ aspectRatio: format === 'STORY' ? '9 / 16' : '4 / 5' }}>
-                            {previewUrl ? (
-                                <img src={previewUrl} className="w-full h-full object-contain animate-in fade-in duration-500" alt="Soul Card Preview" />
-                            ) : (
-                                <div className="flex flex-col items-center justify-center h-full gap-4">
-                                    <Sparkles size={32} className="text-amber-400 animate-spin" />
-                                    <p className="text-[10px] text-nature-400 font-bold uppercase tracking-widest">Cristalizando...</p>
+                        <div className="mx-auto flex h-full w-full max-w-6xl flex-col justify-center gap-10 px-2 pb-6 pt-2 lg:flex-row lg:items-center lg:px-6">
+                            <div className="order-2 flex-1 lg:order-1">
+                                <div className="mb-4 flex flex-wrap gap-3">
+                                    <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white/60 backdrop-blur-xl">
+                                        Card da Alma
+                                    </span>
+                                    <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-emerald-700 backdrop-blur-xl">
+                                        {result.mood}
+                                    </span>
                                 </div>
-                            )}
-                        </div>
 
-                        <MetamorphosisShareControls
-                            format={format}
-                            setFormat={setFormat}
-                            isDrawing={isDrawing}
-                            onShare={shareCard}
-                            onDownload={downloadCard}
-                            onComplete={() => setStep(5)}
-                            onCancel={cancelRitual}
-                        />
+                                <h2 className="text-4xl font-serif italic leading-tight text-nature-900 md:text-5xl">
+                                    Sua metamorfose agora tem forma, linguagem e presença visual.
+                                </h2>
+                                <p className="mt-4 max-w-xl text-sm leading-6 text-nature-500 md:text-base">
+                                    Revise a composição final do card, escolha o formato ideal para story ou feed e decida se quer compartilhar ou guardar no grimório.
+                                </p>
+
+                                <div className="mt-8 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-3">
+                                    <div className="rounded-[1.6rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Humor</p>
+                                        <p className="mt-2 text-sm font-semibold text-nature-900">{result.mood}</p>
+                                    </div>
+                                    <div className="rounded-[1.6rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Composição</p>
+                                        <p className="mt-2 text-sm font-semibold text-nature-900">Editorial leve</p>
+                                    </div>
+                                    <div className="rounded-[1.6rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Saída</p>
+                                        <p className="mt-2 text-sm font-semibold text-nature-900">Feed e arquivo</p>
+                                    </div>
+                                </div>
+
+                                <MetamorphosisShareControls
+                                    format={format}
+                                    setFormat={setFormat}
+                                    isDrawing={isDrawing}
+                                    onShare={shareCard}
+                                    onDownload={downloadCard}
+                                    onComplete={() => setStep(5)}
+                                    onCancel={cancelRitual}
+                                />
+                            </div>
+
+                            <div className="order-1 flex w-full justify-center lg:order-2 lg:w-auto">
+                                <div className="relative w-full max-w-[390px] rounded-[2.4rem] border border-white/60 bg-white/70 p-4 shadow-[0_40px_120px_rgba(15,23,42,0.18)] backdrop-blur-2xl">
+                                    <div className="mb-4 flex items-center justify-between rounded-[1.5rem] border border-nature-100 bg-white px-4 py-3">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Prévia final</p>
+                                            <p className="mt-1 text-sm font-medium text-nature-600">Composição pronta para circulação</p>
+                                        </div>
+                                        <span className="rounded-full border border-nature-100 bg-nature-50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-nature-500">
+                                            {format === 'STORY' ? '9:16' : '4:5'}
+                                        </span>
+                                    </div>
+
+                                    <div className="relative overflow-hidden rounded-[1.8rem] border border-white bg-white shadow-2xl" style={{ aspectRatio: format === 'STORY' ? '9 / 16' : '4 / 5' }}>
+                                        {previewUrl ? (
+                                            <img src={previewUrl} className="h-full w-full object-contain animate-in fade-in duration-500" alt="Soul Card Preview" />
+                                        ) : (
+                                            <div className="flex h-full flex-col items-center justify-center gap-4 bg-nature-50">
+                                                <Sparkles size={32} className="text-amber-400 animate-spin" />
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-nature-400">Cristalizando...</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 )}
 

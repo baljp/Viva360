@@ -35,39 +35,41 @@ export const MetamorphosisShareControls: React.FC<{
   onComplete: () => void;
   onCancel: () => void;
 }> = ({ format, setFormat, isDrawing, onShare, onDownload, onComplete, onCancel }) => (
-  <>
-    <div className="flex gap-2 mt-8 mb-6 w-full px-4">
+  <div className="mt-8 w-full max-w-md space-y-4">
+    <div className="grid grid-cols-2 gap-3 rounded-[2rem] border border-white/10 bg-white/6 p-2 backdrop-blur-xl">
       {(['STORY', 'POST'] as const).map((f) => (
-        <button key={f} onClick={() => setFormat(f)} className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${format === f ? 'bg-indigo-900 text-white' : 'bg-white text-indigo-400'}`}>
-          {f === 'STORY' ? '9:16 Story' : '4:5 Feed'}
+        <button key={f} onClick={() => setFormat(f)} className={`rounded-[1.4rem] py-4 text-[10px] font-black uppercase tracking-[0.28em] transition-all ${format === f ? 'bg-white text-nature-950 shadow-lg' : 'bg-transparent text-white/55 hover:bg-white/5 hover:text-white'}`}>
+          {f === 'STORY' ? 'Story 9:16' : 'Feed 4:5'}
         </button>
       ))}
     </div>
 
-    <div className="w-full grid grid-cols-2 gap-4 px-4">
-      <button onClick={onShare} disabled={isDrawing} className="col-span-2 py-5 bg-nature-900 text-white rounded-[2rem] flex items-center justify-center gap-3 font-bold uppercase text-[10px] tracking-[0.3em] shadow-2xl active:scale-95 transition-all disabled:opacity-50">
-        {isDrawing ? <Sparkles size={18} className="animate-spin" /> : <Share2 size={18} />}
-        {isDrawing ? 'Preparando Card...' : 'Viralizar Jornada'}
-      </button>
-      <button onClick={onDownload} className="py-4 bg-white border border-nature-100 rounded-2xl flex items-center justify-center gap-2 font-bold uppercase text-[9px] tracking-widest text-nature-400 active:scale-95 transition-all">
+    <button onClick={onShare} disabled={isDrawing} className="inline-flex w-full items-center justify-center gap-3 rounded-[1.8rem] bg-emerald-400 px-6 py-5 text-[11px] font-black uppercase tracking-[0.32em] text-nature-950 shadow-[0_24px_60px_rgba(16,185,129,0.26)] transition-all active:scale-95 hover:bg-emerald-300 disabled:opacity-50">
+      {isDrawing ? <Sparkles size={18} className="animate-spin" /> : <Share2 size={18} />}
+      {isDrawing ? 'Preparando Card...' : 'Compartilhar Jornada'}
+    </button>
+
+    <div className="grid grid-cols-2 gap-3">
+      <button onClick={onDownload} className="inline-flex items-center justify-center gap-2 rounded-[1.6rem] border border-white/10 bg-white/8 px-4 py-4 text-[10px] font-black uppercase tracking-[0.24em] text-white transition-all active:scale-95 hover:bg-white/12">
         <Download size={16} /> Salvar HD
       </button>
-      <button onClick={onComplete} className="py-4 bg-emerald-500 text-white rounded-2xl flex items-center justify-center gap-2 font-bold uppercase text-[9px] tracking-widest active:scale-95 transition-all">
-        <CheckCircle size={16} /> Concluir Ritual
-      </button>
-      <button onClick={onCancel} className="col-span-2 py-3 text-nature-400 text-[10px] font-bold uppercase tracking-widest hover:text-rose-500 transition-colors">
-        <X size={14} className="inline mr-1 -mt-0.5" />Cancelar Ritual
+      <button onClick={onComplete} className="inline-flex items-center justify-center gap-2 rounded-[1.6rem] bg-white px-4 py-4 text-[10px] font-black uppercase tracking-[0.24em] text-nature-950 transition-all active:scale-95 hover:bg-emerald-50">
+        <CheckCircle size={16} /> Concluir
       </button>
     </div>
-  </>
+
+    <button onClick={onCancel} className="w-full py-3 text-[10px] font-bold uppercase tracking-widest text-white/38 transition-colors hover:text-rose-300">
+      <X size={14} className="mr-1 inline -mt-0.5" />Cancelar Ritual
+    </button>
+  </div>
 );
 
 export const MetamorphosisSuccessStep: React.FC<{
   onOpenGrimoire: () => void;
   onBackToCore: () => void;
 }> = ({ onOpenGrimoire, onBackToCore }) => (
-  <div className="flex-1 flex flex-col items-center justify-center text-center px-8 animate-in fade-in duration-1000">
-    <div className="w-24 h-24 bg-rose-50 rounded-full flex items-center justify-center mb-8 relative">
+  <div className="flex-1 flex flex-col items-center justify-center px-8 text-center animate-in fade-in duration-1000">
+    <div className="relative mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-rose-50">
       <Heart size={48} className="text-rose-400 fill-rose-200 animate-pulse" />
       <div className="absolute -top-2 -right-2 bg-amber-400 text-white p-2 rounded-full rotate-12 shadow-lg">
         <Sparkles size={16} />
@@ -76,7 +78,18 @@ export const MetamorphosisSuccessStep: React.FC<{
     <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Esse dia foi guardado.</h2>
     <p className="text-nature-500 leading-relaxed mb-12">Sua travessia foi registrada com verdade. Sua história continua.</p>
 
-    <div className="flex flex-col w-full gap-4">
+    <div className="mb-8 grid w-full max-w-sm grid-cols-2 gap-3">
+      <div className="rounded-[1.5rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
+        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Arquivo</p>
+        <p className="mt-2 text-sm font-semibold text-nature-900">Grimório</p>
+      </div>
+      <div className="rounded-[1.5rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
+        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Status</p>
+        <p className="mt-2 text-sm font-semibold text-nature-900">Memória ativa</p>
+      </div>
+    </div>
+
+    <div className="flex w-full max-w-sm flex-col gap-4">
       <button onClick={onOpenGrimoire} className="w-full py-5 bg-nature-900 text-white rounded-3xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl">
         Ver Grimório de Cards
       </button>

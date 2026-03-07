@@ -316,55 +316,105 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     }
 
     if (step === 'CAPTURE_REVIEW') {
+        const selectedMood = DAILY_RITUAL_MOODS.find((m) => m.id === data.mood);
         return (
-            <div className="fixed inset-0 z-[200] bg-nature-950 flex flex-col animate-in fade-in overflow-hidden">
-                <div className="h-[12%] flex items-center justify-between px-8 bg-black/40 backdrop-blur-xl relative z-50 border-b border-white/5">
+            <div className="fixed inset-0 z-[200] flex flex-col overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(167,243,208,0.16),_transparent_24%),linear-gradient(180deg,_#07130f_0%,_#0f172a_50%,_#020617_100%)] animate-in fade-in">
+                <div className="relative z-50 flex h-[12%] items-center justify-between border-b border-white/5 bg-black/25 px-6 backdrop-blur-xl md:px-8">
                     <button onClick={() => setStep('CAPTURE')} className="p-4 bg-white/5 rounded-full text-white/70 hover:text-white transition-all active:scale-90 border border-white/10 group">
                         <ArrowRight className="rotate-180 group-hover:-translate-x-1 transition-transform" size={24} />
                     </button>
                     <div className="text-center">
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-400">Essência Capturada</p>
-                        <p className="text-[8px] text-white/30 uppercase mt-1">Prévia da Alma</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-300">Essência Capturada</p>
+                        <p className="mt-1 text-[8px] uppercase text-white/30">Prévia da Alma</p>
                     </div>
                     <button onClick={onClose} className="p-4 bg-white/5 rounded-full text-white/70 hover:text-white transition-all active:scale-90 border border-white/10">
                         <X size={24} />
                     </button>
                 </div>
 
-                <div className="flex-1 p-6 md:p-12 flex items-center justify-center overflow-hidden bg-black">
-                    <div
-                        className="relative h-full max-h-[80vh] rounded-[3rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] group"
-                        style={{ aspectRatio: previewAspectRatio }}
-                    >
-                        {data.image ? (
-                            <>
-                                <img src={data.image} className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl opacity-40" alt="" aria-hidden />
-                                <img src={data.image} className="relative w-full h-full object-contain transition-transform duration-[10000ms] group-hover:scale-[1.02]" alt="Prévia do Jardim da Alma" />
-                            </>
-                        ) : (
-                            <div className="w-full h-full bg-nature-900/50 flex flex-col items-center justify-center text-white/20 gap-4">
-                                <Camera size={48} />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Imagem não encontrada</span>
+                <div className="flex flex-1 flex-col justify-center gap-8 overflow-y-auto px-5 py-6 md:px-10 md:py-10 lg:flex-row lg:items-center lg:gap-12">
+                    <div className="order-2 flex-1 lg:order-1">
+                        <div className="max-w-xl">
+                            <div className="mb-4 flex flex-wrap gap-3">
+                                <span className="rounded-full border border-white/10 bg-white/6 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-white/60 backdrop-blur-xl">
+                                    Novo Registro
+                                </span>
+                                {selectedMood ? (
+                                    <span className="rounded-full border border-emerald-300/20 bg-emerald-300/12 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-emerald-100 backdrop-blur-xl">
+                                        {selectedMood.icon} {selectedMood.label}
+                                    </span>
+                                ) : null}
                             </div>
-                        )}
-                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/40 to-transparent"></div>
-                    </div>
-                </div>
 
-                <div className="p-8 bg-black/60 backdrop-blur-2xl border-t border-white/10 shrink-0">
-                    <div className="max-w-md mx-auto grid grid-cols-2 gap-4">
-                        <button
-                            onClick={() => setStep('CAPTURE')}
-                            className="w-full py-5 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all"
-                        >
-                            Refazer
-                        </button>
-                        <button
-                            onClick={() => setStep('INTENTION')}
-                            className="w-full py-5 bg-white text-nature-950 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(255,255,255,0.1)] hover:shadow-[0_15px_40px_rgba(255,255,255,0.2)]"
-                        >
-                            Confirmar <ArrowRight size={18} className="text-nature-600" />
-                        </button>
+                            <h2 className="text-4xl font-serif italic leading-tight text-white md:text-5xl">
+                                Sua foto já está pronta para virar memória de autocuidado.
+                            </h2>
+                            <p className="mt-4 max-w-lg text-sm leading-6 text-white/65 md:text-base">
+                                Revise o enquadramento, a luz e o tom do tratamento visual. Quando estiver alinhado com o que você sente, siga para a intenção do dia.
+                            </p>
+                        </div>
+
+                        <div className="mt-8 grid max-w-xl grid-cols-1 gap-3 sm:grid-cols-3">
+                            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-4 backdrop-blur-xl">
+                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/40">Formato</p>
+                                <p className="mt-2 text-base font-semibold text-white">Tela cheia</p>
+                            </div>
+                            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-4 backdrop-blur-xl">
+                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/40">Acabamento</p>
+                                <p className="mt-2 text-base font-semibold text-white">Premium sutil</p>
+                            </div>
+                            <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-4 backdrop-blur-xl">
+                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/40">Destino</p>
+                                <p className="mt-2 text-base font-semibold text-white">Diário e feed</p>
+                            </div>
+                        </div>
+
+                        <div className="mt-8 grid max-w-xl grid-cols-2 gap-4">
+                            <button
+                                onClick={() => setStep('CAPTURE')}
+                                className="w-full rounded-[1.5rem] border border-white/10 bg-white/6 py-5 text-[10px] font-black uppercase tracking-[0.24em] text-white transition-all active:scale-95 hover:bg-white/10"
+                            >
+                                Refazer
+                            </button>
+                            <button
+                                onClick={() => setStep('INTENTION')}
+                                className="inline-flex w-full items-center justify-center gap-3 rounded-[1.5rem] bg-white py-5 text-[10px] font-black uppercase tracking-[0.24em] text-nature-950 shadow-[0_20px_50px_rgba(255,255,255,0.14)] transition-all active:scale-95 hover:shadow-[0_25px_60px_rgba(255,255,255,0.2)]"
+                            >
+                                Seguir para intenção <ArrowRight size={18} className="text-nature-600" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="order-1 flex w-full justify-center lg:order-2 lg:w-auto">
+                        <div className="relative w-full max-w-[420px] rounded-[2.5rem] border border-white/10 bg-white/7 p-4 shadow-[0_40px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+                            <div className="mb-4 flex items-center justify-between rounded-[1.5rem] border border-white/8 bg-black/20 px-4 py-3">
+                                <div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/35">Prévia viva</p>
+                                    <p className="mt-1 text-sm font-medium text-white/75">Leitura final do enquadramento</p>
+                                </div>
+                                <span className="rounded-full border border-white/10 bg-white/8 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/60">
+                                    HD
+                                </span>
+                            </div>
+
+                            <div
+                                className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-black/30 shadow-2xl"
+                                style={{ aspectRatio: previewAspectRatio }}
+                            >
+                                {data.image ? (
+                                    <>
+                                        <img src={data.image} className="absolute inset-0 h-full w-full scale-110 object-cover blur-xl opacity-40" alt="" aria-hidden />
+                                        <img src={data.image} className="relative h-full w-full object-contain transition-transform duration-[10000ms] group-hover:scale-[1.02]" alt="Prévia do Jardim da Alma" />
+                                    </>
+                                ) : (
+                                    <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-nature-900/50 text-white/20">
+                                        <Camera size={48} />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Imagem não encontrada</span>
+                                    </div>
+                                )}
+                                <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.05)_0%,transparent_18%,transparent_72%,rgba(0,0,0,0.38)_100%)]"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -396,6 +446,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                 onClose={onClose}
                 canvasRef={canvasRef}
                 snapStub={snapStub}
+                previewUrl={previewUrl}
                 isSaving={isSaving}
                 onConfirm={handleCardConfirm}
                 format={format}

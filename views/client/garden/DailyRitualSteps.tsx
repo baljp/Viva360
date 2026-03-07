@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Download, Droplet, Sparkles, TrendingUp, X } from 'lucide-react';
+import { ArrowRight, Download, Droplet, Sparkles, TrendingUp, X, Share2, CheckCircle2 } from 'lucide-react';
 import type { DailyRitualSnap, MoodType, User } from '../../../types';
 import { SoulCard } from '../../../src/components/SoulCard';
 
@@ -68,6 +68,7 @@ export const DailyRitualCardShareStep: React.FC<{
   onClose: () => void;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
   snapStub: DailyRitualSnap;
+  previewUrl?: string | null;
   isSaving: boolean;
   onConfirm: () => void;
   format: 'STORY' | 'POST';
@@ -75,42 +76,115 @@ export const DailyRitualCardShareStep: React.FC<{
   onShare: () => void;
   onDownload: () => void;
   onNurtureStart: () => void;
-}> = ({ step, onClose, canvasRef, snapStub, isSaving, onConfirm, format, setFormat, onShare, onDownload, onNurtureStart }) => (
-  <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col items-center justify-center p-8 animate-in zoom-in-95 duration-500 overflow-y-auto">
-    <button onClick={onClose} className="absolute top-8 right-8 bg-white/10 p-4 rounded-full text-white z-50 active:scale-90 transition-all"><X size={24} /></button>
+}> = ({ step, onClose, canvasRef, snapStub, previewUrl, isSaving, onConfirm, format, setFormat, onShare, onDownload, onNurtureStart }) => (
+  <div className="fixed inset-0 z-[200] overflow-y-auto bg-[radial-gradient(circle_at_top,_rgba(236,253,245,0.14),_transparent_28%),linear-gradient(180deg,_#07130f_0%,_#0d1715_45%,_#020617_100%)] text-white animate-in fade-in duration-500">
+    <button onClick={onClose} className="absolute top-6 right-6 md:top-8 md:right-8 z-50 rounded-full border border-white/10 bg-white/8 p-4 text-white/80 backdrop-blur-xl transition-all active:scale-90 hover:bg-white/12">
+      <X size={22} />
+    </button>
     <canvas ref={canvasRef} style={{ display: 'none' }} />
-    <div className="w-full max-w-sm relative">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-12 text-white/50 text-xs font-bold uppercase tracking-[0.3em] whitespace-nowrap">Sua Essência de Hoje</div>
-      <SoulCard snap={snapStub} className="shadow-2xl skew-y-1 mb-8" />
 
-      {step === 'CARD' ? (
-        <button onClick={onConfirm} disabled={isSaving} className="w-full py-5 bg-white text-nature-900 rounded-2xl font-bold uppercase tracking-widest shadow-xl hover:bg-nature-50 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-60">
-          {isSaving ? (
-            <><div className="w-4 h-4 border-2 border-nature-300 border-t-nature-900 rounded-full animate-spin"></div> Salvando...</>
-          ) : (
-            <><Sparkles size={18} /> Cristalizar Momento</>
-          )}
-        </button>
-      ) : (
-        <div className="space-y-3 animate-in slide-in-from-bottom fade-in duration-500">
-          <div className="flex gap-2 mb-6">
-            {(['STORY', 'POST'] as const).map((f) => (
-              <button key={f} onClick={() => setFormat(f)} className={`flex-1 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${format === f ? 'bg-nature-900 text-white' : 'bg-nature-50 text-nature-400'}`}>
-                {f === 'STORY' ? '9:16 Story' : '4:5 Feed'}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-3 mb-4">
-            <button onClick={onShare} className="flex-1 py-5 bg-nature-900 text-white rounded-3xl font-bold uppercase tracking-widest text-xs shadow-2xl active:scale-95 transition-all">Compartilhar</button>
-            <button onClick={onDownload} className="p-5 bg-nature-50 text-nature-900 rounded-3xl active:scale-95 transition-all"><Download size={20} /></button>
-          </div>
-          <button onClick={onNurtureStart} className="w-full py-5 bg-emerald-500 text-white rounded-2xl font-bold uppercase tracking-widest shadow-xl hover:bg-emerald-400 active:scale-95 transition-all flex items-center justify-center gap-2">
-            <Droplet size={18} className="fill-white" /> Nutrir Jardim da Alma
-          </button>
-          <p className="text-center text-white/40 text-[10px] uppercase tracking-widest mt-4">Hoje eu cuidei de mim 🌱 #Viva360</p>
+    <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-10 px-5 py-20 md:px-10 lg:flex-row lg:items-center">
+      <div className="relative flex-1">
+        <div className="mb-5 flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.35em] text-emerald-200/80">
+          <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-4 py-2 backdrop-blur-md">Registro do Dia</span>
+          <span className="rounded-full border border-white/10 bg-white/5 px-4 py-2 backdrop-blur-md">Pronto para feed e story</span>
         </div>
-      )}
+
+        <div className="mb-4 max-w-xl">
+          <h2 className="text-4xl font-serif italic leading-tight text-white md:text-5xl">
+            {step === 'CARD' ? 'Lapide sua presença antes de publicar.' : 'Sua memória visual já está pronta para circular.'}
+          </h2>
+          <p className="mt-4 max-w-lg text-sm leading-6 text-white/65 md:text-base">
+            {step === 'CARD'
+              ? 'A imagem já está harmonizada com o seu estado. Faça uma última leitura do card antes de cristalizar o momento no seu Jardim da Alma.'
+              : 'Escolha o formato, salve em alta definição ou compartilhe direto. O card mantém o tom íntimo e aspiracional da plataforma.'}
+          </p>
+        </div>
+
+        <div className="grid max-w-xl grid-cols-1 gap-3 text-sm text-white/70 sm:grid-cols-3">
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-4 backdrop-blur-xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/45">Estado</p>
+            <p className="mt-2 text-base font-semibold text-white">{snapStub.mood || 'SERENO'}</p>
+          </div>
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-4 backdrop-blur-xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/45">Tratamento</p>
+            <p className="mt-2 text-base font-semibold text-white">Editorial suave</p>
+          </div>
+          <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-4 backdrop-blur-xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/45">Entrega</p>
+            <p className="mt-2 text-base font-semibold text-white">Alta definição</p>
+          </div>
+        </div>
+
+        {step === 'CARD' ? (
+          <button onClick={onConfirm} disabled={isSaving} className="mt-8 inline-flex w-full items-center justify-center gap-3 rounded-[1.75rem] bg-white px-7 py-5 text-[11px] font-black uppercase tracking-[0.3em] text-nature-950 shadow-[0_30px_80px_rgba(255,255,255,0.1)] transition-all active:scale-95 hover:shadow-[0_35px_90px_rgba(255,255,255,0.16)] disabled:opacity-60 md:w-auto">
+            {isSaving ? (
+              <>
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-nature-300 border-t-nature-900"></div>
+                Salvando...
+              </>
+            ) : (
+              <>
+                <Sparkles size={18} />
+                Cristalizar Momento
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-bottom duration-500">
+            <div className="grid w-full max-w-xl grid-cols-2 gap-3 rounded-[2rem] border border-white/10 bg-white/6 p-2 backdrop-blur-xl">
+              {(['STORY', 'POST'] as const).map((f) => (
+                <button key={f} onClick={() => setFormat(f)} className={`rounded-[1.4rem] py-4 text-[10px] font-black uppercase tracking-[0.28em] transition-all ${format === f ? 'bg-white text-nature-950 shadow-lg' : 'bg-transparent text-white/55 hover:bg-white/5 hover:text-white'}`}>
+                  {f === 'STORY' ? 'Story 9:16' : 'Feed 4:5'}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+              <button onClick={onShare} className="inline-flex items-center justify-center gap-3 rounded-[1.75rem] bg-emerald-400 px-7 py-5 text-[11px] font-black uppercase tracking-[0.3em] text-nature-950 shadow-[0_24px_60px_rgba(16,185,129,0.28)] transition-all active:scale-95 hover:bg-emerald-300">
+                <Share2 size={18} />
+                Compartilhar Agora
+              </button>
+              <button onClick={onDownload} className="inline-flex items-center justify-center gap-2 rounded-[1.75rem] border border-white/10 bg-white/8 px-6 py-5 text-[10px] font-black uppercase tracking-[0.24em] text-white transition-all active:scale-95 hover:bg-white/12">
+                <Download size={18} />
+                Salvar HD
+              </button>
+            </div>
+
+            <button onClick={onNurtureStart} className="inline-flex w-full max-w-xl items-center justify-center gap-3 rounded-[1.75rem] border border-emerald-300/20 bg-emerald-300/12 px-7 py-5 text-[11px] font-black uppercase tracking-[0.3em] text-white shadow-[0_20px_50px_rgba(16,185,129,0.12)] transition-all active:scale-95 hover:bg-emerald-300/18">
+              <Droplet size={18} className="fill-current" />
+              Nutrir Jardim da Alma
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="relative flex w-full max-w-[420px] flex-col items-center justify-center">
+        <div className="absolute inset-x-10 top-10 h-48 rounded-full bg-emerald-300/20 blur-3xl"></div>
+        <div className="relative w-full rounded-[2.5rem] border border-white/10 bg-white/7 p-4 shadow-[0_40px_120px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
+          <div className="mb-4 flex items-center justify-between rounded-[1.5rem] border border-white/8 bg-black/20 px-4 py-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/40">Prévia Viva360</p>
+              <p className="mt-1 text-sm font-medium text-white/75">{step === 'CARD' ? 'Card-base do ritual' : 'Composição final de compartilhamento'}</p>
+            </div>
+            <div className="rounded-full border border-white/10 bg-white/8 px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/60">
+              {format === 'STORY' ? '9:16' : '4:5'}
+            </div>
+          </div>
+
+          {step === 'SHARE' && previewUrl ? (
+            <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-black/30 shadow-2xl">
+              <img src={previewUrl} alt="Prévia final do ritual" className="h-auto w-full object-cover" />
+            </div>
+          ) : (
+            <SoulCard snap={snapStub} className="shadow-2xl" />
+          )}
+        </div>
+
+        <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.28em] text-white/35">
+          Hoje eu cuidei de mim • Viva360
+        </p>
+      </div>
     </div>
   </div>
 );
@@ -122,7 +196,7 @@ export const DailyRitualNurtureStep: React.FC<{
   onClose: () => void;
   goToEvolution: () => void;
 }> = ({ finalUser, updateUser, user, onClose, goToEvolution }) => (
-  <div className="fixed inset-0 z-[200] bg-emerald-900 flex flex-col items-center justify-center relative overflow-hidden">
+  <div className="fixed inset-0 z-[200] relative flex flex-col items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(110,231,183,0.18),_transparent_24%),linear-gradient(180deg,_#03271d_0%,_#064e3b_45%,_#022c22_100%)]">
     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 animate-pulse"></div>
 
     <div className="relative z-10 flex flex-col items-center gap-8 animate-in slide-in-from-bottom duration-1000">
@@ -141,11 +215,12 @@ export const DailyRitualNurtureStep: React.FC<{
         <div className="px-6 py-2 bg-white/10 rounded-full backdrop-blur-md border border-white/10 text-white text-xs font-bold uppercase tracking-widest">+5 Karma</div>
       </div>
 
-      <div className="flex flex-col gap-3 w-full max-w-xs mt-4">
+      <div className="mt-4 flex w-full max-w-xs flex-col gap-3">
         <button onClick={() => { if (finalUser) updateUser(finalUser); else updateUser(user); goToEvolution(); }} className="w-full px-8 py-4 bg-white/20 backdrop-blur-md text-white rounded-full font-bold uppercase tracking-widest border border-white/20 shadow-xl hover:bg-white/30 active:scale-95 transition-all flex items-center justify-center gap-2">
           <TrendingUp size={16} /> Ver minha Evolução
         </button>
-        <button onClick={() => { if (finalUser) updateUser(finalUser); else updateUser(user); onClose(); }} className="w-full px-8 py-4 bg-white text-emerald-900 rounded-full font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all">
+        <button onClick={() => { if (finalUser) updateUser(finalUser); else updateUser(user); onClose(); }} className="w-full px-8 py-4 bg-white text-emerald-900 rounded-full font-bold uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all inline-flex items-center justify-center gap-2">
+          <CheckCircle2 size={16} />
           Concluir
         </button>
       </div>
