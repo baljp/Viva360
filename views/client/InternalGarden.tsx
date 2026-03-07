@@ -1,20 +1,18 @@
 import React, { useMemo, useState } from 'react';
-import { User, ViewState } from '../../types';
-import { Droplet, Heart, Leaf, Share2, BookOpen, Clapperboard, Plus, Sparkles, X } from 'lucide-react';
+import { User } from '../../types';
+import { Heart, Share2, Sparkles, X } from 'lucide-react';
 import { PortalView } from '../../components/Common';
 import { gardenService, GardenStatus } from '../../services/gardenService';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
 import { api } from '../../services/api';
-import { DailyRitualWizard } from './garden/DailyRitualWizard';
 import { generateShareCanvas, shareToSocial } from '../../src/utils/sharing';
 import { useIdbImageUrl } from '../../src/hooks/useIdbImageUrl';
 import { buildLocalImageKey } from '../../src/utils/idbImageStore';
 import { buildSoulJourneyModel } from './garden/soulJourneyModel';
 
 export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
-    const { go, back, notify} = useBuscadorFlow();
-    const [status, setStatus] = useState<{ status: GardenStatus; health: number; recoveryNeeded: boolean }>(gardenService.getPlantStatus(user));
-    const [isRitualActive, setIsRitualActive] = useState(false);
+    const { go, notify} = useBuscadorFlow();
+    const [status] = useState<{ status: GardenStatus; health: number; recoveryNeeded: boolean }>(gardenService.getPlantStatus(user));
     const [activeModal, setActiveModal] = useState<'journey' | 'tribe' | null>(!user.plantType ? 'journey' : null);
 
     const plantVisuals = gardenService.getPlantVisuals(user.plantStage || 'seed', status.status, user.plantType || 'oak');
@@ -23,13 +21,6 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
     const latestSnap = (user.snaps || [])[0];
     const latestSnapSrc = useIdbImageUrl(latestSnap?.id ? buildLocalImageKey(String(latestSnap.id)) : null, latestSnap?.image || '');
     const journeyModel = useMemo(() => buildSoulJourneyModel(user), [user]);
-
-    const handleRitualComplete = (updatedUser: User) => {
-        updateUser(updatedUser);
-        setStatus(gardenService.getPlantStatus(updatedUser));
-        setIsRitualActive(false);
-        notify('Ciclo Concluído', 'Seu jardim floresce com sua presença.', 'info');
-    };
 
     const handleTribeAction = (action: 'BLESSING' | 'UNION' | 'PACT') => {
         setActiveModal(null);
@@ -80,10 +71,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
             heroImage="https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=800"
         >
             
-            {isRitualActive ? (
-                <DailyRitualWizard user={user} updateUser={handleRitualComplete} onClose={() => setIsRitualActive(false)} />
-            ) : (
-                <>
+            <>
                     <div className="flex flex-col h-full bg-gradient-to-b from-transparent to-nature-50/50 pb-32">
                         <div className="px-6 mt-6">
                             <section className="overflow-hidden rounded-[2.5rem] border border-white/60 bg-[linear-gradient(135deg,#f6fbf8_0%,#ffffff_55%,#eef6f0_100%)] shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
@@ -114,36 +102,57 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                                             ))}
                                         </div>
 
-                                        <div className="grid grid-cols-3 gap-3">
+                                        <div className="grid gap-3 sm:grid-cols-2">
                                             <button
-                                                onClick={() => setIsRitualActive(true)}
-                                                className="rounded-[1.8rem] bg-nature-900 px-4 py-4 text-left text-white shadow-xl transition-all active:scale-95"
-                                            >
-                                                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
-                                                    <Plus size={18} />
-                                                </div>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/50">Novo Registro</p>
-                                                <p className="mt-1 text-sm font-bold">Regar agora</p>
-                                            </button>
-                                            <button
-                                                onClick={() => go('CLIENT_JOURNAL')}
-                                                className="rounded-[1.8rem] border border-nature-100 bg-white px-4 py-4 text-left shadow-sm transition-all active:scale-95"
-                                            >
-                                                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                                                    <BookOpen size={18} />
-                                                </div>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Diário</p>
-                                                <p className="mt-1 text-sm font-bold text-nature-900">Ver memórias</p>
-                                            </button>
-                                            <button
-                                                onClick={() => go('TIME_LAPSE_EXPERIENCE')}
+                                                onClick={() => setActiveModal('tribe')}
                                                 className="rounded-[1.8rem] border border-nature-100 bg-white px-4 py-4 text-left shadow-sm transition-all active:scale-95"
                                             >
                                                 <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
-                                                    <Clapperboard size={18} />
+                                                    <Heart size={18} />
                                                 </div>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Time Lapse</p>
-                                                <p className="mt-1 text-sm font-bold text-nature-900">Virar vídeo</p>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Cuidado Coletivo</p>
+                                                <p className="mt-1 text-sm font-bold text-nature-900">Pedir apoio da tribo</p>
+                                            </button>
+                                            <button
+                                                onClick={async () => {
+                                                    const stageLabel = `${user.plantStage?.toUpperCase() || 'SEMENTE'} DE ${gardenService.getPlantLabel(user.plantType || 'oak').toUpperCase()}`;
+                                                    let inviteUrl: string | undefined;
+                                                    try {
+                                                        const created = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' });
+                                                        inviteUrl = String((created as Record<string, unknown>)?.url || '').trim() || undefined;
+                                                    } catch {
+                                                        // ignore
+                                                    }
+                                                    const blob = await generateShareCanvas({
+                                                        title: 'Meu Jardim da Alma',
+                                                        subtitle: stageLabel,
+                                                        message: `${evolutionState.label} • Vitalidade ${status.health}%\n\nVem plantar a sua semente comigo.`,
+                                                        imageUrl: latestSnapSrc || latestSnap?.image || 'https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=1080',
+                                                        accentColor: '#10b981',
+                                                        footer: 'FLORESCENDO NO VIVA360',
+                                                        date: new Date().toLocaleDateString('pt-BR'),
+                                                        format: 'story',
+                                                        mimeType: 'image/jpeg',
+                                                        overlayIcon: { text: plantVisuals.icon, size: 160 },
+                                                    });
+
+                                                    if (blob) {
+                                                        await shareToSocial(blob, {
+                                                            platform: 'whatsapp',
+                                                            title: 'Meu Jardim da Alma • Viva360',
+                                                            text: `🌿 ${stageLabel}\n${plantVisuals.icon} Vitalidade: ${status.health}%\n${evolutionState.label}\n\nVem plantar a sua semente comigo no Viva360.`,
+                                                            ...(inviteUrl ? { url: inviteUrl } : {}),
+                                                            filename: `viva360-jardim-${new Date().toISOString().slice(0, 10)}.jpg`,
+                                                        });
+                                                    }
+                                                }}
+                                                className="rounded-[1.8rem] border border-nature-100 bg-white px-4 py-4 text-left shadow-sm transition-all active:scale-95"
+                                            >
+                                                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                                    <Share2 size={18} />
+                                                </div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Partilha Viva</p>
+                                                <p className="mt-1 text-sm font-bold text-nature-900">Compartilhar meu jardim</p>
                                             </button>
                                         </div>
                                     </div>
@@ -204,58 +213,13 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                             </div>
                         </div>
 
-                        {/* Actions Footer */}
-                        <div className="px-6 space-y-4">
-                             <button 
-                                onClick={() => setIsRitualActive(true)}
-                                className="w-full py-6 rounded-[2.5rem] bg-[#1f2f2a] text-[#f5f5f2] shadow-[0_18px_40px_rgba(0,0,0,0.25)] active:scale-95 transition-all relative overflow-hidden group border border-white/10"
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-r from-[#1f2f2a] to-[#2a3f39] group-hover:scale-105 transition-transform duration-1000"></div>
-                                <div className="relative z-10 flex items-center justify-center gap-3">
-                                    <Droplet size={20} className="fill-[#f5f5f2] animate-bounce" />
-                                    <span className="text-xs font-bold uppercase tracking-[0.25em]">Regar com Intenção</span>
-                                </div>
-                                <p className="relative z-10 text-[9px] text-[#f5f5f2]/50 uppercase tracking-widest mt-1">Ritual Diário • 1 min</p>
-                            </button>
-
-
-                            <button 
-                                onClick={async () => {
-                                    const stageLabel = `${user.plantStage?.toUpperCase() || 'SEMENTE'} DE ${gardenService.getPlantLabel(user.plantType || 'oak').toUpperCase()}`;
-                                    let inviteUrl: string | undefined;
-                                    try {
-                                        const created = await api.invites.create({ kind: 'tribo', targetRole: 'CLIENT' });
-                                        inviteUrl = String((created as Record<string, unknown>)?.url || '').trim() || undefined;
-                                    } catch {
-                                        // ignore
-                                    }
-                                    const blob = await generateShareCanvas({
-                                        title: 'Meu Jardim da Alma',
-                                        subtitle: stageLabel,
-                                        message: `${evolutionState.label} • Vitalidade ${status.health}%\n\nVem plantar a sua semente comigo.`,
-                                        imageUrl: latestSnapSrc || latestSnap?.image || 'https://images.unsplash.com/photo-1592323287019-2169b1834225?q=80&w=1080',
-                                        accentColor: '#10b981', // Emerald for Garden
-                                        footer: 'FLORESCENDO NO VIVA360',
-                                        date: new Date().toLocaleDateString('pt-BR'),
-                                        format: 'story',
-                                        mimeType: 'image/jpeg',
-                                        overlayIcon: { text: plantVisuals.icon, size: 160 },
-                                    });
-
-                                    if (blob) {
-                                        await shareToSocial(blob, {
-                                            platform: 'whatsapp',
-                                            title: 'Meu Jardim da Alma • Viva360',
-                                            text: `🌿 ${stageLabel}\n${plantVisuals.icon} Vitalidade: ${status.health}%\n${evolutionState.label}\n\nVem plantar a sua semente comigo no Viva360.`,
-                                            ...(inviteUrl ? { url: inviteUrl } : {}),
-                                            filename: `viva360-jardim-${new Date().toISOString().slice(0, 10)}.jpg`,
-                                        });
-                                    }
-                                }}
-                                className="w-full py-5 rounded-2xl bg-white border border-nature-200 text-nature-600 font-bold uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 hover:bg-nature-50 transition-colors shadow-sm"
-                            >
-                                <Share2 size={16} /> Compartilhar meu Jardim
-                            </button>
+                        <div className="px-6">
+                            <div className="rounded-[2rem] border border-white/60 bg-white/80 px-5 py-5 text-center shadow-sm">
+                                <p className="text-[10px] font-black uppercase tracking-[0.28em] text-nature-400">Presença do Jardim</p>
+                                <p className="mt-3 text-sm leading-relaxed text-nature-500">
+                                    Aqui você contempla sinais, vitalidade e o último reflexo da sua jornada. Os rituais ativos continuam no início do perfil para manter o fluxo mais limpo.
+                                </p>
+                            </div>
                         </div>
                     </div>
 
@@ -335,8 +299,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
                              </div>
                         </div>
                     )}
-                </>
-            )}
+            </>
         </PortalView>
     );
 };

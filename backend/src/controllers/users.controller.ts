@@ -5,6 +5,7 @@ import { z } from 'zod';
 import prisma from '../lib/prisma';
 import { getMockProfile, isMockMode, saveMockProfile } from '../services/mockAdapter';
 import type { AuthenticatedRequest } from '../types/request';
+import { isDbUnavailableError } from '../lib/dbReadFallback';
 
 const checkInSchema = z.object({
     reward: z.number().int().min(1).max(1500).optional()
@@ -98,6 +99,50 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         return res.status(401).json({ error: 'Unauthorized check-in', code: 'UNAUTHORIZED_CHECKIN' });
     }
 
+    if (isMockMode()) {
+        const now = new Date();
+        const current = getMockProfile(userId);
+        if (!current) {
+            return res.status(404).json({ error: 'User not found', code: 'USER_NOT_FOUND' });
+        }
+        const todayKey = now.toISOString().slice(0, 10);
+        const existingCheckIn = String(current.lastCheckIn || '').slice(0, 10);
+        if (existingCheckIn === todayKey) {
+            return res.status(409).json({
+                code: 'CHECKIN_ALREADY_DONE',
+                status: 'ALREADY_DONE',
+                reward: 0,
+                lastCheckIn: current.lastCheckIn || null,
+                requestId: String(request.requestId || ''),
+                timestamp: now.toISOString(),
+                user: {
+                    ...current,
+                    lastCheckIn: current.lastCheckIn || null,
+                },
+            });
+        }
+
+        const updatedMockProfile = saveMockProfile({
+            ...current,
+            karma: Number(current.karma || 0) + reward,
+            streak: Math.max(1, Number(current.streak || 0) + 1),
+            lastCheckIn: now.toISOString(),
+        });
+
+        return res.json({
+            code: 'CHECKIN_DONE',
+            status: 'DONE',
+            requestId: String(request.requestId || ''),
+            timestamp: now.toISOString(),
+            user: {
+                ...updatedMockProfile,
+                lastCheckIn: updatedMockProfile.lastCheckIn || now.toISOString(),
+            },
+            reward,
+            lastCheckIn: updatedMockProfile.lastCheckIn || now.toISOString(),
+        });
+    }
+
     // Update User Karma & Last Checkin
     const { data: user, error } = await supabaseAdmin
         .from('profiles')
@@ -173,54 +218,58 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
             });
         }
 
+        if (isMockMode() && isDbUnavailableError(createError)) {
+            usingEventFallback = true;
+            hadYesterday = null;
+        } else
         if (!isMissingTableOrColumnError(createError)) {
             throw createError;
-        }
+        } else {
+            usingEventFallback = true;
+            const nowStart = getStartOfUtcDay(now);
+            const yesterdayStart = new Date(nowStart);
+            yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
+            const yesterdayEnd = new Date(nowStart);
 
-        usingEventFallback = true;
-        const nowStart = getStartOfUtcDay(now);
-        const yesterdayStart = new Date(nowStart);
-        yesterdayStart.setUTCDate(yesterdayStart.getUTCDate() - 1);
-        const yesterdayEnd = new Date(nowStart);
-
-        const [alreadyDoneToday, hadYesterdayEvent] = await Promise.all([
-            prisma.event.findFirst({
-                where: {
-                    stream_id: userId,
-                    type: todayAction,
-                    created_at: { gte: nowStart },
-                },
-                select: { created_at: true },
-                orderBy: { created_at: 'desc' },
-            }),
-            prisma.event.findFirst({
-                where: {
-                    stream_id: userId,
-                    type: yesterdayAction,
-                    created_at: {
-                        gte: yesterdayStart,
-                        lt: yesterdayEnd,
+            const [alreadyDoneToday, hadYesterdayEvent] = await Promise.all([
+                prisma.event.findFirst({
+                    where: {
+                        stream_id: userId,
+                        type: todayAction,
+                        created_at: { gte: nowStart },
                     },
-                },
-                select: { id: true },
-            }),
-        ]);
+                    select: { created_at: true },
+                    orderBy: { created_at: 'desc' },
+                }),
+                prisma.event.findFirst({
+                    where: {
+                        stream_id: userId,
+                        type: yesterdayAction,
+                        created_at: {
+                            gte: yesterdayStart,
+                            lt: yesterdayEnd,
+                        },
+                    },
+                    select: { id: true },
+                }),
+            ]);
 
-        if (alreadyDoneToday) {
-            return res.status(409).json({
-                code: 'CHECKIN_ALREADY_DONE',
-                status: 'ALREADY_DONE',
-                reward: 0,
-                lastCheckIn: alreadyDoneToday.created_at,
-                requestId,
-                timestamp: now.toISOString(),
-                user: {
-                    ...user,
+            if (alreadyDoneToday) {
+                return res.status(409).json({
+                    code: 'CHECKIN_ALREADY_DONE',
+                    status: 'ALREADY_DONE',
+                    reward: 0,
                     lastCheckIn: alreadyDoneToday.created_at,
-                },
-            });
+                    requestId,
+                    timestamp: now.toISOString(),
+                    user: {
+                        ...user,
+                        lastCheckIn: alreadyDoneToday.created_at,
+                    },
+                });
+            }
+            hadYesterday = hadYesterdayEvent;
         }
-        hadYesterday = hadYesterdayEvent;
     }
 
     // Apply Reward
@@ -300,7 +349,7 @@ export const getById = asyncHandler(async (req: Request, res: Response) => {
         }
         return res.json({
             ...mockProfile,
-            lastCheckIn: null,
+            lastCheckIn: mockProfile.lastCheckIn || null,
             last_mood: null,
             evolution_score: 0,
             snaps: [],

@@ -152,6 +152,7 @@ export type MockProfile = {
   karma: number;
   streak: number;
   multiplier: number;
+  lastCheckIn?: string | null;
   dailyQuests?: unknown[];
   achievements?: unknown[];
 };

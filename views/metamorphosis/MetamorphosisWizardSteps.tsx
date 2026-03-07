@@ -68,17 +68,28 @@ export const MetamorphosisSuccessStep: React.FC<{
   onOpenGrimoire: () => void;
   onBackToCore: () => void;
 }> = ({ onOpenGrimoire, onBackToCore }) => (
-  <div className="flex-1 flex flex-col items-center justify-center px-8 text-center animate-in fade-in duration-1000">
-    <div className="relative mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-rose-50">
+  <div className="relative flex-1 flex flex-col items-center justify-center px-8 text-center animate-in fade-in duration-1000 overflow-hidden">
+    <div className="absolute left-1/2 top-20 h-64 w-64 -translate-x-1/2 rounded-full bg-rose-200/20 blur-3xl"></div>
+    <div className="absolute left-1/2 top-20 h-80 w-80 -translate-x-1/2 rounded-full border border-rose-100/40 opacity-50 animate-pulse"></div>
+
+    <div className="relative mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-rose-50 animate-in animate-delay-100">
       <Heart size={48} className="text-rose-400 fill-rose-200 animate-pulse" />
       <div className="absolute -top-2 -right-2 bg-amber-400 text-white p-2 rounded-full rotate-12 shadow-lg">
         <Sparkles size={16} />
       </div>
     </div>
-    <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Esse dia foi guardado.</h2>
-    <p className="text-nature-500 leading-relaxed mb-12">Sua travessia foi registrada com verdade. Sua história continua.</p>
 
-    <div className="mb-8 grid w-full max-w-sm grid-cols-2 gap-3">
+    <div className="space-y-3 animate-in animate-delay-200">
+      <div className="inline-flex items-center rounded-full border border-nature-100 bg-white px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-rose-500 shadow-sm">
+        Metamorfose concluída
+      </div>
+      <h2 className="text-3xl font-serif italic text-nature-900 mb-4">Esse dia foi guardado.</h2>
+      <p className="mx-auto max-w-md text-nature-500 leading-relaxed mb-12">
+        Sua travessia foi registrada com verdade. O card agora faz parte do seu repertório simbólico e pode ser compartilhado sem perder a intimidade do ritual.
+      </p>
+    </div>
+
+    <div className="mb-8 grid w-full max-w-sm grid-cols-2 gap-3 animate-in animate-delay-300">
       <div className="rounded-[1.5rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
         <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Arquivo</p>
         <p className="mt-2 text-sm font-semibold text-nature-900">Grimório</p>
@@ -89,13 +100,32 @@ export const MetamorphosisSuccessStep: React.FC<{
       </div>
     </div>
 
-    <div className="flex w-full max-w-sm flex-col gap-4">
-      <button onClick={onOpenGrimoire} className="w-full py-5 bg-nature-900 text-white rounded-3xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl">
+    <div className="mb-6 grid w-full max-w-md grid-cols-3 gap-3 animate-in animate-delay-300">
+      <div className="rounded-[1.35rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-nature-400">Humor</p>
+        <p className="mt-2 text-sm font-semibold text-nature-900">Lido</p>
+      </div>
+      <div className="rounded-[1.35rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-nature-400">Imagem</p>
+        <p className="mt-2 text-sm font-semibold text-nature-900">Selada</p>
+      </div>
+      <div className="rounded-[1.35rem] border border-nature-100 bg-white px-4 py-4 shadow-sm">
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-nature-400">Card</p>
+        <p className="mt-2 text-sm font-semibold text-nature-900">Ativo</p>
+      </div>
+    </div>
+
+    <div className="flex w-full max-w-sm flex-col gap-4 animate-in animate-delay-300">
+      <button onClick={onOpenGrimoire} className="w-full py-5 bg-nature-900 text-white rounded-3xl font-bold text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-[1.01] active:scale-95 transition-all">
         Ver Grimório de Cards
       </button>
-      <button onClick={onBackToCore} className="w-full py-5 bg-nature-100 text-nature-600 rounded-3xl font-bold text-[10px] uppercase tracking-[0.3em]">
+      <button onClick={onBackToCore} className="w-full py-5 bg-nature-100 text-nature-600 rounded-3xl font-bold text-[10px] uppercase tracking-[0.3em] hover:bg-nature-200 active:scale-95 transition-all">
         Voltar ao Core
       </button>
     </div>
+
+    <p className="mt-2 text-[10px] font-black uppercase tracking-[0.28em] text-nature-300 animate-in animate-delay-300">
+      presença registrada • pertencimento cultivado
+    </p>
   </div>
 );

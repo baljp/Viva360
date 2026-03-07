@@ -272,6 +272,27 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
         return canvasRef.current.toDataURL('image/png');
     };
 
+    if (step === 2) {
+        return (
+            <div className="fixed inset-0 z-[220] animate-in fade-in">
+                <CameraWidget
+                    onCapture={handleCapture}
+                    variant="STORY"
+                    immersive
+                    effectKey={resolveMetamorphosisEffect(mood)}
+                    eyebrow="Metamorfose"
+                    title={`Registre sua forma ${mood ? mood.toLowerCase() : 'atual'}`}
+                    subtitle="Memória visual do grimório."
+                    helperText="Enquadre o rosto ou o gesto principal. O resto da leitura acontece depois da captura."
+                    captureLabel="Transmutar"
+                    uploadLabel="Galeria"
+                    onBack={() => setStep(1)}
+                    onClose={cancelRitual}
+                />
+            </div>
+        );
+    }
+
     return (
         <PortalView
             title="Card da Alma"
@@ -322,26 +343,6 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
                                 <X size={14} className="inline mr-2 -mt-0.5" />Cancelar Ritual
                             </button>
                         </div>
-                    </div>
-                )}
-
-                {/* STEP 2: PREMIUM CAMERA */}
-                {step === 2 && (
-                    <div className="flex-1 animate-in fade-in slide-in-from-right duration-500">
-                        <CameraWidget
-                            onCapture={handleCapture}
-                            variant="STORY"
-                            immersive
-                            effectKey={resolveMetamorphosisEffect(mood)}
-                            eyebrow="Metamorfose"
-                            title={`Registre sua forma ${mood ? mood.toLowerCase() : 'atual'}`}
-                            subtitle="Um enquadramento vertical, refinado e mais autoral para transformar o instante em memória visual do grimório."
-                            helperText="O efeito visual acompanha o estado escolhido e permanece elegante o suficiente para feed, story e arquivo pessoal."
-                            captureLabel="Transmutar"
-                            uploadLabel="Galeria"
-                            onBack={() => setStep(1)}
-                            onClose={cancelRitual}
-                        />
                     </div>
                 )}
 

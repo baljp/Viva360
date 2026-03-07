@@ -536,45 +536,42 @@ export const CameraWidget: React.FC<{
         <div className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle,transparent_45%,rgba(0,0,0,0.42)_100%)]" />
         <div className="pointer-events-none absolute inset-0 z-10" style={{ background: `linear-gradient(180deg, ${effectPreset.accentFrom} 0%, rgba(0,0,0,0.02) 30%, ${effectPreset.accentTo} 100%)` }} />
         {immersive ? (
-          <>
-            <div className="pointer-events-none absolute inset-x-4 top-4 z-20 sm:inset-x-6 sm:top-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex items-center gap-2">
-                  {onBack ? (
-                    <button onClick={onBack} className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white backdrop-blur-xl transition-all hover:bg-black/40 active:scale-95">
-                      <ArrowLeft size={18} />
-                    </button>
-                  ) : <div className="h-12 w-12" />}
-                  <div className="rounded-full border border-white/10 bg-black/25 px-4 py-2 backdrop-blur-xl">
-                    <p className="text-[10px] font-black uppercase tracking-[0.34em] text-white/75">{eyebrow}</p>
+          <div className="pointer-events-none absolute inset-x-4 top-4 z-20 sm:inset-x-6 sm:top-6">
+            <div className="grid grid-cols-[auto_1fr_auto] items-start gap-3">
+              <div className="flex items-center gap-2">
+                {onBack ? (
+                  <button onClick={onBack} className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/26 text-white backdrop-blur-xl transition-all hover:bg-black/34 active:scale-95">
+                    <ArrowLeft size={18} />
+                  </button>
+                ) : <div className="h-12 w-12" />}
+              </div>
+              <div className="flex justify-center">
+                <div className="max-w-md rounded-[1.8rem] border border-white/10 bg-black/22 px-4 py-3 text-center backdrop-blur-[18px] shadow-[0_18px_48px_rgba(0,0,0,0.18)]">
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.24em] ${effectPreset.chipClassName}`}>
+                      <Sparkles size={12} className="mr-2" />
+                      {effectPreset.badge}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white/68">
+                      {variant === 'STORY' ? 'Story 9:16' : variant === 'SQUARE' ? 'Square 1:1' : 'Feed 4:5'}
+                    </span>
                   </div>
+                  <p className="mt-2 text-[10px] font-black uppercase tracking-[0.3em] text-white/58">{eyebrow}</p>
+                  <h3 className="mt-2 font-serif text-xl italic leading-tight text-white sm:text-2xl">{title}</h3>
+                  {subtitle ? (
+                    <p className="mt-1 text-xs leading-relaxed text-white/58">{subtitle}</p>
+                  ) : null}
                 </div>
+              </div>
+              <div className="flex justify-end">
                 {onClose ? (
-                  <button onClick={onClose} className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/30 text-white backdrop-blur-xl transition-all hover:bg-black/40 active:scale-95">
+                  <button onClick={onClose} className="pointer-events-auto flex h-12 w-12 items-center justify-center rounded-full border border-white/10 bg-black/26 text-white backdrop-blur-xl transition-all hover:bg-black/34 active:scale-95">
                     <X size={18} />
                   </button>
                 ) : <div className="h-12 w-12" />}
               </div>
             </div>
-
-            <div className="pointer-events-none absolute inset-x-4 top-24 z-20 sm:inset-x-6 sm:top-28">
-              <div className="max-w-xl space-y-3 rounded-[2rem] border border-white/10 bg-black/18 p-5 backdrop-blur-[18px] sm:p-6">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.26em] ${effectPreset.chipClassName}`}>
-                    <Sparkles size={12} className="mr-2" />
-                    {effectPreset.badge}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-[10px] font-black uppercase tracking-[0.22em] text-white/70">
-                    {variant === 'STORY' ? 'Story 9:16' : variant === 'SQUARE' ? 'Square 1:1' : 'Feed 4:5'}
-                  </span>
-                </div>
-                <div>
-                  <h3 className="font-serif text-3xl italic leading-tight text-white sm:text-4xl">{title}</h3>
-                  <p className="mt-2 max-w-lg text-sm leading-relaxed text-white/72">{subtitle}</p>
-                </div>
-              </div>
-            </div>
-          </>
+          </div>
         ) : (
           <div className="pointer-events-none absolute left-4 top-4 z-20 sm:left-6 sm:top-6">
             <div className={`inline-flex items-center rounded-full border px-4 py-2 text-[10px] font-black uppercase tracking-[0.26em] backdrop-blur-xl ${effectPreset.chipClassName}`}>
@@ -608,20 +605,15 @@ export const CameraWidget: React.FC<{
                 </div>
               </div>
             )}
-            <div className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-5 ${immersive ? 'pb-24 pt-36 sm:px-10 sm:pb-28' : 'pb-12 pt-12 sm:px-8'}`}>
+            <div className={`pointer-events-none absolute inset-0 z-10 flex items-center justify-center px-5 ${immersive ? 'pb-24 pt-24 sm:px-10 sm:pb-28' : 'pb-12 pt-12 sm:px-8'}`}>
               <div className="relative h-full max-h-[72vh] w-full max-w-[26rem] rounded-[2.8rem] border shadow-[0_0_60px_rgba(0,0,0,0.25)] sm:max-w-[28rem]"
-                style={{ borderColor: effectPreset.borderColor }}
+                style={{ borderColor: immersive ? 'rgba(255,255,255,0.14)' : effectPreset.borderColor }}
               >
-                <div className="absolute inset-0 rounded-[2.8rem] border border-white/12" />
-                <div className="absolute left-5 top-5 h-10 w-10 rounded-full border border-white/12" />
-                <div className="absolute right-5 top-5 h-10 w-10 rounded-full border border-white/12" />
-                <div className="absolute bottom-5 left-5 h-10 w-10 rounded-full border border-white/12" />
-                <div className="absolute bottom-5 right-5 h-10 w-10 rounded-full border border-white/12" />
-              </div>
-            </div>
-            <div className={`pointer-events-none absolute inset-x-0 z-20 flex justify-center px-5 ${immersive ? 'bottom-36 sm:bottom-40' : 'bottom-28'}`}>
-              <div className="rounded-full border border-white/10 bg-black/24 px-5 py-3 text-center backdrop-blur-xl">
-                <p className="text-[10px] font-black uppercase tracking-[0.26em] text-white/70">{effectPreset.caption}</p>
+                <div className="absolute inset-0 rounded-[2.8rem] border border-white/8" />
+                <div className="absolute left-5 top-5 h-10 w-10 rounded-full border border-white/8" />
+                <div className="absolute right-5 top-5 h-10 w-10 rounded-full border border-white/8" />
+                <div className="absolute bottom-5 left-5 h-10 w-10 rounded-full border border-white/8" />
+                <div className="absolute bottom-5 right-5 h-10 w-10 rounded-full border border-white/8" />
               </div>
             </div>
           </>
@@ -667,6 +659,7 @@ export const CameraWidget: React.FC<{
 
           <div className="text-center">
             <p className="text-[11px] leading-relaxed text-white/70 sm:text-xs">{helperText}</p>
+            <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-white/42">{effectPreset.caption}</p>
           </div>
         </div>
       </div>

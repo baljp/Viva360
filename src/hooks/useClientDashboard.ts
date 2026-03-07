@@ -112,6 +112,16 @@ export const useClientDashboard = (
                 return { ok: true };
             }
 
+            if (res?.ok) {
+                updateUser({
+                    ...user,
+                    karma: (user.karma || 0) + Number(res?.reward || reward || 0),
+                    lastCheckIn: String(res?.lastCheckIn || new Date().toISOString()),
+                });
+                setRitualToast({ title: "Benção Recebida", message: `Sua jornada foi harmonizada com ${res.reward || reward} Karma.` });
+                return { ok: true };
+            }
+
             setToast({ title: "Não foi possível concluir", message: "Tente novamente em instantes.", type: 'warning' });
             return { ok: false };
         } catch (error) {

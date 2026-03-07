@@ -198,24 +198,49 @@ export const DailyRitualNurtureStep: React.FC<{
 }> = ({ finalUser, updateUser, user, onClose, goToEvolution }) => (
   <div className="fixed inset-0 z-[200] relative flex flex-col items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top,_rgba(110,231,183,0.18),_transparent_24%),linear-gradient(180deg,_#03271d_0%,_#064e3b_45%,_#022c22_100%)]">
     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-20 animate-pulse"></div>
+    <div className="absolute left-1/2 top-20 h-64 w-64 -translate-x-1/2 rounded-full bg-emerald-300/12 blur-3xl"></div>
+    <div className="absolute left-1/2 top-24 h-80 w-80 -translate-x-1/2 rounded-full border border-white/8 opacity-40 animate-pulse"></div>
 
-    <div className="relative z-10 flex flex-col items-center gap-8 animate-in slide-in-from-bottom duration-1000">
-      <div className="relative">
-        <Droplet size={64} className="text-emerald-300 fill-emerald-300 animate-bounce" />
-        <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-32 h-1 bg-emerald-500/50 rounded-full blur-xl"></div>
+    <div className="relative z-10 flex flex-col items-center gap-8 animate-in slide-in-from-bottom duration-1000 px-6">
+      <div className="relative animate-in animate-delay-100">
+        <div className="absolute inset-0 scale-[1.4] rounded-full bg-emerald-200/10 blur-2xl animate-pulse" />
+        <Droplet size={64} className="relative text-emerald-300 fill-emerald-300 animate-bounce" />
+        <div className="absolute -bottom-12 left-1/2 h-1 w-32 -translate-x-1/2 rounded-full bg-emerald-500/50 blur-xl"></div>
       </div>
 
-      <div className="space-y-2 text-center">
+      <div className="space-y-3 text-center animate-in animate-delay-200">
+        <div className="inline-flex items-center rounded-full border border-white/12 bg-white/8 px-4 py-2 text-[10px] font-black uppercase tracking-[0.32em] text-emerald-100 backdrop-blur-xl">
+          Ritual integrado ao Jardim
+        </div>
         <h2 className="text-4xl font-serif italic text-white">Seu jardim recebeu cuidado hoje.</h2>
         <p className="text-emerald-200 text-[10px] font-bold uppercase tracking-[0.2em]">Sintonização Completa • Salvo na Evolução</p>
+        <p className="mx-auto max-w-md text-sm leading-6 text-white/72">
+          A imagem, a intenção e a gratidão agora formam um registro vivo da sua presença. Esse momento já conversa com a sua linha de evolução.
+        </p>
       </div>
 
-      <div className="flex gap-4 justify-center pt-4">
-        <div className="px-6 py-2 bg-white/10 rounded-full backdrop-blur-md border border-white/10 text-white text-xs font-bold uppercase tracking-widest">+15 Vitalidade</div>
-        <div className="px-6 py-2 bg-white/10 rounded-full backdrop-blur-md border border-white/10 text-white text-xs font-bold uppercase tracking-widest">+5 Karma</div>
+      <div className="flex flex-wrap justify-center gap-4 pt-2 animate-in animate-delay-300">
+        <div className="rounded-full border border-white/10 bg-white/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white backdrop-blur-md shadow-lg">+15 Vitalidade</div>
+        <div className="rounded-full border border-white/10 bg-white/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white backdrop-blur-md shadow-lg">+5 Karma</div>
+        <div className="rounded-full border border-emerald-200/20 bg-emerald-100/10 px-6 py-2 text-xs font-bold uppercase tracking-widest text-emerald-50 backdrop-blur-md shadow-lg">Arquivo atualizado</div>
       </div>
 
-      <div className="mt-4 flex w-full max-w-xs flex-col gap-3">
+      <div className="mt-2 grid w-full max-w-md grid-cols-3 gap-3 animate-in animate-delay-300">
+        <div className="rounded-[1.4rem] border border-white/10 bg-white/8 px-4 py-4 text-center backdrop-blur-xl">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Foto</p>
+          <p className="mt-2 text-sm font-semibold text-white">Guardada</p>
+        </div>
+        <div className="rounded-[1.4rem] border border-white/10 bg-white/8 px-4 py-4 text-center backdrop-blur-xl">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Intenção</p>
+          <p className="mt-2 text-sm font-semibold text-white">Ancorada</p>
+        </div>
+        <div className="rounded-[1.4rem] border border-white/10 bg-white/8 px-4 py-4 text-center backdrop-blur-xl">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Estado</p>
+          <p className="mt-2 text-sm font-semibold text-white">Integrado</p>
+        </div>
+      </div>
+
+      <div className="mt-2 flex w-full max-w-xs flex-col gap-3 animate-in animate-delay-300">
         <button onClick={() => { if (finalUser) updateUser(finalUser); else updateUser(user); goToEvolution(); }} className="w-full px-8 py-4 bg-white/20 backdrop-blur-md text-white rounded-full font-bold uppercase tracking-widest border border-white/20 shadow-xl hover:bg-white/30 active:scale-95 transition-all flex items-center justify-center gap-2">
           <TrendingUp size={16} /> Ver minha Evolução
         </button>
@@ -224,6 +249,10 @@ export const DailyRitualNurtureStep: React.FC<{
           Concluir
         </button>
       </div>
+
+      <p className="text-center text-[10px] font-black uppercase tracking-[0.28em] text-white/35 animate-in animate-delay-300">
+        Pequenos rituais, presença acumulada
+      </p>
     </div>
   </div>
 );

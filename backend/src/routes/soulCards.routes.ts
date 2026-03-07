@@ -4,6 +4,8 @@ import { asyncHandler } from '../middleware/async.middleware';
 import prisma from '../lib/prisma';
 import { logger } from '../lib/logger';
 import { z } from 'zod';
+import { isMockMode } from '../lib/appMode';
+import { isDbUnavailableError } from '../lib/dbReadFallback';
 
 const router = Router();
 
@@ -52,7 +54,7 @@ router.post('/draw', authenticateUser, asyncHandler(async (req: Request, res: Re
       update: { drawn_at: new Date() },
     });
   } catch (error) {
-    if (!isMissingSoulCardPersistenceError(error)) throw error;
+    if (!isMissingSoulCardPersistenceError(error) && !(isMockMode() && isDbUnavailableError(error))) throw error;
     logger.warn('soul_cards.draw.persistence_unavailable', {
       userId,
       code: String((error as { code?: string })?.code || ''),
@@ -94,7 +96,7 @@ router.get('/collection', authenticateUser, asyncHandler(async (req: Request, re
       },
     });
   } catch (error) {
-    if (!isMissingSoulCardPersistenceError(error)) throw error;
+    if (!isMissingSoulCardPersistenceError(error) && !(isMockMode() && isDbUnavailableError(error))) throw error;
     logger.warn('soul_cards.collection.persistence_unavailable', {
       userId,
       code: String((error as { code?: string })?.code || ''),

@@ -331,24 +331,30 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
     logsQueue.add('emotional_log', entry).catch((err: unknown) => logger.warn('queue.logs_add_failed', err));
 
     // 4. Fetch updated profile for the frontend
-    const updatedProfile = await prisma.profile.findUnique({
-        where: { id: userId }
-    }).catch((error) => {
-        if (isMockMode() && isDbUnavailableError(error)) {
-            return {
-                id: userId,
-                karma: null,
-            };
-        }
-        throw error;
-    });
+    const { data: updatedProfile, error: updatedProfileError } = await supabaseAdmin
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+    if (updatedProfileError) {
+        logger.warn('metamorphosis.profile_fetch_failed', {
+            userId,
+            requestId: String(request.requestId || ''),
+            message: updatedProfileError.message,
+        });
+    }
 
     return res.json({
         ok: true,
         success: true,
         reward,
         entry,
-        user: updatedProfile
+        lastCheckIn: new Date().toISOString(),
+        user: updatedProfile ? {
+            ...(updatedProfile as Record<string, unknown>),
+            lastCheckIn: new Date().toISOString(),
+        } : null,
     });
 });
 
