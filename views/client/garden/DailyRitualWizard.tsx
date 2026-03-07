@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, DailyRitualSnap, MoodType } from '../../../types';
 import { Camera, ArrowRight, Heart, Sparkles, Droplet, Check, Share2, X, Sun, Download, Instagram } from 'lucide-react';
 import { CameraWidget } from '../../../components/Common';
-import type { CameraCaptureResult } from '../../../components/Common/CameraWidget';
+import type { CameraCaptureResult, CameraEffectKey } from '../../../components/Common/CameraWidget';
 import { SoulCard } from '../../../src/components/SoulCard';
 import { phraseService } from '../../../services/phraseService';
 import { gardenService } from '../../../services/gardenService';
@@ -27,7 +27,7 @@ import { phraseGenerator } from '../../../services/phraseGenerator';
 
 export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, updateUser, onClose }) => {
     const { go } = useBuscadorFlow();
-    const [step, setStep] = useState<'MOOD' | 'CAPTURE' | 'CAPTURE_REVIEW' | 'INTENTION' | 'GRATITUDE' | 'CARD' | 'SHARE' | 'NURTURE' | 'TRIBE'>('CAPTURE');
+    const [step, setStep] = useState<'MOOD' | 'CAPTURE' | 'CAPTURE_REVIEW' | 'INTENTION' | 'GRATITUDE' | 'CARD' | 'SHARE' | 'NURTURE' | 'TRIBE'>('MOOD');
     const [data, setData] = useState<{ mood: MoodType; image: string; intention: string; gratitude: string }>({
         mood: 'SERENO', image: '', intention: '', gratitude: ''
     });
@@ -42,9 +42,30 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     const capturePreviewUrl = useObjectUrl(capture?.fullBlob || null);
     const previewAspectRatio = capture?.width && capture?.height ? `${capture.width} / ${capture.height}` : '9 / 16';
 
+    const resolveRitualCameraEffect = (mood: MoodType): CameraEffectKey => {
+        switch (mood) {
+            case 'SERENO':
+                return 'serene';
+            case 'VIBRANTE':
+                return 'vibrant';
+            case 'FOCADO':
+                return 'focused';
+            case 'GRATO':
+                return 'grateful';
+            case 'MELANCÓLICO':
+                return 'melancholic';
+            case 'EXAUSTO':
+                return 'restorative';
+            case 'ANSIOSO':
+                return 'anxious';
+            default:
+                return 'serene';
+        }
+    };
+
     const handleMoodSelect = (mood: MoodType) => {
         setData({ ...data, mood });
-        setStep('INTENTION');
+        setStep('CAPTURE');
     };
 
     const handleCapture = (result: CameraCaptureResult) => {
@@ -275,26 +296,21 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
     if (step === 'CAPTURE') {
         return (
-            <div className="fixed inset-0 z-[200] bg-nature-900 flex flex-col animate-in fade-in">
-                {/* Header controls outside camera area */}
-                <div className="h-[10%] flex items-center justify-between px-8 bg-black relative z-50">
-                    <div className="w-10"></div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary-400">Presença Viva</p>
-                    <button onClick={onClose} className="p-4 rounded-full text-white/60 hover:text-white transition-colors active:scale-90 relative z-50"><X size={24} /></button>
-                </div>
-
-                <div className="h-[70%] relative overflow-hidden bg-black flex items-center justify-center">
-                    <div className="w-full h-full max-w-md relative">
-                        <CameraWidget onCapture={handleCapture} variant="STORY" />
-                        {/* Premium Crop Guide */}
-                        <div className="absolute inset-0 border-[2px] border-white/10 m-8 rounded-[2rem] pointer-events-none"></div>
-                    </div>
-                </div>
-
-                <div className="h-[20%] bg-black p-8 text-center flex flex-col items-center justify-center">
-                    <p className="text-white/40 text-[9px] font-bold uppercase tracking-[0.3em] mb-4">Mantenha a alma em foco</p>
-                    <h3 className="text-white font-serif italic text-lg leading-tight">Este momento é portal para sua cura.</h3>
-                </div>
+            <div className="fixed inset-0 z-[200] animate-in fade-in">
+                <CameraWidget
+                    onCapture={handleCapture}
+                    variant="STORY"
+                    immersive
+                    effectKey={resolveRitualCameraEffect(data.mood)}
+                    eyebrow="Novo Registro"
+                    title={`Fotografe sua presença ${DAILY_RITUAL_MOODS.find((m) => m.id === data.mood)?.label.toLowerCase() || 'de agora'}`}
+                    subtitle="Uma composição limpa, vertical e pronta para compartilhar sem perder o tom íntimo do ritual."
+                    helperText="Deixe o rosto ou gesto principal dentro do quadro. O tratamento visual já acompanha o estado que você escolheu."
+                    captureLabel="Registrar"
+                    uploadLabel="Importar"
+                    onBack={() => setStep('MOOD')}
+                    onClose={onClose}
+                />
             </div>
         );
     }
@@ -344,7 +360,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
                             Refazer
                         </button>
                         <button
-                            onClick={() => setStep('MOOD')}
+                            onClick={() => setStep('INTENTION')}
                             className="w-full py-5 bg-white text-nature-950 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[10px] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(255,255,255,0.1)] hover:shadow-[0_15px_40px_rgba(255,255,255,0.2)]"
                         >
                             Confirmar <ArrowRight size={18} className="text-nature-600" />
@@ -356,7 +372,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
     }
 
     if (step === 'INTENTION') {
-        return <DailyRitualIntentionStep data={data} setData={setData} onBack={() => setStep('CAPTURE')} onClose={onClose} onContinue={handleIntentionSubmit} />;
+        return <DailyRitualIntentionStep data={data} setData={setData} onBack={() => setStep('CAPTURE_REVIEW')} onClose={onClose} onContinue={handleIntentionSubmit} />;
     }
 
     if (step === 'GRATITUDE') {

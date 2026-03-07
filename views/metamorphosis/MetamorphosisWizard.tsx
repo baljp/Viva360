@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Heart, Activity, Coffee, Moon, Sun, ArrowRight, CheckCircle, Smile, Frown, Meh, CloudRain, Zap, Battery, X, Share2, Download, ShieldCheck, Sparkles, Wind, Droplets, Mountain } from 'lucide-react';
 import { PortalView, CameraWidget } from '../../components/Common';
-import type { CameraCaptureResult } from '../../components/Common/CameraWidget';
+import type { CameraCaptureResult, CameraEffectKey } from '../../components/Common/CameraWidget';
 import { ViewState, User } from '../../types';
 import { api } from '../../services/api';
 import { MOOD_ELEMENTS } from '../../src/data/metamorphosisData';
@@ -53,6 +53,28 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
     const userStreak = (user as { streak?: number } | undefined)?.streak ?? 1;
     const { performDraw } = useSoulCards(soulCardUserId);
     const photoPreviewUrl = useObjectUrl(photo?.fullBlob || null);
+    const resolveMetamorphosisEffect = (currentMood: string): CameraEffectKey => {
+        switch (currentMood) {
+            case 'Feliz':
+                return 'joyful';
+            case 'Calmo':
+                return 'calm';
+            case 'Grato':
+                return 'grateful';
+            case 'Motivado':
+                return 'motivated';
+            case 'Cansado':
+                return 'tired';
+            case 'Ansioso':
+                return 'anxious';
+            case 'Triste':
+                return 'sad';
+            case 'Sobrecarregado':
+                return 'overwhelmed';
+            default:
+                return 'default';
+        }
+    };
 
     useEffect(() => {
         if (!photoPreviewUrl) return;
@@ -305,30 +327,21 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
 
                 {/* STEP 2: PREMIUM CAMERA */}
                 {step === 2 && (
-                    <div className="flex-1 flex flex-col items-center animate-in fade-in slide-in-from-right duration-500 bg-black">
-                        <div className="h-[10%] flex items-center justify-between w-full px-8 pt-4">
-                            <button onClick={() => setStep(1)} className="p-3 rounded-full text-white/60 hover:text-white transition-colors"><ArrowRight className="rotate-180" size={20} /></button>
-                            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cyan-400">Metamorfose</p>
-                            <button onClick={cancelRitual} className="p-3 rounded-full text-white/60 hover:text-rose-400 transition-colors" title="Cancelar Ritual"><X size={20} /></button>
-                        </div>
-
-                        <div className="h-[70%] w-full relative overflow-hidden bg-black flex items-center justify-center">
-                            <div className="w-full h-full max-w-md relative">
-                                <CameraWidget onCapture={handleCapture} variant="STORY" />
-                                {/* Premium Viewport Overlay */}
-                                <div className="absolute inset-0 pointer-events-none border-[1.5rem] border-black/10 flex items-center justify-center">
-                                    <div className="w-full h-full border border-white/20 rounded-[2rem]"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="h-[20%] w-full bg-black p-8 text-center flex flex-col items-center justify-center">
-                            <div className="flex items-center gap-2 text-nature-400 mb-2">
-                                <ShieldCheck size={14} />
-                                <span className="text-[9px] font-bold uppercase tracking-widest">Presença Registrada</span>
-                            </div>
-                            <h3 className="text-white font-serif italic text-lg leading-tight">Sintonizando sua forma atual.</h3>
-                        </div>
+                    <div className="flex-1 animate-in fade-in slide-in-from-right duration-500">
+                        <CameraWidget
+                            onCapture={handleCapture}
+                            variant="STORY"
+                            immersive
+                            effectKey={resolveMetamorphosisEffect(mood)}
+                            eyebrow="Metamorfose"
+                            title={`Registre sua forma ${mood ? mood.toLowerCase() : 'atual'}`}
+                            subtitle="Um enquadramento vertical, refinado e mais autoral para transformar o instante em memória visual do grimório."
+                            helperText="O efeito visual acompanha o estado escolhido e permanece elegante o suficiente para feed, story e arquivo pessoal."
+                            captureLabel="Transmutar"
+                            uploadLabel="Galeria"
+                            onBack={() => setStep(1)}
+                            onClose={cancelRitual}
+                        />
                     </div>
                 )}
 
