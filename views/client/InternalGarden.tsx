@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { User, ViewState } from '../../types';
-import { Droplet, Heart, Users, Sparkles, TrendingUp, History, Info, Leaf, Share2, X } from 'lucide-react';
+import { Droplet, Heart, Leaf, Share2, BookOpen, Clapperboard, Plus, Sparkles, X } from 'lucide-react';
 import { PortalView } from '../../components/Common';
 import { gardenService, GardenStatus } from '../../services/gardenService';
 import { useBuscadorFlow } from '../../src/flow/useBuscadorFlow';
@@ -9,6 +9,7 @@ import { DailyRitualWizard } from './garden/DailyRitualWizard';
 import { generateShareCanvas, shareToSocial } from '../../src/utils/sharing';
 import { useIdbImageUrl } from '../../src/hooks/useIdbImageUrl';
 import { buildLocalImageKey } from '../../src/utils/idbImageStore';
+import { buildSoulJourneyModel } from './garden/soulJourneyModel';
 
 export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => void, onClose?: () => void }> = ({ user, updateUser, onClose }) => {
     const { go, back, notify} = useBuscadorFlow();
@@ -21,6 +22,7 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
     const evolutionState = gardenService.getEvolutionState(evolution.total);
     const latestSnap = (user.snaps || [])[0];
     const latestSnapSrc = useIdbImageUrl(latestSnap?.id ? buildLocalImageKey(String(latestSnap.id)) : null, latestSnap?.image || '');
+    const journeyModel = useMemo(() => buildSoulJourneyModel(user), [user]);
 
     const handleRitualComplete = (updatedUser: User) => {
         updateUser(updatedUser);
@@ -83,50 +85,97 @@ export const InternalGarden: React.FC<{ user: User, updateUser: (u: User) => voi
             ) : (
                 <>
                     <div className="flex flex-col h-full bg-gradient-to-b from-transparent to-nature-50/50 pb-32">
-                        
-                        {/* Living Status Bar */}
-                        <div className="px-6 mt-6 grid grid-cols-2 gap-4">
-                             <div className="bg-white/85 backdrop-blur-md p-5 rounded-[2rem] border border-black/5 shadow-[0_12px_30px_rgba(0,0,0,0.08)] flex items-center gap-4">
-                                <div className={`w-12 h-12 shrink-0 rounded-2xl flex items-center justify-center shadow-inner ${status.health > 50 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}>
-                                    <Heart size={24} fill="currentColor" className="animate-pulse" />
-                                </div>
-                                <div className="min-h-[40px] flex flex-col justify-center">
-                                    <p className="text-[9px] font-black text-nature-400 uppercase tracking-widest">Vitalidade</p>
-                                    <span className={`text-sm font-bold truncate leading-tight ${status.health > 50 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                                        {getVitalityText(status.health)}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="bg-white/85 backdrop-blur-md p-5 rounded-[2rem] border border-black/5 shadow-[0_12px_30px_rgba(0,0,0,0.08)] flex items-center gap-4">
-                                <div className="w-12 h-12 shrink-0 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 shadow-inner">
-                                    <Leaf size={24} />
-                                </div>
-                                <div className="min-h-[40px] flex flex-col justify-center">
-                                    <p className="text-[9px] font-black text-nature-400 uppercase tracking-widest">Jornada</p>
-                                    <span className="text-sm font-bold text-nature-900 truncate leading-tight line-clamp-2">
-                                        {user.plantStage === 'seed' && user.plantType 
-                                            ? `SEMENTE DE ${gardenService.getPlantLabel(user.plantType).toUpperCase()}`
-                                            : user.plantStage?.toUpperCase() || 'SEMENTE'}
-                                    </span>
-                                </div>
-                            </div>
+                        <div className="px-6 mt-6">
+                            <section className="overflow-hidden rounded-[2.5rem] border border-white/60 bg-[linear-gradient(135deg,#f6fbf8_0%,#ffffff_55%,#eef6f0_100%)] shadow-[0_20px_60px_rgba(15,23,42,0.08)]">
+                                <div className="grid gap-6 p-6 lg:grid-cols-[1.25fr_0.9fr]">
+                                    <div className="space-y-5">
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-nature-400">Jardim da Alma</p>
+                                                <h3 className="mt-2 font-serif text-3xl italic text-nature-900">
+                                                    {journeyModel.stageGlyph} {journeyModel.stageLabel}
+                                                </h3>
+                                                <p className="mt-2 max-w-md text-sm leading-relaxed text-nature-500">
+                                                    {journeyModel.latestReflection}
+                                                </p>
+                                            </div>
+                                            <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.25em] ${journeyModel.vitalityClassName}`}>
+                                                {journeyModel.vitalityLabel}
+                                            </span>
+                                        </div>
 
-                        </div>
+                                        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                                            {journeyModel.metrics.map((metric) => (
+                                                <div key={metric.label} className="rounded-[1.6rem] border border-nature-100 bg-white/80 p-4 shadow-sm">
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-nature-400">{metric.label}</p>
+                                                    <p className="mt-2 text-lg font-bold text-nature-900">{metric.value}</p>
+                                                    <p className="mt-1 text-[11px] text-nature-400">{metric.helper}</p>
+                                                </div>
+                                            ))}
+                                        </div>
 
-                        {/* Evolution Quick Indicators */}
-                        <div className="px-6 mt-4 flex justify-between gap-2">
-                            {[
-                                { icon: <TrendingUp size={14} />, label: 'Constância', value: `${user.streak || 0} dias`, color: 'text-amber-600' },
-                                { icon: <Heart size={14} />, label: 'Humor', value: `${Math.floor(evolution.positivity)}%`, color: 'text-rose-500' },
-                                { icon: <Sparkles size={14} />, label: 'Energia', value: evolution.total > 70 ? 'Alta' : 'Normal', color: 'text-primary-500' },
-                                { icon: <Users size={14} />, label: 'Tribo', value: `${user.constellation?.length || 0} conexões`, color: 'text-indigo-500' }
-                            ].map((stat, i) => (
-                                <div key={i} className="flex-1 bg-white/40 backdrop-blur-sm p-2 rounded-2xl border border-white/50 text-center min-w-0">
-                                    <div className={`flex justify-center mb-1 ${stat.color}`}>{stat.icon}</div>
-                                    <p className="text-[10px] font-black text-nature-400 uppercase tracking-tight truncate">{stat.label}</p>
-                                    <p className="text-[11px] font-bold text-nature-900 truncate">{stat.value}</p>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <button
+                                                onClick={() => setIsRitualActive(true)}
+                                                className="rounded-[1.8rem] bg-nature-900 px-4 py-4 text-left text-white shadow-xl transition-all active:scale-95"
+                                            >
+                                                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10">
+                                                    <Plus size={18} />
+                                                </div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/50">Novo Registro</p>
+                                                <p className="mt-1 text-sm font-bold">Regar agora</p>
+                                            </button>
+                                            <button
+                                                onClick={() => go('CLIENT_JOURNAL')}
+                                                className="rounded-[1.8rem] border border-nature-100 bg-white px-4 py-4 text-left shadow-sm transition-all active:scale-95"
+                                            >
+                                                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                                                    <BookOpen size={18} />
+                                                </div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Diário</p>
+                                                <p className="mt-1 text-sm font-bold text-nature-900">Ver memórias</p>
+                                            </button>
+                                            <button
+                                                onClick={() => go('TIME_LAPSE_EXPERIENCE')}
+                                                className="rounded-[1.8rem] border border-nature-100 bg-white px-4 py-4 text-left shadow-sm transition-all active:scale-95"
+                                            >
+                                                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+                                                    <Clapperboard size={18} />
+                                                </div>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-nature-400">Time Lapse</p>
+                                                <p className="mt-1 text-sm font-bold text-nature-900">Virar vídeo</p>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="relative overflow-hidden rounded-[2.2rem] bg-nature-950">
+                                        {latestSnapSrc || latestSnap?.image ? (
+                                            <img
+                                                src={latestSnapSrc || latestSnap?.image}
+                                                alt="Último registro da alma"
+                                                className="h-full min-h-[320px] w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex min-h-[320px] h-full items-center justify-center bg-[radial-gradient(circle_at_top,#284438,#111827_65%)] text-7xl">
+                                                {plantVisuals.icon}
+                                            </div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
+                                        <div className="absolute inset-x-0 bottom-0 p-5 text-white">
+                                            <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/50">Último reflexo</p>
+                                            <p className="mt-2 text-2xl font-serif italic leading-tight">
+                                                {latestSnap?.note || 'Sua próxima metamorfose começa com um único registro.'}
+                                            </p>
+                                            <div className="mt-4 flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-white/60">
+                                                <Heart size={14} className="text-rose-300" />
+                                                <span>{journeyModel.dominantMood}</span>
+                                                <span>•</span>
+                                                <span>{journeyModel.entriesCount} memórias</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
+                            </section>
                         </div>
 
                         {/* Living Plant Stage */}

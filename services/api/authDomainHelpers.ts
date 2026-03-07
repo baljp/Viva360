@@ -72,7 +72,10 @@ export const toDomainAuthMessage = (input: { code?: string | null; reason?: stri
   return input.fallback || 'Não foi possível concluir autenticação.';
 };
 
-export const fetchLoginEligibility = async (email: string): Promise<LoginEligibility> => {
+export const fetchLoginEligibility = async (
+  email: string,
+  options?: { timeoutMs?: number },
+): Promise<LoginEligibility> => {
   const normalized = normalizeEmail(email);
   if (!normalized) return { allowed: false, role: null };
 
@@ -105,7 +108,7 @@ export const fetchLoginEligibility = async (email: string): Promise<LoginEligibi
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: normalized }),
-    timeoutMs: 7000,
+    timeoutMs: options?.timeoutMs ?? 7000,
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) return { allowed: false, role: null };
@@ -152,8 +155,8 @@ export const hydrateUserFromProfileApi = async (request: RequestFn, base: User):
   try {
     const profilePayload = await request(`/users/${userId}`, {
       purpose: 'session-hydration',
-      timeoutMs: 7000,
-      retries: 1,
+      timeoutMs: 3000,
+      retries: 0,
     });
     const hydrated = normalizeProfilePayload(profilePayload || {});
 

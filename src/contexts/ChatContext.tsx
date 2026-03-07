@@ -5,6 +5,7 @@ import { supabase, isMockMode } from '../../lib/supabase';
 import { api } from '../../services/api';
 import { ChatContextStore } from './ChatContextStore';
 import { captureFrontendError } from '../../lib/frontendLogger';
+import { isPublicPath } from '../app/routing';
 
 // Define minimal types locally or import from types.ts
 export interface ChatMessage {
@@ -73,6 +74,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Initial Load & Auth Check
     useEffect(() => {
         const loadUser = async () => {
+            if (isPublicPath(window.location.pathname)) {
+                setUser(null);
+                return;
+            }
             const currentUser = await api.auth.getCurrentSession();
             setUser(currentUser);
         };

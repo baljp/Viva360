@@ -13,6 +13,30 @@ import { buildReadFailureCopy, isDegradedReadError } from '../utils/readDegraded
 import { useAppToast } from '../contexts/AppToastContext';
 import { captureFrontendError } from '../../lib/frontendLogger';
 
+const BUSCADOR_DATA_CACHE_KEY = 'viva360.buscador.bootstrap-cache.v1';
+
+const readCachedBootstrapData = (): { pros: Professional[]; products: Product[] } | null => {
+    try {
+        const raw = localStorage.getItem(BUSCADOR_DATA_CACHE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw) as { pros?: Professional[]; products?: Product[] };
+        return {
+            pros: Array.isArray(parsed?.pros) ? parsed.pros : [],
+            products: Array.isArray(parsed?.products) ? parsed.products : [],
+        };
+    } catch {
+        return null;
+    }
+};
+
+const persistBootstrapData = (data: { pros: Professional[]; products: Product[] }) => {
+    try {
+        localStorage.setItem(BUSCADOR_DATA_CACHE_KEY, JSON.stringify(data));
+    } catch {
+        // ignore cache persistence failure
+    }
+};
+
 // Define Context State
 interface FlowContextState extends BaseFlowState<BuscadorState> {
     engine: BuscadorFlowEngine;
@@ -147,10 +171,12 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
         });
     }, [state.currentState]);
 
-    const refreshData = async () => {
+    const refreshData = async ({ background = false }: { background?: boolean } = {}) => {
         const startedAt = performance.now();
         trackFlowTelemetry({ profile: 'BUSCADOR', flow: 'core', action: 'refreshData', status: 'attempt', from: state.currentState });
-        dispatch({ type: 'SET_LOADING', payload: true });
+        if (!background) {
+            dispatch({ type: 'SET_LOADING', payload: true });
+        }
         try {
             const [prosResult, productsResult] = await Promise.allSettled([
                 api.professionals.list(),
@@ -171,6 +197,9 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
             }
 
             dispatch({ type: 'SET_DATA', payload: { pros: nextPros, products: nextProducts } });
+            if (nextPros.length > 0 || nextProducts.length > 0) {
+                persistBootstrapData({ pros: nextPros, products: nextProducts });
+            }
             if (failedDomains.length > 0) {
                 const copy = buildReadFailureCopy(degradedDomains.length ? degradedDomains : failedDomains, true);
                 dispatch({ type: 'SET_ERROR', payload: copy.message });
@@ -205,12 +234,18 @@ export const BuscadorFlowProvider: React.FC<{ children: ReactNode }> = ({ childr
                 errorMessage: e instanceof Error ? e.message : 'refreshData failed',
             });
         } finally {
-            dispatch({ type: 'SET_LOADING', payload: false });
+            if (!background) {
+                dispatch({ type: 'SET_LOADING', payload: false });
+            }
         }
     };
 
     useEffect(() => {
-        refreshData();
+        const cachedData = readCachedBootstrapData();
+        if (cachedData) {
+            dispatch({ type: 'SET_DATA', payload: cachedData });
+        }
+        void refreshData({ background: true });
     }, []);
 
     const go = (target: BuscadorState) => {

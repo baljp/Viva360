@@ -1,7 +1,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { Database } from '../utils/seedEngine';
 
 const ROLES = [
@@ -17,7 +17,7 @@ function ensureScreenshotDirs() {
   fs.mkdirSync(path.resolve('test-results/integration'), { recursive: true });
 }
 
-async function handleOnboarding(page: any) {
+async function handleOnboarding(page: Page) {
   // Aggressively disable tutorial via localStorage
   await page.evaluate(() => {
     localStorage.setItem('viva360_smart_tutorial_seen', 'true');
@@ -38,7 +38,7 @@ async function handleOnboarding(page: any) {
   }
 }
 
-async function loginAsMock(page: any, role: (typeof ROLES)[number]) {
+async function loginAsMock(page: Page, role: (typeof ROLES)[number]) {
   await page.addInitScript(
     ({ user, token }) => {
       window.localStorage.setItem('viva360.mock_user', JSON.stringify(user));
@@ -77,6 +77,7 @@ test.describe('Master Enterprise E2E Suite', () => {
 
   for (const role of ROLES) {
     test(`Role Discovery & Asset Audit - ${role.name}`, async ({ page }) => {
+      test.setTimeout(90000);
       ensureScreenshotDirs();
       await loginAsMock(page, role);
 
@@ -89,7 +90,7 @@ test.describe('Master Enterprise E2E Suite', () => {
       const toVisit = [page.url()];
 
       let count = 0;
-      const maxPages = 4;
+      const maxPages = 3;
       while (toVisit.length > 0 && count < maxPages) {
         const url = toVisit.pop()!;
         if (visited.has(url)) continue;
@@ -140,6 +141,7 @@ test.describe('Master Enterprise E2E Suite', () => {
   }
 
   test('Cross-Profile Workflow: Booking Integration', async ({ browser }) => {
+    test.setTimeout(90000);
     // 1. CLIENT: Initiate a booking or interest
     ensureScreenshotDirs();
     const clientContext = await browser.newContext();

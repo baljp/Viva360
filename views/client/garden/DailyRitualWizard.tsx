@@ -94,11 +94,14 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
             const reward = gardenService.calculateWateringReward(user);
             const phrases = phraseService.getPhrases(data.mood, 'JARDIM');
             const snapId = `ritual_${Date.now()}`;
+            const localImageKey = buildLocalImageKey(snapId);
             const newSnap: DailyRitualSnap = {
                 id: snapId,
+                localImageKey,
                 date: new Date().toISOString(),
                 // Keep lightweight thumb for immediate UI; full image stays local on the device.
                 image: capture.thumbDataUrl,
+                photoThumb: capture.thumbDataUrl,
                 mood: data.mood,
                 note: data.intention,
                 phrases: phrases
@@ -106,7 +109,7 @@ export const DailyRitualWizard: React.FC<DailyRitualWizardProps> = ({ user, upda
 
             // 2.1 Persist full image locally (Instagram-grade dimensions; zero network).
             try {
-                await idbImages.put(buildLocalImageKey(snapId), capture.fullBlob);
+                await idbImages.put(localImageKey, capture.fullBlob);
             } catch (e) {
                 captureFrontendMessage('daily_ritual.local_cache_failed', { view: 'DailyRitualWizard', op: 'idbImages.put', error: String(e) });
                 // Non-critical: local high-res caching failure doesn't stop ritual completion.

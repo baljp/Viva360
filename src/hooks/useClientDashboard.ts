@@ -145,9 +145,11 @@ export const useClientDashboard = (
 
         const newSnap: DailyRitualSnap = {
             id: snapId,
+            localImageKey: localKey,
             date: new Date().toISOString(),
             // Keep a light thumb for immediate UI; backend payload will be stripped to avoid data bloat.
             image: capture.thumbDataUrl,
+            photoThumb: capture.thumbDataUrl,
             mood: 'SERENO',
             note: 'Registro de Metamorfose'
         };

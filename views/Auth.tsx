@@ -348,8 +348,9 @@ const Auth: React.FC<AuthProps> = ({ onLogin, setView }) => {
                     const user = await authApi.getCurrentSession();
                     if (user) onLogin(user);
                 }
-            } catch (err) {
-                await authApi.logout();
+            } catch {
+                // Ignore transient callback/bootstrap failures here.
+                // The global auth listener will recover when Supabase settles.
             }
         };
         checkSession();

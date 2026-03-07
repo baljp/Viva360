@@ -230,33 +230,14 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
         ...recommendation
     };
 
-    // 3. Persist to DB (or mock store when DB is unavailable in mock/test mode)
+    // 3. Persist to DB (event is critical, projection is best-effort)
     try {
-        await prisma.$transaction(async (tx) => {
-            // 1. Create Event
-            await tx.event.create({
-                data: {
-                    stream_id: userId,
-                    type: 'MOOD_LOGGED',
-                    payload: entry
-                }
-            });
-
-            // 2. Upsert Projection
-            await tx.metamorphosisProjection.upsert({
-                where: { user_id: userId },
-                create: {
-                    user_id: userId,
-                    total_checkins: 1,
-                    last_mood: normalizedMood,
-                    evolution_score: 10
-                },
-                update: {
-                    total_checkins: { increment: 1 },
-                    last_mood: normalizedMood,
-                    evolution_score: { increment: 10 }
-                }
-            });
+        await prisma.event.create({
+            data: {
+                stream_id: userId,
+                type: 'MOOD_LOGGED',
+                payload: entry
+            }
         });
     } catch (error) {
         if (isMockMode() && isDbUnavailableError(error)) {
@@ -305,6 +286,44 @@ export const checkIn = asyncHandler(async (req: Request, res: Response) => {
             });
         } else {
             throw error;
+        }
+    }
+
+    try {
+        await prisma.metamorphosisProjection.upsert({
+            where: { user_id: userId },
+            create: {
+                user_id: userId,
+                total_checkins: 1,
+                last_mood: normalizedMood,
+                evolution_score: 10
+            },
+            update: {
+                total_checkins: { increment: 1 },
+                last_mood: normalizedMood,
+                evolution_score: { increment: 10 }
+            }
+        });
+    } catch (projectionError) {
+        if (isMockMode() && isDbUnavailableError(projectionError)) {
+            saveMockMetamorphosisEntry({
+                id: String(entry.id),
+                userId,
+                timestamp: String(entry.timestamp),
+                mood: String(entry.mood),
+                photoHash: String(entry.photoHash || ''),
+                photoThumb: entry.photoThumb ? String(entry.photoThumb) : null,
+                quote: recommendation.quote ? String(recommendation.quote) : null,
+            });
+        } else if (isMissingMetamorphosisPersistenceError(projectionError)) {
+            logger.warn('metamorphosis.projection_persist_skipped', {
+                userId,
+                requestId: String(request.requestId || ''),
+                errorCode: String((projectionError as { code?: string })?.code || ''),
+                message: String((projectionError as { message?: string })?.message || ''),
+            });
+        } else {
+            throw projectionError;
         }
     }
 

@@ -340,15 +340,32 @@ export const createAuthApi = (request: RequestFn) => {
               Authorization: `Bearer ${session.access_token}`,
             },
             body: '{}',
-            timeoutMs: 6000,
+            timeoutMs: 3000,
           });
-          if (!cookieResponse.ok) throw new Error(`cookie_${cookieResponse.status}`);
-        } catch {
-          throw new Error('Não foi possível estabelecer a sessão segura.');
+          if (!cookieResponse.ok) {
+            captureFrontendMessage('auth.session.cookie_bootstrap_deferred', {
+              code: `cookie_${cookieResponse.status}`,
+            });
+          }
+        } catch (cookieError) {
+          captureFrontendMessage('auth.session.cookie_bootstrap_deferred', {
+            code: cookieError instanceof Error ? cookieError.message : 'cookie_bootstrap_failed',
+          });
         }
 
         const userMetadata = getUserMetadata(session.user.user_metadata);
-        let eligibility = await fetchLoginEligibility(sessionEmail);
+        const metadataRoleValue = String(userMetadata.role || '').trim();
+        const metadataRole = metadataRoleValue ? normalizeRole(metadataRoleValue) : null;
+        const optimisticRole = oauthRole || metadataRole || inferRoleFromEmail(sessionEmail);
+        let eligibility = await fetchLoginEligibility(sessionEmail, { timeoutMs: 2000 }).catch(() => ({
+          allowed: true,
+          role: optimisticRole,
+          roles: [optimisticRole],
+          reason: 'SESSION_ELIGIBILITY_TIMEOUT',
+          canRegister: false,
+          accountState: 'ACTIVE',
+          nextAction: 'LOGIN',
+        }));
         if (!eligibility.allowed) {
           try {
             await ensureOAuthProfile(
@@ -398,8 +415,6 @@ export const createAuthApi = (request: RequestFn) => {
           }
         }
 
-        const metadataRoleValue = String(userMetadata.role || '').trim();
-        const metadataRole = metadataRoleValue ? normalizeRole(metadataRoleValue) : null;
         const resolvedRole = eligibility.role || metadataRole || inferRoleFromEmail(sessionEmail);
         const resolvedRoles = normalizeRoleList(
           eligibility.roles && eligibility.roles.length > 0 ? eligibility.roles : [resolvedRole],
@@ -429,7 +444,7 @@ export const createAuthApi = (request: RequestFn) => {
     try {
       const sessionPayload = await request<{ user?: Record<string, unknown> }>('/auth/session', {
         purpose: 'session-cookie-restore',
-        timeoutMs: 5000,
+        timeoutMs: 3000,
         retries: 0,
       });
       const rawUser = sessionPayload?.user || {};

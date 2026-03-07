@@ -20,6 +20,7 @@ import {
   PushPermissionState,
 } from '../../lib/notifications';
 import type { User } from '../../types';
+import { isPublicPath } from '../app/routing';
 
 export interface NotificationContextType {
   notifications:  Notification[];
@@ -46,7 +47,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // ── Auth ────────────────────────────────────────────────────────────────────
   useEffect(() => {
-    const load = async () => { setUser(await api.auth.getCurrentSession()); };
+    const load = async () => {
+      if (isPublicPath(window.location.pathname)) {
+        setUser(null);
+        return;
+      }
+      setUser(await api.auth.getCurrentSession());
+    };
     load();
     if (isMockMode) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(load);

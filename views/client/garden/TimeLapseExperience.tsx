@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Calendar, Share2, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Play, Pause, Calendar, Share2, X, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { PortalView } from '../../../components/Common';
 import { User } from '../../../types';
 import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { useIdbImageUrl } from '../../../src/hooks/useIdbImageUrl';
 import { buildLocalImageKey } from '../../../src/utils/idbImageStore';
+import { useAppToast } from '../../../src/contexts/AppToastContext';
+import { buildSoulJourneyModel } from './soulJourneyModel';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
     const { go } = useBuscadorFlow();
+    const { showToast } = useAppToast();
     const [isPlaying, setIsPlaying] = useState(true);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [progress, setProgress] = useState(0);
-    const progressInterval = useRef<any>(null);
+    const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('weekly');
     const [isRecording, setIsRecording] = useState(false);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,6 +26,7 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
     const activeSnap = snaps[currentIndex];
     const activeKey = activeSnap?.id ? buildLocalImageKey(String(activeSnap.id)) : null;
     const activeSrc = useIdbImageUrl(activeKey, activeSnap?.image || '');
+    const journeyModel = buildSoulJourneyModel(user);
 
     const cyclePeriod = () => {
         setPeriod((current) => {
@@ -68,7 +73,11 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
         
         // 1. Enforce Minimum 5 Photos
         if (snaps.length < 5) {
-            alert('Para gerar seu vídeo de jornada (Time Lapse), você precisa de pelo menos 5 memórias registradas. Continue cultivando!');
+            showToast({
+                title: 'Time Lapse indisponível',
+                message: 'Você precisa de pelo menos 5 memórias para gerar o vídeo da jornada.',
+                type: 'info',
+            });
             return;
         }
 
@@ -123,7 +132,9 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                         files: [file],
                         title: 'Minha Jornada Viva360',
                         text: 'Confira minha evolução no Jardim da Alma! 🌿'
-                    }).catch(console.error);
+                    }).catch((error) => {
+                        captureFrontendError(error, { view: 'TimeLapseExperience', op: 'navigator.share' });
+                    });
                 }
             }
         };
@@ -204,6 +215,20 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                     </div>
                     <button aria-label="Fechar" onClick={() => go('EVOLUTION')} className="p-2 hover:bg-white/10 rounded-full transition-colors"><X size={24}/></button>
                 </div>
+                <div className="mt-4 rounded-[1.8rem] border border-white/10 bg-white/5 p-4 backdrop-blur-md">
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-white/45">Replay da Alma</p>
+                            <p className="mt-1 text-sm text-white/80">
+                                {journeyModel.entriesCount} memórias • score {journeyModel.totalScore} • {journeyModel.dominantMood.toLowerCase()}
+                            </p>
+                        </div>
+                        <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-white/70">
+                            <Sparkles size={12} />
+                            {journeyModel.stageLabel}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Visual Content (Canvas for Recording + Image for Display) */}
@@ -235,12 +260,34 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
 
             {/* Controls */}
             <div className="p-8 bg-black flex justify-between items-center">
-                <button 
-                    onClick={() => setIsPlaying(!isPlaying)} 
-                    className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
-                >
-                    {isPlaying ? <Pause size={24} fill="currentColor"/> : <Play size={24} fill="currentColor" className="ml-1"/>}
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => {
+                            setIsPlaying(false);
+                            setProgress(0);
+                            setCurrentIndex((prev) => Math.max(0, prev - 1));
+                        }}
+                        className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    >
+                        <ChevronLeft size={18} />
+                    </button>
+                    <button 
+                        onClick={() => setIsPlaying(!isPlaying)} 
+                        className="w-14 h-14 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    >
+                        {isPlaying ? <Pause size={24} fill="currentColor"/> : <Play size={24} fill="currentColor" className="ml-1"/>}
+                    </button>
+                    <button
+                        onClick={() => {
+                            setIsPlaying(false);
+                            setProgress(0);
+                            setCurrentIndex((prev) => Math.min(snaps.length - 1, prev + 1));
+                        }}
+                        className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
+                    >
+                        <ChevronRight size={18} />
+                    </button>
+                </div>
                 
                 <div className="flex gap-6">
                      <button onClick={cyclePeriod} className="flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
@@ -255,6 +302,26 @@ export const TimeLapseExperience: React.FC<{ user: User }> = ({ user }) => {
                          <Share2 size={20} className={isRecording ? 'animate-pulse text-red-500' : ''} />
                          <span className="text-[9px] uppercase font-bold tracking-widest">{isRecording ? 'Gravando...' : 'Gerar Vídeo'}</span>
                      </button>
+                </div>
+            </div>
+            <div className="bg-black px-8 pb-8">
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+                    {snaps.map((snap, idx) => {
+                        const selected = idx === currentIndex;
+                        return (
+                            <button
+                                key={snap.id}
+                                onClick={() => {
+                                    setCurrentIndex(idx);
+                                    setProgress(0);
+                                    setIsPlaying(false);
+                                }}
+                                className={`relative h-20 w-16 shrink-0 overflow-hidden rounded-2xl border transition-all ${selected ? 'border-white' : 'border-white/10 opacity-60'}`}
+                            >
+                                <img src={snap.image || ''} alt="" className="h-full w-full object-cover" />
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
         </div>

@@ -7,6 +7,7 @@ import { Book, Lock, TrendingUp, Calendar, Heart, ArrowRight, Video, Plus, Share
 import { motion } from 'framer-motion';
 import { generateShareCanvas, shareToSocial } from '../../../src/utils/sharing';
 import { buildReadFailureCopy, isDegradedReadError } from '../../../src/utils/readDegradedUX';
+import { buildSoulJourneyModel } from '../garden/soulJourneyModel';
 
 // Calcula streak de dias consecutivos a partir dos entries
 const calcStreak = (entries: Array<{ createdAt: string }>): number => {
@@ -36,6 +37,7 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
     const [stats, setStats] = useState<{ total: number; streak: number } | null>(null);
     const [loadingJournal, setLoadingJournal] = useState(true);
     const [readIssue, setReadIssue] = useState<{ title: string; message: string } | null>(null);
+    const journeyModel = buildSoulJourneyModel(user);
 
     useEffect(() => {
         const load = async () => {
@@ -110,18 +112,37 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
     return (
         <PortalView title="Diário da Alma" subtitle="MEMÓRIA EMOCIONAL" onBack={() => go('DASHBOARD')}>
             <div className="flex flex-col h-full bg-nature-50">
-                
-                {/* Header Metrics */}
-                <div className="px-6 py-6 bg-white border-b border-nature-100 flex justify-between items-center shadow-sm z-10">
-                    <div className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                            <span className="text-xs font-bold uppercase tracking-widest text-nature-400">Total</span>
-                            <span className="text-2xl font-serif text-nature-900">{stats?.total || 0}</span>
+                <div className="px-6 py-6 bg-white border-b border-nature-100 shadow-sm z-10">
+                    <div className="rounded-[2rem] border border-nature-100 bg-[linear-gradient(135deg,#ffffff_0%,#f4faf6_100%)] p-5 shadow-sm">
+                        <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-[0.25em] text-nature-400">Arquivo sensível</p>
+                                <h3 className="mt-2 text-2xl font-serif italic text-nature-900">Diário da sua evolução emocional</h3>
+                                <p className="mt-2 max-w-xl text-sm leading-relaxed text-nature-500">
+                                    {journeyModel.latestReflection}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => go('METAMORPHOSIS_CHECKIN')}
+                                className="inline-flex items-center gap-2 rounded-full bg-nature-900 px-4 py-3 text-[11px] font-black uppercase tracking-[0.2em] text-white"
+                            >
+                                <Plus size={16} />
+                                Nova entrada
+                            </button>
                         </div>
-                        <div className="w-px h-10 bg-nature-100" />
-                        <div className="flex flex-col items-center">
-                            <span className="text-xs font-bold uppercase tracking-widest text-nature-400">Streak</span>
-                            <span className="text-2xl font-serif text-emerald-600">{stats?.streak ?? user.streak ?? 0}</span>
+                        <div className="mt-5 grid grid-cols-3 gap-3">
+                            <div className="rounded-[1.4rem] border border-nature-100 bg-white/90 p-4 text-center">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-nature-400">Total</span>
+                                <span className="mt-2 block text-2xl font-serif text-nature-900">{stats?.total || 0}</span>
+                            </div>
+                            <div className="rounded-[1.4rem] border border-nature-100 bg-white/90 p-4 text-center">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-nature-400">Streak</span>
+                                <span className="mt-2 block text-2xl font-serif text-emerald-600">{stats?.streak ?? user.streak ?? 0}</span>
+                            </div>
+                            <div className="rounded-[1.4rem] border border-nature-100 bg-white/90 p-4 text-center">
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-nature-400">Humor-base</span>
+                                <span className="mt-2 block text-lg font-bold text-nature-900">{journeyModel.dominantMood}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -237,7 +258,6 @@ export const SoulJournalView: React.FC<{ user: User }> = ({ user }) => {
                     )}
                 </div>
 
-                 {/* FAB — Nova Entrada no Diário */}
                  <div className="p-4 bg-white border-t border-nature-100 flex gap-3 items-center">
                      <button
                          onClick={() => go('METAMORPHOSIS_CHECKIN')}

@@ -58,6 +58,10 @@ export const useGlobalAuthStateListener = ({
     // Quando o silent refresh via supabase falha definitivamente, a request
     // lança SESSION_EXPIRED e o core.ts dispara este evento.
     const onSessionExpired = () => {
+      const pathname = window.location.pathname;
+      if (pathname === '/login' || pathname.startsWith('/register')) {
+        return;
+      }
       sessionTelemetry.record('session_expired');
       setCurrentUser(null);
       setToast({

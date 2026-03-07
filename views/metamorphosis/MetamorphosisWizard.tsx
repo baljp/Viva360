@@ -92,7 +92,7 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
         try {
             await idbImages.put(buildLocalImageKey(hash), capture.fullBlob);
         } catch (e) {
-            console.warn('[MetamorphosisWizard] idbImages.put failed', e);
+            captureFrontendError(e, { view: 'MetamorphosisWizard', op: 'idbImages.put' });
             // Non-critical: local high-res caching failure doesn't stop ritual completion.
         }
         processMetamorphosis(hash, capture);
@@ -129,8 +129,9 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
                     setDrewCard(card);
                     // Keep local high-quality photo for UI/canvas.
                     const entryRecord = (entry && typeof entry === 'object') ? (entry as Record<string, unknown>) : {};
+                    const stableSnapId = String(entryRecord.photoHash || entryRecord.hash || hash);
                     const newSnapResult = {
-                        id: String(entryRecord.id || Date.now()),
+                        id: stableSnapId,
                         mood: String(entryRecord.mood || mood),
                         photoThumb: capture.thumbDataUrl,
                         photoHash: hash,
@@ -142,8 +143,10 @@ export const MetamorphosisWizard: React.FC<{ flow: FlowLike, setView: (v: ViewSt
                     if (user && updateUser) {
                         const snapEntry: import('../../types').DailyRitualSnap = {
                             id: newSnapResult.id,
+                            localImageKey: buildLocalImageKey(newSnapResult.id),
                             date: newSnapResult.timestamp,
                             image: capture.thumbDataUrl,
+                            photoThumb: capture.thumbDataUrl,
                             mood: newSnapResult.mood as import('../../types').MoodType | undefined,
                             note: newSnapResult.quote || '',
                         };
