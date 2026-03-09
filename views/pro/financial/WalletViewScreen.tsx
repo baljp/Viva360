@@ -6,8 +6,8 @@ import { api } from '../../../services/api';
 import { financeApi } from '../../../services/api/financeClient';
 import { useCountUp } from '../../../src/hooks/useCountUp';
 import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
-import {
 import { captureFrontendError } from '../../../lib/frontendLogger';
+import {
     Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Share2,
     Leaf, Heart, Shuffle, Landmark, CreditCard, ChevronRight,
     BarChart3, PieChart, Package, Calendar, Sparkles, Filter, Info,
