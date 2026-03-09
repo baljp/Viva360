@@ -7,6 +7,7 @@ import { financeApi } from '../../../services/api/financeClient';
 import { useCountUp } from '../../../src/hooks/useCountUp';
 import { runConfirmedAction } from '../../../src/utils/runConfirmedAction';
 import {
+import { captureFrontendError } from '../../../lib/frontendLogger';
     Wallet, TrendingUp, ArrowUpRight, ArrowDownRight, Share2,
     Leaf, Heart, Shuffle, Landmark, CreditCard, ChevronRight,
     BarChart3, PieChart, Package, Calendar, Sparkles, Filter, Info,
@@ -241,7 +242,7 @@ export default function WalletViewScreen({ user }: { user: Professional }) {
                     await refreshFinance();
                 }
             } catch (err) {
-                console.warn('[WalletView] Failed to load data:', err);
+                captureFrontendError(err, { view: "WalletView", op: "loadData" });
                 if (!cancelled && state.data.transactions?.length) {
                     setTransactions(state.data.transactions);
                 }

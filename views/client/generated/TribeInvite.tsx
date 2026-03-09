@@ -5,6 +5,7 @@ import { Users, Share2, Copy, Crown, Star, Sparkles, Send } from 'lucide-react';
 import { shareToSocial } from '../../../src/utils/sharing';
 import { dataUrlToBlob } from '../../../src/utils/dataUrl';
 import { api } from '../../../services/api';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 export default function TribeInvite() {
   const { go, back, notify } = useBuscadorFlow();
@@ -23,7 +24,7 @@ export default function TribeInvite() {
         const u = await api.auth.getCurrentSession();
         if (u?.name) setInviterName(String(u.name));
       } catch (e) {
-        console.warn('Non-critical: session check failed for invite name', e);
+        // Non-critical: session check failed for invite name;
         // This is non-critical for the invite flow as a fallback name exists.
       }
       try {
@@ -31,7 +32,7 @@ export default function TribeInvite() {
         const url = String((created as Record<string, unknown>)?.url || '').trim();
         if (url) setInviteLink(url);
       } catch (e) {
-        console.warn('Invite create failed, falling back to generic /invite route', e);
+        captureFrontendError(e, { view: "TribeInvite", op: "createInvite" });
         // Non-critical: failure to generate unique link falls back to generic.
       }
     })();
@@ -152,7 +153,7 @@ export default function TribeInvite() {
         filename: 'convite-viva360.jpg',
       });
     } catch (e) {
-      console.error(e);
+      captureFrontendError(e, { view: "TribeInvite", op: "acceptInvite" });
       notify('Erro no Compartilhamento', 'Tente copiar o link manualmente.', 'error');
     }
   };

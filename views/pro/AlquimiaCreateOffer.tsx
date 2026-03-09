@@ -5,6 +5,7 @@ import { Plus, Sparkles, Clock, Star } from 'lucide-react';
 import { User } from '../../types';
 import { api } from '../../services/api';
 import { roundTripTelemetry } from '../../lib/telemetry';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 export const AlquimiaCreateOffer: React.FC<{ user?: User }> = ({ user }) => {
     const { go, back, notify } = useGuardiaoFlow();
@@ -45,7 +46,7 @@ export const AlquimiaCreateOffer: React.FC<{ user?: User }> = ({ user }) => {
             go('ESCAMBO_MARKET');
         } catch (e: any) {
             roundTripTelemetry.error('alquimia', 'createOffer', rt.correlationId, rt.startMs, e?.message || 'unknown');
-            console.error(e);
+            captureFrontendError(e, { view: "AlquimiaCreateOffer", op: "submit" });
             notify("Erro na Criação", e?.message || "Não foi possível manifestar essa oferta no momento.", "warning");
         }
     };

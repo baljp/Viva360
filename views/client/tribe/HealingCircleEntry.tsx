@@ -5,6 +5,7 @@ import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { api } from '../../../services/api';
 import { Users, Clock, Sparkles, Heart, ChevronRight, ShieldCheck, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
     const { go, back, selectTribeRoomContext } = useBuscadorFlow();
@@ -33,7 +34,7 @@ export const HealingCircleEntry: React.FC<{ user: User }> = ({ user }) => {
                     } as any);
                 }
             } catch (err) {
-                console.error("Failed to load healing circle events", err);
+                captureFrontendError(err, { view: "HealingCircleEntry", op: "loadEvents" });
                 // Fallback on error
                 setEvent({
                     id: 'fallback-circle-error',

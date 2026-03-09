@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Moon, Sun, BellOff, ShieldAlert, ChevronLeft, VolumeX, Sparkles } from 'lucide-react';
 import { api } from '../../../services/api';
 import { clearInAppMute, getInAppMuteUntil, setInAppMuteUntil } from '../../../src/utils/inAppMute';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 export const OfflineRetreat: React.FC<{ flow: { go: (s: string) => void; back?: () => void; notify?: (title: string, message: string, type?: string) => void } }> = ({ flow }) => {
     const [isActive, setIsActive] = useState(false);
@@ -27,7 +28,7 @@ export const OfflineRetreat: React.FC<{ flow: { go: (s: string) => void; back?: 
             setIsActive(false);
             clearInAppMute();
             // Award +50 Karma for completing retreat
-            api.tribe.syncVibration('self', 50).catch(err => console.error("Failed to award retreat karma", err));
+            api.tribe.syncVibration('self', 50).catch(err => captureFrontendError(err, { view: "OfflineRetreat", op: "awardKarma" }));
             flow.notify("Retiro Concluído", "Sua energia foi renovada. Bem-vindo de volta!", "success");
         }
         return () => clearInterval(timer);

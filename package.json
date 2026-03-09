@@ -14,7 +14,7 @@
     "test:e2e:smoke": "npx playwright test --config=playwright.smoke.config.ts",
     "test": "npx playwright test",
     "test:backend": "npx vitest run backend/src/tests",
-    "test:coverage:services": "npx vitest run backend/src/tests/auth.service.test.ts backend/src/tests/interactionReceipt.service.test.ts --coverage --coverage.provider=v8 --coverage.include=backend/src/services/**/*.ts --coverage.reporter=text --coverage.reporter=json-summary --coverage.reportsDirectory=coverage/services",
+    "test:coverage:services": "npx vitest run backend/src/tests/auth.service.test.ts backend/src/tests/interactionReceipt.service.test.ts backend/src/tests/chat.service.test.ts backend/src/tests/audit.service.test.ts backend/src/tests/oracle.service.test.ts --coverage --coverage.provider=v8 --coverage.include=backend/src/services/**/*.ts --coverage.reporter=text --coverage.reporter=json-summary --coverage.reportsDirectory=coverage/services",
     "test:coverage:controllers": "npx vitest run backend/src/tests/records.controller.test.ts backend/src/tests/auth.middleware.test.ts --coverage --coverage.provider=v8 --coverage.include=backend/src/controllers/**/*.ts --coverage.reporter=text --coverage.reporter=json-summary --coverage.reportsDirectory=coverage/controllers",
     "test:coverage:flow": "npx vitest run src/tests/buscadorFlow.test.ts src/tests/guardiaoFlow.test.ts src/tests/santuarioFlow.test.ts src/tests/chatFlow.test.ts src/tests/paymentFlow.test.ts --coverage --coverage.provider=v8 --coverage.include=src/flow/**/*.ts --coverage.reporter=text --coverage.reporter=json-summary --coverage.reportsDirectory=coverage/flow",
     "coverage:check:services": "node scripts/check_layer_coverage.cjs coverage/services/coverage-summary.json 5 5 10 5 services",

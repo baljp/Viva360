@@ -7,6 +7,7 @@ import { api } from '../../services/api';
 import { gardenService } from '../../services/gardenService';
 import { Sun, Moon, CheckCircle2, Circle, Sparkles, History, Info, ChevronRight, X } from 'lucide-react';
 import { useAppToast } from '../../src/contexts/AppToastContext';
+import { captureFrontendError } from '../../lib/frontendLogger';
 
 interface RoutineStep {
     id: string;
@@ -35,7 +36,7 @@ export const RitualsView: React.FC<{ user: User, updateUser: (u: User) => void, 
             setMorningRoutine(morning);
             setNightRoutine(night);
         } catch (e) {
-            console.error(e);
+            captureFrontendError(e, { view: "RitualsView", op: "ritual" });
             setToast({ title: 'Erro de Sincronização', message: 'Não foi possível carregar seus rituais do servidor.', type: 'error' });
         } finally {
             setIsLoading(false);
@@ -84,7 +85,7 @@ export const RitualsView: React.FC<{ user: User, updateUser: (u: User) => void, 
         try {
             await api.rituals.toggle(period, id);
         } catch (e) {
-            console.error("Failed to save ritual state", e);
+            captureFrontendError(e, { view: "RitualsView", op: "saveRitualState" });
             setToast({ title: 'Sincronização Falhou', message: 'Houve um erro ao salvar o estado do ritual. Tentaremos novamente depois.', type: 'warning' });
         }
     };

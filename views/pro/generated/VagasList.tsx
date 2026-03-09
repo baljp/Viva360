@@ -86,7 +86,7 @@ export default function VagasList() {
           setReadIssue(null);
         }
       } catch (err: unknown) {
-        console.warn('[VagasList] Failed to load vacancies:', errorMessage(err));
+        captureFrontendError(err, { view: "VagasList", op: "loadVacancies" });
         if (!cancelled) {
           setVacancies([]);
           setReadIssue(buildReadFailureCopy(['vacancies'], isDegradedReadError(err)));

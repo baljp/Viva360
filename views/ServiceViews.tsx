@@ -8,6 +8,7 @@ import { useOrdersList } from '../src/hooks/useOrdersList';
 import type { OrdersTab } from '../src/hooks/useOrdersList';
 import { useAppToast } from '../src/contexts/AppToastContext';
 import { request } from '../services/api/core';
+import { captureFrontendError } from '../lib/frontendLogger';
 
 // ✅ VideoSessionView — JWT-authenticated Jitsi session (P0 Security Fix)
 interface VideoFlowLike {
@@ -142,7 +143,7 @@ export const OrdersListView: React.FC<{ user: User, onBack: () => void, setView:
       setToast({ title: 'Chave Copiada', message: 'O código do voucher está na sua área de transferência.', type: 'success' });
       setTimeout(() => setCopiedVoucher(null), 2500);
     } catch (error) {
-      console.error('Falha ao copiar voucher', error);
+      captureFrontendError(error, { view: "ServiceViews", op: "copyVoucher" });
       setToast({ title: 'Erro ao Copiar', message: 'Não foi possível copiar o código automaticamente.', type: 'error' });
     }
   };

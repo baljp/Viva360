@@ -3,6 +3,7 @@ import { useBuscadorFlow } from '../../../src/flow/useBuscadorFlow';
 import { Heart, Send, Flame, Droplet, Sprout, Wind, Eye, Zap, Handshake } from 'lucide-react';
 import { api } from '../../../services/api';
 import { useChatRoomRealtime } from '../../../src/hooks/useChatRoomRealtime';
+import { captureFrontendError } from '../../../lib/frontendLogger';
 
 const ENERGIES = [
     { id: 'vitality', label: 'Vitalidade', icon: Flame, color: 'text-amber-500', bg: 'bg-amber-50', msg: 'Envio fogo vital para fortalecer sua vontade! 🔥' },
@@ -120,7 +121,7 @@ export default function TribeInteraction() {
     };
 
     join().catch((e: any) => {
-      console.warn('Tribo room join failed', e);
+      captureFrontendError(e, { view: "TribeInteraction", op: "joinRoom" });
       if (!cancelled) {
         setJoinError('Não foi possível abrir o portal agora. Tente novamente.');
         setIsConnecting(false);
