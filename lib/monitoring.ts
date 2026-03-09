@@ -30,7 +30,7 @@ export const initMonitoring = async () => {
 
     if (!dsn) {
         errorTelemetry.captureMessage('monitoring.sentry.disabled', { domain: 'monitoring', op: 'initMonitoring' });
-        (window as Record<string, unknown>).__VIVA360_SENTRY__ = false;
+        (window as unknown as Record<string, unknown>).__VIVA360_SENTRY__ = false;
     } else {
         const Sentry = await getSentry();
         const activeSampleRate = Number.isFinite(tracesSampleRate) ? tracesSampleRate : 0.2;
@@ -64,7 +64,7 @@ export const initMonitoring = async () => {
                 /Loading chunk \d+ failed/,
             ],
         });
-        (window as Record<string, unknown>).__VIVA360_SENTRY__ = true;
+        (window as unknown as Record<string, unknown>).__VIVA360_SENTRY__ = true;
     }
 
     // LogRocket opcional por script externo/CDN sem dependência hard.

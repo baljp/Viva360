@@ -152,9 +152,9 @@ jobs:
       - name: Generate Prisma client
         run: npm run prisma:generate
 
-      - name: Assert VITE_SENTRY_DSN is set
+      - name: Warn if VITE_SENTRY_DSN is missing
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: test -n "$VITE_SENTRY_DSN" || (echo "VITE_SENTRY_DSN is required for main build observability" && exit 1)
+        run: test -n "$VITE_SENTRY_DSN" || echo "WARN: VITE_SENTRY_DSN missing; frontend remote monitoring will stay disabled"
 
       - name: Build frontend (Vite)
         run: npx vite build

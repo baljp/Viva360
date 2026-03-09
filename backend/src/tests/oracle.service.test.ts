@@ -31,7 +31,11 @@ describe('OracleService', () => {
       prismaMock.oracleMessage.count.mockResolvedValue(2);
       prismaMock.oracleHistory.findFirst.mockResolvedValue(null);
       prismaMock.oracleHistory.create.mockResolvedValue({ id: 'h-1' });
-      const card = await oracleService.drawCard('user-1', { mood: 'SERENO' });
+      const card = await oracleService.drawCard('user-1', {
+        mood: 'SERENO',
+        gardenStatus: { health: 75, waterNeeded: false },
+        metamorphosisPhase: 'inicio',
+      });
       expect(card).toBeDefined();
       expect(card).toHaveProperty('id');
     });
@@ -41,7 +45,11 @@ describe('OracleService', () => {
       prismaMock.oracleMessage.count.mockResolvedValue(0);
       prismaMock.oracleHistory.findFirst.mockResolvedValue(null);
       prismaMock.oracleHistory.create.mockResolvedValue({ id: 'h-2' });
-      const card = await oracleService.drawCard('user-1', { mood: 'VIBRANTE' });
+      const card = await oracleService.drawCard('user-1', {
+        mood: 'VIBRANTE',
+        gardenStatus: { health: 60, waterNeeded: false },
+        metamorphosisPhase: 'crescimento',
+      });
       // Should return a fallback card from internal deck
       expect(card).toBeDefined();
     });
