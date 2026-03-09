@@ -45,7 +45,7 @@ const mapApiMessage = (value: unknown): UiMessage | null => {
 
 export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
   const { go, state } = useGuardiaoFlow();
-  const activeRoomId = roomId || state.selectedChatRoom?.id || 'chat_001';
+  const activeRoomId = roomId || state.selectedChatRoom?.id || '';
   const roomName = state.selectedChatRoom?.name || 'Conversa';
 
   const [messages, setMessages] = useState<UiMessage[]>([]);
@@ -66,7 +66,11 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
   }, []);
 
   const loadMessages = useCallback(async () => {
-    if (!activeRoomId) return;
+    if (!activeRoomId) {
+      setMessages([]);
+      setLoading(false);
+      return;
+    }
     const rows = await communityApi.chat.getMessages(activeRoomId);
     const normalized = (Array.isArray(rows) ? rows : [])
       .map(mapApiMessage)
@@ -91,7 +95,7 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
   }, [messages.length]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!activeRoomId || !input.trim()) return;
     const content = input.trim();
     setInput('');
     setMessages((prev) => [...prev, {
@@ -144,13 +148,25 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+        {!activeRoomId && (
+          <div className="h-full flex items-center justify-center">
+            <div className="bg-white border border-slate-100 rounded-3xl px-6 py-8 text-center shadow-sm max-w-sm">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-indigo-300 mb-3">Sala não selecionada</p>
+              <h3 className="text-lg font-serif italic text-indigo-950 mb-2">Escolha uma conversa para continuar</h3>
+              <p className="text-sm text-slate-500 leading-relaxed">Volte para a lista de chats e abra uma sala válida antes de enviar mensagens.</p>
+              <button onClick={() => go('CHAT_LIST')} className="mt-5 px-5 py-3 rounded-2xl bg-indigo-600 text-white text-[11px] font-black uppercase tracking-[0.2em]">
+                Ir para conversas
+              </button>
+            </div>
+          </div>
+        )}
         <div className="flex justify-center mb-4">
           <div className="bg-amber-50 text-amber-600 text-[10px] px-3 py-1 rounded-full border border-amber-100 flex items-center gap-1">
             <Shield size={10} /> Ambiente Seguro & Criptografado (LGPD Compliant)
           </div>
         </div>
-        {loading && <div className="text-center text-xs text-gray-400 mt-4">Carregando histórico clínico...</div>}
-        {messages.map((msg) => {
+        {!activeRoomId ? null : loading ? <div className="text-center text-xs text-gray-400 mt-4">Carregando histórico clínico...</div> : null}
+        {activeRoomId && messages.map((msg) => {
           const isMe = !!myId && msg.senderId === myId;
           return (
             <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -181,11 +197,10 @@ export default function ProChatRoomScreen({ roomId }: { roomId?: string }) {
             className="w-full bg-slate-50 px-4 py-3 rounded-xl border border-transparent focus:border-indigo-100 focus:bg-white outline-none text-sm placeholder:text-slate-400 transition-all"
           />
         </div>
-        <button aria-label="Enviar mensagem" onClick={handleSend} className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 active:scale-95">
+        <button aria-label="Enviar mensagem" onClick={handleSend} disabled={!activeRoomId || !input.trim()} className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200 active:scale-95 disabled:opacity-40 disabled:hover:bg-indigo-600">
           <Send size={18} className="translate-x-0.5 translate-y-0.5" />
         </button>
       </div>
     </div>
   );
 }
-

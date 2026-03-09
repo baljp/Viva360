@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build:backend": "npm run prisma:generate && NODE_PATH=./backend/node_modules tsc -p backend/tsconfig.json",
+    "build:backend": "rm -rf backend/dist && npm run prisma:generate && NODE_PATH=./backend/node_modules tsc -p backend/tsconfig.json",
     "build": "NODE_ENV=production node scripts/assert-monitoring-env.cjs && NODE_ENV=production npm run build:backend && NODE_ENV=production tsc && NODE_ENV=production vite build",
     "vercel-build": "NODE_ENV=production node scripts/assert-monitoring-env.cjs && NODE_ENV=production npm run build:backend && NODE_ENV=production vite build",
     "dev:api:test": "NODE_ENV=test APP_MODE=MOCK ENABLE_TEST_MODE=true PORT=${PORT:-3001} npx tsx backend/src/server.ts",

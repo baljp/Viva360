@@ -23,9 +23,15 @@ const matches: Match[] = raw
   });
 
 const isNonProdPath = (f: string) =>
-  f.startsWith('qa/')
+  f === 'validate-env.ts'
+  || f.startsWith('qa/')
   || f.startsWith('scripts/')
   || f.startsWith('backend/scripts/')
+  || f.startsWith('backend/tests/')
+  || f.startsWith('backend/test_')
+  || f.startsWith('backend/validate_')
+  || f.startsWith('backend/benchmark')
+  || f.startsWith('backend/smoke_')
   || f.startsWith('reports/')
   || f.startsWith('backend/e2e')
   || f.startsWith('backend/check_');

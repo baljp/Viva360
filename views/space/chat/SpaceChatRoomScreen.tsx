@@ -25,7 +25,7 @@ export default function SpaceChatRoomScreen() {
   const [myId, setMyId] = useState<string>('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const activeRoomId = state.selectedChatRoom?.id || 'space_room_1';
+  const activeRoomId = state.selectedChatRoom?.id || '';
   const activeRoomName = state.selectedChatRoom?.name || 'Sala do Santuário';
 
   useEffect(() => {
@@ -35,6 +35,11 @@ export default function SpaceChatRoomScreen() {
   }, []);
 
   const loadMessages = useCallback(async () => {
+    if (!activeRoomId) {
+      setMessages([]);
+      setLoading(false);
+      return;
+    }
     const rows = await communityApi.chat.getMessages(activeRoomId);
     const normalized = (Array.isArray(rows) ? rows : [])
       .map((row): RoomMessage | null => {
@@ -72,7 +77,7 @@ export default function SpaceChatRoomScreen() {
   }, [messages.length]);
 
   const handleSend = async () => {
-    if (!inputText.trim()) return;
+    if (!activeRoomId || !inputText.trim()) return;
     const content = inputText.trim();
     setInputText('');
     setMessages((prev) => [...prev, {
@@ -108,10 +113,19 @@ export default function SpaceChatRoomScreen() {
     >
       <div className="flex flex-col h-[calc(100vh-180px)]">
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {loading ? (
+          {!activeRoomId && (
+            <div className="h-full flex items-center justify-center">
+              <div className="bg-white border border-nature-100 rounded-[2rem] p-8 max-w-sm text-center shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-nature-300 mb-3">Sala não selecionada</p>
+                <h3 className="font-serif italic text-xl text-nature-900 mb-2">Escolha uma sala do santuário</h3>
+                <p className="text-sm text-nature-500 leading-relaxed">Volte para a lista anterior e abra uma conversa válida para iniciar o atendimento.</p>
+              </div>
+            </div>
+          )}
+          {activeRoomId && loading ? (
             <div className="flex justify-center p-8"><span className="animate-spin rounded-full h-8 w-8 border-b-2 border-nature-900"></span></div>
           ) : (
-            messages.map((msg) => {
+            activeRoomId && messages.map((msg) => {
               const isMe = !!myId && msg.sender_id === myId;
               return (
                 <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
@@ -141,7 +155,7 @@ export default function SpaceChatRoomScreen() {
             <button
               aria-label="Enviar mensagem"
               onClick={handleSend}
-              disabled={!inputText.trim()}
+              disabled={!activeRoomId || !inputText.trim()}
               className="p-3 bg-nature-900 text-white rounded-xl disabled:opacity-50 hover:scale-105 transition-transform"
             >
               <Send size={18} />

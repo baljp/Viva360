@@ -1,13 +1,13 @@
 # Mock Reference Inventory
 
-Gerado em: 2026-02-25T12:52:04.317Z
+Gerado em: 2026-03-09T14:37:56.076Z
 
-Total: 319
-Runtime frontend: 49
-Runtime backend: 70
-Docs/reports: 116
-Scripts/QA: 76
-Outros: 8
+Total: 366
+Runtime frontend: 43
+Runtime backend: 74
+Docs/reports: 150
+Scripts/QA: 90
+Outros: 9
 Risco runtime (leak patterns fora da allowlist): 0
 
 | File | Line | Match |

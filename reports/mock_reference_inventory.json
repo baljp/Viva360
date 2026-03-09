@@ -1,12 +1,12 @@
 {
-  "generatedAt": "2026-02-25T12:52:04.317Z",
+  "generatedAt": "2026-03-09T14:37:56.076Z",
   "totals": {
-    "all": 319,
-    "runtimeFrontend": 49,
-    "runtimeBackend": 70,
-    "docs": 116,
-    "scriptsQa": 76,
-    "other": 8,
+    "all": 366,
+    "runtimeFrontend": 43,
+    "runtimeBackend": 74,
+    "docs": 150,
+    "scriptsQa": 90,
+    "other": 9,
     "riskyRuntime": 0
   },
   "allowlistedRuntimePatterns": [
@@ -21,49 +21,74 @@
   "samples": {
     "runtimeFrontend": [
       {
+        "file": "src/contexts/ChatContext.tsx",
+        "line": 235,
+        "text": "// Mock behavior"
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 18,
+        "text": "// DATA-01: Unified mock flag — single source of truth for mock eligibility."
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 24,
+        "text": "if (normalized === 'mock') return 'MOCK';"
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 27,
+        "text": "// staging must behave as real mode (no mock shortcuts)."
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 148,
+        "text": "const finalUrl = supabaseUrl || 'https://viva360-mock.supabase.co';"
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 162,
+        "text": "client = createClient('https://viva360-mock.supabase.co', 'dummy-anon-key');"
+      },
+      {
+        "file": "lib/supabase.ts",
+        "line": 189,
+        "text": "// Mock warning removed"
+      },
+      {
+        "file": "src/flow/SantuarioFlowContext.tsx",
+        "line": 33,
+        "text": "// Mock Data for Admin Dashboard (standardized)"
+      },
+      {
         "file": "components/Layout.tsx",
         "line": 193,
         "text": "{/* Mock indicator removed */}"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 17,
-        "text": "// DATA-01: Unified mock flag — single source of truth for mock eligibility."
+        "file": "src/data/soulCards.ts",
+        "line": 5,
+        "text": "* Em ambiente de test/mock, o conteúdo pode ser sobrescrito por"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 23,
-        "text": "if (normalized === 'mock') return 'MOCK';"
+        "file": "views/client/BookingSelect.tsx",
+        "line": 74,
+        "text": "// Simple mock behavior for messaging"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 26,
-        "text": "// staging must behave as real mode (no mock shortcuts)."
+        "file": "views/ServiceViews.tsx",
+        "line": 32,
+        "text": "// ✅ Usa appointment real: props > flow context > flow prop. Sem mock fallback."
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 147,
-        "text": "const finalUrl = supabaseUrl || 'https://viva360-mock.supabase.co';"
+        "file": "views/pro/ProFinance.tsx",
+        "line": 34,
+        "text": "// SEC-03: Fetch real transactions from API instead of relying on mock/props only"
       },
       {
-        "file": "lib/supabase.ts",
-        "line": 188,
-        "text": "// Mock warning removed"
-      },
-      {
-        "file": "src/flow/SantuarioFlowContext.tsx",
-        "line": 29,
-        "text": "// Mock Data for Admin Dashboard (standardized)"
-      },
-      {
-        "file": "src/hooks/useSoulCards.ts",
-        "line": 9,
-        "text": "// Mock persistence"
-      },
-      {
-        "file": "src/contexts/ChatContext.tsx",
-        "line": 229,
-        "text": "// Mock behavior"
+        "file": "views/pro/financial/WalletViewScreen.tsx",
+        "line": 217,
+        "text": "// SEC-03: Real transactions from API instead of mock/setTimeout"
       },
       {
         "file": "services/api/auth.ts",
@@ -72,93 +97,68 @@
       },
       {
         "file": "services/api/auth.ts",
-        "line": 307,
+        "line": 312,
         "text": "captureFrontendMessage('Sessão mock bloqueada fora de ambiente de teste local.');"
       },
       {
-        "file": "views/AdminViews.tsx",
-        "line": 34,
-        "text": "// Mock data if backend not fully ready or for demo speed"
+        "file": "views/pro/AlquimiaProposeTrade.tsx",
+        "line": 61,
+        "text": "// FLOW-06: Real POST /alchemy/offers instead of setTimeout mock"
       },
       {
-        "file": "views/ServiceViews.tsx",
-        "line": 24,
-        "text": "// Mock Data if appointment is missing"
+        "file": "services/api/realtime.ts",
+        "line": 59,
+        "text": "// In mock/test mode: emit a single static pulse so UI renders,"
       },
       {
-        "file": "views/ServiceViews.tsx",
-        "line": 25,
-        "text": "// Mock Data if appointment is missing (Logic for when accessed via go('VIDEO_SESSION') without props)"
+        "file": "services/api/realtime.ts",
+        "line": 62,
+        "text": "this.broadcast(CHANNEL, { delta: 0, source: 'mock-pulse', timestamp: new Date().toISOString() });"
       },
       {
-        "file": "views/ServiceViews.tsx",
-        "line": 27,
-        "text": "serviceName: 'Sessão de Cura (Mock)',"
+        "file": "views/pro/generated/AgendaDetailsView.tsx",
+        "line": 9,
+        "text": "// Mock Data for the selected appointment"
       },
       {
-        "file": "views/client/BookingSelect.tsx",
-        "line": 74,
-        "text": "// Simple mock behavior for messaging"
+        "file": "services/api/session.ts",
+        "line": 120,
+        "text": "export const getSessionMode = (): 'mock' | 'real' | null => {"
       },
       {
-        "file": "views/metamorphosis/MetamorphosisWizard.tsx",
-        "line": 123,
-        "text": "const card = performDraw(1, mood); // Mock streak 1 for now"
+        "file": "services/api/session.ts",
+        "line": 122,
+        "text": "if (value === 'mock' || value === 'real') return value;"
       },
       {
-        "file": "views/pro/SantuarioListView.tsx",
-        "line": 67,
-        "text": "} catch (e) { /* use mock */ }"
+        "file": "services/api/session.ts",
+        "line": 126,
+        "text": "export const setSessionMode = (mode: 'mock' | 'real') => {"
       },
       {
-        "file": "services/api/mock.ts",
+        "file": "services/api/core.ts",
+        "line": 4,
+        "text": "//   • Header Bearer apenas para sessão mock"
+      },
+      {
+        "file": "services/api/core.ts",
         "line": 17,
-        "text": "// SEC-01: Mock token read from env var, never hardcoded in source code."
+        "text": "import { MOCK_AUTH_TOKEN, MOCK_USER_KEY, canUseMockSession } from './mock';"
       },
       {
-        "file": "services/api/mock.ts",
-        "line": 20,
-        "text": "// DATA-01: Unified mock flag — single source of truth."
+        "file": "services/api/core.ts",
+        "line": 23,
+        "text": "getSessionMode() === 'mock' &&"
       },
       {
-        "file": "services/api/mock.ts",
-        "line": 39,
-        "text": "// DATA-01: Simplified mock eligibility — single flag instead of chain of localStorage + env checks."
+        "file": "services/api/core.ts",
+        "line": 49,
+        "text": "// Sessões mock nunca expiram"
       },
       {
-        "file": "services/api/mock.ts",
-        "line": 46,
-        "text": "const currentMode = getSessionMode() === 'mock';"
-      },
-      {
-        "file": "services/api/mock.ts",
-        "line": 79,
-        "text": "if (key.includes('mock') || key.startsWith('viva360_tutorial_seen_')) {"
-      },
-      {
-        "file": "services/api/mock.ts",
-        "line": 132,
-        "text": "throw new Error('Mock token não configurado (VITE_MOCK_AUTH_TOKEN).');"
-      },
-      {
-        "file": "services/api/mock.ts",
-        "line": 135,
-        "text": "setSessionMode('mock');"
-      },
-      {
-        "file": "services/api/mock.ts",
-        "line": 142,
-        "text": "if (getSessionMode() !== 'mock') return null;"
-      },
-      {
-        "file": "views/pro/ProFinance.tsx",
-        "line": 32,
-        "text": "// SEC-03: Fetch real transactions from API instead of relying on mock/props only"
-      },
-      {
-        "file": "views/pro/ProFinance.tsx",
-        "line": 135,
-        "text": "// SEC-03: Honest feedback instead of fake setTimeout success."
+        "file": "services/api/core.ts",
+        "line": 50,
+        "text": "if (canUseMockSession() && getSessionMode() === 'mock') return null;"
       },
       {
         "file": "services/api/authDomainHelpers.ts",
@@ -166,12 +166,17 @@
         "text": "import { isStrictTestEmail } from './mock';"
       },
       {
-        "file": "services/api/core.ts",
-        "line": 4,
-        "text": "import { MOCK_AUTH_TOKEN, MOCK_USER_KEY, canUseMockSession } from './mock';"
+        "file": "views/space/SpaceDashboard.tsx",
+        "line": 228,
+        "text": "// MOD-03: Real financial data export instead of 'Mock Financial Data Export'"
       }
     ],
     "runtimeBackend": [
+      {
+        "file": "backend/src/services/gamification.service.ts",
+        "line": 210,
+        "text": "process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toLowerCase() === 'mock';"
+      },
       {
         "file": "backend/src/services/supabase.service.ts",
         "line": 13,
@@ -199,131 +204,131 @@
       },
       {
         "file": "backend/src/services/notification.dispatcher.ts",
-        "line": 21,
-        "text": "if (process.env.SUPABASE_URL?.includes('mock')) {"
+        "line": 38,
+        "text": "logger.info('notification.dispatch.mock', { userId: payload.userId, title: payload.title });"
       },
       {
         "file": "backend/src/services/notification.dispatcher.ts",
-        "line": 22,
-        "text": "logger.info('notification.dispatch', { userId: payload.userId, mode: 'mock' });"
-      },
-      {
-        "file": "backend/src/services/notification.dispatcher.ts",
-        "line": 28,
-        "text": "// Mock Preferences Check"
-      },
-      {
-        "file": "backend/src/services/notification.dispatcher.ts",
-        "line": 54,
-        "text": "to: '5511999999999', // Mock"
-      },
-      {
-        "file": "backend/src/services/notification.dispatcher.ts",
-        "line": 61,
-        "text": "// Mock subscription"
-      },
-      {
-        "file": "backend/src/services/notification.dispatcher.ts",
-        "line": 85,
-        "text": "if (userId === 'mock-user') return 'mock@test.com';"
-      },
-      {
-        "file": "backend/src/services/notification.dispatcher.ts",
-        "line": 87,
-        "text": "// Mock DB lookup"
-      },
-      {
-        "file": "backend/src/services/notification.dispatcher.ts",
-        "line": 88,
-        "text": "if (process.env.SUPABASE_URL?.includes('mock')) {"
+        "line": 39,
+        "text": "return payload.channels.map(ch => ({ channel: ch, status: 'mock' }));"
       },
       {
         "file": "backend/src/services/notificationEngine.service.ts",
-        "line": 128,
+        "line": 138,
         "text": "process.env.NODE_ENV === 'test' || String(process.env.APP_MODE || '').toLowerCase() === 'mock';"
       },
       {
         "file": "backend/src/services/auth.service.ts",
-        "line": 387,
+        "line": 399,
         "text": "refresh_token: 'mock-refresh-token',"
       },
       {
         "file": "backend/src/services/chat.service.ts",
-        "line": 40,
+        "line": 19,
+        "text": "// Also fallback if foreign key constraint (P2003) or record not found (P2025) fails due to empty mock DB"
+      },
+      {
+        "file": "backend/src/services/chat.service.ts",
+        "line": 41,
         "text": "// In-memory fallback used only in mock/test runtime when Prisma DB is unavailable."
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 135,
-        "text": "const key = String(userId || 'mock-user');"
+        "line": 2,
+        "text": "* MockAdapter — ponto único de toda a lógica mock do backend."
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 151,
-        "text": "id: makeId('mock-offer'),"
+        "line": 5,
+        "text": "* para tudo relacionado a mock — stores, factories, guards e o flag isMockMode."
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 152,
-        "text": "provider_id: String(input.providerId || 'mock-provider'),"
+        "line": 7,
+        "text": "* para checar o modo mock."
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 153,
-        "text": "requester_id: String(input.requesterId || 'mock-requester'),"
+        "line": 16,
+        "text": "// ─── Re-export: flag de modo mock (single source of truth para controllers) ──"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 182,
-        "text": "id: makeId('mock-app'),"
+        "line": 315,
+        "text": "id: mockId('mock-offer'),"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 184,
-        "text": "candidate_id: String(input.candidateId || 'mock-candidate'),"
+        "line": 328,
+        "text": "id: mockId('mock-app'),"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 185,
-        "text": "space_id: String(input.spaceId || 'mock-space'),"
+        "line": 340,
+        "text": "id: mockId('mock-int'),"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 210,
-        "text": "id: makeId('mock-int'),"
+        "line": 353,
+        "text": "id: mockId('mock-rec'),"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 252,
-        "text": "id: makeId('mock-record'),"
+        "line": 392,
+        "text": "id: mockId('mock-product'),"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 286,
-        "text": "id: makeId('mock-product'),"
+        "line": 393,
+        "text": "name: String(params.name || 'Produto Mock'),"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 287,
-        "text": "name: String(input.name || 'Produto Mock'),"
+        "line": 399,
+        "text": "owner_id: String(params.ownerId || 'mock-owner'),"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 293,
-        "text": "owner_id: String(input.ownerId || 'mock-owner'),"
+        "line": 415,
+        "text": "id: mockId('mock-tx'),"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 324,
-        "text": "id: makeId('mock-review'),"
+        "line": 416,
+        "text": "user_id: params.userId || 'mock-sender',"
       },
       {
         "file": "backend/src/services/mockAdapter.ts",
-        "line": 325,
-        "text": "spaceId: String(input.spaceId || 'mock-space'),"
+        "line": 435,
+        "text": "id: mockId('mock-review'),"
+      },
+      {
+        "file": "backend/src/services/cloudinary.service.ts",
+        "line": 13,
+        "text": "* In Mock Mode, keeps the original payload to preserve visual parity in local/test flows."
+      },
+      {
+        "file": "backend/src/services/mockData.service.ts",
+        "line": 105,
+        "text": "// But for mock login script (sequential), it's acceptable."
+      },
+      {
+        "file": "backend/src/app.ts",
+        "line": 26,
+        "text": "/^\\/api\\/mock(?:\\/|$|-)/i,"
+      },
+      {
+        "file": "backend/src/app.ts",
+        "line": 134,
+        "text": "// Production hardening: block test/debug/mock surface explicitly."
       }
     ],
     "docs": [
+      {
+        "file": "TRIAGE-REPORT.md",
+        "line": 13,
+        "text": "| Mock flags | ✅ | Nenhum MOCK_ENABLED/APP_MODE=MOCK em prod |"
+      },
       {
         "file": "CRITICAL_SECURITY_FIXES.md",
         "line": 9,
@@ -370,29 +375,9 @@
         "text": "| 9 | `qa/utils/mock-fixtures.ts` | SEC-01 |"
       },
       {
-        "file": "TRIAGE-REPORT.md",
-        "line": 13,
-        "text": "| Mock flags | ✅ | Nenhum MOCK_ENABLED/APP_MODE=MOCK em prod |"
-      },
-      {
-        "file": "reports/mock_reference_inventory.md",
+        "file": "docs/mock-segregation.md",
         "line": 1,
-        "text": "# Mock Reference Inventory"
-      },
-      {
-        "file": "reports/VIVA360_ENTERPRISE_AUDIT.md",
-        "line": 16,
-        "text": "- Auditoria de vazamento de rotas teste/mock: PASS (`reports/test_route_leak_audit.md`)."
-      },
-      {
-        "file": "reports/VIVA360_ENTERPRISE_AUDIT.md",
-        "line": 75,
-        "text": "- Estruturar feature flags (APP_MODE/mock) com stripping build-time e auditoria automatica de vazamento."
-      },
-      {
-        "file": "reports/refactor_b_to_e_status.md",
-        "line": 7,
-        "text": "| B1 | Segregar Mock Mode e impedir vazamento em produção | DONE | `lib/supabase.ts` (prod build lock), `backend/src/lib/runtimeGuard.ts`, `scripts/audit_test_route_leaks.ts` + `npm run qa:audit-route-leaks` PASS | Nenhum bloqueador |"
+        "text": "# Arquitetura de Segregação Mock/Produção"
       },
       {
         "file": "reports/mock_reference_inventory.json",
@@ -402,27 +387,42 @@
       {
         "file": "reports/mock_reference_inventory.json",
         "line": 26,
-        "text": "\"text\": \"// Mock Data for Admin Dashboard (standardized)\""
-      },
-      {
-        "file": "reports/mock_reference_inventory.json",
-        "line": 31,
-        "text": "\"text\": \"// Mock behavior\""
-      },
-      {
-        "file": "reports/mock_reference_inventory.json",
-        "line": 36,
-        "text": "\"text\": \"// Mock persistence\""
-      },
-      {
-        "file": "reports/mock_reference_inventory.json",
-        "line": 41,
         "text": "\"text\": \"{/* Mock indicator removed */}\""
       },
       {
         "file": "reports/mock_reference_inventory.json",
+        "line": 31,
+        "text": "\"text\": \"// Mock Data for Admin Dashboard (standardized)\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 36,
+        "text": "\"text\": \"* Em ambiente de test/mock, o conteúdo pode ser sobrescrito por\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 41,
+        "text": "\"text\": \"// DATA-01: Unified mock flag — single source of truth for mock eligibility.\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
         "line": 46,
-        "text": "\"text\": \"} from './mock';\""
+        "text": "\"text\": \"if (normalized === 'mock') return 'MOCK';\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 51,
+        "text": "\"text\": \"// staging must behave as real mode (no mock shortcuts).\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 56,
+        "text": "\"text\": \"const finalUrl = supabaseUrl || 'https://viva360-mock.supabase.co';\""
+      },
+      {
+        "file": "reports/mock_reference_inventory.json",
+        "line": 61,
+        "text": "\"text\": \"client = createClient('https://viva360-mock.supabase.co', 'dummy-anon-key');\""
       }
     ],
     "scriptsQa": [
@@ -432,79 +432,14 @@
         "text": "{ name: 'CHECKIN', path: '/metamorphosis/checkin', method: 'POST', body: { mood: 'vibrante', thumb: 'data:image/png;base64,mock' } },"
       },
       {
-        "file": "backend/check_endpoints.ts",
-        "line": 74,
-        "text": "// Mock Create"
+        "file": "scripts/regression_checklist.ts",
+        "line": 37,
+        "text": "{ id: 'route-leaks', label: 'Auditoria de vazamento de rotas teste/mock', command: 'npm run qa:audit-route-leaks', required: true },"
       },
       {
-        "file": "backend/check_endpoints.ts",
-        "line": 79,
-        "text": "professional_id: 'mock-pro-id',"
-      },
-      {
-        "file": "backend/check_endpoints.ts",
-        "line": 80,
-        "text": "// clientId: 'mock-me', // Not needed, inferred from token"
-      },
-      {
-        "file": "backend/check_endpoints.ts",
-        "line": 100,
-        "text": "// Try to mark read a mock id"
-      },
-      {
-        "file": "backend/check_endpoints.ts",
-        "line": 101,
-        "text": "await check('PATCH /notifications/mock-id/read', fetch(`${API_URL}/notifications/mock-id/read`, { method: 'PATCH', headers }));"
-      },
-      {
-        "file": "backend/e2e_refactor.ts",
-        "line": 14,
-        "text": "// 1. AUTHENTICATION (Mock Mode)"
-      },
-      {
-        "file": "backend/e2e_refactor.ts",
-        "line": 16,
-        "text": "console.log('[1] Authentication (Mock Mode Setup)...');"
-      },
-      {
-        "file": "backend/e2e_refactor.ts",
-        "line": 43,
-        "text": "console.log('\\n[2] Verifying Dashboard API (Mock)...');"
-      },
-      {
-        "file": "backend/scripts/e2e_phase4.ts",
-        "line": 73,
-        "text": "// Pro B tries to read (Should Fail or return empty if Mock Mode has no strict ACL memory yet)"
-      },
-      {
-        "file": "backend/scripts/e2e_phase4.ts",
-        "line": 75,
-        "text": "// In full DB mode this returns 403. In Mock Mode, we might just log audit and return empty or mock data."
-      },
-      {
-        "file": "backend/scripts/chaos_orchestrator.ts",
-        "line": 8,
-        "text": "// Mock Token (since we are in Mock Mode, middleware accepts any valid JWT structure or we can rely on our middleware bypass if we set the right user?)"
-      },
-      {
-        "file": "backend/scripts/chaos_orchestrator.ts",
-        "line": 10,
-        "text": "const STRESS_HEADERS = { 'x-chaos-mode': 'true', 'Authorization': 'Bearer mock-token' };"
-      },
-      {
-        "file": "backend/scripts/chaos_orchestrator.ts",
-        "line": 11,
-        "text": "const HEALTH_HEADERS = { 'Authorization': 'Bearer mock-token' }; // No chaos for health check"
-      },
-      {
-        "file": "backend/scripts/e2e_phase5.ts",
-        "line": 44,
-        "text": "receiverId: 'mock-space-id'"
-      },
-      {
-        "file": "backend/scripts/lightweight_audit.ts",
-        "line": 114,
-        "text": "// 7. Finance Summary (Mock)"
+        "file": "scripts/regression_checklist.ts",
+        "line": 38,
+        "text": "{ id: 'mock-refs', label: 'Inventário/gate de referências mock', command: 'npm run qa:audit-mock-refs && npm run qa:mock-ref-gate', required: true },"
       },
       {
         "file": "scripts/audit_mock_references.ts",
@@ -525,6 +460,71 @@
         "file": "scripts/audit_mock_references.ts",
         "line": 47,
         "text": "/mock tokens are forbidden in production/i,"
+      },
+      {
+        "file": "scripts/audit_mock_references.ts",
+        "line": 48,
+        "text": "/session\\.mode'.*mock/i,"
+      },
+      {
+        "file": "scripts/audit_mock_references.ts",
+        "line": 49,
+        "text": "/viva360\\.session\\.mode.*mock/i,"
+      },
+      {
+        "file": "scripts/audit_mock_references.ts",
+        "line": 101,
+        "text": "'# Mock Reference Inventory',"
+      },
+      {
+        "file": "scripts/audit_mock_references.ts",
+        "line": 119,
+        "text": "console.log(`mock-reference-inventory: ${path.join(reportsDir, 'mock_reference_inventory.json')}`);"
+      },
+      {
+        "file": "scripts/audit_mock_references.ts",
+        "line": 120,
+        "text": "console.log(`mock-reference-inventory: ${path.join(reportsDir, 'mock_reference_inventory.md')}`);"
+      },
+      {
+        "file": "scripts/prod-smoke.sh",
+        "line": 72,
+        "text": "echo \"8️⃣  Mock Data Leak\""
+      },
+      {
+        "file": "scripts/prod-smoke.sh",
+        "line": 74,
+        "text": "echo \"$INDEX\" | grep -qi \"MOCK_ENABLED.*true\\|APP_MODE.*MOCK\" && fail \"Mock flag leaked in HTML\" || ok \"No mock flags in HTML\""
+      },
+      {
+        "file": "scripts/check_mock_reference_gate.ts",
+        "line": 14,
+        "text": "console.error(`mock-reference-gate: relatório ausente (${reportPath}). Rode 'npm run qa:audit-mock-refs'.`);"
+      },
+      {
+        "file": "scripts/check_mock_reference_gate.ts",
+        "line": 20,
+        "text": "console.log(`mock-reference-gate: riskyRuntime=${riskyRuntime}`);"
+      },
+      {
+        "file": "scripts/check_mock_reference_gate.ts",
+        "line": 23,
+        "text": "console.error('mock-reference-gate: FAIL (mock leak patterns de runtime fora da allowlist)');"
+      },
+      {
+        "file": "scripts/check_mock_reference_gate.ts",
+        "line": 27,
+        "text": "console.log('mock-reference-gate: PASS');"
+      },
+      {
+        "file": "scripts/audit_test_route_leaks.ts",
+        "line": 24,
+        "text": "/^\\/api\\/(debug|test|mock)(?:\\/|$|-)/i.test(normalized)"
+      },
+      {
+        "file": "scripts/audit_test_route_leaks.ts",
+        "line": 25,
+        "text": "|| /^\\/(debug|test|mock)(?:\\/|$|-)/i.test(normalized)"
       }
     ]
   }
