@@ -15,7 +15,7 @@ import { attachRawBody, buildCorsOptions, getApiHelmetOptions } from './lib/http
 import type { Socket } from 'net';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
-const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
+const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '2mb').trim() || '2mb';
 const truthy = (value?: string) => String(value || '').trim().toLowerCase() === 'true';
 const isDebugRoutesEnabled = !isProductionRuntime && (
     truthy(process.env.ENABLE_DEBUG_ROUTES) || truthy(process.env.ENABLE_TEST_MODE)

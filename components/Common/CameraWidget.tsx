@@ -322,9 +322,9 @@ export const CameraWidget: React.FC<{
   }, []);
 
   const getTarget = () => {
-    if (variant === 'SQUARE') return { w: 1080, h: 1080, tw: 640, th: 640 };
-    if (variant === 'STORY') return { w: 1080, h: 1920, tw: 720, th: 1280 };
-    return { w: 1080, h: 1350, tw: 720, th: 900 };
+    if (variant === 'SQUARE') return { w: 1080, h: 1080, tw: 480, th: 480 };
+    if (variant === 'STORY') return { w: 1080, h: 1920, tw: 480, th: 854 };
+    return { w: 1080, h: 1350, tw: 480, th: 600 };
   };
 
   const drawCover = (
@@ -416,7 +416,7 @@ export const CameraWidget: React.FC<{
     tctx.imageSmoothingEnabled = true;
     tctx.imageSmoothingQuality = 'high';
     drawFramedPhoto(tctx, canvasRef.current, canvasRef.current.width, canvasRef.current.height, w, h);
-    return thumbCanvas.toDataURL('image/jpeg', 0.88);
+    return thumbCanvas.toDataURL('image/jpeg', 0.72);
   };
 
   const finishCapture = async () => {

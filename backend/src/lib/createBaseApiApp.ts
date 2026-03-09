@@ -11,7 +11,7 @@ import { assertCriticalProdConfig, enforceNoProdMockLeakage } from './runtimeGua
 import { attachRawBody, buildCorsOptions, getApiHelmetOptions } from './httpSecurity';
 
 const isProductionRuntime = process.env.NODE_ENV === 'production';
-const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '256kb').trim() || '256kb';
+const jsonBodyLimit = String(process.env.JSON_BODY_LIMIT || '2mb').trim() || '2mb';
 
 const blockedProdRoutePatterns = [
   /^\/api\/debug(?:\/|$|-)/i,
