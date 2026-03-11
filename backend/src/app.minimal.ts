@@ -1,10 +1,13 @@
 // Diagnostic Minimal App — captures import errors on boot
 import express from 'express';
 import type { Router } from 'express';
+import { attachRawBody } from './lib/httpSecurity';
 import { logger } from './lib/logger';
 
 const app = express();
-app.use(express.json());
+const jsonBodyLimit = process.env.JSON_BODY_LIMIT || '2mb';
+app.use(express.json({ limit: jsonBodyLimit, verify: attachRawBody }));
+app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
 
 // Health Check (always available)
 app.get('/api/health', (req, res) => {

@@ -1,8 +1,34 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const mockOracleMessages = [
-  { id: 'om-1', theme: 'growth', element: 'earth', archetype: 'sage', message: 'Wisdom flows', ritual: 'Breathe', affirmation: 'I grow', active: true, created_at: new Date() },
-  { id: 'om-2', theme: 'love', element: 'water', archetype: 'healer', message: 'Love heals', ritual: 'Meditate', affirmation: 'I love', active: true, created_at: new Date() },
+  {
+    id: 'om-1',
+    theme: 'growth',
+    element: 'Terra',
+    archetype: 'sage',
+    message: 'Wisdom flows',
+    ritual: 'Breathe',
+    affirmation: 'I grow',
+    moods: ['sereno', 'SERENO'],
+    phases: ['inicio', 'crescimento'],
+    weight: 1,
+    active: true,
+    created_at: new Date(),
+  },
+  {
+    id: 'om-2',
+    theme: 'love',
+    element: 'Agua',
+    archetype: 'healer',
+    message: 'Love heals',
+    ritual: 'Meditate',
+    affirmation: 'I love',
+    moods: ['vibrante', 'VIBRANTE'],
+    phases: ['crescimento', 'integracao'],
+    weight: 1,
+    active: true,
+    created_at: new Date(),
+  },
 ];
 
 const { prismaMock, prismaReadMock } = vi.hoisted(() => ({
@@ -23,13 +49,14 @@ vi.mock('../lib/appMode', () => ({ isMockMode: () => false }));
 import { OracleService, oracleService } from '../services/oracle.service';
 
 describe('OracleService', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    prismaReadMock.oracleHistory.findMany.mockResolvedValue([]);
+  });
 
   describe('drawCard', () => {
     it('returns a card from the database', async () => {
-      prismaMock.oracleMessage.findMany.mockResolvedValue(mockOracleMessages);
-      prismaMock.oracleMessage.count.mockResolvedValue(2);
-      prismaMock.oracleHistory.findFirst.mockResolvedValue(null);
+      prismaReadMock.oracleMessage.findMany.mockResolvedValue(mockOracleMessages);
       prismaMock.oracleHistory.create.mockResolvedValue({ id: 'h-1' });
       const card = await oracleService.drawCard('user-1', {
         mood: 'SERENO',
@@ -41,9 +68,7 @@ describe('OracleService', () => {
     });
 
     it('returns fallback if DB has no messages', async () => {
-      prismaMock.oracleMessage.findMany.mockResolvedValue([]);
-      prismaMock.oracleMessage.count.mockResolvedValue(0);
-      prismaMock.oracleHistory.findFirst.mockResolvedValue(null);
+      prismaReadMock.oracleMessage.findMany.mockResolvedValue([]);
       prismaMock.oracleHistory.create.mockResolvedValue({ id: 'h-2' });
       const card = await oracleService.drawCard('user-1', {
         mood: 'VIBRANTE',

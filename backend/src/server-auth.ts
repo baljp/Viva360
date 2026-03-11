@@ -1,11 +1,11 @@
 import express from 'express';
 import cors from 'cors';
-import { buildCorsOptions } from './lib/corsConfig';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
 import profileRoutes from './routes/profile.routes';
 import { chaosMiddleware } from './lib/chaos';
+import { attachRawBody, buildCorsOptions as buildSharedCorsOptions, getApiHelmetOptions } from './lib/httpSecurity';
 import register, { httpRequestDurationMicroseconds, httpRequestErrors } from './lib/metrics';
 import { initTelemetry } from './lib/instrumentation';
 import { logger } from './lib/logger';
@@ -15,10 +15,12 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const jsonBodyLimit = process.env.JSON_BODY_LIMIT || '2mb';
 
-app.use(helmet());
-app.use(cors(buildCorsOptions()));
-app.use(express.json());
+app.use(helmet(getApiHelmetOptions()));
+app.use(cors(buildSharedCorsOptions()));
+app.use(express.json({ limit: jsonBodyLimit, verify: attachRawBody }));
+app.use(express.urlencoded({ extended: true, limit: jsonBodyLimit }));
 
 // Metrics
 app.use((req, res, next) => {
